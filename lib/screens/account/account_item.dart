@@ -1,18 +1,31 @@
+import 'package:grocery_app/screens/MySubscriptionPlan/subscription_plan_detail.dart';
+import 'package:grocery_app/screens/help/help_screen.dart';
+import 'package:grocery_app/screens/referral/referral_screen.dart';
 
 import 'package:flutter/material.dart';
+import 'package:grocery_app/screens/about/about_screen.dart';
 import 'package:grocery_app/screens/order/order_screen.dart';
+import 'package:grocery_app/screens/profile/profile_screen.dart';
 
 class AccountItem {
   final String label;
-  final String iconPath;
+  final Icon iconPath;
   final Widget screen;
-  
-  AccountItem(this.label, this.iconPath, this.screen );
+
+  AccountItem(this.label, this.iconPath, this.screen);
 }
 
 List<AccountItem> accountItems = [
-  AccountItem("Orders", "assets/icons/account_icons/orders_icon.svg" , OrderScreen()),
-  AccountItem("My Details", "assets/icons/account_icons/details_icon.svg", OrderScreen()),
-  AccountItem("Help", "assets/icons/account_icons/help_icon.svg", OrderScreen()),
-  AccountItem("About", "assets/icons/account_icons/about_icon.svg", OrderScreen()),
+  AccountItem("Orders", Icon(Icons.my_library_add), OrderScreen()),
+  AccountItem(
+    "My Subscriptions",
+    Icon(Icons.my_library_add),
+    SubscriptionScreen(),
+  ),
+
+  AccountItem("My Details", Icon(Icons.abc_sharp), ProfileScreen()),
+  AccountItem("Referral", Icon(Icons.abc_sharp), ReferAndEarnScreen()),
+
+  AccountItem("Help", Icon(Icons.abc_sharp), InquiryFormScreen()),
+  AccountItem("About", Icon(Icons.abc_sharp), AboutScreen()),
 ];

@@ -1,98 +1,77 @@
 import 'package:flutter/material.dart';
-import 'package:grocery_app/styles/colors.dart';
 
 class ItemCounterWidget extends StatefulWidget {
-  final Function? onAmountChanged;
+  final Function(int) onAmountChanged;
+  final int amount;
 
-  const ItemCounterWidget({Key? key, this.onAmountChanged}) : super(key: key);
+  const ItemCounterWidget({
+    Key? key,
+    required this.onAmountChanged,
+    required this.amount,
+  }) : super(key: key);
 
   @override
   _ItemCounterWidgetState createState() => _ItemCounterWidgetState();
 }
 
 class _ItemCounterWidgetState extends State<ItemCounterWidget> {
-  int amount = 1;
+  late int amount;
+
+  @override
+  void initState() {
+    super.initState();
+    amount = widget.amount;
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      children: [
-        iconWidget(Icons.remove,
-            iconColor: AppColors.darkGrey, onPressed: decrementAmount),
-        SizedBox(width: 18),
-        Container(
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(8),
+        color: Colors.grey.shade100,
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          IconButton(
+            icon: Icon(Icons.remove, size: 20),
+            onPressed: amount > 1 ? decrementAmount : null,
+            padding: EdgeInsets.zero,
+            constraints: BoxConstraints(minWidth: 30, minHeight: 30),
+          ),
+          Container(
             width: 30,
             child: Center(
-                child: getText(
-                    text: amount.toString(), fontSize: 12, isBold: true))),
-        SizedBox(width: 18),
-        iconWidget(Icons.add,
-            iconColor: AppColors.primaryColor, onPressed: incrementAmount)
-      ],
+              child: Text(
+                amount.toString(),
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+              ),
+            ),
+          ),
+          IconButton(
+            icon: Icon(Icons.add, size: 20),
+            onPressed: incrementAmount,
+            padding: EdgeInsets.zero,
+            constraints: BoxConstraints(minWidth: 30, minHeight: 30),
+          ),
+        ],
+      ),
     );
   }
 
   void incrementAmount() {
     setState(() {
       amount = amount + 1;
-      updateParent();
+      widget.onAmountChanged(amount);
     });
   }
 
   void decrementAmount() {
-    if (amount <= 0) return;
+    if (amount <= 1) return;
     setState(() {
       amount = amount - 1;
-      updateParent();
+      widget.onAmountChanged(amount);
     });
-  }
-
-  void updateParent() {
-    if (widget.onAmountChanged != null) {
-      widget.onAmountChanged!(amount);
-    }
-  }
-
-  Widget iconWidget(IconData iconData, {Color? iconColor, onPressed}) {
-    return GestureDetector(
-      onTap: () {
-        if (onPressed != null) {
-          onPressed();
-        }
-      },
-      child: Container(
-        height: 25,
-        width: 25,
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(17),
-          border: Border.all(
-            color: Color(0xffE2E2E2),
-          ),
-        ),
-        child: Center(
-          child: Icon(
-            iconData,
-            color: iconColor ?? Colors.black,
-            size: 25,
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget getText({
-    required String text,
-    required double fontSize,
-    bool isBold = false,
-    color = Colors.black,
-  }) {
-    return Text(
-      text,
-      style: TextStyle(
-        fontSize: fontSize,
-        fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
-        color: color,
-      ),
-    );
   }
 }

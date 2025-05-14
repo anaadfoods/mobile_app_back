@@ -1,90 +1,214 @@
 import 'package:flutter/material.dart';
 
-class SubscriptionTable extends StatelessWidget {
+class SubscriptionTable extends StatefulWidget {
+  @override
+  State<SubscriptionTable> createState() => _SubscriptionTableState();
+}
+
+class _SubscriptionTableState extends State<SubscriptionTable> {
+  double _scale = 1.0;
+  final double _minScale = 0.8;
+  final double _maxScale = 1.5;
+
+  // Sample data structure - This would come from your backend
+  final List<Map<String, dynamic>> tableData = [
+    {
+      'rowName': 'Duration',
+      'aarambh': '1 month',
+      'pathik': '3 months',
+      'tapasvi': '6 months',
+      'siddh': '12 months',
+    },
+    {
+      'rowName': 'Pricing',
+      'aarambh': 'For 15 days',
+      'pathik': '15% + 8% off',
+      'tapasvi': '15% + 12% off',
+      'siddh': '15% + 18% off',
+    },
+    {
+      'rowName': 'Tagline',
+      'aarambh': 'Try Before Trust',
+      'pathik': 'Gut Cleanse',
+      'tapasvi': 'Clean Habits',
+      'siddh': 'Max Savings, Max Healing',
+    },
+  ];
+
+  // Sample eligible products - This would come from your backend
+  final Map<String, List<String>> eligibleProducts = {
+    'aarambh': ['Organic Fruits', 'Fresh Vegetables', 'Mixed Basket'],
+    'pathik': [
+      'Organic Fruits',
+      'Fresh Vegetables',
+      'Mixed Basket',
+      'Seasonal Fruits',
+    ],
+    'tapasvi': [
+      'Organic Fruits',
+      'Fresh Vegetables',
+      'Mixed Basket',
+      'Seasonal Fruits',
+      'Organic Greens',
+    ],
+    'siddh': [
+      'Organic Fruits',
+      'Fresh Vegetables',
+      'Mixed Basket',
+      'Seasonal Fruits',
+      'Organic Greens',
+      'Exotic Fruits',
+      'Local Produce',
+    ],
+  };
+
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: Card(
-        elevation: 6,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        margin: const EdgeInsets.all(8),
-        child: Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Table(
-            defaultVerticalAlignment: TableCellVerticalAlignment.middle,
-            border: TableBorder(
-              horizontalInside: BorderSide(color: Colors.grey.shade300),
-            ),
-            columnWidths: const {
-              0: FixedColumnWidth(80),
-              1: FixedColumnWidth(100),
-              2: FixedColumnWidth(100),
-              3: FixedColumnWidth(130),
-              4: FixedColumnWidth(180),
-              5: FixedColumnWidth(50),
-            },
+    return Column(
+      children: [
+        // Zoom controls
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.end,
             children: [
-              _buildTableRow("Active","Plan", "Duration", "Pricing", "Tagline",
-                  Icon(Icons.link, color: Colors.white),
-                  isHeader: true),
-              _buildTableRow( "No","AARAMBH", "1 month", "For 15 days",
-                  "Try Before Trust", Icon(Icons.link, color: Colors.green)),
-              _buildTableRow("No","PATHIK", "3 months", "15% + 8% off", "Gut Cleanse",
-                  Icon(Icons.link, color: Colors.green)),
-              _buildTableRow("No","TAPASVI", "6 months", "15% + 12% off",
-                  "Clean Habits", Icon(Icons.link, color: Colors.green)),
-              _buildTableRow("No","SIDDH", "12 months", "15% + 18% off",
-                  "Max Savings, Max Healing", Icon(Icons.link, color: Colors.green)),
+              IconButton(
+                icon: Icon(Icons.zoom_out),
+                onPressed: () {
+                  setState(() {
+                    _scale = (_scale - 0.1).clamp(_minScale, _maxScale);
+                  });
+                },
+              ),
+              IconButton(
+                icon: Icon(Icons.zoom_in),
+                onPressed: () {
+                  setState(() {
+                    _scale = (_scale + 0.1).clamp(_minScale, _maxScale);
+                  });
+                },
+              ),
             ],
           ),
         ),
-      ),
-    );
-  }
-
-  TableRow _buildTableRow(
-    String col6,
-    String col1,
-    String col2,
-    String col3,
-    String col4,
-    Icon col5, {
-    bool isHeader = false,
-  }) {
-    final textStyle = TextStyle(
-      fontWeight: isHeader ? FontWeight.bold : FontWeight.normal,
-      fontSize: isHeader ? 16 : 14,
-      color: isHeader ? Colors.white : Colors.black87,
-    );
-
-    return TableRow(
-      decoration: BoxDecoration(
-        color: isHeader ? const Color(0xFF4CAF50) : Colors.transparent,
-      ),
-      children: [
-        _buildCell(col6, textStyle),
-        _buildCell(col1, textStyle),
-        _buildCell(col2, textStyle),
-        _buildCell(col3, textStyle),
-        _buildCell(col4, textStyle),
-        Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Center(child: col5),
+        // Table
+        Transform.scale(
+          scale: _scale,
+          child: Container(
+            margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.grey.withOpacity(0.1),
+                  spreadRadius: 1,
+                  blurRadius: 10,
+                  offset: Offset(0, 2),
+                ),
+              ],
+            ),
+            child: Table(
+              border: TableBorder.all(color: Colors.grey.shade300, width: 1),
+              columnWidths: {
+                0: FlexColumnWidth(2),
+                1: FlexColumnWidth(2),
+                2: FlexColumnWidth(2),
+                3: FlexColumnWidth(2),
+                4: FlexColumnWidth(2),
+              },
+              children: [
+                // Header row
+                TableRow(
+                  decoration: BoxDecoration(
+                    color: Colors.blueAccent.withOpacity(0.1),
+                  ),
+                  children: [
+                    _buildHeaderCell('AARAMBH'),
+                    _buildHeaderCell('PATHIK'),
+                    _buildHeaderCell('TAPASVI'),
+                    _buildHeaderCell('SIDDH'),
+                  ],
+                ),
+                // Data rows
+                ...tableData.map(
+                  (row) => TableRow(
+                    children: [
+                      _buildDataCell(row['aarambh']),
+                      _buildDataCell(row['pathik']),
+                      _buildDataCell(row['tapasvi']),
+                      _buildDataCell(row['siddh']),
+                    ],
+                  ),
+                ),
+                // Products dropdown row
+                TableRow(
+                  children: [
+                    _buildProductDropdownCell('aarambh'),
+                    _buildProductDropdownCell('pathik'),
+                    _buildProductDropdownCell('tapasvi'),
+                    _buildProductDropdownCell('siddh'),
+                  ],
+                ),
+              ],
+            ),
+          ),
         ),
       ],
     );
   }
 
-  Widget _buildCell(String text, TextStyle style) {
-    return Padding(
-      padding: const EdgeInsets.all(8.0),
+  Widget _buildHeaderCell(String text) {
+    return Container(
+      padding: EdgeInsets.symmetric(vertical: 16, horizontal: 8),
       child: Text(
         text,
-        style: style,
+        style: TextStyle(
+          fontWeight: FontWeight.bold,
+          color: Colors.blueAccent,
+          fontSize: 16,
+        ),
         textAlign: TextAlign.center,
-        softWrap: false,
-        overflow: TextOverflow.ellipsis,
+      ),
+    );
+  }
+
+  Widget _buildDataCell(String text) {
+    return Container(
+      padding: EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+      child: Text(
+        text,
+        style: TextStyle(fontSize: 14),
+        textAlign: TextAlign.center,
+      ),
+    );
+  }
+
+  Widget _buildProductDropdownCell(String plan) {
+    return Container(
+      padding: EdgeInsets.symmetric(vertical: 8, horizontal: 8),
+      child: Container(
+        padding: EdgeInsets.symmetric(horizontal: 8),
+        decoration: BoxDecoration(
+          border: Border.all(color: Colors.grey.shade300),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: DropdownButton<String>(
+          isExpanded: true,
+          underline: SizedBox(),
+          hint: Text('Select Product'),
+          items:
+              eligibleProducts[plan]?.map((String product) {
+                return DropdownMenuItem<String>(
+                  value: product,
+                  child: Text(product, style: TextStyle(fontSize: 14)),
+                );
+              }).toList(),
+          onChanged: (String? newValue) {
+            // Handle product selection
+            print('Selected $newValue for $plan');
+          },
+        ),
       ),
     );
   }

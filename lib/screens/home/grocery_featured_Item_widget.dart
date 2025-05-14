@@ -5,18 +5,29 @@ import 'package:grocery_app/styles/colors.dart';
 class GroceryFeaturedItem {
   final String name;
   final String imagePath;
+  final String description;
 
-  GroceryFeaturedItem(this.name, this.imagePath);
+  GroceryFeaturedItem(this.name, this.imagePath, this.description);
 }
 
 var groceryFeaturedItems = [
-  GroceryFeaturedItem("Farmer Cummunity", "assets/images/pulses.png"),
-  GroceryFeaturedItem("Consumer Cummunity", "assets/images/rise.png"),
+  GroceryFeaturedItem(
+    "Grinity",
+    "assets/images/grocery_images/apple.png",
+    "Grahak community",
+  ),
+  GroceryFeaturedItem(
+    "Krinity",
+    "assets/images/grocery_images/apple.png",
+    "Krishi community",
+  ),
 ];
 
 class GroceryFeaturedCard extends StatelessWidget {
-  const GroceryFeaturedCard(this.groceryFeaturedItem,
-      {this.color = AppColors.primaryColor});
+  const GroceryFeaturedCard(
+    this.groceryFeaturedItem, {
+    this.color = AppColors.primaryColor,
+  });
 
   final GroceryFeaturedItem groceryFeaturedItem;
   final Color color;
@@ -28,25 +39,22 @@ class GroceryFeaturedCard extends StatelessWidget {
         height: 100,
         padding: EdgeInsets.symmetric(vertical: 16, horizontal: 8),
         decoration: BoxDecoration(
-            color: color.withAlpha(100),
-            borderRadius: BorderRadius.circular(18),
-            border: Border.all(
-              color: color,
-            ),),
-            
+          color: color.withAlpha(100),
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(color: color),
+        ),
+
         child: Row(
           children: [
             // Image(
             //   image: AssetImage(groceryFeaturedItem.imagePath),
             // ),
-            SizedBox(
-              width: 8,
-            ),
+            SizedBox(width: 8),
             AppText(
               text: groceryFeaturedItem.name,
               fontSize: 20,
               fontWeight: FontWeight.w600,
-            )
+            ),
           ],
         ),
       ),

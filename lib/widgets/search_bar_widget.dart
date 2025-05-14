@@ -3,6 +3,10 @@ import 'package:flutter_svg/svg.dart';
 
 class SearchBarWidget extends StatelessWidget {
   final String searchIcon = "assets/icons/search_icon.svg";
+  final String hintText;
+  final Function(String) onChanged;
+
+  SearchBarWidget({required this.hintText, required this.onChanged});
 
   @override
   Widget build(BuildContext context) {
@@ -14,21 +18,29 @@ class SearchBarWidget extends StatelessWidget {
         borderRadius: BorderRadius.circular(20),
       ),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.start,
         children: [
-          SvgPicture.asset(
-            searchIcon,
-          ),
-          SizedBox(
-            width: 8,
-          ),
-          Text(
-            "Search Store",
-            style: TextStyle(
+          SvgPicture.asset(searchIcon),
+          SizedBox(width: 8),
+          Expanded(
+            child: TextField(
+              onChanged: onChanged,
+              decoration: InputDecoration(
+                hintText: hintText,
+                border: InputBorder.none,
+                isDense: true,
+                hintStyle: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF7C7C7C),
+                ),
+              ),
+              style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
-                color: Color(0xFF7C7C7C)),
-          )
+                color: Color(0xFF7C7C7C),
+              ),
+            ),
+          ),
         ],
       ),
     );

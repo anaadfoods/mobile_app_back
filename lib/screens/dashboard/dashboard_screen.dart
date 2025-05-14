@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:grocery_app/styles/colors.dart';
-
 import 'navigator_item.dart';
+// import 'package:grocery_app/screens/auth/login_screen.dart';
+// import 'package:grocery_app/services/auth_service.dart';
 
 class DashboardScreen extends StatefulWidget {
   @override
@@ -24,10 +25,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
           ),
           boxShadow: [
             BoxShadow(
-                color: Colors.black38.withOpacity(0.1),
-                spreadRadius: 0,
-                blurRadius: 37,
-                offset: Offset(0, -12)),
+              color: Colors.black38.withOpacity(0.1),
+              spreadRadius: 0,
+              blurRadius: 37,
+              offset: Offset(0, -12),
+            ),
           ],
         ),
         child: ClipRRect(
@@ -48,26 +50,30 @@ class _DashboardScreenState extends State<DashboardScreen> {
             selectedLabelStyle: TextStyle(fontWeight: FontWeight.w600),
             unselectedLabelStyle: TextStyle(fontWeight: FontWeight.w600),
             unselectedItemColor: Colors.black,
-            items: navigatorItems.map((e) {
-              return getNavigationBarItem(
-                  label: e.label, index: e.index, iconPath: e.iconPath);
-            }).toList(),
+            items:
+                navigatorItems.map((e) {
+                  return getNavigationBarItem(
+                    label: e.label,
+                    index: e.index,
+                    iconPath: e.iconPath,
+                  );
+                }).toList(),
           ),
         ),
       ),
     );
   }
 
-  BottomNavigationBarItem getNavigationBarItem(
-      {required String label, required String iconPath, required int index}) {
+  BottomNavigationBarItem getNavigationBarItem({
+    required String label,
+    required String iconPath,
+    required int index,
+  }) {
     Color iconColor =
         index == currentIndex ? AppColors.primaryColor : Colors.black;
     return BottomNavigationBarItem(
       label: label,
-      icon: SvgPicture.asset(
-        iconPath,
-        color: iconColor,
-      ),
+      icon: SvgPicture.asset(iconPath, color: iconColor),
     );
   }
 }

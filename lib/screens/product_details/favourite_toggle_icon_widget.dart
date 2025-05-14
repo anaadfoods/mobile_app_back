@@ -1,6 +1,11 @@
 import 'package:flutter/material.dart';
 
 class FavoriteToggleIcon extends StatefulWidget {
+  final bool favorite;
+  final Function onToggle;
+
+  FavoriteToggleIcon({required this.favorite, required this.onToggle});
+
   @override
   _FavoriteToggleIconState createState() => _FavoriteToggleIconState();
 }
@@ -15,6 +20,8 @@ class _FavoriteToggleIconState extends State<FavoriteToggleIcon> {
         setState(() {
           favorite = !favorite;
         });
+        widget.onToggle();
+
       },
       child: Icon(
         favorite ? Icons.favorite : Icons.favorite_border,

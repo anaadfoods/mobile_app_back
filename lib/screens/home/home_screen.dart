@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:grocery_app/models/grocery_item.dart';
+import 'package:grocery_app/models/product_model.dart';
+import 'package:grocery_app/screens/category_items_screen.dart';
+import 'package:grocery_app/screens/comingSoonPage/customer_support.dart';
+import 'package:grocery_app/screens/comingSoonPage/farmer_support.dart';
 import 'package:grocery_app/screens/explore_screen.dart';
-import 'package:grocery_app/screens/auth/login_screen.dart';
 import 'package:grocery_app/screens/home/home_video.dart';
+import 'package:grocery_app/services/product_service.dart';
 import 'package:grocery_app/screens/product_details/product_details_screen.dart';
 import 'package:grocery_app/styles/colors.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -11,17 +14,149 @@ import 'package:grocery_app/widgets/subscription_card.dart';
 import 'package:grocery_app/widgets/subscription_table.dart';
 import 'grocery_featured_Item_widget.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
   @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
 
+class _HomeScreenState extends State<HomeScreen> {
+  List<Product> _featuredProducts = [];
+  bool _isLoading = true;
+  String? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadFeaturedProducts();
+  }
+
+  Future<void> _loadFeaturedProducts() async {
+    try {
+      final products = await CategoryService.fetchFeaturedProducts();
+      if (mounted) {
+        setState(() {
+          _featuredProducts = products;
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _error = e.toString();
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
+  Widget _buildFeaturedProducts() {
+    if (_isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    if (_error != null) {
+      return Center(child: Text(_error!));
+    }
+
+    if (_featuredProducts.isEmpty) {
+      return const Center(child: Text('No featured products available'));
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            const Text(
+              "Featured Products",
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 28),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => CategoryItemsScreen(name: "Featured Products", allProducts: _featuredProducts),
+                  ),
+                );
+              },
+              child: const Text('See All'),
+            ),
+          ],
+        ),
+        SizedBox(
+          height: 250,
+          child: getHorizontalItemSlider(_featuredProducts)
+          // child: ListView.builder(
+          //   scrollDirection: Axis.horizontal,
+          //   itemCount: 2,
+          //   itemBuilder: (context, index) {
+          //     final product = _featuredProducts[index];
+          //     return Container(
+          //       width: 200,
+          //       margin: const EdgeInsets.only(right: 16),
+          //       child: Card(
+          //         elevation: 4,
+          //         child: Column(
+          //           crossAxisAlignment: CrossAxisAlignment.start,
+          //           children: [
+          //             Expanded(
+          //               child: Container(
+          //                 decoration: BoxDecoration(
+          //                   borderRadius: const BorderRadius.vertical(
+          //                     top: Radius.circular(4),
+          //                   ),
+          //                   image: DecorationImage(
+          //                     image: NetworkImage(product.productImages[0].image),
+          //                     fit: BoxFit.cover,
+          //                   ),
+          //                 ),
+          //               ),
+          //             ),
+          //             Padding(
+          //               padding: const EdgeInsets.all(8.0),
+          //               child: Column(
+          //                 crossAxisAlignment: CrossAxisAlignment.start,
+          //                 children: [
+          //                   Text(
+          //                     product.productName,
+          //                     style: const TextStyle(
+          //                       fontWeight: FontWeight.bold,
+          //                       fontSize: 16,
+          //                     ),
+          //                     maxLines: 1,
+          //                     overflow: TextOverflow.ellipsis,
+          //                   ),
+          //                   const SizedBox(height: 4),
+          //                   Text(
+          //                     '\$${product.price.toStringAsFixed(2)}',
+          //                     style: TextStyle(
+          //                       color: Theme.of(context).primaryColor,
+          //                       fontWeight: FontWeight.bold,
+          //                     ),
+          //                   ),
+          //                 ],
+          //               ),
+          //             ),
+          //           ],
+          //         ),
+          //       ),
+          //     );
+          //   },
+          // ),
+        ),
+      ],
+    );
+  }
+
+  @override
   Widget build(BuildContext context) {
-
     return Scaffold(
       appBar: AppBar(
-        leading: IconButton(icon: Icon(Icons.logo_dev), onPressed: () {}),
-        title: Text(
+        title: const Text(
           "AnaadFoods",
           style: TextStyle(
             fontSize: 24,
@@ -29,69 +164,159 @@ class HomeScreen extends StatelessWidget {
             fontWeight: FontWeight.bold,
           ),
         ),
-        actions: [
-          IconButton(
-            icon: Icon(Icons.login),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => LoginScreen()),
-              );
-            },
-          ),
-        ],
       ),
       body: SafeArea(
         child: SingleChildScrollView(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
-            spacing: 6,
             children: [
-              // padded(SearchBarWidget()),
-              padded(AssetVideoPlayer()),
-              padded(Text("Subscription Plans", style: TextStyle(fontWeight: FontWeight.bold , fontSize: 28),)),
-              SubscriptionTable(),
-              padded(Text("Active Subscription", style: TextStyle(fontWeight: FontWeight.bold , fontSize: 28),)),
-
-              padded(SubscriptionCard()),
-
-              padded(subTitle(context, "Exclusive Order")),
-              getHorizontalItemSlider(exclusiveOffers),
-
-              padded(subTitle(context, "Best Selling")),
-              getHorizontalItemSlider(bestSelling),
-
-              padded(subTitle(context, "Coming Soon")),
-
-              SizedBox(
-                height: 105,
-                child: ListView(
-                  padding: EdgeInsets.zero,
-                  scrollDirection: Axis.horizontal,
-                  children: [
-                    SizedBox(width: 20),
-                    GroceryFeaturedCard(
-                      groceryFeaturedItems[0],
-                      color: Color(0xffF8A44C),
-                    ),
-                    SizedBox(width: 10),
-                    GroceryFeaturedCard(
-                      groceryFeaturedItems[1],
-                      color: AppColors.primaryColor,
-                    ),
-                    SizedBox(width: 20),
-                  ],
+              padded(const AssetVideoPlayer()),
+              padded(
+                const Text(
+                  "Active Subscription",
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 28),
                 ),
               ),
-              // SizedBox(
-              //   height: 15,
-              // ),
-              // // getHorizontalItemSlider(groceries),
-              // SizedBox(
-              //   height: 15,
-              // ),
+              padded(SubscriptionCarousel()),
+              padded(
+                const Text(
+                  "Subscription Plans",
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 28),
+                ),
+              ),
+              SubscriptionTable(),
+              // padded(getHorizontalItemSlider(_featuredProducts)),
+              padded(_buildFeaturedProducts()),
+              padded(subTitle(context, "Coming Soon", show: false)),
+              comingSoon(context),
+              const SizedBox(height: 15),
             ],
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget comingSoon(BuildContext context) {
+    return SizedBox(
+      height: 130,
+      child: ListView(
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        scrollDirection: Axis.horizontal,
+        children: [
+          _buildComingSoonCard(
+            context,
+            title: groceryFeaturedItems[0].name,
+            subtitle: groceryFeaturedItems[0].description,
+
+            imagePath: "assets/images/grocery_images/banana.png",
+            color: const Color(0xffF8A44C),
+            onTap:
+                () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const FarmerSupport(),
+                  ),
+                ),
+          ),
+          const SizedBox(width: 16),
+          _buildComingSoonCard(
+            context,
+            title: groceryFeaturedItems[1].name,
+            subtitle:
+                groceryFeaturedItems[1].description,
+
+            imagePath: "assets/images/grocery_images/apple.png",
+            color: const Color(0xffF78B42),
+            onTap:
+                () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const CustomerSupport(),
+                  ),
+                ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildComingSoonCard(
+    BuildContext context, {
+    required String title,
+    required String subtitle,
+    required String imagePath,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(16),
+      child: Container(
+        width: MediaQuery.of(context).size.width * 0.85,
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.grey.withOpacity(0.3),
+              blurRadius: 8,
+              offset: const Offset(2, 4),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: Image.asset(
+                    imagePath,
+                    width: 70,
+                    height: 70,
+                    fit: BoxFit.cover,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        title,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        subtitle,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          color: Colors.black54,
+                          fontSize: 13,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Text(
+              "We promise purity, nutrition, and trust — so your family eats clean.",
+              style: const TextStyle(
+                fontSize: 12,
+                color: Colors.black87,
+                height: 1.4,
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -104,7 +329,7 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  Widget getHorizontalItemSlider(List<GroceryItem> items) {
+  Widget getHorizontalItemSlider(List<Product> items) {
     return Container(
       margin: EdgeInsets.symmetric(vertical: 10),
       height: 250,
@@ -130,38 +355,38 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  void onItemClicked(BuildContext context, GroceryItem groceryItem) {
+  void onItemClicked(BuildContext context, Product item) {
     Navigator.push(
       context,
       MaterialPageRoute(
         builder:
-            (context) =>
-                ProductDetailsScreen(groceryItem, heroSuffix: "home_screen"),
+            (context) => ProductDetailsScreen(product:item, heroSuffix: "home_screen"),
       ),
     );
   }
 
-  Widget subTitle(BuildContext context, String text) {
+  Widget subTitle(BuildContext context, String text, {show = true}) {
     return Row(
       children: [
         Text(text, style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
         Spacer(),
-        GestureDetector(
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => ExploreScreen()),
-            );
-          },
-          child: Text(
-            "See All",
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: AppColors.primaryColor,
+        if (show)
+          GestureDetector(
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => ExploreScreen()),
+              );
+            },
+            child: Text(
+              "See All",
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: AppColors.primaryColor,
+              ),
             ),
           ),
-        ),
       ],
     );
   }

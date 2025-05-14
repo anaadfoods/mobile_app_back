@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:grocery_app/models/category_item.dart';
+import 'package:grocery_app/models/category_model.dart';
 
 class CategoryItemCardWidget extends StatelessWidget {
   CategoryItemCardWidget({
@@ -8,7 +9,7 @@ class CategoryItemCardWidget extends StatelessWidget {
     this.color = Colors.blue,
   });
 
-  final CategoryItem item;
+  final Category item;
   final double height = 120.0;
   final double width = 140.0;
   final Color color;
@@ -58,7 +59,7 @@ class CategoryItemCardWidget extends StatelessWidget {
 
   Widget imageWidget() {
     return Image.asset(
-      item.imagePath,
+      item.image,
       fit: BoxFit.contain,
     );
   }

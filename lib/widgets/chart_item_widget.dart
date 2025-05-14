@@ -1,114 +1,111 @@
 import 'package:flutter/material.dart';
 import 'package:grocery_app/common_widgets/app_text.dart';
-import 'package:grocery_app/models/grocery_item.dart';
+import 'package:grocery_app/models/cart_model.dart';
 import 'package:grocery_app/styles/colors.dart';
-
-import 'item_counter_widget.dart';
+import 'package:grocery_app/widgets/item_counter_widget.dart';
 
 class ChartItemWidget extends StatefulWidget {
-  ChartItemWidget({Key? key, required this.item}) : super(key: key);
-  final GroceryItem item;
+  final CartItem item;
+  final Function(int) onQuantityChanged;
+  final VoidCallback onRemove;
+
+  const ChartItemWidget({
+    Key? key,
+    required this.item,
+    required this.onQuantityChanged,
+    required this.onRemove,
+  }) : super(key: key);
 
   @override
   _ChartItemWidgetState createState() => _ChartItemWidgetState();
 }
 
 class _ChartItemWidgetState extends State<ChartItemWidget> {
-  final double height = 140;
-
-  final Color borderColor = Color(0xffE2E2E2);
-
-  final double borderRadius = 18;
-
-  int amount = 1;
-
   @override
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        
-        border: Border.all(
-          color: borderColor,
-        ),
-        borderRadius: BorderRadius.circular(
-          borderRadius,
-        ),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.grey.shade200),
       ),
-      height: height,
-      padding: EdgeInsets.symmetric(vertical: 10),
-      margin: EdgeInsets.symmetric(
-        vertical: 2,
-      ),
-      child: IntrinsicHeight(
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            imageWidget(),
-            Column(
+      padding: EdgeInsets.all(16),
+      child: Row(
+        children: [
+          Container(
+            height: 70,
+            width: 70,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(12),
+              color: Color(0xFFF2F2F2),
+            ),
+            child:
+                widget.item.productVariant.productImages.isNotEmpty
+                    ? ClipRRect(
+                      borderRadius: BorderRadius.circular(12),
+                      child: Image.network(
+                        widget.item.productVariant.productImages.first.image,
+                        fit: BoxFit.cover,
+                        errorBuilder:
+                            (context, error, stackTrace) => Icon(
+                              Icons.image_not_supported,
+                              color: Colors.grey,
+                            ),
+                      ),
+                    )
+                    : Icon(Icons.shopping_bag_outlined, color: Colors.grey),
+          ),
+          SizedBox(width: 16),
+          Expanded(
+            child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 AppText(
-                  text: widget.item.name,
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
+                  text: widget.item.productVariant.productName,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
                 ),
-                SizedBox(
-                  height: 3,
-                ),
-                AppText(
-                    text: widget.item.description,
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.darkGrey),
-                SizedBox(
-                  height: 12,
-                ),
-                Spacer(),
-                ItemCounterWidget(
-                  onAmountChanged: (newAmount) {
-                    setState(() {
-                      amount = newAmount;
-                    });
-                  },
-                )
-              ],
-            ),
-            Column(
-              children: [
-                Icon(
-                  Icons.close,
-                  color: AppColors.darkGrey,
-                  size: 25,
-                ),
-                Spacer(
-                  flex: 5,
-                ),
-                Container(
-                  width: 70,
-                  child: AppText(
-                    text: "\$${getPrice().toStringAsFixed(2)}",
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    textAlign: TextAlign.right,
+                SizedBox(height: 4),
+                RichText(
+                  text: TextSpan(
+                    children: [
+                      TextSpan(
+                        text: '${widget.item.productVariant.weight}',
+                        style: TextStyle(color: Colors.black, fontSize: 14),
+                      ),
+                      TextSpan(
+                        text: ' ${widget.item.productVariant.weightUnit}',
+                        style: TextStyle(color: Colors.grey, fontSize: 14),
+                      ),
+                    ],
                   ),
                 ),
+                SizedBox(height: 8),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Rs.${widget.item.productVariant.finalPrice}',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF7C7C7C),
+                      ),
+                    ),
+                    ItemCounterWidget(
+                      onAmountChanged: widget.onQuantityChanged,
+                      amount: widget.item.quantity,
+                    ),
+                  ],
+                ),
               ],
-            )
-          ],
-        ),
+            ),
+          ),
+          IconButton(
+            icon: Icon(Icons.close, color: Colors.grey),
+            onPressed: widget.onRemove,
+          ),
+        ],
       ),
     );
-  }
-
-  Widget imageWidget() {
-    return Container(
-      width: 100,
-      child: Image.asset(widget.item.imagePath),
-    );
-  }
-
-  double getPrice() {
-    return widget.item.price * amount;
   }
 }
