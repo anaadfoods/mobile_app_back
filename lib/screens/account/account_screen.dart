@@ -47,7 +47,7 @@ class AccountScreen extends StatelessWidget {
                   radius: 32,
                   backgroundColor: AppColors.primaryColor.withOpacity(0.1),
                   child: Text(
-                    user?.firstName?.substring(0, 1).toUpperCase() ?? "U",
+                     "U",
                     style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                   ),
                 ),

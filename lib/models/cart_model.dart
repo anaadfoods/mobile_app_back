@@ -1,11 +1,12 @@
 import 'dart:convert';
 import 'package:grocery_app/models/product_model.dart';
+import 'package:grocery_app/models/product_image_model.dart';
 
 class CartItem {
   final int id;
   final ProductVariant productVariant;
   int quantity;
-  final double totalPrice;
+  final String totalPrice;
   final DateTime createdAt;
   final DateTime updatedAt;
 
@@ -23,7 +24,7 @@ class CartItem {
       id: json['id'],
       productVariant: ProductVariant.fromJson(json['product_variant']),
       quantity: json['quantity'],
-      totalPrice: double.parse(json['total_price'].toString()),
+      totalPrice: json['total_price'].toString(),
       createdAt: DateTime.parse(json['created_at']),
       updatedAt: DateTime.parse(json['updated_at']),
     );
@@ -34,7 +35,7 @@ class CartItem {
       'id': id,
       'product_variant': productVariant.toJson(),
       'quantity': quantity,
-      'total_price': totalPrice.toString(),
+      'total_price': totalPrice,
       'created_at': createdAt.toIso8601String(),
       'updated_at': updatedAt.toIso8601String(),
     };
@@ -45,7 +46,7 @@ class CartModel {
   final int id;
   final List<CartItem> items;
   final String totalPrice;
-  final int totalItems;
+  int totalItems;
   final DateTime createdAt;
   final DateTime updatedAt;
 
@@ -59,19 +60,25 @@ class CartModel {
   });
 
   factory CartModel.fromJson(Map<String, dynamic> json) {
-    // Handle the case where the response is wrapped in a status object
-    final cartData = json['data'] as Map<String, dynamic>? ?? json;
+    // Handle nested response structure
+    var data = json;
+    if (json.containsKey('status') && json['status'] == 'success') {
+      data = json['data'];
+      if (data.containsKey('status') && data['status'] == 'success') {
+        data = data['data'];
+      }
+    }
 
     return CartModel(
-      id: cartData['id'],
+      id: data['id'],
       items:
-          (cartData['items'] as List)
+          (data['items'] as List)
               .map((item) => CartItem.fromJson(item))
               .toList(),
-      totalPrice: cartData['total_price'].toString(),
-      totalItems: cartData['total_items'],
-      createdAt: DateTime.parse(cartData['created_at']),
-      updatedAt: DateTime.parse(cartData['updated_at']),
+      totalPrice: data['total_price'].toString(),
+      totalItems: data['total_items'],
+      createdAt: DateTime.parse(data['created_at']),
+      updatedAt: DateTime.parse(data['updated_at']),
     );
   }
 
@@ -157,20 +164,5 @@ class ProductVariant {
       'product_category': productCategory,
       'product_images': productImages.map((image) => image.toJson()).toList(),
     };
-  }
-}
-
-class ProductImage {
-  final String image;
-  final String altText;
-
-  ProductImage({required this.image, required this.altText});
-
-  factory ProductImage.fromJson(Map<String, dynamic> json) {
-    return ProductImage(image: json['image'], altText: json['alt_text']);
-  }
-
-  Map<String, dynamic> toJson() {
-    return {'image': image, 'alt_text': altText};
   }
 }

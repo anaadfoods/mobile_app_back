@@ -1,16 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:grocery_app/common_widgets/app_button.dart';
-import 'package:grocery_app/helpers/column_with_seprator.dart';
 import 'package:grocery_app/models/cart_model.dart';
+import 'package:grocery_app/screens/checkout/checkout_screen.dart';
 import 'package:grocery_app/services/cart_service.dart';
 import 'package:grocery_app/widgets/chart_item_widget.dart';
-import 'checkout_bottom_sheet.dart';
 
 class CartScreen extends StatefulWidget {
-  const CartScreen({Key? key}) : super(key: key);
-
   @override
-  State<CartScreen> createState() => _CartScreenState();
+  _CartScreenState createState() => _CartScreenState();
 }
 
 class _CartScreenState extends State<CartScreen> {
@@ -26,203 +23,279 @@ class _CartScreenState extends State<CartScreen> {
   }
 
   Future<void> _loadCart() async {
-    try {
-      setState(() {
-        _isLoading = true;
-        _error = null;
-      });
+    if (!mounted) return;
 
+    setState(() {
+      _isLoading = true;
+      _error = null;
+    });
+
+    try {
       final cart = await _cartService.getCart();
-      if (mounted) {
-        setState(() {
-          _cart = cart;
-          _isLoading = false;
-        });
-      }
+      if (!mounted) return;
+
+      setState(() {
+        _cart = cart;
+        _isLoading = false;
+      });
     } catch (e) {
-      if (mounted) {
-        setState(() {
-          _error = e.toString();
-          _isLoading = false;
-        });
-      }
+      if (!mounted) return;
+
+      setState(() {
+        _error = e.toString();
+        _isLoading = false;
+      });
     }
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: AppBar(
-        title: Text(
-          "My Cart",
-          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
-        ),
-        centerTitle: true,
-        elevation: 0,
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black,
+  Widget _buildEmptyState() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.shopping_cart_outlined, size: 86, color: Colors.grey[400]),
+          SizedBox(height: 16),
+          Text(
+            'Your cart is empty',
+            style: TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.w600,
+              color: Colors.grey[700],
+            ),
+          ),
+          SizedBox(height: 8),
+          Text(
+            'Add items to start shopping',
+            style: TextStyle(fontSize: 16, color: Colors.grey[600]),
+          ),
+          SizedBox(height: 24),
+          // ElevatedButton(
+          //   onPressed: () => Navigator.pop(context),
+          //   style: ElevatedButton.styleFrom(
+          //     backgroundColor: Colors.green,
+          //     padding: EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+          //     shape: RoundedRectangleBorder(
+          //       borderRadius: BorderRadius.circular(12),
+          //     ),
+          //   ),
+          //   child: Text('Start Shopping', style: TextStyle(fontSize: 16)),
+          // ),
+        ],
       ),
-      body: SafeArea(child: _buildBody()),
     );
   }
 
-
-
-
-  Widget _buildBody() {
-    if (_isLoading) {
-      return Center(child: CircularProgressIndicator());
-    }
-
-    if (_error != null) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              'Error loading cart: $_error',
-              textAlign: TextAlign.center,
-              style: TextStyle(color: Colors.red),
+  Widget _buildErrorState() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.error_outline, size: 64, color: Colors.red[400]),
+          SizedBox(height: 16),
+          Text(
+            'Oops! Something went wrong',
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.w600,
+              color: Colors.grey[800],
             ),
-            SizedBox(height: 16),
-            ElevatedButton(onPressed: _loadCart, child: Text('Retry')),
-          ],
-        ),
-      );
-    }
-
-    if (_cart == null || _cart!.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.shopping_cart_outlined, size: 64, color: Colors.grey),
-            SizedBox(height: 16),
-            Text(
-              'Your cart is empty',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
+          ),
+          SizedBox(height: 8),
+          Text(
+            _error ?? 'Failed to load cart',
+            style: TextStyle(fontSize: 16, color: Colors.grey[600]),
+            textAlign: TextAlign.center,
+          ),
+          SizedBox(height: 24),
+          ElevatedButton(
+            onPressed: _loadCart,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Theme.of(context).primaryColor,
+              padding: EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
             ),
-            SizedBox(height: 8),
-            Text(
-              'Add items to start shopping',
-              style: TextStyle(color: Colors.grey),
-            ),
-          ],
-        ),
-      );
-    }
+            child: Text('Try Again', style: TextStyle(fontSize: 16)),
+          ),
+        ],
+      ),
+    );
+  }
 
+  Widget _buildCartList() {
     return Column(
       children: [
         Expanded(
           child: RefreshIndicator(
             onRefresh: _loadCart,
             child: SingleChildScrollView(
-              padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
               physics: AlwaysScrollableScrollPhysics(),
+              padding: EdgeInsets.symmetric(horizontal: 10, vertical: 6),
               child: Column(
-                children: getChildrenWithSeperator(
-                  addToLastChild: false,
-                  widgets:
-                      _cart!.items.map((item) {
-                        return ChartItemWidget(
+                children: [
+                  ..._cart!.items.map((item) {
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 12),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(16),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.05),
+                              blurRadius: 10,
+                              offset: Offset(0, 4),
+                            ),
+                          ],
+                        ),
+                        child: ChartItemWidget(
                           item: item,
                           onQuantityChanged: (quantity) async {
-                            try {
-                              await _cartService.updateCartItem(
-                                item.id,
-                                quantity,
-                              );
-                              _loadCart(); // Refresh cart after update
-                            } catch (e) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text(
-                                    'Failed to update quantity: $e',
-                                  ),
-                                  backgroundColor: Colors.red,
-                                ),
-                              );
-                            }
+                            setState(() {
+                              _cart!.totalItems = quantity;
+                            });
                           },
                           onRemove: () async {
                             try {
-                              await _cartService.removeFromCart(item.id);
-                              _loadCart(); // Refresh cart after removal
+                              await _cartService.removeFromCart(
+                                item.productVariant.id,
+                              );
+                              await _loadCart(); // Refresh cart after removal
                             } catch (e) {
+                              if (!mounted) return;
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(
-                                  content: Text('Failed to remove item: $e'),
+                                  content: Text('Failed to remove item'),
                                   backgroundColor: Colors.red,
                                 ),
                               );
                             }
                           },
-                        );
-                      }).toList(),
-                  seperator: SizedBox(height: 12),
-                ),
+                        ),
+                      ),
+                    );
+                  }).toList(),
+                ],
               ),
             ),
           ),
         ),
-        if (_cart != null && !_cart!.isEmpty) getCheckoutButton(context),
+        if (_cart != null && !_cart!.isEmpty) _buildCheckoutSection(),
       ],
     );
   }
 
-  Widget getCheckoutButton(BuildContext context) {
+  Widget _buildCheckoutSection() {
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+      padding: EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: Colors.white,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black12,
+            color: Colors.black.withOpacity(0.05),
             blurRadius: 10,
-            offset: Offset(0, -2),
+            offset: Offset(0, -4),
           ),
         ],
       ),
-      child: AppButton(
-        label: "Go To Check Out",
-        fontWeight: FontWeight.w600,
-        padding: EdgeInsets.symmetric(vertical: 18),
-        trailingWidget: getButtonPriceWidget(),
-        onPressed: () {
-          showBottomSheet(context);
-        },
-      ),
-    );
-  }
-
-  Widget getButtonPriceWidget() {
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      decoration: BoxDecoration(
-        color: Color(0xff489E67),
-        borderRadius: BorderRadius.circular(6),
-      ),
-      child: Text(
-        "Rs.${_cart!.totalPrice.toString()}",
-        style: TextStyle(
-          fontWeight: FontWeight.bold,
-          fontSize: 16,
-          color: Colors.white,
+      child: SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Total Items:',
+                  style: TextStyle(fontSize: 16, color: Colors.grey[700]),
+                ),
+                Text(
+                  '${_cart!.totalItems}',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                ),
+              ],
+            ),
+            SizedBox(height: 8),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Total Amount:',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+                Text(
+                  '₹${_cart!.totalPrice}',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: Theme.of(context).primaryColor,
+                  ),
+                ),
+              ],
+            ),
+            SizedBox(height: 16),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => CheckoutScreen(cart: _cart),
+                    ),
+                  );
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.green,
+                  padding: EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                child: Text(
+                  'Proceed to Checkout',
+                  style: TextStyle(
+                    fontSize: 18,
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );
   }
 
-  void showBottomSheet(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (BuildContext bc) {
-        return CheckoutBottomSheet();
-      },
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.grey[100],
+      appBar: AppBar(
+        title: Text('My Cart', style: TextStyle(color: Colors.black)),
+        backgroundColor: Colors.white,
+        elevation: 0,
+        actions: [
+          IconButton(
+            onPressed: () {
+              _cartService.clearCart();
+              _loadCart();
+            },
+            icon: Icon(Icons.delete),
+          ),
+        ],
+      ),
+      body:
+          _isLoading
+              ? Center(child: CircularProgressIndicator())
+              : _error != null
+              ? _buildErrorState()
+              : _cart == null || _cart!.isEmpty
+              ? _buildEmptyState()
+              : _buildCartList(),
     );
   }
 }

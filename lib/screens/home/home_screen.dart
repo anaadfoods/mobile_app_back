@@ -79,7 +79,11 @@ class _HomeScreenState extends State<HomeScreen> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => CategoryItemsScreen(name: "Featured Products", allProducts: _featuredProducts),
+                    builder:
+                        (context) => CategoryItemsScreen(
+                          name: "Featured Products",
+                          allProducts: _featuredProducts,
+                        ),
                   ),
                 );
               },
@@ -89,64 +93,8 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         SizedBox(
           height: 250,
-          child: getHorizontalItemSlider(_featuredProducts)
-          // child: ListView.builder(
-          //   scrollDirection: Axis.horizontal,
-          //   itemCount: 2,
-          //   itemBuilder: (context, index) {
-          //     final product = _featuredProducts[index];
-          //     return Container(
-          //       width: 200,
-          //       margin: const EdgeInsets.only(right: 16),
-          //       child: Card(
-          //         elevation: 4,
-          //         child: Column(
-          //           crossAxisAlignment: CrossAxisAlignment.start,
-          //           children: [
-          //             Expanded(
-          //               child: Container(
-          //                 decoration: BoxDecoration(
-          //                   borderRadius: const BorderRadius.vertical(
-          //                     top: Radius.circular(4),
-          //                   ),
-          //                   image: DecorationImage(
-          //                     image: NetworkImage(product.productImages[0].image),
-          //                     fit: BoxFit.cover,
-          //                   ),
-          //                 ),
-          //               ),
-          //             ),
-          //             Padding(
-          //               padding: const EdgeInsets.all(8.0),
-          //               child: Column(
-          //                 crossAxisAlignment: CrossAxisAlignment.start,
-          //                 children: [
-          //                   Text(
-          //                     product.productName,
-          //                     style: const TextStyle(
-          //                       fontWeight: FontWeight.bold,
-          //                       fontSize: 16,
-          //                     ),
-          //                     maxLines: 1,
-          //                     overflow: TextOverflow.ellipsis,
-          //                   ),
-          //                   const SizedBox(height: 4),
-          //                   Text(
-          //                     '\$${product.price.toStringAsFixed(2)}',
-          //                     style: TextStyle(
-          //                       color: Theme.of(context).primaryColor,
-          //                       fontWeight: FontWeight.bold,
-          //                     ),
-          //                   ),
-          //                 ],
-          //               ),
-          //             ),
-          //           ],
-          //         ),
-          //       ),
-          //     );
-          //   },
-          // ),
+          child: getHorizontalItemSlider(_featuredProducts),
+
         ),
       ],
     );
@@ -184,7 +132,10 @@ class _HomeScreenState extends State<HomeScreen> {
                   style: TextStyle(fontWeight: FontWeight.bold, fontSize: 28),
                 ),
               ),
-              SubscriptionTable(),
+              SizedBox(
+                height: MediaQuery.of(context).size.height * 0.6,
+                child: SubscriptionTable(),
+              ),
               // padded(getHorizontalItemSlider(_featuredProducts)),
               padded(_buildFeaturedProducts()),
               padded(subTitle(context, "Coming Soon", show: false)),
@@ -223,8 +174,7 @@ class _HomeScreenState extends State<HomeScreen> {
           _buildComingSoonCard(
             context,
             title: groceryFeaturedItems[1].name,
-            subtitle:
-                groceryFeaturedItems[1].description,
+            subtitle: groceryFeaturedItems[1].description,
 
             imagePath: "assets/images/grocery_images/apple.png",
             color: const Color(0xffF78B42),
@@ -359,8 +309,7 @@ class _HomeScreenState extends State<HomeScreen> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder:
-            (context) => ProductDetailsScreen(product:item, heroSuffix: "home_screen"),
+        builder: (context) => ProductDetailsScreen(product: item),
       ),
     );
   }

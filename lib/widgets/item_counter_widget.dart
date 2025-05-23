@@ -26,7 +26,7 @@ class _ItemCounterWidgetState extends State<ItemCounterWidget> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+      padding: EdgeInsets.symmetric(horizontal: 2, vertical: 2),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(8),
         color: Colors.grey.shade100,
@@ -35,13 +35,13 @@ class _ItemCounterWidgetState extends State<ItemCounterWidget> {
         mainAxisSize: MainAxisSize.min,
         children: [
           IconButton(
-            icon: Icon(Icons.remove, size: 20),
+            icon: Icon(Icons.remove, size: 15),
             onPressed: amount > 1 ? decrementAmount : null,
             padding: EdgeInsets.zero,
-            constraints: BoxConstraints(minWidth: 30, minHeight: 30),
+            constraints: BoxConstraints(minWidth: 10, minHeight: 10),
           ),
           Container(
-            width: 30,
+            width: 15,
             child: Center(
               child: Text(
                 amount.toString(),
@@ -50,10 +50,10 @@ class _ItemCounterWidgetState extends State<ItemCounterWidget> {
             ),
           ),
           IconButton(
-            icon: Icon(Icons.add, size: 20),
+            icon: Icon(Icons.add, size: 15),
             onPressed: incrementAmount,
             padding: EdgeInsets.zero,
-            constraints: BoxConstraints(minWidth: 30, minHeight: 30),
+            constraints: BoxConstraints(minWidth: 10, minHeight: 10),
           ),
         ],
       ),

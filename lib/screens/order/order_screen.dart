@@ -1,7 +1,7 @@
-
 import 'package:flutter/material.dart';
 import 'package:grocery_app/models/order_model.dart';
 import 'package:grocery_app/screens/order/order_detail_screen.dart';
+import 'package:grocery_app/services/order_service.dart';
 
 class OrderScreen extends StatefulWidget {
   const OrderScreen({super.key});
@@ -10,38 +10,46 @@ class OrderScreen extends StatefulWidget {
   State<OrderScreen> createState() => _OrderScreenState();
 }
 
-class _OrderScreenState extends State<OrderScreen> with SingleTickerProviderStateMixin {
-  final List<Order> orders = [
-    Order(
-      id: "1234",
-      date: DateTime.now().subtract(Duration(days: 1)),
-      status: "In Progress",
-      total: 59.99,
-      items: ["Apples", "Bananas", "Milk"],
-    ),
-    Order(
-      id: "1235",
-      date: DateTime.now().subtract(Duration(days: 3)),
-      status: "In Progress",
-      total: 32.50,
-      items: ["Bread", "Cheese"],
-    ),
-    Order(
-      id: "1236",
-      date: DateTime.now().subtract(Duration(days: 5)),
-      status: "Cancelled",
-      total: 20.00,
-      items: ["Juice", "Eggs"],
-    ),
-  ];
+class _OrderScreenState extends State<OrderScreen>
+    with SingleTickerProviderStateMixin {
+  final OrderService _orderService = OrderService();
+  List<Order> orders = [];
+  bool isLoading = true;
+  String? error;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchOrders();
+  }
+
+  Future<void> _fetchOrders() async {
+    try {
+      setState(() {
+        isLoading = true;
+        error = null;
+      });
+
+      final fetchedOrders = await _orderService.getOrders();
+      setState(() {
+        orders = fetchedOrders;
+        isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        error = e.toString();
+        isLoading = false;
+      });
+    }
+  }
 
   Color _getStatusColor(String status) {
     switch (status) {
-      case "Delivered":
+      case "DELIVERED":
         return Colors.green;
-      case "In Progress":
+      case "PLACED":
         return Colors.orange;
-      case "Cancelled":
+      case "CANCELLED":
         return Colors.red;
       default:
         return Colors.grey;
@@ -54,6 +62,28 @@ class _OrderScreenState extends State<OrderScreen> with SingleTickerProviderStat
 
   @override
   Widget build(BuildContext context) {
+    if (isLoading) {
+      return Scaffold(
+        appBar: AppBar(title: Text("My Orders")),
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    if (error != null) {
+      return Scaffold(
+        appBar: AppBar(title: Text("My Orders")),
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text("Error: $error"),
+              ElevatedButton(onPressed: _fetchOrders, child: Text("Retry")),
+            ],
+          ),
+        ),
+      );
+    }
+
     return DefaultTabController(
       length: 3,
       child: Scaffold(
@@ -61,17 +91,17 @@ class _OrderScreenState extends State<OrderScreen> with SingleTickerProviderStat
           title: Text("My Orders"),
           bottom: const TabBar(
             tabs: [
-              Tab(text: "Delivered"),
-              Tab(text: "In Progress"),
-              Tab(text: "Cancelled"),
+              Tab(text: "DELIVERED"),
+              Tab(text: "PLACED"),
+              Tab(text: "CANCELLED"),
             ],
           ),
         ),
         body: TabBarView(
           children: [
-            _buildOrderList("Delivered"),
-            _buildOrderList("In Progress"),
-            _buildOrderList("Cancelled"),
+            _buildOrderList("DELIVERED"),
+            _buildOrderList("PLACED"),
+            _buildOrderList("CANCELLED"),
           ],
         ),
       ),
@@ -83,98 +113,128 @@ class _OrderScreenState extends State<OrderScreen> with SingleTickerProviderStat
     if (filtered.isEmpty) {
       return Center(child: Text("No $status orders"));
     }
-    return ListView.builder(
-      itemCount: filtered.length,
-      itemBuilder: (context, index) {
-        final order = filtered[index];
-        return Card(
-          margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-          elevation: 3,
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      "Order #${order.id}",
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
-                      ),
-                    ),
-                    Container(
-                      padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                      decoration: BoxDecoration(
-                        color: _getStatusColor(order.status).withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: Text(
-                        order.status,
-                        style: TextStyle(
-                          color: _getStatusColor(order.status),
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                SizedBox(height: 8),
-                Text(
-                  "Date: ${order.date.toLocal().toString().split(' ')[0]}",
-                  style: TextStyle(color: Colors.grey[700]),
-                ),
-                SizedBox(height: 4),
-                Text(
-                  "Total: \$${order.total.toStringAsFixed(2)}",
-                  style: TextStyle(
-                    fontWeight: FontWeight.w500,
-                    color: Colors.black87,
-                  ),
-                ),
-                SizedBox(height: 8),
-                Wrap(
-                  spacing: 8,
-                  runSpacing: -8,
-                  children: order.items
-                      .map((item) => Chip(
-                            label: Text(item),
-                            backgroundColor: Colors.grey.shade100,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                          ))
-                      .toList(),
-                ),
-                Align(
-                  alignment: Alignment.centerRight,
-                  child: TextButton.icon(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => OrderDetailScreen(order: order),
-                        ),
-                      );
-                    },
-                    icon: Icon(Icons.arrow_forward_ios, size: 16),
-                    label: Text("View Details"),
-                    style: TextButton.styleFrom(
-                      foregroundColor: Theme.of(context).primaryColor,
-                    ),
-                  ),
-                ),
-              ],
+    return RefreshIndicator(
+      onRefresh: _fetchOrders,
+      child: ListView.builder(
+        itemCount: filtered.length,
+        itemBuilder: (context, index) {
+          final order = filtered[index];
+          return Card(
+            margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
             ),
-          ),
-        );
-      },
+            elevation: 3,
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        "Order #${order.orderNumber}",
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                        ),
+                      ),
+                      Container(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 6,
+                        ),
+                        decoration: BoxDecoration(
+                          color: _getStatusColor(order.status).withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Text(
+                          order.status,
+                          style: TextStyle(
+                            color: _getStatusColor(order.status),
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: 8),
+                  Text(
+                    "Date: ${order.createdAt.toLocal().toString().split(' ')[0]}",
+                    style: TextStyle(color: Colors.grey[700]),
+                  ),
+                  SizedBox(height: 4),
+                  Text(
+                    "Total: ₹${order.total}",
+                    style: TextStyle(
+                      fontWeight: FontWeight.w500,
+                      color: Colors.black87,
+                    ),
+                  ),
+                  SizedBox(height: 8),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        "Items: ${order.itemsCount}",
+                        style: TextStyle(color: Colors.grey[700]),
+                      ),
+                      Container(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 6,
+                        ),
+                        decoration: BoxDecoration(
+                          color:
+                              order.paymentStatus == "PAID"
+                                  ? Colors.green.withOpacity(0.1)
+                                  : Colors.orange.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Text(
+                          order.paymentStatus,
+                          style: TextStyle(
+                            color:
+                                order.paymentStatus == "PAID"
+                                    ? Colors.green
+                                    : Colors.orange,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: TextButton.icon(
+                      onPressed: () async {
+                        final result = await Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder:
+                                (context) => OrderDetailScreen(order: order),
+                          ),
+                        );
+
+                        // If order status was updated, refresh the orders list
+                        if (result != null && result is Order) {
+                          await _fetchOrders(); // Refresh the entire orders list
+                        }
+                      },
+                      icon: Icon(Icons.arrow_forward_ios, size: 16),
+                      label: Text("View Details"),
+                      style: TextButton.styleFrom(
+                        foregroundColor: Theme.of(context).primaryColor,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
     );
   }
 }
-

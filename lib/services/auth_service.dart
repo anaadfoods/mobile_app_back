@@ -4,14 +4,9 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/user_model.dart';
 import '../models/favorite_model.dart';
+import 'api_config.dart';
 
 class AuthService {
-  static const String baseUrl = 'http://10.0.2.2:8000';
-  static const String registerEndpoint = '/api/auth/register/';
-  static const String loginEndpoint = '/api/auth/token/';
-  static const String refreshEndpoint = '/api/auth/token/refresh/';
-  static const String favoritesEndpoint = '/api/auth/favorites/';
-
   // Singleton instance
   static final AuthService _instance = AuthService._internal();
   factory AuthService() => _instance;
@@ -102,7 +97,7 @@ class AuthService {
   Future<Map<String, dynamic>> registerUser(UserModel user) async {
     try {
       final response = await http.post(
-        Uri.parse('$baseUrl$registerEndpoint'),
+        Uri.parse('${ApiConfig.baseUrl}${ApiConfig.registerEndpoint}'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode(user.toJson()),
       );
@@ -135,14 +130,16 @@ class AuthService {
   // Login User
   Future<Map<String, dynamic>> loginUser(String email, String password) async {
     try {
-      print('Making login request to: $baseUrl$loginEndpoint');
+      print(
+        'Making login request to: ${ApiConfig.baseUrl}${ApiConfig.loginEndpoint}',
+      );
 
       // Create the client outside the try block to ensure proper cleanup
       final client = http.Client();
       try {
         final response = await client
             .post(
-              Uri.parse('$baseUrl$loginEndpoint'),
+              Uri.parse('${ApiConfig.baseUrl}${ApiConfig.loginEndpoint}'),
               headers: {
                 'Content-Type': 'application/json',
                 'Accept': 'application/json',
@@ -228,11 +225,7 @@ class AuthService {
   // Helper method to get authenticated headers
   Future<Map<String, String>> _getAuthHeaders() async {
     final token = await getAccessToken();
-    return {
-      'Content-Type': 'application/json',
-      'Accept': 'application/json',
-      'Authorization': 'Bearer $token',
-    };
+    return ApiConfig.getAuthHeaders(token ?? '');
   }
 
   // Check if access token is expired and refresh if needed
@@ -243,7 +236,7 @@ class AuthService {
 
       // Check if token is expired by making a test request
       final response = await http.get(
-        Uri.parse('$baseUrl/api/auth/test-token/'),
+        Uri.parse('${ApiConfig.baseUrl}${ApiConfig.testTokenEndpoint}'),
         headers: await _getAuthHeaders(),
       );
 
@@ -259,118 +252,99 @@ class AuthService {
     }
   }
 
-Future<Map<String, dynamic>> toggleFavorite(int productId) async {
-  try {
-    // Check if the user is authenticated
-    final isAuthenticated = await isLoggedIn();
-    if (!isAuthenticated) {
-      return {
-        'success': false,
-        'message': 'Please login to manage favorites',
-        'requiresLogin': true,
-      };
-    }
-
-    // Refresh token if needed
-    final tokenValid = await _checkAndRefreshToken();
-    if (!tokenValid) {
-      return {
-        'success': false,
-        'message': 'Authentication failed',
-        'requiresLogin': true,
-      };
-    }
-
-    final client = http.Client();
+  Future<Map<String, dynamic>> toggleFavorite(int productId) async {
     try {
-      final url = Uri.parse('$baseUrl$favoritesEndpoint$productId/toggle/');
-      final headers = await _getAuthHeaders();
-
-      // Send the POST request to toggle the favorite
-      final response = await client
-          .post(url, headers: headers)
-          .timeout(Duration(seconds: 30), onTimeout: () {
-        throw TimeoutException('Request timed out');
-      });
-
-      print('Toggle favorite response status: ${response.statusCode}');
-      print('Response body: "${response.body}"');
-
-      // Handle empty or non-JSON responses
-      if (response.body.trim().isEmpty) {
+      // Check if the user is authenticated
+      final isAuthenticated = await isLoggedIn();
+      if (!isAuthenticated) {
         return {
           'success': false,
-          'message': 'Element Removed from favorites',
-        };
-      }
-
-      // Attempt to parse the response
-      final responseData = jsonDecode(response.body);
-
-      // Handle known error format
-      if (responseData is Map<String, dynamic> && responseData['status'] == 'error') {
-        return {
-          'success': false,
-          'message': responseData['message'] ?? 'Failed to update favorite',
-        };
-      }
-
-      // Handle successful responses
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        // Check if the item was added or removed
-        final isAdded = responseData['message']
-            ?.toLowerCase()
-            .contains('added successfully') ??
-            false;
-
-        final message = isAdded
-            ? 'Added to favorites successfully'
-            : 'Removed from favorites successfully';
-
-        return {
-          'success': true,
-          'message': message,
-          'data': responseData['data'],
-          'isAdded': isAdded,
-        };
-      } else if (response.statusCode == 401) {
-        // Token expired or invalid
-        return {
-          'success': false,
-          'message': 'Please login again',
+          'message': 'Please login to manage favorites',
           'requiresLogin': true,
         };
-      } else {
-        // Handle unexpected status codes
+      }
+
+      // Refresh token if needed
+      final tokenValid = await _checkAndRefreshToken();
+      if (!tokenValid) {
         return {
           'success': false,
-          'message': responseData['message'] ?? 'Unexpected error occurred',
+          'message': 'Authentication failed',
+          'requiresLogin': true,
         };
       }
-    } on TimeoutException {
-      return {
-        'success': false,
-        'message': 'Request timed out. Please try again.',
-      };
+
+      final client = http.Client();
+      try {
+        final url = Uri.parse(
+          '${ApiConfig.baseUrl}${ApiConfig.favoritesEndpoint}$productId/toggle/',
+        );
+        final headers = await _getAuthHeaders();
+
+        final response = await client
+            .post(url, headers: headers)
+            .timeout(
+              Duration(seconds: 30),
+              onTimeout: () {
+                throw TimeoutException('Request timed out');
+              },
+            );
+
+        if (response.body.trim().isEmpty) {
+          return {
+            'success': false,
+            'message': 'Element Removed from favorites',
+          };
+        }
+
+        final responseData = jsonDecode(response.body);
+
+        if (responseData is Map<String, dynamic> &&
+            responseData['status'] == 'error') {
+          return {
+            'success': false,
+            'message': responseData['message'] ?? 'Failed to update favorite',
+          };
+        }
+
+        if (response.statusCode == 200 || response.statusCode == 201) {
+          final isAdded =
+              responseData['message']?.toLowerCase().contains(
+                'added successfully',
+              ) ??
+              false;
+          final message =
+              isAdded
+                  ? 'Added to favorites successfully'
+                  : 'Removed from favorites successfully';
+
+          return {
+            'success': true,
+            'message': message,
+            'data': responseData['data'],
+            'isAdded': isAdded,
+          };
+        } else if (response.statusCode == 401) {
+          return {
+            'success': false,
+            'message': 'Please login again',
+            'requiresLogin': true,
+          };
+        } else {
+          return {
+            'success': false,
+            'message': responseData['message'] ?? 'Unexpected error occurred',
+          };
+        }
+      } finally {
+        client.close();
+      }
     } catch (e, stackTrace) {
       print('Toggle favorite error: $e');
       print('Stack Trace: $stackTrace');
-      return {
-        'success': false,
-        'message': 'Failed to update favorite: ${e.toString()}',
-      };
-    } finally {
-      client.close();
+      return {'success': false, 'message': 'Unexpected error: ${e.toString()}'};
     }
-  } catch (e, stackTrace) {
-    print('Toggle favorite error: $e');
-    print('Stack Trace: $stackTrace');
-    return {
-      'success': false,
-      'message': 'Unexpected error: ${e.toString()}',
-    };
   }
-}
 
   // Refresh Access Token
   Future<bool> refreshAccessToken() async {
@@ -379,11 +353,8 @@ Future<Map<String, dynamic>> toggleFavorite(int productId) async {
 
     try {
       final response = await http.post(
-        Uri.parse('$baseUrl$refreshEndpoint'),
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-        },
+        Uri.parse('${ApiConfig.baseUrl}${ApiConfig.refreshEndpoint}'),
+        headers: ApiConfig.getBaseHeaders(),
         body: jsonEncode({'refresh': refreshToken}),
       );
 
@@ -433,32 +404,14 @@ Future<Map<String, dynamic>> toggleFavorite(int productId) async {
       }
 
       final response = await http.get(
-        Uri.parse('$baseUrl$favoritesEndpoint'),
-        headers: {
-          'Authorization': 'Bearer $accessToken',
-          'Accept': 'application/json',
-        },
+        Uri.parse('${ApiConfig.baseUrl}${ApiConfig.favoritesEndpoint}'),
+        headers: ApiConfig.getAuthHeaders(accessToken),
       );
-
-      print('Favorites API Response Status: ${response.statusCode}');
-      print('Raw Response Body: ${response.body}');
 
       if (response.statusCode == 200) {
         final List<dynamic> favoritesJson = jsonDecode(response.body);
-        print('Decoded favorites JSON: $favoritesJson');
-
         final favorites =
-            favoritesJson.map((json) {
-              try {
-                // Each item in the list is already a complete favorite object
-                return FavoriteModel.fromJson(json);
-              } catch (e, stack) {
-                print('Error parsing favorite: $json');
-                print('Parse error: $e');
-                print('Stack trace: $stack');
-                rethrow;
-              }
-            }).toList();
+            favoritesJson.map((json) => FavoriteModel.fromJson(json)).toList();
 
         return {
           'success': true,
@@ -494,6 +447,135 @@ Future<Map<String, dynamic>> toggleFavorite(int productId) async {
         'success': false,
         'message': 'An error occurred while fetching favorites',
         'error': e.toString(),
+      };
+    }
+  }
+
+  Future<UserModel?> getUserProfile() async {
+    try {
+      final token = await getAccessToken();
+      if (token == null) {
+        return null;
+      }
+
+      final response = await http.get(
+        Uri.parse('${ApiConfig.baseUrl}${ApiConfig.profileEndpoint}'),
+        headers: ApiConfig.getAuthHeaders(token),
+      );
+
+      if (response.statusCode == 200) {
+        final responseData = jsonDecode(response.body);
+        if (responseData['status'] == 'success' &&
+            responseData['data'] != null) {
+          final userData = responseData['data'];
+          final userProfile = UserModel.fromJson(userData);
+
+          // Cache the profile data
+          final prefs = await SharedPreferences.getInstance();
+          await prefs.setString('user_profile', jsonEncode(userData));
+
+          return userProfile;
+        }
+      } else if (response.statusCode == 401) {
+        // Try to refresh the token
+        final refreshResult = await refreshAccessToken();
+        if (refreshResult) {
+          // Retry with new token
+          return getUserProfile();
+        }
+      }
+      return null;
+    } catch (e) {
+      print('Error getting user profile: $e');
+      return null;
+    }
+  }
+
+  Future<Map<String, dynamic>> updateProfile(UserModel updatedProfile) async {
+    try {
+      final token = await getAccessToken();
+      if (token == null) {
+        return {'success': false, 'message': 'Not authenticated'};
+      }
+
+      print(
+        'Sending update profile request to: ${ApiConfig.baseUrl}${ApiConfig.profileEndpoint}',
+      );
+
+      final response = await http.put(
+        Uri.parse('${ApiConfig.baseUrl}${ApiConfig.profileEndpoint}'),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode({
+          'first_name': updatedProfile.firstName,
+          'last_name': updatedProfile.lastName,
+          'address': updatedProfile.address,
+          'city': updatedProfile.city,
+          'state': updatedProfile.state,
+          'pincode': updatedProfile.pincode,
+          'username': updatedProfile.username,
+          'email': updatedProfile.email,
+          'phone_number': updatedProfile.phoneNumber,
+        }),
+      );
+
+      print('Update Profile Response Status: ${response.statusCode}');
+      print('Response Body: ${response.body}');
+
+      if (response.statusCode == 200) {
+        final responseData = jsonDecode(response.body);
+
+        // Check if the response has data directly or nested under 'data'
+        final userData = responseData['data'] ?? responseData;
+
+        if (userData != null) {
+          // Update cached profile data
+          final prefs = await SharedPreferences.getInstance();
+          await prefs.setString('user_profile', jsonEncode(userData));
+
+          return {
+            'success': true,
+            'message': 'Profile updated successfully',
+            'data': userData,
+          };
+        }
+      } else if (response.statusCode == 401) {
+        // Try to refresh the token
+        final refreshResult = await refreshAccessToken();
+        if (refreshResult) {
+          // Retry with new token
+          return updateProfile(updatedProfile);
+        }
+        return {
+          'success': false,
+          'message': 'Session expired. Please login again.',
+        };
+      }
+
+      // Try to parse error message from response
+      try {
+        final responseData = jsonDecode(response.body);
+        final message =
+            responseData['message'] ??
+            responseData['detail'] ??
+            responseData['error'] ??
+            'Failed to update profile';
+        return {'success': false, 'message': message};
+      } catch (_) {
+        return {
+          'success': false,
+          'message': 'Failed to update profile. Please try again.',
+        };
+      }
+    } catch (e) {
+      print('Error updating profile: $e');
+      return {
+        'success': false,
+        'message':
+            'An error occurred while updating profile. Please try again.',
       };
     }
   }

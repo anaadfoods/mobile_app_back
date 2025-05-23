@@ -28,7 +28,7 @@ class _ChartItemWidgetState extends State<ChartItemWidget> {
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: Colors.grey.shade200),
       ),
-      padding: EdgeInsets.all(16),
+      padding: EdgeInsets.all(8),
       child: Row(
         children: [
           Container(
@@ -54,7 +54,7 @@ class _ChartItemWidgetState extends State<ChartItemWidget> {
                     )
                     : Icon(Icons.shopping_bag_outlined, color: Colors.grey),
           ),
-          SizedBox(width: 16),
+          SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -69,7 +69,7 @@ class _ChartItemWidgetState extends State<ChartItemWidget> {
                   text: TextSpan(
                     children: [
                       TextSpan(
-                        text: '${widget.item.productVariant.weight}',
+                        text: widget.item.productVariant.weight,
                         style: TextStyle(color: Colors.black, fontSize: 14),
                       ),
                       TextSpan(
@@ -83,14 +83,18 @@ class _ChartItemWidgetState extends State<ChartItemWidget> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(
-                      'Rs.${widget.item.productVariant.finalPrice}',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF7C7C7C),
+                    Flexible(
+                      child: Text(
+                        'Rs.${widget.item.productVariant.finalPrice}',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF7C7C7C),
+                        ),
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ),
+                    SizedBox(width: 8),
                     ItemCounterWidget(
                       onAmountChanged: widget.onQuantityChanged,
                       amount: widget.item.quantity,
@@ -100,9 +104,12 @@ class _ChartItemWidgetState extends State<ChartItemWidget> {
               ],
             ),
           ),
+          SizedBox(width: 4),
           IconButton(
             icon: Icon(Icons.close, color: Colors.grey),
             onPressed: widget.onRemove,
+            padding: EdgeInsets.zero,
+            constraints: BoxConstraints(minWidth: 32, minHeight: 32),
           ),
         ],
       ),

@@ -1,214 +1,318 @@
 import 'package:flutter/material.dart';
+import 'package:grocery_app/models/product_model.dart';
+import 'package:grocery_app/models/subscription_plan_model.dart';
+import 'package:grocery_app/screens/product_details/product_details_screen.dart';
+import 'package:grocery_app/services/product_service.dart';
+import 'package:grocery_app/services/subscription_service.dart';
+import 'package:grocery_app/screens/auth/login_screen.dart';
+import 'package:grocery_app/common_widgets/skeleton_loader.dart';
 
 class SubscriptionTable extends StatefulWidget {
+  final Function(SubscriptionPlan)? onPlanSelected;
+
+  const SubscriptionTable({Key? key, this.onPlanSelected}) : super(key: key);
+
   @override
-  State<SubscriptionTable> createState() => _SubscriptionTableState();
+  _SubscriptionTableState createState() => _SubscriptionTableState();
 }
 
 class _SubscriptionTableState extends State<SubscriptionTable> {
-  double _scale = 1.0;
-  final double _minScale = 0.8;
-  final double _maxScale = 1.5;
+  final SubscriptionService _subscriptionService = SubscriptionService();
+  List<SubscriptionPlan> _plans = [];
+  bool _isLoading = true;
+  String? _error;
 
-  // Sample data structure - This would come from your backend
-  final List<Map<String, dynamic>> tableData = [
-    {
-      'rowName': 'Duration',
-      'aarambh': '1 month',
-      'pathik': '3 months',
-      'tapasvi': '6 months',
-      'siddh': '12 months',
-    },
-    {
-      'rowName': 'Pricing',
-      'aarambh': 'For 15 days',
-      'pathik': '15% + 8% off',
-      'tapasvi': '15% + 12% off',
-      'siddh': '15% + 18% off',
-    },
-    {
-      'rowName': 'Tagline',
-      'aarambh': 'Try Before Trust',
-      'pathik': 'Gut Cleanse',
-      'tapasvi': 'Clean Habits',
-      'siddh': 'Max Savings, Max Healing',
-    },
-  ];
+  @override
+  void initState() {
+    super.initState();
+    _loadSubscriptionPlans();
+  }
 
-  // Sample eligible products - This would come from your backend
-  final Map<String, List<String>> eligibleProducts = {
-    'aarambh': ['Organic Fruits', 'Fresh Vegetables', 'Mixed Basket'],
-    'pathik': [
-      'Organic Fruits',
-      'Fresh Vegetables',
-      'Mixed Basket',
-      'Seasonal Fruits',
-    ],
-    'tapasvi': [
-      'Organic Fruits',
-      'Fresh Vegetables',
-      'Mixed Basket',
-      'Seasonal Fruits',
-      'Organic Greens',
-    ],
-    'siddh': [
-      'Organic Fruits',
-      'Fresh Vegetables',
-      'Mixed Basket',
-      'Seasonal Fruits',
-      'Organic Greens',
-      'Exotic Fruits',
-      'Local Produce',
-    ],
-  };
+  Future<void> _loadSubscriptionPlans() async {
+    setState(() {
+      _isLoading = true;
+      _error = null;
+    });
+
+    try {
+      final result = await _subscriptionService.getSubscriptionPlans();
+      if (mounted) {
+        if (result['success']) {
+          setState(() {
+            _plans = result['data'] as List<SubscriptionPlan>;
+            _isLoading = false;
+          });
+        } else {
+          setState(() {
+            _error = result['message'];
+            _isLoading = false;
+          });
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _error = e.toString();
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
+  Future<void> _handleSubscribe(SubscriptionPlan plan) async {
+    try {
+      final result = await _subscriptionService.subscribeToPlan(plan.id);
+
+      if (!mounted) return;
+
+      if (result['success']) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(result['message']),
+            backgroundColor: Colors.green,
+          ),
+        );
+        if (widget.onPlanSelected != null) {
+          widget.onPlanSelected!(plan);
+        }
+      } else {
+        String errorMsg = result['message'] ?? 'Failed to subscribe';
+        if (result['errors'] != null) {
+          errorMsg += '\n' + result['errors'].toString();
+        }
+        if (result['requiresLogin'] == true) {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => LoginScreen()),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(errorMsg), backgroundColor: Colors.red),
+          );
+        }
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error subscribing to plan: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
+  Widget _buildErrorState() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(
+            _error ?? 'An error occurred',
+            style: TextStyle(color: Colors.red),
+            textAlign: TextAlign.center,
+          ),
+          SizedBox(height: 16),
+          ElevatedButton(
+            onPressed: _loadSubscriptionPlans,
+            child: Text('Retry'),
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPlanCard(SubscriptionPlan plan) {
+    return Container(
+      width: 50,
+      margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 6,
+            offset: const Offset(0, 3),
+          ),
+        ],
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Colors.white, Colors.green.withOpacity(0.1)],
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.green,
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(16),
+              ),
+            ),
+            child: Column(
+              children: [
+                Text(
+                  plan.name,
+                  style: const TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+                Text(
+                  plan.tagline,
+                  style: const TextStyle(fontSize: 14, color: Colors.white70),
+                ),
+              ],
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildInfoRow('Duration', '${plan.durationMonths} months'),
+                _buildInfoRow(
+                  'Total Discount',
+                  '${plan.totalDiscountPercentage}%',
+                ),
+                _buildInfoRow('Base Discount', '${plan.discountPercentage}%'),
+                _buildInfoRow('Add. Discount', '${plan.discountPercentage}%'),
+                _buildInfoRow(
+                  'Installments',
+                  plan.allowsInstallments ? 'Available' : 'Not Available',
+                ),
+                if (plan.allowsInstallments)
+                  _buildInfoRow(
+                    'Frequency',
+                    '${plan.installmentFrequencyMonths} months',
+                  ),
+                const SizedBox(height: 8),
+                const Text(
+                  'Product Limits:',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+                DropdownButtonFormField<String>(
+                  decoration: const InputDecoration(
+                    contentPadding: EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
+                    border: OutlineInputBorder(),
+                  ),
+                  items:
+                      plan.productLimits.map((limit) {
+                        return DropdownMenuItem<String>(
+                          value: limit.productName,
+                          child: GestureDetector(
+                            onTap: () async {
+                              Future<Product> product =
+                                  CategoryService.fetchProductById(limit.product);
+
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder:
+                                      (context) => FutureBuilder<Product>(
+                                        future: product,
+                                        builder: (context, snapshot) {
+                                          if (snapshot.hasData) {
+                                            return ProductDetailsScreen(
+                                              product: snapshot.data!,
+                                            );
+                                          }
+                                          return Text("Loading....");
+                                        },
+                                      ),
+                                ),
+                              );
+                            },
+                            child: Text(
+                              '${limit.productName} - ${limit.maxWeightLimit} kg',
+                            ),
+                          ),
+                        );
+                      }).toList(),
+                  onChanged: (_) {},
+                  hint: const Text('Select Product'),
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  plan.description,
+                  style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                ),
+              ],
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            child: ElevatedButton(
+              onPressed: plan.isActive ? () => _handleSubscribe(plan) : null,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.green,
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              child: Text(
+                plan.isActive ? 'Subscribe Now' : 'Not Available',
+                style: const TextStyle(
+                  fontSize: 15,
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildInfoRow(String label, String value) {
+    return Padding(
+      padding: EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(label, style: TextStyle(fontSize: 14, color: Colors.grey[600])),
+          Text(
+            value,
+            style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+          ),
+        ],
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        // Zoom controls
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              IconButton(
-                icon: Icon(Icons.zoom_out),
-                onPressed: () {
-                  setState(() {
-                    _scale = (_scale - 0.1).clamp(_minScale, _maxScale);
-                  });
-                },
-              ),
-              IconButton(
-                icon: Icon(Icons.zoom_in),
-                onPressed: () {
-                  setState(() {
-                    _scale = (_scale + 0.1).clamp(_minScale, _maxScale);
-                  });
-                },
-              ),
-            ],
-          ),
-        ),
-        // Table
-        Transform.scale(
-          scale: _scale,
-          child: Container(
-            margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(12),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.grey.withOpacity(0.1),
-                  spreadRadius: 1,
-                  blurRadius: 10,
-                  offset: Offset(0, 2),
-                ),
-              ],
-            ),
-            child: Table(
-              border: TableBorder.all(color: Colors.grey.shade300, width: 1),
-              columnWidths: {
-                0: FlexColumnWidth(2),
-                1: FlexColumnWidth(2),
-                2: FlexColumnWidth(2),
-                3: FlexColumnWidth(2),
-                4: FlexColumnWidth(2),
-              },
-              children: [
-                // Header row
-                TableRow(
-                  decoration: BoxDecoration(
-                    color: Colors.blueAccent.withOpacity(0.1),
-                  ),
-                  children: [
-                    _buildHeaderCell('AARAMBH'),
-                    _buildHeaderCell('PATHIK'),
-                    _buildHeaderCell('TAPASVI'),
-                    _buildHeaderCell('SIDDH'),
-                  ],
-                ),
-                // Data rows
-                ...tableData.map(
-                  (row) => TableRow(
-                    children: [
-                      _buildDataCell(row['aarambh']),
-                      _buildDataCell(row['pathik']),
-                      _buildDataCell(row['tapasvi']),
-                      _buildDataCell(row['siddh']),
-                    ],
-                  ),
-                ),
-                // Products dropdown row
-                TableRow(
-                  children: [
-                    _buildProductDropdownCell('aarambh'),
-                    _buildProductDropdownCell('pathik'),
-                    _buildProductDropdownCell('tapasvi'),
-                    _buildProductDropdownCell('siddh'),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ),
-      ],
-    );
-  }
+    if (_isLoading) {
+      return SkeletonAnimation(
+        isLoading: true,
+        loadingWidget: SubscriptionSkeletonLoader(),
+        child: Container(), // Placeholder, won't be shown while loading
+      );
+    }
 
-  Widget _buildHeaderCell(String text) {
-    return Container(
-      padding: EdgeInsets.symmetric(vertical: 16, horizontal: 8),
-      child: Text(
-        text,
-        style: TextStyle(
-          fontWeight: FontWeight.bold,
-          color: Colors.blueAccent,
-          fontSize: 16,
-        ),
-        textAlign: TextAlign.center,
-      ),
-    );
-  }
+    if (_error != null) {
+      return _buildErrorState();
+    }
 
-  Widget _buildDataCell(String text) {
-    return Container(
-      padding: EdgeInsets.symmetric(vertical: 12, horizontal: 8),
-      child: Text(
-        text,
-        style: TextStyle(fontSize: 14),
-        textAlign: TextAlign.center,
-      ),
-    );
-  }
-
-  Widget _buildProductDropdownCell(String plan) {
-    return Container(
-      padding: EdgeInsets.symmetric(vertical: 8, horizontal: 8),
-      child: Container(
-        padding: EdgeInsets.symmetric(horizontal: 8),
-        decoration: BoxDecoration(
-          border: Border.all(color: Colors.grey.shade300),
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: DropdownButton<String>(
-          isExpanded: true,
-          underline: SizedBox(),
-          hint: Text('Select Product'),
-          items:
-              eligibleProducts[plan]?.map((String product) {
-                return DropdownMenuItem<String>(
-                  value: product,
-                  child: Text(product, style: TextStyle(fontSize: 14)),
-                );
-              }).toList(),
-          onChanged: (String? newValue) {
-            // Handle product selection
-            print('Selected $newValue for $plan');
-          },
-        ),
+    return RefreshIndicator(
+      onRefresh: _loadSubscriptionPlans,
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          return ListView.builder(
+            padding: EdgeInsets.all(16),
+            itemCount: _plans.length,
+            itemBuilder: (context, index) => _buildPlanCard(_plans[index]),
+          );
+        },
       ),
     );
   }

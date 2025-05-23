@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:grocery_app/models/subscription_model.dart';
+import 'package:grocery_app/screens/MySubscriptionPlan/subscription_plan_detail_single.dart';
 import 'package:grocery_app/screens/subscription/subscription_detail_screen.dart';
+import 'package:grocery_app/services/subscription_service.dart';
 
 class SubscriptionScreen extends StatefulWidget {
   const SubscriptionScreen({super.key});
@@ -11,40 +13,40 @@ class SubscriptionScreen extends StatefulWidget {
 
 class _SubscriptionScreenState extends State<SubscriptionScreen>
     with SingleTickerProviderStateMixin {
-  final List<Subscription> allSubscriptions = [
-    Subscription(
-      id: "001",
-      planName: "Natural Basmati Rice Plan",
-      quantity: 5,
-      nextDeliveryDate: DateTime(2025, 8, 1),
-      deliveriesLeft: 3,
-      status: "Active",
-    ),
-    Subscription(
-      id: "002",
-      planName: "Cold-Pressed Sona Moti Wheat Plan",
-      quantity: 10,
-      nextDeliveryDate: DateTime(2025, 8, 15),
-      deliveriesLeft: 5,
-      status: "Paused",
-    ),
-    Subscription(
-      id: "003",
-      planName: "Barnyard Millet Plan",
-      quantity: 8,
-      nextDeliveryDate: DateTime(2025, 7, 20),
-      deliveriesLeft: 2,
-      status: "Active",
-    ),
-    Subscription(
-      id: "004",
-      planName: "Foxtail Millet Plan",
-      quantity: 4,
-      nextDeliveryDate: DateTime(2025, 7, 30),
-      deliveriesLeft: 6,
-      status: "Cancelled",
-    ),
-  ];
+  List<Subscription> allSubscriptions = [];
+
+  final SubscriptionService _subscriptionService = SubscriptionService();
+
+  Future<void> _fetchSubscriptions() async {
+    try {
+      final response = await _subscriptionService.getSubscriptions();
+      if (response['success'] == true && response['data'] != null) {
+        final List<dynamic> data = response['data'];
+        setState(() {
+          allSubscriptions = data.map((item) => item as Subscription).toList();
+          filteredSubscriptions = allSubscriptions;
+        });
+      } else {
+        print('Error fetching subscriptions: ${response['message']}');
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              response['message'] ?? 'Failed to fetch subscriptions',
+            ),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } catch (e) {
+      print('Error fetching subscriptions: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('An error occurred while fetching subscriptions'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
 
   List<Subscription> filteredSubscriptions = [];
 
@@ -69,11 +71,11 @@ class _SubscriptionScreenState extends State<SubscriptionScreen>
 
   Color _getStatusColor(String status) {
     switch (status) {
-      case "Active":
+      case "ACTIVE":
         return Colors.green;
-      case "Paused":
+      case "PAUSED":
         return Colors.orange;
-      case "Cancelled":
+      case "CANCELLED":
         return Colors.red;
       default:
         return Colors.grey;
@@ -87,12 +89,20 @@ class _SubscriptionScreenState extends State<SubscriptionScreen>
       child: Scaffold(
         appBar: AppBar(
           title: Text("My Subscriptions"),
+          actions: [
+            IconButton(
+              onPressed: () {
+                _fetchSubscriptions();
+              },
+              icon: Icon(Icons.refresh_sharp),
+            ),
+          ],
           bottom: TabBar(
             onTap: (index) {
               if (index == 0) _filterSubscriptions("All");
-              if (index == 1) _filterSubscriptions("Active");
-              if (index == 2) _filterSubscriptions("Paused");
-              if (index == 3) _filterSubscriptions("Cancelled");
+              if (index == 1) _filterSubscriptions("ACTIVE");
+              if (index == 2) _filterSubscriptions("PAUSED");
+              if (index == 3) _filterSubscriptions("CANCELLED");
             },
             tabs: [
               Tab(text: "All"),
@@ -134,42 +144,54 @@ class _SubscriptionScreenState extends State<SubscriptionScreen>
               ),
             ],
           ),
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  subscription.planName,
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 18,
-                    color: Colors.black87,
+          child: GestureDetector(
+            onTap: (){
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => SubscriptionPlanDetailScreen(
+                    subscription: subscription,
                   ),
                 ),
-                SizedBox(height: 8),
-                Text(
-                  "Quantity: ${subscription.quantity}",
-                  style: TextStyle(
-                    fontWeight: FontWeight.w600,
-                    fontSize: 16,
-                    color: Colors.blueGrey[900],
+              );
+            },
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    subscription.planName,
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 18,
+                      color: Colors.black87,
+                    ),
                   ),
-                ),
-                SizedBox(height: 8),
-                Text(
-                  "Next Delivery: ${subscription.nextDeliveryDate.toLocal().toString().split(' ')[0]}",
-                  style: TextStyle(color: Colors.grey[700], fontSize: 14),
-                ),
-                SizedBox(height: 8),
-                Text(
-                  "Deliveries Left: ${subscription.deliveriesLeft}",
-                  style: TextStyle(
-                    fontWeight: FontWeight.w500,
-                    color: Colors.black87,
+                  SizedBox(height: 8),
+                  Text(
+                    "Items: ${subscription.items.map((item) => '${item.quantity}x Product ${item.productVariant}').join(', ')}",
+                    style: TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 16,
+                      color: Colors.blueGrey[900],
+                    ),
                   ),
-                ),
-              ],
+                  SizedBox(height: 8),
+                  Text(
+                    "Next Delivery: ${subscription.startDate.toString().split(' ')[0]}",
+                    style: TextStyle(color: Colors.grey[700], fontSize: 14),
+                  ),
+                  SizedBox(height: 8),
+                  Text(
+                    "End Date: ${subscription.endDate.toString().split(' ')[0]}",
+                    style: TextStyle(
+                      fontWeight: FontWeight.w500,
+                      color: Colors.black87,
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         );

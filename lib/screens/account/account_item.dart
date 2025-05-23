@@ -26,6 +26,6 @@ List<AccountItem> accountItems = [
   AccountItem("My Details", Icon(Icons.abc_sharp), ProfileScreen()),
   AccountItem("Referral", Icon(Icons.abc_sharp), ReferAndEarnScreen()),
 
-  AccountItem("Help", Icon(Icons.abc_sharp), InquiryFormScreen()),
+  AccountItem("Help", Icon(Icons.abc_sharp), HelpScreen()),
   AccountItem("About", Icon(Icons.abc_sharp), AboutScreen()),
 ];

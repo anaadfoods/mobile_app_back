@@ -1,10 +1,15 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:grocery_app/common_widgets/app_text.dart';
 import 'package:grocery_app/models/favorite_model.dart';
+import 'package:grocery_app/models/product_model.dart';
+import 'package:grocery_app/screens/product_details/product_details_screen.dart';
 import 'package:grocery_app/services/auth_service.dart';
 import 'package:grocery_app/screens/auth/login_screen.dart';
 import 'package:grocery_app/styles/colors.dart';
 import 'package:grocery_app/common_widgets/shimmer_loading.dart';
+import 'package:grocery_app/services/product_service.dart';
+import 'package:grocery_app/services/favorite_state_service.dart';
 
 class FavouriteScreen extends StatefulWidget {
   @override
@@ -13,9 +18,11 @@ class FavouriteScreen extends StatefulWidget {
 
 class _FavouriteScreenState extends State<FavouriteScreen> {
   final AuthService _authService = AuthService();
+  final FavoriteStateService _favoriteStateService = FavoriteStateService();
   List<FavoriteModel> _favorites = [];
   bool _isLoading = true;
   String? _error;
+  StreamSubscription? _favoriteSubscription;
 
   @override
   void initState() {
@@ -31,6 +38,17 @@ class _FavouriteScreenState extends State<FavouriteScreen> {
         });
       }
     });
+
+    // Listen to favorite changes
+    _favoriteSubscription = _favoriteStateService.onFavoriteChanged.listen((_) {
+      _loadFavorites();
+    });
+  }
+
+  @override
+  void dispose() {
+    _favoriteSubscription?.cancel();
+    super.dispose();
   }
 
   Future<void> _loadFavorites() async {
@@ -58,7 +76,6 @@ class _FavouriteScreenState extends State<FavouriteScreen> {
         });
         return;
       }
-
       final result = await _authService.getFavorites();
       print(result);
       if (!mounted) return;
@@ -94,12 +111,14 @@ class _FavouriteScreenState extends State<FavouriteScreen> {
 
   Future<void> _removeFromFavorites(FavoriteModel favorite) async {
     try {
-      // Get the product ID from the API response structure
       final result = await _authService.toggleFavorite(favorite.id);
 
       if (!mounted) return;
 
       if (result['success']) {
+        // Notify other screens about the change
+        _favoriteStateService.notifyFavoriteChanged();
+
         setState(() {
           _favorites.removeWhere((item) => item.id == favorite.id);
         });
@@ -207,48 +226,143 @@ class _FavouriteScreenState extends State<FavouriteScreen> {
     );
   }
 
-  Widget _buildFavoriteItem(FavoriteModel favorite) {
-    return Dismissible(
-      key: Key(favorite.id.toString()),
-      direction: DismissDirection.endToStart,
-      background: Container(
-        alignment: Alignment.centerRight,
-        padding: EdgeInsets.only(right: 20),
-        color: Colors.red,
-        child: Icon(Icons.delete, color: Colors.white),
-      ),
-      onDismissed: (direction) => _removeFromFavorites(favorite),
-      child: Card(
-        margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        child: ListTile(
-          contentPadding: EdgeInsets.all(16),
-          leading: Container(
-            width: 60,
-            height: 60,
-            decoration: BoxDecoration(
-              color: AppColors.primaryColor.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(8),
+    Widget _buildFavoriteItem(FavoriteModel favorite) {
+    return GestureDetector(
+      onTap: () async {
+        try {
+          final product = await CategoryService.fetchProductById(favorite.id);
+          if (!mounted) return;
+
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => ProductDetailsScreen(product: product),
             ),
-            child: Icon(Icons.favorite, color: AppColors.primaryColor),
+          );
+        } catch (e) {
+          if (!mounted) return;
+
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Failed to load product details: ${e.toString()}'),
+              backgroundColor: Colors.redAccent,
+            ),
+          );
+        }
+      },
+      child: Dismissible(
+        key: Key(favorite.id.toString()),
+        direction: DismissDirection.endToStart,
+        background: Container(
+          alignment: Alignment.centerRight,
+          padding: EdgeInsets.only(right: 20),
+          decoration: BoxDecoration(
+            color: Colors.redAccent,
+            borderRadius: BorderRadius.circular(12),
           ),
-          title: AppText(text: favorite.name, fontWeight: FontWeight.w600),
-          subtitle: AppText(
-            text: favorite.weight,
-            fontSize: 14,
-            color: Color(0xFF7C7C7C),
+          child: Icon(Icons.delete, color: Colors.white, size: 28),
+        ),
+        onDismissed: (direction) => _removeFromFavorites(favorite),
+        child: Card(
+          margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          elevation: 6,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(15),
           ),
-          trailing: IconButton(
-            icon: Icon(Icons.delete_outline),
-            onPressed: () {
-              print(favorite.id);
-              _removeFromFavorites(favorite);
-            },
-            color: Colors.red,
+          child: ListTile(
+            contentPadding: EdgeInsets.all(16),
+            leading: Container(
+              width: 60,
+              height: 60,
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [Colors.deepPurpleAccent.withOpacity(0.3), Colors.deepPurpleAccent.withOpacity(0.6)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(Icons.favorite, color: Colors.white, size: 30),
+            ),
+            title: Text(favorite.name, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+            subtitle: Text(favorite.weight, style: TextStyle(color: Colors.grey, fontSize: 14)),
+            trailing: IconButton(
+              icon: Icon(Icons.delete_outline, color: Colors.redAccent, size: 28),
+              onPressed: () => _removeFromFavorites(favorite),
+            ),
           ),
         ),
       ),
     );
   }
+
+
+  // Widget _buildFavoriteItem(FavoriteModel favorite) {
+  //   return GestureDetector(
+  //     onTap: () async {
+  //       try {
+  //         final product = await CategoryService.fetchProductById(favorite.id);
+  //         if (!mounted) return;
+
+  //         Navigator.push(
+  //           context,
+  //           MaterialPageRoute(
+  //             builder: (context) => ProductDetailsScreen(product: product),
+  //           ),
+  //         );
+  //       } catch (e) {
+  //         if (!mounted) return;
+
+  //         ScaffoldMessenger.of(context).showSnackBar(
+  //           SnackBar(
+  //             content: Text('Failed to load product details: ${e.toString()}'),
+  //             backgroundColor: Colors.red,
+  //           ),
+  //         );
+  //       }
+  //     },
+  //     child: Dismissible(
+  //       key: Key(favorite.id.toString()),
+  //       direction: DismissDirection.endToStart,
+  //       background: Container(
+  //         alignment: Alignment.centerRight,
+  //         padding: EdgeInsets.only(right: 20),
+  //         color: Colors.red,
+  //         child: Icon(Icons.delete, color: Colors.white),
+  //       ),
+  //       onDismissed: (direction) => _removeFromFavorites(favorite),
+  //       child: Card(
+  //         margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+  //         child: ListTile(
+  //           contentPadding: EdgeInsets.all(16),
+  //           leading: Container(
+  //             width: 60,
+  //             height: 60,
+  //             decoration: BoxDecoration(
+  //               color: AppColors.primaryColor.withOpacity(0.1),
+  //               borderRadius: BorderRadius.circular(8),
+  //             ),
+  //             child: Icon(Icons.favorite, color: AppColors.primaryColor),
+  //           ),
+  //           title: AppText(text: favorite.name, fontWeight: FontWeight.w600),
+  //           subtitle: AppText(
+  //             text: favorite.weight,
+  //             fontSize: 14,
+  //             color: Color(0xFF7C7C7C),
+  //           ),
+  //           trailing: IconButton(
+  //             icon: Icon(Icons.delete_outline),
+  //             onPressed: () {
+  //               print(favorite.id);
+  //               _removeFromFavorites(favorite);
+  //             },
+  //             color: Colors.red,
+  //           ),
+  //         ),
+  //       ),
+  //     ),
+  //   );
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -263,11 +377,16 @@ class _FavouriteScreenState extends State<FavouriteScreen> {
     if (_favorites.isEmpty) {
       return _buildEmptyState();
     }
-    return RefreshIndicator(
-      onRefresh: _loadFavorites,
-      child: ListView.builder(
-        itemCount: _favorites.length,
-        itemBuilder: (context, index) => _buildFavoriteItem(_favorites[index]),
+
+    return Scaffold(
+      appBar: AppBar(title: Text("Favourite"), centerTitle: true),
+      body: RefreshIndicator(
+        onRefresh: _loadFavorites,
+        child: ListView.builder(
+          itemCount: _favorites.length,
+          itemBuilder:
+              (context, index) => _buildFavoriteItem(_favorites[index]),
+        ),
       ),
     );
   }

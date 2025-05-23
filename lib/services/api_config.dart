@@ -1,0 +1,37 @@
+class ApiConfig {
+  static const String baseUrl = 'http://192.168.231.81:8000';
+  // Auth endpoints
+  static const String registerEndpoint = '/api/auth/register/';
+  static const String loginEndpoint = '/api/auth/token/';
+  static const String refreshEndpoint = '/api/auth/token/refresh/';
+  static const String favoritesEndpoint = '/api/auth/favorites/';
+  static const String profileEndpoint = '/api/auth/profile/';
+  static const String testTokenEndpoint = '/api/auth/test-token/';
+
+  // Product endpoints
+  static const String productsEndpoint = '/api/products/';
+  static const String featuredProductsEndpoint = '/api/products/featured/';
+  static const String categoriesEndpoint = '/api/categories/';
+
+  // Cart endpoints
+  static const String cartEndpoint = '/api/cart/';
+  static const String getcartEndpoint = '/api/cart/details/';
+  static const String cartItemsEndpoint = '/api/cart/items/';
+
+  // Order endpoints
+  static const String ordersEndpoint = '/api/orders/';
+  static const String checkoutEndpoint = '/api/checkout/';
+
+  // Subscription endpoints
+  static const String subscriptionsEndpoint = '/api/subscriptions/';
+  static const String subscriptionPlansEndpoint = '/api/subscriptions/plans/';
+
+  // Headers
+  static Map<String, String> getBaseHeaders() {
+    return {'Content-Type': 'application/json', 'Accept': 'application/json'};
+  }
+
+  static Map<String, String> getAuthHeaders(String token) {
+    return {...getBaseHeaders(), 'Authorization': 'Bearer $token'};
+  }
+}

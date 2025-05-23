@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../models/subscription_model.dart';
+import '../services/subscription_service.dart';
 
 class SubscriptionCard extends StatelessWidget {
   final String productName;
@@ -184,198 +186,257 @@ class SubscriptionCarousel extends StatefulWidget {
 class _SubscriptionCarouselState extends State<SubscriptionCarousel> {
   final PageController _pageController = PageController();
   int _currentPage = 0;
+  final SubscriptionService _subscriptionService = SubscriptionService();
+  List<Subscription> _subscriptions = [];
+  bool _isLoading = true;
+  String? _error;
 
-  final List<Map<String, dynamic>> subscriptions = [
-    {
-      'productName': 'Organic Fruits',
-      'planName': 'Premium Plan',
-      'quantity': 5,
-      'nextDeliveryDate': DateTime(2025, 8, 1),
-      'deliveriesLeft': 3,
-      'isPaused': false,
-      'maxPausesLeft': 2,
-      'pauseStartDate': null,
-      'pauseEndDate': null,
-    },
-    {
-      'productName': 'Fresh Vegetables',
-      'planName': 'Basic Plan',
-      'quantity': 3,
-      'nextDeliveryDate': DateTime(2025, 8, 5),
-      'deliveriesLeft': 5,
-      'isPaused': true,
-      'maxPausesLeft': 1,
-      'pauseStartDate': DateTime(2025, 7, 25),
-      'pauseEndDate': DateTime(2025, 8, 25),
-    },
-    {
-      'productName': 'Mixed Basket',
-      'planName': 'Family Plan',
-      'quantity': 8,
-      'nextDeliveryDate': DateTime(2025, 8, 10),
-      'deliveriesLeft': 2,
-      'isPaused': false,
-      'maxPausesLeft': 3,
-      'pauseStartDate': null,
-      'pauseEndDate': null,
-    },
-    {
-      'productName': 'Seasonal Fruits',
-      'planName': 'Summer Special',
-      'quantity': 6,
-      'nextDeliveryDate': DateTime(2025, 8, 15),
-      'deliveriesLeft': 4,
-      'isPaused': false,
-      'maxPausesLeft': 2,
-      'pauseStartDate': null,
-      'pauseEndDate': null,
-    },
-    {
-      'productName': 'Organic Greens',
-      'planName': 'Weekly Plan',
-      'quantity': 4,
-      'nextDeliveryDate': DateTime(2025, 8, 20),
-      'deliveriesLeft': 6,
-      'isPaused': true,
-      'maxPausesLeft': 0,
-      'pauseStartDate': DateTime(2025, 7, 20),
-      'pauseEndDate': DateTime(2025, 8, 20),
-    },
-    {
-      'productName': 'Exotic Fruits',
-      'planName': 'Premium Plus',
-      'quantity': 7,
-      'nextDeliveryDate': DateTime(2025, 8, 25),
-      'deliveriesLeft': 1,
-      'isPaused': false,
-      'maxPausesLeft': 1,
-      'pauseStartDate': null,
-      'pauseEndDate': null,
-    },
-    {
-      'productName': 'Local Produce',
-      'planName': 'Community Plan',
-      'quantity': 5,
-      'nextDeliveryDate': DateTime(2025, 8, 30),
-      'deliveriesLeft': 8,
-      'isPaused': false,
-      'maxPausesLeft': 2,
-      'pauseStartDate': null,
-      'pauseEndDate': null,
-    },
-  ];
+  @override
+  void initState() {
+    super.initState();
+    _loadSubscriptions();
+  }
 
-  String _formatDuration(Duration duration) {
-    if (duration.inDays > 0) {
-      return '${duration.inDays} days';
-    } else if (duration.inHours > 0) {
-      return '${duration.inHours} hours';
-    } else {
-      return '${duration.inMinutes} minutes';
+  Future<void> _loadSubscriptions() async {
+    try {
+      final response = await _subscriptionService.getSubscriptions();
+      if (response['success'] == true && response['data'] != null) {
+        final allSubscriptions = response['data'] as List<Subscription>;
+        setState(() {
+          _subscriptions =
+              allSubscriptions.where((sub) => sub.status == 'ACTIVE').toList();
+          _isLoading = false;
+        });
+      } else {
+        setState(() {
+          _error = response['message'] ?? 'Failed to load subscriptions';
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _error = e.toString();
+        _isLoading = false;
+      });
     }
   }
 
-  void _showToggleConfirmation(BuildContext context, int index) {
-    final subscription = subscriptions[index];
-    final isCurrentlyPaused = subscription['isPaused'] ?? false;
-    final maxPausesLeft = subscription['maxPausesLeft'] ?? 0;
+  Future<void> _togglePauseSubscription(
+    Subscription subscription,
+    DateTime pauseStartDate,
+    DateTime pauseEndDate,
+  ) async {
+    try {
+      final response = await _subscriptionService.togglePauseSubscription(
+        subscription.id,
+        pauseStartDate,
+        pauseEndDate,
+      );
 
-    String timeRemaining = '';
-    if (isCurrentlyPaused && subscription['pauseEndDate'] != null) {
-      final now = DateTime.now();
-      final endDate = subscription['pauseEndDate'] as DateTime;
-      if (endDate.isAfter(now)) {
-        timeRemaining = _formatDuration(endDate.difference(now));
+      if (response['success'] == true) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              response['message'] ?? 'Subscription paused successfully',
+            ),
+            backgroundColor: Colors.green,
+          ),
+        );
+        await _loadSubscriptions(); // Reload subscriptions after toggle
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(response['message'] ?? 'Failed to toggle pause'),
+            backgroundColor: Colors.red,
+          ),
+        );
       }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Failed to toggle pause: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
     }
+  }
+
+  void _showToggleConfirmation(
+    BuildContext context,
+    Subscription subscription,
+  ) {
+    final isCurrentlyPaused = subscription.status == 'PAUSED';
+    final maxPausesLeft = subscription.remainingPauseTimes;
+    DateTime? selectedStartDate;
+    DateTime? selectedEndDate;
 
     showDialog(
       context: context,
       builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text(
-            isCurrentlyPaused ? 'Resume Subscription?' : 'Pause Subscription?',
-          ),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              title: Text(
                 isCurrentlyPaused
-                    ? 'Are you sure you want to resume the ${subscription['productName']} subscription?'
-                    : 'Are you sure you want to pause the ${subscription['productName']} subscription?',
+                    ? 'Resume Subscription?'
+                    : 'Pause Subscription?',
               ),
-              SizedBox(height: 16),
-              if (isCurrentlyPaused && timeRemaining.isNotEmpty)
-                Text(
-                  'Time remaining in current pause: $timeRemaining',
-                  style: TextStyle(
-                    color: Colors.grey[700],
-                    fontWeight: FontWeight.w500,
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    isCurrentlyPaused
+                        ? 'Are you sure you want to resume the ${subscription.items.first.productName} subscription?'
+                        : 'Are you sure you want to pause the ${subscription.items.first.productName} subscription?',
                   ),
-                ),
-              if (!isCurrentlyPaused)
-                Text(
-                  'Pauses remaining: $maxPausesLeft',
-                  style: TextStyle(
-                    color:
-                        maxPausesLeft > 0 ? Colors.green[700] : Colors.red[700],
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: Text('Cancel'),
-            ),
-            TextButton(
-              onPressed: () {
-                if (!isCurrentlyPaused && maxPausesLeft <= 0) {
-                  Navigator.of(context).pop();
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(
-                        'No pauses remaining for this subscription',
+                  SizedBox(height: 16),
+                  if (!isCurrentlyPaused) ...[
+                    Text(
+                      'Pauses remaining: $maxPausesLeft',
+                      style: TextStyle(
+                        color:
+                            maxPausesLeft > 0
+                                ? Colors.green[700]
+                                : Colors.red[700],
+                        fontWeight: FontWeight.w500,
                       ),
-                      backgroundColor: Colors.red,
                     ),
-                  );
-                  return;
-                }
+                    SizedBox(height: 16),
+                    Text(
+                      'Select Pause Period:',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
+                    ),
+                    SizedBox(height: 8),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text('Start Date:'),
+                              TextButton(
+                                onPressed: () async {
+                                  final date = await showDatePicker(
+                                    context: context,
+                                    initialDate: DateTime.now(),
+                                    firstDate: DateTime.now(),
+                                    lastDate: DateTime.now().add(
+                                      Duration(days: 365),
+                                    ),
+                                  );
+                                  if (date != null) {
+                                    setState(() {
+                                      selectedStartDate = date;
+                                    });
+                                  }
+                                },
+                                child: Text(
+                                  selectedStartDate != null
+                                      ? '${selectedStartDate!.day}/${selectedStartDate!.month}/${selectedStartDate!.year}'
+                                      : 'Select Start Date',
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        SizedBox(width: 8),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text('End Date:'),
+                              TextButton(
+                                onPressed: () async {
+                                  final date = await showDatePicker(
+                                    context: context,
+                                    initialDate:
+                                        selectedStartDate ?? DateTime.now(),
+                                    firstDate:
+                                        selectedStartDate ?? DateTime.now(),
+                                    lastDate: DateTime.now().add(
+                                      Duration(days: 365),
+                                    ),
+                                  );
+                                  if (date != null) {
+                                    setState(() {
+                                      selectedEndDate = date;
+                                    });
+                                  }
+                                },
+                                child: Text(
+                                  selectedEndDate != null
+                                      ? '${selectedEndDate!.day}/${selectedEndDate!.month}/${selectedEndDate!.year}'
+                                      : 'Select End Date',
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: Text('Cancel'),
+                ),
+                TextButton(
+                  onPressed: () {
+                    if (!isCurrentlyPaused) {
+                      if (selectedStartDate == null ||
+                          selectedEndDate == null) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(
+                              'Please select both start and end dates',
+                            ),
+                            backgroundColor: Colors.red,
+                          ),
+                        );
+                        return;
+                      }
+                      if (selectedEndDate!.isBefore(selectedStartDate!)) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('End date must be after start date'),
+                            backgroundColor: Colors.red,
+                          ),
+                        );
+                        return;
+                      }
+                    }
 
-                setState(() {
-                  subscriptions[index]['isPaused'] = !isCurrentlyPaused;
-                  if (!isCurrentlyPaused) {
-                    // Starting a new pause
-                    subscriptions[index]['pauseStartDate'] = DateTime.now();
-                    subscriptions[index]['pauseEndDate'] = DateTime.now().add(
-                      Duration(days: 30),
+                    if (!isCurrentlyPaused && maxPausesLeft <= 0) {
+                      Navigator.of(context).pop();
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            'No pauses remaining for this subscription',
+                          ),
+                          backgroundColor: Colors.red,
+                        ),
+                      );
+                      return;
+                    }
+
+                    _togglePauseSubscription(
+                      subscription,
+                      selectedStartDate ?? DateTime.now(),
+                      selectedEndDate ?? DateTime.now().add(Duration(days: 30)),
                     );
-                    subscriptions[index]['maxPausesLeft'] = (maxPausesLeft - 1)
-                        .clamp(0, double.infinity);
-                  } else {
-                    // Resuming from pause
-                    subscriptions[index]['pauseStartDate'] = null;
-                    subscriptions[index]['pauseEndDate'] = null;
-                  }
-                });
-                Navigator.of(context).pop();
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(
-                      isCurrentlyPaused
-                          ? 'Subscription resumed successfully'
-                          : 'Subscription paused successfully',
-                    ),
-                    duration: Duration(seconds: 2),
-                  ),
-                );
-              },
-              child: Text('Confirm'),
-            ),
-          ],
+                    Navigator.of(context).pop();
+                  },
+                  child: Text('Confirm'),
+                ),
+              ],
+            );
+          },
         );
       },
     );
@@ -383,6 +444,26 @@ class _SubscriptionCarouselState extends State<SubscriptionCarousel> {
 
   @override
   Widget build(BuildContext context) {
+    if (_isLoading) {
+      return Center(child: CircularProgressIndicator());
+    }
+
+    if (_error != null) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text('Error: $_error'),
+            ElevatedButton(onPressed: _loadSubscriptions, child: Text('Retry')),
+          ],
+        ),
+      );
+    }
+
+    if (_subscriptions.isEmpty) {
+      return Center(child: Text('No subscriptions found'));
+    }
+
     return Column(
       children: [
         SizedBox(
@@ -396,20 +477,28 @@ class _SubscriptionCarouselState extends State<SubscriptionCarousel> {
                     _currentPage = index;
                   });
                 },
-                itemCount: subscriptions.length,
+                itemCount: _subscriptions.length,
                 itemBuilder: (context, index) {
-                  final subscription = subscriptions[index];
+                  final subscription = _subscriptions[index];
+                  final item = subscription.items.first;
                   return SubscriptionCard(
-                    productName: subscription['productName'],
-                    planName: subscription['planName'],
-                    quantity: subscription['quantity'],
-                    nextDeliveryDate: subscription['nextDeliveryDate'],
-                    deliveriesLeft: subscription['deliveriesLeft'],
-                    isPaused: subscription['isPaused'],
+                    productName: item.productName,
+                    planName: subscription.planName,
+                    quantity: item.quantity,
+                    nextDeliveryDate: DateTime.parse(
+                      subscription.nextDeliveryDate,
+                    ),
+                    deliveriesLeft:
+                        (DateTime.parse(
+                                  subscription.endDate,
+                                ).difference(DateTime.now()).inDays /
+                                30)
+                            .ceil(),
+                    isPaused: subscription.status == 'PAUSED',
                     onViewDetails:
                         () => _showSubscriptionDetails(context, subscription),
                     onTogglePause:
-                        () => _showToggleConfirmation(context, index),
+                        () => _showToggleConfirmation(context, subscription),
                   );
                 },
               ),
@@ -448,7 +537,7 @@ class _SubscriptionCarouselState extends State<SubscriptionCarousel> {
                       color: Colors.indigo[900],
                     ),
                     onPressed: () {
-                      if (_currentPage < subscriptions.length - 1) {
+                      if (_currentPage < _subscriptions.length - 1) {
                         _pageController.nextPage(
                           duration: Duration(milliseconds: 300),
                           curve: Curves.easeInOut,
@@ -465,7 +554,7 @@ class _SubscriptionCarouselState extends State<SubscriptionCarousel> {
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: List.generate(
-            subscriptions.length,
+            _subscriptions.length,
             (index) => Container(
               width: 8,
               height: 8,
@@ -486,8 +575,9 @@ class _SubscriptionCarouselState extends State<SubscriptionCarousel> {
 
   void _showSubscriptionDetails(
     BuildContext context,
-    Map<String, dynamic> subscription,
+    Subscription subscription,
   ) {
+    final item = subscription.items.first;
     showModalBottomSheet(
       context: context,
       shape: RoundedRectangleBorder(
@@ -511,24 +601,38 @@ class _SubscriptionCarouselState extends State<SubscriptionCarousel> {
               ListTile(
                 leading: Icon(Icons.shopping_basket, color: Colors.indigo),
                 title: Text('Product'),
-                subtitle: Text(subscription['productName']),
+                subtitle: Text(item.productName),
               ),
               ListTile(
                 leading: Icon(Icons.card_membership, color: Colors.indigo),
                 title: Text('Plan'),
-                subtitle: Text(subscription['planName']),
+                subtitle: Text(subscription.planName),
               ),
               ListTile(
                 leading: Icon(Icons.calendar_today, color: Colors.indigo),
                 title: Text('Next Delivery'),
-                subtitle: Text(
-                  '${subscription['nextDeliveryDate'].day} - ${_getMonthName(subscription['nextDeliveryDate'].month)} - ${subscription['nextDeliveryDate'].year}',
-                ),
+                subtitle: Text(subscription.nextDeliveryDate),
               ),
               ListTile(
                 leading: Icon(Icons.local_shipping, color: Colors.indigo),
                 title: Text('Deliveries Left'),
-                subtitle: Text(subscription['deliveriesLeft'].toString()),
+                subtitle: Text(
+                  (subscription.endDate.difference(DateTime.now()).inDays / 30)
+                      .ceil()
+                      .toString(),
+                ),
+              ),
+              ListTile(
+                leading: Icon(Icons.location_on, color: Colors.indigo),
+                title: Text('Delivery Address'),
+                subtitle: Text(
+                  '${subscription.deliveryAddress}, ${subscription.deliveryCity}, ${subscription.deliveryState} - ${subscription.deliveryPincode}',
+                ),
+              ),
+              ListTile(
+                leading: Icon(Icons.phone, color: Colors.indigo),
+                title: Text('Contact Number'),
+                subtitle: Text(subscription.deliveryPhone),
               ),
             ],
           ),
@@ -537,27 +641,13 @@ class _SubscriptionCarouselState extends State<SubscriptionCarousel> {
     );
   }
 
-  String _getMonthName(int month) {
-    const months = [
-      'Jan',
-      'Feb',
-      'Mar',
-      'Apr',
-      'May',
-      'Jun',
-      'Jul',
-      'Aug',
-      'Sep',
-      'Oct',
-      'Nov',
-      'Dec',
-    ];
-    return months[month - 1];
-  }
-
   @override
   void dispose() {
     _pageController.dispose();
     super.dispose();
   }
+}
+
+extension on String {
+  difference(DateTime dateTime) {}
 }

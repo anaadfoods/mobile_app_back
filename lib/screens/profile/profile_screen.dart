@@ -1,141 +1,255 @@
 import 'package:flutter/material.dart';
-import 'package:grocery_app/services/auth_service.dart';
-import 'package:grocery_app/screens/auth/login_screen.dart';
+import 'package:flutter/services.dart';
+import '../../services/auth_service.dart';
+import '../../models/user_model.dart';
+import 'edit_profile_screen.dart';
 
-class ProfileScreen extends StatelessWidget {
-  const ProfileScreen({super.key});
+class ProfileScreen extends StatefulWidget {
+  const ProfileScreen({Key? key}) : super(key: key);
 
-  Future<void> _handleLogout(BuildContext context) async {
-    final authService = AuthService();
-    await authService.clearToken();
+  @override
+  State<ProfileScreen> createState() => _ProfileScreenState();
+}
 
-    if (!context.mounted) return;
+class _ProfileScreenState extends State<ProfileScreen> {
+  final AuthService _authService = AuthService();
+  bool _isLoading = true;
+  UserModel? _userProfile;
 
-    // Navigate to login screen and clear all previous routes
-    Navigator.of(context).pushAndRemoveUntil(
-      MaterialPageRoute(builder: (context) => const LoginScreen()),
-      (route) => false,
-    );
+  @override
+  void initState() {
+    super.initState();
+    _loadUserProfile();
   }
 
-  void _showProfilePhotoOptions(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+  Future<void> _loadUserProfile() async {
+    try {
+      final profile = await _authService.getUserProfile();
+      if (mounted) {
+        setState(() {
+          _userProfile = profile;
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Failed to load profile')));
+      }
+    }
+  }
+
+  Widget _buildProfileHeader() {
+    return Container(
+      padding: EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Theme.of(context).primaryColor,
+            Theme.of(context).primaryColor.withOpacity(0.8),
+          ],
+        ),
       ),
-      builder:
-          (context) => Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Wrap(
-              alignment: WrapAlignment.start,
-              children: [
-                SizedBox(height: 20),
-                Row(
-                  children: [
-                    Text(
-                      "Choose Profile Photo",
-                      style: TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                    Spacer(),
-                    Icon(Icons.close),
-                  ],
-                ),
-                SizedBox(height: 20),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    _buildPhotoOption(Icons.camera_alt, 'Camera'),
-                    _buildPhotoOption(Icons.photo_library, 'Gallery'),
-                  ],
-                ),
-              ],
+      child: Column(
+        children: [
+          CircleAvatar(
+            radius: 50,
+            backgroundColor: Colors.white,
+            child: Icon(
+              Icons.person,
+              size: 50,
+              color: Theme.of(context).primaryColor,
             ),
           ),
+          SizedBox(height: 16),
+          Text(
+            '${_userProfile?.firstName ?? ''} ${_userProfile?.lastName ?? ''}',
+            style: TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+            ),
+          ),
+          SizedBox(height: 8),
+          Text(
+            _userProfile?.email ?? '',
+            style: TextStyle(
+              fontSize: 16,
+              color: Colors.white.withOpacity(0.9),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
-  Widget _buildPhotoOption(IconData icon, String label) {
-    return Column(
-      children: [
-        CircleAvatar(
-          backgroundColor: Colors.green.shade100,
-          child: Icon(icon, color: Colors.green),
+  Widget _buildInfoCard(String title, String value, IconData icon) {
+    return Card(
+      elevation: 2,
+      margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: ListTile(
+        leading: Icon(icon, color: Theme.of(context).primaryColor),
+        title: Text(
+          title,
+          style: TextStyle(fontSize: 14, color: Colors.grey[600]),
         ),
-        SizedBox(height: 8),
-        Text(label, style: TextStyle(fontSize: 12)),
-      ],
+        subtitle: Text(
+          value,
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w500,
+            color: Colors.black87,
+          ),
+        ),
+      ),
     );
   }
 
-  Widget _buildProfileTile(IconData icon, String title, String subtitle) {
-    return ListTile(
-      leading: Icon(icon),
-      title: Text(title),
-      subtitle: Text(subtitle),
+  Widget _buildReferralCode() {
+    return Container(
+      margin: EdgeInsets.all(16),
+      padding: EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [Colors.purple.shade300, Colors.purple.shade500],
+        ),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Your Referral Code',
+            style: TextStyle(color: Colors.white, fontSize: 16),
+          ),
+          SizedBox(height: 8),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                _userProfile?.referralCode ?? '',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 1.5,
+                ),
+              ),
+              IconButton(
+                icon: Icon(Icons.copy, color: Colors.white),
+                onPressed: () async {
+                  if (_userProfile?.referralCode != null) {
+                    await Clipboard.setData(
+                      ClipboardData(text: _userProfile!.referralCode!),
+                    );
+                    if (!mounted) return;
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Referral code copied to clipboard'),
+                        backgroundColor: Colors.green,
+                        behavior: SnackBarBehavior.floating,
+                      ),
+                    );
+                  }
+                },
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
+    if (_isLoading) {
+      return Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Profile'),
-        leading: IconButton(
-          onPressed: () => Navigator.pop(context),
-          icon: const Icon(Icons.arrow_back),
-        ),
+        title: Text('My Profile'),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.edit),
+            onPressed: () async {
+              if (_userProfile != null) {
+                final result = await Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder:
+                        (context) =>
+                            EditProfileScreen(userProfile: _userProfile!),
+                  ),
+                );
+
+                // Reload profile if update was successful
+                if (result == true) {
+                  _loadUserProfile();
+                }
+              }
+            },
+          ),
+        ],
       ),
-      body: Column(
-        children: [
-          const SizedBox(height: 20),
-          Center(
-            child: Stack(
-              alignment: Alignment.bottomRight,
-              children: [
-                CircleAvatar(
-                  radius: 50,
-                  backgroundColor: const Color.fromARGB(255, 128, 228, 131),
-                  child: const Text(
-                    'WBI',
-                    style: TextStyle(
-                      fontSize: 24,
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
+      body: RefreshIndicator(
+        onRefresh: _loadUserProfile,
+        child: SingleChildScrollView(
+          physics: AlwaysScrollableScrollPhysics(),
+          child: Column(
+            children: [
+              _buildProfileHeader(),
+              SizedBox(height: 20),
+              _buildReferralCode(),
+              _buildInfoCard(
+                'Phone Number',
+                _userProfile?.phoneNumber ?? '',
+                Icons.phone,
+              ),
+              _buildInfoCard(
+                'Address',
+                _userProfile?.address ?? '',
+                Icons.location_on,
+              ),
+              _buildInfoCard(
+                'City',
+                '${_userProfile?.city ?? ''}, ${_userProfile?.state ?? ''}',
+                Icons.location_city,
+              ),
+              _buildInfoCard(
+                'PIN Code',
+                _userProfile?.pincode ?? '',
+                Icons.pin_drop,
+              ),
+              _buildInfoCard(
+                'Username',
+                _userProfile?.username ?? '',
+                Icons.account_circle,
+              ),
+              SizedBox(height: 20),
+              if (_userProfile?.isEmailVerified == false)
+                Padding(
+                  padding: EdgeInsets.all(16),
+                  child: ElevatedButton.icon(
+                    onPressed: () {
+                      // TODO: Implement email verification
+                    },
+                    icon: Icon(Icons.email),
+                    label: Text('Verify Email'),
+                    style: ElevatedButton.styleFrom(
+                      minimumSize: Size(double.infinity, 50),
                     ),
                   ),
                 ),
-                IconButton(
-                  icon: CircleAvatar(
-                    backgroundColor: const Color.fromARGB(255, 128, 228, 131),
-                    child: const Icon(Icons.camera_alt, size: 20),
-                  ),
-                  onPressed: () => _showProfilePhotoOptions(context),
-                ),
-              ],
-            ),
+            ],
           ),
-          const SizedBox(height: 20),
-          _buildProfileTile(Icons.person, 'Name', 'user_dummy'),
-          _buildProfileTile(Icons.phone, 'Phone', '+91 1234567890'),
-          _buildProfileTile(Icons.email, 'Email', 'user@gmail.com'),
-          const Spacer(),
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: ElevatedButton(
-              onPressed: () => _handleLogout(context),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.red,
-                minimumSize: const Size(double.infinity, 50),
-              ),
-              child: const Text(
-                'Logout',
-                style: TextStyle(color: Colors.white),
-              ),
-            ),
-          ),
-          const SizedBox(height: 20),
-        ],
+        ),
       ),
     );
   }

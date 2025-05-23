@@ -176,6 +176,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
       category.name,
     );
 
+
     Navigator.of(context).push(
       MaterialPageRoute(
         builder:

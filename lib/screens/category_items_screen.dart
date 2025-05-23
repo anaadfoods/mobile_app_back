@@ -4,8 +4,8 @@ import 'package:grocery_app/common_widgets/app_text.dart';
 import 'package:grocery_app/models/product_model.dart';
 import 'package:grocery_app/screens/product_details/product_details_screen.dart';
 import 'package:grocery_app/widgets/grocery_item_card_widget.dart';
-
 import 'filter_screen.dart';
+
 
 class CategoryItemsScreen extends StatelessWidget {
   final String name;
@@ -93,7 +93,7 @@ class CategoryItemsScreen extends StatelessWidget {
       MaterialPageRoute(
         builder:
             (context) =>
-                ProductDetailsScreen(product:product, heroSuffix: "explore_screen"),
+                ProductDetailsScreen(product:product),
       ),
     );
   }

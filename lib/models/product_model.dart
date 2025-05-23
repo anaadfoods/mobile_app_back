@@ -1,16 +1,5 @@
-class ProductImage {
-  final String image;
-  final String altText;
-
-  ProductImage({required this.image, required this.altText});
-
-  factory ProductImage.fromJson(Map<String, dynamic> json) {
-    return ProductImage(
-      image: json['image'] ?? '',
-      altText: json['alt_text'] ?? '',
-    );
-  }
-}
+import 'package:grocery_app/models/cart_model.dart';
+import 'package:grocery_app/models/product_image_model.dart';
 
 class Product {
   final int id;
@@ -42,6 +31,25 @@ class Product {
     required this.productCategory,
     required this.productImages,
   });
+
+  // Convert Product to ProductVariant
+  ProductVariant toProductVariant() {
+    return ProductVariant(
+      id: id,
+      sku: sku,
+      weight: weight,
+      weightUnit: weightUnit,
+      price: price.toString(),
+      discountPercentage: discountPercentage.toString(),
+      finalPrice: finalPrice.toString(),
+      isInStock: isInStock,
+      isActive: isActive,
+      productName: productName,
+      productDescription: productDescription,
+      productCategory: productCategory,
+      productImages: productImages,
+    );
+  }
 
   factory Product.fromJson(Map<String, dynamic> json) {
     return Product(

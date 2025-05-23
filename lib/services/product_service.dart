@@ -1,22 +1,21 @@
 import 'dart:convert';
 import 'dart:async';
+import 'api_config.dart';
+
 import 'package:http/http.dart' as http;
 import 'package:grocery_app/models/category_model.dart';
 import 'package:grocery_app/models/product_model.dart';
 
 class CategoryService {
-  // static const String baseUrl = 'http://192.168.19.81:8000'; 
-
-   static const String baseUrl = 'http://10.0.2.2:8000';
+  // static const String baseUrl = 'http://192.168.1.40:8000';
+  // static const String baseUrl = 'http://192.168.19.81:8000';
+  static final String baseUrl = ApiConfig.baseUrl;
 
   static const String categoriesEndpoint = '/api/products/categories/';
-
-  static const String baseProductsEndpoint= '/api/products/';
+  static const String baseProductsEndpoint = '/api/products/';
   static const String varientEndPoint = '/variants/by_category/';
-  static  const String productsEndpoint = "/api/products/variants/by_category/";
-
+  static const String productsEndpoint = "/api/products/variants/by_category/";
   static const String featuredEndPoint = '/api/products/featured/';
-
   static const int timeoutSeconds = 30;
 
   // Fetches all categories from the server
@@ -53,31 +52,46 @@ class CategoryService {
       return false;
     }
   }
-static Future<List<Product>> fetchProductsByCategory(String categoryName) async {
-  try{
-    // final response = await http.get(Uri.parse('$baseUrl$productsEndpoint$varientEndPoint?by_category=$categoryName'));
-    final String url = "$baseUrl$productsEndpoint?category_name=$categoryName";
-    final response = await http.get(Uri.parse(url));
-if(response.statusCode == 200){
-  final List<dynamic> data = json.decode(response.body);
-  return data.map((item)=> Product.fromJson((item))).toList();
-}else{
-  throw Exception("Failed to load products by category");
-}
-  
-  }catch(e){
-    throw Exception("Error loading products by category");
-  }
-}
 
-  
+  static Future<Product> fetchProductById(int id) async {
+    try {
+      String varianturl = 'variants/';
+      final response = await http
+          .get(Uri.parse('$baseUrl$baseProductsEndpoint$varianturl$id'))
+          .timeout(Duration(seconds: timeoutSeconds));
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        return Product.fromJson(data);
+      }
+      throw Exception('Failed to load product');
+    } catch (e) {
+      throw Exception('Error loading product: $e');
+    }
+  }
+
+  static Future<List<Product>> fetchProductsByCategory(
+    String categoryName,
+  ) async {
+    try {
+      final String url =
+          "$baseUrl$productsEndpoint?category_name=$categoryName";
+      final response = await http.get(Uri.parse(url));
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = json.decode(response.body);
+        return data.map((item) => Product.fromJson(item)).toList();
+      } else {
+        throw Exception("Failed to load products by category");
+      }
+    } catch (e) {
+      throw Exception("Error loading products by category: $e");
+    }
+  }
 
   static Future<List<Product>> fetchFeaturedProducts() async {
     try {
-      final response = await http.get(
-
-        Uri.parse('$baseUrl$featuredEndPoint'),
-      );
+      final response = await http.get(Uri.parse('$baseUrl$featuredEndPoint'));
 
       if (response.statusCode == 200) {
         final List<dynamic> data = json.decode(response.body);
