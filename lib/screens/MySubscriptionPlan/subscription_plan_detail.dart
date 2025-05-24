@@ -14,6 +14,8 @@ class SubscriptionScreen extends StatefulWidget {
 class _SubscriptionScreenState extends State<SubscriptionScreen>
     with SingleTickerProviderStateMixin {
   List<Subscription> allSubscriptions = [];
+  List<Subscription> filteredSubscriptions = [];
+  String currentFilter = "All";
 
   final SubscriptionService _subscriptionService = SubscriptionService();
 
@@ -24,7 +26,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen>
         final List<dynamic> data = response['data'];
         setState(() {
           allSubscriptions = data.map((item) => item as Subscription).toList();
-          filteredSubscriptions = allSubscriptions;
+          _filterSubscriptions(currentFilter);
         });
       } else {
         print('Error fetching subscriptions: ${response['message']}');
@@ -48,16 +50,18 @@ class _SubscriptionScreenState extends State<SubscriptionScreen>
     }
   }
 
-  List<Subscription> filteredSubscriptions = [];
-
   @override
   void initState() {
     super.initState();
-    filteredSubscriptions = allSubscriptions;
+    // Fetch subscriptions immediately when the page is opened
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _fetchSubscriptions();
+    });
   }
 
   void _filterSubscriptions(String status) {
     setState(() {
+      currentFilter = status;
       if (status == "All") {
         filteredSubscriptions = allSubscriptions;
       } else {
@@ -82,6 +86,13 @@ class _SubscriptionScreenState extends State<SubscriptionScreen>
     }
   }
 
+  Future<void> _togglePauseSubscription(
+    DateTime? startDate,
+    DateTime? endDate,
+  ) async {
+    // Implementation of _togglePauseSubscription method
+  }
+
   @override
   Widget build(BuildContext context) {
     return DefaultTabController(
@@ -91,9 +102,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen>
           title: Text("My Subscriptions"),
           actions: [
             IconButton(
-              onPressed: () {
-                _fetchSubscriptions();
-              },
+              onPressed: _fetchSubscriptions,
               icon: Icon(Icons.refresh_sharp),
             ),
           ],
@@ -145,13 +154,14 @@ class _SubscriptionScreenState extends State<SubscriptionScreen>
             ],
           ),
           child: GestureDetector(
-            onTap: (){
+            onTap: () {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => SubscriptionPlanDetailScreen(
-                    subscription: subscription,
-                  ),
+                  builder:
+                      (context) => SubscriptionPlanDetailScreen(
+                        subscription: subscription,
+                      ),
                 ),
               );
             },

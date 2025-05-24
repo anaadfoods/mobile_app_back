@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:grocery_app/models/subscription_plan_product_model.dart';
 import 'package:grocery_app/models/subscription_request_create_model.dart';
 import 'package:http/http.dart' as http;
 import '../models/subscription_model.dart';
@@ -174,15 +175,26 @@ class SubscriptionService {
       print('Parsed response data: $responseData');
       print('Response data type: ${responseData.runtimeType}');
 
-      // Handle direct array response
-      if (responseData is List) {
+      if (responseData is Map && responseData.containsKey('subscriptions')) {
         try {
-          final subscriptions =
-              responseData.map((item) => Subscription.fromJson(item)).toList();
+          // Extract all subscriptions from the nested structure
+          final allSubscriptions = <Subscription>[];
+          final subscriptionsMap =
+              responseData['subscriptions'] as Map<String, dynamic>;
+
+          subscriptionsMap.forEach((status, subscriptions) {
+            if (subscriptions is List) {
+              allSubscriptions.addAll(
+                subscriptions
+                    .map((item) => Subscription.fromJson(item))
+                    .toList(),
+              );
+            }
+          });
 
           return {
             'success': true,
-            'data': subscriptions,
+            'data': allSubscriptions,
             'message': 'Subscriptions fetched successfully',
           };
         } catch (e) {
@@ -194,7 +206,7 @@ class SubscriptionService {
           };
         }
       } else {
-        print('Response is not a list: $responseData');
+        print('Response is not in expected format: $responseData');
         return {
           'success': false,
           'message': 'Invalid response format from server',
@@ -453,10 +465,15 @@ class SubscriptionService {
           '${ApiConfig.baseUrl}$subscriptionsEndpoint/$subscriptionId/pause/',
         ),
         headers: ApiConfig.getAuthHeaders(token),
-        body: jsonEncode({
-          'pause_start_date': pauseStartDate?.toIso8601String().split('T')[0],
-          'pause_end_date': pauseEndDate?.toIso8601String().split('T')[0],
-        }),
+        body:
+            pauseStartDate != null && pauseEndDate != null
+                ? jsonEncode({
+                  'pause_start_date':
+                      pauseStartDate.toIso8601String().split('T')[0],
+                  'pause_end_date':
+                      pauseEndDate.toIso8601String().split('T')[0],
+                })
+                : null,
       );
 
       final responseData = jsonDecode(response.body);
@@ -496,6 +513,45 @@ class SubscriptionService {
         'success': false,
         'message': 'An error occurred while pausing the subscription',
         'error': e.toString(),
+      };
+    }
+  }
+
+  Future<Map<String, dynamic>> getSubscriptionPlanProducts(int planId) async {
+    try {
+      final response = await http.get(
+        Uri.parse(
+          '${ApiConfig.baseUrl}/api/subscriptions/plans/$planId/products/',
+        ),
+        headers: ApiConfig.getBaseHeaders(),
+      );
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        return {
+          'success': true,
+          'data': SubscriptionPlanProductsResponse.fromJson(data),
+        };
+      } else if (response.statusCode == 401) {
+        // Handle token refresh
+        final refreshResult = await _authService.refreshAccessToken();
+        if (refreshResult) {
+          // Retry the request with new token
+          return getSubscriptionPlanProducts(planId);
+        }
+        return {
+          'success': false,
+          'message': 'Authentication failed',
+          'requiresLogin': true,
+        };
+      } else {
+        return {'success': false, 'message': 'Failed to fetch plan products'};
+      }
+    } catch (e) {
+      print('Error fetching subscription plan products: $e');
+      return {
+        'success': false,
+        'message': 'An error occurred while fetching plan products',
       };
     }
   }

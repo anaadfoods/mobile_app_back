@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:grocery_app/models/product_model.dart';
 import 'package:grocery_app/models/subscription_plan_model.dart';
+import 'package:grocery_app/models/subscription_plan_product_model.dart';
 import 'package:grocery_app/screens/product_details/product_details_screen.dart';
 import 'package:grocery_app/services/product_service.dart';
 import 'package:grocery_app/services/subscription_service.dart';
@@ -21,6 +22,7 @@ class _SubscriptionTableState extends State<SubscriptionTable> {
   List<SubscriptionPlan> _plans = [];
   bool _isLoading = true;
   String? _error;
+  Map<int, List<SubscriptionPlanProduct>> _planProducts = {};
 
   @override
   void initState() {
@@ -55,6 +57,45 @@ class _SubscriptionTableState extends State<SubscriptionTable> {
           _error = e.toString();
           _isLoading = false;
         });
+      }
+    }
+  }
+
+  Future<void> _loadPlanProducts(int planId) async {
+    try {
+      final result = await _subscriptionService.getSubscriptionPlanProducts(
+        planId,
+      );
+      if (mounted) {
+        if (result['success']) {
+          final response = result['data'] as SubscriptionPlanProductsResponse;
+          setState(() {
+            _planProducts[planId] = response.products;
+          });
+        } else {
+          if (result['requiresLogin'] == true) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => LoginScreen()),
+            );
+          } else {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(result['message'] ?? 'Failed to load products'),
+                backgroundColor: Colors.red,
+              ),
+            );
+          }
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error loading products: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
       }
     }
   }
@@ -192,7 +233,7 @@ class _SubscriptionTableState extends State<SubscriptionTable> {
                   ),
                 const SizedBox(height: 8),
                 const Text(
-                  'Product Limits:',
+                  'Available Products:',
                   style: TextStyle(fontWeight: FontWeight.bold),
                 ),
                 DropdownButtonFormField<String>(
@@ -204,20 +245,22 @@ class _SubscriptionTableState extends State<SubscriptionTable> {
                     border: OutlineInputBorder(),
                   ),
                   items:
-                      plan.productLimits.map((limit) {
+                      _planProducts[plan.id]?.map((product) {
                         return DropdownMenuItem<String>(
-                          value: limit.productName,
+                          value: product.productName,
                           child: GestureDetector(
                             onTap: () async {
-                              Future<Product> product =
-                                  CategoryService.fetchProductById(limit.product);
+                              Future<Product> productData =
+                                  CategoryService.fetchProductById(
+                                    product.productId,
+                                  );
 
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
                                   builder:
                                       (context) => FutureBuilder<Product>(
-                                        future: product,
+                                        future: productData,
                                         builder: (context, snapshot) {
                                           if (snapshot.hasData) {
                                             return ProductDetailsScreen(
@@ -230,14 +273,18 @@ class _SubscriptionTableState extends State<SubscriptionTable> {
                                 ),
                               );
                             },
-                            child: Text(
-                              '${limit.productName} - ${limit.maxWeightLimit} kg',
-                            ),
+                            child: Text(product.productName),
                           ),
                         );
-                      }).toList(),
+                      }).toList() ??
+                      [],
                   onChanged: (_) {},
                   hint: const Text('Select Product'),
+                  onTap: () {
+                    if (!_planProducts.containsKey(plan.id)) {
+                      _loadPlanProducts(plan.id);
+                    }
+                  },
                 ),
                 const SizedBox(height: 12),
                 Text(

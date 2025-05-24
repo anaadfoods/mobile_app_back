@@ -1,10 +1,13 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:grocery_app/screens/category_items_screen.dart';
+import 'package:grocery_app/screens/product_details/product_details_screen.dart';
 import 'package:grocery_app/services/product_service.dart';
 import 'package:grocery_app/models/category_model.dart';
+import 'package:grocery_app/models/product_model.dart';
 import 'package:grocery_app/widgets/category_item_card_widget.dart';
 import 'package:grocery_app/widgets/search_bar_widget.dart';
+import 'package:grocery_app/widgets/grocery_item_card_widget.dart';
 
 class ExploreScreen extends StatefulWidget {
   @override
@@ -14,16 +17,17 @@ class ExploreScreen extends StatefulWidget {
 class _ExploreScreenState extends State<ExploreScreen> {
   List<Category> _categories = [];
   List<Category> _filteredCategories = [];
+  List<Product> _bestsellers = [];
   bool _isLoading = true;
   String? _error;
 
   @override
   void initState() {
     super.initState();
-    _loadCategories();
+    _loadData();
   }
 
-  Future<void> _loadCategories() async {
+  Future<void> _loadData() async {
     setState(() {
       _isLoading = true;
       _error = null;
@@ -41,16 +45,19 @@ class _ExploreScreenState extends State<ExploreScreen> {
         return;
       }
 
+      // Load categories and bestsellers in parallel
       final categories = await CategoryService.fetchCategories();
+      final bestsellers = await CategoryService.fetchBestsellerProducts();
 
       setState(() {
         _categories = categories;
         _filteredCategories = categories;
+        _bestsellers = bestsellers;
         _isLoading = false;
       });
     } catch (e) {
       setState(() {
-        _error = 'Error loading categories: $e';
+        _error = 'Error loading data: $e';
         _isLoading = false;
       });
     }
@@ -77,9 +84,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text("Explore", style: TextStyle(fontWeight: FontWeight.bold)),
-        actions: [
-          IconButton(icon: Icon(Icons.refresh), onPressed: _loadCategories),
-        ],
+        actions: [IconButton(icon: Icon(Icons.refresh), onPressed: _loadData)],
       ),
       body: SafeArea(
         child: Column(
@@ -120,7 +125,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
               ),
               SizedBox(height: 16),
               ElevatedButton.icon(
-                onPressed: _loadCategories,
+                onPressed: _loadData,
                 icon: Icon(Icons.refresh),
                 label: Text('Retry Connection'),
               ),
@@ -130,29 +135,82 @@ class _ExploreScreenState extends State<ExploreScreen> {
       );
     }
 
-    if (_filteredCategories.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.category_outlined, size: 48, color: Colors.grey),
-            SizedBox(height: 16),
-            Text(
-              'No matching categories found',
-              style: TextStyle(color: Colors.grey),
+    return SingleChildScrollView(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Categories Section
+          Padding(
+            padding: EdgeInsets.all(16),
+            child: Text(
+              'Categories',
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
+          ),
+          if (_filteredCategories.isEmpty)
+            Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.category_outlined, size: 48, color: Colors.grey),
+                  SizedBox(height: 16),
+                  Text(
+                    'No matching categories found',
+                    style: TextStyle(color: Colors.grey),
+                  ),
+                ],
+              ),
+            )
+          else
+            _buildCategoryGrid(),
+          // Bestsellers Sectionif (_bestsellers.isNotEmpty) ...[
+            Padding(
+              padding: EdgeInsets.all(16),
+              child: Text(
+                'Bestsellers',
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              ),
+            ),
+            SizedBox(
+              height: 250,
+              child: ListView.builder(
+                scrollDirection: Axis.horizontal,
+                padding: EdgeInsets.symmetric(horizontal: 10),
+                itemCount: _bestsellers.length,
+                itemBuilder: (context, index) {
+                  return GestureDetector(
+                    onTap:(){
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (context) => ProductDetailsScreen(
+                            product: _bestsellers[index],
+                          ),
+                        ),
+                      );
+                    },
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 5),
+                      child: GroceryItemCardWidget(
+                        item: _bestsellers[index],
+                        heroSuffix: 'bestseller',
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+            SizedBox(height: 20),
           ],
-        ),
-      );
-    }
-
-    return _buildCategoryGrid();
+      ),
+    );
   }
 
   Widget _buildCategoryGrid() {
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: 10, vertical: 10),
       child: GridView.builder(
+        shrinkWrap: true,
+        physics: NeverScrollableScrollPhysics(),
         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: 3,
           crossAxisSpacing: 10,
@@ -175,7 +233,6 @@ class _ExploreScreenState extends State<ExploreScreen> {
     final products = await CategoryService.fetchProductsByCategory(
       category.name,
     );
-
 
     Navigator.of(context).push(
       MaterialPageRoute(

@@ -16,6 +16,7 @@ class CategoryService {
   static const String varientEndPoint = '/variants/by_category/';
   static const String productsEndpoint = "/api/products/variants/by_category/";
   static const String featuredEndPoint = '/api/products/featured/';
+  static const String bestsellersEndpoint = '/api/products/bestsellers/';
   static const int timeoutSeconds = 30;
 
   // Fetches all categories from the server
@@ -116,6 +117,23 @@ class CategoryService {
       }
     } catch (e) {
       throw Exception('Error loading products: $e');
+    }
+  }
+
+  static Future<List<Product>> fetchBestsellerProducts() async {
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl$bestsellersEndpoint'),
+      );
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = json.decode(response.body);
+        return data.map((item) => Product.fromJson(item)).toList();
+      } else {
+        throw Exception('Failed to load bestseller products');
+      }
+    } catch (e) {
+      throw Exception('Error loading bestseller products: $e');
     }
   }
 }

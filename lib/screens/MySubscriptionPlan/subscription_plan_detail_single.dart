@@ -18,8 +18,8 @@ class _SubscriptionPlanDetailScreenState
   bool _isLoading = false;
 
   Future<void> _togglePauseSubscription(
-    DateTime startDate,
-    DateTime endDate,
+    DateTime? startDate,
+    DateTime? endDate,
   ) async {
     setState(() => _isLoading = true);
     try {
@@ -33,7 +33,7 @@ class _SubscriptionPlanDetailScreenState
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              response['message'] ?? 'Subscription status updated successfully',
+              response['details'] ?? 'Subscription status updated successfully',
             ),
             backgroundColor: Colors.green,
           ),
@@ -44,7 +44,7 @@ class _SubscriptionPlanDetailScreenState
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              response['message'] ?? 'Failed to update subscription status',
+              response['details'] ?? 'Failed to update subscription status',
             ),
             backgroundColor: Colors.red,
           ),
@@ -221,8 +221,8 @@ class _SubscriptionPlanDetailScreenState
                     }
 
                     _togglePauseSubscription(
-                      selectedStartDate ?? DateTime.now(),
-                      selectedEndDate ?? DateTime.now().add(Duration(days: 30)),
+                      isCurrentlyPaused ? null : selectedStartDate,
+                      isCurrentlyPaused ? null : selectedEndDate,
                     );
                     Navigator.of(context).pop();
                   },
@@ -236,21 +236,94 @@ class _SubscriptionPlanDetailScreenState
     );
   }
 
+  void _showCancelConfirmation() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Cancel Subscription?'),
+          content: Text(
+            'Are you sure you want to cancel this subscription? This action cannot be undone.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text('No, Keep It'),
+            ),
+            TextButton(
+              onPressed: () async {
+                Navigator.of(context).pop();
+                await _cancelSubscription();
+              },
+              child: Text('Yes, Cancel', style: TextStyle(color: Colors.red)),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> _cancelSubscription() async {
+    setState(() => _isLoading = true);
+    try {
+      final response = await _subscriptionService.cancelSubscription(
+        widget.subscription.id,
+      );
+
+      if (response['success'] == true) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              response['message'] ?? 'Subscription cancelled successfully',
+            ),
+            backgroundColor: Colors.green,
+          ),
+        );
+        // Refresh the subscription data
+        Navigator.pop(context, true);
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              response['message'] ?? 'Failed to cancel subscription',
+            ),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+      );
+    } finally {
+      setState(() => _isLoading = false);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final isPaused = widget.subscription.status == 'PAUSED';
+    final isCancelled = widget.subscription.status == 'CANCELLED';
 
     return Scaffold(
       appBar: AppBar(
         title: Text('Subscription Plan Details'),
         actions: [
-          IconButton(
-            icon: Icon(
-              isPaused ? Icons.play_circle_fill : Icons.pause_circle_filled,
-              color: isPaused ? Colors.green : Colors.orange,
+          if (!isCancelled) ...[
+            // Pause/Resume button
+            IconButton(
+              icon: Icon(
+                isPaused ? Icons.play_circle_fill : Icons.pause_circle_filled,
+                color: isPaused ? Colors.green : Colors.orange,
+              ),
+              onPressed: _isLoading ? null : _showToggleConfirmation,
             ),
-            onPressed: _isLoading ? null : _showToggleConfirmation,
-          ),
+            // Cancel button
+            IconButton(
+              icon: Icon(Icons.cancel, color: Colors.red),
+              onPressed: _isLoading ? null : _showCancelConfirmation,
+            ),
+          ],
         ],
       ),
       body:
@@ -399,6 +472,14 @@ class _SubscriptionPlanDetailScreenState
                               ),
                             ],
                           ),
+                        ),
+                      ),
+                    if (widget.subscription.status == 'CANCELLED')
+                      Card(
+                        elevation: 4,
+                        child: Padding(
+                          padding: EdgeInsets.all(16),
+                          child: Text('Subscription cancelled'),
                         ),
                       ),
                   ],

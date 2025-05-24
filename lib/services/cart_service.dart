@@ -12,6 +12,7 @@ class CartService {
   static const String cartEndpoint = '/api/cart/';
 
   static const String addCartItemEndpoint = '/api/cart/items/add/';
+  static const String updateCartItemEndpoint = '/api/cart/items/update/';
   static const String clearCartItemEndpoint = 'clear/';
   static const int timeoutSeconds = 30;
 
@@ -154,10 +155,10 @@ class CartService {
       }
 
       final response = await http
-          .put(
-            Uri.parse('$baseUrl$getcartEndpoint$cartItemId/'),
+          .post(
+            Uri.parse('$baseUrl$updateCartItemEndpoint'),
             headers: await _getHeaders(),
-            body: jsonEncode({'quantity': quantity}),
+            body: jsonEncode({'product_variant_id': cartItemId, 'quantity': quantity}),
           )
           .timeout(Duration(seconds: timeoutSeconds));
 

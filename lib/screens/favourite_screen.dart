@@ -76,8 +76,8 @@ class _FavouriteScreenState extends State<FavouriteScreen> {
         });
         return;
       }
+
       final result = await _authService.getFavorites();
-      print(result);
       if (!mounted) return;
 
       setState(() {
@@ -110,6 +110,11 @@ class _FavouriteScreenState extends State<FavouriteScreen> {
   }
 
   Future<void> _removeFromFavorites(FavoriteModel favorite) async {
+    // Immediately remove the item from the UI
+    setState(() {
+      _favorites.removeWhere((item) => item.id == favorite.id);
+    });
+
     try {
       final result = await _authService.toggleFavorite(favorite.id);
 
@@ -119,10 +124,7 @@ class _FavouriteScreenState extends State<FavouriteScreen> {
         // Notify other screens about the change
         _favoriteStateService.notifyFavoriteChanged();
 
-        setState(() {
-          _favorites.removeWhere((item) => item.id == favorite.id);
-        });
-
+        // Show success message
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(result['message'] ?? 'Removed from favorites'),
@@ -130,6 +132,11 @@ class _FavouriteScreenState extends State<FavouriteScreen> {
           ),
         );
       } else {
+        // If the server request failed, add the item back to the list
+        setState(() {
+          _favorites.add(favorite);
+        });
+
         if (result['code'] == 'unauthenticated' ||
             result['code'] == 'token_expired') {
           Navigator.pushReplacement(
@@ -148,15 +155,20 @@ class _FavouriteScreenState extends State<FavouriteScreen> {
         }
       }
     } catch (e) {
-      print('Error removing from favorites: $e');
-      if (!mounted) return;
+      // If there's an error, add the item back to the list
+      if (mounted) {
+        setState(() {
+          _favorites.add(favorite);
+        });
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Failed to remove from favorites: ${e.toString()}'),
-          backgroundColor: Colors.red,
-        ),
-      );
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to remove from favorites: ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+      print('Error removing from favorites: $e');
     }
   }
 
@@ -226,7 +238,7 @@ class _FavouriteScreenState extends State<FavouriteScreen> {
     );
   }
 
-    Widget _buildFavoriteItem(FavoriteModel favorite) {
+  Widget _buildFavoriteItem(FavoriteModel favorite) {
     return GestureDetector(
       onTap: () async {
         try {
@@ -276,7 +288,10 @@ class _FavouriteScreenState extends State<FavouriteScreen> {
               height: 60,
               decoration: BoxDecoration(
                 gradient: LinearGradient(
-                  colors: [Colors.deepPurpleAccent.withOpacity(0.3), Colors.deepPurpleAccent.withOpacity(0.6)],
+                  colors: [
+                    Colors.deepPurpleAccent.withOpacity(0.3),
+                    Colors.deepPurpleAccent.withOpacity(0.6),
+                  ],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
@@ -284,18 +299,29 @@ class _FavouriteScreenState extends State<FavouriteScreen> {
               ),
               child: Icon(Icons.favorite, color: Colors.white, size: 30),
             ),
-            title: Text(favorite.name, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
-            subtitle: Text(favorite.weight, style: TextStyle(color: Colors.grey, fontSize: 14)),
+            title: Text(
+              favorite.name,
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+            ),
+            subtitle: Text(
+              favorite.weight,
+              style: TextStyle(color: Colors.grey, fontSize: 14),
+            ),
             trailing: IconButton(
-              icon: Icon(Icons.delete_outline, color: Colors.redAccent, size: 28),
-              onPressed: () => _removeFromFavorites(favorite),
+              icon: Icon(
+                Icons.delete_outline,
+                color: Colors.redAccent,
+                size: 28,
+              ),
+              onPressed: () {
+                _removeFromFavorites(favorite);
+              },
             ),
           ),
         ),
       ),
     );
   }
-
 
   // Widget _buildFavoriteItem(FavoriteModel favorite) {
   //   return GestureDetector(

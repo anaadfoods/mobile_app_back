@@ -1,11 +1,9 @@
 class ProductLimit {
-  final int id;
   final int product;
   final String productName;
   final double maxWeightLimit;
 
   ProductLimit({
-    required this.id,
     required this.product,
     required this.productName,
     required this.maxWeightLimit,
@@ -13,7 +11,6 @@ class ProductLimit {
 
   factory ProductLimit.fromJson(Map<String, dynamic> json) {
     return ProductLimit(
-      id: json['id'],
       product: json['product'],
       productName: json['product_name'],
       maxWeightLimit: double.parse(json['max_weight_limit']),
@@ -34,7 +31,7 @@ class SubscriptionPlan {
   final bool isOneTimeOnly;
   final bool allowsInstallments;
   final int installmentFrequencyMonths;
-  final List<ProductLimit> productLimits;
+  final List<ProductLimit>? productLimits;
   final bool isAvailable;
 
   SubscriptionPlan({
