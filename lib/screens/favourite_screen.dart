@@ -163,7 +163,7 @@ class _FavouriteScreenState extends State<FavouriteScreen> {
 
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Failed to remove from favorites: ${e.toString()}'),
+            content: Text('Failed to remove from favorites'),
             backgroundColor: Colors.red,
           ),
         );
@@ -229,7 +229,7 @@ class _FavouriteScreenState extends State<FavouriteScreen> {
           ),
           SizedBox(height: 8),
           AppText(
-            text: "Start adding items to your favorites",
+            text: "No favorite yet. What's your Thali even doing?",
             fontSize: 14,
             color: Color(0xFF7C7C7C),
           ),
@@ -405,7 +405,10 @@ class _FavouriteScreenState extends State<FavouriteScreen> {
     }
 
     return Scaffold(
-      appBar: AppBar(title: Text("Favourite"), centerTitle: true),
+      appBar: AppBar(
+        title: Text("For your Toxin-free Kitchen"),
+        centerTitle: true,
+      ),
       body: RefreshIndicator(
         onRefresh: _loadFavorites,
         child: ListView.builder(

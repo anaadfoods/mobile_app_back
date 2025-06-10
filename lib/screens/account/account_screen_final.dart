@@ -42,7 +42,6 @@ class _AccountScreenFinalState extends State<AccountScreenFinal> {
 
   @override
   void dispose() {
-    _authService.dispose();
     super.dispose();
   }
 

@@ -6,6 +6,7 @@ class UserModel {
   final String firstName;
   final String lastName;
   final String phoneNumber;
+  final String? gender;
   final String? address;
   final String? pincode;
   final String? city;
@@ -22,6 +23,7 @@ class UserModel {
     required this.firstName,
     required this.lastName,
     required this.phoneNumber,
+    this.gender,
     this.address,
     this.pincode,
     this.city,
@@ -41,6 +43,7 @@ class UserModel {
       'first_name': firstName,
       'last_name': lastName,
       'phone_number': phoneNumber,
+      if (gender != null) 'gender': gender,
     };
   }
 
@@ -56,6 +59,7 @@ class UserModel {
       if (pincode != null) 'pincode': pincode,
       if (city != null) 'city': city,
       if (state != null) 'state': state,
+      if (gender != null) 'gender': gender,
       if (profilePicture != null) 'profile_picture': profilePicture,
       if (referralCode != null) 'referral_code': referralCode,
       'is_email_verified': isEmailVerified,

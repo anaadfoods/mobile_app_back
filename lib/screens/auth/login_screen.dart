@@ -74,21 +74,17 @@ class _LoginScreenState extends State<LoginScreen> {
       final email = _emailController.text.trim();
       final password = _passwordController.text.trim();
 
-      print('Attempting login with email: $email');
-
       final result = await _authService.loginUser(email, password);
-      print('Login result: $result');
 
       if (!mounted) return;
 
       if (result['success'] == true) {
-        print('Login successful, navigating to dashboard');
         _navigateToDashboard();
+        // Do not show error snackbar on success
       } else {
         _showErrorSnackBar(result['message'] ?? 'Login failed');
       }
     } catch (e) {
-      print('Login exception: $e');
       if (mounted) {
         _showErrorSnackBar('An error occurred during login: $e');
       }

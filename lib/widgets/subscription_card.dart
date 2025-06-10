@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:grocery_app/styles/colors.dart';
 import '../models/subscription_model.dart';
 import '../services/subscription_service.dart';
+import 'FillImageWithColor.dart';
+import '../screens/MySubscriptionPlan/subscription_plan_detail_single.dart';
 
 class SubscriptionCard extends StatelessWidget {
   final String productName;
@@ -8,9 +11,11 @@ class SubscriptionCard extends StatelessWidget {
   final int quantity;
   final DateTime nextDeliveryDate;
   final int deliveriesLeft;
+  final int totalDeliveries;
   final bool isPaused;
   final VoidCallback onViewDetails;
   final VoidCallback onTogglePause;
+  final int completedDeliveries;
 
   const SubscriptionCard({
     super.key,
@@ -19,9 +24,11 @@ class SubscriptionCard extends StatelessWidget {
     required this.quantity,
     required this.nextDeliveryDate,
     required this.deliveriesLeft,
+    required this.totalDeliveries,
     required this.isPaused,
     required this.onViewDetails,
     required this.onTogglePause,
+    required this.completedDeliveries,
   });
 
   @override
@@ -40,7 +47,7 @@ class SubscriptionCard extends StatelessWidget {
             Text(
               '$productName - $planName',
               style: TextStyle(
-                fontSize: 20,
+                fontSize: 16,
                 fontWeight: FontWeight.bold,
                 color: Colors.indigo[900],
               ),
@@ -54,7 +61,7 @@ class SubscriptionCard extends StatelessWidget {
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 10),
                   child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       Text(
                         'Quantity',
@@ -74,7 +81,7 @@ class SubscriptionCard extends StatelessWidget {
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 10),
                   child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
+                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       Text(
                         'Next Delivery',
@@ -130,19 +137,59 @@ class SubscriptionCard extends StatelessWidget {
                     padding: const EdgeInsets.all(3.0),
                     child: Column(
                       children: [
-                        Text(
-                          deliveriesLeft.toString(),
-                          style: TextStyle(
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.indigo[900],
+                        GestureDetector(
+                          onLongPress: () {
+                            showDialog(
+                              context: context,
+                              builder:
+                                  (context) => AlertDialog(
+                                    title: Text('Delivery Info'),
+                                    content: Text(
+                                      '$deliveriesLeft deliveries left out of $totalDeliveries',
+                                    ),
+                                    actions: [
+                                      TextButton(
+                                        onPressed:
+                                            () => Navigator.of(context).pop(),
+                                        child: Text('OK'),
+                                      ),
+                                    ],
+                                  ),
+                            );
+                          },
+                          child: MouseRegion(
+                            cursor: SystemMouseCursors.click,
+                            onHover: (event) {
+                              final dynamic tooltip = Tooltip(
+                                message:
+                                    '$deliveriesLeft deliveries left out of $totalDeliveries',
+                                child: SizedBox.shrink(),
+                              );
+                            },
+                            child: FillImageWithColor(
+                              imageUrl: 'assets/images/delivery_box.svg',
+                              fillColor: AppColors.primaryColor,
+                              baseColor: const Color.fromARGB(
+                                255,
+                                209,
+                                182,
+                                182,
+                              ),
+                              percentage:
+                                  (((completedDeliveries) / totalDeliveries) *
+                                          100)
+                                      .clamp(0, 100)
+                                      .toInt(),
+                            ),
                           ),
                         ),
+                        SizedBox(height: 4),
                         Text(
-                          'Deliveries Left',
+                          '${completedDeliveries} Deliveries',
                           style: TextStyle(
-                            fontSize: 12,
-                            color: Colors.grey[600],
+                            fontSize: 14,
+                            color: Colors.indigo[900],
+                            fontWeight: FontWeight.w500,
                           ),
                         ),
                       ],
@@ -244,9 +291,14 @@ class _SubscriptionCarouselState extends State<SubscriptionCarousel> {
         );
         await _loadSubscriptions(); // Reload subscriptions after toggle
       } else {
+        print(response);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(response['message'] ?? 'Failed to toggle pause'),
+            content: Text(
+              response['detail'] ??
+                  response['message'] ??
+                  'Failed to toggle pause',
+            ),
             backgroundColor: Colors.red,
           ),
         );
@@ -428,7 +480,7 @@ class _SubscriptionCarouselState extends State<SubscriptionCarousel> {
                     _togglePauseSubscription(
                       subscription,
                       selectedStartDate ?? DateTime.now(),
-                      selectedEndDate ?? DateTime.now().add(Duration(days: 30)),
+                      selectedEndDate ?? DateTime.now().add(Duration(days: 1)),
                     );
                     Navigator.of(context).pop();
                   },
@@ -453,19 +505,24 @@ class _SubscriptionCarouselState extends State<SubscriptionCarousel> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text('Error: $_error'),
-            ElevatedButton(onPressed: _loadSubscriptions, child: Text('Retry')),
+            Text(""),
+            // Text('Error: $_error'),
+            // ElevatedButton(onPressed: _loadSubscriptions, child: Text('Retry')),
           ],
         ),
       );
     }
 
     if (_subscriptions.isEmpty) {
-      return Center(child: Text('No subscriptions found'));
+      return Center(child: Text(""));
     }
 
     return Column(
       children: [
+        const Text(
+          "Active Subscription",
+          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 28),
+        ),
         SizedBox(
           height: 280,
           child: Stack(
@@ -488,6 +545,7 @@ class _SubscriptionCarouselState extends State<SubscriptionCarousel> {
                     nextDeliveryDate: DateTime.parse(
                       subscription.nextDeliveryDate,
                     ),
+                    totalDeliveries: subscription.totalDeliveries,
                     deliveriesLeft:
                         (DateTime.parse(
                                   subscription.endDate,
@@ -495,10 +553,25 @@ class _SubscriptionCarouselState extends State<SubscriptionCarousel> {
                                 30)
                             .ceil(),
                     isPaused: subscription.status == 'PAUSED',
-                    onViewDetails:
-                        () => _showSubscriptionDetails(context, subscription),
+                    onViewDetails: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder:
+                              (context) => SubscriptionPlanDetailScreen(
+                                subscription: subscription,
+                              ),
+                        ),
+                      );
+                    },
                     onTogglePause:
                         () => _showToggleConfirmation(context, subscription),
+                    completedDeliveries:
+                        (DateTime.parse(
+                                  subscription.endDate,
+                                ).difference(DateTime.now()).inDays /
+                                30)
+                            .ceil(),
                   );
                 },
               ),
@@ -506,6 +579,7 @@ class _SubscriptionCarouselState extends State<SubscriptionCarousel> {
               Positioned(
                 left: 0,
                 top: 0,
+
                 bottom: 0,
                 child: Center(
                   child: IconButton(

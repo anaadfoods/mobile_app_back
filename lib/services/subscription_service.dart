@@ -41,7 +41,7 @@ class SubscriptionService {
       if (response.statusCode == 201) {
         return {
           'success': true,
-          'data': Subscription.fromJson(responseData['data']),
+          'data': Subscription.fromJson(responseData),
           'message': 'Subscription created successfully',
         };
       } else if (response.statusCode == 401) {
@@ -413,7 +413,7 @@ class SubscriptionService {
       if (response.statusCode == 201) {
         return {
           'success': true,
-          'data': Subscription.fromJson(responseData['data']),
+          'data': Subscription.fromJson(responseData),
           'message': 'Successfully subscribed to plan',
         };
       } else if (response.statusCode == 401) {
@@ -521,13 +521,17 @@ class SubscriptionService {
     try {
       final response = await http.get(
         Uri.parse(
-          '${ApiConfig.baseUrl}/api/subscriptions/plans/$planId/products/',
+          '${ApiConfig.baseUrl}/api/subscriptions/plans/$planId/products',
         ),
         headers: ApiConfig.getBaseHeaders(),
       );
 
+      print('Response status code: ${response.statusCode}');
+      print('Response body: ${response.body}');
+
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
+        print('Parsed response data: $data');
         return {
           'success': true,
           'data': SubscriptionPlanProductsResponse.fromJson(data),
@@ -545,6 +549,7 @@ class SubscriptionService {
           'requiresLogin': true,
         };
       } else {
+        print('Failed to fetch plan products. Status: ${response.statusCode}');
         return {'success': false, 'message': 'Failed to fetch plan products'};
       }
     } catch (e) {

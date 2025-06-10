@@ -24,19 +24,32 @@ class CategoryItemCardWidget extends StatelessWidget {
       decoration: BoxDecoration(
         color: color.withOpacity(0.1),
         borderRadius: BorderRadius.circular(borderRadius),
-        border: Border.all(
-          color: color.withOpacity(0.7),
-          width: 1,
-        ),
+        border: Border.all(color: color.withOpacity(0.7), width: 1),
       ),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           // Image
           SizedBox(
-            height: 50,
-            width: 50,
-            child: imageWidget(),
+            height: 150,
+            width: double.infinity,
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(16),
+              child: Container(
+                decoration: BoxDecoration(
+                  border: Border.all(color: Colors.grey.shade300, width: 2),
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Image.network(
+                  item.image,
+                  fit: BoxFit.cover,
+                  width: 120,
+                  height: 120,
+                  errorBuilder:
+                      (context, error, stackTrace) => Icon(Icons.broken_image),
+                ),
+              ),
+            ),
           ),
           const SizedBox(height: 10),
           // Name
@@ -44,23 +57,13 @@ class CategoryItemCardWidget extends StatelessWidget {
             child: Text(
               item.name,
               textAlign: TextAlign.center,
-              style: const TextStyle(
-                fontSize: 11,
-                fontWeight: FontWeight.w500,
-              ),
+              style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500),
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
             ),
           ),
         ],
       ),
-    );
-  }
-
-  Widget imageWidget() {
-    return Image.asset(
-      item.image,
-      fit: BoxFit.contain,
     );
   }
 }

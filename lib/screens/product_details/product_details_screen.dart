@@ -2,14 +2,21 @@ import 'package:flutter/material.dart';
 import 'package:grocery_app/common_widgets/app_text.dart';
 import 'package:grocery_app/models/favorite_model.dart';
 import 'package:grocery_app/models/product_model.dart';
+import 'package:grocery_app/models/subscription_plan_model.dart';
 import 'package:grocery_app/models/subscription_request_create_model.dart';
+import 'package:grocery_app/screens/MySubscriptionPlan/subscription_plan_detail_single.dart';
 import 'package:grocery_app/screens/auth/login_screen.dart';
 import 'package:grocery_app/screens/checkout/checkout_screen.dart';
+import 'package:grocery_app/screens/address/address_selection_screen.dart';
 import 'package:grocery_app/services/auth_service.dart';
 import 'package:grocery_app/services/cart_service.dart';
 import 'package:grocery_app/services/favorite_state_service.dart';
 import 'package:grocery_app/services/subscription_service.dart';
 import 'package:grocery_app/widgets/item_counter_widget.dart';
+import 'package:grocery_app/models/plan_search_result.dart';
+import 'package:grocery_app/services/plan_search_service.dart';
+import 'dart:convert';
+import 'package:carousel_slider/carousel_slider.dart';
 
 import 'favourite_toggle_icon_widget.dart';
 
@@ -32,31 +39,41 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
   bool _isLoadingFavorite = true;
   bool _isSubscribing = false;
   int amount = 1;
+  double priceSubscription = 0.0;
   double get currentPrice => widget.product.finalPrice * amount;
   double get originalPrice => widget.product.price * 1.2 * amount;
 
-  final List<String> tempImages = [
-    'assets/images/grocery_images/apple.png',
-    'assets/images/grocery_images/banana.png',
-    'assets/images/grocery_images/ginger.png',
-    'assets/images/grocery_images/pepper.png',
-  ];
+  late final List<String> tempImages =
+      widget.product.productImages.map((e) => e.image).toList();
 
-  final List<String> planNames = ["Aarambh", "Pathik", "Tapasvi", "Siddh"];
-  final List<String> planDescriptions = [
-    "Aarambh: The starter plan, perfect for trying out our service with a short-term commitment. Enjoy fresh products and flexible delivery.",
-    "Pathik: The explorer plan, designed for those who want a longer experience and extra savings. Includes exclusive offers and priority support.",
-    "Tapasvi: The disciplined plan, ideal for regular users who value consistency and maximum value. Get the best price and premium features.",
-    "Siddh: The ultimate plan, for our most loyal customers. Unlock all benefits, maximum discounts, and VIP support.",
-  ];
+  List<String> planNames = ["Aarambh", "Pathik", "Tapasvi", "Siddh"];
+  List<SubscriptionPlan> planDescriptions = [];
 
   final FavoriteStateService _favoriteStateService = FavoriteStateService();
   final SubscriptionService _subscriptionService = SubscriptionService();
   final AuthService _authService = AuthService();
 
+  // Add state for enabled plans
+  List<PlanSearchResult> enabledPlanNames = [];
+  bool _isLoadingPlans = true;
+
+  Future<void> _subscriptions() async {
+    final result = await _subscriptionService.getSubscriptionPlans();
+    if (mounted) {
+      if (result['success']) {
+        setState(() {
+          planDescriptions = result['data'] as List<SubscriptionPlan>;
+        });
+      }
+    }
+  }
+
   @override
   void initState() {
     super.initState();
+    print(
+      'ProductDetailsScreen initState called for product: ${widget.product.id}',
+    );
     _tabController = TabController(length: 4, vsync: this);
     _tabController.addListener(() {
       setState(() {
@@ -64,6 +81,17 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
       });
     });
     _initializeFavoriteState();
+    _fetchEnabledPlans();
+    _subscriptions();
+  }
+
+  @override
+  void didUpdateWidget(ProductDetailsScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    print('ProductDetailsScreen didUpdateWidget called');
+    if (oldWidget.product.id != widget.product.id) {
+      _fetchEnabledPlans();
+    }
   }
 
   Future<void> _initializeFavoriteState() async {
@@ -98,6 +126,27 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
     }
   }
 
+  Future<void> _fetchEnabledPlans() async {
+    try {
+      print('Fetching plans for variant: ${widget.product.id}');
+      final plans = await PlanSearchService.fetchPlansForVariant(
+        widget.product.id,
+      );
+      print('Plans fetched: $plans');
+      setState(() {
+        enabledPlanNames = plans;
+        print(enabledPlanNames);
+        _isLoadingPlans = false;
+      });
+    } catch (e) {
+      print('Error fetching plans: $e');
+      setState(() {
+        enabledPlanNames = [];
+        _isLoadingPlans = false;
+      });
+    }
+  }
+
   @override
   void dispose() {
     _tabController.dispose();
@@ -106,6 +155,10 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
 
   @override
   Widget build(BuildContext context) {
+    final product = widget.product;
+    final images = product.productImages;
+    final double imageHeight = MediaQuery.of(context).size.height * 0.4;
+
     return Scaffold(
       backgroundColor: Colors.grey[100],
       appBar: AppBar(
@@ -116,137 +169,14 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
           icon: Icon(Icons.arrow_back, color: Colors.black),
         ),
         title: Text(
-          widget.product.productCategory,
+          product.productCategory,
           style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black),
         ),
         centerTitle: true,
-      ),
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            Container(
-              height: MediaQuery.of(context).size.height * 0.3,
-              child: SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 6.0,
-                    vertical: 6,
-                  ),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Column(
-                        children: [
-                          getImageHeaderWidget(),
-                          const SizedBox(height: 10),
-                          getImageThumbnailRow(),
-                        ],
-                      ),
-                      const SizedBox(width: 12),
-                      Container(
-                        width: MediaQuery.of(context).size.width * 0.4,
-                        child: getDetailsColumn(originalPrice, currentPrice),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 6.0),
-              child: Column(
-                children: [
-                  SizedBox(height: 10),
-                  _buildBottomButtons(),
-                  SizedBox(height: 10),
-                  getPlanTabSection(),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget getImageHeaderWidget() {
-    return Container(
-      height: 150,
-      width: 150,
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black12,
-            blurRadius: 15,
-            offset: Offset(0, 5),
-          ),
-        ],
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(4.0),
-        child: Image.asset(tempImages[selectedImageIndex], fit: BoxFit.contain),
-      ),
-    );
-  }
-
-  Widget getImageThumbnailRow() {
-    return Container(
-      height: 50,
-      child: SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        child: Row(
-          children: List.generate(tempImages.length, (index) {
-            return GestureDetector(
-              onTap: () {
-                setState(() {
-                  selectedImageIndex = index;
-                });
-              },
-              child: Container(
-                margin: EdgeInsets.only(right: 8),
-                padding: EdgeInsets.all(6),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  border: Border.all(
-                    color:
-                        index == selectedImageIndex
-                            ? Colors.green
-                            : Colors.grey.shade300,
-                    width: 2,
-                  ),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Image.asset(tempImages[index], height: 24, width: 24),
-              ),
-            );
-          }),
-        ),
-      ),
-    );
-  }
-
-  Widget getDetailsColumn(double originalPrice, double discountPrice) {
-    return Container(
-      height: 200,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          ListTile(
-            contentPadding: EdgeInsets.zero,
-            title: Text(
-              widget.product.productName,
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.normal),
-            ),
-            subtitle: AppText(
-              text: widget.product.productCategory,
-              fontSize: 14,
-              fontWeight: FontWeight.w400,
-              color: Color(0xff7C7C7C),
-            ),
-            trailing:
+        actions: [
+          Padding(
+            padding: const EdgeInsets.only(right: 16.0),
+            child:
                 _isLoadingFavorite
                     ? SizedBox(
                       width: 24,
@@ -260,42 +190,179 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
                     )
                     : FavoriteToggleIcon(
                       favorite: isFavorite,
-                      onToggle: () => handleFavoriteToggle(widget.product.id),
+                      onToggle: () => handleFavoriteToggle(product.id),
                     ),
           ),
-          SizedBox(height: 10),
-          Row(
-            children: [
-              Text(
-                "₹${originalPrice.toStringAsFixed(2)}",
-                style: TextStyle(
-                  fontSize: 14,
-                  color: Colors.grey,
-                  decoration: TextDecoration.lineThrough,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-              SizedBox(width: 8),
-              Text(
-                "₹${discountPrice.toStringAsFixed(2)}",
-                style: TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.green[700],
-                ),
-              ),
-            ],
-          ),
-          SizedBox(height: 10),
-          ItemCounterWidget(
-            amount: amount,
-            onAmountChanged: (newAmount) {
-              setState(() {
-                amount = newAmount;
-              });
-            },
-          ),
         ],
+      ),
+      body: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // Product Name at the top
+            Padding(
+              padding: const EdgeInsets.symmetric(
+                vertical: 16.0,
+                horizontal: 16.0,
+              ),
+              child: Text(
+                product.productName,
+                style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+                textAlign: TextAlign.left,
+              ),
+            ),
+            // Image Carousel
+            CarouselSlider(
+              items:
+                  images.isNotEmpty
+                      ? images
+                          .map(
+                            (img) => Container(
+                              width: double.infinity,
+                              height: imageHeight,
+                              child: Image.network(
+                                img.image,
+                                fit: BoxFit.cover,
+                                width: double.infinity,
+                                height: imageHeight,
+                                errorBuilder:
+                                    (context, error, stackTrace) => Icon(
+                                      Icons.broken_image,
+                                      size: 80,
+                                      color: Colors.grey,
+                                    ),
+                              ),
+                            ),
+                          )
+                          .toList()
+                      : [
+                        Container(
+                          width: double.infinity,
+                          height: imageHeight,
+                          color: Colors.grey[200],
+                          child: Icon(
+                            Icons.image,
+                            size: 80,
+                            color: Colors.grey,
+                          ),
+                        ),
+                      ],
+              options: CarouselOptions(
+                height: imageHeight,
+                viewportFraction: 1.0,
+                enableInfiniteScroll: false,
+                enlargeCenterPage: true,
+              ),
+            ),
+            // Price and quantity selector in a row below the image
+            Padding(
+              padding: const EdgeInsets.symmetric(
+                vertical: 16.0,
+                horizontal: 16.0,
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: [
+                  Text(
+                    'Price: ',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                  ),
+                  if (product.price != product.finalPrice)
+                    Text(
+                      '₹${product.price.toStringAsFixed(2)}',
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: Colors.grey,
+                        decoration: TextDecoration.lineThrough,
+                      ),
+                    ),
+                  if (product.price != product.finalPrice) SizedBox(width: 8),
+                  Text(
+                    '₹${product.finalPrice.toStringAsFixed(2)}',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.green[700],
+                    ),
+                  ),
+                  SizedBox(width: 24),
+                  // Quantity selector in the same row
+                  ItemCounterWidget(
+                    amount: amount,
+                    onAmountChanged: (newAmount) {
+                      setState(() {
+                        amount = newAmount;
+                      });
+                    },
+                  ),
+                ],
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 6.0),
+              child: Column(
+                children: [
+                  SizedBox(height: 10),
+                  _buildBottomButtons(),
+                  SizedBox(height: 10),
+                  // Product Description Preview
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Description',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        SizedBox(height: 4),
+                        Text(
+                          product.productDescription,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Colors.grey[800],
+                          ),
+                        ),
+                        Align(
+                          alignment: Alignment.centerRight,
+                          child: TextButton(
+                            onPressed: () {
+                              showDialog(
+                                context: context,
+                                builder:
+                                    (context) => AlertDialog(
+                                      title: Text('Product Description'),
+                                      content: SingleChildScrollView(
+                                        child: Text(product.productDescription),
+                                      ),
+                                      actions: [
+                                        TextButton(
+                                          onPressed:
+                                              () => Navigator.of(context).pop(),
+                                          child: Text('Close'),
+                                        ),
+                                      ],
+                                    ),
+                              );
+                            },
+                            child: Text('See more'),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  SizedBox(height: 10),
+                  getPlanTabSection(),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -314,40 +381,274 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
       ),
       child: Column(
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: List.generate(planNames.length, (index) {
-              final bool isActive = _selectedTab == index;
-              return GestureDetector(
-                onTap: () {
-                  setState(() {
-                    _selectedTab = index;
-                  });
-                },
-                child: Container(
-                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  decoration: BoxDecoration(
-                    color: isActive ? Colors.green : Colors.transparent,
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Text(
-                    planNames[index],
-                    style: TextStyle(
-                      color: isActive ? Colors.white : Colors.black87,
-                      fontWeight:
-                          isActive ? FontWeight.bold : FontWeight.normal,
+          if (_isLoadingPlans)
+            Padding(
+              padding: const EdgeInsets.all(12.0),
+              child: Center(child: CircularProgressIndicator()),
+            )
+          else
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: List.generate(planNames.length, (index) {
+                final planName = planNames[index];
+
+                // Always return a PlanSearchResult, never null
+                final enabledPlan = enabledPlanNames.firstWhere(
+                  (e) =>
+                      e.planName.trim().toLowerCase() ==
+                      planName.trim().toLowerCase(),
+                  orElse:
+                      () => PlanSearchResult(
+                        planId: 0,
+                        planName: planName,
+                        discountedPrice: 0.0,
+                      ),
+                );
+
+                final isEnabled = enabledPlan.discountedPrice > 0;
+                final isActive = isEnabled && _selectedTab == index;
+
+                return GestureDetector(
+                  onTap:
+                      isEnabled
+                          ? () {
+                            setState(() {
+                              _selectedTab = index;
+                            });
+                          }
+                          : null,
+                  child: Opacity(
+                    opacity: isEnabled ? 1.0 : 0.4,
+                    child: Container(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 8,
+                      ),
+                      decoration: BoxDecoration(
+                        color: isActive ? Colors.green : Colors.transparent,
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Column(
+                        children: [
+                          Text(
+                            enabledPlan.discountedPrice > 0
+                                ? "₹${enabledPlan.discountedPrice.toStringAsFixed(0)}"
+                                : "",
+                            style: TextStyle(
+                              color: isActive ? Colors.white : Colors.black,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          Text(
+                            planName,
+                            style: TextStyle(
+                              color: isActive ? Colors.white : Colors.black87,
+                              fontWeight:
+                                  isActive
+                                      ? FontWeight.bold
+                                      : FontWeight.normal,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
-                ),
-              );
-            }),
-          ),
+                );
+              }),
+            ),
           SizedBox(height: 16),
-          Text(
-            planDescriptions[_selectedTab],
-            style: TextStyle(fontSize: 14, color: Colors.grey[600]),
-            textAlign: TextAlign.center,
-          ),
+          (planDescriptions.isEmpty || _selectedTab >= planDescriptions.length)
+              ? Center(child: Text('No plan description available'))
+              : Card(
+                margin: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                elevation: 3,
+                child: Padding(
+                  padding: const EdgeInsets.all(20.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.verified,
+                            color: Colors.green[700],
+                            size: 22,
+                          ),
+                          SizedBox(width: 8),
+                          Text(
+                            planDescriptions[_selectedTab].name,
+                            style: TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.indigo[900],
+                            ),
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: 14),
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.schedule,
+                            color: Colors.blueGrey,
+                            size: 18,
+                          ),
+                          SizedBox(width: 6),
+                          Text(
+                            'Duration: ',
+                            style: TextStyle(fontWeight: FontWeight.w500),
+                          ),
+                          Text(
+                            '${planDescriptions[_selectedTab].durationMonths} months',
+                            style: TextStyle(fontWeight: FontWeight.w600),
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: 8),
+                      Row(
+                        children: [
+                          Icon(Icons.percent, color: Colors.orange, size: 18),
+                          SizedBox(width: 6),
+                          Text(
+                            'Total Discount: ',
+                            style: TextStyle(fontWeight: FontWeight.w500),
+                          ),
+                          Text(
+                            '${planDescriptions[_selectedTab].totalDiscountPercentage}%',
+                            style: TextStyle(
+                              fontWeight: FontWeight.w600,
+                              color: Colors.green[700],
+                            ),
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: 8),
+                      Row(
+                        children: [
+                          Icon(Icons.payments, color: Colors.purple, size: 18),
+                          SizedBox(width: 6),
+                          Text(
+                            'Allows Installments: ',
+                            style: TextStyle(fontWeight: FontWeight.w500),
+                          ),
+                          Container(
+                            padding: EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 2,
+                            ),
+                            decoration: BoxDecoration(
+                              color:
+                                  planDescriptions[_selectedTab]
+                                          .allowsInstallments
+                                      ? Colors.green[100]
+                                      : Colors.red[100],
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Text(
+                              planDescriptions[_selectedTab].allowsInstallments
+                                  ? 'Yes'
+                                  : 'No',
+                              style: TextStyle(
+                                color:
+                                    planDescriptions[_selectedTab]
+                                            .allowsInstallments
+                                        ? Colors.green[800]
+                                        : Colors.red[800],
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: 8),
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.check_circle,
+                            color: Colors.teal,
+                            size: 18,
+                          ),
+                          SizedBox(width: 6),
+                          Text(
+                            'One-time Allowance: ',
+                            style: TextStyle(fontWeight: FontWeight.w500),
+                          ),
+                          Container(
+                            padding: EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 2,
+                            ),
+                            decoration: BoxDecoration(
+                              color:
+                                  planDescriptions[_selectedTab].isOneTimeOnly
+                                      ? Colors.green[100]
+                                      : Colors.red[100],
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Text(
+                              planDescriptions[_selectedTab].isOneTimeOnly
+                                  ? 'Yes'
+                                  : 'No',
+                              style: TextStyle(
+                                color:
+                                    planDescriptions[_selectedTab].isOneTimeOnly
+                                        ? Colors.green[800]
+                                        : Colors.red[800],
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: 8),
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.repeat,
+                            color: Colors.deepOrange,
+                            size: 18,
+                          ),
+                          SizedBox(width: 6),
+                          Text(
+                            'Installment Frequency: ',
+                            style: TextStyle(fontWeight: FontWeight.w500),
+                          ),
+                          Text(
+                            '${planDescriptions[_selectedTab].installmentFrequencyMonths} months',
+                            style: TextStyle(fontWeight: FontWeight.w600),
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: 14),
+                      Divider(),
+                      SizedBox(height: 8),
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Icon(
+                            Icons.info_outline,
+                            color: Colors.blueGrey,
+                            size: 18,
+                          ),
+                          SizedBox(width: 6),
+                          Expanded(
+                            child: Text(
+                              planDescriptions[_selectedTab].description,
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: Colors.grey[700],
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
           SizedBox(height: 16),
           Center(
             child: GestureDetector(
@@ -426,7 +727,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              planDescriptions[_selectedTab],
+              planDescriptions[_selectedTab].description,
               style: TextStyle(
                 fontSize: 16,
                 color: Colors.black87,
@@ -557,6 +858,35 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
 
   Future<void> _handleSubscribe() async {
     if (_isSubscribing) return;
+    if (enabledPlanNames.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('No subscription plans available for this product'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      return;
+    }
+
+    final selectedPlan = enabledPlanNames[_selectedTab];
+    if (planDescriptions[_selectedTab].name ==
+        enabledPlanNames[_selectedTab].planName) {
+      print('Selected plan: ${planDescriptions[_selectedTab].name}');
+    } else {
+      print('Selected plan does not match enabled plan names');
+    }
+    if (selectedPlan.discountedPrice <= 0) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Selected plan is not available for subscription'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      return;
+    }
+    setState(() {
+      priceSubscription = selectedPlan.discountedPrice;
+    });
 
     setState(() {
       _isSubscribing = true;
@@ -585,51 +915,24 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
         return;
       }
 
-      // Create subscription request
-      final request = SubscriptionCreateRequest(
-        plan: _selectedTab + 1, // Plan ID based on selected tab
-        deliveryAddress:
-            "123 Green Lane, New Delhi", // TODO: Get from user profile
-        deliveryCity: "New Delhi",
-        deliveryState: "Delhi",
-        deliveryPincode: "110001",
-        deliveryPhone: "+911234567890",
-        paymentType: "FULL",
-        items: [
-          SubscriptionCreateItem(
-            productVariantId: widget.product.id,
-            quantity: amount,
-          ),
-        ],
+      // Navigate to checkout screen for subscription
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder:
+              (context) => AddressSelectionScreen(
+                singleProduct: widget.product.toProductVariant(),
+                quantity: amount,
+                price: priceSubscription,
+                isSubscription: true,
+                selectedPlan: _selectedTab + 1,
+              ),
+        ),
       );
-
-      final result = await _subscriptionService.createSubscription(request);
-
-      if (!mounted) return;
-
-      if (result['success']) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(result['message']),
-            backgroundColor: Colors.green,
-          ),
-        );
-        // TODO: Navigate to subscription details or success screen
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(result['message']),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Error creating subscription: $e'),
-          backgroundColor: Colors.red,
-        ),
+        SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
       );
     } finally {
       if (mounted) {
@@ -768,7 +1071,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
                         context,
                         MaterialPageRoute(
                           builder:
-                              (context) => CheckoutScreen(
+                              (context) => AddressSelectionScreen(
                                 singleProduct:
                                     widget.product.toProductVariant(),
                                 quantity: amount,

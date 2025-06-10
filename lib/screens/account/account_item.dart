@@ -23,7 +23,7 @@ List<AccountItem> accountItems = [
     SubscriptionScreen(),
   ),
 
-  AccountItem("My Details", Icon(Icons.abc_sharp), ProfileScreen()),
+  // AccountItem("My Details", Icon(Icons.abc_sharp), ProfileScreen()),
   AccountItem("Referral", Icon(Icons.abc_sharp), ReferAndEarnScreen()),
 
   AccountItem("Help", Icon(Icons.abc_sharp), HelpScreen()),

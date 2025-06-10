@@ -1,6 +1,7 @@
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 import 'package:grocery_app/screens/about/about_detail.dart';
+import 'package:grocery_app/screens/home/home_video.dart';
 
 class AboutScreen extends StatelessWidget {
   AboutScreen({super.key});
@@ -41,25 +42,7 @@ class AboutScreen extends StatelessWidget {
                 ),
               ),
 
-              CarouselSlider(
-                items: imageUrls
-                    .map((url) => ClipRRect(
-                          borderRadius: BorderRadius.circular(12),
-                          child: Image.network(
-                            url,
-                            width: double.infinity,
-                            fit: BoxFit.cover,
-                          ),
-                        ))
-                    .toList(),
-                options: CarouselOptions(
-                  height: size.height * 0.25,
-                  autoPlay: true,
-                  enlargeCenterPage: true,
-                  enableInfiniteScroll: true,
-                ),
-              ),
-
+              AssetVideoPlayer(),
               // About Us Section
               Padding(
                 padding: const EdgeInsets.fromLTRB(16, 24, 16, 8),

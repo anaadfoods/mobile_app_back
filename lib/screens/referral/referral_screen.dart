@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'package:share_plus/share_plus.dart';
 
 class ReferAndEarnScreen extends StatelessWidget {
   final String referralCode = "ANAAD2025";
@@ -105,20 +107,59 @@ class ReferAndEarnScreen extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               IconButton(
-                icon: Icon(Icons.chat, color: Color(0xFF25D366), size: 30),
-                onPressed: () {},
+                icon: Icon(Icons.whatshot, color: Color(0xFF25D366), size: 30),
+                onPressed: () async {
+                  final message = Uri.encodeComponent(
+                    'Join me on ANAAD! Use my referral code: $referralCode',
+                  );
+                  final url = 'https://wa.me/?text=$message';
+                  if (await canLaunch(url)) {
+                    await launch(url);
+                  } else {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('No app found to open WhatsApp.')),
+                    );
+                  }
+                },
               ),
               IconButton(
                 icon: Icon(Icons.facebook, color: Color(0xFF4267B2), size: 30),
-                onPressed: () {},
+                onPressed: () async {
+                  final fbUrl =
+                      'https://www.facebook.com/sharer/sharer.php?u=https://anaadfoods.com&quote=Join me on ANAAD! Use my referral code: $referralCode';
+                  if (await canLaunch(fbUrl)) {
+                    await launch(fbUrl);
+                  } else {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('No app found to open Facebook.')),
+                    );
+                  }
+                },
               ),
               IconButton(
                 icon: Icon(Icons.email, color: Color(0xFFDD4B39), size: 30),
-                onPressed: () {},
+                onPressed: () async {
+                  final subject = Uri.encodeComponent('Join me on ANAAD!');
+                  final body = Uri.encodeComponent(
+                    'Use my referral code: $referralCode',
+                  );
+                  final emailUrl = 'mailto:?subject=$subject&body=$body';
+                  if (await canLaunch(emailUrl)) {
+                    await launch(emailUrl);
+                  } else {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('No app found to open email.')),
+                    );
+                  }
+                },
               ),
               IconButton(
                 icon: Icon(Icons.share, color: Color(0xFF3E3E3E), size: 30),
-                onPressed: () {},
+                onPressed: () {
+                  Share.share(
+                    'Join me on ANAAD! Use my referral code: $referralCode',
+                  );
+                },
               ),
             ],
           ),

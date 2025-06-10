@@ -1,22 +1,22 @@
-class ProductLimit {
-  final int product;
-  final String productName;
-  final double maxWeightLimit;
+// class ProductLimit {
+//   final int product;
+//   final String productName;
+//   final double maxWeightLimit;
 
-  ProductLimit({
-    required this.product,
-    required this.productName,
-    required this.maxWeightLimit,
-  });
+//   ProductLimit({
+//     required this.product,
+//     required this.productName,
+//     required this.maxWeightLimit,
+//   });
 
-  factory ProductLimit.fromJson(Map<String, dynamic> json) {
-    return ProductLimit(
-      product: json['product'],
-      productName: json['product_name'],
-      maxWeightLimit: double.parse(json['max_weight_limit']),
-    );
-  }
-}
+//   factory ProductLimit.fromJson(Map<String, dynamic> json) {
+//     return ProductLimit(
+//       product: json['product'],
+//       productName: json['product_name'],
+//       maxWeightLimit: double.parse(json['max_weight_limit']),
+//     );
+//   }
+// }
 
 class SubscriptionPlan {
   final int id;
@@ -31,7 +31,6 @@ class SubscriptionPlan {
   final bool isOneTimeOnly;
   final bool allowsInstallments;
   final int installmentFrequencyMonths;
-  final List<ProductLimit>? productLimits;
   final bool isAvailable;
 
   SubscriptionPlan({
@@ -47,7 +46,6 @@ class SubscriptionPlan {
     required this.isOneTimeOnly,
     required this.allowsInstallments,
     required this.installmentFrequencyMonths,
-    required this.productLimits,
     required this.isAvailable,
   });
 
@@ -65,9 +63,6 @@ class SubscriptionPlan {
       isOneTimeOnly: json['is_one_time_only'],
       allowsInstallments: json['allows_installments'],
       installmentFrequencyMonths: json['installment_frequency_months'],
-      productLimits: (json['product_limits'] as List)
-          .map((item) => ProductLimit.fromJson(item))
-          .toList(),
       isAvailable: json['is_available'],
     );
   }

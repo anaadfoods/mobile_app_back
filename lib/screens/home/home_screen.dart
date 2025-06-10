@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:grocery_app/models/cummunity_model.dart';
 import 'package:grocery_app/models/product_model.dart';
 import 'package:grocery_app/screens/category_items_screen.dart';
+import 'package:grocery_app/screens/comingSoonPage/cummunity_detail_screen.dart';
 import 'package:grocery_app/screens/comingSoonPage/customer_support.dart';
 import 'package:grocery_app/screens/comingSoonPage/farmer_support.dart';
 import 'package:grocery_app/screens/explore_screen.dart';
 import 'package:grocery_app/screens/home/home_video.dart';
+import 'package:grocery_app/screens/home/top_curosel.dart';
+import 'package:grocery_app/services/cummunity_service.dart';
 import 'package:grocery_app/services/product_service.dart';
 import 'package:grocery_app/screens/product_details/product_details_screen.dart';
 import 'package:grocery_app/styles/colors.dart';
@@ -30,6 +34,7 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     _loadFeaturedProducts();
+    
   }
 
   Future<void> _loadFeaturedProducts() async {
@@ -57,7 +62,7 @@ class _HomeScreenState extends State<HomeScreen> {
     }
 
     if (_error != null) {
-      return Center(child: Text(_error!));
+      return Center(child: Text("Error loading featured products"));
     }
 
     if (_featuredProducts.isEmpty) {
@@ -92,9 +97,8 @@ class _HomeScreenState extends State<HomeScreen> {
           ],
         ),
         SizedBox(
-          height: 250,
+          height: 350,
           child: getHorizontalItemSlider(_featuredProducts),
-
         ),
       ],
     );
@@ -102,6 +106,9 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // TODO: Replace this with your actual logic to check for active subscription
+    final bool hasActiveSubscription =
+        true; // Set to true if user has an active subscription
     return Scaffold(
       appBar: AppBar(
         title: const Text(
@@ -118,14 +125,9 @@ class _HomeScreenState extends State<HomeScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              padded(const AssetVideoPlayer()),
-              padded(
-                const Text(
-                  "Active Subscription",
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 28),
-                ),
-              ),
-              padded(SubscriptionCarousel()),
+              // padded(const AssetVideoPlayer()),
+              padded(TopCurosel()),
+              if (hasActiveSubscription) ...[padded(SubscriptionCarousel())],
               padded(
                 const Text(
                   "Subscription Plans",
@@ -137,10 +139,90 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: SubscriptionTable(),
               ),
               // padded(getHorizontalItemSlider(_featuredProducts)),
-              padded(_buildFeaturedProducts()),
+              _buildFeaturedProducts(),
+              SizedBox(height: 10),
               padded(subTitle(context, "Coming Soon", show: false)),
-              comingSoon(context),
               const SizedBox(height: 15),
+              FutureBuilder<List<Community>>(
+                future: CommunityService.fetchCommunities(),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return Center(child: CircularProgressIndicator());
+                  } else if (snapshot.hasError) {
+                    return Center(child: Text('Error: ${snapshot.error}'));
+                  } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                    return Center(child: Text('No communities found'));
+                  }
+                  final communities = snapshot.data!;
+                  return SizedBox(
+                    height: 170,
+                    child: GridView.builder(
+                      physics:
+                          NeverScrollableScrollPhysics(), // Let parent scroll
+                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 2,
+                        mainAxisSpacing: 12,
+                        crossAxisSpacing: 12,
+                        childAspectRatio: 1.1,
+                      ),
+                      itemCount: communities.length,
+                      itemBuilder: (context, index) {
+                        final community = communities[index];
+                        return GestureDetector(
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder:
+                                    (context) => CommunityDetailScreen(
+                                      community: community,
+                                    ),
+                              ),
+                            );
+                          },
+                          child: Card(
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                            elevation: 4,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                ClipRRect(
+                                  borderRadius: BorderRadius.vertical(
+                                    top: Radius.circular(16),
+                                  ),
+                                  child: Image.network(
+                                    community.image,
+                                    width: double.infinity,
+                                    height: 100,
+                                    fit: BoxFit.cover,
+                                  ),
+                                ),
+                                SizedBox(height: 8),
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 8.0,
+                                  ),
+                                  child: Text(
+                                    community.name,
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 16,
+                                    ),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                ),
+                                SizedBox(height: 4),
+                              ],
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  );
+                },
+              ),
             ],
           ),
         ),
@@ -148,129 +230,122 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget comingSoon(BuildContext context) {
-    return SizedBox(
-      height: 130,
-      child: ListView(
-        padding: const EdgeInsets.symmetric(horizontal: 16),
-        scrollDirection: Axis.horizontal,
-        children: [
-          _buildComingSoonCard(
-            context,
-            title: groceryFeaturedItems[0].name,
-            subtitle: groceryFeaturedItems[0].description,
+  // Widget comingSoon(BuildContext context) {
+  //   return SizedBox(
+  //     height: 130,
+  //     child: ListView(
+  //       padding: const EdgeInsets.symmetric(horizontal: 16),
+  //       scrollDirection: Axis.horizontal,
+  //       children: [
+  //         _buildComingSoonCard(
+  //           context,
+  //           title: groceryFeaturedItems[0].name,
+  //           subtitle: groceryFeaturedItems[0].description,
 
-            imagePath: "assets/images/grocery_images/banana.png",
-            color: const Color(0xffF8A44C),
-            onTap:
-                () => Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const FarmerSupport(),
-                  ),
-                ),
-          ),
-          const SizedBox(width: 16),
-          _buildComingSoonCard(
-            context,
-            title: groceryFeaturedItems[1].name,
-            subtitle: groceryFeaturedItems[1].description,
+  //           imagePath: "assets/images/grocery_images/banana.png",
+  //           color: const Color(0xffF8A44C),
+  //           onTap:
+  //               () => Navigator.push(
+  //                 context,
+  //                 MaterialPageRoute(
+  //                   builder: (context) => const FarmerSupport(),
+  //                 ),
+  //               ),
+  //         ),
+  //         const SizedBox(width: 16),
+  //         _buildComingSoonCard(
+  //           context,
+  //           title: groceryFeaturedItems[1].name,
+  //           subtitle: groceryFeaturedItems[1].description,
 
-            imagePath: "assets/images/grocery_images/apple.png",
-            color: const Color(0xffF78B42),
-            onTap:
-                () => Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const CustomerSupport(),
-                  ),
-                ),
-          ),
-        ],
-      ),
-    );
-  }
+  //           imagePath: "assets/images/grocery_images/apple.png",
+  //           color: const Color(0xffF78B42),
+  //           onTap:
+  //               () => Navigator.push(
+  //                 context,
+  //                 MaterialPageRoute(
+  //                   builder: (context) => const CustomerSupport(),
+  //                 ),
+  //               ),
+  //         ),
+  //       ],
+  //     ),
+  //   );
+  // }
 
-  Widget _buildComingSoonCard(
-    BuildContext context, {
-    required String title,
-    required String subtitle,
-    required String imagePath,
-    required Color color,
-    required VoidCallback onTap,
-  }) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(16),
-      child: Container(
-        width: MediaQuery.of(context).size.width * 0.85,
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.grey.withOpacity(0.3),
-              blurRadius: 8,
-              offset: const Offset(2, 4),
-            ),
-          ],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(12),
-                  child: Image.asset(
-                    imagePath,
-                    width: 70,
-                    height: 70,
-                    fit: BoxFit.cover,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        title,
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
-                        ),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        subtitle,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          color: Colors.black54,
-                          fontSize: 13,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            Text(
-              "We promise purity, nutrition, and trust — so your family eats clean.",
-              style: const TextStyle(
-                fontSize: 12,
-                color: Colors.black87,
-                height: 1.4,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+  // Widget _buildComingSoonCard(
+  //   BuildContext context, {
+  //   required String title,
+  //   required String subtitle,
+  //   required String imagePath,
+  //   required Color color,
+  //   required VoidCallback onTap,
+  // }) {
+  //   return InkWell(
+  //     onTap: onTap,
+  //     borderRadius: BorderRadius.circular(16),
+  //     child: Container(
+  //       width: MediaQuery.of(context).size.width * 0.85,
+  //       padding: const EdgeInsets.all(16),
+  //       decoration: BoxDecoration(
+  //         border: Border.all(color: Colors.grey),
+  //         color: Colors.white,
+  //         borderRadius: BorderRadius.circular(16),
+  //         boxShadow: [
+  //           BoxShadow(
+  //             color: Colors.grey.withOpacity(0.3),
+  //             blurRadius: 8,
+  //             offset: const Offset(2, 4),
+  //           ),
+  //         ],
+  //       ),
+  //       child: Column(
+  //         crossAxisAlignment: CrossAxisAlignment.start,
+  //         children: [
+  //           Row(
+  //             children: [
+  //               ClipRRect(
+  //                 borderRadius: BorderRadius.circular(12),
+  //                 child: Image.asset(
+  //                   imagePath,
+  //                   width: 70,
+  //                   height: 70,
+  //                   fit: BoxFit.cover,
+  //                 ),
+  //               ),
+  //               const SizedBox(width: 12),
+  //               Expanded(
+  //                 child: Column(
+  //                   crossAxisAlignment: CrossAxisAlignment.start,
+  //                   children: [
+  //                     Text(
+  //                       title,
+  //                       style: const TextStyle(
+  //                         fontWeight: FontWeight.bold,
+  //                         fontSize: 16,
+  //                       ),
+  //                     ),
+  //                     const SizedBox(height: 2),
+  //                     Text(
+  //                       subtitle,
+  //                       maxLines: 2,
+  //                       overflow: TextOverflow.ellipsis,
+  //                       style: const TextStyle(
+  //                         color: Colors.black54,
+  //                         fontSize: 13,
+  //                       ),
+  //                     ),
+  //                   ],
+  //                 ),
+  //               ),
+  //             ],
+  //           ),
+  //           const SizedBox(height: 12),
+  //         ],
+  //       ),
+  //     ),
+  //   );
+  // }
 
   Widget padded(Widget widget) {
     return Padding(
@@ -280,21 +355,21 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget getHorizontalItemSlider(List<Product> items) {
-    return Container(
-      margin: EdgeInsets.symmetric(vertical: 10),
-      height: 250,
+    return SizedBox(
       child: ListView.separated(
         padding: EdgeInsets.symmetric(horizontal: 20),
         itemCount: items.length,
         scrollDirection: Axis.horizontal,
         itemBuilder: (context, index) {
-          return GestureDetector(
-            onTap: () {
-              onItemClicked(context, items[index]);
-            },
-            child: GroceryItemCardWidget(
-              item: items[index],
-              heroSuffix: "home_screen",
+          return SizedBox(
+            child: GestureDetector(
+              onTap: () {
+                onItemClicked(context, items[index]);
+              },
+              child: GroceryItemCardWidget(
+                item: items[index],
+                heroSuffix: "home_screen",
+              ),
             ),
           );
         },

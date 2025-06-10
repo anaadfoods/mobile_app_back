@@ -10,7 +10,7 @@ class GroceryItemCardWidget extends StatelessWidget {
   final String? heroSuffix;
 
   final double width = 174;
-  final double height = 250;
+  final double height = 380;
   final Color borderColor = Color(0xffE2E2E2);
   final double borderRadius = 18;
 
@@ -20,23 +20,29 @@ class GroceryItemCardWidget extends StatelessWidget {
       width: width,
       height: height,
       decoration: BoxDecoration(
+        color: Colors.white,
         border: Border.all(color: borderColor),
         borderRadius: BorderRadius.circular(borderRadius),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.12),
+            blurRadius: 12,
+            offset: Offset(0, 6),
+          ),
+        ],
       ),
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 15),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Expanded(
-              child: Center(
-                child: Hero(
-                  // ignore: prefer_interpolation_to_compose_strings
-                  tag:
-                      "GroceryItem:" +
-                      item.productName +
-                      "-" +
-                      (heroSuffix ?? ""),
+            Center(
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(16),
+                child: Container(
+                  color: Colors.grey[100],
+                  width: 140,
+                  height: 120,
                   child: imageWidget(),
                 ),
               ),
@@ -72,7 +78,15 @@ class GroceryItemCardWidget extends StatelessWidget {
 
   Widget imageWidget() {
     if (item.productImages.isNotEmpty) {
-      return Image.network(item.productImages[0].image);
+      return Image.network(
+        item.productImages[0].image,
+        fit: BoxFit.cover,
+        width: 140,
+        height: 120,
+        errorBuilder:
+            (context, error, stackTrace) =>
+                Icon(Icons.broken_image, size: 48, color: Colors.grey),
+      );
     } else {
       return Icon(Icons.image_not_supported, size: 48, color: Colors.grey);
     }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:grocery_app/models/order_model.dart';
 import 'package:grocery_app/screens/order/order_detail_screen.dart';
 import 'package:grocery_app/services/order_service.dart';
+import 'package:grocery_app/styles/colors.dart';
 
 class OrderScreen extends StatefulWidget {
   const OrderScreen({super.key});
@@ -46,13 +47,13 @@ class _OrderScreenState extends State<OrderScreen>
   Color _getStatusColor(String status) {
     switch (status) {
       case "DELIVERED":
-        return Colors.green;
+        return AppColors.orderDelivered;
       case "PLACED":
-        return Colors.orange;
+        return AppColors.orderPlaced;
       case "CANCELLED":
-        return Colors.red;
+        return AppColors.orderCancelled;
       default:
-        return Colors.grey;
+        return AppColors.orderProcessing;
     }
   }
 
@@ -64,20 +65,23 @@ class _OrderScreenState extends State<OrderScreen>
   Widget build(BuildContext context) {
     if (isLoading) {
       return Scaffold(
-        appBar: AppBar(title: Text("My Orders")),
-        body: Center(child: CircularProgressIndicator()),
+        appBar: AppBar(title: const Text("My Orders")),
+        body: const Center(child: CircularProgressIndicator()),
       );
     }
 
     if (error != null) {
       return Scaffold(
-        appBar: AppBar(title: Text("My Orders")),
+        appBar: AppBar(title: const Text("My Orders")),
         body: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Text("Error: $error"),
-              ElevatedButton(onPressed: _fetchOrders, child: Text("Retry")),
+              ElevatedButton(
+                onPressed: _fetchOrders,
+                child: const Text("Retry"),
+              ),
             ],
           ),
         ),
@@ -88,7 +92,7 @@ class _OrderScreenState extends State<OrderScreen>
       length: 3,
       child: Scaffold(
         appBar: AppBar(
-          title: Text("My Orders"),
+          title: const Text("My Orders"),
           bottom: const TabBar(
             tabs: [
               Tab(text: "DELIVERED"),
@@ -119,10 +123,12 @@ class _OrderScreenState extends State<OrderScreen>
         itemCount: filtered.length,
         itemBuilder: (context, index) {
           final order = filtered[index];
+          final statusColor = _getStatusColor(order.status);
           return Card(
-            margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(16),
+              side: BorderSide(color: statusColor.withOpacity(0.5), width: 2),
             ),
             elevation: 3,
             child: Padding(
@@ -135,61 +141,61 @@ class _OrderScreenState extends State<OrderScreen>
                     children: [
                       Text(
                         "Order #${order.orderNumber}",
-                        style: TextStyle(
+                        style: const TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 16,
                         ),
                       ),
-                      Container(
-                        padding: EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 6,
-                        ),
-                        decoration: BoxDecoration(
-                          color: _getStatusColor(order.status).withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: Text(
-                          order.status,
-                          style: TextStyle(
-                            color: _getStatusColor(order.status),
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
+                      // Container(
+                      //   padding: const EdgeInsets.symmetric(
+                      //     horizontal: 12,
+                      //     vertical: 6,
+                      //   ),
+                      //   decoration: BoxDecoration(
+                      //     color: statusColor.withOpacity(0.1),
+                      //     borderRadius: BorderRadius.circular(20),
+                      //   ),
+                      //   child: Text(
+                      //     order.status,
+                      //     style: TextStyle(
+                      //       color: statusColor,
+                      //       fontWeight: FontWeight.w600,
+                      //     ),
+                      //   ),
+                      // ),
                     ],
                   ),
-                  SizedBox(height: 8),
+                  const SizedBox(height: 8),
                   Text(
                     "Date: ${order.createdAt.toLocal().toString().split(' ')[0]}",
-                    style: TextStyle(color: Colors.grey[700]),
+                    style: TextStyle(color: AppColors.textSecondary),
                   ),
-                  SizedBox(height: 4),
+                  const SizedBox(height: 4),
                   Text(
                     "Total: ₹${order.total}",
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontWeight: FontWeight.w500,
-                      color: Colors.black87,
+                      color: AppColors.textPrimary,
                     ),
                   ),
-                  SizedBox(height: 8),
+                  const SizedBox(height: 8),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
                         "Items: ${order.itemsCount}",
-                        style: TextStyle(color: Colors.grey[700]),
+                        style: TextStyle(color: AppColors.textSecondary),
                       ),
                       Container(
-                        padding: EdgeInsets.symmetric(
+                        padding: const EdgeInsets.symmetric(
                           horizontal: 12,
                           vertical: 6,
                         ),
                         decoration: BoxDecoration(
                           color:
                               order.paymentStatus == "PAID"
-                                  ? Colors.green.withOpacity(0.1)
-                                  : Colors.orange.withOpacity(0.1),
+                                  ? AppColors.success.withOpacity(0.1)
+                                  : AppColors.warning.withOpacity(0.1),
                           borderRadius: BorderRadius.circular(20),
                         ),
                         child: Text(
@@ -197,8 +203,8 @@ class _OrderScreenState extends State<OrderScreen>
                           style: TextStyle(
                             color:
                                 order.paymentStatus == "PAID"
-                                    ? Colors.green
-                                    : Colors.orange,
+                                    ? AppColors.success
+                                    : AppColors.warning,
                             fontWeight: FontWeight.w600,
                           ),
                         ),
@@ -217,15 +223,14 @@ class _OrderScreenState extends State<OrderScreen>
                           ),
                         );
 
-                        // If order status was updated, refresh the orders list
                         if (result != null && result is Order) {
-                          await _fetchOrders(); // Refresh the entire orders list
+                          await _fetchOrders();
                         }
                       },
-                      icon: Icon(Icons.arrow_forward_ios, size: 16),
-                      label: Text("View Details"),
+                      icon: const Icon(Icons.arrow_forward_ios, size: 16),
+                      label: const Text("View Details"),
                       style: TextButton.styleFrom(
-                        foregroundColor: Theme.of(context).primaryColor,
+                        foregroundColor: AppColors.primaryColor,
                       ),
                     ),
                   ),

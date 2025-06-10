@@ -65,20 +65,6 @@ class _ChartItemWidgetState extends State<ChartItemWidget> {
                   fontWeight: FontWeight.w600,
                 ),
                 SizedBox(height: 4),
-                RichText(
-                  text: TextSpan(
-                    children: [
-                      TextSpan(
-                        text: widget.item.productVariant.weight,
-                        style: TextStyle(color: Colors.black, fontSize: 14),
-                      ),
-                      TextSpan(
-                        text: ' ${widget.item.productVariant.weightUnit}',
-                        style: TextStyle(color: Colors.grey, fontSize: 14),
-                      ),
-                    ],
-                  ),
-                ),
                 SizedBox(height: 8),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -87,14 +73,14 @@ class _ChartItemWidgetState extends State<ChartItemWidget> {
                       child: Text(
                         'Rs.${widget.item.productVariant.finalPrice}',
                         style: TextStyle(
-                          fontSize: 16,
+                          fontSize: 14,
                           fontWeight: FontWeight.bold,
                           color: Color(0xFF7C7C7C),
                         ),
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
-                    SizedBox(width: 8),
+                    SizedBox(width: 1),
                     ItemCounterWidget(
                       onAmountChanged: widget.onQuantityChanged,
                       amount: widget.item.quantity,
@@ -106,10 +92,51 @@ class _ChartItemWidgetState extends State<ChartItemWidget> {
           ),
           SizedBox(width: 4),
           IconButton(
-            icon: Icon(Icons.close, color: Colors.grey),
-            onPressed: widget.onRemove,
-            padding: EdgeInsets.zero,
-            constraints: BoxConstraints(minWidth: 32, minHeight: 32),
+            icon: Icon(Icons.remove_circle_outline, color: Colors.red[400]),
+            onPressed: () {
+              showDialog(
+                context: context,
+                builder: (BuildContext context) {
+                  return AlertDialog(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    title: Text('Remove Item'),
+                    content: Text(
+                      'Are you sure you want to remove this item from your cart?',
+                    ),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.of(context).pop(),
+                        child: Text(
+                          'Cancel',
+                          style: TextStyle(color: Colors.grey[600]),
+                        ),
+                      ),
+                      ElevatedButton(
+                        onPressed: () {
+                          widget.onRemove();
+                          Navigator.of(context).pop();
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('Item removed from cart'),
+                              backgroundColor: Colors.green,
+                            ),
+                          );
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.red[400],
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                        ),
+                        child: Text('Remove'),
+                      ),
+                    ],
+                  );
+                },
+              );
+            },
           ),
         ],
       ),

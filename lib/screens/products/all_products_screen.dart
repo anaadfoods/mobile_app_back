@@ -3,10 +3,8 @@ import 'package:grocery_app/models/product_model.dart';
 import 'package:grocery_app/services/product_service.dart';
 
 class AllProductsScreen extends StatefulWidget {
-  const AllProductsScreen({super.key , this.products});
+  const AllProductsScreen({super.key, this.products});
   final List<Product>? products;
-
-
 
   @override
   State<AllProductsScreen> createState() => _AllProductsScreenState();
@@ -16,7 +14,6 @@ class _AllProductsScreenState extends State<AllProductsScreen> {
   final CategoryService _productService = CategoryService();
   List<Product> _products = [];
 
-
   bool _isLoading = true;
   String? _error;
 
@@ -24,7 +21,7 @@ class _AllProductsScreenState extends State<AllProductsScreen> {
   void initState() {
     super.initState();
 
-    _loadProducts(widget.products??[]);
+    _loadProducts(widget.products ?? []);
   }
 
   Future<void> _loadProducts(List<Product> products) async {
@@ -77,7 +74,10 @@ class _AllProductsScreenState extends State<AllProductsScreen> {
                                 top: Radius.circular(4),
                               ),
                               image: DecorationImage(
-                                image: NetworkImage(product.productImages[0].image),
+                                image: NetworkImage(
+                                  product.productImages[0].image,
+                                  scale: 1,
+                                ),
                                 fit: BoxFit.cover,
                               ),
                             ),
@@ -114,5 +114,4 @@ class _AllProductsScreenState extends State<AllProductsScreen> {
                 },
               ),
     );
-  }
-}
+  }}

@@ -6,7 +6,6 @@ import 'package:grocery_app/models/cart_model.dart';
 import 'package:grocery_app/services/auth_service.dart';
 
 class CartService {
- 
   static final String baseUrl = ApiConfig.baseUrl;
   static const String getcartEndpoint = '/api/cart/details/';
   static const String cartEndpoint = '/api/cart/';
@@ -158,20 +157,19 @@ class CartService {
           .post(
             Uri.parse('$baseUrl$updateCartItemEndpoint'),
             headers: await _getHeaders(),
-            body: jsonEncode({'product_variant_id': cartItemId, 'quantity': quantity}),
+            body: jsonEncode({
+              'product_variant_id': cartItemId,
+              'quantity': quantity,
+            }),
           )
           .timeout(Duration(seconds: timeoutSeconds));
 
       if (response.statusCode == 200) {
-        final responseData = jsonDecode(response.body);
-        final cart = CartModel.fromJson(responseData);
-        _cartStateController.add(cart);
-        return cart;
+        // Don't try to parse the response as CartModel, just fetch the latest cart
+        return await getCart();
       } else if (response.statusCode == 401) {
-        // Try to refresh the token
         final refreshed = await _authService.refreshAccessToken();
         if (refreshed) {
-          // Retry with new token
           return updateCartItem(cartItemId, quantity);
         } else {
           throw Exception('Authentication failed');

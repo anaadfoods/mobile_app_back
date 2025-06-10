@@ -59,7 +59,7 @@ class _FarmerSupportState extends State<FarmerSupport> {
             ),
             const SizedBox(height: 24),
             const Text(
-              "Because you deserve food that heals, not harms.",
+              "India's Toxin-Free Kitchen Tribe.",
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 18,
@@ -68,7 +68,19 @@ class _FarmerSupportState extends State<FarmerSupport> {
             ),
             const SizedBox(height: 12),
             const Text(
-              "We promise purity, nutrition, and trust — so your family eats clean, lives light, and feels alive every single day.",
+              "Granity is where conscious consumers connect to build toxin-free kitchens and live more mindfully.Share recipes, hacks, and real stories — all rooted in chemical-free agriculture and Indigenous Cow-Based Natural Farming.",
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 16, color: Colors.black54),
+            ),
+             const SizedBox(height: 12),
+            const Text(
+              "Not just a community — a rebellion.",
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 16, color: Colors.black54),
+            ),
+             const SizedBox(height: 12),
+            const Text(
+              "Where tradition meets technology to reclaim health, plate by plate.",
               textAlign: TextAlign.center,
               style: TextStyle(fontSize: 16, color: Colors.black54),
             ),

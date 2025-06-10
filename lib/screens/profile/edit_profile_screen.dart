@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'dart:io';
+import 'package:image_picker/image_picker.dart';
 import '../../models/user_model.dart';
 import '../../services/auth_service.dart';
+import '../../services/profile_service.dart';
 
 class EditProfileScreen extends StatefulWidget {
   final UserModel userProfile;
@@ -16,7 +19,10 @@ class EditProfileScreen extends StatefulWidget {
 class _EditProfileScreenState extends State<EditProfileScreen> {
   final _formKey = GlobalKey<FormState>();
   final _authService = AuthService();
+  final _profileService = ProfileService();
+  final _imagePicker = ImagePicker();
   bool _isLoading = false;
+  File? _selectedImage;
 
   late final TextEditingController _firstNameController;
   late final TextEditingController _lastNameController;
@@ -60,12 +66,49 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     super.dispose();
   }
 
+  Future<void> _pickImage() async {
+    try {
+      final XFile? pickedFile = await _imagePicker.pickImage(
+        source: ImageSource.gallery,
+        imageQuality: 80,
+      );
+
+      if (pickedFile != null) {
+        setState(() {
+          _selectedImage = File(pickedFile.path);
+        });
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error picking image: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
   Future<void> _updateProfile() async {
     if (!_formKey.currentState!.validate()) return;
 
     setState(() => _isLoading = true);
 
     try {
+      // First update the profile image if selected
+      if (_selectedImage != null) {
+        final imageResult = await _profileService.uploadProfileImage(_selectedImage!);
+        if (!imageResult['success']) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(imageResult['message'] ?? 'Failed to update profile image'),
+              backgroundColor: Colors.red,
+            ),
+          );
+          setState(() => _isLoading = false);
+          return;
+        }
+      }
+
       final updatedProfile = widget.userProfile.copyWith(
         firstName: _firstNameController.text,
         lastName: _lastNameController.text,
@@ -205,19 +248,54 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 Container(
                   padding: EdgeInsets.all(20),
                   decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(12),
                     color: Theme.of(context).primaryColor.withOpacity(0.1),
                   ),
                   child: Column(
                     children: [
-                      CircleAvatar(
-                        radius: 50,
-                        backgroundColor: Theme.of(
-                          context,
-                        ).primaryColor.withOpacity(0.2),
-                        child: Icon(
-                          Icons.person,
-                          size: 50,
-                          color: Theme.of(context).primaryColor,
+                      GestureDetector(
+                        onTap: _pickImage,
+                        child: Stack(
+                          children: [
+                            CircleAvatar(
+                              radius: 50,
+                              backgroundColor: Theme.of(context).primaryColor.withOpacity(0.2),
+                              backgroundImage: _selectedImage != null
+                                  ? FileImage(_selectedImage!)
+                                  : null,
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(50),
+                                child: _selectedImage == null
+                                    
+                                    ? Image.network(
+                                        widget.userProfile.profilePicture ?? '',
+                                        width: 100,
+                                        height: 100,
+                                        fit: BoxFit.cover,
+                                      ) : Icon(
+                                        Icons.person,
+                                        size: 50,
+                                        color: Theme.of(context).primaryColor,
+                                      ),
+                              )
+                            ),
+                            Positioned(
+                              bottom: 0,
+                              right: 0,
+                              child: Container(
+                                padding: EdgeInsets.all(4),
+                                decoration: BoxDecoration(
+                                  color: Theme.of(context).primaryColor,
+                                  shape: BoxShape.circle,
+                                ),
+                                child: Icon(
+                                  Icons.camera_alt,
+                                  color: Colors.white,
+                                  size: 20,
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                       SizedBox(height: 16),
@@ -251,11 +329,11 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                         'Phone',
                         widget.userProfile.phoneNumber,
                       ),
-                      SizedBox(height: 12),
-                      _buildReadOnlyField(
-                        'Referral Code',
-                        widget.userProfile.referralCode ?? '',
-                      ),
+                      // SizedBox(height: 12),
+                      // _buildReadOnlyField(
+                      //   'Referral Code',
+                      //   widget.userProfile.referralCode ?? '',
+                      // ),
                       SizedBox(height: 24),
                       Text(
                         'Personal Information',
@@ -316,34 +394,36 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                         },
                       ),
                       SizedBox(height: 32),
-                      ElevatedButton(
-                        onPressed: _isLoading ? null : _updateProfile,
-                        style: ElevatedButton.styleFrom(
-                          padding: EdgeInsets.symmetric(vertical: 16),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
+                      Center(
+                        child: ElevatedButton(
+                          onPressed: _isLoading ? null : _updateProfile,
+                          style: ElevatedButton.styleFrom(
+                            padding: EdgeInsets.symmetric(horizontal: 16,vertical: 16),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            elevation: 2,
                           ),
-                          elevation: 2,
-                        ),
-                        child:
-                            _isLoading
-                                ? SizedBox(
-                                  height: 20,
-                                  width: 20,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                    valueColor: AlwaysStoppedAnimation<Color>(
-                                      Colors.white,
+                          child:
+                              _isLoading
+                                  ? SizedBox(
+                                    height: 20,
+                                    width: 20,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      valueColor: AlwaysStoppedAnimation<Color>(
+                                        Colors.white,
+                                      ),
+                                    ),
+                                  )
+                                  : Text(
+                                    'Update Profile',
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
                                     ),
                                   ),
-                                )
-                                : Text(
-                                  'Update Profile',
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
+                        ),
                       ),
                       SizedBox(height: 20),
                     ],

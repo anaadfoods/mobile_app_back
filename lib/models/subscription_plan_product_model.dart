@@ -1,18 +1,28 @@
 class SubscriptionPlanProduct {
   final int productId;
   final String productName;
+  final double maxWeightLimit;
 
-  SubscriptionPlanProduct({required this.productId, required this.productName});
+  SubscriptionPlanProduct({
+    required this.productId,
+    required this.productName,
+    required this.maxWeightLimit,
+  });
 
   factory SubscriptionPlanProduct.fromJson(Map<String, dynamic> json) {
     return SubscriptionPlanProduct(
-      productId: json['product_id'],
-      productName: json['product_name'],
+      productId: json['variant_id'],
+      productName: json['variant_name'],
+      maxWeightLimit: json['max_weight_limit'],
     );
   }
 
   Map<String, dynamic> toJson() {
-    return {'product_id': productId, 'product_name': productName};
+    return {
+      'variant_id': productId,
+      'variant_name': productName,
+      'max_weight_limit': maxWeightLimit,
+    };
   }
 }
 
@@ -32,7 +42,7 @@ class SubscriptionPlanProductsResponse {
       planId: json['plan_id'],
       planName: json['plan_name'],
       products:
-          (json['products'] as List)
+          (json['variants'] as List)
               .map((product) => SubscriptionPlanProduct.fromJson(product))
               .toList(),
     );

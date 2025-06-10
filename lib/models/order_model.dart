@@ -1,4 +1,5 @@
 import 'package:grocery_app/models/shipping_details.dart';
+import 'package:grocery_app/models/product_image_model.dart';
 
 class OrderProduct {
   final int id;
@@ -6,6 +7,9 @@ class OrderProduct {
   final int quantity;
   final String price;
   final String? image;
+  final String? discount;
+  final String? total;
+  final ProductDetails? productDetails;
 
   OrderProduct({
     required this.id,
@@ -13,15 +17,85 @@ class OrderProduct {
     required this.quantity,
     required this.price,
     this.image,
+    this.discount,
+    this.total,
+    this.productDetails,
   });
 
   factory OrderProduct.fromJson(Map<String, dynamic> json) {
+    final productDetails =
+        json['product_details'] != null
+            ? ProductDetails.fromJson(json['product_details'])
+            : null;
+
+    String? imageUrl;
+    if (productDetails != null && productDetails.productImages.isNotEmpty) {
+      imageUrl = productDetails.productImages.first.image;
+    }
+
     return OrderProduct(
       id: json['id'] ?? 0,
-      productName: json['product_name'] ?? '',
+      productName: productDetails?.productName ?? json['product_name'] ?? '',
       quantity: json['quantity'] ?? 0,
       price: json['price']?.toString() ?? '0',
-      image: json['image']?.toString(),
+      image: imageUrl,
+      discount: json['discount']?.toString(),
+      total: json['total']?.toString(),
+      productDetails: productDetails,
+    );
+  }
+}
+
+class ProductDetails {
+  final int id;
+  final String sku;
+  final String weight;
+  final String weightUnit;
+  final String price;
+  final String discountPercentage;
+  final String finalPrice;
+  final bool isInStock;
+  final bool isActive;
+  final String productName;
+  final String productDescription;
+  final String productCategory;
+  final List<ProductImage> productImages;
+
+  ProductDetails({
+    required this.id,
+    required this.sku,
+    required this.weight,
+    required this.weightUnit,
+    required this.price,
+    required this.discountPercentage,
+    required this.finalPrice,
+    required this.isInStock,
+    required this.isActive,
+    required this.productName,
+    required this.productDescription,
+    required this.productCategory,
+    required this.productImages,
+  });
+
+  factory ProductDetails.fromJson(Map<String, dynamic> json) {
+    return ProductDetails(
+      id: json['id'] ?? 0,
+      sku: json['sku'] ?? '',
+      weight: json['weight'] ?? '',
+      weightUnit: json['weight_unit'] ?? '',
+      price: json['price'] ?? '',
+      discountPercentage: json['discount_percentage'] ?? '',
+      finalPrice: json['final_price'] ?? '',
+      isInStock: json['is_in_stock'] ?? false,
+      isActive: json['is_active'] ?? false,
+      productName: json['product_name'] ?? '',
+      productDescription: json['product_description'] ?? '',
+      productCategory: json['product_category'] ?? '',
+      productImages:
+          (json['product_images'] as List?)
+              ?.map((img) => ProductImage.fromJson(img))
+              .toList() ??
+          [],
     );
   }
 }
@@ -34,10 +108,14 @@ class Order {
   final DateTime createdAt;
   final String total;
   final int itemsCount;
+  final String? deliveryCharges;
+  final String? expectedDeliveryDate;
   final List<OrderProduct> products;
   final ShippingDetails? shippingDetails;
 
   Order({
+    this.deliveryCharges,
+    this.expectedDeliveryDate,
     required this.id,
     required this.orderNumber,
     required this.status,
@@ -65,8 +143,10 @@ class Order {
       ),
       total: json['total']?.toString() ?? '0',
       itemsCount: json['items_count'] ?? 0,
+      deliveryCharges: json['delivery_charges']?.toString(),
+      expectedDeliveryDate: json['expected_delivery_date']?.toString(),
       products:
-          (json['products'] as List?)
+          (json['items'] as List?)
               ?.map((item) => OrderProduct.fromJson(item))
               .toList() ??
           [],
@@ -84,6 +164,8 @@ class Order {
     String? paymentStatus,
     List<OrderProduct>? products,
     String? total,
+    String? deliveryCharges,
+    String? expectedDeliveryDate,
     ShippingDetails? shippingDetails,
     bool? canBeCancelled,
   }) {
@@ -94,6 +176,8 @@ class Order {
       paymentStatus: paymentStatus ?? this.paymentStatus,
       createdAt: createdAt ?? this.createdAt,
       total: total ?? this.total,
+      deliveryCharges: deliveryCharges ?? this.deliveryCharges,
+      expectedDeliveryDate: expectedDeliveryDate ?? this.expectedDeliveryDate,
       itemsCount: this.itemsCount,
       products: products ?? this.products,
       shippingDetails: shippingDetails ?? this.shippingDetails,
@@ -139,22 +223,22 @@ class ShippingDetails {
   Map<String, dynamic> toJson() {
     return {
       'name': name,
-      'shipping_address': address,
-      'shipping_city': city,
-      'shipping_state': state,
-      'shipping_pincode': pincode,
-      'shipping_phone': phone,
+      'delivery_address': address,
+      'delivery_city': city,
+      'delivery_state': state,
+      'delivery_pincode': pincode,
+      'delivery_phone': phone,
     };
   }
 
   factory ShippingDetails.fromJson(Map<String, dynamic> json) {
     return ShippingDetails(
       name: json['name'] ?? '',
-      address: json['shipping_address'] ?? json['address'] ?? '',
-      city: json['shipping_city'] ?? json['city'] ?? '',
-      state: json['shipping_state'] ?? json['state'] ?? '',
-      pincode: json['shipping_pincode'] ?? json['pincode'] ?? '',
-      phone: json['shipping_phone'] ?? json['phone'] ?? '',
+      address: json['delivery_address'] ?? json['address'] ?? '',
+      city: json['delivery_city'] ?? json['city'] ?? '',
+      state: json['delivery_state'] ?? json['state'] ?? '',
+      pincode: json['delivery_pincode'] ?? json['pincode'] ?? '',
+      phone: json['delivery_phone'] ?? json['phone'] ?? '',
     );
   }
 
@@ -198,11 +282,11 @@ class OrderModel {
   Map<String, dynamic> toJson() {
     return {
       'payment_method': paymentMethod,
-      'shipping_address': shippingAddress,
-      'shipping_city': shippingCity,
-      'shipping_state': shippingState,
-      'shipping_pincode': shippingPincode,
-      'shipping_phone': shippingPhone,
+      'delivery_address': shippingAddress,
+      'delivery_city': shippingCity,
+      'delivery_state': shippingState,
+      'delivery_pincode': shippingPincode,
+      'delivery_phone': shippingPhone,
       'items': items.map((item) => item.toJson()).toList(),
       'notes': notes,
     };
@@ -216,11 +300,11 @@ class OrderModel {
       orderNumber: orderData['order_number'],
       total: orderData['total']?.toString(),
       paymentMethod: orderData['payment_method'] ?? 'COD',
-      shippingAddress: orderData['shipping_address'] ?? '',
-      shippingCity: orderData['shipping_city'] ?? '',
-      shippingState: orderData['shipping_state'] ?? '',
-      shippingPincode: orderData['shipping_pincode'] ?? '',
-      shippingPhone: orderData['shipping_phone'] ?? '',
+      shippingAddress: orderData['delivery_address'] ?? '',
+      shippingCity: orderData['delivery_city'] ?? '',
+      shippingState: orderData['delivery_state'] ?? '',
+      shippingPincode: orderData['delivery_pincode'] ?? '',
+      shippingPhone: orderData['delivery_phone'] ?? '',
       items:
           (orderData['items'] as List?)
               ?.map((item) => OrderItem.fromJson(item))

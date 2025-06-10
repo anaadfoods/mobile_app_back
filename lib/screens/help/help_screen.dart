@@ -18,32 +18,43 @@ class HelpScreen extends StatelessWidget {
               if (orderNumber != null) ...[
                 Card(
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(16),
                   ),
+                  elevation: 2,
                   child: Padding(
-                    padding: const EdgeInsets.all(16.0),
+                    padding: const EdgeInsets.all(18.0),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
                           'Order Reference',
-                          style: Theme.of(context).textTheme.titleLarge,
+                          style: Theme.of(context).textTheme.titleLarge
+                              ?.copyWith(fontWeight: FontWeight.bold),
                         ),
                         SizedBox(height: 8),
                         Text(
                           'Order #$orderNumber',
                           style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w500,
+                            fontSize: 17,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.green[700],
                           ),
                         ),
                       ],
                     ),
                   ),
                 ),
-                SizedBox(height: 16),
+                SizedBox(height: 22),
               ],
-              Text('Contact Us', style: Theme.of(context).textTheme.titleLarge),
+              Text(
+                'Contact Us',
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 22,
+                ),
+              ),
+              SizedBox(height: 8),
+              Divider(thickness: 1.2, color: Colors.grey[200]),
               SizedBox(height: 16),
               _buildContactCard(
                 context,
@@ -55,7 +66,7 @@ class HelpScreen extends StatelessWidget {
                   // TODO: Implement phone call
                 },
               ),
-              SizedBox(height: 12),
+              SizedBox(height: 14),
               _buildContactCard(
                 context,
                 icon: Icons.email,
@@ -66,7 +77,7 @@ class HelpScreen extends StatelessWidget {
                   // TODO: Implement email
                 },
               ),
-              SizedBox(height: 12),
+              SizedBox(height: 14),
               _buildContactCard(
                 context,
                 icon: Icons.chat,
@@ -77,28 +88,41 @@ class HelpScreen extends StatelessWidget {
                   // TODO: Implement WhatsApp
                 },
               ),
-              SizedBox(height: 24),
+              SizedBox(height: 30),
               Text(
                 'Frequently Asked Questions',
-                style: Theme.of(context).textTheme.titleLarge,
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 22,
+                ),
               ),
+              SizedBox(height: 8),
+              Divider(thickness: 1.2, color: Colors.grey[200]),
               SizedBox(height: 16),
-              _buildFAQExpansionTile(
-                'How can I track my order?',
-                'You can track your order in the Orders section. We\'ll also send you updates via SMS and email.',
+              Container(
+                decoration: BoxDecoration(
+                  color: Colors.grey[50],
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Column(
+                  children: [
+                    _buildFAQExpansionTile(
+                      'How can I track my order?',
+                      'You can track your order in the Orders section. We\'ll also send you updates via SMS and email.',
+                    ),
+                   
+                    _buildFAQExpansionTile(
+                      'How long does delivery take?',
+                      'Delivery typically takes 2-3 business days depending on your location.',
+                    ),
+                    _buildFAQExpansionTile(
+                      'Can I cancel my order?',
+                      'You can cancel your order if it hasn\'t been shipped yet. Go to order details and use the cancel button.',
+                    ),
+                  ],
+                ),
               ),
-              _buildFAQExpansionTile(
-                'What is your return policy?',
-                'We have a 7-day return policy for unopened items. Please contact our support team for assistance.',
-              ),
-              _buildFAQExpansionTile(
-                'How long does delivery take?',
-                'Delivery typically takes 2-3 business days depending on your location.',
-              ),
-              _buildFAQExpansionTile(
-                'Can I cancel my order?',
-                'You can cancel your order if it hasn\'t been shipped yet. Go to order details and use the cancel button.',
-              ),
+              SizedBox(height: 30),
             ],
           ),
         ),
@@ -114,24 +138,30 @@ class HelpScreen extends StatelessWidget {
     required String action,
     required VoidCallback onTap,
   }) {
+    final isEmail = icon == Icons.email;
     return Card(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      elevation: 2,
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(16),
         child: Padding(
-          padding: const EdgeInsets.all(16.0),
+          padding: const EdgeInsets.symmetric(vertical: 18.0, horizontal: 16.0),
           child: Row(
             children: [
               Container(
-                padding: EdgeInsets.all(12),
+                padding: EdgeInsets.all(13),
                 decoration: BoxDecoration(
-                  color: Theme.of(context).primaryColor.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(12),
+                  color: Theme.of(context).primaryColor.withOpacity(0.12),
+                  borderRadius: BorderRadius.circular(14),
                 ),
-                child: Icon(icon, color: Theme.of(context).primaryColor),
+                child: Icon(
+                  icon,
+                  color: Theme.of(context).primaryColor,
+                  size: 28,
+                ),
               ),
-              SizedBox(width: 16),
+              SizedBox(width: 18),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -140,9 +170,10 @@ class HelpScreen extends StatelessWidget {
                       title,
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
-                        fontSize: 16,
+                        fontSize: 17,
                       ),
                     ),
+                    SizedBox(height: 2),
                     Text(
                       subtitle,
                       style: TextStyle(color: Colors.grey[600], fontSize: 14),
@@ -150,13 +181,41 @@ class HelpScreen extends StatelessWidget {
                   ],
                 ),
               ),
-              Text(
-                action,
-                style: TextStyle(
-                  color: Theme.of(context).primaryColor,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
+              SizedBox(width: 8),
+              isEmail
+                  ? Flexible(
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.alternate_email,
+                          color: Theme.of(context).primaryColor,
+                          size: 18,
+                        ),
+                        SizedBox(width: 4),
+                        Flexible(
+                          child: Text(
+                            action,
+                            style: TextStyle(
+                              color: Theme.of(context).primaryColor,
+                              fontWeight: FontWeight.w600,
+                              fontSize: 15,
+                            ),
+                            maxLines: 5,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
+                    ),
+                  )
+                  : Text(
+                    action,
+                    style: TextStyle(
+                      color: Theme.of(context).primaryColor,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 15,
+                    ),
+                  ),
             ],
           ),
         ),
@@ -166,18 +225,25 @@ class HelpScreen extends StatelessWidget {
 
   Widget _buildFAQExpansionTile(String title, String content) {
     return Card(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+      elevation: 1,
+      margin: EdgeInsets.symmetric(vertical: 6, horizontal: 8),
       child: ExpansionTile(
+        tilePadding: EdgeInsets.symmetric(horizontal: 16, vertical: 2),
         title: Text(
           title,
-          style: TextStyle(fontWeight: FontWeight.w500, fontSize: 16),
+          style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
         ),
         children: [
           Padding(
-            padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+            padding: const EdgeInsets.fromLTRB(18, 0, 18, 16),
             child: Text(
               content,
-              style: TextStyle(color: Colors.grey[700], height: 1.5),
+              style: TextStyle(
+                color: Colors.grey[700],
+                height: 1.5,
+                fontSize: 15,
+              ),
             ),
           ),
         ],

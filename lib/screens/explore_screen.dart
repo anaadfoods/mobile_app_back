@@ -127,7 +127,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
               ElevatedButton.icon(
                 onPressed: _loadData,
                 icon: Icon(Icons.refresh),
-                label: Text('Retry Connection'),
+                label: Text('Refresh Page'),
               ),
             ],
           ),
@@ -164,43 +164,56 @@ class _ExploreScreenState extends State<ExploreScreen> {
           else
             _buildCategoryGrid(),
           // Bestsellers Sectionif (_bestsellers.isNotEmpty) ...[
-            Padding(
-              padding: EdgeInsets.all(16),
-              child: Text(
-                'Bestsellers',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-              ),
-            ),
-            SizedBox(
-              height: 250,
-              child: ListView.builder(
-                scrollDirection: Axis.horizontal,
-                padding: EdgeInsets.symmetric(horizontal: 10),
-                itemCount: _bestsellers.length,
-                itemBuilder: (context, index) {
-                  return GestureDetector(
-                    onTap:(){
-                      Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (context) => ProductDetailsScreen(
-                            product: _bestsellers[index],
-                          ),
-                        ),
-                      );
-                    },
-                    child: Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 5),
-                      child: GroceryItemCardWidget(
-                        item: _bestsellers[index],
-                        heroSuffix: 'bestseller',
+          Padding(
+            padding: EdgeInsets.all(16),
+            child:
+                 Text(
+                  _bestsellers.isNotEmpty
+                    ?
+                      'Trending Products'
+                      :
+                      '',
+                      style: TextStyle(
+                        fontSize: _bestsellers.isNotEmpty
+                            ? 20
+                            : 0,
+                        fontWeight: FontWeight.bold,
                       ),
-                    ),
-                  );
-                },
-              ),
-            ),
-            SizedBox(height: 20),
-          ],
+                    )
+          ),
+
+          _bestsellers.isNotEmpty
+              ? SizedBox(
+                height: 250,
+                child: ListView.builder(
+                  scrollDirection: Axis.horizontal,
+                  padding: EdgeInsets.symmetric(horizontal: 10),
+                  itemCount: _bestsellers.length,
+                  itemBuilder: (context, index) {
+                    return GestureDetector(
+                      onTap: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder:
+                                (context) => ProductDetailsScreen(
+                                  product: _bestsellers[index],
+                                ),
+                          ),
+                        );
+                      },
+                      child: Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 5),
+                        child: GroceryItemCardWidget(
+                          item: _bestsellers[index],
+                          heroSuffix: 'bestseller',
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              )
+              : SizedBox(height: 20),
+        ],
       ),
     );
   }
@@ -212,7 +225,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
         shrinkWrap: true,
         physics: NeverScrollableScrollPhysics(),
         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 3,
+          crossAxisCount: 2,
           crossAxisSpacing: 10,
           mainAxisSpacing: 10,
           childAspectRatio: 0.75,

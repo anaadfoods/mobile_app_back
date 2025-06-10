@@ -1,14 +1,38 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:grocery_app/common_widgets/app_text.dart';
+import 'package:grocery_app/models/user_model.dart';
+import 'package:grocery_app/screens/profile/profile_screen.dart';
 import 'package:grocery_app/styles/colors.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:grocery_app/services/auth_service.dart';
 
 import 'account_item.dart';
 
-class AccountScreen extends StatelessWidget {
+class AccountScreen extends StatefulWidget {
   const AccountScreen({super.key});
+
+  @override
+  State<AccountScreen> createState() => _AccountScreenState();
+}
+
+class _AccountScreenState extends State<AccountScreen> {
+  late AuthService authService;
+  UserModel? user;
+
+  @override
+  void initState() {
+    super.initState();
+    authService = AuthService();
+    user = authService.currentUser;
+  }
+
+  Future<void> _refreshUser() async {
+    final updatedUser = await authService.getUserData();
+    setState(() {
+      user = updatedUser;
+    });
+  }
 
   void openWhatsApp() async {
     final phoneNumber = '+919996166186';
@@ -25,16 +49,14 @@ class AccountScreen extends StatelessWidget {
   }
 
   Future<void> _handleLogout(BuildContext context) async {
-    final authService = AuthService();
     await authService.clearToken();
-    // No need to navigate as AccountScreenFinal will handle the UI update
+    setState(() {
+      user = null;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    final authService = AuthService();
-    final user = authService.currentUser;
-
     return SafeArea(
       child: Scaffold(
         backgroundColor: Colors.white,
@@ -42,28 +64,56 @@ class AccountScreen extends StatelessWidget {
           child: Column(
             children: [
               SizedBox(height: 20),
-              ListTile(
-                leading: CircleAvatar(
-                  radius: 32,
-                  backgroundColor: AppColors.primaryColor.withOpacity(0.1),
-                  child: Text(
-                     "U",
-                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+              GestureDetector(
+                onTap: () async {
+                  final result = await Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => ProfileScreen()),
+                  );
+                  if (result == true) {
+                    await _refreshUser();
+                    setState(() {});
+                  }
+                },
+                child: ListTile(
+                  leading: ClipRRect(
+                    borderRadius: BorderRadius.circular(50),
+                    child: CircleAvatar(
+                      radius: 25,
+                      backgroundColor: AppColors.primaryColor.withOpacity(0.1),
+                      child:
+                          user?.profilePicture != null
+                              ? Image.network(
+                                user?.profilePicture ?? '',
+                                width: 50,
+                                height: 50,
+                                fit: BoxFit.cover,
+                              )
+                              : Text(
+                                user != null && user!.firstName.isNotEmpty
+                                    ? user!.firstName[0].toUpperCase()
+                                    : "U",
+                                style: TextStyle(
+                                  fontSize: 24,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                    ),
                   ),
-                ),
-                title: AppText(
-                  text:
-                      user != null
-                          ? "${user.firstName} ${user.lastName}"
-                          : "User Name",
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                ),
-                subtitle: AppText(
-                  text: user?.email ?? "user@123",
-                  color: Color(0xff7C7C7C),
-                  fontWeight: FontWeight.normal,
-                  fontSize: 16,
+                  title: AppText(
+                    text:
+                        user != null
+                            ? "${user!.firstName} ${user!.lastName}"
+                            : "User Name",
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                  subtitle: AppText(
+                    text: user?.email ?? "user@123",
+                    color: Color(0xff7C7C7C),
+                    fontWeight: FontWeight.normal,
+                    fontSize: 16,
+                  ),
                 ),
               ),
               SizedBox(height: 20),

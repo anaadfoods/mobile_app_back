@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:grocery_app/screens/auth/login_screen.dart';
 import 'package:grocery_app/screens/auth/signup_screen.dart';
 
 class AuthScreen extends StatelessWidget {
@@ -53,16 +54,23 @@ class AuthScreen extends StatelessWidget {
             ),
             const SizedBox(height: 12),
             OutlinedButton(
-              onPressed: () {},
+              onPressed: () {
+                Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => LoginScreen(),
+                          ),
+                        );
+              },
               style: OutlinedButton.styleFrom(
                 minimumSize: Size(double.infinity, 50),
               ),
-              child: const Text("Sign in", style: TextStyle(fontSize: 16)),
+              child: const Text("Login", style: TextStyle(fontSize: 16)),
             ),
             const SizedBox(height: 30),
             _buildBenefitItem(Icons.currency_rupee, "Upto ₹100 cashback on your first order"),
             _buildBenefitItem(Icons.local_shipping, "Free Delivery on first order – for top categories"),
-            _buildBenefitItem(Icons.loop, "Easy Returns"),
+            // _buildBenefitItem(Icons.loop, "Easy Returns"),
             _buildBenefitItem(Icons.money, "Pay on Delivery"),
           ],
         ),

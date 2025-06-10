@@ -6,24 +6,41 @@ import 'package:grocery_app/screens/product_details/product_details_screen.dart'
 import 'package:grocery_app/widgets/grocery_item_card_widget.dart';
 import 'filter_screen.dart';
 
-
-class CategoryItemsScreen extends StatelessWidget {
+class CategoryItemsScreen extends StatefulWidget {
   final String name;
   final List<Product> allProducts;
 
-  CategoryItemsScreen({
-    Key? key,
-    required this.name,
-    required this.allProducts,
-  }) : super(key: key);
+  CategoryItemsScreen({Key? key, required this.name, required this.allProducts})
+    : super(key: key);
+
+  @override
+  State<CategoryItemsScreen> createState() => _CategoryItemsScreenState();
+}
+
+class _CategoryItemsScreenState extends State<CategoryItemsScreen> {
+  late List<Product> filteredProducts;
+
+  @override
+  void initState() {
+    super.initState();
+    filteredProducts = List<Product>.from(widget.allProducts);
+  }
+
+  void _sortById() {
+    setState(() {
+      filteredProducts.sort((a, b) => a.id.compareTo(b.id));
+    });
+  }
+
+  void _sortByPrice() {
+    setState(() {
+      filteredProducts.sort((a, b) => a.price.compareTo(b.price));
+    });
+  }
+  
 
   @override
   Widget build(BuildContext context) {
-    // Filter products by category name
-    final List<Product> filteredProducts =
-        allProducts;
-
-
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.transparent,
@@ -40,23 +57,25 @@ class CategoryItemsScreen extends StatelessWidget {
           ),
         ),
         actions: [
-          GestureDetector(
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => FilterScreen()),
-              );
+          PopupMenuButton<String>(
+            icon: Icon(Icons.sort, color: Colors.black),
+            onSelected: (value) {
+              if (value == 'id') {
+                _sortById();
+              } else if (value == 'price') {
+                _sortByPrice();
+              }
             },
-            child: Container(
-              padding: EdgeInsets.only(right: 25),
-              child: Icon(Icons.sort, color: Colors.black),
-            ),
+            itemBuilder:
+                (context) => [
+                  PopupMenuItem(value: 'price', child: Text('Sort by Price')),
+                ],
           ),
         ],
         title: Container(
           padding: EdgeInsets.symmetric(horizontal: 25),
           child: AppText(
-            text: name,
+            text: widget.name,
             fontWeight: FontWeight.bold,
             fontSize: 20,
           ),
@@ -91,9 +110,7 @@ class CategoryItemsScreen extends StatelessWidget {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder:
-            (context) =>
-                ProductDetailsScreen(product:product),
+        builder: (context) => ProductDetailsScreen(product: product),
       ),
     );
   }

@@ -535,6 +535,11 @@ class AuthService {
           // Update cached profile data
           final prefs = await SharedPreferences.getInstance();
           await prefs.setString('user_profile', jsonEncode(userData));
+          await prefs.setString('user_data', jsonEncode(userData));
+
+          // Update current user
+          _currentUser = UserModel.fromJson(userData);
+          _authStateController.add(true);
 
           return {
             'success': true,

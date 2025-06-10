@@ -8,7 +8,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      theme: themeData,
+      theme: AppTheme.lightTheme,
       debugShowCheckedModeBanner: false,
       home: WelcomeScreen(),
     );

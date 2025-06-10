@@ -1,8 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:grocery_app/common_widgets/app_button.dart';
 import 'package:grocery_app/models/cart_model.dart';
+import 'package:grocery_app/models/product_model.dart';
+import 'package:grocery_app/screens/auth/login_screen.dart';
 import 'package:grocery_app/screens/checkout/checkout_screen.dart';
+import 'package:grocery_app/screens/product_details/product_details_screen.dart';
+import 'package:grocery_app/screens/address/address_selection_screen.dart';
 import 'package:grocery_app/services/cart_service.dart';
+import 'package:grocery_app/services/product_service.dart';
 import 'package:grocery_app/widgets/chart_item_widget.dart';
 
 class CartScreen extends StatefulWidget {
@@ -48,15 +53,49 @@ class _CartScreenState extends State<CartScreen> {
     }
   }
 
+  double getTotalAmount() {
+    return _cart!.items.fold(
+      0.0,
+      (sum, item) =>
+          sum + (double.parse(item.productVariant.finalPrice) * item.quantity),
+    );
+  }
+
+  void _onQuantityChanged(int productVariantId, int newQuantity) async {
+    setState(() {
+      _isLoading = true;
+    });
+    try {
+      await _cartService.updateCartItem(productVariantId, newQuantity);
+      await _loadCart(); // Refresh cart from backend
+    } catch (e) {
+      print(e);
+      // Optionally show an error message
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Failed to update cart item'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
   Widget _buildEmptyState() {
     return Center(
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Icon(Icons.shopping_cart_outlined, size: 86, color: Colors.grey[400]),
           SizedBox(height: 16),
           Text(
-            'Your cart is empty',
+            'Cart is empty',
             style: TextStyle(
               fontSize: 24,
               fontWeight: FontWeight.w600,
@@ -65,8 +104,8 @@ class _CartScreenState extends State<CartScreen> {
           ),
           SizedBox(height: 8),
           Text(
-            'Add items to start shopping',
-            style: TextStyle(fontSize: 16, color: Colors.grey[600]),
+            'Bro, your thali is starving. Add some courage to it.',
+            style: TextStyle(fontSize: 14, color: Colors.grey[600]),
           ),
           SizedBox(height: 24),
           // ElevatedButton(
@@ -102,13 +141,18 @@ class _CartScreenState extends State<CartScreen> {
           ),
           SizedBox(height: 8),
           Text(
-            _error ?? 'Failed to load cart',
+            "Login to see or add to cart",
             style: TextStyle(fontSize: 16, color: Colors.grey[600]),
             textAlign: TextAlign.center,
           ),
           SizedBox(height: 24),
           ElevatedButton(
-            onPressed: _loadCart,
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => LoginScreen()),
+              );
+            },
             style: ElevatedButton.styleFrom(
               backgroundColor: Theme.of(context).primaryColor,
               padding: EdgeInsets.symmetric(horizontal: 32, vertical: 16),
@@ -116,7 +160,7 @@ class _CartScreenState extends State<CartScreen> {
                 borderRadius: BorderRadius.circular(12),
               ),
             ),
-            child: Text('Try Again', style: TextStyle(fontSize: 16)),
+            child: Text('Login', style: TextStyle(fontSize: 16)),
           ),
         ],
       ),
@@ -149,29 +193,46 @@ class _CartScreenState extends State<CartScreen> {
                             ),
                           ],
                         ),
-                        child: ChartItemWidget(
-                          item: item,
-                          onQuantityChanged: (quantity) async {
-                            setState(() {
-                              _cart!.totalItems = quantity;
-                            });
+                        child: GestureDetector(
+                          onTap: () async {
+                            final product =
+                                await CategoryService.fetchProductById(
+                                  item.productVariant.id,
+                                );
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder:
+                                    (context) =>
+                                        ProductDetailsScreen(product: product),
+                              ),
+                            );
                           },
-                          onRemove: () async {
-                            try {
-                              await _cartService.removeFromCart(
+                          child: ChartItemWidget(
+                            item: item,
+                            onQuantityChanged: (quantity) async {
+                              _onQuantityChanged(
                                 item.productVariant.id,
+                                quantity,
                               );
-                              await _loadCart(); // Refresh cart after removal
-                            } catch (e) {
-                              if (!mounted) return;
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text('Failed to remove item'),
-                                  backgroundColor: Colors.red,
-                                ),
-                              );
-                            }
-                          },
+                            },
+                            onRemove: () async {
+                              try {
+                                await _cartService.removeFromCart(
+                                  item.productVariant.id,
+                                );
+                                await _loadCart(); // Refresh cart after removal
+                              } catch (e) {
+                                if (!mounted) return;
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text('Failed to remove item'),
+                                    backgroundColor: Colors.red,
+                                  ),
+                                );
+                              }
+                            },
+                          ),
                         ),
                       ),
                     );
@@ -226,7 +287,7 @@ class _CartScreenState extends State<CartScreen> {
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
                 Text(
-                  '₹${_cart!.totalPrice}',
+                  '₹${getTotalAmount().toStringAsFixed(2)}',
                   style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
@@ -239,11 +300,20 @@ class _CartScreenState extends State<CartScreen> {
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
-                onPressed: () {
+                onPressed: () async {
+                  // Reload cart before navigating
+                  setState(() {
+                    _isLoading = true;
+                  });
+                  final latestCart = await _cartService.getCart();
+                  setState(() {
+                    _isLoading = false;
+                  });
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => CheckoutScreen(cart: _cart),
+                      builder:
+                          (context) => AddressSelectionScreen(cart: latestCart),
                     ),
                   );
                 },

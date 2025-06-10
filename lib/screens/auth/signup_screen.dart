@@ -4,6 +4,7 @@ import 'package:grocery_app/common_widgets/imput_widget.dart';
 import 'package:grocery_app/models/user_model.dart';
 import 'package:grocery_app/screens/auth/login_screen.dart';
 import 'package:grocery_app/services/auth_service.dart';
+import 'package:flutter/services.dart';
 
 class SignupScreen extends StatefulWidget {
   const SignupScreen({super.key});
@@ -21,6 +22,7 @@ class _SignupScreenState extends State<SignupScreen> {
   final _firstNameController = TextEditingController();
   final _lastNameController = TextEditingController();
   final _phoneController = TextEditingController();
+  final _referralCodeController = TextEditingController();
   final _authService = AuthService();
 
   bool _isLoading = false;
@@ -28,6 +30,12 @@ class _SignupScreenState extends State<SignupScreen> {
   bool _showPassword = false;
   bool _showConfirmPassword = false;
   String? _errorMessage;
+
+  // Add verification state
+  bool _isEmailVerified = false;
+  bool _isPhoneVerified = false;
+
+  String? _selectedGender; // 'M', 'F', or 'O'
 
   final Map<String, bool> _fieldValidity = {
     'firstName': false,
@@ -106,6 +114,11 @@ class _SignupScreenState extends State<SignupScreen> {
           firstName: _firstNameController.text,
           lastName: _lastNameController.text,
           phoneNumber: _phoneController.text,
+          referralCode:
+              _referralCodeController.text.isNotEmpty
+                  ? _referralCodeController.text
+                  : null,
+          gender: _selectedGender,
         );
 
         // Call API to register user
@@ -142,6 +155,126 @@ class _SignupScreenState extends State<SignupScreen> {
     }
   }
 
+  Future<void> _showOtpDialog({
+    required String type,
+    required String value,
+  }) async {
+    final TextEditingController _otpController = TextEditingController();
+    bool _isVerifying = false;
+    bool _isResending = false;
+    String? _dialogError;
+
+    await showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              title: Text('Verify ${type == 'email' ? 'Email' : 'Phone'}'),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text('Enter the 6-digit OTP sent to your $type.'),
+                  SizedBox(height: 12),
+                  TextField(
+                    controller: _otpController,
+                    keyboardType: TextInputType.number,
+                    maxLength: 6,
+                    inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                    decoration: InputDecoration(
+                      labelText: 'OTP',
+                      counterText: '',
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                  if (_dialogError != null) ...[
+                    SizedBox(height: 8),
+                    Text(_dialogError!, style: TextStyle(color: Colors.red)),
+                  ],
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed:
+                      _isResending
+                          ? null
+                          : () async {
+                            setState(() => _isResending = true);
+                            // TODO: Call resend OTP API here
+                            await Future.delayed(
+                              Duration(seconds: 1),
+                            ); // Simulate
+                            setState(() => _isResending = false);
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text('OTP resent to $value')),
+                            );
+                          },
+                  child:
+                      _isResending
+                          ? CircularProgressIndicator()
+                          : Text('Resend'),
+                ),
+                TextButton(
+                  onPressed:
+                      _isVerifying
+                          ? null
+                          : () async {
+                            if (_otpController.text.length != 6) {
+                              setState(
+                                () =>
+                                    _dialogError = 'Enter a valid 6-digit OTP',
+                              );
+                              return;
+                            }
+                            setState(() {
+                              _isVerifying = true;
+                              _dialogError = null;
+                            });
+                            // TODO: Call verify OTP API here
+                            await Future.delayed(
+                              Duration(seconds: 1),
+                            ); // Simulate
+                            bool success =
+                                _otpController.text ==
+                                '123456'; // Simulate success
+                            setState(() => _isVerifying = false);
+                            if (success) {
+                              Navigator.of(context).pop();
+                              setState(() {
+                                if (type == 'email') {
+                                  _isEmailVerified = true;
+                                } else {
+                                  _isPhoneVerified = true;
+                                }
+                              });
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text('$type verified successfully!'),
+                                  backgroundColor: Colors.green,
+                                ),
+                              );
+                            } else {
+                              setState(() => _dialogError = 'Invalid OTP');
+                            }
+                          },
+                  child:
+                      _isVerifying
+                          ? CircularProgressIndicator()
+                          : Text('Verify'),
+                ),
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: Text('Cancel'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
   @override
   void dispose() {
     _emailController.dispose();
@@ -151,6 +284,7 @@ class _SignupScreenState extends State<SignupScreen> {
     _firstNameController.dispose();
     _lastNameController.dispose();
     _phoneController.dispose();
+    _referralCodeController.dispose();
     super.dispose();
   }
 
@@ -278,8 +412,36 @@ class _SignupScreenState extends State<SignupScreen> {
                   },
                   onValidationChanged:
                       (isValid) => _updateFieldValidity('phone', isValid),
+                  suffixIcon: IconButton(
+                    icon: Icon(
+                      Icons.verified,
+                      color: _isPhoneVerified ? Colors.green : Colors.blue,
+                    ),
+                    tooltip: 'Verify Phone',
+                    onPressed: () {
+                      if (_phoneController.text.isNotEmpty) {
+                        _showOtpDialog(
+                          type: 'phone',
+                          value: _phoneController.text,
+                        );
+                      } else {
+                        _showErrorSnackBar('Enter phone number first');
+                      }
+                    },
+                  ),
                 ),
                 SizedBox(height: 15),
+                CustomInput(
+                  hintText: "Referral Code (optional)",
+                  obscureText: false,
+                  controller: _referralCodeController,
+                  keyboardType: TextInputType.text,
+                  validator: (value) {
+                    return null;
+                  },
+                ),
+                SizedBox(height: 15),
+                // Email field
                 CustomInput(
                   hintText: "Email",
                   obscureText: false,
@@ -298,6 +460,60 @@ class _SignupScreenState extends State<SignupScreen> {
                   },
                   onValidationChanged:
                       (isValid) => _updateFieldValidity('email', isValid),
+                  suffixIcon: IconButton(
+                    icon: Icon(
+                      Icons.verified,
+                      color: _isEmailVerified ? Colors.green : Colors.blue,
+                    ),
+                    tooltip: 'Verify Email',
+                    onPressed: () {
+                      if (_emailController.text.isNotEmpty) {
+                        _showOtpDialog(
+                          type: 'email',
+                          value: _emailController.text,
+                        );
+                      } else {
+                        _showErrorSnackBar('Enter email first');
+                      }
+                    },
+                  ),
+                ),
+                SizedBox(height: 15),
+                // Gender radio field
+                Text("Gender", style: TextStyle(fontWeight: FontWeight.bold)),
+                Row(
+                  children: [
+                    Radio<String>(
+                      value: "M",
+                      groupValue: _selectedGender,
+                      onChanged: (value) {
+                        setState(() {
+                          _selectedGender = value;
+                        });
+                      },
+                    ),
+                    Text("Male"),
+                    Radio<String>(
+                      value: "F",
+                      groupValue: _selectedGender,
+                      onChanged: (value) {
+                        setState(() {
+                          _selectedGender = value;
+                        });
+                      },
+                    ),
+                    Text("Female"),
+                    Radio<String>(
+                      value: "O",
+                      groupValue: _selectedGender,
+                      onChanged: (value) {
+                        setState(() {
+                          _selectedGender = value;
+                        });
+                      },
+                    ),
+                    Text("Other"),
+                  ],
                 ),
                 SizedBox(height: 15),
                 // Password and Confirm Password in one row

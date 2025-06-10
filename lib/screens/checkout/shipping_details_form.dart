@@ -1,7 +1,9 @@
+import 'package:country_state_city_picker/country_state_city_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:grocery_app/models/order_model.dart';
 import 'package:grocery_app/services/order_service.dart';
+import 'package:country_state_city_pro/country_state_city_pro.dart';
 
 class ShippingDetailsForm extends StatefulWidget {
   final ShippingDetails? initialDetails;
@@ -27,9 +29,10 @@ class _ShippingDetailsFormState extends State<ShippingDetailsForm> {
   late final TextEditingController _nameController;
   late final TextEditingController _phoneController;
   late final TextEditingController _addressController;
-  late final TextEditingController _cityController;
-  late final TextEditingController _stateController;
   late final TextEditingController _pincodeController;
+  late final TextEditingController _countryController;
+  late final TextEditingController _stateController;
+  late final TextEditingController _cityController;
 
   @override
   void initState() {
@@ -43,14 +46,15 @@ class _ShippingDetailsFormState extends State<ShippingDetailsForm> {
     _addressController = TextEditingController(
       text: widget.initialDetails?.address ?? '',
     );
-    _cityController = TextEditingController(
-      text: widget.initialDetails?.city ?? '',
+    _pincodeController = TextEditingController(
+      text: widget.initialDetails?.pincode ?? '',
     );
+    _countryController = TextEditingController();
     _stateController = TextEditingController(
       text: widget.initialDetails?.state ?? '',
     );
-    _pincodeController = TextEditingController(
-      text: widget.initialDetails?.pincode ?? '',
+    _cityController = TextEditingController(
+      text: widget.initialDetails?.city ?? '',
     );
     _loadSavedAddress();
   }
@@ -82,9 +86,10 @@ class _ShippingDetailsFormState extends State<ShippingDetailsForm> {
       _nameController.text = _savedAddress!.name;
       _phoneController.text = _savedAddress!.phone;
       _addressController.text = _savedAddress!.address;
-      _cityController.text = _savedAddress!.city;
-      _stateController.text = _savedAddress!.state;
       _pincodeController.text = _savedAddress!.pincode;
+      _countryController.text = 'India';
+      _stateController.text = _savedAddress!.state;
+      _cityController.text = _savedAddress!.city;
     }
   }
 
@@ -92,9 +97,10 @@ class _ShippingDetailsFormState extends State<ShippingDetailsForm> {
     _nameController.clear();
     _phoneController.clear();
     _addressController.clear();
-    _cityController.clear();
-    _stateController.clear();
     _pincodeController.clear();
+    _countryController.text = 'India';
+    _stateController.clear();
+    _cityController.clear();
   }
 
   @override
@@ -102,9 +108,10 @@ class _ShippingDetailsFormState extends State<ShippingDetailsForm> {
     _nameController.dispose();
     _phoneController.dispose();
     _addressController.dispose();
-    _cityController.dispose();
-    _stateController.dispose();
     _pincodeController.dispose();
+    _countryController.dispose();
+    _stateController.dispose();
+    _cityController.dispose();
     super.dispose();
   }
 
@@ -139,7 +146,7 @@ class _ShippingDetailsFormState extends State<ShippingDetailsForm> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Shipping Details',
+                'Delivery Details',
                 style: Theme.of(context).textTheme.titleLarge,
               ),
               SizedBox(height: 16),
@@ -196,44 +203,42 @@ class _ShippingDetailsFormState extends State<ShippingDetailsForm> {
                 },
               ),
               SizedBox(height: 16),
-              Row(
-                children: [
-                  Expanded(
-                    child: TextFormField(
-                      controller: _cityController,
-                      decoration: InputDecoration(
-                        labelText: 'City',
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                      ),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Required';
-                        }
-                        return null;
-                      },
-                    ),
-                  ),
-                  SizedBox(width: 16),
-                  Expanded(
-                    child: TextFormField(
-                      controller: _stateController,
-                      decoration: InputDecoration(
-                        labelText: 'State',
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                      ),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Required';
-                        }
-                        return null;
-                      },
-                    ),
-                  ),
-                ],
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    SizedBox(height: 8),
+                    
+                         SelectState(
+              onCountryChanged: (value) {
+              setState(() {
+                _countryController.text = value;
+              });
+            },
+            onStateChanged:(value) {
+              setState(() {
+                _stateController.text = value;
+              });
+            },
+             onCityChanged:(value) {
+              setState(() {
+                _cityController.text = value;
+              });
+            },
+            
+            ),
+                    //   defaultCountry: CscCountry.India,
+                    //   onCountryChanged: (value) =>
+                    //       _countryController.text = value ?? 'India',
+                    //   onStateChanged:
+                    //       (value) => _stateController.text = value ?? '',
+                    // //   onCityChanged:
+                    // //       (value) => _cityController.text = value ?? '',
+                     
+                    // // ),
+                  ],
+                ),
               ),
               SizedBox(height: 16),
               TextFormField(

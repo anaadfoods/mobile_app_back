@@ -4,7 +4,7 @@ import 'package:grocery_app/models/order_model.dart';
 class OrderAcceptedScreen extends StatelessWidget {
   final OrderModel order;
 
-  const OrderAcceptedScreen({Key? key, required this.order}) : super(key: key);
+  const OrderAcceptedScreen({Key? key, required this.order, required bool isSubscription}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {

@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:grocery_app/models/subscription_model.dart';
 import 'package:grocery_app/services/subscription_service.dart';
+import 'package:path_provider/path_provider.dart';
+import 'dart:io';
+import 'package:http/http.dart' as http;
 
 class SubscriptionPlanDetailScreen extends StatefulWidget {
   final Subscription subscription;
@@ -305,6 +308,14 @@ class _SubscriptionPlanDetailScreenState
     final isPaused = widget.subscription.status == 'PAUSED';
     final isCancelled = widget.subscription.status == 'CANCELLED';
 
+    // Dummy data for demonstration
+    final List<Map<String, String>> deliveryHistory = [
+      {"date": "2024-06-01", "status": "Done"},
+      {"date": "2024-05-25", "status": "Done"},
+      {"date": "2024-05-18", "status": "Done"},
+      {"date": "2024-05-11", "status": "Done"},
+    ];
+
     return Scaffold(
       appBar: AppBar(
         title: Text('Subscription Plan Details'),
@@ -324,6 +335,24 @@ class _SubscriptionPlanDetailScreenState
               onPressed: _isLoading ? null : _showCancelConfirmation,
             ),
           ],
+          IconButton(
+            icon: Icon(Icons.download),
+            tooltip: 'Download Invoice',
+            onPressed: () async {
+              final url =
+                  'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf';
+              final response = await http.get(Uri.parse(url));
+              final dir = await getTemporaryDirectory();
+              final file = File(
+                '${dir.path}/subscription_invoice_${widget.subscription.id}.pdf',
+              );
+              await file.writeAsBytes(response.bodyBytes);
+              if (!mounted) return;
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text('Invoice downloaded to ${file.path}')),
+              );
+            },
+          ),
         ],
       ),
       body:
@@ -381,21 +410,164 @@ class _SubscriptionPlanDetailScreenState
                             SizedBox(height: 16),
                             _buildInfoRow(
                               'Total Weight',
-                              '${widget.subscription.totalWeight} kg',
+                              '${widget.subscription.items.map((item) => item.unitWeight).reduce((a, b) => a + b)} kg',
+                            ),
+                            _buildInfoRow(
+                              'Delivery Charges',
+                              '₹${widget.subscription.deliveryCharges}',
                             ),
                             _buildInfoRow(
                               'Total Amount',
                               '₹${widget.subscription.totalAmount}',
                             ),
                             _buildInfoRow(
-                              'Next Delivery',
-                              widget.subscription.nextDeliveryDate,
+                              'Remaining Amount',
+                              '₹${widget.subscription.remainingAmount}',
                             ),
-                            // _buildInfoRow(
-                            //   'Created On',
-                            //   widget.subscription.createdAt,
-                            // ),
+
+                            _buildInfoRow(
+                              'Next Delivery',
+                              _formatDate(widget.subscription.nextDeliveryDate),
+                            ),
+                            _buildInfoRow(
+                              'Amount Paid',
+                              '₹${widget.subscription.amountPaid}',
+                            ),
                           ],
+                        ),
+                      ),
+                    ),
+                    SizedBox(height: 16),
+                    Text(
+                      'Products',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.indigo[900],
+                      ),
+                    ),
+                    SizedBox(height: 8),
+                    ...widget.subscription.items.map(
+                      (item) => Card(
+                        margin: EdgeInsets.only(bottom: 12),
+                        elevation: 2,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Padding(
+                          padding: EdgeInsets.all(12),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Container(
+                                width: 56,
+                                height: 56,
+                                decoration: BoxDecoration(
+                                  color: Colors.grey[100],
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Icon(
+                                  Icons.image,
+                                  color: Colors.grey[400],
+                                  size: 32,
+                                ),
+                              ),
+                              SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      item.productName,
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.w600,
+                                        fontSize: 16,
+                                      ),
+                                      maxLines: 2,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                    SizedBox(height: 2),
+                                    Text(
+                                      ' ${item.weightUnit}',
+                                      style: TextStyle(
+                                        color: Colors.grey[600],
+                                        fontSize: 13,
+                                      ),
+                                    ),
+                                    SizedBox(height: 6),
+                                    Row(
+                                      children: [
+                                        Container(
+                                          padding: EdgeInsets.symmetric(
+                                            horizontal: 6,
+                                            vertical: 2,
+                                          ),
+                                          decoration: BoxDecoration(
+                                            color: Colors.grey[100],
+                                            borderRadius: BorderRadius.circular(
+                                              4,
+                                            ),
+                                          ),
+                                          child: Text(
+                                            'Qty: ${item.quantity}',
+                                            style: TextStyle(
+                                              color: Colors.grey[700],
+                                              fontSize: 12,
+                                            ),
+                                          ),
+                                        ),
+                                        if (item.price >
+                                            item.discountedPrice) ...[
+                                          SizedBox(width: 6),
+                                          Container(
+                                            padding: EdgeInsets.symmetric(
+                                              horizontal: 6,
+                                              vertical: 2,
+                                            ),
+                                            decoration: BoxDecoration(
+                                              color: Colors.green[50],
+                                              borderRadius:
+                                                  BorderRadius.circular(4),
+                                            ),
+                                            child: Text(
+                                              'Save ₹${(item.price - item.discountedPrice).toStringAsFixed(2)}',
+                                              style: TextStyle(
+                                                color: Colors.green[700],
+                                                fontSize: 12,
+                                                fontWeight: FontWeight.w500,
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.end,
+                                children: [
+                                  Text(
+                                    '₹${item.discountedPrice.toStringAsFixed(2)}',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 16,
+                                      color: Colors.green[700],
+                                    ),
+                                  ),
+                                  SizedBox(height: 2),
+                                  Text(
+                                    'Total: ₹${(item.discountedPrice * item.quantity).toStringAsFixed(2)}',
+                                    style: TextStyle(
+                                      color: Colors.grey[700],
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                     ),
@@ -482,6 +654,81 @@ class _SubscriptionPlanDetailScreenState
                           child: Text('Subscription cancelled'),
                         ),
                       ),
+                    SizedBox(height: 16),
+                    Text(
+                      'Delivery History',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.indigo[900],
+                      ),
+                    ),
+                    SizedBox(height: 8),
+                    Card(
+                      elevation: 3,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: ListView.separated(
+                        shrinkWrap: true,
+                        physics: NeverScrollableScrollPhysics(),
+                        itemCount: deliveryHistory.length,
+                        separatorBuilder: (context, idx) => Divider(height: 1),
+                        itemBuilder: (context, idx) {
+                          final entry = deliveryHistory[idx];
+                          return ListTile(
+                            leading: Icon(
+                              Icons.calendar_today,
+                              color: Colors.blueGrey,
+                              size: 28,
+                            ),
+                            title: Text(
+                              entry["date"]!,
+                              style: TextStyle(
+                                fontWeight: FontWeight.w600,
+                                fontSize: 16,
+                              ),
+                            ),
+                            subtitle: Text(
+                              entry["status"]!,
+                              style: TextStyle(
+                                color:
+                                    entry["status"] == "Done"
+                                        ? Colors.green[700]
+                                        : Colors.orange[700],
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            trailing: IconButton(
+                              icon: Icon(Icons.download, color: Colors.indigo),
+                              tooltip: 'Download Receipt',
+                              onPressed: () async {
+                                final url =
+                                    'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf';
+                                final response = await http.get(Uri.parse(url));
+                                final dir = await getTemporaryDirectory();
+                                final file = File(
+                                  '${dir.path}/delivery_${entry["date"]}.pdf',
+                                );
+                                await file.writeAsBytes(response.bodyBytes);
+                                if (!mounted) return;
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(
+                                      'Receipt downloaded to ${file.path}',
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
+                            contentPadding: EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 8,
+                            ),
+                          );
+                        },
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -492,19 +739,46 @@ class _SubscriptionPlanDetailScreenState
     return Padding(
       padding: EdgeInsets.symmetric(vertical: 8),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label, style: TextStyle(fontSize: 16, color: Colors.grey[600])),
           Text(
-            value,
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w500,
-              color: Colors.indigo[900],
+            '$label : ',
+            style: TextStyle(fontSize: 16, color: Colors.grey[600]),
+          ),
+          Expanded(
+            child: Text(
+              value,
+              textAlign: TextAlign.end,
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w500,
+                color: Colors.indigo[900],
+              ),
             ),
           ),
         ],
       ),
     );
+  }
+
+  String _formatDate(String dateStr) {
+    final date = DateTime.tryParse(dateStr);
+    if (date == null) return dateStr;
+    const months = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
+    ];
+    return '${date.day}-${months[date.month - 1]}-${date.year}';
   }
 }

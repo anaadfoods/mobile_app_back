@@ -47,6 +47,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return Container(
       padding: EdgeInsets.all(20),
       decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(12),
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
@@ -58,13 +59,24 @@ class _ProfileScreenState extends State<ProfileScreen> {
       ),
       child: Column(
         children: [
-          CircleAvatar(
-            radius: 50,
-            backgroundColor: Colors.white,
-            child: Icon(
-              Icons.person,
-              size: 50,
-              color: Theme.of(context).primaryColor,
+          ClipRRect(
+            borderRadius: BorderRadius.circular(50),
+            child: CircleAvatar(
+              radius: 50,
+              backgroundColor: Colors.white,
+              child:
+                  _userProfile?.profilePicture != null
+                      ? Image.network(
+                        _userProfile?.profilePicture ?? '',
+                        width: 100,
+                        height: 100,
+                        fit: BoxFit.cover,
+                      )
+                      : Icon(
+                        Icons.person,
+                        size: 50,
+                        color: Theme.of(context).primaryColor,
+                      ),
             ),
           ),
           SizedBox(height: 16),
@@ -191,7 +203,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
                 // Reload profile if update was successful
                 if (result == true) {
-                  _loadUserProfile();
+                  await _loadUserProfile();
+                  // Notify parent screens to refresh
+                  Navigator.pop(context, true);
                 }
               }
             },
@@ -205,12 +219,23 @@ class _ProfileScreenState extends State<ProfileScreen> {
           child: Column(
             children: [
               _buildProfileHeader(),
-              SizedBox(height: 20),
-              _buildReferralCode(),
+              // SizedBox(height: 20),
+              // _buildReferralCode(),
               _buildInfoCard(
                 'Phone Number',
                 _userProfile?.phoneNumber ?? '',
                 Icons.phone,
+              ),
+              _buildInfoCard(
+                'Gender',
+                _userProfile?.gender == 'M'
+                    ? 'Male'
+                    : _userProfile?.gender == 'F'
+                    ? 'Female'
+                    : _userProfile?.gender == 'O'
+                    ? 'Other'
+                    : '-',
+                Icons.wc,
               ),
               _buildInfoCard(
                 'Address',

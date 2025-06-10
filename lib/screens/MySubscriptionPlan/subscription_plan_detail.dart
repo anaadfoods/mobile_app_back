@@ -81,6 +81,8 @@ class _SubscriptionScreenState extends State<SubscriptionScreen>
         return Colors.orange;
       case "CANCELLED":
         return Colors.red;
+      case "COMPLETED":
+        return Colors.blue;
       default:
         return Colors.grey;
     }
@@ -96,7 +98,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen>
   @override
   Widget build(BuildContext context) {
     return DefaultTabController(
-      length: 4,
+      length: 5,
       child: Scaffold(
         appBar: AppBar(
           title: Text("My Subscriptions"),
@@ -112,12 +114,14 @@ class _SubscriptionScreenState extends State<SubscriptionScreen>
               if (index == 1) _filterSubscriptions("ACTIVE");
               if (index == 2) _filterSubscriptions("PAUSED");
               if (index == 3) _filterSubscriptions("CANCELLED");
+              if (index == 4) _filterSubscriptions("COMPLETED");
             },
             tabs: [
               Tab(text: "All"),
               Tab(text: "Active"),
               Tab(text: "Paused"),
               Tab(text: "Cancelled"),
+              Tab(text: "Completed"),
             ],
           ),
         ),
@@ -130,82 +134,85 @@ class _SubscriptionScreenState extends State<SubscriptionScreen>
     if (filteredSubscriptions.isEmpty) {
       return Center(child: Text("No matching subscriptions found"));
     }
-    return ListView.builder(
-      itemCount: filteredSubscriptions.length,
-      itemBuilder: (context, index) {
-        final subscription = filteredSubscriptions[index];
-        return Container(
-          margin: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(14),
-            border: Border(
-              left: BorderSide(
-                color: _getStatusColor(subscription.status),
-                width: 8,
-              ),
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black12,
-                offset: Offset(0, 2),
-                blurRadius: 4,
-              ),
-            ],
-          ),
-          child: GestureDetector(
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder:
-                      (context) => SubscriptionPlanDetailScreen(
-                        subscription: subscription,
-                      ),
+    return RefreshIndicator(
+      onRefresh: _fetchSubscriptions,
+      child: ListView.builder(
+        itemCount: filteredSubscriptions.length,
+        itemBuilder: (context, index) {
+          final subscription = filteredSubscriptions[index];
+          return Container(
+            margin: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(14),
+              border: Border(
+                left: BorderSide(
+                  color: _getStatusColor(subscription.status),
+                  width: 8,
                 ),
-              );
-            },
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    subscription.planName,
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 18,
-                      color: Colors.black87,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black12,
+                  offset: Offset(0, 2),
+                  blurRadius: 4,
+                ),
+              ],
+            ),
+            child: GestureDetector(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder:
+                        (context) => SubscriptionPlanDetailScreen(
+                          subscription: subscription,
+                        ),
+                  ),
+                );
+              },
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      subscription.planName,
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 18,
+                        color: Colors.black87,
+                      ),
                     ),
-                  ),
-                  SizedBox(height: 8),
-                  Text(
-                    "Items: ${subscription.items.map((item) => '${item.quantity}x Product ${item.productVariant}').join(', ')}",
-                    style: TextStyle(
-                      fontWeight: FontWeight.w600,
-                      fontSize: 16,
-                      color: Colors.blueGrey[900],
+                    SizedBox(height: 8),
+                    Text(
+                      "Items: ${subscription.items.map((item) => '${item.quantity}x Product ${item.productVariant}').join(', ')}",
+                      style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 16,
+                        color: Colors.blueGrey[900],
+                      ),
                     ),
-                  ),
-                  SizedBox(height: 8),
-                  Text(
-                    "Next Delivery: ${subscription.startDate.toString().split(' ')[0]}",
-                    style: TextStyle(color: Colors.grey[700], fontSize: 14),
-                  ),
-                  SizedBox(height: 8),
-                  Text(
-                    "End Date: ${subscription.endDate.toString().split(' ')[0]}",
-                    style: TextStyle(
-                      fontWeight: FontWeight.w500,
-                      color: Colors.black87,
+                    SizedBox(height: 8),
+                    Text(
+                      "Next Delivery: ${subscription.startDate.toString().split(' ')[0]}",
+                      style: TextStyle(color: Colors.grey[700], fontSize: 14),
                     ),
-                  ),
-                ],
+                    SizedBox(height: 8),
+                    Text(
+                      "End Date: ${subscription.endDate.toString().split(' ')[0]}",
+                      style: TextStyle(
+                        fontWeight: FontWeight.w500,
+                        color: Colors.black87,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
-          ),
-        );
-      },
+          );
+        },
+      ),
     );
   }
 }
