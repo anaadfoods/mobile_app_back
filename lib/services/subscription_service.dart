@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:grocery_app/models/repayment_subscription_model.dart';
 import 'package:grocery_app/models/subscription_plan_product_model.dart';
 import 'package:grocery_app/models/subscription_request_create_model.dart';
 import 'package:http/http.dart' as http;
@@ -6,6 +7,7 @@ import '../models/subscription_model.dart';
 import '../models/subscription_plan_model.dart';
 import 'api_config.dart';
 import 'auth_service.dart';
+import '../models/payment_status_model.dart';
 
 class SubscriptionService {
   static final SubscriptionService _instance = SubscriptionService._internal();
@@ -39,11 +41,27 @@ class SubscriptionService {
       print('Create subscription response: $responseData');
 
       if (response.statusCode == 201) {
-        return {
-          'success': true,
-          'data': Subscription.fromJson(responseData),
-          'message': 'Subscription created successfully',
-        };
+        // Check if this is a payment response (has payment_links)
+        if (responseData.containsKey('payment_links') &&
+            responseData.containsKey('subscription_id')) {
+          // Return raw response for payment flow
+          return {
+            'success': true,
+            'payment_links': responseData['payment_links'],
+            'subscription_id': responseData['subscription_id'],
+            'merchant_transaction_id': responseData['merchant_transaction_id'],
+            'message':
+                responseData['message'] ??
+                'Payment session created successfully',
+          };
+        } else {
+          // Return parsed subscription for non-payment flow
+          return {
+            'success': true,
+            'data': Subscription.fromJson(responseData),
+            'message': 'Subscription created successfully',
+          };
+        }
       } else if (response.statusCode == 401) {
         final refreshResult = await _authService.refreshAccessToken();
         if (refreshResult) {
@@ -84,7 +102,8 @@ class SubscriptionService {
         };
       }
 
-      final url = '${ApiConfig.baseUrl}${ApiConfig.subscriptionsEndpoint}$id/';
+      final url =
+          '${ApiConfig.baseUrl}${ApiConfig.subscriptionsEndpoint}/plans/$id/';
       print('Fetching subscriptions from: $url');
 
       final response = await http.get(
@@ -557,6 +576,91 @@ class SubscriptionService {
       return {
         'success': false,
         'message': 'An error occurred while fetching plan products',
+      };
+    }
+  }
+
+  Future<SubscriptionPaymentStatus?> fetchSubscriptionPaymentStatus(
+    int subscriptionId,
+  ) async {
+    try {
+      final token = await _authService.getAccessToken();
+      if (token == null) return null;
+      final url =
+          '${ApiConfig.baseUrl}/api/payments/subscription-status/$subscriptionId/';
+      final response = await http.get(
+        Uri.parse(url),
+        headers: ApiConfig.getAuthHeaders(token),
+      );
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return SubscriptionPaymentStatus.fromJson(data);
+      } else {
+        return null;
+      }
+    } catch (e) {
+      print('Error fetching subscription payment status: $e');
+      return null;
+    }
+  }
+
+  Future<Map<String, dynamic>> RepaymentSubscription(int planId) async {
+    try {
+      final token = await _authService.getAccessToken();
+      if (token == null) {
+        return {
+          'success': false,
+          'message': 'Not authenticated',
+          'requiresLogin': true,
+        };
+      }
+
+      final response = await http.post(
+        Uri.parse(
+          '${ApiConfig.baseUrl}$subscriptionsEndpoint/$planId/next-installment-payment/',
+        ),
+        headers: ApiConfig.getAuthHeaders(token),
+      );
+
+      final responseData = jsonDecode(response.body);
+      print('Repayment subscription response: $responseData');
+
+      if (response.statusCode == 201 || response.statusCode == 200) {
+        // Check if this is a payment response (has payment_links)
+        if (responseData.containsKey('payment_links') &&
+            responseData.containsKey('subscription_id')) {
+          // Return raw response for payment flow
+          return {
+            'success': true,
+            'payment_links': responseData['payment_links'],
+            'subscription_id': responseData['subscription_id'],
+            'merchant_transaction_id': responseData['merchant_transaction_id'],
+            'message':
+                responseData['message'] ??
+                'Payment session created successfully',
+          };
+        } else {
+          // Return parsed response for non-payment flow
+          return {
+            'success': true,
+            'data': responseData,
+            'message':
+                responseData['message'] ?? 'Repayment processed successfully',
+          };
+        }
+      } else {
+        return {
+          'success': false,
+          'message': responseData['message'] ?? 'Failed to repay subscription',
+          'errors': responseData['errors'],
+        };
+      }
+    } catch (e) {
+      print('Error repaying subscription: $e');
+      return {
+        'success': false,
+        'message': 'An error occurred while repaying the subscription',
+        'error': e.toString(),
       };
     }
   }

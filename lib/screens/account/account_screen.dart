@@ -6,6 +6,8 @@ import 'package:grocery_app/screens/profile/profile_screen.dart';
 import 'package:grocery_app/styles/colors.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:grocery_app/services/auth_service.dart';
+import 'package:grocery_app/services/notification_service.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 
 import 'account_item.dart';
 
@@ -49,6 +51,18 @@ class _AccountScreenState extends State<AccountScreen> {
   }
 
   Future<void> _handleLogout(BuildContext context) async {
+    try {
+      final fcmToken = await FirebaseMessaging.instance.getToken();
+      final bearerToken = await authService.getAccessToken();
+      if (fcmToken != null && bearerToken != null) {
+        await NotificationService().removeFcmTokenFromBackend(
+          fcmToken,
+          bearerToken,
+        );
+      }
+    } catch (e) {
+      debugPrint('Error removing FCM token on logout: ${e.toString()}');
+    }
     await authService.clearToken();
     setState(() {
       user = null;

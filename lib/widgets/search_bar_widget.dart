@@ -11,37 +11,27 @@ class SearchBarWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: EdgeInsets.all(16),
       width: double.maxFinite,
-      decoration: BoxDecoration(
-        color: Color(0xFFF2F3F2),
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Row(
-        children: [
-          SvgPicture.asset(searchIcon),
-          SizedBox(width: 8),
-          Expanded(
-            child: TextField(
-              onChanged: onChanged,
-              decoration: InputDecoration(
-                hintText: hintText,
-                border: InputBorder.none,
-                isDense: true,
-                hintStyle: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFF7C7C7C),
-                ),
-              ),
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: Color(0xFF7C7C7C),
-              ),
-            ),
+      decoration: BoxDecoration(borderRadius: BorderRadius.circular(20)),
+      child: TextField(
+        onChanged: onChanged,
+        decoration: InputDecoration(
+          prefixIcon: Icon(Icons.search),
+          
+          hintText: hintText,
+          border: InputBorder.none,
+          isDense: true,
+          hintStyle: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+            color: Color(0xFF7C7C7C),
           ),
-        ],
+        ),
+        style: TextStyle(
+          fontSize: 18,
+          fontWeight: FontWeight.bold,
+          color: Color(0xFF7C7C7C),
+        ),
       ),
     );
   }

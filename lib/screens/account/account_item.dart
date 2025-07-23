@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:grocery_app/screens/about/about_screen.dart';
 import 'package:grocery_app/screens/order/order_screen.dart';
 import 'package:grocery_app/screens/profile/profile_screen.dart';
+import 'package:grocery_app/screens/account/fcm_token_screen.dart';
 
 class AccountItem {
   final String label;
@@ -28,4 +29,5 @@ List<AccountItem> accountItems = [
 
   AccountItem("Help", Icon(Icons.abc_sharp), HelpScreen()),
   AccountItem("About", Icon(Icons.abc_sharp), AboutScreen()),
+  AccountItem("FCM Token", Icon(Icons.notifications), FCMTokenScreen()),
 ];

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:grocery_app/common_widgets/app_text.dart';
 import 'package:grocery_app/models/product_model.dart';
 import 'package:grocery_app/styles/colors.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 class GroceryItemCardWidget extends StatelessWidget {
   GroceryItemCardWidget({Key? key, required this.item, this.heroSuffix})
@@ -10,7 +11,7 @@ class GroceryItemCardWidget extends StatelessWidget {
   final String? heroSuffix;
 
   final double width = 174;
-  final double height = 380;
+  final double height = 360;
   final Color borderColor = Color(0xffE2E2E2);
   final double borderRadius = 18;
 
@@ -78,17 +79,36 @@ class GroceryItemCardWidget extends StatelessWidget {
 
   Widget imageWidget() {
     if (item.productImages.isNotEmpty) {
-      return Image.network(
-        item.productImages[0].image,
+      return CachedNetworkImage(
+        imageUrl: item.productImages[0].image,
         fit: BoxFit.cover,
         width: 140,
         height: 120,
-        errorBuilder:
-            (context, error, stackTrace) =>
-                Icon(Icons.broken_image, size: 48, color: Colors.grey),
+        placeholder:
+            (context, url) => Container(
+              color: Colors.grey[200],
+              child: Center(
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  valueColor: AlwaysStoppedAnimation<Color>(Colors.grey[400]!),
+                ),
+              ),
+            ),
+        errorWidget:
+            (context, url, error) => Container(
+              color: Colors.grey[200],
+              child: Icon(Icons.broken_image, size: 48, color: Colors.grey),
+            ),
+        memCacheWidth: 200,
+        memCacheHeight: 200,
+        maxWidthDiskCache: 200,
+        maxHeightDiskCache: 200,
       );
     } else {
-      return Icon(Icons.image_not_supported, size: 48, color: Colors.grey);
+      return Container(
+        color: Colors.grey[200],
+        child: Icon(Icons.image_not_supported, size: 48, color: Colors.grey),
+      );
     }
   }
 

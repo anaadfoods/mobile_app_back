@@ -1,9 +1,7 @@
-import 'dart:ffi';
-
 import 'package:flutter/material.dart';
 import 'package:grocery_app/models/cart_model.dart';
 import 'package:grocery_app/models/order_model.dart';
-import 'package:grocery_app/models/product_model.dart';
+import 'package:grocery_app/models/subscription_plan_model.dart';
 import 'package:grocery_app/models/subscription_request_create_model.dart';
 import 'package:grocery_app/screens/MySubscriptionPlan/subscription_plan_detail_single.dart';
 import 'package:grocery_app/services/cart_service.dart';
@@ -13,6 +11,11 @@ import 'package:grocery_app/screens/order_accepted_screen.dart';
 import 'package:grocery_app/screens/order_failed_dialog.dart';
 import 'package:grocery_app/services/auth_service.dart';
 import 'package:grocery_app/services/subscription_service.dart';
+import 'package:grocery_app/screens/checkout/webview_page.dart';
+import 'package:webview_flutter/webview_flutter.dart';
+import 'package:grocery_app/helpers/notification_helper.dart';
+import 'package:grocery_app/helpers/animated_transitions.dart';
+import 'dart:convert';
 
 class CheckoutScreen extends StatefulWidget {
   final CartModel? cart;
@@ -20,7 +23,7 @@ class CheckoutScreen extends StatefulWidget {
   final double? price;
   final int? quantity;
   final bool isSubscription;
-  final int? selectedPlan;
+  final int selectedPlan;
   final Map<String, String>? shippingDetails;
   final double deliveryCharges;
 
@@ -31,7 +34,7 @@ class CheckoutScreen extends StatefulWidget {
     this.singleProduct,
     this.quantity,
     this.isSubscription = false,
-    this.selectedPlan,
+    this.selectedPlan = 0,
     this.shippingDetails,
     required this.deliveryCharges,
   }) : assert(cart != null || (singleProduct != null && quantity != null)),
@@ -48,6 +51,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   final SubscriptionService _subscriptionService = SubscriptionService();
 
   ShippingDetails? _shippingDetails;
+  SubscriptionPlan? subscription;
+  List<SubscriptionPlan> planDescriptions = [];
+
   bool _isLoading = true;
   String? _error;
   String _selectedPaymentMethod = 'UPI';
@@ -74,6 +80,19 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   @override
   void initState() {
     super.initState();
+    _initializeCheckout();
+  }
+
+  Future<void> _initializeCheckout() async {
+    await _prepareShippingDetails();
+    if (widget.isSubscription) {
+      await _fetchPlansAndAssign();
+    }
+    await _loadShippingDetails();
+  }
+
+  // Step 1: Prepare Shipping Details
+  Future<void> _prepareShippingDetails() async {
     if (widget.shippingDetails != null) {
       _shippingDetails = ShippingDetails(
         address: widget.shippingDetails!['address'] ?? '',
@@ -83,8 +102,587 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         pincode: widget.shippingDetails!['pincode'] ?? '',
         phone: widget.shippingDetails!['phone'] ?? '',
       );
+      _useExistingAddress = false;
     }
-    _loadShippingDetails();
+  }
+
+  // Step 2: Validate Shipping
+  bool _validateShipping() {
+    if (_shippingDetails == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Please fill in shipping details'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return false;
+    }
+
+    if (!_shippingDetails!.isComplete) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Please fill in all shipping details'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return false;
+    }
+
+    return true;
+  }
+
+  // Step 3: Set Loading State
+  void _setLoadingState(bool loading) {
+    if (mounted) {
+      setState(() {
+        _isLoading = loading;
+        if (loading) _error = null;
+      });
+    }
+  }
+
+  // Main Checkout Flow
+  Future<void> _createOrder() async {
+    // Step 1: Prepare Shipping Details
+    await _prepareShippingDetails();
+
+    // Step 2: Validate Shipping
+    if (!_validateShipping()) return;
+
+    // Step 3: Set Loading State
+    _setLoadingState(true);
+
+    try {
+      // Step 4: Check Payment Method
+      if (_selectedPaymentMethod == 'UPI') {
+        await _handleUPIPayment();
+      } else {
+        await _handleNonUPIPayment();
+      }
+
+      // Show success notification
+      // NotificationHelper.showNotification(
+      //   title: 'Order Placed!',
+      //   body: 'Your order has been placed successfully.',
+      // );
+    } catch (e) {
+      _handleError(e);
+    } finally {
+      _setLoadingState(false);
+    }
+  }
+
+  // Handle UPI Payment Flow
+  Future<void> _handleUPIPayment() async {
+    if (widget.isSubscription) {
+      await _handleUPISubscription();
+    } else {
+      await _handleUPIOrder();
+    }
+  }
+
+  // Handle UPI Subscription
+  Future<void> _handleUPISubscription() async {
+    final result = await _createSubscription();
+
+    print("Create subscription response: $result");
+
+    if (!mounted) return;
+
+    if (result['success'] == true) {
+      print("Success is true, checking payment_links...");
+      print("payment_links: ${result['payment_links']}");
+      print("payment_links type: ${result['payment_links'].runtimeType}");
+
+      if (result['payment_links'] != null) {
+        print("payment_links is not null");
+        print("payment_links['web']: ${result['payment_links']['web']}");
+        print(
+          "payment_links['web'] type: ${result['payment_links']['web']?.runtimeType}",
+        );
+
+        if (result['payment_links']['web'] != null) {
+          print("Payment links found, launching WebView...");
+          print("Payment URL: ${result['payment_links']['web']}");
+          // Launch WebView for UPI payment
+          await _launchSubscriptionWebView(result);
+
+          // Send notification for subscription created with pending payment
+          NotificationHelper.showNotification(
+            title: 'Subscription Created!',
+            body:
+                'Subscription ID: ${result['subscription_id']}\nPayment Mode: UPI\nStatus: Pending Payment',
+          );
+        } else {
+          // No payment required, or payment_links missing, treat as success
+          await _handleSuccessfulSubscription(result);
+        }
+      } else {
+        // No payment required, or payment_links missing, treat as success
+        await _handleSuccessfulSubscription(result);
+      }
+    } else {
+      // Only here show the failed dialog
+      _showSubscriptionFailedDialog(result);
+    }
+  }
+
+  // Handle Non-UPI Subscription
+  Future<void> _handleNonUPISubscription() async {
+    final result = await _createSubscription();
+
+    if (!mounted) return;
+
+    if (result['success'] == true) {
+      await _handleSuccessfulSubscription(result);
+
+      // Send notification for subscription created with COD
+      NotificationHelper.showNotification(
+        title: 'Subscription Created!',
+        body:
+            'Subscription ID: ${result['subscription_id']}\nPayment Mode: Cash on Delivery\nStatus: Pending Payment',
+      );
+    } else {
+      _showSubscriptionFailedDialog(result);
+    }
+  }
+
+  // Handle successful subscription creation
+  Future<void> _handleSuccessfulSubscription(
+    Map<String, dynamic> result,
+  ) async {
+    try {
+      // Fetch subscription details using subscription_id
+      if (result['subscription_id'] != null) {
+        int parsedSubscriptionId;
+        try {
+          parsedSubscriptionId = int.parse(
+            result['subscription_id'].toString(),
+          );
+        } catch (e) {
+          print('Error parsing subscription ID: ${result['subscription_id']}');
+          _showSubscriptionSuccessMessage(result);
+          return;
+        }
+
+        final subscriptionDetails = await _subscriptionService
+            .getSubscriptionDetails(parsedSubscriptionId);
+
+        if (subscriptionDetails['success'] == true && mounted) {
+          _navigateToSubscriptionDetails(subscriptionDetails['data']);
+        } else {
+          // If fetching details fails, show success message
+          _showSubscriptionSuccessMessage(result);
+        }
+      } else {
+        _showSubscriptionSuccessMessage(result);
+      }
+    } catch (e) {
+      print('Error fetching subscription details: $e');
+      _showSubscriptionSuccessMessage(result);
+    }
+  }
+
+  // Show subscription success message
+  void _showSubscriptionSuccessMessage(Map<String, dynamic> result) {
+    showDialog(
+      context: context,
+      builder:
+          (context) => AlertDialog(
+            title: Text('Subscription Created'),
+            content: Text('Your subscription has been created successfully!'),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                  Navigator.of(context).pop(); // Go back to previous screen
+                },
+                child: Text('OK'),
+              ),
+            ],
+          ),
+    );
+  }
+
+  // Handle UPI Order
+  Future<void> _handleUPIOrder() async {
+    final order = _createOrderModel();
+    final response = await _orderService.createOrder(order);
+
+    if (!mounted) return;
+
+    if (response is OrderCreateResponse &&
+        response.success &&
+        response.paymentLinks?.web != null) {
+      // Launch WebView for UPI payment
+      await _launchOrderWebView(response);
+
+      // Send notification for order created with pending payment
+      NotificationHelper.showNotification(
+        title: 'Order Created!',
+        body:
+            'Order ID: ${response.orderId}\nPayment Mode: UPI\nStatus: Pending Payment',
+      );
+    } else if (response is OrderModel) {
+      // Fallback: If response is OrderModel, treat as success (COD etc)
+      _navigateToOrderAccepted(response);
+
+      // Send notification for order created with COD
+      NotificationHelper.showNotification(
+        title: 'Order Created!',
+        body:
+            'Order ID: ${response.orderNumber}\nPayment Mode: Cash on Delivery\nStatus: Pending Payment',
+      );
+    } else {
+      // Handle error
+      _showOrderFailedDialog(_parseServerError(response));
+    }
+  }
+
+  // Handle Non-UPI Order
+  Future<void> _handleNonUPIOrder() async {
+    final order = _createOrderModel();
+    final createdOrder = await _orderService.createOrder(order);
+
+    if (!mounted) return;
+
+    _navigateToOrderAccepted(createdOrder);
+
+    // Send notification for order created with COD
+    NotificationHelper.showNotification(
+      title: 'Order Created!',
+      body:
+          'Order ID: ${createdOrder.orderNumber}\nPayment Mode: Cash on Delivery\nStatus: Pending Payment',
+    );
+  }
+
+  // Handle Non-UPI Payment Flow
+  Future<void> _handleNonUPIPayment() async {
+    if (widget.isSubscription) {
+      await _handleNonUPISubscription();
+    } else {
+      await _handleNonUPIOrder();
+    }
+  }
+
+  // Helper Methods
+  Future<Map<String, dynamic>> _createSubscription() async {
+    print("Payment method is ${_selectedPaymentMethod}");
+    final request = SubscriptionCreateRequest(
+      plan: widget.selectedPlan,
+      deliveryAddress: _shippingDetails!.address ?? "",
+      deliveryCity: _shippingDetails!.city ?? "",
+      deliveryState: _shippingDetails!.state ?? "",
+      deliveryPincode: _shippingDetails!.pincode ?? "",
+      deliveryPhone: _shippingDetails!.phone ?? "",
+      paymentType: _selectedPaymentType,
+      paymentMethod: _selectedPaymentMethod,
+      items: [
+        SubscriptionCreateItem(
+          productVariantId: widget.singleProduct!.id,
+          quantity: widget.quantity!,
+        ),
+      ],
+    );
+
+    print(request.items);
+
+    return await _subscriptionService.createSubscription(request);
+  }
+
+  OrderModel _createOrderModel() {
+    return OrderModel.fromShippingDetails(
+      paymentMethod: _selectedPaymentMethod,
+      shippingDetails: _shippingDetails!,
+      items: _getOrderItems(),
+      notes: null,
+    );
+  }
+
+  Future<void> _launchSubscriptionWebView(Map<String, dynamic> result) async {
+    print("=== _launchSubscriptionWebView called ===");
+    print("Result: $result");
+
+    try {
+      final paymentUrl = result['payment_links']['web'];
+      final subscriptionId = result['subscription_id'];
+
+      print("Payment URL: $paymentUrl");
+      print("Subscription ID: $subscriptionId");
+      print("Is Subscription: ${widget.isSubscription}");
+
+      if (subscriptionId == null) {
+        throw Exception('Subscription ID is null');
+      }
+
+      // Parse subscription ID to int
+      int parsedSubscriptionId;
+      try {
+        parsedSubscriptionId = int.parse(subscriptionId.toString());
+      } catch (e) {
+        throw Exception('Invalid subscription ID format: $subscriptionId');
+      }
+
+      if (!mounted) {
+        print("Widget not mounted, cannot navigate");
+        return;
+      }
+
+      print("About to navigate to WebView...");
+
+      await Navigator.push(
+        context,
+        AnimatedTransitions.slideFromBottom(
+          WebViewPage(
+            url: paymentUrl,
+            orderId: parsedSubscriptionId,
+            title: 'UPI Payment',
+            subID: parsedSubscriptionId,
+            isSubscription: widget.isSubscription,
+            onPaymentSuccess: (url) async {
+              print("Payment success callback triggered");
+              // Fetch subscription details after successful payment
+              try {
+                final subscriptionDetails = await _subscriptionService
+                    .getSubscriptionDetails(parsedSubscriptionId);
+
+                if (subscriptionDetails['success'] == true && mounted) {
+                  // Send notification for successful payment
+                  NotificationHelper.showNotification(
+                    title: 'Payment Successful!',
+                    body:
+                        'Subscription ID: $parsedSubscriptionId\nPayment Mode: UPI\nStatus: Paid',
+                  );
+
+                  Navigator.pushAndRemoveUntil(
+                    context,
+                    AnimatedTransitions.fadeScale(
+                      SubscriptionPlanDetailScreen(
+                        subscription: subscriptionDetails['data'],
+                      ),
+                    ),
+                    (route) => route.isFirst,
+                  );
+                } else {
+                  // If fetching details fails, show success message
+                  Navigator.pop(context);
+                  _showSubscriptionSuccessMessage(result);
+                }
+              } catch (e) {
+                print('Error fetching subscription details after payment: $e');
+                Navigator.pop(context);
+                _showSubscriptionSuccessMessage(result);
+              }
+            },
+            onPaymentFailure: (url) {
+              print("Payment failure callback triggered");
+              Navigator.pop(context);
+
+              // Send notification for payment failure
+              NotificationHelper.showNotification(
+                title: 'Payment Failed!',
+                body:
+                    'Subscription ID: $parsedSubscriptionId\nPayment Mode: UPI\nStatus: Failed',
+              );
+
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('Payment failed or cancelled'),
+                  backgroundColor: Colors.red,
+                ),
+              );
+            },
+          ),
+        ),
+      );
+
+      print("Navigation to WebView completed");
+    } catch (e) {
+      print("Error in _launchSubscriptionWebView: $e");
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Failed to launch payment page: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
+  Future<void> _launchOrderWebView(OrderCreateResponse response) async {
+    final paymentUrl = response.paymentLinks!.web;
+
+    Navigator.push(
+      context,
+      AnimatedTransitions.slideFromBottom(
+        WebViewPage(
+          url: paymentUrl,
+          orderId: int.parse(response.orderId!),
+          title: 'UPI Payment',
+          onPaymentSuccess: (url) async {
+            await _verifyAndHandlePaymentSuccess(response);
+          },
+          onPaymentFailure: (url) {
+            Navigator.pop(context);
+
+            // Send notification for order payment failure
+            NotificationHelper.showNotification(
+              title: 'Payment Failed!',
+              body:
+                  'Order ID: ${response.orderId}\nPayment Mode: UPI\nStatus: Failed',
+            );
+
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Payment failed or cancelled'),
+                backgroundColor: Colors.red,
+              ),
+            );
+          },
+        ),
+      ),
+    );
+  }
+
+  Future<void> _verifyAndHandlePaymentSuccess(
+    OrderCreateResponse response,
+  ) async {
+    try {
+      final paymentStatus = await _orderService.fetchPaymentStatus(
+        int.parse(response.orderId!),
+      );
+
+      if (paymentStatus.paymentStatus == 'PAID' &&
+          paymentStatus.transactionStatus == 'SUCCESS') {
+        final order = await _orderService.getOrderById(paymentStatus.orderId!);
+
+        // Send notification for successful order payment
+        NotificationHelper.showNotification(
+          title: 'Payment Successful!',
+          body:
+              'Order ID: ${response.orderId}\nPayment Mode: UPI\nStatus: Paid',
+        );
+
+        Navigator.pushReplacement(
+          context,
+          AnimatedTransitions.fadeScale(
+            OrderAcceptedScreen(
+              order: order,
+              isSubscription: widget.isSubscription,
+            ),
+          ),
+        );
+      } else {
+        Navigator.pop(context);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Payment not successful!'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } catch (e) {
+      Navigator.pop(context);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Failed to verify payment!'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
+  void _navigateToSubscriptionDetails(dynamic subscription) {
+    Navigator.pushAndRemoveUntil(
+      context,
+      AnimatedTransitions.fadeScale(
+        SubscriptionPlanDetailScreen(subscription: subscription),
+      ),
+      (route) => route.isFirst,
+    );
+  }
+
+  void _navigateToOrderAccepted(OrderModel order) {
+    Navigator.pushReplacement(
+      context,
+      AnimatedTransitions.fadeScale(
+        OrderAcceptedScreen(order: order, isSubscription: false),
+      ),
+    );
+  }
+
+  void _showSubscriptionFailedDialog(Map<String, dynamic> result) {
+    String errorMessage = _parseServerError(
+      result['message'] ?? result['errors'] ?? 'Failed to create subscription',
+    );
+    showDialog(
+      context: context,
+      builder:
+          (context) => AlertDialog(
+            title: Text('Subscription Failed'),
+            content: Text(errorMessage),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: Text('Go Back'),
+              ),
+            ],
+          ),
+    );
+  }
+
+  void _showOrderFailedDialog(String error) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return OrderFailedDialog(error: error);
+      },
+    );
+  }
+
+  void _handleError(dynamic error) {
+    if (!mounted) return;
+
+    setState(() {
+      _error = _parseServerError(error);
+    });
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return OrderFailedDialog(error: _error);
+      },
+    );
+  }
+
+  // Existing helper methods
+  Future<void> _fetchPlansAndAssign() async {
+    final result = await _subscriptionService.getSubscriptionPlans();
+    if (result['success'] == true && mounted) {
+      setState(() {
+        planDescriptions = result['data'] as List<SubscriptionPlan>;
+        if (planDescriptions.isNotEmpty &&
+            widget.selectedPlan != null &&
+            widget.selectedPlan! > 0 &&
+            widget.selectedPlan! <= planDescriptions.length) {
+          subscription = planDescriptions[widget.selectedPlan!];
+        }
+      });
+    } else {
+      print('Failed to fetch plans: ${result['message']}');
+    }
+  }
+
+  Future<void> _fetchSubscriptionDetails(int subscriptionId) async {
+    final result = await _subscriptionService.getSubscriptionDetails(
+      subscriptionId,
+    );
+    if (result['success'] == true && mounted) {
+      setState(() {
+        subscription = result['data'];
+      });
+    } else {
+      print('Failed to fetch subscription details: ${result['message']}');
+    }
   }
 
   Future<void> _loadShippingDetails() async {
@@ -131,263 +729,68 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     }
   }
 
-  Future<void> _createOrder() async {
-    // Always refresh _shippingDetails from user if using existing address
-    if (_useExistingAddress) {
-      final user = _authService.currentUser;
-      _shippingDetails = ShippingDetails(
-        address: user?.address ?? '',
-        name: ((user?.firstName ?? '') + ' ' + (user?.lastName ?? '')).trim(),
-        city: user?.city ?? '',
-        state: user?.state ?? '',
-        pincode: user?.pincode ?? '',
-        phone: user?.phoneNumber ?? '',
-      );
+  String _parseServerError(dynamic error) {
+    if (error is String) {
+      return error;
     }
 
-    if (_shippingDetails == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Please fill in shipping details'),
-          backgroundColor: Colors.red,
-        ),
-      );
-      return;
-    }
-
-    if (!_shippingDetails!.isComplete) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Please fill in all shipping details'),
-          backgroundColor: Colors.red,
-        ),
-      );
-      return;
-    }
-
-    try {
-      setState(() {
-        _isLoading = true;
-        _error = null;
-      });
-
-      if (_selectedPaymentMethod == 'UPI') {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('UPI payment integration coming soon!'),
-            backgroundColor: Colors.orange,
-            duration: Duration(seconds: 3),
-          ),
-        );
-        setState(() {
-          _isLoading = false;
-        });
-        return;
-      }
-
-      if (widget.isSubscription) {
-        // Handle subscription creation
-        final user = _authService.currentUser;
-        final request = SubscriptionCreateRequest(
-          plan: widget.selectedPlan!,
-          deliveryAddress: _shippingDetails!.address,
-          deliveryCity: _shippingDetails!.city,
-          deliveryState: _shippingDetails!.state,
-          deliveryPincode: _shippingDetails!.pincode,
-          deliveryPhone: _shippingDetails!.phone,
-          paymentType: _selectedPaymentType,
-          items: [
-            SubscriptionCreateItem(
-              productVariantId: widget.singleProduct!.id,
-              quantity: widget.quantity!,
-            ),
-          ],
-        );
-
-        final result = await _subscriptionService.createSubscription(request);
-
-        if (!mounted) return;
-
-        if (result['success']) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(result['message']),
-              backgroundColor: Colors.green,
-            ),
-          );
-          Navigator.pushAndRemoveUntil(
-            context,
-            MaterialPageRoute(
-              builder:
-                  (context) => SubscriptionPlanDetailScreen(
-                    subscription: result['data'],
-                  ),
-            ),
-            (route) => route.isFirst,
-          );
-        } else {
-          String errorMessage =
-              result['message'] ?? 'Failed to create subscription';
-          if (result['errors'] != null) {
-            errorMessage += '\n${result['errors']}';
+    if (error is Map<String, dynamic>) {
+      if (error.containsKey('items') && error['items'] is List) {
+        List<String> itemErrors = [];
+        for (var item in error['items']) {
+          if (item is Map<String, dynamic>) {
+            item.forEach((key, value) {
+              if (value is List) {
+                itemErrors.addAll(value.map((e) => e.toString()));
+              } else if (value is String) {
+                itemErrors.add(value);
+              }
+            });
           }
-          showDialog(
-            context: context,
-            builder:
-                (context) => AlertDialog(
-                  title: Text('Subscription Failed'),
-                  content: Text(errorMessage),
-                  actions: [
-                    TextButton(
-                      onPressed: () => Navigator.of(context).pop(),
-                      child: Text('Go Back'),
-                    ),
-                  ],
-                ),
-          );
         }
-      } else {
-        // Handle regular order creation
-        final order = OrderModel.fromShippingDetails(
-          paymentMethod: _selectedPaymentMethod,
-          shippingDetails: _shippingDetails!,
-          items: _getOrderItems(),
-          notes: null,
-        );
-
-        final createdOrder = await _orderService.createOrder(order);
-
-        if (!mounted) return;
-
-        Navigator.pushAndRemoveUntil(
-          context,
-          MaterialPageRoute(
-            builder:
-                (context) => OrderAcceptedScreen(
-                  order: createdOrder,
-                  isSubscription: false,
-                ),
-          ),
-          (route) => route.isFirst,
-        );
+        if (itemErrors.isNotEmpty) {
+          return itemErrors.join('\n');
+        }
       }
-    } catch (e) {
-      print('Failed to create order: $e');
-      if (!mounted) return;
 
-      setState(() {
-        _isLoading = false;
-        _error = e.toString();
-      });
+      if (error.containsKey('message')) {
+        return error['message'];
+      }
 
-      showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return OrderFailedDialog(error: _error);
-        },
-      );
-    }
-  }
-
-  Widget _buildAddressSelector() {
-    final user = _authService.currentUser;
-    if (user == null || user.address == null || user.address!.isEmpty) {
-      return ShippingDetailsForm(
-        initialDetails: _shippingDetails,
-        onSaved: (details) {
-          setState(() {
-            _shippingDetails = details;
+      if (error.containsKey('errors')) {
+        var errors = error['errors'];
+        if (errors is Map<String, dynamic>) {
+          List<String> errorMessages = [];
+          errors.forEach((key, value) {
+            if (value is List) {
+              errorMessages.addAll(value.map((e) => e.toString()));
+            } else if (value is String) {
+              errorMessages.add(value);
+            }
           });
-        },
-      );
+          return errorMessages.join('\n');
+        } else if (errors is String) {
+          return errors;
+        }
+      }
     }
-    print(user.address);
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Card(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Padding(
-            padding: EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Delivery Address',
-                  style: Theme.of(context).textTheme.titleLarge,
-                ),
-                SizedBox(height: 16),
-                RadioListTile<bool>(
-                  value: true,
-                  groupValue: _useExistingAddress,
-                  onChanged: (value) {
-                    setState(() {
-                      _useExistingAddress = value!;
-                      if (value) {
-                        _shippingDetails = ShippingDetails(
-                          address: user.address ?? '',
-                          name:
-                              ((user.firstName ?? '') +
-                                      ' ' +
-                                      (user.lastName ?? ''))
-                                  .trim(),
-                          city: user.city ?? '',
-                          state: user.state ?? '',
-                          pincode: user.pincode ?? '',
-                          phone: user.phoneNumber ?? '',
-                        );
-                      }
-                    });
-                  },
-                  title: Text('Use Existing Address'),
-                  subtitle: Text(
-                    '${user.firstName ?? ''} ${user.lastName ?? ''}\n ${user.phoneNumber ?? ''}\n ${user.address ?? ''}, ${user.city ?? ''}, ${user.state ?? ''} - ${user.pincode ?? ''}',
-                  ),
-                ),
-                RadioListTile<bool>(
-                  value: false,
-                  groupValue: _useExistingAddress,
-                  onChanged: (value) {
-                    setState(() {
-                      _useExistingAddress = value!;
-                    });
-                  },
-                  title: Text('Use New Address'),
-                ),
-              ],
-            ),
-          ),
-        ),
-        if (!_useExistingAddress) ...[
-          SizedBox(height: 16),
-          ShippingDetailsForm(
-            initialDetails: _shippingDetails,
-            onSaved: (details) {
-              setState(() {
-                _shippingDetails = details;
-              });
-            },
-          ),
-        ],
-      ],
-    );
+    return error.toString();
   }
 
+  // UI Methods
   Widget _buildPaymentTypeSelector() {
     if (!widget.isSubscription) return SizedBox.shrink();
 
     return Card(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: Padding(
-        padding: EdgeInsets.all(16),
+        padding: EdgeInsets.all(8),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text('Payment Type', style: Theme.of(context).textTheme.titleLarge),
-            SizedBox(height: 16),
+            SizedBox(height: 8),
             RadioListTile<String>(
               value: 'FULL',
               groupValue: _selectedPaymentType,
@@ -399,8 +802,30 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               title: Row(
                 children: [
                   Icon(Icons.payment, color: Colors.green),
-                  SizedBox(width: 12),
+                  SizedBox(width: 5),
                   Text('Pay in Full'),
+                  SizedBox(width: 5),
+                  if (widget.isSubscription)
+                    GestureDetector(
+                      onTap: () {
+                        if (subscription != null) {
+                          _showSubscriptionDetails(
+                            context,
+                            subscription!,
+                            widget.selectedPlan!,
+                            widget.price ?? 0.0,
+                            widget.deliveryCharges,
+                          );
+                        }
+                      },
+                      child: Container(
+                        margin: EdgeInsets.only(left: 10),
+                        child: Text(
+                          "i",
+                          style: TextStyle(color: Colors.blue, fontSize: 18),
+                        ),
+                      ),
+                    ),
                 ],
               ),
               subtitle: Text('Pay the entire amount upfront'),
@@ -408,26 +833,50 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 borderRadius: BorderRadius.circular(8),
               ),
             ),
-            RadioListTile<String>(
-              value: 'INSTALLMENT',
-              groupValue: _selectedPaymentType,
-              onChanged: (value) {
-                setState(() {
-                  _selectedPaymentType = value!;
-                });
-              },
-              title: Row(
-                children: [
-                  Icon(Icons.payment, color: Colors.blue),
-                  SizedBox(width: 12),
-                  Text('Pay in Installments'),
-                ],
+            if (subscription!.installmentFrequencyMonths > 0)
+              RadioListTile<String>(
+                value: 'INSTALLMENT',
+                groupValue: _selectedPaymentType,
+                onChanged: (value) {
+                  setState(() {
+                    _selectedPaymentType = value!;
+                  });
+                },
+                title: Row(
+                  children: [
+                    Icon(Icons.payment, color: Colors.blue),
+                    SizedBox(width: 5),
+                    Text('Pay in Installments'),
+                    SizedBox(width: 5),
+                    if (widget.isSubscription)
+                      GestureDetector(
+                        onTap: () {
+                          if (subscription != null) {
+                            _showSubscriptionDetails(
+                              context,
+                              subscription!,
+                              widget.selectedPlan!,
+                              widget.price ?? 0.0,
+                              widget.deliveryCharges,
+                              showAmountPerDelivery: true,
+                            );
+                          }
+                        },
+                        child: Container(
+                          margin: EdgeInsets.only(left: 10),
+                          child: Text(
+                            "i",
+                            style: TextStyle(color: Colors.blue, fontSize: 18),
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+                subtitle: Text('Pay in monthly installments'),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
               ),
-              subtitle: Text('Pay in monthly installments'),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-            ),
           ],
         ),
       ),
@@ -438,7 +887,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     return Card(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: Padding(
-        padding: EdgeInsets.all(16),
+        padding: EdgeInsets.all(8),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -479,10 +928,10 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 children: [
                   Icon(Icons.payment, color: Colors.blue),
                   SizedBox(width: 12),
-                  Text('UPI Payment'),
+                  Text('UPI/Card/NetBanking'),
                 ],
               ),
-              subtitle: Text('Coming soon'),
+              subtitle: Text('pay now '),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(8),
               ),
@@ -506,7 +955,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           _isLoading
               ? Center(child: CircularProgressIndicator())
               : SingleChildScrollView(
-                padding: EdgeInsets.all(16),
+                padding: EdgeInsets.all(12),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
@@ -516,31 +965,34 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
-                        child: Padding(
-                          padding: EdgeInsets.all(16),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Delivery Address',
-                                style: Theme.of(context).textTheme.titleLarge,
-                              ),
-                              SizedBox(height: 16),
-                              Text(widget.shippingDetails!['address']!),
-                              Text(
-                                '${widget.shippingDetails!['city']}, ${widget.shippingDetails!['state']}',
-                              ),
-                              Text(
-                                'Pincode: ${widget.shippingDetails!['pincode']}',
-                              ),
-                              Text(
-                                'Phone: ${widget.shippingDetails!['phone']}',
-                              ),
-                            ],
+                        child: ExpansionTile(
+                          initiallyExpanded: true,
+                          title: Text(
+                            'Delivery Address',
+                            style: Theme.of(context).textTheme.titleLarge,
                           ),
+                          children: [
+                            ListTile(
+                              title: Text(widget.shippingDetails!['address']!),
+                              subtitle: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    '${widget.shippingDetails!['city']}, ${widget.shippingDetails!['state']}',
+                                  ),
+                                  Text(
+                                    'Pincode: ${widget.shippingDetails!['pincode']}',
+                                  ),
+                                  Text(
+                                    'Phone: ${widget.shippingDetails!['phone']}',
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
                         ),
                       ),
-                    SizedBox(height: 16),
+                    _buildPaymentTypeSelector(),
                     // Order Summary Card
                     Card(
                       shape: RoundedRectangleBorder(
@@ -628,11 +1080,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                         ),
                       ),
                     ),
-                    SizedBox(height: 24),
-                    _buildPaymentTypeSelector(),
                     // Payment Method Selector
                     _buildPaymentMethodSelector(),
-                    SizedBox(height: 24),
                     // Place Order Button
                     ElevatedButton(
                       onPressed: _createOrder,
@@ -656,4 +1105,201 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               ),
     );
   }
+}
+
+void _showSubscriptionDetails(
+  BuildContext context,
+  SubscriptionPlan subscription,
+  int selectedPlan,
+  double price,
+  double deliveryCharges, {
+  bool showAmountPerDelivery = false,
+}) {
+  double perDeliveryAmount = price;
+  double perDeliveryCharge = deliveryCharges;
+  double totalAmount =
+      (perDeliveryAmount + perDeliveryCharge) * subscription.durationMonths;
+
+  double amountPerDelivery =
+      (totalAmount / subscription.installmentFrequencyMonths);
+
+  showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      return Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        insetPadding: EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+        child: ConstrainedBox(
+          constraints: BoxConstraints(
+            maxHeight: MediaQuery.of(context).size.height * 0.75,
+          ),
+          child: SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.all(20.0),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Center(
+                    child: Text(
+                      'Payment Details',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: const Color.fromARGB(255, 26, 126, 31),
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: 10),
+                  ListTile(
+                    leading: Icon(
+                      Icons.shopping_basket,
+                      color: Colors.indigo,
+                      size: 28,
+                    ),
+                    title: Text(
+                      'Plan name',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    subtitle: Text(
+                      subscription.name,
+                      style: TextStyle(fontSize: 16),
+                    ),
+                  ),
+                  Divider(),
+                  ListTile(
+                    leading: Icon(
+                      Icons.card_membership,
+                      color: Colors.indigo,
+                      size: 28,
+                    ),
+                    title: Text(
+                      'Plan Duration (months)',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    subtitle: Text(
+                      subscription.durationMonths.toString(),
+                      style: TextStyle(fontSize: 16),
+                    ),
+                  ),
+                  Divider(),
+                  ListTile(
+                    leading: Icon(
+                      Icons.local_shipping,
+                      color: Colors.indigo,
+                      size: 28,
+                    ),
+                    title: Text(
+                      'Number of Deliveries',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    subtitle: Text(
+                      subscription.durationMonths.toString(),
+                      style: TextStyle(fontSize: 16),
+                    ),
+                  ),
+                  Divider(),
+                  if (showAmountPerDelivery) ...[
+                    ListTile(
+                      leading: Icon(
+                        Icons.payments,
+                        color: Colors.purple,
+                        size: 28,
+                      ),
+                      title: Text(
+                        'Amount per Delivery (Installment)',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      subtitle: Text(
+                        '₹${amountPerDelivery.toStringAsFixed(2)}',
+                        style: TextStyle(fontSize: 16),
+                      ),
+                    ),
+                    Divider(),
+                  ],
+                  ListTile(
+                    leading: Icon(
+                      Icons.attach_money,
+                      color: Colors.green,
+                      size: 28,
+                    ),
+                    title: Text(
+                      'Amount per Delivery',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    subtitle: Text(
+                      '₹${perDeliveryAmount.toStringAsFixed(2)}',
+                      style: TextStyle(fontSize: 16),
+                    ),
+                  ),
+                  Divider(),
+                  ListTile(
+                    leading: Icon(
+                      Icons.local_shipping,
+                      color: Colors.orange,
+                      size: 28,
+                    ),
+                    title: Text(
+                      'Delivery Charges per Delivery',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    subtitle: Text(
+                      '₹${perDeliveryCharge.toStringAsFixed(2)}',
+                      style: TextStyle(fontSize: 16),
+                    ),
+                  ),
+                  Divider(thickness: 2),
+                  ListTile(
+                    leading: Icon(
+                      Icons.calculate,
+                      color: Colors.blue,
+                      size: 28,
+                    ),
+                    title: Text(
+                      'Total Amount',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: Colors.green[800],
+                        fontSize: 18,
+                      ),
+                    ),
+                    subtitle: Text(
+                      '(${perDeliveryAmount.toStringAsFixed(2)} + ${perDeliveryCharge.toStringAsFixed(2)}) x ${subscription.durationMonths} = ₹${totalAmount.toStringAsFixed(2)}',
+                      style: TextStyle(
+                        fontSize: 17,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: 10),
+                  Center(
+                    child: ElevatedButton(
+                      onPressed: () => Navigator.pop(context),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.indigo[700],
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 32,
+                          vertical: 14,
+                        ),
+                      ),
+                      child: Text(
+                        'Close',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      );
+    },
+  );
 }

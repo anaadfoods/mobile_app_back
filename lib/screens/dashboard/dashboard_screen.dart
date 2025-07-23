@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:grocery_app/styles/colors.dart';
+import 'package:grocery_app/helpers/animated_transitions.dart';
 import 'navigator_item.dart';
 
 // import 'package:grocery_app/screens/auth/login_screen.dart';
@@ -11,13 +12,64 @@ class DashboardScreen extends StatefulWidget {
   _DashboardScreenState createState() => _DashboardScreenState();
 }
 
-class _DashboardScreenState extends State<DashboardScreen> {
+class _DashboardScreenState extends State<DashboardScreen>
+    with TickerProviderStateMixin {
   int currentIndex = 0;
+  late AnimationController _animationController;
+  late Animation<double> _fadeAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _animationController = AnimationController(
+      duration: Duration(milliseconds: 300),
+      vsync: this,
+    );
+    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
+    );
+    _animationController.forward();
+  }
+
+  @override
+  void dispose() {
+    _animationController.dispose();
+    super.dispose();
+  }
+
+  void _onTabChanged(int index) {
+    setState(() {
+      currentIndex = index;
+    });
+    // Restart animation for smooth transition
+    _animationController.reset();
+    _animationController.forward();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: navigatorItems[currentIndex].screen,
+      body: AnimatedSwitcher(
+        duration: Duration(milliseconds: 300),
+        transitionBuilder: (Widget child, Animation<double> animation) {
+          return FadeTransition(
+            opacity: animation,
+            child: SlideTransition(
+              position: Tween<Offset>(
+                begin: Offset(0.1, 0.0),
+                end: Offset.zero,
+              ).animate(
+                CurvedAnimation(parent: animation, curve: Curves.easeInOut),
+              ),
+              child: child,
+            ),
+          );
+        },
+        child: Container(
+          key: ValueKey<int>(currentIndex),
+          child: navigatorItems[currentIndex].screen,
+        ),
+      ),
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
           borderRadius: BorderRadius.only(
@@ -41,11 +93,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           child: BottomNavigationBar(
             backgroundColor: Colors.white,
             currentIndex: currentIndex,
-            onTap: (index) {
-              setState(() {
-                currentIndex = index;
-              });
-            },
+            onTap: _onTabChanged,
             type: BottomNavigationBarType.fixed,
             selectedItemColor: AppColors.primaryColor,
             selectedLabelStyle: TextStyle(fontWeight: FontWeight.w600),

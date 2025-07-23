@@ -103,6 +103,7 @@ class AuthService {
       );
 
       final responseData = jsonDecode(response.body);
+      print('Response data: $responseData');
 
       if (response.statusCode == 201 || response.statusCode == 200) {
         return {
@@ -113,7 +114,7 @@ class AuthService {
       } else {
         return {
           'success': false,
-          'message': responseData['message'] ?? 'Registration failed',
+          'message': responseData ?? 'Registration failed',
           'errors': responseData['errors'] ?? {},
         };
       }
@@ -581,6 +582,73 @@ class AuthService {
         'success': false,
         'message':
             'An error occurred while updating profile. Please try again.',
+      };
+    }
+  }
+
+  // Send OTP to email or phone
+  Future<Map<String, dynamic>> sendOtp({
+    required String identifier,
+    required String type,
+  }) async {
+    try {
+      final response = await http.post(
+        Uri.parse('${ApiConfig.baseUrl}${ApiConfig.sendOtpEndpoint}'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'identifier': identifier, 'type': type}),
+      );
+      final responseData = jsonDecode(response.body);
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        return {
+          'success': true,
+          'message': responseData['message'] ?? 'OTP sent successfully',
+        };
+      } else {
+        return {
+          'success': false,
+          'message': responseData['message'] ?? 'Failed to send OTP',
+        };
+      }
+    } catch (e) {
+      print('Send OTP error: $e');
+      return {
+        'success': false,
+        'message': 'Network error occurred',
+        'error': e.toString(),
+      };
+    }
+  }
+
+  // Verify OTP for email or phone
+  Future<Map<String, dynamic>> verifyOtp({
+    required String identifier,
+    required String otp,
+    required String type,
+  }) async {
+    try {
+      final response = await http.post(
+        Uri.parse('${ApiConfig.baseUrl}/api/auth/verify-otp/'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'identifier': identifier, 'otp': otp, 'type': type}),
+      );
+      final responseData = jsonDecode(response.body);
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        return {
+          'success': true,
+          'message': responseData['message'] ?? 'OTP verified successfully',
+        };
+      } else {
+        return {
+          'success': false,
+          'message': responseData['message'] ?? 'Failed to verify OTP',
+        };
+      }
+    } catch (e) {
+      print('Verify OTP error: $e');
+      return {
+        'success': false,
+        'message': 'Network error occurred',
+        'error': e.toString(),
       };
     }
   }

@@ -301,7 +301,6 @@ class _CartScreenState extends State<CartScreen> {
               width: double.infinity,
               child: ElevatedButton(
                 onPressed: () async {
-                  // Reload cart before navigating
                   setState(() {
                     _isLoading = true;
                   });
@@ -309,13 +308,31 @@ class _CartScreenState extends State<CartScreen> {
                   setState(() {
                     _isLoading = false;
                   });
-                  Navigator.push(
+                  final result = await Navigator.push(
                     context,
                     MaterialPageRoute(
                       builder:
                           (context) => AddressSelectionScreen(cart: latestCart),
                     ),
                   );
+                  if (result != null) {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder:
+                            (context) => CheckoutScreen(
+                              cart: result['cart'],
+                              singleProduct: result['singleProduct'],
+                              price: result['price'],
+                              quantity: result['quantity'],
+                              isSubscription: result['isSubscription'] ?? false,
+                              selectedPlan: result['selectedPlan'],
+                              shippingDetails: result['shippingDetails'],
+                              deliveryCharges: result['deliveryCharges'] ?? 0.0,
+                            ),
+                      ),
+                    );
+                  }
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.green,

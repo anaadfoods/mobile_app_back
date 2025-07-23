@@ -204,7 +204,7 @@ class OrderItem {
 }
 
 class ShippingDetails {
-  final String name;
+
   final String address;
   final String city;
   final String state;
@@ -212,17 +212,15 @@ class ShippingDetails {
   final String phone;
 
   ShippingDetails({
-    required this.name,
     required this.address,
     required this.city,
     required this.state,
     required this.pincode,
-    required this.phone,
+    required this.phone, String? name,
   });
 
   Map<String, dynamic> toJson() {
     return {
-      'name': name,
       'delivery_address': address,
       'delivery_city': city,
       'delivery_state': state,
@@ -233,7 +231,6 @@ class ShippingDetails {
 
   factory ShippingDetails.fromJson(Map<String, dynamic> json) {
     return ShippingDetails(
-      name: json['name'] ?? '',
       address: json['delivery_address'] ?? json['address'] ?? '',
       city: json['delivery_city'] ?? json['city'] ?? '',
       state: json['delivery_state'] ?? json['state'] ?? '',
@@ -243,7 +240,7 @@ class ShippingDetails {
   }
 
   bool get isComplete {
-    return name.isNotEmpty &&
+    return
         address.isNotEmpty &&
         city.isNotEmpty &&
         state.isNotEmpty &&
@@ -331,6 +328,49 @@ class OrderModel {
       shippingPhone: shippingDetails.phone,
       items: items,
       notes: notes,
+    );
+  }
+}
+
+class PaymentLinks {
+  final String web;
+  final String? expiry;
+
+  PaymentLinks({required this.web, this.expiry});
+
+  factory PaymentLinks.fromJson(Map<String, dynamic> json) {
+    return PaymentLinks(
+      web: json['web'] as String,
+      expiry: json['expiry'] as String?,
+    );
+  }
+}
+
+class OrderCreateResponse {
+  final bool success;
+  final PaymentLinks? paymentLinks;
+  final String? orderId;
+  final String? merchantTransactionId;
+  final String? message;
+
+  OrderCreateResponse({
+    required this.success,
+    this.paymentLinks,
+    this.orderId,
+    this.merchantTransactionId,
+    this.message,
+  });
+
+  factory OrderCreateResponse.fromJson(Map<String, dynamic> json) {
+    return OrderCreateResponse(
+      success: json['success'] ?? false,
+      paymentLinks:
+          json['payment_links'] != null
+              ? PaymentLinks.fromJson(json['payment_links'])
+              : null,
+      orderId: json['order_id']?.toString(),
+      merchantTransactionId: json['merchant_transaction_id']?.toString(),
+      message: json['message']?.toString(),
     );
   }
 }

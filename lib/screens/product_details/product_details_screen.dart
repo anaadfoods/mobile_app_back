@@ -15,6 +15,8 @@ import 'package:grocery_app/services/subscription_service.dart';
 import 'package:grocery_app/widgets/item_counter_widget.dart';
 import 'package:grocery_app/models/plan_search_result.dart';
 import 'package:grocery_app/services/plan_search_service.dart';
+import 'package:grocery_app/helpers/animated_transitions.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'dart:convert';
 import 'package:carousel_slider/carousel_slider.dart';
 
@@ -220,17 +222,37 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
                             (img) => Container(
                               width: double.infinity,
                               height: imageHeight,
-                              child: Image.network(
-                                img.image,
+                              child: CachedNetworkImage(
+                                imageUrl: img.image,
                                 fit: BoxFit.cover,
                                 width: double.infinity,
                                 height: imageHeight,
-                                errorBuilder:
-                                    (context, error, stackTrace) => Icon(
-                                      Icons.broken_image,
-                                      size: 80,
-                                      color: Colors.grey,
+                                placeholder:
+                                    (context, url) => Container(
+                                      color: Colors.grey[200],
+                                      child: Center(
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2,
+                                          valueColor:
+                                              AlwaysStoppedAnimation<Color>(
+                                                Colors.grey[400]!,
+                                              ),
+                                        ),
+                                      ),
                                     ),
+                                errorWidget:
+                                    (context, url, error) => Container(
+                                      color: Colors.grey[200],
+                                      child: Icon(
+                                        Icons.broken_image,
+                                        size: 80,
+                                        color: Colors.grey,
+                                      ),
+                                    ),
+                                memCacheWidth: 400,
+                                memCacheHeight: 400,
+                                maxWidthDiskCache: 400,
+                                maxHeightDiskCache: 400,
                               ),
                             ),
                           )
@@ -268,13 +290,18 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
                     style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
                   ),
                   if (product.price != product.finalPrice)
-                    Text(
-                      '₹${product.price.toStringAsFixed(2)}',
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: Colors.grey,
-                        decoration: TextDecoration.lineThrough,
-                      ),
+                    Column(
+                      children: [
+                        Text(
+                          '₹${product.price.toStringAsFixed(2)}',
+                          style: TextStyle(
+                            fontSize: 16,
+                            color: Colors.grey,
+                            decoration: TextDecoration.lineThrough,
+                          ),
+                        ),
+                        Text("(incl. of taxes)", style: TextStyle(fontSize: 8)),
+                      ],
                     ),
                   if (product.price != product.finalPrice) SizedBox(width: 8),
                   Text(
@@ -369,6 +396,16 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
 
   // --- PLAN TABS ---
   Widget getPlanTabSection() {
+    // Check if any plan is enabled
+    final hasEnabledPlan = enabledPlanNames.any(
+      (plan) => plan.discountedPrice > 0,
+    );
+
+    if (!hasEnabledPlan) {
+      // Show nothing if no plans are enabled
+      return SizedBox.shrink();
+    }
+
     return Container(
       margin: EdgeInsets.symmetric(vertical: 8),
       padding: EdgeInsets.symmetric(horizontal: 2, vertical: 4),
@@ -740,7 +777,9 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
                 onTapDown: (_) => setState(() => _subscribeBtnPressed = true),
                 onTapUp: (_) => setState(() => _subscribeBtnPressed = false),
                 onTapCancel: () => setState(() => _subscribeBtnPressed = false),
-                onTap: () {},
+                onTap: () {
+                  _handleSubscribe();
+                },
                 child: AnimatedScale(
                   scale: _subscribeBtnPressed ? 0.97 : 1.0,
                   duration: Duration(milliseconds: 100),
@@ -828,7 +867,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
           // Navigate to login screen
           Navigator.push(
             context,
-            MaterialPageRoute(builder: (context) => LoginScreen()),
+            AnimatedTransitions.slideFromRight(LoginScreen()),
           );
         } else {
           // Show error message
@@ -867,10 +906,25 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
       );
       return;
     }
+    print('Selected plan: ${_selectedTab}');
 
-    final selectedPlan = enabledPlanNames[_selectedTab];
-    if (planDescriptions[_selectedTab].name ==
-        enabledPlanNames[_selectedTab].planName) {
+    // // Add bounds check for _selectedTab
+    // if (_selectedTab < 0 ||
+    //     _selectedTab >= enabledPlanNames.length ||
+    //     _selectedTab >= planDescriptions.length) {
+    //   ScaffoldMessenger.of(context).showSnackBar(
+    //     SnackBar(
+    //       content: Text('Selected plan is not available.'),
+    //       backgroundColor: Colors.red,
+    //     ),
+    //   );
+    //   return;
+    // }
+
+    final selectedPlan = enabledPlanNames.firstWhere(
+      (e) => e.planName == planDescriptions[_selectedTab].name,
+    );
+    if (planDescriptions[_selectedTab].name == selectedPlan.planName) {
       print('Selected plan: ${planDescriptions[_selectedTab].name}');
     } else {
       print('Selected plan does not match enabled plan names');
@@ -906,7 +960,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
               onPressed: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => LoginScreen()),
+                  AnimatedTransitions.slideFromRight(LoginScreen()),
                 );
               },
             ),
@@ -915,20 +969,35 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
         return;
       }
 
-      // Navigate to checkout screen for subscription
-      Navigator.push(
+      final result = await Navigator.push(
         context,
-        MaterialPageRoute(
-          builder:
-              (context) => AddressSelectionScreen(
-                singleProduct: widget.product.toProductVariant(),
-                quantity: amount,
-                price: priceSubscription,
-                isSubscription: true,
-                selectedPlan: _selectedTab + 1,
-              ),
+        AnimatedTransitions.slideFromBottom(
+          AddressSelectionScreen(
+            singleProduct: widget.product.toProductVariant(),
+            quantity: amount,
+            price: priceSubscription,
+            isSubscription: true,
+            selectedPlan: _selectedTab,
+          ),
         ),
       );
+      if (result != null) {
+        Navigator.push(
+          context,
+          AnimatedTransitions.fadeScale(
+            CheckoutScreen(
+              cart: result['cart'],
+              singleProduct: result['singleProduct'],
+              price: result['price'],
+              quantity: result['quantity'],
+              isSubscription: result['isSubscription'] ?? false,
+              selectedPlan: result['selectedPlan'],
+              shippingDetails: result['shippingDetails'],
+              deliveryCharges: result['deliveryCharges'] ?? 0.0,
+            ),
+          ),
+        );
+      }
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -996,8 +1065,8 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
                               onPressed: () {
                                 Navigator.push(
                                   context,
-                                  MaterialPageRoute(
-                                    builder: (context) => LoginScreen(),
+                                  AnimatedTransitions.slideFromRight(
+                                    LoginScreen(),
                                   ),
                                 );
                               },
@@ -1056,8 +1125,8 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
                               onPressed: () {
                                 Navigator.push(
                                   context,
-                                  MaterialPageRoute(
-                                    builder: (context) => LoginScreen(),
+                                  AnimatedTransitions.slideFromRight(
+                                    LoginScreen(),
                                   ),
                                 );
                               },
@@ -1069,13 +1138,11 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
 
                       Navigator.push(
                         context,
-                        MaterialPageRoute(
-                          builder:
-                              (context) => AddressSelectionScreen(
-                                singleProduct:
-                                    widget.product.toProductVariant(),
-                                quantity: amount,
-                              ),
+                        AnimatedTransitions.slideFromBottom(
+                          AddressSelectionScreen(
+                            singleProduct: widget.product.toProductVariant(),
+                            quantity: amount,
+                          ),
                         ),
                       );
                     } catch (e) {

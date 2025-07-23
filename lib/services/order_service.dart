@@ -3,6 +3,7 @@ import 'package:http/http.dart' as http;
 import 'package:grocery_app/models/order_model.dart';
 import 'package:grocery_app/services/auth_service.dart';
 import 'package:grocery_app/services/api_config.dart';
+import 'package:grocery_app/models/payment_status_model.dart';
 
 class OrderService {
   // static const String baseUrl = 'http://192.168.19.81:8000';
@@ -49,7 +50,6 @@ class OrderService {
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         return ShippingDetails(
-          name: data['name'] ?? '',
           address: data['shipping_address'] ?? '',
           city: data['shipping_city'] ?? '',
           state: data['shipping_state'] ?? '',
@@ -68,7 +68,7 @@ class OrderService {
   }
 
   // Create a new order
-  Future<OrderModel> createOrder(OrderModel order) async {
+  Future<dynamic> createOrder(OrderModel order) async {
     try {
       final token = await _authService.getAccessToken();
       if (token == null) {
@@ -83,16 +83,7 @@ class OrderService {
           order.shippingState.isEmpty ||
           order.shippingPincode.isEmpty ||
           order.shippingPhone.isEmpty) {
-        //   final currentUser = await _authService.currentUser;
-        //   if (currentUser != null) {
-        //     final user = await _authService.getUserData();
-        //     if (user != null) {
-        //       order.shippingName = user.name;
-        //       order.shippingEmail = user.email;
-        //       order.shippingPhone = user.phone;
-
         throw Exception('Incomplete shipping details');
-        // }
       }
 
       final response = await http.post(
@@ -107,15 +98,15 @@ class OrderService {
       if (response.statusCode == 201) {
         final data = jsonDecode(response.body);
         print('Order created successfully: ${data}');
+        // If payment_links is present, return OrderCreateResponse
+        if (data is Map && data.containsKey('payment_links')) {
+          return OrderCreateResponse.fromJson(Map<String, dynamic>.from(data));
+        }
         return OrderModel.fromJson(data);
       } else {
         final errorData = jsonDecode(response.body);
-        final errorMessage =
-            errorData['message'] ??
-            errorData['error'] ??
-            'Failed to create order';
         print('Server error response: $errorData');
-        throw Exception(errorMessage);
+        throw errorData;
       }
     } catch (e) {
       print('Order creation error: $e');
@@ -123,6 +114,9 @@ class OrderService {
         throw Exception('Invalid response format from server');
       } else if (e is http.ClientException) {
         throw Exception('Network error while creating order: ${e.message}');
+      } else if (e is Map<String, dynamic>) {
+        // This is a server error response, pass it through
+        throw e;
       }
       throw Exception('Failed to create order: $e');
     }
@@ -161,6 +155,20 @@ class OrderService {
       }
     } catch (e) {
       throw Exception('Failed to fetch orders: $e');
+    }
+  }
+
+  Future<OrderModel> getOrderById(int orderId) async {
+    final token = await _authService.getAccessToken();
+    final response = await http.get(
+      Uri.parse('$baseUrl/api/orders/$orderId/'),
+      headers: await _getHeaders(),
+    );
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      return OrderModel.fromJson(data);
+    } else {
+      throw Exception('Failed to fetch order details');
     }
   }
 
@@ -204,6 +212,46 @@ class OrderService {
     } catch (e) {
       print('Error cancelling order: $e');
       throw Exception('Failed to cancel order: $e');
+    }
+  }
+
+  Future<PaymentStatus> fetchPaymentStatus(int orderId) async {
+    final token = await _authService.getAccessToken();
+    final response = await http.get(
+      Uri.parse('$baseUrl/api/payments/status/$orderId/'),
+      headers: await _getHeaders(),
+    );
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      return PaymentStatus.fromJson(data);
+    } else {
+      throw Exception('Failed to fetch payment status');
+    }
+  }
+
+  String _endpoint = "http://13.203.212.133:5000/handleJuspayResponse";
+
+  /// Posts the order_id to the Juspay response handler.
+  /// Returns the HTTP response.
+  Future<http.Response> postOrderId(String orderId) async {
+    // Body as x-www-form-urlencoded
+    final Map<String, String> body = {'order_id': orderId};
+
+    // Headers (optional - http package sets Content-Type automatically)
+    final Map<String, String> headers = {
+      'Content-Type': 'application/x-www-form-urlencoded',
+    };
+
+    try {
+      final response = await http.post(
+        Uri.parse(_endpoint),
+        headers: headers,
+        body: body,
+      );
+      print(response);
+      return response;
+    } catch (e) {
+      throw Exception('Failed to post order_id: $e');
     }
   }
 }

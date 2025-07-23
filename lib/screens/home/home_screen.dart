@@ -8,6 +8,7 @@ import 'package:grocery_app/screens/comingSoonPage/farmer_support.dart';
 import 'package:grocery_app/screens/explore_screen.dart';
 import 'package:grocery_app/screens/home/home_video.dart';
 import 'package:grocery_app/screens/home/top_curosel.dart';
+import 'package:grocery_app/screens/notifications/notifications_screen.dart';
 import 'package:grocery_app/services/cummunity_service.dart';
 import 'package:grocery_app/services/product_service.dart';
 import 'package:grocery_app/screens/product_details/product_details_screen.dart';
@@ -16,6 +17,9 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:grocery_app/widgets/grocery_item_card_widget.dart';
 import 'package:grocery_app/widgets/subscription_card.dart';
 import 'package:grocery_app/widgets/subscription_table.dart';
+import 'package:grocery_app/helpers/animated_transitions.dart';
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:skeletonizer/skeletonizer.dart';
 import 'grocery_featured_Item_widget.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -34,7 +38,6 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     _loadFeaturedProducts();
-    
   }
 
   Future<void> _loadFeaturedProducts() async {
@@ -57,16 +60,8 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildFeaturedProducts() {
-    if (_isLoading) {
-      return const Center(child: CircularProgressIndicator());
-    }
-
     if (_error != null) {
       return Center(child: Text("Error loading featured products"));
-    }
-
-    if (_featuredProducts.isEmpty) {
-      return const Center(child: Text('No featured products available'));
     }
 
     return Column(
@@ -75,20 +70,21 @@ class _HomeScreenState extends State<HomeScreen> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            const Text(
-              "Featured Products",
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 28),
+            padded(
+              const Text(
+                "Featured Products",
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 28),
+              ),
             ),
             TextButton(
               onPressed: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(
-                    builder:
-                        (context) => CategoryItemsScreen(
-                          name: "Featured Products",
-                          allProducts: _featuredProducts,
-                        ),
+                  AnimatedTransitions.slideFromRight(
+                    CategoryItemsScreen(
+                      name: "Featured Products",
+                      allProducts: _featuredProducts,
+                    ),
                   ),
                 );
               },
@@ -98,7 +94,10 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         SizedBox(
           height: 350,
-          child: getHorizontalItemSlider(_featuredProducts),
+          child: Skeletonizer(
+            enabled: _isLoading,
+            child: getHorizontalItemSlider(_featuredProducts),
+          ),
         ),
       ],
     );
@@ -106,9 +105,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // TODO: Replace this with your actual logic to check for active subscription
-    final bool hasActiveSubscription =
-        true; // Set to true if user has an active subscription
+    // Set to true if user has an active subscription
     return Scaffold(
       appBar: AppBar(
         title: const Text(
@@ -119,6 +116,20 @@ class _HomeScreenState extends State<HomeScreen> {
             fontWeight: FontWeight.bold,
           ),
         ),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.notifications),
+            onPressed:
+                () => {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => NotificationsScreen(),
+                    ),
+                  ),
+                },
+          ),
+        ],
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -127,17 +138,21 @@ class _HomeScreenState extends State<HomeScreen> {
             children: [
               // padded(const AssetVideoPlayer()),
               padded(TopCurosel()),
-              if (hasActiveSubscription) ...[padded(SubscriptionCarousel())],
-              padded(
-                const Text(
-                  "Subscription Plans",
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 28),
-                ),
+              padded(SubscriptionCarousel()),
+              Column(
+                children: [
+                  const Text(
+                    "Subscription Plans",
+                    textAlign: TextAlign.center,
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 28),
+                  ),
+                  SizedBox(
+                    height: MediaQuery.of(context).size.height * 0.6,
+                    child: SubscriptionTable(),
+                  ),
+                ],
               ),
-              SizedBox(
-                height: MediaQuery.of(context).size.height * 0.6,
-                child: SubscriptionTable(),
-              ),
+
               // padded(getHorizontalItemSlider(_featuredProducts)),
               _buildFeaturedProducts(),
               SizedBox(height: 10),
@@ -172,11 +187,8 @@ class _HomeScreenState extends State<HomeScreen> {
                           onTap: () {
                             Navigator.push(
                               context,
-                              MaterialPageRoute(
-                                builder:
-                                    (context) => CommunityDetailScreen(
-                                      community: community,
-                                    ),
+                              AnimatedTransitions.fadeScale(
+                                CommunityDetailScreen(community: community),
                               ),
                             );
                           },
@@ -192,11 +204,22 @@ class _HomeScreenState extends State<HomeScreen> {
                                   borderRadius: BorderRadius.vertical(
                                     top: Radius.circular(16),
                                   ),
-                                  child: Image.network(
-                                    community.image,
+                                  child: CachedNetworkImage(
+                                    imageUrl: community.image,
                                     width: double.infinity,
                                     height: 100,
                                     fit: BoxFit.cover,
+                                    placeholder:
+                                        (context, url) => const Center(
+                                          child: CircularProgressIndicator(),
+                                        ),
+                                    errorWidget:
+                                        (context, url, error) => Image.asset(
+                                          "assets/images/placeholder.png",
+                                          width: double.infinity,
+                                          height: 100,
+                                          fit: BoxFit.cover,
+                                        ),
                                   ),
                                 ),
                                 SizedBox(height: 8),
@@ -355,27 +378,30 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget getHorizontalItemSlider(List<Product> items) {
-    return SizedBox(
-      child: ListView.separated(
-        padding: EdgeInsets.symmetric(horizontal: 20),
-        itemCount: items.length,
-        scrollDirection: Axis.horizontal,
-        itemBuilder: (context, index) {
-          return SizedBox(
-            child: GestureDetector(
-              onTap: () {
-                onItemClicked(context, items[index]);
-              },
-              child: GroceryItemCardWidget(
-                item: items[index],
-                heroSuffix: "home_screen",
+    return Skeletonizer(
+      enabled: _isLoading,
+      child: SizedBox(
+        child: ListView.separated(
+          padding: EdgeInsets.symmetric(horizontal: 20),
+          itemCount: items.length,
+          scrollDirection: Axis.horizontal,
+          itemBuilder: (context, index) {
+            return SizedBox(
+              child: GestureDetector(
+                onTap: () {
+                  onItemClicked(context, items[index]);
+                },
+                child: GroceryItemCardWidget(
+                  item: items[index],
+                  heroSuffix: "home_screen",
+                ),
               ),
-            ),
-          );
-        },
-        separatorBuilder: (BuildContext context, int index) {
-          return SizedBox(width: 20);
-        },
+            );
+          },
+          separatorBuilder: (BuildContext context, int index) {
+            return SizedBox(width: 20);
+          },
+        ),
       ),
     );
   }
@@ -383,9 +409,7 @@ class _HomeScreenState extends State<HomeScreen> {
   void onItemClicked(BuildContext context, Product item) {
     Navigator.push(
       context,
-      MaterialPageRoute(
-        builder: (context) => ProductDetailsScreen(product: item),
-      ),
+      AnimatedTransitions.fadeScale(ProductDetailsScreen(product: item)),
     );
   }
 
@@ -399,7 +423,7 @@ class _HomeScreenState extends State<HomeScreen> {
             onTap: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => ExploreScreen()),
+                AnimatedTransitions.slideFromRight(ExploreScreen()),
               );
             },
             child: Text(

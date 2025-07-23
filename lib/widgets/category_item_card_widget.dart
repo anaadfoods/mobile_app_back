@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:grocery_app/models/category_item.dart';
 import 'package:grocery_app/models/category_model.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 class CategoryItemCardWidget extends StatelessWidget {
   CategoryItemCardWidget({
@@ -40,13 +41,36 @@ class CategoryItemCardWidget extends StatelessWidget {
                   border: Border.all(color: Colors.grey.shade300, width: 2),
                   borderRadius: BorderRadius.circular(16),
                 ),
-                child: Image.network(
-                  item.image,
+                child: CachedNetworkImage(
+                  imageUrl: item.image,
                   fit: BoxFit.cover,
                   width: 120,
                   height: 120,
-                  errorBuilder:
-                      (context, error, stackTrace) => Icon(Icons.broken_image),
+                  placeholder:
+                      (context, url) => Container(
+                        color: Colors.grey[200],
+                        child: Center(
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                              Colors.grey[400]!,
+                            ),
+                          ),
+                        ),
+                      ),
+                  errorWidget:
+                      (context, url, error) => Container(
+                        color: Colors.grey[200],
+                        child: Icon(
+                          Icons.broken_image,
+                          color: Colors.grey[400],
+                          size: 40,
+                        ),
+                      ),
+                  memCacheWidth: 200,
+                  memCacheHeight: 200,
+                  maxWidthDiskCache: 200,
+                  maxHeightDiskCache: 200,
                 ),
               ),
             ),

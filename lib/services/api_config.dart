@@ -1,5 +1,7 @@
 class ApiConfig {
-  static const String baseUrl = 'http://13.203.212.133:8000';
+  // static const String baseUrl = 'http://13.203.212.133:8000';
+     static const String baseUrl = 'https://app.anaadfoods.com';
+
   // Auth endpoints
   static const String registerEndpoint = '/api/auth/register/';
   static const String loginEndpoint = '/api/auth/token/';
@@ -7,6 +9,7 @@ class ApiConfig {
   static const String favoritesEndpoint = '/api/auth/favorites/';
   static const String profileEndpoint = '/api/auth/profile/';
   static const String testTokenEndpoint = '/api/auth/test-token/';
+  static const String sendOtpEndpoint = '/api/auth/send-otp/';
 
   // Product endpoints
   static const String productsEndpoint = '/api/products/';

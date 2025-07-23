@@ -4,6 +4,8 @@ import 'package:grocery_app/services/subscription_service.dart';
 import 'package:path_provider/path_provider.dart';
 import 'dart:io';
 import 'package:http/http.dart' as http;
+import 'package:url_launcher/url_launcher.dart';
+import 'package:grocery_app/services/auth_service.dart';
 
 class SubscriptionPlanDetailScreen extends StatefulWidget {
   final Subscription subscription;
@@ -418,7 +420,7 @@ class _SubscriptionPlanDetailScreenState
                             ),
                             _buildInfoRow(
                               'Total Amount',
-                              '₹${widget.subscription.totalAmount}',
+                              '₹${widget.subscription.total}',
                             ),
                             _buildInfoRow(
                               'Remaining Amount',
@@ -732,6 +734,31 @@ class _SubscriptionPlanDetailScreenState
                   ],
                 ),
               ),
+      floatingActionButton: FloatingActionButton(
+        backgroundColor: Colors.green,
+        child: Icon(Icons.message),
+        onPressed: () async {
+          final user = await AuthService().currentUser;
+          final phone = '917014234352'; // Replace with your WhatsApp number
+          final message = Uri.encodeComponent(
+            'Subscription Support Request\n' +
+                'User: ${user?.firstName ?? ''} ${user?.lastName ?? ''}\n' +
+                'Phone: ${user?.phoneNumber ?? ''}\n' +
+                'Subscription ID: ${widget.subscription.id}\n' +
+                'Plan: ${widget.subscription.planName}\n' +
+                'Status: ${widget.subscription.status}\n' +
+                'Total Amount: ${widget.subscription.total}',
+          );
+          final uri = Uri.parse('https://wa.me/$phone?text=$message');
+          if (await canLaunchUrl(uri)) {
+            await launchUrl(uri, mode: LaunchMode.externalApplication);
+          } else {
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(SnackBar(content: Text('Could not open WhatsApp')));
+          }
+        },
+      ),
     );
   }
 

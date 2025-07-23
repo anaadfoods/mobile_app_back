@@ -1,13 +1,27 @@
 import 'package:flutter/material.dart';
 import 'package:grocery_app/models/order_model.dart';
+import 'package:grocery_app/models/payment_status_model.dart';
 
 class OrderAcceptedScreen extends StatelessWidget {
-  final OrderModel order;
+  final OrderModel? order;
+  final PaymentStatus? paymentStatus;
+  final bool? isSubscription;
 
-  const OrderAcceptedScreen({Key? key, required this.order, required bool isSubscription}) : super(key: key);
+  const OrderAcceptedScreen({
+    Key? key,
+    this.order,
+    this.paymentStatus,
+    this.isSubscription,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
+    // Determine which data source to use
+    final orderNumber =
+        order?.orderNumber ?? paymentStatus?.orderNumber ?? 'N/A';
+    final totalAmount =
+        order?.total ?? paymentStatus?.amount.toString() ?? 'N/A';
+
     return Scaffold(
       body: SafeArea(
         child: Column(
@@ -21,12 +35,20 @@ class OrderAcceptedScreen extends StatelessWidget {
             ),
             SizedBox(height: 16),
             Text(
-              'Order Number: ${order.orderNumber}',
+              'Order Number: $orderNumber',
               style: TextStyle(fontSize: 16, color: Colors.grey[700]),
             ),
+            if (paymentStatus?.transactionId != null &&
+                paymentStatus!.transactionId.isNotEmpty)...[
+              SizedBox(height: 8),
+              Text(
+                'Transaction id : ${paymentStatus?.transactionId} ',
+                style: TextStyle(fontSize: 16, color: Colors.grey[700]),
+              ),
+            ],
             SizedBox(height: 8),
             Text(
-              'Total Amount: ₹${order.total}',
+              'Total Amount: ₹$totalAmount',
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w600,

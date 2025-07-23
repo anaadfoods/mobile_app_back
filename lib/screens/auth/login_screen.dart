@@ -2,8 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:grocery_app/common_widgets/app_button.dart';
 import 'package:grocery_app/common_widgets/imput_widget.dart';
 import 'package:grocery_app/screens/auth/signup_screen.dart' show SignupScreen;
+import 'package:grocery_app/screens/auth/forget_password_screen.dart';
 import 'package:grocery_app/screens/dashboard/dashboard_screen.dart';
 import 'package:grocery_app/services/auth_service.dart';
+import 'package:grocery_app/services/notification_service.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -79,6 +82,21 @@ class _LoginScreenState extends State<LoginScreen> {
       if (!mounted) return;
 
       if (result['success'] == true) {
+        // Register FCM token with backend
+        try {
+          final fcmToken = await FirebaseMessaging.instance.getToken();
+          final bearerToken = await _authService.getAccessToken();
+          if (fcmToken != null && bearerToken != null) {
+            await NotificationService().registerFcmTokenWithBackend(
+              fcmToken,
+              bearerToken,
+            );
+          }
+        } catch (e) {
+          debugPrint(
+            'Error registering FCM token after login: ${e.toString()}',
+          );
+        }
         _navigateToDashboard();
         // Do not show error snackbar on success
       } else {
@@ -200,7 +218,14 @@ class _LoginScreenState extends State<LoginScreen> {
                     children: [
                       Text("Forgot Password?"),
                       TextButton(
-                        onPressed: () {},
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => ForgetPasswordScreen(),
+                            ),
+                          );
+                        },
                         child: Text("Reset Password"),
                       ),
                     ],

@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import '../../services/auth_service.dart';
 import '../../models/user_model.dart';
 import 'edit_profile_screen.dart';
+import '../../helpers/notification_helper.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({Key? key}) : super(key: key);
@@ -226,6 +227,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 _userProfile?.phoneNumber ?? '',
                 Icons.phone,
               ),
+
               _buildInfoCard(
                 'Gender',
                 _userProfile?.gender == 'M'

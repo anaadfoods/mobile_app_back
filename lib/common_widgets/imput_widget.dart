@@ -88,7 +88,8 @@ class _CustomInputState extends State<CustomInput> {
         suffixIcon: widget.suffixIcon,
         label: Text(widget.hintText),
         errorText: _errorText,
-        errorStyle: TextStyle(color: Colors.red, fontSize: 12),
+        errorMaxLines: 2,
+        errorStyle: TextStyle(color: Colors.red, fontSize: 10),
       ),
     );
   }

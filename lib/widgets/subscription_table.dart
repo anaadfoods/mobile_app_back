@@ -210,7 +210,8 @@ class _SubscriptionTableState extends State<SubscriptionTable> {
       return _buildErrorState();
     }
 
-    return RefreshIndicator(
+    return 
+    RefreshIndicator(
       onRefresh: _loadSubscriptionPlans,
       child: Container(
         height: 850,
@@ -239,7 +240,7 @@ class _SubscriptionTableState extends State<SubscriptionTable> {
     final double cardHeight = MediaQuery.of(context).size.height - 80;
     return Container(
       width: MediaQuery.of(context).size.width * 0.90,
-      height: 850,
+      height: 800,
       margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(16),
@@ -320,7 +321,7 @@ class _SubscriptionTableState extends State<SubscriptionTable> {
           ),
           Expanded(
             child: Container(
-              height: 800,
+              height: 700,
               padding: const EdgeInsets.all(12),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -362,7 +363,7 @@ class _SubscriptionTableState extends State<SubscriptionTable> {
                     ],
                   ),
                   Container(
-                    padding: const EdgeInsets.all(12),
+                    padding: const EdgeInsets.all(0),
                     decoration: BoxDecoration(
                       color: Colors.grey[50],
                       borderRadius: BorderRadius.circular(8),
@@ -390,13 +391,13 @@ class _SubscriptionTableState extends State<SubscriptionTable> {
                               }
                             },
                             child: Container(
-                              margin: const EdgeInsets.only(top: 1),
+                              margin: const EdgeInsets.only(top: 0),
                               decoration: BoxDecoration(
                                 color: Colors.white,
                                 borderRadius: BorderRadius.circular(8),
                               ),
                               child: SizedBox(
-                                height: 33,
+                                height: 30,
                                 child: DropdownButtonFormField<String>(
                                   isExpanded: true,
                                   decoration: const InputDecoration(

@@ -9,9 +9,11 @@ import 'package:grocery_app/screens/product_details/product_details_screen.dart'
 import 'package:grocery_app/services/auth_service.dart';
 import 'package:grocery_app/services/order_service.dart';
 import 'package:grocery_app/screens/help/help_screen.dart';
+import 'package:order_tracker/order_tracker.dart';
 import 'package:path_provider/path_provider.dart';
 import 'dart:io';
 import 'package:http/http.dart' as http;
+import 'package:url_launcher/url_launcher.dart';
 
 class OrderDetailScreen extends StatefulWidget {
   final Order order;
@@ -26,6 +28,24 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
   final OrderService _orderService = OrderService();
   bool _isCancelling = false;
   late Order _currentOrder;
+
+  List<TextDto> orderList = [
+    TextDto("Your order has been placed", "Fri, 25th Mar '22 - 10:47pm"),
+    TextDto("Seller ha processed your order", "Sun, 27th Mar '22 - 10:19am"),
+    TextDto(
+      "Your item has been picked up by courier partner.",
+      "Tue, 29th Mar '22 - 5:00pm",
+    ),
+  ];
+
+  List<TextDto> shippedList = [
+    TextDto("Your order has been shipped", ""),
+    TextDto("Your item has been received in the nearest hub to you.", null),
+  ];
+
+  List<TextDto> outOfDeliveryList = [];
+
+  List<TextDto> deliveredList = [];
 
   @override
   void initState() {
@@ -350,6 +370,30 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
           ),
         ),
       ),
+      floatingActionButton: FloatingActionButton(
+        backgroundColor: Colors.green,
+        child: Icon(Icons.message),
+        onPressed: () async {
+          final user = await AuthService().currentUser;
+          final phone = '91XXXXXXXXXX'; // Replace with your WhatsApp number
+          final message = Uri.encodeComponent(
+            'Order Support Request\n' +
+                'User: ${user?.firstName ?? ''} ${user?.lastName ?? ''}\n' +
+                'Phone: ${user?.phoneNumber ?? ''}\n' +
+                'Order Number: ${_currentOrder.orderNumber}\n' +
+                'Order Status: ${_currentOrder.status}\n' +
+                'Total: ${_currentOrder.total}',
+          );
+          final url = 'https://wa.me/$phone?text=$message';
+          if (await canLaunch(url)) {
+            await launch(url);
+          } else {
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(SnackBar(content: Text('Could not open WhatsApp')));
+          }
+        },
+      ),
     );
   }
 
@@ -361,6 +405,19 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            Padding(
+              padding: const EdgeInsets.all(3),
+              child: OrderTracker(
+                status: Status.shipped,
+                activeColor: Colors.green,
+                inActiveColor: Colors.grey[300],
+                orderTitleAndDateList: orderList,
+                shippedTitleAndDateList: shippedList,
+                  outOfDeliveryTitleAndDateList: outOfDeliveryList,
+                // deliveredTitleAndDateList: ,
+              ),
+            ),
+
             Text(
               "Order Information",
               style: Theme.of(context).textTheme.titleLarge?.copyWith(

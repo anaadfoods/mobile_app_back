@@ -201,14 +201,32 @@ class _SignupScreenState extends State<SignupScreen> {
                           ? null
                           : () async {
                             setState(() => _isResending = true);
-                            // TODO: Call resend OTP API here
-                            await Future.delayed(
-                              Duration(seconds: 1),
-                            ); // Simulate
-                            setState(() => _isResending = false);
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text('OTP resent to $value')),
+                            final result = await _authService.sendOtp(
+                              identifier: value,
+                              type:
+                                  type.toUpperCase() == 'EMAIL'
+                                      ? 'EMAIL'
+                                      : 'MOBILE',
                             );
+                            setState(() => _isResending = false);
+                            if (result['success']) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                    result['message'] ?? 'OTP resent to $value',
+                                  ),
+                                ),
+                              );
+                            } else {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                    result['message'] ?? 'Failed to resend OTP',
+                                  ),
+                                  backgroundColor: Colors.red,
+                                ),
+                              );
+                            }
                           },
                   child:
                       _isResending
@@ -231,15 +249,16 @@ class _SignupScreenState extends State<SignupScreen> {
                               _isVerifying = true;
                               _dialogError = null;
                             });
-                            // TODO: Call verify OTP API here
-                            await Future.delayed(
-                              Duration(seconds: 1),
-                            ); // Simulate
-                            bool success =
-                                _otpController.text ==
-                                '123456'; // Simulate success
+                            final result = await _authService.verifyOtp(
+                              identifier: value,
+                              otp: _otpController.text,
+                              type:
+                                  type.toUpperCase() == 'EMAIL'
+                                      ? 'EMAIL'
+                                      : 'MOBILE',
+                            );
                             setState(() => _isVerifying = false);
-                            if (success) {
+                            if (result['success']) {
                               Navigator.of(context).pop();
                               setState(() {
                                 if (type == 'email') {
@@ -250,12 +269,19 @@ class _SignupScreenState extends State<SignupScreen> {
                               });
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(
-                                  content: Text('$type verified successfully!'),
+                                  content: Text(
+                                    result['message'] ??
+                                        '$type verified successfully!',
+                                  ),
                                   backgroundColor: Colors.green,
                                 ),
                               );
                             } else {
-                              setState(() => _dialogError = 'Invalid OTP');
+                              setState(
+                                () =>
+                                    _dialogError =
+                                        result['message'] ?? 'Invalid OTP',
+                              );
                             }
                           },
                   child:
@@ -412,22 +438,58 @@ class _SignupScreenState extends State<SignupScreen> {
                   },
                   onValidationChanged:
                       (isValid) => _updateFieldValidity('phone', isValid),
-                  suffixIcon: IconButton(
-                    icon: Icon(
-                      Icons.verified,
-                      color: _isPhoneVerified ? Colors.green : Colors.blue,
+                  suffixIcon: TextButton(
+                    style: TextButton.styleFrom(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 0,
+                      ),
+                      backgroundColor:
+                          _isPhoneVerified
+                              ? Colors.green[700]
+                              : Colors.blue[700],
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(25),
+                      ),
+                      minimumSize: Size(0, 36),
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                     ),
-                    tooltip: 'Verify Phone',
-                    onPressed: () {
-                      if (_phoneController.text.isNotEmpty) {
-                        _showOtpDialog(
-                          type: 'phone',
-                          value: _phoneController.text,
-                        );
-                      } else {
-                        _showErrorSnackBar('Enter phone number first');
-                      }
-                    },
+                    onPressed:
+                        _isPhoneVerified
+                            ? null
+                            : () async {
+                              if (_phoneController.text.isNotEmpty) {
+                                setState(() => _isLoading = true);
+                                final result = await _authService.sendOtp(
+                                  identifier: _phoneController.text,
+                                  type: 'MOBILE',
+                                );
+                                setState(() => _isLoading = false);
+                                if (result['success']) {
+                                  _showSuccessSnackBar(
+                                    result['message'] ?? 'OTP sent!',
+                                  );
+                                  _showOtpDialog(
+                                    type: 'phone',
+                                    value: _phoneController.text,
+                                  );
+                                } else {
+                                  _showErrorSnackBar(
+                                    result['message'] ?? 'Failed to send OTP',
+                                  );
+                                }
+                              } else {
+                                _showErrorSnackBar('Enter phone number first');
+                              }
+                            },
+                    child: Text(
+                      _isPhoneVerified ? 'Verified' : 'Verify',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 13,
+                      ),
+                    ),
                   ),
                 ),
                 SizedBox(height: 15),
@@ -460,22 +522,59 @@ class _SignupScreenState extends State<SignupScreen> {
                   },
                   onValidationChanged:
                       (isValid) => _updateFieldValidity('email', isValid),
-                  suffixIcon: IconButton(
-                    icon: Icon(
-                      Icons.verified,
-                      color: _isEmailVerified ? Colors.green : Colors.blue,
+                  suffixIcon: TextButton(
+                    style: TextButton.styleFrom(
+                      
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 0,
+                      ),
+                      backgroundColor:
+                          _isEmailVerified
+                              ? Colors.green[700]
+                              : Colors.blue[700],
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(25),
+                      ),
+                      minimumSize: Size(0, 36),
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                     ),
-                    tooltip: 'Verify Email',
-                    onPressed: () {
-                      if (_emailController.text.isNotEmpty) {
-                        _showOtpDialog(
-                          type: 'email',
-                          value: _emailController.text,
-                        );
-                      } else {
-                        _showErrorSnackBar('Enter email first');
-                      }
-                    },
+                    onPressed:
+                        _isEmailVerified
+                            ? null
+                            : () async {
+                              if (_emailController.text.isNotEmpty) {
+                                setState(() => _isLoading = true);
+                                final result = await _authService.sendOtp(
+                                  identifier: _emailController.text,
+                                  type: 'EMAIL',
+                                );
+                                setState(() => _isLoading = false);
+                                if (result['success']) {
+                                  _showSuccessSnackBar(
+                                    result['message'] ?? 'OTP sent!',
+                                  );
+                                  _showOtpDialog(
+                                    type: 'email',
+                                    value: _emailController.text,
+                                  );
+                                } else {
+                                  _showErrorSnackBar(
+                                    result['message'] ?? 'Failed to send OTP',
+                                  );
+                                }
+                              } else {
+                                _showErrorSnackBar('Enter email first');
+                              }
+                            },
+                    child: Text(
+                      _isEmailVerified ? 'Verified' : 'Verify',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 13,
+                      ),
+                    ),
                   ),
                 ),
                 SizedBox(height: 15),
@@ -585,7 +684,18 @@ class _SignupScreenState extends State<SignupScreen> {
                   label: _isLoading ? "Signing up..." : "Sign Up",
                   fontWeight: FontWeight.bold,
                   padding: EdgeInsets.symmetric(vertical: 20),
-                  onPressed: _isLoading || !_isFormValid ? null : _handleSignup,
+                  onPressed:
+                      _isLoading || !_isFormValid
+                          ? null
+                          : () {
+                            if (!_isEmailVerified) {
+                              _showErrorSnackBar(
+                                'Please verify your email before signing up.',
+                              );
+                              return;
+                            }
+                            _handleSignup();
+                          },
                 ),
                 SizedBox(height: 10),
                 Row(
