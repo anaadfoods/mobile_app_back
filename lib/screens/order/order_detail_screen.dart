@@ -9,6 +9,7 @@ import 'package:grocery_app/screens/product_details/product_details_screen.dart'
 import 'package:grocery_app/services/auth_service.dart';
 import 'package:grocery_app/services/order_service.dart';
 import 'package:grocery_app/screens/help/help_screen.dart';
+import 'package:grocery_app/helpers/snackbar_helper.dart';
 import 'package:order_tracker/order_tracker.dart';
 import 'package:path_provider/path_provider.dart';
 import 'dart:io';
@@ -66,13 +67,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
   void _copyOrderNumber() async {
     await Clipboard.setData(ClipboardData(text: _currentOrder.orderNumber));
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Order number copied to clipboard'),
-        backgroundColor: Colors.green,
-        behavior: SnackBarBehavior.floating,
-      ),
-    );
+    SnackBarHelper.showSuccess(context, 'Order number copied to clipboard');
   }
 
   void _navigateToHelp() {
@@ -93,7 +88,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
       });
 
       final success = await _orderService.cancelOrder(
-        _currentOrder.orderNumber,
+        _currentOrder.id,
       );
 
       if (mounted) {
@@ -103,13 +98,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
             _isCancelling = false;
           });
 
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Order cancelled successfully'),
-              backgroundColor: Colors.green,
-              behavior: SnackBarBehavior.floating,
-            ),
-          );
+          SnackBarHelper.showSuccess(context, 'Order cancelled successfully');
 
           // Return updated order status to previous screen
           Navigator.pop(context, _currentOrder);
@@ -117,13 +106,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
           setState(() {
             _isCancelling = false;
           });
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Failed to cancel order'),
-              backgroundColor: Colors.red,
-              behavior: SnackBarBehavior.floating,
-            ),
-          );
+          SnackBarHelper.showError(context, 'Failed to cancel order');
         }
       }
     } catch (e) {
@@ -131,13 +114,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
         setState(() {
           _isCancelling = false;
         });
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Failed to cancel order: $e'),
-            backgroundColor: Colors.red,
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
+        SnackBarHelper.showError(context, 'Failed to cancel order: $e');
       }
     }
   }
@@ -226,20 +203,18 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
       final token = await authService.getAccessToken();
 
       if (token == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Please login to proceed with purchase'),
-            backgroundColor: Colors.orange,
-            action: SnackBarAction(
-              label: 'Login',
-              textColor: Colors.white,
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => LoginScreen()),
-                );
-              },
-            ),
+        SnackBarHelper.showWarning(
+          context,
+          'Please login to proceed with purchase',
+          action: SnackBarAction(
+            label: 'Login',
+            textColor: Colors.white,
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => LoginScreen()),
+              );
+            },
           ),
         );
         return;
@@ -295,32 +270,58 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
           ),
         );
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('No products available to purchase'),
-            backgroundColor: Colors.red,
-          ),
-        );
+        SnackBarHelper.showError(context, 'No products available to purchase');
       }
     } catch (e) {
       print('Buy again error: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Failed to proceed with purchase'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      SnackBarHelper.showError(context, 'Failed to proceed with purchase');
     }
   }
 
   void _handleGiveReview() {
     // TODO: Implement review functionality
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Review functionality coming soon!'),
-        backgroundColor: Colors.orange,
-      ),
-    );
+    SnackBarHelper.showWarning(context, 'Review functionality coming soon!');
+  }
+
+  Future<void> _downloadInvoice() async {
+    try {
+      // Show loading indicator
+      SnackBarHelper.showLoading(context, 'Downloading invoice...');
+
+      final filePath = await _orderService.downloadOrderInvoice(
+        _currentOrder.orderNumber,
+      );
+
+      if (!mounted) return;
+
+      // Show success message
+      SnackBarHelper.showSuccess(
+        context,
+        'Invoice downloaded successfully!',
+        action: SnackBarAction(
+          label: 'Open',
+          textColor: Colors.white,
+          onPressed: () {
+            // You can add functionality to open the file here
+            // For now, just show a message
+            SnackBarHelper.showInfo(context, 'File saved to: $filePath');
+          },
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+
+      // Show error message
+      SnackBarHelper.showError(
+        context,
+        'Failed to download invoice: $e',
+        action: SnackBarAction(
+          label: 'Retry',
+          textColor: Colors.white,
+          onPressed: _downloadInvoice,
+        ),
+      );
+    }
   }
 
   @override
@@ -333,21 +334,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
           IconButton(
             icon: Icon(Icons.download),
             tooltip: 'Download Invoice',
-            onPressed: () async {
-              // Download a random file as a placeholder
-              final url =
-                  'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf';
-              final response = await http.get(Uri.parse(url));
-              final dir = await getTemporaryDirectory();
-              final file = File(
-                '${dir.path}/invoice_${_currentOrder.orderNumber}.pdf',
-              );
-              await file.writeAsBytes(response.bodyBytes);
-              if (!mounted) return;
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('Invoice downloaded to ${file.path}')),
-              );
-            },
+            onPressed: _downloadInvoice,
           ),
         ],
       ),
@@ -388,9 +375,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
           if (await canLaunch(url)) {
             await launch(url);
           } else {
-            ScaffoldMessenger.of(
-              context,
-            ).showSnackBar(SnackBar(content: Text('Could not open WhatsApp')));
+            SnackBarHelper.showError(context, 'Could not open WhatsApp');
           }
         },
       ),
@@ -413,7 +398,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                 inActiveColor: Colors.grey[300],
                 orderTitleAndDateList: orderList,
                 shippedTitleAndDateList: shippedList,
-                  outOfDeliveryTitleAndDateList: outOfDeliveryList,
+                outOfDeliveryTitleAndDateList: outOfDeliveryList,
                 // deliveredTitleAndDateList: ,
               ),
             ),

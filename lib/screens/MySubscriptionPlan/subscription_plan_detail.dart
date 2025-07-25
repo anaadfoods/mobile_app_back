@@ -3,6 +3,7 @@ import 'package:grocery_app/models/subscription_model.dart';
 import 'package:grocery_app/screens/MySubscriptionPlan/subscription_plan_detail_single.dart';
 import 'package:grocery_app/screens/subscription/subscription_detail_screen.dart';
 import 'package:grocery_app/services/subscription_service.dart';
+import 'package:grocery_app/helpers/snackbar_helper.dart';
 
 class SubscriptionScreen extends StatefulWidget {
   const SubscriptionScreen({super.key});
@@ -30,22 +31,16 @@ class _SubscriptionScreenState extends State<SubscriptionScreen>
         });
       } else {
         print('Error fetching subscriptions: ${response['message']}');
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              response['message'] ?? 'Failed to fetch subscriptions',
-            ),
-            backgroundColor: Colors.red,
-          ),
+        SnackBarHelper.showError(
+          context,
+          response['message'] ?? 'Failed to fetch subscriptions',
         );
       }
     } catch (e) {
       print('Error fetching subscriptions: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('An error occurred while fetching subscriptions'),
-          backgroundColor: Colors.red,
-        ),
+      SnackBarHelper.showError(
+        context,
+        'An error occurred while fetching subscriptions',
       );
     }
   }
@@ -88,12 +83,6 @@ class _SubscriptionScreenState extends State<SubscriptionScreen>
     }
   }
 
-  Future<void> _togglePauseSubscription(
-    DateTime? startDate,
-    DateTime? endDate,
-  ) async {
-    // Implementation of _togglePauseSubscription method
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -110,14 +99,12 @@ class _SubscriptionScreenState extends State<SubscriptionScreen>
           ],
           bottom: TabBar(
             onTap: (index) {
-              if (index == 0) _filterSubscriptions("All");
-              if (index == 1) _filterSubscriptions("ACTIVE");
-              if (index == 2) _filterSubscriptions("PAUSED");
-              if (index == 3) _filterSubscriptions("CANCELLED");
-              if (index == 4) _filterSubscriptions("COMPLETED");
+              if (index == 0) _filterSubscriptions("ACTIVE");
+              if (index == 1) _filterSubscriptions("PAUSED");
+              if (index == 2) _filterSubscriptions("CANCELLED");
+              if (index == 3) _filterSubscriptions("COMPLETED");
             },
             tabs: [
-              Tab(text: "All"),
               Tab(text: "Active"),
               Tab(text: "Paused"),
               Tab(text: "Cancelled"),
@@ -173,39 +160,46 @@ class _SubscriptionScreenState extends State<SubscriptionScreen>
               },
               child: Padding(
                 padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(
-                      subscription.planName,
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 18,
-                        color: Colors.black87,
-                      ),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          subscription.planName,
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 18,
+                            color: Colors.black87,
+                          ),
+                        ),
+                        SizedBox(height: 8),
+                        Text(
+                          "Items: ${subscription.items.map((item) => '${item.quantity}x Product ${item.productVariant}').join(', ')}",
+                          style: TextStyle(
+                            fontWeight: FontWeight.w600,
+                            fontSize: 16,
+                            color: Colors.blueGrey[900],
+                          ),
+                        ),
+                        SizedBox(height: 8),
+                        Text(
+                          "Next Delivery: ${subscription.startDate.toString().split(' ')[0]}",
+                          style: TextStyle(color: Colors.grey[700], fontSize: 14),
+                        ),
+                        SizedBox(height: 8),
+                        Text(
+                          "End Date: ${subscription.endDate.toString().split(' ')[0]}",
+                          style: TextStyle(
+                            fontWeight: FontWeight.w500,
+                            color: Colors.black87,
+                          ),
+                        ),
+                      ],
                     ),
-                    SizedBox(height: 8),
-                    Text(
-                      "Items: ${subscription.items.map((item) => '${item.quantity}x Product ${item.productVariant}').join(', ')}",
-                      style: TextStyle(
-                        fontWeight: FontWeight.w600,
-                        fontSize: 16,
-                        color: Colors.blueGrey[900],
-                      ),
-                    ),
-                    SizedBox(height: 8),
-                    Text(
-                      "Next Delivery: ${subscription.startDate.toString().split(' ')[0]}",
-                      style: TextStyle(color: Colors.grey[700], fontSize: 14),
-                    ),
-                    SizedBox(height: 8),
-                    Text(
-                      "End Date: ${subscription.endDate.toString().split(' ')[0]}",
-                      style: TextStyle(
-                        fontWeight: FontWeight.w500,
-                        color: Colors.black87,
-                      ),
-                    ),
+                    if (subscription.installmentPaymentStatus == "PENDING")
+                      Icon(Icons.payment, color: const Color.fromARGB(255, 222, 8, 8)),
                   ],
                 ),
               ),

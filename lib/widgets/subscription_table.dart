@@ -9,6 +9,7 @@ import 'package:grocery_app/services/subscription_service.dart';
 import 'package:grocery_app/screens/auth/login_screen.dart';
 import 'package:grocery_app/common_widgets/skeleton_loader.dart';
 import 'package:grocery_app/styles/colors.dart';
+import 'package:grocery_app/helpers/snackbar_helper.dart';
 
 class SubscriptionTable extends StatefulWidget {
   final Function(SubscriptionPlan)? onPlanSelected;
@@ -103,11 +104,9 @@ class _SubscriptionTableState extends State<SubscriptionTable> {
               MaterialPageRoute(builder: (context) => LoginScreen()),
             );
           } else {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(result['message'] ?? 'Failed to load products'),
-                backgroundColor: Colors.red,
-              ),
+            SnackBarHelper.showError(
+              context,
+              result['message'] ?? 'Failed to load products',
             );
           }
           setState(() {
@@ -119,12 +118,7 @@ class _SubscriptionTableState extends State<SubscriptionTable> {
     } catch (e) {
       print('Error in _loadPlanProducts: $e');
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error loading products: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
+        SnackBarHelper.showError(context, 'Error loading products: $e');
         setState(() {
           _loadingProducts[planId] = false;
           _isLoadingDropdownData = false;
@@ -140,12 +134,7 @@ class _SubscriptionTableState extends State<SubscriptionTable> {
       if (!mounted) return;
 
       if (result['success']) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(result['message']),
-            backgroundColor: Colors.green,
-          ),
-        );
+        SnackBarHelper.showSuccess(context, result['message']);
         if (widget.onPlanSelected != null) {
           widget.onPlanSelected!(plan);
         }
@@ -160,18 +149,11 @@ class _SubscriptionTableState extends State<SubscriptionTable> {
             MaterialPageRoute(builder: (context) => LoginScreen()),
           );
         } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(errorMsg), backgroundColor: Colors.red),
-          );
+          SnackBarHelper.showError(context, errorMsg);
         }
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Error subscribing to plan: $e'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      SnackBarHelper.showError(context, 'Error subscribing to plan: $e');
     }
   }
 
@@ -210,8 +192,7 @@ class _SubscriptionTableState extends State<SubscriptionTable> {
       return _buildErrorState();
     }
 
-    return 
-    RefreshIndicator(
+    return RefreshIndicator(
       onRefresh: _loadSubscriptionPlans,
       child: Container(
         height: 850,
@@ -294,7 +275,6 @@ class _SubscriptionTableState extends State<SubscriptionTable> {
                     letterSpacing: 0.5,
                   ),
                 ),
-                const SizedBox(height: 1),
                 Text(
                   plan.tagline,
                   style: const TextStyle(
@@ -304,7 +284,6 @@ class _SubscriptionTableState extends State<SubscriptionTable> {
                   ),
                   textAlign: TextAlign.center,
                 ),
-                const SizedBox(height: 1),
                 Text(
                   plan.description,
                   maxLines: 3,
@@ -321,7 +300,7 @@ class _SubscriptionTableState extends State<SubscriptionTable> {
           ),
           Expanded(
             child: Container(
-              height: 700,
+              height: 702,
               padding: const EdgeInsets.all(12),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -391,19 +370,30 @@ class _SubscriptionTableState extends State<SubscriptionTable> {
                               }
                             },
                             child: Container(
-                              margin: const EdgeInsets.only(top: 0),
+                              margin: const EdgeInsets.only(top: 8),
                               decoration: BoxDecoration(
                                 color: Colors.white,
-                                borderRadius: BorderRadius.circular(8),
+                                borderRadius: BorderRadius.circular(12),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(0.08),
+                                    blurRadius: 8,
+                                    offset: const Offset(0, 2),
+                                  ),
+                                ],
+                                border: Border.all(
+                                  color: Colors.grey[300]!,
+                                  width: 1,
+                                ),
                               ),
                               child: SizedBox(
-                                height: 30,
+                                height: 45,
                                 child: DropdownButtonFormField<String>(
                                   isExpanded: true,
                                   decoration: const InputDecoration(
                                     contentPadding: EdgeInsets.symmetric(
-                                      horizontal: 1,
-                                      vertical: 1,
+                                      horizontal: 16,
+                                      vertical: 12,
                                     ),
                                     border: InputBorder.none,
                                     enabledBorder: InputBorder.none,
@@ -485,19 +475,25 @@ class _SubscriptionTableState extends State<SubscriptionTable> {
                                               }
                                             }
                                           },
-                                  hint: const Text(
+                                  hint: Text(
                                     'Select Product',
                                     style: TextStyle(
-                                      fontSize: 14,
+                                      fontSize: 15,
                                       fontWeight: FontWeight.w500,
+                                      color: Colors.grey[600],
                                     ),
                                     textAlign: TextAlign.center,
                                   ),
                                   dropdownColor: Colors.white,
-                                  icon: const Icon(Icons.arrow_drop_down),
+                                  icon: Icon(
+                                    Icons.keyboard_arrow_down_rounded,
+                                    color: AppColors.primaryColor,
+                                    size: 24,
+                                  ),
                                   style: const TextStyle(
                                     color: AppColors.textPrimary,
-                                    fontSize: 14,
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.w500,
                                   ),
                                   onTap: () {
                                     if (!_planProducts.containsKey(plan.id)) {

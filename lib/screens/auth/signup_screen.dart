@@ -4,6 +4,7 @@ import 'package:grocery_app/common_widgets/imput_widget.dart';
 import 'package:grocery_app/models/user_model.dart';
 import 'package:grocery_app/screens/auth/login_screen.dart';
 import 'package:grocery_app/services/auth_service.dart';
+import 'package:grocery_app/helpers/snackbar_helper.dart';
 import 'package:flutter/services.dart';
 
 class SignupScreen extends StatefulWidget {
@@ -74,27 +75,11 @@ class _SignupScreenState extends State<SignupScreen> {
   }
 
   void _showErrorSnackBar(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: Colors.red,
-        behavior: SnackBarBehavior.floating,
-        margin: EdgeInsets.all(16),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-      ),
-    );
+    SnackBarHelper.showError(context, message);
   }
 
   void _showSuccessSnackBar(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: Colors.green,
-        behavior: SnackBarBehavior.floating,
-        margin: EdgeInsets.all(16),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-      ),
-    );
+    SnackBarHelper.showSuccess(context, message);
   }
 
   Future<void> _handleSignup() async {
@@ -524,7 +509,6 @@ class _SignupScreenState extends State<SignupScreen> {
                       (isValid) => _updateFieldValidity('email', isValid),
                   suffixIcon: TextButton(
                     style: TextButton.styleFrom(
-                      
                       padding: EdgeInsets.symmetric(
                         horizontal: 12,
                         vertical: 0,

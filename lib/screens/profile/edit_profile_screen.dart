@@ -5,6 +5,7 @@ import 'package:image_picker/image_picker.dart';
 import '../../models/user_model.dart';
 import '../../services/auth_service.dart';
 import '../../services/profile_service.dart';
+import '../../helpers/snackbar_helper.dart';
 
 class EditProfileScreen extends StatefulWidget {
   final UserModel userProfile;
@@ -79,12 +80,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         });
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Error picking image: $e'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      SnackBarHelper.showError(context, 'Error picking image: $e');
     }
   }
 
@@ -96,13 +92,13 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     try {
       // First update the profile image if selected
       if (_selectedImage != null) {
-        final imageResult = await _profileService.uploadProfileImage(_selectedImage!);
+        final imageResult = await _profileService.uploadProfileImage(
+          _selectedImage!,
+        );
         if (!imageResult['success']) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(imageResult['message'] ?? 'Failed to update profile image'),
-              backgroundColor: Colors.red,
-            ),
+          SnackBarHelper.showError(
+            context,
+            imageResult['message'] ?? 'Failed to update profile image',
           );
           setState(() => _isLoading = false);
           return;
@@ -123,27 +119,18 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       if (!mounted) return;
 
       if (result['success']) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Profile updated successfully'),
-            backgroundColor: Colors.green,
-          ),
-        );
+        SnackBarHelper.showSuccess(context, 'Profile updated successfully');
         Navigator.pop(context, true);
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(result['message'] ?? 'Failed to update profile'),
-            backgroundColor: Colors.red,
-          ),
+        SnackBarHelper.showError(
+          context,
+          result['message'] ?? 'Failed to update profile',
         );
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('An error occurred while updating profile'),
-          backgroundColor: Colors.red,
-        ),
+      SnackBarHelper.showError(
+        context,
+        'An error occurred while updating profile',
       );
     } finally {
       if (mounted) {
@@ -259,25 +246,30 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                           children: [
                             CircleAvatar(
                               radius: 50,
-                              backgroundColor: Theme.of(context).primaryColor.withOpacity(0.2),
-                              backgroundImage: _selectedImage != null
-                                  ? FileImage(_selectedImage!)
-                                  : null,
+                              backgroundColor: Theme.of(
+                                context,
+                              ).primaryColor.withOpacity(0.2),
+                              backgroundImage:
+                                  _selectedImage != null
+                                      ? FileImage(_selectedImage!)
+                                      : null,
                               child: ClipRRect(
                                 borderRadius: BorderRadius.circular(50),
-                                child: _selectedImage == null
-                                    
-                                    ? Image.network(
-                                        widget.userProfile.profilePicture ?? '',
-                                        width: 100,
-                                        height: 100,
-                                        fit: BoxFit.cover,
-                                      ) : Icon(
-                                        Icons.person,
-                                        size: 50,
-                                        color: Theme.of(context).primaryColor,
-                                      ),
-                              )
+                                child:
+                                    _selectedImage == null
+                                        ? Image.network(
+                                          widget.userProfile.profilePicture ??
+                                              '',
+                                          width: 100,
+                                          height: 100,
+                                          fit: BoxFit.cover,
+                                        )
+                                        : Icon(
+                                          Icons.person,
+                                          size: 50,
+                                          color: Theme.of(context).primaryColor,
+                                        ),
+                              ),
                             ),
                             Positioned(
                               bottom: 0,
@@ -398,7 +390,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                         child: ElevatedButton(
                           onPressed: _isLoading ? null : _updateProfile,
                           style: ElevatedButton.styleFrom(
-                            padding: EdgeInsets.symmetric(horizontal: 16,vertical: 16),
+                            padding: EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 16,
+                            ),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(12),
                             ),

@@ -3,6 +3,7 @@ import 'package:grocery_app/common_widgets/app_text.dart';
 import 'package:grocery_app/models/cart_model.dart';
 import 'package:grocery_app/styles/colors.dart';
 import 'package:grocery_app/widgets/item_counter_widget.dart';
+import 'package:grocery_app/helpers/snackbar_helper.dart';
 
 class ChartItemWidget extends StatefulWidget {
   final CartItem item;
@@ -117,12 +118,7 @@ class _ChartItemWidgetState extends State<ChartItemWidget> {
                         onPressed: () {
                           widget.onRemove();
                           Navigator.of(context).pop();
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text('Item removed from cart'),
-                              backgroundColor: Colors.green,
-                            ),
-                          );
+                          SnackBarHelper.showSuccess(context, 'Item removed from cart');
                         },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.red[400],

@@ -8,6 +8,8 @@ import '../models/subscription_plan_model.dart';
 import 'api_config.dart';
 import 'auth_service.dart';
 import '../models/payment_status_model.dart';
+import 'dart:io';
+import 'package:path_provider/path_provider.dart';
 
 class SubscriptionService {
   static final SubscriptionService _instance = SubscriptionService._internal();
@@ -662,6 +664,80 @@ class SubscriptionService {
         'message': 'An error occurred while repaying the subscription',
         'error': e.toString(),
       };
+    }
+  }
+
+  Future<Map<String, dynamic>> getSubscriptionInvoices(
+    int subscriptionId,
+  ) async {
+    try {
+      final token = await _authService.getAccessToken();
+      if (token == null) {
+        throw Exception('Authentication required');
+      }
+
+      final response = await http.get(
+        Uri.parse(
+          '${ApiConfig.baseUrl}/odoo/subscriptions/$subscriptionId/invoices/',
+        ),
+        headers: ApiConfig.getAuthHeaders(token),
+      );
+
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      } else {
+        final errorData = jsonDecode(response.body);
+        throw Exception(
+          errorData['message'] ?? 'Failed to get subscription invoices',
+        );
+      }
+    } catch (e) {
+      print('Error getting subscription invoices: $e');
+      throw Exception('Failed to get subscription invoices: $e');
+    }
+  }
+
+  Future<String> downloadSubscriptionInvoice(
+    String s3Url,
+    String displayName,
+  ) async {
+    try {
+      final token = await _authService.getAccessToken();
+      if (token == null) {
+        throw Exception('Authentication required');
+      }
+
+      final response = await http.get(
+        Uri.parse(s3Url),
+        headers: {'Authorization': 'Bearer $token'},
+      );
+
+      if (response.statusCode == 200) {
+        Directory? downloadsDir;
+        if (Platform.isAndroid) {
+          downloadsDir = Directory('/storage/emulated/0/Download');
+        } else if (Platform.isIOS) {
+          downloadsDir = await getApplicationDocumentsDirectory();
+        } else {
+          downloadsDir = await getApplicationDocumentsDirectory();
+        }
+
+        if (!await downloadsDir!.exists()) {
+          await downloadsDir.create(recursive: true);
+        }
+
+        final fileName = '$displayName.pdf';
+        final filePath = '${downloadsDir.path}/$fileName';
+        final file = File(filePath);
+        await file.writeAsBytes(response.bodyBytes);
+        print('Invoice downloaded successfully to: $filePath');
+        return filePath;
+      } else {
+        throw Exception('Failed to download PDF: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('Error downloading invoice: $e');
+      throw Exception('Failed to download invoice: $e');
     }
   }
 }

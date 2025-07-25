@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:grocery_app/helpers/notification_helper.dart';
 import 'package:grocery_app/styles/colors.dart';
 import 'package:grocery_app/common_widgets/app_text.dart';
+import 'package:grocery_app/helpers/snackbar_helper.dart';
 
 class FCMTokenScreen extends StatefulWidget {
   const FCMTokenScreen({Key? key}) : super(key: key);
@@ -86,23 +87,11 @@ class _FCMTokenScreenState extends State<FCMTokenScreen> {
   }
 
   void _showSuccessSnackBar(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: Colors.green,
-        behavior: SnackBarBehavior.floating,
-      ),
-    );
+    SnackBarHelper.showSuccess(context, message);
   }
 
   void _showErrorSnackBar(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: Colors.red,
-        behavior: SnackBarBehavior.floating,
-      ),
-    );
+    SnackBarHelper.showError(context, message);
   }
 
   @override

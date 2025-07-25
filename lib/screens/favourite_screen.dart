@@ -10,6 +10,7 @@ import 'package:grocery_app/styles/colors.dart';
 import 'package:grocery_app/common_widgets/shimmer_loading.dart';
 import 'package:grocery_app/services/product_service.dart';
 import 'package:grocery_app/services/favorite_state_service.dart';
+import 'package:grocery_app/helpers/snackbar_helper.dart';
 
 class FavouriteScreen extends StatefulWidget {
   @override
@@ -125,11 +126,9 @@ class _FavouriteScreenState extends State<FavouriteScreen> {
         _favoriteStateService.notifyFavoriteChanged();
 
         // Show success message
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(result['message'] ?? 'Removed from favorites'),
-            backgroundColor: Colors.green,
-          ),
+        SnackBarHelper.showSuccess(
+          context,
+          result['message'] ?? 'Removed from favorites',
         );
       } else {
         // If the server request failed, add the item back to the list
@@ -144,13 +143,9 @@ class _FavouriteScreenState extends State<FavouriteScreen> {
             MaterialPageRoute(builder: (context) => LoginScreen()),
           );
         } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                result['message'] ?? 'Failed to remove from favorites',
-              ),
-              backgroundColor: Colors.red,
-            ),
+          SnackBarHelper.showError(
+            context,
+            result['message'] ?? 'Failed to remove from favorites',
           );
         }
       }
@@ -161,12 +156,7 @@ class _FavouriteScreenState extends State<FavouriteScreen> {
           _favorites.add(favorite);
         });
 
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Failed to remove from favorites'),
-            backgroundColor: Colors.red,
-          ),
-        );
+        SnackBarHelper.showError(context, 'Failed to remove from favorites');
       }
       print('Error removing from favorites: $e');
     }
@@ -339,12 +329,7 @@ class _FavouriteScreenState extends State<FavouriteScreen> {
   //       } catch (e) {
   //         if (!mounted) return;
 
-  //         ScaffoldMessenger.of(context).showSnackBar(
-  //           SnackBar(
-  //             content: Text('Failed to load product details: ${e.toString()}'),
-  //             backgroundColor: Colors.red,
-  //           ),
-  //         );
+  //         SnackBarHelper.showError(context, 'Failed to load product details: ${e.toString()}');
   //       }
   //     },
   //     child: Dismissible(

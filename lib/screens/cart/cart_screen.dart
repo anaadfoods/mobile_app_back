@@ -9,6 +9,7 @@ import 'package:grocery_app/screens/address/address_selection_screen.dart';
 import 'package:grocery_app/services/cart_service.dart';
 import 'package:grocery_app/services/product_service.dart';
 import 'package:grocery_app/widgets/chart_item_widget.dart';
+import 'package:grocery_app/helpers/snackbar_helper.dart';
 
 class CartScreen extends StatefulWidget {
   @override
@@ -71,12 +72,7 @@ class _CartScreenState extends State<CartScreen> {
     } catch (e) {
       print(e);
       // Optionally show an error message
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Failed to update cart item'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      SnackBarHelper.showError(context, 'Failed to update cart item');
     } finally {
       if (mounted) {
         setState(() {
@@ -224,11 +220,9 @@ class _CartScreenState extends State<CartScreen> {
                                 await _loadCart(); // Refresh cart after removal
                               } catch (e) {
                                 if (!mounted) return;
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text('Failed to remove item'),
-                                    backgroundColor: Colors.red,
-                                  ),
+                                SnackBarHelper.showError(
+                                  context,
+                                  'Failed to remove item',
                                 );
                               }
                             },

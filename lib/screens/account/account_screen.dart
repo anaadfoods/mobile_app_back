@@ -117,7 +117,7 @@ class _AccountScreenState extends State<AccountScreen> {
                   title: AppText(
                     text:
                         user != null
-                            ? "${user!.firstName} ${user!.lastName}"
+                            ? "${user!.firstName[0].toUpperCase()}${user!.firstName.substring(1)} ${user!.lastName[0].toUpperCase()}${user!.lastName.substring(1)}"
                             : "User Name",
                     fontSize: 20,
                     fontWeight: FontWeight.bold,

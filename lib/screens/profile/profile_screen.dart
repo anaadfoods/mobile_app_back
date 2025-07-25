@@ -82,7 +82,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
           SizedBox(height: 16),
           Text(
-            '${_userProfile?.firstName ?? ''} ${_userProfile?.lastName ?? ''}',
+            '${_userProfile?.firstName[0].toUpperCase()}${_userProfile?.firstName.substring(1)} ${_userProfile?.lastName[0].toUpperCase()}${_userProfile?.lastName.substring(1)}',
             style: TextStyle(
               fontSize: 24,
               fontWeight: FontWeight.bold,

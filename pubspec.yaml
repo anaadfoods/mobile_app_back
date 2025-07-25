@@ -34,6 +34,8 @@ dependencies:
   firebase_analytics: ^11.3.8
   skeletonizer: ^1.4.3
   order_tracker: ^0.0.2
+  device_info_plus: ^11.5.0
+  path_provider: ^2.1.2
 
 dev_dependencies:
   flutter_test:

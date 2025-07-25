@@ -6,6 +6,7 @@ import 'dart:convert';
 import 'package:grocery_app/services/order_service.dart';
 import 'package:grocery_app/screens/order_accepted_screen.dart';
 import 'package:grocery_app/services/subscription_service.dart';
+import 'package:grocery_app/helpers/snackbar_helper.dart';
 
 class WebViewPage extends StatefulWidget {
   final String url;
@@ -54,22 +55,16 @@ class _WebViewPageState extends State<WebViewPage> {
         });
       } else {
         print('Error fetching subscriptions: ${response['message']}');
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              response['message'] ?? 'Failed to fetch subscriptions',
-            ),
-            backgroundColor: Colors.red,
-          ),
+        SnackBarHelper.showError(
+          context,
+          response['message'] ?? 'Failed to fetch subscriptions',
         );
       }
     } catch (e) {
       print('Error fetching subscriptions: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('An error occurred while fetching subscriptions'),
-          backgroundColor: Colors.red,
-        ),
+      SnackBarHelper.showError(
+        context,
+        'An error occurred while fetching subscriptions',
       );
     }
   }

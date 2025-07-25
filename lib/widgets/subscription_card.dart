@@ -8,6 +8,7 @@ import '../services/subscription_service.dart';
 import 'FillImageWithColor.dart';
 import '../screens/MySubscriptionPlan/subscription_plan_detail_single.dart';
 import 'package:skeletonizer/skeletonizer.dart';
+import 'package:grocery_app/helpers/snackbar_helper.dart';
 
 class SubscriptionCard extends StatelessWidget {
   final String productName;
@@ -305,35 +306,20 @@ class _SubscriptionCarouselState extends State<SubscriptionCarousel> {
       );
 
       if (response['success'] == true) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              response['message'] ?? 'Subscription paused successfully',
-            ),
-            backgroundColor: Colors.green,
-          ),
+        SnackBarHelper.showSuccess(
+          context,
+          response['message'] ?? 'Subscription paused successfully',
         );
         await _loadSubscriptions(); // Reload subscriptions after toggle
       } else {
         print(response);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              response['detail'] ??
-                  response['message'] ??
-                  'Failed to toggle pause',
-            ),
-            backgroundColor: Colors.red,
-          ),
+        SnackBarHelper.showError(
+          context,
+          response['detail'] ?? response['message'] ?? 'Failed to toggle pause',
         );
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Failed to toggle pause: $e'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      SnackBarHelper.showError(context, 'Failed to toggle pause: $e');
     }
   }
 
@@ -478,11 +464,9 @@ class _SubscriptionCarouselState extends State<SubscriptionCarousel> {
                         return;
                       }
                       if (selectedEndDate!.isBefore(selectedStartDate!)) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text('End date must be after start date'),
-                            backgroundColor: Colors.red,
-                          ),
+                        SnackBarHelper.showError(
+                          context,
+                          'End date must be after start date',
                         );
                         return;
                       }
@@ -490,13 +474,9 @@ class _SubscriptionCarouselState extends State<SubscriptionCarousel> {
 
                     if (!isCurrentlyPaused && maxPausesLeft <= 0) {
                       Navigator.of(context).pop();
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(
-                            'No pauses remaining for this subscription',
-                          ),
-                          backgroundColor: Colors.red,
-                        ),
+                      SnackBarHelper.showError(
+                        context,
+                        'No pauses remaining for this subscription',
                       );
                       return;
                     }
@@ -714,12 +694,7 @@ class _SubscriptionCarouselState extends State<SubscriptionCarousel> {
       }
     } catch (e) {
       print('Error in _handleUPISubscription: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Failed to initiate repayment: $e'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      SnackBarHelper.showError(context, 'Failed to initiate repayment: $e');
     }
   }
 
@@ -875,12 +850,7 @@ class _SubscriptionCarouselState extends State<SubscriptionCarousel> {
                     'Subscription ID: $parsedSubscriptionId\nPayment Mode: UPI\nStatus: Failed',
               );
 
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text('Payment failed or cancelled'),
-                  backgroundColor: Colors.red,
-                ),
-              );
+              SnackBarHelper.showError(context, 'Payment failed or cancelled');
             },
           ),
         ),
@@ -889,12 +859,7 @@ class _SubscriptionCarouselState extends State<SubscriptionCarousel> {
       print("Navigation to WebView completed");
     } catch (e) {
       print("Error in _launchSubscriptionWebView: $e");
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Failed to launch payment page: $e'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      SnackBarHelper.showError(context, 'Failed to launch payment page: $e');
     }
   }
 

@@ -16,6 +16,7 @@ import 'package:grocery_app/widgets/item_counter_widget.dart';
 import 'package:grocery_app/models/plan_search_result.dart';
 import 'package:grocery_app/services/plan_search_service.dart';
 import 'package:grocery_app/helpers/animated_transitions.dart';
+import 'package:grocery_app/helpers/snackbar_helper.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'dart:convert';
 import 'package:carousel_slider/carousel_slider.dart';
@@ -851,16 +852,10 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
         // Notify other screens about the change
         _favoriteStateService.notifyFavoriteChanged();
 
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              result['message'] ??
-                  (isFavorite
-                      ? "Added to favorites"
-                      : "Removed from favorites"),
-            ),
-            backgroundColor: Colors.green,
-          ),
+        SnackBarHelper.showSuccess(
+          context,
+          result['message'] ??
+              (isFavorite ? "Added to favorites" : "Removed from favorites"),
         );
       } else {
         if (result['requiresLogin'] == true) {
@@ -870,12 +865,13 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
             AnimatedTransitions.slideFromRight(LoginScreen()),
           );
         } else {
-          // Show error message
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(result['message'] ?? 'Failed to update favorite'),
-              backgroundColor: Colors.red,
-            ),
+          // Show error message from API response
+          SnackBarHelper.showError(
+            context,
+            result['message'] ??
+                result['detail'] ??
+                result['error'] ??
+                'Failed to update favorite',
           );
         }
       }
@@ -886,11 +882,9 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
         _isLoadingFavorite = false;
       });
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Failed to update favorite: ${e.toString()}'),
-          backgroundColor: Colors.red,
-        ),
+      SnackBarHelper.showError(
+        context,
+        'Failed to update favorite: ${e.toString()}',
       );
     }
   }
@@ -898,11 +892,9 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
   Future<void> _handleSubscribe() async {
     if (_isSubscribing) return;
     if (enabledPlanNames.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('No subscription plans available for this product'),
-          backgroundColor: Colors.orange,
-        ),
+      SnackBarHelper.showWarning(
+        context,
+        'No subscription plans available for this product',
       );
       return;
     }
@@ -930,11 +922,9 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
       print('Selected plan does not match enabled plan names');
     }
     if (selectedPlan.discountedPrice <= 0) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Selected plan is not available for subscription'),
-          backgroundColor: Colors.orange,
-        ),
+      SnackBarHelper.showWarning(
+        context,
+        'Selected plan is not available for subscription',
       );
       return;
     }
@@ -950,22 +940,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
       final token = await _authService.getAccessToken();
       if (token == null) {
         if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Please login to subscribe'),
-            backgroundColor: Colors.orange,
-            action: SnackBarAction(
-              label: 'Login',
-              textColor: Colors.white,
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  AnimatedTransitions.slideFromRight(LoginScreen()),
-                );
-              },
-            ),
-          ),
-        );
+        SnackBarHelper.showWarning(context, 'Please login to subscribe');
         return;
       }
 
@@ -1000,9 +975,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
       }
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
-      );
+      SnackBarHelper.showError(context, 'Error: $e');
     } finally {
       if (mounted) {
         setState(() {
@@ -1055,23 +1028,9 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
                       final token = await authService.getAccessToken();
 
                       if (token == null) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text('Please login to add items to cart'),
-                            backgroundColor: Colors.orange,
-                            action: SnackBarAction(
-                              label: 'Login',
-                              textColor: Colors.white,
-                              onPressed: () {
-                                Navigator.push(
-                                  context,
-                                  AnimatedTransitions.slideFromRight(
-                                    LoginScreen(),
-                                  ),
-                                );
-                              },
-                            ),
-                          ),
+                        SnackBarHelper.showWarning(
+                          context,
+                          'Please login to add items to cart',
                         );
                         return;
                       }
@@ -1079,21 +1038,15 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
                       final cartService = CartService();
                       await cartService.addToCart(widget.product.id, amount);
 
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(
-                            '${widget.product.productName} added to cart',
-                          ),
-                          backgroundColor: Colors.green,
-                        ),
+                      SnackBarHelper.showSuccess(
+                        context,
+                        '${widget.product.productName} added to cart',
                       );
                     } catch (e) {
                       print('Add to cart error: $e');
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text('Failed to add item to cart'),
-                          backgroundColor: Colors.red,
-                        ),
+                      SnackBarHelper.showError(
+                        context,
+                        'Failed to add item to cart: $e',
                       );
                     }
                   },
@@ -1113,25 +1066,9 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
                       final token = await authService.getAccessToken();
 
                       if (token == null) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text(
-                              'Please login to proceed with purchase',
-                            ),
-                            backgroundColor: Colors.orange,
-                            action: SnackBarAction(
-                              label: 'Login',
-                              textColor: Colors.white,
-                              onPressed: () {
-                                Navigator.push(
-                                  context,
-                                  AnimatedTransitions.slideFromRight(
-                                    LoginScreen(),
-                                  ),
-                                );
-                              },
-                            ),
-                          ),
+                        SnackBarHelper.showWarning(
+                          context,
+                          'Please login to proceed with purchase',
                         );
                         return;
                       }
@@ -1147,11 +1084,9 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
                       );
                     } catch (e) {
                       print('Buy now error: $e');
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text('Failed to proceed with purchase'),
-                          backgroundColor: Colors.red,
-                        ),
+                      SnackBarHelper.showError(
+                        context,
+                        'Failed to proceed with purchase: $e',
                       );
                     }
                   },

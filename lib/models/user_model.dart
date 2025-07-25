@@ -44,6 +44,7 @@ class UserModel {
       'last_name': lastName,
       'phone_number': phoneNumber,
       'gender': gender,
+      'referral_code': referralCode,
     };
   }
 

@@ -15,6 +15,7 @@ import 'package:grocery_app/screens/checkout/webview_page.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import 'package:grocery_app/helpers/notification_helper.dart';
 import 'package:grocery_app/helpers/animated_transitions.dart';
+import 'package:grocery_app/helpers/snackbar_helper.dart';
 import 'dart:convert';
 
 class CheckoutScreen extends StatefulWidget {
@@ -109,22 +110,12 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   // Step 2: Validate Shipping
   bool _validateShipping() {
     if (_shippingDetails == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Please fill in shipping details'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      SnackBarHelper.showError(context, 'Please fill in shipping details');
       return false;
     }
 
     if (!_shippingDetails!.isComplete) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Please fill in all shipping details'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      SnackBarHelper.showError(context, 'Please fill in all shipping details');
       return false;
     }
 
@@ -207,12 +198,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           // Launch WebView for UPI payment
           await _launchSubscriptionWebView(result);
 
-          // Send notification for subscription created with pending payment
-          NotificationHelper.showNotification(
-            title: 'Subscription Created!',
-            body:
-                'Subscription ID: ${result['subscription_id']}\nPayment Mode: UPI\nStatus: Pending Payment',
-          );
+         
         } else {
           // No payment required, or payment_links missing, treat as success
           await _handleSuccessfulSubscription(result);
@@ -317,12 +303,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       // Launch WebView for UPI payment
       await _launchOrderWebView(response);
 
-      // Send notification for order created with pending payment
-      NotificationHelper.showNotification(
-        title: 'Order Created!',
-        body:
-            'Order ID: ${response.orderId}\nPayment Mode: UPI\nStatus: Pending Payment',
-      );
+     
     } else if (response is OrderModel) {
       // Fallback: If response is OrderModel, treat as success (COD etc)
       _navigateToOrderAccepted(response);
@@ -499,12 +480,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       print("Navigation to WebView completed");
     } catch (e) {
       print("Error in _launchSubscriptionWebView: $e");
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Failed to launch payment page: $e'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      SnackBarHelper.showError(context, 'Failed to launch payment page: $e');
     }
   }
 
@@ -531,12 +507,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                   'Order ID: ${response.orderId}\nPayment Mode: UPI\nStatus: Failed',
             );
 
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text('Payment failed or cancelled'),
-                backgroundColor: Colors.red,
-              ),
-            );
+            SnackBarHelper.showError(context, 'Payment failed or cancelled');
           },
         ),
       ),
@@ -573,21 +544,11 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         );
       } else {
         Navigator.pop(context);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Payment not successful!'),
-            backgroundColor: Colors.red,
-          ),
-        );
+        SnackBarHelper.showError(context, 'Payment not successful!');
       }
     } catch (e) {
       Navigator.pop(context);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Failed to verify payment!'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      SnackBarHelper.showError(context, 'Failed to verify payment!');
     }
   }
 
@@ -785,7 +746,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     return Card(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: Padding(
-        padding: EdgeInsets.all(8),
+        padding: EdgeInsets.all(4),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -800,14 +761,15 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 });
               },
               title: Row(
+                mainAxisAlignment: MainAxisAlignment.start,
                 children: [
                   Icon(Icons.payment, color: Colors.green),
-                  SizedBox(width: 5),
+                  SizedBox(width: 3),
                   Text('Pay in Full'),
-                  SizedBox(width: 5),
+                  SizedBox(width: 1),
                   if (widget.isSubscription)
-                    GestureDetector(
-                      onTap: () {
+                    IconButton(
+                      onPressed: () {
                         if (subscription != null) {
                           _showSubscriptionDetails(
                             context,
@@ -815,15 +777,14 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                             widget.selectedPlan!,
                             widget.price ?? 0.0,
                             widget.deliveryCharges,
+                            showAmountPerDelivery: true,
                           );
                         }
                       },
-                      child: Container(
-                        margin: EdgeInsets.only(left: 10),
-                        child: Text(
-                          "i",
-                          style: TextStyle(color: Colors.blue, fontSize: 18),
-                        ),
+                      iconSize: 20,
+                      icon: Icon(
+                        Icons.info,
+                        color: const Color.fromARGB(255, 80, 144, 196),
                       ),
                     ),
                 ],
@@ -843,14 +804,18 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                   });
                 },
                 title: Row(
+                  mainAxisAlignment: MainAxisAlignment.start,
                   children: [
-                    Icon(Icons.payment, color: Colors.blue),
-                    SizedBox(width: 5),
+                    Icon(
+                      Icons.payment,
+                      color: const Color.fromARGB(255, 86, 159, 219),
+                    ),
+                    SizedBox(width: 3),
                     Text('Pay in Installments'),
-                    SizedBox(width: 5),
+                    SizedBox(width: 0),
                     if (widget.isSubscription)
-                      GestureDetector(
-                        onTap: () {
+                      IconButton(
+                        onPressed: () {
                           if (subscription != null) {
                             _showSubscriptionDetails(
                               context,
@@ -862,12 +827,10 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                             );
                           }
                         },
-                        child: Container(
-                          margin: EdgeInsets.only(left: 10),
-                          child: Text(
-                            "i",
-                            style: TextStyle(color: Colors.blue, fontSize: 18),
-                          ),
+                        iconSize: 20,
+                        icon: Icon(
+                          Icons.info,
+                          color: const Color.fromARGB(255, 80, 144, 196),
                         ),
                       ),
                   ],

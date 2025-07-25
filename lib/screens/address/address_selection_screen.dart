@@ -5,6 +5,7 @@ import 'package:grocery_app/models/product_model.dart';
 import 'package:grocery_app/models/user_model.dart';
 import 'package:grocery_app/screens/checkout/checkout_screen.dart';
 import 'package:grocery_app/services/auth_service.dart';
+import 'package:grocery_app/helpers/snackbar_helper.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
@@ -415,25 +416,16 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen> {
             user.pincode,
             user.phoneNumber,
           ].any((e) => e == null || e!.isEmpty)) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Saved address is incomplete.'),
-            backgroundColor: Colors.red,
-          ),
-        );
+        SnackBarHelper.showError(context, 'Saved address is incomplete.');
         return;
       }
       // Ensure we have delivery fee
       if (_deliveryCharges == null)
         await _calculateDeliveryCharges(user.state!, user.city!);
       if (_deliveryCharges == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text(
-              'Failed to calculate delivery charges. Please try again.',
-            ),
-            backgroundColor: Colors.red,
-          ),
+        SnackBarHelper.showError(
+          context,
+          'Failed to calculate delivery charges. Please try again.',
         );
         return;
       }
@@ -453,13 +445,9 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen> {
           _cityController.text,
         );
       if (_deliveryCharges == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text(
-              'Failed to calculate delivery charges. Please try again.',
-            ),
-            backgroundColor: Colors.red,
-          ),
+        SnackBarHelper.showError(
+          context,
+          'Failed to calculate delivery charges. Please try again.',
         );
         return;
       }

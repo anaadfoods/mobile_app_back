@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../services/notification_service.dart';
+import '../../services/navigation_service.dart';
 import '../../helpers/message_utility.dart';
 import '../../widgets/notification_badge_widget.dart';
 
@@ -19,15 +20,18 @@ class _NotificationsScreenState extends State<NotificationsScreen>
   List<Map<String, dynamic>> _filteredNotifications = [];
   String _selectedFilter = 'all';
   bool _isLoading = true;
+  List<Map<String, dynamic>> _promotionalNotifications = [];
 
   late TabController _tabController;
 
-  final List<String> _filterOptions = [
+  static const List<String> _filterOptions = [
     'all',
-    'orders',
-    'products',
-    'subscriptions',
-    'promotions',
+    'payment',
+    'subscription',
+    'order',
+    'product',
+    'promotional',
+    'system',
   ];
 
   @override
@@ -35,13 +39,23 @@ class _NotificationsScreenState extends State<NotificationsScreen>
     super.initState();
     _tabController = TabController(length: _filterOptions.length, vsync: this);
     _loadNotifications();
+    _loadPromotionalNotifications();
     _listenToNewNotifications();
   }
 
   @override
   void dispose() {
     _tabController.dispose();
+    // Clear promotional notifications when leaving the screen
+    _clearPromotionalNotifications();
     super.dispose();
+  }
+
+  void _clearPromotionalNotifications() {
+    setState(() {
+      _promotionalNotifications.clear();
+    });
+    _savePromotionalNotifications();
   }
 
   Future<void> _loadNotifications() async {
@@ -73,7 +87,13 @@ class _NotificationsScreenState extends State<NotificationsScreen>
       Map<String, dynamic> notificationData = MessageUtility.parseMessageData(
         message,
       );
-      _addNotification(notificationData);
+
+      // Handle promotional notifications differently
+      if (notificationData['type'] == 'promotional') {
+        _addPromotionalNotification(notificationData);
+      } else {
+        _addNotification(notificationData);
+      }
     });
   }
 
@@ -89,13 +109,13 @@ class _NotificationsScreenState extends State<NotificationsScreen>
     setState(() {
       if (_selectedFilter == 'all') {
         _filteredNotifications = List.from(_notifications);
+      } else if (_selectedFilter == 'promotional') {
+        _filteredNotifications = List.from(_promotionalNotifications);
       } else {
         _filteredNotifications =
             _notifications
                 .where(
-                  (notification) =>
-                      MessageUtility.getMessageCategory(notification['type']) ==
-                      _selectedFilter,
+                  (notification) => notification['type'] == _selectedFilter,
                 )
                 .toList();
       }
@@ -107,31 +127,240 @@ class _NotificationsScreenState extends State<NotificationsScreen>
     await prefs.setString('notifications', json.encode(_notifications));
   }
 
+  Future<void> _loadPromotionalNotifications() async {
+    try {
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      String? promotionalJson = prefs.getString('promotional_notifications');
+
+      if (promotionalJson != null) {
+        List<dynamic> promotionalList = json.decode(promotionalJson);
+        setState(() {
+          _promotionalNotifications =
+              promotionalList.cast<Map<String, dynamic>>();
+        });
+      }
+    } catch (e) {
+      debugPrint('Error loading promotional notifications: $e');
+    }
+  }
+
+  Future<void> _savePromotionalNotifications() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.setString(
+      'promotional_notifications',
+      json.encode(_promotionalNotifications),
+    );
+  }
+
+  void _addPromotionalNotification(Map<String, dynamic> notification) {
+    setState(() {
+      _promotionalNotifications.insert(0, notification);
+    });
+    _savePromotionalNotifications();
+  }
+
+  void _removePromotionalNotification(Map<String, dynamic> notification) {
+    setState(() {
+      _promotionalNotifications.remove(notification);
+    });
+    _savePromotionalNotifications();
+  }
+
   void _onNotificationTap(Map<String, dynamic> notification) {
     String? action = MessageUtility.getAction(notification);
     String? id = MessageUtility.getId(notification);
+    String? type = notification['type'];
 
-    switch (action) {
-      case MessageUtility.actionViewOrder:
-        _navigateToOrder(id);
+    // Handle different notification types
+    switch (type) {
+      case 'payment':
+        _navigateToSubscription(
+          id,
+        ); // Redirect to subscription detail for payment reminders
         break;
-      case MessageUtility.actionViewProduct:
-        _navigateToProduct(id);
+      case 'subscription':
+        _navigateToSubscription(
+          id,
+        ); // Redirect to subscription detail for subscription updates
         break;
-      case MessageUtility.actionViewSubscription:
-        _navigateToSubscription(id);
+      case 'order':
+        _navigateToOrder(id); // Redirect to order screen
         break;
-      case MessageUtility.actionOpenCart:
-        _navigateToCart();
+      case 'product':
+        _navigateToHome(); // Redirect to home screen
         break;
-      case MessageUtility.actionOpenProfile:
-        _navigateToProfile();
-        break;
-      case MessageUtility.actionOpenPromo:
-        _navigateToPromo(id);
+      case 'promotional':
+        _addPromotionalNotification(notification);
+        _showPromotionalCard(notification);
+        return;
+      case 'system':
+        // System updates - just show the notification, no navigation needed
+        debugPrint('System notification: ${notification['title']}');
         break;
       default:
-        debugPrint('Unknown notification action: $action');
+        // Fallback to action-based navigation
+        switch (action) {
+          case MessageUtility.actionViewOrder:
+            _navigateToOrder(id);
+            break;
+          case MessageUtility.actionViewProduct:
+            _navigateToProduct(id);
+            break;
+          case MessageUtility.actionViewSubscription:
+            _navigateToSubscription(id);
+            break;
+          case MessageUtility.actionOpenCart:
+            _navigateToCart();
+            break;
+          case MessageUtility.actionOpenProfile:
+            _navigateToProfile();
+            break;
+          case MessageUtility.actionOpenPromo:
+            _navigateToPromo(id);
+            break;
+          default:
+            debugPrint('Unknown notification type: $type and action: $action');
+        }
+    }
+  }
+
+  void _showPromotionalCard(Map<String, dynamic> notification) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder:
+          (context) => AlertDialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
+            ),
+            content: Container(
+              width: double.maxFinite,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Image section
+                  Container(
+                    height: 200,
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(15),
+                      image: DecorationImage(
+                        image: NetworkImage(
+                          notification['image'] ??
+                              'https://via.placeholder.com/300x200',
+                        ),
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: 16),
+                  // Title
+                  Text(
+                    notification['title'] ?? 'Promotional Offer',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.grey[800],
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  SizedBox(height: 8),
+                  // Body
+                  Text(
+                    notification['body'] ?? 'Special offer just for you!',
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: Colors.grey[600],
+                      height: 1.4,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  SizedBox(height: 20),
+                  // Action buttons
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextButton(
+                          onPressed: () {
+                            Navigator.pop(context);
+                            _removePromotionalNotification(notification);
+                          },
+                          child: Text(
+                            'Dismiss',
+                            style: TextStyle(color: Colors.grey[600]),
+                          ),
+                        ),
+                      ),
+                      Expanded(
+                        child: ElevatedButton(
+                          onPressed: () {
+                            Navigator.pop(context);
+                            _removePromotionalNotification(notification);
+                            // Handle promotional action here
+                            _handlePromotionalAction(notification);
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.green,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                          ),
+                          child: Text(
+                            'View Offer',
+                            style: TextStyle(color: Colors.white),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+    );
+  }
+
+  void _handlePromotionalAction(Map<String, dynamic> notification) {
+    // Handle promotional action based on notification data
+    String? action = notification['action'];
+    String? id = notification['id'];
+    String? type = notification['type'];
+
+    // Handle based on type first, then action
+    switch (type) {
+      case 'payment':
+        _navigateToSubscription(id);
+        break;
+      case 'subscription':
+        _navigateToSubscription(id);
+        break;
+      case 'order':
+        _navigateToOrder(id);
+        break;
+      case 'product':
+        _navigateToHome();
+        break;
+      case 'promotional':
+        // Stay on notifications screen for promotional
+        break;
+      case 'system':
+        // No navigation for system notifications
+        break;
+      default:
+        // Fallback to action-based navigation
+        switch (action) {
+          case 'view_product':
+            _navigateToProduct(id);
+            break;
+          case 'view_subscription':
+            _navigateToSubscription(id);
+            break;
+          case 'open_cart':
+            _navigateToCart();
+            break;
+          default:
+            debugPrint('Unknown promotional action: $action');
+        }
     }
   }
 
@@ -174,38 +403,44 @@ class _NotificationsScreenState extends State<NotificationsScreen>
   }
 
   void _navigateToOrder(String? orderId) {
-    // TODO: Navigate to order details
-    debugPrint('Navigate to order: $orderId');
+    if (orderId != null) {
+      NavigationService.navigateToOrderDetails(orderId);
+    }
     Navigator.pop(context);
   }
 
   void _navigateToProduct(String? productId) {
-    // TODO: Navigate to product details
-    debugPrint('Navigate to product: $productId');
+    if (productId != null) {
+      NavigationService.navigateToProductDetails(productId);
+    }
     Navigator.pop(context);
   }
 
   void _navigateToSubscription(String? subscriptionId) {
-    // TODO: Navigate to subscription details
-    debugPrint('Navigate to subscription: $subscriptionId');
+    if (subscriptionId != null) {
+      NavigationService.navigateToSubscriptionDetails(subscriptionId);
+    }
     Navigator.pop(context);
   }
 
   void _navigateToCart() {
-    // TODO: Navigate to cart
-    debugPrint('Navigate to cart');
+    NavigationService.navigateToCart();
     Navigator.pop(context);
   }
 
   void _navigateToProfile() {
-    // TODO: Navigate to profile
-    debugPrint('Navigate to profile');
+    NavigationService.navigateToAccount();
     Navigator.pop(context);
   }
 
   void _navigateToPromo(String? promoId) {
-    // TODO: Navigate to promo details
+    // For promotional notifications, stay on notifications screen
     debugPrint('Navigate to promo: $promoId');
+    Navigator.pop(context);
+  }
+
+  void _navigateToHome() {
+    NavigationService.navigateToHome();
     Navigator.pop(context);
   }
 
@@ -228,17 +463,19 @@ class _NotificationsScreenState extends State<NotificationsScreen>
           tabs:
               _filterOptions.map((filter) {
                 String title = filter[0].toUpperCase() + filter.substring(1);
-                int count =
-                    _notifications
-                        .where(
-                          (notification) =>
-                              filter == 'all' ||
-                              MessageUtility.getMessageCategory(
-                                    notification['type'],
-                                  ) ==
-                                  filter,
-                        )
-                        .length;
+                int count;
+                if (filter == 'all') {
+                  count = _notifications.length;
+                } else if (filter == 'promotional') {
+                  count = _promotionalNotifications.length;
+                } else {
+                  count =
+                      _notifications
+                          .where(
+                            (notification) => notification['type'] == filter,
+                          )
+                          .length;
+                }
 
                 return Tab(
                   child: Row(
@@ -285,18 +522,20 @@ class _NotificationsScreenState extends State<NotificationsScreen>
                 controller: _tabController,
                 children:
                     _filterOptions.map((filter) {
-                      List<Map<String, dynamic>> filteredList =
-                          filter == 'all'
-                              ? _notifications
-                              : _notifications
-                                  .where(
-                                    (notification) =>
-                                        MessageUtility.getMessageCategory(
-                                          notification['type'],
-                                        ) ==
-                                        filter,
-                                  )
-                                  .toList();
+                      List<Map<String, dynamic>> filteredList;
+                      if (filter == 'all') {
+                        filteredList = _notifications;
+                      } else if (filter == 'promotional') {
+                        filteredList = _promotionalNotifications;
+                      } else {
+                        filteredList =
+                            _notifications
+                                .where(
+                                  (notification) =>
+                                      notification['type'] == filter,
+                                )
+                                .toList();
+                      }
 
                       return NotificationListWidget(
                         notifications: filteredList,

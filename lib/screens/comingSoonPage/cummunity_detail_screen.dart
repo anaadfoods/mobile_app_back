@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:grocery_app/styles/colors.dart';
 import '../../models/cummunity_model.dart';
+import '../../helpers/snackbar_helper.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 
@@ -152,25 +153,16 @@ class CommunityDetailScreen extends StatelessWidget {
                     if (response.statusCode == 200 ||
                         response.statusCode == 201) {
                       Navigator.pop(context); // Close the form
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text('Thank you! We\'ll keep you updated.'),
-                          backgroundColor: Colors.green,
-                        ),
+                      SnackBarHelper.showSuccess(
+                        context,
+                        'Thank you! We\'ll keep you updated.',
                       );
                     } else {
                       throw Exception('Failed to submit form');
                     }
                   } catch (e) {
                     Navigator.pop(context); // Close the form
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(
-                          'Failed to submit. Please try again later.',
-                        ),
-                        backgroundColor: Colors.red,
-                      ),
-                    );
+                    SnackBarHelper.showError(context, 'Failed to submit. Please try again later.');
                   }
                 }
               },

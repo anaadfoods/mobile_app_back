@@ -2,17 +2,20 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../services/notification_service.dart';
 import '../../widgets/notification_badge_widget.dart';
+import '../../helpers/snackbar_helper.dart';
 
 class NotificationSettingsScreen extends StatefulWidget {
   const NotificationSettingsScreen({Key? key}) : super(key: key);
 
   @override
-  State<NotificationSettingsScreen> createState() => _NotificationSettingsScreenState();
+  State<NotificationSettingsScreen> createState() =>
+      _NotificationSettingsScreenState();
 }
 
-class _NotificationSettingsScreenState extends State<NotificationSettingsScreen> {
+class _NotificationSettingsScreenState
+    extends State<NotificationSettingsScreen> {
   final NotificationService _notificationService = NotificationService();
-  
+
   bool _orderNotifications = true;
   bool _productNotifications = true;
   bool _promoNotifications = true;
@@ -36,17 +39,18 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
       _orderNotifications = prefs.getBool('order_notifications') ?? true;
       _productNotifications = prefs.getBool('product_notifications') ?? true;
       _promoNotifications = prefs.getBool('promo_notifications') ?? true;
-      _subscriptionNotifications = prefs.getBool('subscription_notifications') ?? true;
+      _subscriptionNotifications =
+          prefs.getBool('subscription_notifications') ?? true;
       _pushNotifications = prefs.getBool('push_notifications') ?? true;
       _emailNotifications = prefs.getBool('email_notifications') ?? false;
       _smsNotifications = prefs.getBool('sms_notifications') ?? false;
       _quietHours = prefs.getBool('quiet_hours') ?? false;
-      
+
       int startHour = prefs.getInt('quiet_start_hour') ?? 22;
       int startMinute = prefs.getInt('quiet_start_minute') ?? 0;
       int endHour = prefs.getInt('quiet_end_hour') ?? 8;
       int endMinute = prefs.getInt('quiet_end_minute') ?? 0;
-      
+
       _quietStartTime = TimeOfDay(hour: startHour, minute: startMinute);
       _quietEndTime = TimeOfDay(hour: endHour, minute: endMinute);
     });
@@ -57,7 +61,10 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
     await prefs.setBool('order_notifications', _orderNotifications);
     await prefs.setBool('product_notifications', _productNotifications);
     await prefs.setBool('promo_notifications', _promoNotifications);
-    await prefs.setBool('subscription_notifications', _subscriptionNotifications);
+    await prefs.setBool(
+      'subscription_notifications',
+      _subscriptionNotifications,
+    );
     await prefs.setBool('push_notifications', _pushNotifications);
     await prefs.setBool('email_notifications', _emailNotifications);
     await prefs.setBool('sms_notifications', _smsNotifications);
@@ -71,19 +78,9 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
   Future<void> _requestNotificationPermissions() async {
     try {
       await _notificationService.initialize();
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Notification permissions updated'),
-          backgroundColor: Colors.green,
-        ),
-      );
+      SnackBarHelper.showSuccess(context, 'Notification permissions updated');
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Error updating permissions: $e'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      SnackBarHelper.showError(context, 'Error updating permissions: $e');
     }
   }
 
@@ -340,25 +337,15 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
             color: color.withOpacity(0.1),
             borderRadius: BorderRadius.circular(8),
           ),
-          child: Icon(
-            icon,
-            color: color,
-            size: 24,
-          ),
+          child: Icon(icon, color: color, size: 24),
         ),
         title: Text(
           title,
-          style: const TextStyle(
-            fontWeight: FontWeight.bold,
-            fontSize: 16,
-          ),
+          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
         ),
         subtitle: Text(
           subtitle,
-          style: const TextStyle(
-            color: Colors.grey,
-            fontSize: 14,
-          ),
+          style: const TextStyle(color: Colors.grey, fontSize: 14),
         ),
         trailing: Switch(
           value: value,
@@ -369,7 +356,11 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
     );
   }
 
-  Widget _buildTimeSelector(String label, TimeOfDay time, Function(TimeOfDay) onTap) {
+  Widget _buildTimeSelector(
+    String label,
+    TimeOfDay time,
+    Function(TimeOfDay) onTap,
+  ) {
     return GestureDetector(
       onTap: () => onTap(time),
       child: Container(
@@ -384,18 +375,12 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
           children: [
             Text(
               label,
-              style: const TextStyle(
-                fontSize: 12,
-                color: Colors.grey,
-              ),
+              style: const TextStyle(fontSize: 12, color: Colors.grey),
             ),
             const SizedBox(height: 4),
             Text(
               time.format(context),
-              style: const TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-              ),
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
             ),
           ],
         ),
@@ -449,10 +434,7 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
                     ),
                     Text(
                       'View your notification activity',
-                      style: TextStyle(
-                        color: Colors.grey,
-                        fontSize: 14,
-                      ),
+                      style: TextStyle(color: Colors.grey, fontSize: 14),
                     ),
                   ],
                 ),
@@ -484,13 +466,7 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
             color: Colors.blue,
           ),
         ),
-        Text(
-          label,
-          style: const TextStyle(
-            fontSize: 12,
-            color: Colors.grey,
-          ),
-        ),
+        Text(label, style: const TextStyle(fontSize: 12, color: Colors.grey)),
       ],
     );
   }
@@ -548,4 +524,4 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
       ],
     );
   }
-} 
+}

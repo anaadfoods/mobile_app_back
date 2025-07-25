@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'navigation_service.dart';
 import 'package:http/http.dart' as http;
+import 'package:device_info_plus/device_info_plus.dart';
 
 class NotificationService {
   static final NotificationService _instance = NotificationService._internal();
@@ -26,6 +27,8 @@ class NotificationService {
   final StreamController<String> _onTokenRefreshController =
       StreamController<String>.broadcast();
 
+  final DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
+
   // Getters for streams
   Stream<RemoteMessage> get onMessageOpenedApp =>
       _onMessageOpenedAppController.stream;
@@ -37,9 +40,30 @@ class NotificationService {
   static const String actionViewOrder = 'view_order';
   static const String actionViewProduct = 'view_product';
   static const String actionViewSubscription = 'view_subscription';
+  static const String actionViewPaymentReminder = 'view_payment_reminder';
   static const String actionOpenCart = 'open_cart';
   static const String actionOpenProfile = 'open_profile';
   static const String actionOpenPromo = 'open_promo';
+  static String platform = Platform.isAndroid ? "android" : "ios";
+
+  // Get device id
+  static Future<String> getDeviceId() async {
+    DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
+
+    if (Platform.isAndroid) {
+      AndroidDeviceInfo androidInfo = await deviceInfo.androidInfo;
+      return androidInfo.id ?? "unknown_android_id"; // Best option for Android
+    } else if (Platform.isIOS) {
+      IosDeviceInfo iosInfo = await deviceInfo.iosInfo;
+      return iosInfo.identifierForVendor ??
+          "unknown_ios_id"; // Best option for iOS
+    } else {
+      return "unsupported_platform";
+    }
+  }
+
+  // Get device id
+  static Future<String> deviceId = getDeviceId();
 
   Future<void> initialize() async {
     try {
@@ -297,12 +321,12 @@ class NotificationService {
     switch (type) {
       case 'order':
         return 'orders';
-      case 'product':
-        return 'products';
-      case 'promo':
-        return 'promotions';
+      case 'subscription':
+        return 'subscriptions';
+      case 'payment_reminder':
+        return 'payment-reminders';
       default:
-        return 'orders';
+        return 'promotions';
     }
   }
 
@@ -323,36 +347,37 @@ class NotificationService {
     switch (channelId) {
       case 'orders':
         return 'Notifications for order updates';
-      case 'products':
-        return 'Notifications for product updates';
-      case 'promotions':
-        return 'Notifications for promotions and offers';
+      case 'subscriptions':
+        return 'Notifications for subscription updates';
+      case 'payment-reminders':
+        return 'Notifications for payment reminders';
       default:
-        return 'Notifications for order updates';
+        return 'Notifications for promotions and offers';
     }
   }
 
   void _handleNotificationAction(Map<String, dynamic> data) {
-    String? action = data['action'];
+    String? action = data['type'];
+
     String? id = data['id'];
 
     switch (action) {
-      case actionViewOrder:
+      case "order":
         _navigateToOrder(id);
         break;
-      case actionViewProduct:
-        _navigateToProduct(id);
-        break;
-      case actionViewSubscription:
+      case "subscription":
         _navigateToSubscription(id);
         break;
-      case actionOpenCart:
-        _navigateToCart();
+      case "payment":
+        _navigateToSubscription(id);
         break;
-      case actionOpenProfile:
+      case "product":
+        _navigateToProduct(id);
+        break;
+      case "profile":
         _navigateToProfile();
         break;
-      case actionOpenPromo:
+      case "promotional":
         _navigateToPromo(id);
         break;
       default:
@@ -366,20 +391,20 @@ class NotificationService {
     NavigationService.navigateToOrderDetails(orderId);
   }
 
-  void _navigateToProduct(String? productId) {
-    debugPrint('Navigate to product: $productId');
-    NavigationService.navigateToProductDetails(productId);
-  }
-
   void _navigateToSubscription(String? subscriptionId) {
     debugPrint('Navigate to subscription: $subscriptionId');
     NavigationService.navigateToSubscriptionDetails(subscriptionId);
   }
 
-  void _navigateToCart() {
-    debugPrint('Navigate to cart');
-    NavigationService.navigateToCart();
-  }
+  // void _navigateToPaymentReminder(String? subscriptionId) {
+  //   debugPrint('Navigate to payment reminder: $subscriptionId');
+  //   NavigationService.navigateToSubscriptionDetails(subscriptionId);
+  // }
+
+  // void _navigateToCart() {
+  //   debugPrint('Navigate to cart');
+  //   NavigationService.navigateToCart();
+  // }
 
   void _navigateToProfile() {
     debugPrint('Navigate to profile');
@@ -389,6 +414,11 @@ class NotificationService {
   void _navigateToPromo(String? promoId) {
     debugPrint('Navigate to promo: $promoId');
     NavigationService.navigateToPromoDetails(promoId);
+  }
+
+  void _navigateToProduct(String? productId) {
+    debugPrint('Navigate to product: $productId');
+    NavigationService.navigateToProductDetails(productId);
   }
 
   // Public methods for sending local notifications
@@ -465,7 +495,11 @@ class NotificationService {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $bearerToken',
         },
-        body: jsonEncode({'token': fcmToken}),
+        body: jsonEncode({
+          'token': fcmToken,
+          'device_id': deviceId,
+          'platform': platform,
+        }),
       );
       if (response.statusCode == 200) {
         debugPrint('FCM token registered successfully with backend');
@@ -492,7 +526,7 @@ class NotificationService {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $bearerToken',
         },
-        body: jsonEncode({'token': fcmToken}),
+        body: jsonEncode({'token': fcmToken, 'device_id': deviceId}),
       );
       if (response.statusCode == 200) {
         debugPrint('FCM token removed successfully from backend');

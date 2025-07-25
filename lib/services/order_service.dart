@@ -1,9 +1,11 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:grocery_app/models/order_model.dart';
 import 'package:grocery_app/services/auth_service.dart';
 import 'package:grocery_app/services/api_config.dart';
 import 'package:grocery_app/models/payment_status_model.dart';
+import 'package:path_provider/path_provider.dart';
 
 class OrderService {
   // static const String baseUrl = 'http://192.168.19.81:8000';
@@ -172,7 +174,7 @@ class OrderService {
     }
   }
 
-  Future<bool> cancelOrder(String orderNumber) async {
+  Future<bool> cancelOrder(int orderId) async {
     try {
       final isAuthenticated = await _authService.isLoggedIn();
       if (!isAuthenticated) {
@@ -182,7 +184,7 @@ class OrderService {
       final response = await http
           .post(
             Uri.parse(
-              '$baseUrl${ApiConfig.ordersEndpoint}$orderNumber/cancel-request/',
+              '$baseUrl${ApiConfig.ordersEndpoint}$orderId/cancel-request/',
             ),
             headers: await _getHeaders(),
           )
@@ -202,7 +204,7 @@ class OrderService {
       } else if (response.statusCode == 401) {
         final refreshed = await _authService.refreshAccessToken();
         if (refreshed) {
-          return cancelOrder(orderNumber);
+          return cancelOrder(orderId);
         }
         throw Exception('Authentication failed');
       } else {
@@ -252,6 +254,82 @@ class OrderService {
       return response;
     } catch (e) {
       throw Exception('Failed to post order_id: $e');
+    }
+  }
+
+  /// Downloads the invoice for a specific order
+  /// Returns the file path where the invoice was saved
+  Future<String> downloadOrderInvoice(String orderNumber) async {
+    try {
+      final token = await _authService.getAccessToken();
+      if (token == null) {
+        throw Exception('Authentication required');
+      }
+
+      // First, get the invoice data from the API
+      final response = await http.get(
+        Uri.parse('$baseUrl/odoo/orders/$orderNumber/invoice/'),
+        headers: await _getHeaders(),
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+
+        if (data['success'] == true && data['invoice'] != null) {
+          final invoiceData = data['invoice'];
+          final s3Url = invoiceData['s3_url'];
+          final displayName =
+              invoiceData['display_name'] ?? 'Invoice-$orderNumber';
+
+          // Download the PDF from S3 URL
+          final pdfResponse = await http.get(
+            Uri.parse(s3Url),
+            headers: {'Authorization': 'Bearer $token'},
+          );
+
+          if (pdfResponse.statusCode == 200) {
+            // Get the downloads directory
+            Directory? downloadsDir;
+            if (Platform.isAndroid) {
+              downloadsDir = Directory('/storage/emulated/0/Download');
+            } else if (Platform.isIOS) {
+              downloadsDir = await getApplicationDocumentsDirectory();
+            } else {
+              downloadsDir = await getApplicationDocumentsDirectory();
+            }
+
+            // Create the directory if it doesn't exist
+            if (!await downloadsDir!.exists()) {
+              await downloadsDir.create(recursive: true);
+            }
+
+            // Create the file path
+            final fileName = '$displayName.pdf';
+            final filePath = '${downloadsDir.path}/$fileName';
+            final file = File(filePath);
+
+            // Write the PDF bytes to the file
+            await file.writeAsBytes(pdfResponse.bodyBytes);
+
+            print('Invoice downloaded successfully to: $filePath');
+            return filePath;
+          } else {
+            throw Exception(
+              'Failed to download PDF: ${pdfResponse.statusCode}',
+            );
+          }
+        } else {
+          throw Exception('Invoice not available for this order');
+        }
+      } else if (response.statusCode == 404) {
+        throw Exception('Invoice not found for this order');
+      } else {
+        final errorData = jsonDecode(response.body);
+        throw Exception(errorData['message'] ?? 'Failed to get invoice');
+      }
+    } catch (e) {
+      print('Error downloading invoice: $e');
+      throw Exception('Failed to download invoice: $e');
     }
   }
 }

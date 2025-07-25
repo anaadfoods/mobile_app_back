@@ -6,6 +6,7 @@ import 'package:grocery_app/screens/auth/forget_password_screen.dart';
 import 'package:grocery_app/screens/dashboard/dashboard_screen.dart';
 import 'package:grocery_app/services/auth_service.dart';
 import 'package:grocery_app/services/notification_service.dart';
+import 'package:grocery_app/helpers/snackbar_helper.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -52,13 +53,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   void _showErrorSnackBar(String message) {
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: Colors.red,
-        duration: Duration(seconds: 3),
-      ),
-    );
+    SnackBarHelper.showError(context, message);
   }
 
   Future<void> _handleLogin() async {

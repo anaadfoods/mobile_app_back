@@ -6,6 +6,8 @@ import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:url_launcher/url_launcher.dart';
 import 'package:grocery_app/services/auth_service.dart';
+import 'package:grocery_app/helpers/snackbar_helper.dart';
+import 'package:grocery_app/screens/checkout/webview_page.dart';
 
 class SubscriptionPlanDetailScreen extends StatefulWidget {
   final Subscription subscription;
@@ -18,9 +20,14 @@ class SubscriptionPlanDetailScreen extends StatefulWidget {
 }
 
 class _SubscriptionPlanDetailScreenState
-    extends State<SubscriptionPlanDetailScreen> {
+    extends State<SubscriptionPlanDetailScreen>
+    with TickerProviderStateMixin {
   final SubscriptionService _subscriptionService = SubscriptionService();
   bool _isLoading = false;
+  List<Map<String, dynamic>> _invoices = [];
+  bool _isLoadingInvoices = false;
+  late AnimationController _pulseController;
+  late Animation<double> _pulseAnimation;
 
   Future<void> _togglePauseSubscription(
     DateTime? startDate,
@@ -35,30 +42,20 @@ class _SubscriptionPlanDetailScreenState
       );
 
       if (response['success'] == true) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              response['details'] ?? 'Subscription status updated successfully',
-            ),
-            backgroundColor: Colors.green,
-          ),
+        SnackBarHelper.showSuccess(
+          context,
+          response['details'] ?? 'Subscription status updated successfully',
         );
         // Refresh the subscription data
         Navigator.pop(context, true);
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              response['details'] ?? 'Failed to update subscription status',
-            ),
-            backgroundColor: Colors.red,
-          ),
+        SnackBarHelper.showError(
+          context,
+          response['details'] ?? 'Failed to update subscription status',
         );
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
-      );
+      SnackBarHelper.showError(context, 'Error: $e');
     } finally {
       setState(() => _isLoading = false);
     }
@@ -202,11 +199,9 @@ class _SubscriptionPlanDetailScreenState
                         return;
                       }
                       if (selectedEndDate!.isBefore(selectedStartDate!)) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text('End date must be after start date'),
-                            backgroundColor: Colors.red,
-                          ),
+                        SnackBarHelper.showError(
+                          context,
+                          'End date must be after start date',
                         );
                         return;
                       }
@@ -214,13 +209,9 @@ class _SubscriptionPlanDetailScreenState
 
                     if (!isCurrentlyPaused && maxPausesLeft <= 0) {
                       Navigator.of(context).pop();
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(
-                            'No pauses remaining for this subscription',
-                          ),
-                          backgroundColor: Colors.red,
-                        ),
+                      SnackBarHelper.showError(
+                        context,
+                        'No pauses remaining for this subscription',
                       );
                       return;
                     }
@@ -276,32 +267,345 @@ class _SubscriptionPlanDetailScreenState
       );
 
       if (response['success'] == true) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              response['message'] ?? 'Subscription cancelled successfully',
-            ),
-            backgroundColor: Colors.green,
-          ),
+        SnackBarHelper.showSuccess(
+          context,
+          response['message'] ?? 'Subscription cancelled successfully',
         );
         // Refresh the subscription data
         Navigator.pop(context, true);
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              response['message'] ?? 'Failed to cancel subscription',
-            ),
-            backgroundColor: Colors.red,
-          ),
+        SnackBarHelper.showError(
+          context,
+          response['message'] ?? 'Failed to cancel subscription',
         );
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
-      );
+      SnackBarHelper.showError(context, 'Error: $e');
     } finally {
       setState(() => _isLoading = false);
+    }
+  }
+
+  Future<void> _loadInvoices() async {
+    setState(() => _isLoadingInvoices = true);
+    try {
+      final response = await _subscriptionService.getSubscriptionInvoices(
+        widget.subscription.id,
+      );
+      if (response['success'] == true) {
+        setState(() {
+          _invoices = List<Map<String, dynamic>>.from(
+            response['invoices'] ?? [],
+          );
+        });
+      }
+    } catch (e) {
+      SnackBarHelper.showError(context, 'Failed to load invoices: $e');
+    } finally {
+      setState(() => _isLoadingInvoices = false);
+    }
+  }
+
+  Future<void> _downloadInvoice(String s3Url, String displayName) async {
+    try {
+      SnackBarHelper.showLoading(context, 'Downloading invoice...');
+      final filePath = await _subscriptionService.downloadSubscriptionInvoice(
+        s3Url,
+        displayName,
+      );
+      if (!mounted) return;
+      SnackBarHelper.showSuccess(
+        context,
+        'Invoice downloaded successfully to Downloads folder',
+      );
+    } catch (e) {
+      if (!mounted) return;
+      SnackBarHelper.showError(context, 'Failed to download invoice: $e');
+    }
+  }
+
+  Future<void> _handleRepayment() async {
+    try {
+      final result = await _subscriptionService.RepaymentSubscription(
+        widget.subscription.id,
+      );
+
+      print("Repayment subscription response: $result");
+
+      if (!mounted) return;
+
+      if (result['success'] == true) {
+        print("Success is true, checking payment_links...");
+        print("payment_links: ${result['payment_links']}");
+        print("payment_links type: ${result['payment_links']?.runtimeType}");
+
+        if (result['payment_links'] != null) {
+          print("payment_links is not null");
+          print("payment_links['web']: ${result['payment_links']['web']}");
+          print(
+            "payment_links['web'] type: ${result['payment_links']['web']?.runtimeType}",
+          );
+
+          if (result['payment_links']['web'] != null) {
+            print("Payment links found, launching WebView...");
+            print("Payment URL: ${result['payment_links']['web']}");
+            // Launch WebView for UPI payment
+            await _launchRepaymentWebView(result);
+          } else {
+            // No payment required, or payment_links missing, treat as success
+            await _handleSuccessfulRepayment(result);
+          }
+        } else {
+          // No payment required, or payment_links missing, treat as success
+          await _handleSuccessfulRepayment(result);
+        }
+      } else {
+        // Show the failed dialog
+        _showRepaymentFailedDialog(result);
+      }
+    } catch (e) {
+      print('Error in _handleRepayment: $e');
+      SnackBarHelper.showError(context, 'Failed to initiate repayment: $e');
+    }
+  }
+
+  Future<void> _handleSuccessfulRepayment(Map<String, dynamic> result) async {
+    try {
+      // Fetch subscription details using subscription_id
+      if (result['subscription_id'] != null) {
+        final subscriptionDetails = await _subscriptionService
+            .getSubscriptionDetails(
+              int.parse(result['subscription_id'].toString()),
+            );
+
+        if (subscriptionDetails['success'] == true && mounted) {
+          Navigator.pushAndRemoveUntil(
+            context,
+            MaterialPageRoute(
+              builder:
+                  (context) => SubscriptionPlanDetailScreen(
+                    subscription: subscriptionDetails['data'],
+                  ),
+            ),
+            (route) => route.isFirst,
+          );
+        } else {
+          // If fetching details fails, show success message
+          _showRepaymentSuccessMessage(result);
+        }
+      } else {
+        _showRepaymentSuccessMessage(result);
+      }
+    } catch (e) {
+      print('Error fetching subscription details: $e');
+      _showRepaymentSuccessMessage(result);
+    }
+  }
+
+  Future<void> _launchRepaymentWebView(Map<String, dynamic> result) async {
+    print("=== _launchRepaymentWebView called ===");
+    print("Result: $result");
+
+    try {
+      final paymentUrl = result['payment_links']['web'];
+      final subscriptionId = result['subscription_id'];
+
+      print("Payment URL: $paymentUrl");
+      print("Subscription ID: $subscriptionId");
+
+      if (subscriptionId == null) {
+        throw Exception('Subscription ID is null');
+      }
+
+      // Parse subscription ID to int
+      int parsedSubscriptionId;
+      try {
+        parsedSubscriptionId = int.parse(subscriptionId.toString());
+      } catch (e) {
+        throw Exception('Invalid subscription ID format: $subscriptionId');
+      }
+
+      if (!mounted) {
+        print("Widget not mounted, cannot navigate");
+        return;
+      }
+
+      print("About to navigate to WebView...");
+
+      await Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder:
+              (context) => WebViewPage(
+                url: paymentUrl,
+                orderId: parsedSubscriptionId,
+                title: 'UPI Payment',
+                subID: parsedSubscriptionId,
+                isSubscription: true,
+                onPaymentSuccess: (url) async {
+                  print("Payment success callback triggered");
+                  // Fetch subscription details after successful payment
+                  try {
+                    final subscriptionDetails = await _subscriptionService
+                        .getSubscriptionDetails(parsedSubscriptionId);
+
+                    if (subscriptionDetails['success'] == true && mounted) {
+                      Navigator.pushAndRemoveUntil(
+                        context,
+                        MaterialPageRoute(
+                          builder:
+                              (context) => SubscriptionPlanDetailScreen(
+                                subscription: subscriptionDetails['data'],
+                              ),
+                        ),
+                        (route) => route.isFirst,
+                      );
+                    } else {
+                      // If fetching details fails, show success message
+                      Navigator.pop(context);
+                      _showRepaymentSuccessMessage(result);
+                    }
+                  } catch (e) {
+                    print(
+                      'Error fetching subscription details after payment: $e',
+                    );
+                    Navigator.pop(context);
+                    _showRepaymentSuccessMessage(result);
+                  }
+                },
+                onPaymentFailure: (url) {
+                  print("Payment failure callback triggered");
+                  Navigator.pop(context);
+                  SnackBarHelper.showError(
+                    context,
+                    'Payment failed or cancelled',
+                  );
+                },
+              ),
+        ),
+      );
+
+      print("Navigation to WebView completed");
+    } catch (e) {
+      print("Error in _launchRepaymentWebView: $e");
+      SnackBarHelper.showError(context, 'Failed to launch payment page: $e');
+    }
+  }
+
+  void _showRepaymentSuccessMessage(Map<String, dynamic> result) {
+    showDialog(
+      context: context,
+      builder:
+          (context) => AlertDialog(
+            title: Text('Repayment Successful'),
+            content: Text(
+              'Your subscription repayment has been processed successfully!',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                  Navigator.of(context).pop(); // Go back to previous screen
+                },
+                child: Text('OK'),
+              ),
+            ],
+          ),
+    );
+  }
+
+  void _showRepaymentFailedDialog(Map<String, dynamic> result) {
+    String errorMessage = _parseServerError(
+      result['message'] ?? result['errors'] ?? 'Failed to process repayment',
+    );
+    showDialog(
+      context: context,
+      builder:
+          (context) => AlertDialog(
+            title: Text('Repayment Failed'),
+            content: Text(errorMessage),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: Text('Go Back'),
+              ),
+            ],
+          ),
+    );
+  }
+
+  String _parseServerError(dynamic error) {
+    if (error is String) {
+      return error;
+    }
+
+    if (error is Map<String, dynamic>) {
+      if (error.containsKey('items') && error['items'] is List) {
+        List<String> itemErrors = [];
+        for (var item in error['items']) {
+          if (item is Map<String, dynamic>) {
+            item.forEach((key, value) {
+              if (value is List) {
+                itemErrors.addAll(value.map((e) => e.toString()));
+              } else if (value is String) {
+                itemErrors.add(value);
+              }
+            });
+          }
+        }
+        if (itemErrors.isNotEmpty) {
+          return itemErrors.join('\n');
+        }
+      }
+
+      if (error.containsKey('message')) {
+        return error['message'];
+      }
+
+      if (error.containsKey('errors')) {
+        var errors = error['errors'];
+        if (errors is Map<String, dynamic>) {
+          List<String> errorMessages = [];
+          errors.forEach((key, value) {
+            if (value is List) {
+              errorMessages.addAll(value.map((e) => e.toString()));
+            } else if (value is String) {
+              errorMessages.add(value);
+            }
+          });
+          return errorMessages.join('\n');
+        } else if (errors is String) {
+          return errors;
+        }
+      }
+    }
+
+    return error.toString();
+  }
+
+  @override
+  void dispose() {
+    _pulseController.dispose();
+    super.dispose();
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _loadInvoices();
+
+    // Initialize pulse animation for repayment button
+    _pulseController = AnimationController(
+      duration: Duration(seconds: 2),
+      vsync: this,
+    );
+    _pulseAnimation = Tween<double>(begin: 1.0, end: 1.2).animate(
+      CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
+    );
+
+    // Start pulse animation if payment is pending
+    if (widget.subscription.installmentPaymentStatus == "PENDING") {
+      _pulseController.repeat(reverse: true);
     }
   }
 
@@ -337,24 +641,36 @@ class _SubscriptionPlanDetailScreenState
               onPressed: _isLoading ? null : _showCancelConfirmation,
             ),
           ],
-          IconButton(
-            icon: Icon(Icons.download),
-            tooltip: 'Download Invoice',
-            onPressed: () async {
-              final url =
-                  'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf';
-              final response = await http.get(Uri.parse(url));
-              final dir = await getTemporaryDirectory();
-              final file = File(
-                '${dir.path}/subscription_invoice_${widget.subscription.id}.pdf',
-              );
-              await file.writeAsBytes(response.bodyBytes);
-              if (!mounted) return;
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('Invoice downloaded to ${file.path}')),
-              );
-            },
-          ),
+          // Repayment button for pending payments
+          if (widget.subscription.installmentPaymentStatus == "PENDING")
+            AnimatedBuilder(
+              animation: _pulseAnimation,
+              builder: (context, child) {
+                return Transform.scale(
+                  scale: _pulseAnimation.value,
+                  child: Container(
+                    margin: EdgeInsets.symmetric(horizontal: 8),
+                    decoration: BoxDecoration(
+                      color: Colors.red,
+                      borderRadius: BorderRadius.circular(20),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.red.withOpacity(0.3),
+                          blurRadius: 8,
+                          offset: Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: IconButton(
+                      icon: Icon(Icons.payment, color: Colors.white, size: 24),
+                      tooltip: 'Repayment Required',
+                      onPressed: _isLoading ? null : () => _handleRepayment(),
+                    ),
+                  ),
+                );
+              },
+            ),
+         
         ],
       ),
       body:
@@ -657,6 +973,197 @@ class _SubscriptionPlanDetailScreenState
                         ),
                       ),
                     SizedBox(height: 16),
+
+                    // Repayment Alert Section
+                    if (widget.subscription.installmentPaymentStatus ==
+                        "PENDING")
+                      Card(
+                        elevation: 6,
+                        color: Colors.red[50],
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          side: BorderSide(color: Colors.red[300]!, width: 2),
+                        ),
+                        child: Padding(
+                          padding: EdgeInsets.all(16),
+                          child: Column(
+                            children: [
+                              Row(
+                                children: [
+                                  Container(
+                                    padding: EdgeInsets.all(8),
+                                    decoration: BoxDecoration(
+                                      color: Colors.red,
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: Icon(
+                                      Icons.warning_amber_rounded,
+                                      color: Colors.white,
+                                      size: 24,
+                                    ),
+                                  ),
+                                  SizedBox(width: 12),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          'Payment Required',
+                                          style: TextStyle(
+                                            fontSize: 18,
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.red[800],
+                                          ),
+                                        ),
+                                        SizedBox(height: 4),
+                                        Text(
+                                          'Your subscription payment is pending. Please complete the payment to continue your subscription.',
+                                          style: TextStyle(
+                                            fontSize: 14,
+                                            color: Colors.red[700],
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              SizedBox(height: 16),
+                              SizedBox(
+                                width: double.infinity,
+                                child: ElevatedButton.icon(
+                                  onPressed:
+                                      _isLoading
+                                          ? null
+                                          : () => _handleRepayment(),
+                                  icon: Icon(
+                                    Icons.payment,
+                                    color: Colors.white,
+                                  ),
+                                  label: Text(
+                                    'Pay Now',
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 16,
+                                    ),
+                                  ),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.red,
+                                    foregroundColor: Colors.white,
+                                    padding: EdgeInsets.symmetric(vertical: 12),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    elevation: 4,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+
+                    // Invoices Section
+                    Card(
+                      elevation: 4,
+                      child: Padding(
+                        padding: EdgeInsets.all(16),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  'Invoices',
+                                  style: TextStyle(
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.indigo[900],
+                                  ),
+                                ),
+                                if (_isLoadingInvoices)
+                                  SizedBox(
+                                    width: 20,
+                                    height: 20,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                    ),
+                                  ),
+                              ],
+                            ),
+                            SizedBox(height: 16),
+                            if (_invoices.isEmpty && !_isLoadingInvoices)
+                              Center(
+                                child: Padding(
+                                  padding: EdgeInsets.all(20),
+                                  child: Text(
+                                    'No invoices available',
+                                    style: TextStyle(
+                                      color: Colors.grey[600],
+                                      fontSize: 16,
+                                    ),
+                                  ),
+                                ),
+                              )
+                            else
+                              ..._invoices
+                                  .map(
+                                    (invoice) => Card(
+                                      margin: EdgeInsets.only(bottom: 12),
+                                      elevation: 2,
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                      child: ListTile(
+                                        leading: Icon(
+                                          Icons.receipt,
+                                          color: Colors.indigo,
+                                          size: 32,
+                                        ),
+                                        title: Text(
+                                          invoice['display_name'] ?? 'Invoice',
+                                          style: TextStyle(
+                                            fontWeight: FontWeight.w600,
+                                            fontSize: 16,
+                                          ),
+                                        ),
+                                        subtitle: Text(
+                                          'Invoice #${invoice['odoo_invoice_number'] ?? 'N/A'}',
+                                          style: TextStyle(
+                                            color: Colors.grey[600],
+                                            fontSize: 14,
+                                          ),
+                                        ),
+                                        trailing: IconButton(
+                                          icon: Icon(
+                                            Icons.download,
+                                            color: Colors.green,
+                                          ),
+                                          tooltip: 'Download Invoice',
+                                          onPressed:
+                                              () => _downloadInvoice(
+                                                invoice['s3_url'],
+                                                invoice['display_name'] ??
+                                                    'Invoice',
+                                              ),
+                                        ),
+                                        contentPadding: EdgeInsets.symmetric(
+                                          horizontal: 16,
+                                          vertical: 8,
+                                        ),
+                                      ),
+                                    ),
+                                  )
+                                  .toList(),
+                          ],
+                        ),
+                      ),
+                    ),
+                    SizedBox(height: 16),
+                    /*
                     Text(
                       'Delivery History',
                       style: TextStyle(
@@ -714,12 +1221,9 @@ class _SubscriptionPlanDetailScreenState
                                 );
                                 await file.writeAsBytes(response.bodyBytes);
                                 if (!mounted) return;
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text(
-                                      'Receipt downloaded to ${file.path}',
-                                    ),
-                                  ),
+                                SnackBarHelper.showSuccess(
+                                  context,
+                                  'Receipt downloaded to Downloads folder',
                                 );
                               },
                             ),
@@ -731,6 +1235,7 @@ class _SubscriptionPlanDetailScreenState
                         },
                       ),
                     ),
+                    */
                   ],
                 ),
               ),
@@ -753,9 +1258,7 @@ class _SubscriptionPlanDetailScreenState
           if (await canLaunchUrl(uri)) {
             await launchUrl(uri, mode: LaunchMode.externalApplication);
           } else {
-            ScaffoldMessenger.of(
-              context,
-            ).showSnackBar(SnackBar(content: Text('Could not open WhatsApp')));
+            SnackBarHelper.showError(context, 'Could not open WhatsApp');
           }
         },
       ),

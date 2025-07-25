@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:grocery_app/helpers/snackbar_helper.dart';
 
 class ReferAndEarnScreen extends StatelessWidget {
   final String referralCode = "ANAAD2025";
@@ -72,11 +73,9 @@ class ReferAndEarnScreen extends StatelessWidget {
                   icon: Icon(Icons.copy, color: Color(0xFF8BC34A)),
                   onPressed: () {
                     Clipboard.setData(ClipboardData(text: referralCode));
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text("Referral code copied to clipboard!"),
-                        duration: Duration(seconds: 2),
-                      ),
+                    SnackBarHelper.showSuccess(
+                      context,
+                      "Referral code copied to clipboard!",
                     );
                   },
                 ),
@@ -116,8 +115,9 @@ class ReferAndEarnScreen extends StatelessWidget {
                   if (await canLaunch(url)) {
                     await launch(url);
                   } else {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('No app found to open WhatsApp.')),
+                    SnackBarHelper.showError(
+                      context,
+                      'No app found to open WhatsApp.',
                     );
                   }
                 },
@@ -130,8 +130,9 @@ class ReferAndEarnScreen extends StatelessWidget {
                   if (await canLaunch(fbUrl)) {
                     await launch(fbUrl);
                   } else {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('No app found to open Facebook.')),
+                    SnackBarHelper.showError(
+                      context,
+                      'No app found to open Facebook.',
                     );
                   }
                 },
@@ -147,8 +148,9 @@ class ReferAndEarnScreen extends StatelessWidget {
                   if (await canLaunch(emailUrl)) {
                     await launch(emailUrl);
                   } else {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('No app found to open email.')),
+                    SnackBarHelper.showError(
+                      context,
+                      'No app found to open email.',
                     );
                   }
                 },
