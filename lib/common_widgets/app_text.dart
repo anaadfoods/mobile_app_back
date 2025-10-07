@@ -8,13 +8,13 @@ class AppText extends StatelessWidget {
   final TextAlign? textAlign;
 
   const AppText({
-    Key? key,
+    super.key,
     required this.text,
     this.fontSize = 18,
     this.fontWeight = FontWeight.normal,
     this.color = Colors.black,
     this.textAlign,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

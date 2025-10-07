@@ -5,10 +5,10 @@ class FavoriteToggleIcon extends StatefulWidget {
   final Function onToggle;
 
   const FavoriteToggleIcon({
-    Key? key,
+    super.key,
     required this.favorite,
     required this.onToggle,
-  }) : super(key: key);
+  });
 
   @override
   _FavoriteToggleIconState createState() => _FavoriteToggleIconState();

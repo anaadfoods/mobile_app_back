@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:grocery_app/common_widgets/imput_widget.dart';
+import 'package:grocery_app/services/api_config.dart';
 import 'package:grocery_app/styles/colors.dart';
 import '../../models/cummunity_model.dart';
 import '../../helpers/snackbar_helper.dart';
@@ -7,7 +9,7 @@ import 'package:http/http.dart' as http;
 
 class CommunityDetailScreen extends StatelessWidget {
   final Community community;
-  const CommunityDetailScreen({required this.community});
+  const CommunityDetailScreen({super.key, required this.community});
 
   // Email validation regex pattern
   static final RegExp _emailRegex = RegExp(
@@ -41,231 +43,262 @@ class CommunityDetailScreen extends StatelessWidget {
     return null;
   }
 
-  Future<void> _showNotificationForm(BuildContext context) async {
-    final formKey = GlobalKey<FormState>();
-    String name = '';
-    String email = '';
-    String phone = '';
-    String message = '';
 
-    await showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text('Stay Updated'),
-          content: SingleChildScrollView(
+
+  // Paste this updated method into your CommunityDetailScreen class
+
+Future<void> _showNotificationForm(BuildContext context) async {
+  final formKey = GlobalKey<FormState>();
+  final _nameController = TextEditingController();
+  final _phoneController = TextEditingController();
+  final _emailController = TextEditingController();
+  final _messageController = TextEditingController();
+
+  await showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        // Added shape for rounded corners to match the form fields
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        
+        // 1. Title is wrapped in a Center widget
+        title: Center(
+          child: Text('Stay Updated', style: TextStyle(color: Colors.white)),
+        ),
+        backgroundColor: AppColors.primaryColor,
+
+        // 2. Content is wrapped in a SizedBox to control the width
+        content: SizedBox(
+          width: double.maxFinite, // Makes the dialog use the available width
+          child: SingleChildScrollView(
             child: Form(
               key: formKey,
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  TextFormField(
-                    decoration: InputDecoration(
-                      labelText: 'Name',
-                      border: OutlineInputBorder(),
-                      prefixIcon: Icon(Icons.person),
-                    ),
+                  CustomInput(
+                    height: 60,
+                    borderRadius: BorderRadius.circular(25),
+                    hintText: "Name",
+                    controller: _nameController,
+                    keyboardType: TextInputType.name, // Changed to name
                     validator: (value) {
                       if (value == null || value.isEmpty) {
                         return 'Please enter your name';
                       }
-                      if (value.length < 2) {
-                        return 'Name must be at least 2 characters';
-                      }
                       return null;
                     },
-                    onSaved: (value) => name = value!,
                   ),
                   SizedBox(height: 16),
-                  TextFormField(
-                    decoration: InputDecoration(
-                      labelText: 'Email',
-                      border: OutlineInputBorder(),
-                      prefixIcon: Icon(Icons.email),
-                      hintText: 'example@email.com',
-                    ),
+                  CustomInput(
+                    height: 60,
+                    borderRadius: BorderRadius.circular(25),
+                    hintText: "Email",
+                    controller: _emailController,
                     keyboardType: TextInputType.emailAddress,
-                    autocorrect: false,
-                    validator: _validateEmail,
-                    onSaved: (value) => email = value!,
+                    validator: _validateEmail, // Using your existing validator
                   ),
                   SizedBox(height: 16),
-                  TextFormField(
-                    decoration: InputDecoration(
-                      labelText: 'Phone',
-                      border: OutlineInputBorder(),
-                      prefixIcon: Icon(Icons.phone),
-                      hintText: '9876543210',
-                    ),
-                    keyboardType: TextInputType.phone,
-                    maxLength: 10,
-                    validator: _validatePhone,
-                    onSaved: (value) => phone = value!,
+                  CustomInput(
+                    hintText: "Phone number",
+                    controller: _phoneController,
+                    keyboardType: TextInputType.number,
+                    validator: _validatePhone, // Using your existing validator
                   ),
                   SizedBox(height: 16),
-                  TextFormField(
-                    decoration: InputDecoration(
-                      labelText: 'Message',
-                      border: OutlineInputBorder(),
-                      prefixIcon: Icon(Icons.message),
-                      alignLabelWithHint: true,
-                    ),
-                    maxLines: 3,
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Please enter your message';
-                      }
-                      if (value.length < 10) {
-                        return 'Message must be at least 10 characters';
-                      }
+                  CustomInput(
+                    hintText: "Message",
+                    controller: _messageController,
+                    keyboardType: TextInputType.text,
+                    validator: (v) {
+                      if (v!.isEmpty) return 'Enter a message';
                       return null;
                     },
-                    onSaved: (value) => message = value!,
-                  ),
+                  )
                 ],
               ),
             ),
           ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: Text('Cancel'),
-            ),
-            ElevatedButton(
-              onPressed: () async {
-                if (formKey.currentState!.validate()) {
-                  formKey.currentState!.save();
-
-                  try {
-                    final response = await http.post(
-                      Uri.parse(
-                        'http://13.203.212.133:8000/api/core/communities/${community.name}/subscribe/',
-                      ),
-                      headers: {'Content-Type': 'application/json'},
-                      body: jsonEncode({
-                        'name': name,
-                        'email': email,
-                        'phone': phone,
-                        'message': message,
-                      }),
-                    );
-
-                    if (response.statusCode == 200 ||
-                        response.statusCode == 201) {
-                      Navigator.pop(context); // Close the form
-                      SnackBarHelper.showSuccess(
-                        context,
-                        'Thank you! We\'ll keep you updated.',
+        ),
+        actions: [
+          // 3. Button is wrapped to control its width and padding
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+            child: SizedBox(
+              width: double.infinity, // Makes the button stretch
+              child: ElevatedButton(
+                onPressed: () async {
+                  if (formKey.currentState!.validate()) {
+                    formKey.currentState!.save();
+                    try {
+                      final response = await http.post(
+                        Uri.parse(
+                          '${ApiConfig.baseUrl}/api/core/communities/${community.name}/subscribe/',
+                        ),
+                        headers: {'Content-Type': 'application/json'},
+                        body: jsonEncode({
+                          'name': _nameController.text,
+                          'email': _emailController.text,
+                          'phone': _phoneController.text,
+                          'message': _messageController.text,
+                        }),
                       );
-                    } else {
-                      throw Exception('Failed to submit form');
+                      if (response.statusCode == 200 ||
+                          response.statusCode == 201) {
+                        Navigator.pop(context); // Close the form
+                        SnackBarHelper.showSuccess(
+                          context,
+                          'Thank you! We\'ll keep you updated.',
+                        );
+                      } else {
+                        throw Exception('Failed to submit form');
+                      }
+                    } catch (e) {
+                      Navigator.pop(context); // Close the form
+                      SnackBarHelper.showError(
+                          context, 'Failed to submit. Please try again later.');
                     }
-                  } catch (e) {
-                    Navigator.pop(context); // Close the form
-                    SnackBarHelper.showError(context, 'Failed to submit. Please try again later.');
                   }
-                }
-              },
-              child: Text('Submit'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primaryColor,
-                foregroundColor: Colors.white,
+                },
+                style: ElevatedButton.styleFrom(
+                  padding: EdgeInsets.symmetric(vertical: 16),
+                  backgroundColor: AppColors.bottonBackgroundColor,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(30)
+                  )
+                ),
+                child: Text('Submit'),
               ),
             ),
-          ],
-        );
-      },
-    );
-  }
+          ),
+        ],
+        // Reduces default padding around the actions
+        actionsPadding: EdgeInsets.zero,
+      );
+    },
+  );
+}
+
+
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(community.name)),
+      appBar: AppBar( centerTitle: false,title: Text(community.name)),
       body: Center(
         child: SingleChildScrollView(
           child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Card(
-              elevation: 6,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(20.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(16),
-                      child: Container(
-                        decoration: BoxDecoration(
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black12,
-                              blurRadius: 8,
-                              offset: Offset(0, 4),
-                            ),
-                          ],
-                        ),
-                        child: Image.network(
-                          community.image,
-                          height: 200,
-                          width: double.infinity,
-                          fit: BoxFit.cover,
-                        ),
+            padding: const EdgeInsets.symmetric(horizontal: 10.0),
+            child: Padding(
+              padding: const EdgeInsets.all(10.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(16),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black12,
+                            blurRadius: 8,
+                            offset: Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: Image.network(
+                        community.image,
+                        height: 200,
+                        width: double.infinity,
+                        fit: BoxFit.cover,
                       ),
                     ),
-                    const SizedBox(height: 20),
-                    Text(
-                      community.name,
-                      style: TextStyle(
-                        fontSize: 26,
-                        fontWeight: FontWeight.bold,
-                        color: Theme.of(context).primaryColorDark,
-                      ),
+                  ),
+                  const SizedBox(height: 20),
+                  Text(
+                    community.name,
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black,
                     ),
-                    const SizedBox(height: 12),
-                    Text(
-                      community.description,
-                      style: TextStyle(fontSize: 16, color: Colors.black87),
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    community.description,
+                    style: TextStyle(fontSize: 16, color: Colors.black),
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Benefits:',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                      color:Colors.black,
                     ),
-                    const SizedBox(height: 24),
-                    Text(
-                      'Benefits:',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 18,
-                        color: Theme.of(context).primaryColor,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    ..._buildBenefitsList(community.benefits),
-                    if (community.comingSoon)
-                      Padding(
-                        padding: const EdgeInsets.only(top: 24.0),
+                  ),
+                  const SizedBox(height: 8),
+                  ..._buildBenefitsList(community.benefits),
+                  if (community.comingSoon)
+                      GestureDetector(
+                        onTap: () => _showNotificationForm(context),
                         child: Center(
-                          child: InkWell(
-                            onTap: () => _showNotificationForm(context),
-                            child: Chip(
-                              label: Text(
-                                'Notify',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              backgroundColor: AppColors.primaryColor,
-                              padding: EdgeInsets.symmetric(
-                                horizontal: 16,
-                                vertical: 8,
+                          child: Container(
+                            margin: EdgeInsets.only(top: 10),
+                            padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                            decoration: BoxDecoration(
+                              color: AppColors.bottonBackgroundColor,
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: Colors.white,
+                                width: 1.5,
                               ),
                             ),
+                            child: Text("Notify" , style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 14,
+                            ),),
                           ),
                         ),
-                      ),
-                  ],
-                ),
+                      )
+
+
+                    // Padding(
+
+                    //   padding: const EdgeInsets.only(top: 24.0),
+                    //   child: Center(
+                    //     child: InkWell(
+                    //       customBorder:ShapeBorder.lerp(
+                    //         RoundedRectangleBorder(
+                    //           borderRadius: BorderRadius.circular(30),
+                    //         ),
+                    //         RoundedRectangleBorder(
+                    //           borderRadius: BorderRadius.circular(30),
+                    //         ),
+                    //         0,
+                    //       ),
+                    //       child: Chip(
+
+                    //         label: Text(
+                    //           'Notify',
+                    //           style: TextStyle(
+                    //             color: Colors.white,
+                    //             fontWeight: FontWeight.bold,
+                    //           ),
+                    //         ),
+                            
+                    //         backgroundColor: AppColors.bottonBackgroundColor,
+                    //         padding: EdgeInsets.symmetric(
+                    //           horizontal: 16,
+                    //           vertical: 8,
+                    //         ),
+                    //       ),
+                    //     ),
+                    //   ),
+                    // ),
+                ],
               ),
             ),
           ),
@@ -294,7 +327,7 @@ class CommunityDetailScreen extends StatelessWidget {
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('• ', style: TextStyle(fontSize: 16, color: Colors.green)),
+                Text('', style: TextStyle(fontSize: 16, color: Colors.green)),
                 Expanded(
                   child: Text(
                     item,

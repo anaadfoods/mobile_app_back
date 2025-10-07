@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:grocery_app/common_widgets/app_text.dart';
+import 'package:grocery_app/helpers/animated_transitions.dart';
 import 'package:grocery_app/models/product_model.dart';
 import 'package:grocery_app/screens/product_details/product_details_screen.dart';
+import 'package:grocery_app/services/cart_service.dart';
 import 'package:grocery_app/widgets/grocery_item_card_widget.dart';
 import 'filter_screen.dart';
 
@@ -10,8 +12,7 @@ class CategoryItemsScreen extends StatefulWidget {
   final String name;
   final List<Product> allProducts;
 
-  CategoryItemsScreen({Key? key, required this.name, required this.allProducts})
-    : super(key: key);
+  const CategoryItemsScreen({super.key, required this.name, required this.allProducts});
 
   @override
   State<CategoryItemsScreen> createState() => _CategoryItemsScreenState();
@@ -37,7 +38,6 @@ class _CategoryItemsScreenState extends State<CategoryItemsScreen> {
       filteredProducts.sort((a, b) => a.price.compareTo(b.price));
     });
   }
-  
 
   @override
   Widget build(BuildContext context) {
@@ -82,36 +82,40 @@ class _CategoryItemsScreenState extends State<CategoryItemsScreen> {
         ),
       ),
       body: SingleChildScrollView(
-        child: StaggeredGrid.count(
-          crossAxisCount: 2,
-          mainAxisSpacing: 3.0,
-          crossAxisSpacing: 0.0,
-          children:
-              filteredProducts.map((product) {
+        child: filteredProducts.isNotEmpty
+              ? ListView.builder(
+              itemCount: filteredProducts.length,
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemBuilder: (context, index) {
                 return GestureDetector(
-                  onTap: () {
-                    onItemClicked(context, product);
-                  },
-                  child: Container(
-                    padding: EdgeInsets.all(10),
-                    child: GroceryItemCardWidget(
-                      item: product,
-                      heroSuffix: "explore_screen",
-                    ),
-                  ),
-                );
-              }).toList(),
-        ),
+                  
+                onTap: filteredProducts[index].isInStock ? () => _onProductClicked(filteredProducts[index]) : null,
+                child: Opacity(
+                  opacity: filteredProducts[index].isInStock ? 1.0 : 0.5,
+                  child: GroceryItemCardWidget(item: filteredProducts[index], heroSuffix: "home_screen", onAddToCart: (productVariantId, quantity) => CartService().addToCart(productVariantId, quantity),),
+
+                ),
+              );
+              },
+            )
+              : SizedBox(height: 10),
+        
       ),
     );
   }
-
-  void onItemClicked(BuildContext context, Product product) {
+ void _onProductClicked(Product item) {
     Navigator.push(
       context,
-      MaterialPageRoute(
-        builder: (context) => ProductDetailsScreen(product: product),
-      ),
+      AnimatedTransitions.fadeScale(ProductDetailsScreen(product: item)),
     );
   }
+  // void onItemClicked(BuildContext context, Product product) {
+  //   Navigator.push(
+  //     context,
+  //     MaterialPageRoute(
+  //       builder: (context) => ProductDetailsScreen(product: product),
+  //     ),
+  //   );
+  // }
 }

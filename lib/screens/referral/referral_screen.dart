@@ -7,6 +7,8 @@ import 'package:grocery_app/helpers/snackbar_helper.dart';
 class ReferAndEarnScreen extends StatelessWidget {
   final String referralCode = "ANAAD2025";
 
+  const ReferAndEarnScreen({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(

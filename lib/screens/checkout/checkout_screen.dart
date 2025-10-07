@@ -27,9 +27,10 @@ class CheckoutScreen extends StatefulWidget {
   final int selectedPlan;
   final Map<String, String>? shippingDetails;
   final double deliveryCharges;
+  final String expectedDeliveryDate;
 
   const CheckoutScreen({
-    Key? key,
+    super.key,
     this.cart,
     this.price,
     this.singleProduct,
@@ -37,9 +38,8 @@ class CheckoutScreen extends StatefulWidget {
     this.isSubscription = false,
     this.selectedPlan = 0,
     this.shippingDetails,
-    required this.deliveryCharges,
-  }) : assert(cart != null || (singleProduct != null && quantity != null)),
-       super(key: key);
+    required this.deliveryCharges, required this.expectedDeliveryDate,
+  }) : assert(cart != null || (singleProduct != null && quantity != null));
 
   @override
   _CheckoutScreenState createState() => _CheckoutScreenState();
@@ -151,11 +151,6 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         await _handleNonUPIPayment();
       }
 
-      // Show success notification
-      // NotificationHelper.showNotification(
-      //   title: 'Order Placed!',
-      //   body: 'Your order has been placed successfully.',
-      // );
     } catch (e) {
       _handleError(e);
     } finally {
@@ -176,39 +171,19 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   Future<void> _handleUPISubscription() async {
     final result = await _createSubscription();
 
-    print("Create subscription response: $result");
-
     if (!mounted) return;
 
     if (result['success'] == true) {
-      print("Success is true, checking payment_links...");
-      print("payment_links: ${result['payment_links']}");
-      print("payment_links type: ${result['payment_links'].runtimeType}");
-
       if (result['payment_links'] != null) {
-        print("payment_links is not null");
-        print("payment_links['web']: ${result['payment_links']['web']}");
-        print(
-          "payment_links['web'] type: ${result['payment_links']['web']?.runtimeType}",
-        );
-
         if (result['payment_links']['web'] != null) {
-          print("Payment links found, launching WebView...");
-          print("Payment URL: ${result['payment_links']['web']}");
-          // Launch WebView for UPI payment
           await _launchSubscriptionWebView(result);
-
-         
         } else {
-          // No payment required, or payment_links missing, treat as success
           await _handleSuccessfulSubscription(result);
         }
       } else {
-        // No payment required, or payment_links missing, treat as success
         await _handleSuccessfulSubscription(result);
       }
     } else {
-      // Only here show the failed dialog
       _showSubscriptionFailedDialog(result);
     }
   }
@@ -222,7 +197,6 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     if (result['success'] == true) {
       await _handleSuccessfulSubscription(result);
 
-      // Send notification for subscription created with COD
       NotificationHelper.showNotification(
         title: 'Subscription Created!',
         body:
@@ -238,7 +212,6 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     Map<String, dynamic> result,
   ) async {
     try {
-      // Fetch subscription details using subscription_id
       if (result['subscription_id'] != null) {
         int parsedSubscriptionId;
         try {
@@ -246,7 +219,6 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             result['subscription_id'].toString(),
           );
         } catch (e) {
-          print('Error parsing subscription ID: ${result['subscription_id']}');
           _showSubscriptionSuccessMessage(result);
           return;
         }
@@ -257,19 +229,16 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         if (subscriptionDetails['success'] == true && mounted) {
           _navigateToSubscriptionDetails(subscriptionDetails['data']);
         } else {
-          // If fetching details fails, show success message
           _showSubscriptionSuccessMessage(result);
         }
       } else {
         _showSubscriptionSuccessMessage(result);
       }
     } catch (e) {
-      print('Error fetching subscription details: $e');
       _showSubscriptionSuccessMessage(result);
     }
   }
 
-  // Show subscription success message
   void _showSubscriptionSuccessMessage(Map<String, dynamic> result) {
     showDialog(
       context: context,
@@ -281,7 +250,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               TextButton(
                 onPressed: () {
                   Navigator.of(context).pop();
-                  Navigator.of(context).pop(); // Go back to previous screen
+                  Navigator.of(context).pop(); 
                 },
                 child: Text('OK'),
               ),
@@ -290,7 +259,6 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     );
   }
 
-  // Handle UPI Order
   Future<void> _handleUPIOrder() async {
     final order = _createOrderModel();
     final response = await _orderService.createOrder(order);
@@ -300,27 +268,20 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     if (response is OrderCreateResponse &&
         response.success &&
         response.paymentLinks?.web != null) {
-      // Launch WebView for UPI payment
       await _launchOrderWebView(response);
-
-     
     } else if (response is OrderModel) {
-      // Fallback: If response is OrderModel, treat as success (COD etc)
       _navigateToOrderAccepted(response);
 
-      // Send notification for order created with COD
       NotificationHelper.showNotification(
         title: 'Order Created!',
         body:
             'Order ID: ${response.orderNumber}\nPayment Mode: Cash on Delivery\nStatus: Pending Payment',
       );
     } else {
-      // Handle error
       _showOrderFailedDialog(_parseServerError(response));
     }
   }
 
-  // Handle Non-UPI Order
   Future<void> _handleNonUPIOrder() async {
     final order = _createOrderModel();
     final createdOrder = await _orderService.createOrder(order);
@@ -329,7 +290,6 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
     _navigateToOrderAccepted(createdOrder);
 
-    // Send notification for order created with COD
     NotificationHelper.showNotification(
       title: 'Order Created!',
       body:
@@ -337,7 +297,6 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     );
   }
 
-  // Handle Non-UPI Payment Flow
   Future<void> _handleNonUPIPayment() async {
     if (widget.isSubscription) {
       await _handleNonUPISubscription();
@@ -346,9 +305,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     }
   }
 
-  // Helper Methods
   Future<Map<String, dynamic>> _createSubscription() async {
-    print("Payment method is ${_selectedPaymentMethod}");
     final request = SubscriptionCreateRequest(
       plan: widget.selectedPlan,
       deliveryAddress: _shippingDetails!.address ?? "",
@@ -366,8 +323,6 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       ],
     );
 
-    print(request.items);
-
     return await _subscriptionService.createSubscription(request);
   }
 
@@ -381,22 +336,14 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   }
 
   Future<void> _launchSubscriptionWebView(Map<String, dynamic> result) async {
-    print("=== _launchSubscriptionWebView called ===");
-    print("Result: $result");
-
     try {
       final paymentUrl = result['payment_links']['web'];
       final subscriptionId = result['subscription_id'];
-
-      print("Payment URL: $paymentUrl");
-      print("Subscription ID: $subscriptionId");
-      print("Is Subscription: ${widget.isSubscription}");
 
       if (subscriptionId == null) {
         throw Exception('Subscription ID is null');
       }
 
-      // Parse subscription ID to int
       int parsedSubscriptionId;
       try {
         parsedSubscriptionId = int.parse(subscriptionId.toString());
@@ -404,12 +351,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         throw Exception('Invalid subscription ID format: $subscriptionId');
       }
 
-      if (!mounted) {
-        print("Widget not mounted, cannot navigate");
-        return;
-      }
-
-      print("About to navigate to WebView...");
+      if (!mounted) return;
 
       await Navigator.push(
         context,
@@ -421,14 +363,11 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             subID: parsedSubscriptionId,
             isSubscription: widget.isSubscription,
             onPaymentSuccess: (url) async {
-              print("Payment success callback triggered");
-              // Fetch subscription details after successful payment
               try {
                 final subscriptionDetails = await _subscriptionService
                     .getSubscriptionDetails(parsedSubscriptionId);
 
                 if (subscriptionDetails['success'] == true && mounted) {
-                  // Send notification for successful payment
                   NotificationHelper.showNotification(
                     title: 'Payment Successful!',
                     body:
@@ -445,21 +384,17 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                     (route) => route.isFirst,
                   );
                 } else {
-                  // If fetching details fails, show success message
                   Navigator.pop(context);
                   _showSubscriptionSuccessMessage(result);
                 }
               } catch (e) {
-                print('Error fetching subscription details after payment: $e');
                 Navigator.pop(context);
                 _showSubscriptionSuccessMessage(result);
               }
             },
             onPaymentFailure: (url) {
-              print("Payment failure callback triggered");
               Navigator.pop(context);
 
-              // Send notification for payment failure
               NotificationHelper.showNotification(
                 title: 'Payment Failed!',
                 body:
@@ -476,10 +411,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           ),
         ),
       );
-
-      print("Navigation to WebView completed");
     } catch (e) {
-      print("Error in _launchSubscriptionWebView: $e");
       SnackBarHelper.showError(context, 'Failed to launch payment page: $e');
     }
   }
@@ -499,14 +431,11 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           },
           onPaymentFailure: (url) {
             Navigator.pop(context);
-
-            // Send notification for order payment failure
             NotificationHelper.showNotification(
               title: 'Payment Failed!',
               body:
                   'Order ID: ${response.orderId}\nPayment Mode: UPI\nStatus: Failed',
             );
-
             SnackBarHelper.showError(context, 'Payment failed or cancelled');
           },
         ),
@@ -524,9 +453,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
       if (paymentStatus.paymentStatus == 'PAID' &&
           paymentStatus.transactionStatus == 'SUCCESS') {
-        final order = await _orderService.getOrderById(paymentStatus.orderId!);
+        final order = await _orderService.getOrderById(paymentStatus.orderId);
 
-        // Send notification for successful order payment
         NotificationHelper.showNotification(
           title: 'Payment Successful!',
           body:
@@ -615,17 +543,15 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     );
   }
 
-  // Existing helper methods
   Future<void> _fetchPlansAndAssign() async {
     final result = await _subscriptionService.getSubscriptionPlans();
     if (result['success'] == true && mounted) {
       setState(() {
         planDescriptions = result['data'] as List<SubscriptionPlan>;
         if (planDescriptions.isNotEmpty &&
-            widget.selectedPlan != null &&
-            widget.selectedPlan! > 0 &&
-            widget.selectedPlan! <= planDescriptions.length) {
-          subscription = planDescriptions[widget.selectedPlan!];
+            widget.selectedPlan > 0 &&
+            widget.selectedPlan <= planDescriptions.length) {
+          subscription = planDescriptions[widget.selectedPlan];
         }
       });
     } else {
@@ -739,7 +665,86 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     return error.toString();
   }
 
+  Widget _buildProductImage(ProductVariant variant) {
+    String? imageUrl;
+    if (variant.productImages.isNotEmpty &&
+        variant.productImages[0] is String &&
+        (variant.productImages[0] as String).isNotEmpty) {
+      imageUrl = variant.productImages[0] as String;
+    }
+
+    return Container(
+      width: 50,
+      height: 50,
+      clipBehavior: Clip.antiAlias, // To ensure the child (Image/Icon) is clipped
+      decoration: BoxDecoration(
+        color: Colors.grey[200],
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: imageUrl != null
+          ? Image.network(
+              imageUrl,
+              fit: BoxFit.cover,
+              errorBuilder: (context, error, stackTrace) {
+                return const Icon(Icons.shopping_bag_outlined, color: Colors.grey);
+              },
+            )
+          : const Icon(Icons.shopping_bag_outlined, color: Colors.grey),
+    );
+  }
+
   // UI Methods
+  Future<void> _showPaymentMethodSelectionDialog() async {
+    String? newSelection = await showModalBottomSheet<String>(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (BuildContext context) {
+        return Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              Text(
+                'Select Payment Method',
+                style: Theme.of(context).textTheme.titleLarge,
+              ),
+              const SizedBox(height: 16),
+              ListTile(
+                leading: const Icon(Icons.money, color: Colors.green),
+                title: const Text('Cash on Delivery'),
+                onTap: () => Navigator.pop(context, 'COD'),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                tileColor: _selectedPaymentMethod == 'COD' ? Colors.green.withOpacity(0.1) : null,
+              ),
+              const Divider(),
+              ListTile(
+                leading: const Icon(Icons.payment, color: Colors.blue),
+                title: const Text('Pay Online'),
+                subtitle: const Text('UPI / Card / NetBanking'),
+                onTap: () => Navigator.pop(context, 'UPI'),
+                 shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                tileColor: _selectedPaymentMethod == 'UPI' ? Colors.blue.withOpacity(0.1) : null,
+              ),
+            ],
+          ),
+        );
+      },
+    );
+
+    if (newSelection != null) {
+      setState(() {
+        _selectedPaymentMethod = newSelection;
+      });
+    }
+  }
+
   Widget _buildPaymentTypeSelector() {
     if (!widget.isSubscription) return SizedBox.shrink();
 
@@ -774,10 +779,10 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                           _showSubscriptionDetails(
                             context,
                             subscription!,
-                            widget.selectedPlan!,
+                            widget.selectedPlan,
                             widget.price ?? 0.0,
                             widget.deliveryCharges,
-                            showAmountPerDelivery: true,
+                            showAmountPerDelivery: false,
                           );
                         }
                       },
@@ -820,7 +825,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                             _showSubscriptionDetails(
                               context,
                               subscription!,
-                              widget.selectedPlan!,
+                              widget.selectedPlan,
                               widget.price ?? 0.0,
                               widget.deliveryCharges,
                               showAmountPerDelivery: true,
@@ -849,58 +854,22 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   Widget _buildPaymentMethodSelector() {
     return Card(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Padding(
-        padding: EdgeInsets.all(8),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Payment Method',
-              style: Theme.of(context).textTheme.titleLarge,
-            ),
-            SizedBox(height: 16),
-            RadioListTile<String>(
-              value: 'COD',
-              groupValue: _selectedPaymentMethod,
-              onChanged: (value) {
-                setState(() {
-                  _selectedPaymentMethod = value!;
-                });
-              },
-              title: Row(
-                children: [
-                  Icon(Icons.money, color: Colors.green),
-                  SizedBox(width: 12),
-                  Text('Cash on Delivery'),
-                ],
-              ),
-              subtitle: Text('Pay when you receive'),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-            ),
-            RadioListTile<String>(
-              value: 'UPI',
-              groupValue: _selectedPaymentMethod,
-              onChanged: (value) {
-                setState(() {
-                  _selectedPaymentMethod = value!;
-                });
-              },
-              title: Row(
-                children: [
-                  Icon(Icons.payment, color: Colors.blue),
-                  SizedBox(width: 12),
-                  Text('UPI/Card/NetBanking'),
-                ],
-              ),
-              subtitle: Text('pay now '),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-            ),
-          ],
+      child: ListTile(
+        onTap: _showPaymentMethodSelectionDialog,
+        leading: Icon(
+          _selectedPaymentMethod == 'COD' ? Icons.money : Icons.payment,
+          color: Theme.of(context).primaryColor,
         ),
+        title: const Text(
+          'Pay Using',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
+        subtitle: Text(
+          _selectedPaymentMethod == 'COD'
+              ? 'Cash on Delivery'
+              : 'UPI / Card / NetBanking',
+        ),
+        trailing: const Icon(Icons.chevron_right),
       ),
     );
   }
@@ -909,6 +878,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        centerTitle: false,
         title: Text(
           widget.isSubscription ? 'Subscription Checkout' : 'Checkout',
         ),
@@ -918,155 +888,310 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           _isLoading
               ? Center(child: CircularProgressIndicator())
               : SingleChildScrollView(
-                padding: EdgeInsets.all(12),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    // Delivery Address Card
-                    if (widget.shippingDetails != null)
+                  padding: EdgeInsets.all(12),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      // Delivery Address Card
+                    Column(
+  children: [
+    // 1. WIDGET FOR ESTIMATED DELIVERY DATE
+    Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        // Use a color that matches your design
+        color: const Color(0xFFFEF5E7), 
+        borderRadius: BorderRadius.circular(12.0),
+      ),
+      child: Row(
+        children: [
+          // The truck emoji 🚚
+          const Text('🚚', style: TextStyle(fontSize: 20)), 
+          const SizedBox(width: 12),
+          Text(
+            // Using your variable for the date
+            "Estimated Delivery by ${widget.expectedDeliveryDate}", 
+            style: TextStyle(
+              fontWeight: FontWeight.w500,
+              color: Colors.grey.shade800,
+            ),
+          ),
+        ],
+      ),
+    ),
+
+    const SizedBox(height: 10), // Adds a small space between the two sections
+
+    // 2. WIDGET FOR THE SHIPPING ADDRESS
+    ExpansionTile(
+      // --- Style the ExpansionTile itself ---
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),
+      collapsedShape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),
+      backgroundColor: const Color(0xFFF8F9F9),
+      collapsedBackgroundColor: const Color(0xFFF8F9F9),
+      
+      // Remove the default padding
+      tilePadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8), 
+      
+      // --- The title you see when it's collapsed ---
+      title: Row(
+        children: [
+          Icon(Icons.location_on_outlined, color: Colors.grey.shade700),
+          const SizedBox(width: 12),
+          Expanded( // Use Expanded to prevent overflow with long addresses
+            child: Text(
+              widget.shippingDetails!['address']!,
+              style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: Colors.black87),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ],
+      ),
+
+      // --- The content you see when it's expanded (your original code) ---
+      children: [
+        ListTile(
+          title: Text(widget.shippingDetails!['address']!),
+          subtitle: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                '${widget.shippingDetails!['city']}, ${widget.shippingDetails!['state']}',
+              ),
+              Text(
+                'Pincode: ${widget.shippingDetails!['pincode']}',
+              ),
+              Text(
+                'Phone: ${widget.shippingDetails!['phone']}',
+              ),
+            ],
+          ),
+        ),
+      ],
+    ),
+  ],
+),
+                      _buildPaymentTypeSelector(),
+                      // Order Summary Card
                       Card(
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
-                        child: ExpansionTile(
-                          initiallyExpanded: true,
-                          title: Text(
-                            'Delivery Address',
-                            style: Theme.of(context).textTheme.titleLarge,
-                          ),
-                          children: [
-                            ListTile(
-                              title: Text(widget.shippingDetails!['address']!),
-                              subtitle: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    '${widget.shippingDetails!['city']}, ${widget.shippingDetails!['state']}',
-                                  ),
-                                  Text(
-                                    'Pincode: ${widget.shippingDetails!['pincode']}',
-                                  ),
-                                  Text(
-                                    'Phone: ${widget.shippingDetails!['phone']}',
-                                  ),
-                                ],
+                        child: Padding(
+                          padding: EdgeInsets.all(16),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                widget.isSubscription
+                                    ? 'Subscription Summary'
+                                    : 'Order Summary',
+                                style: Theme.of(context).textTheme.titleLarge,
                               ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    _buildPaymentTypeSelector(),
-                    // Order Summary Card
-                    Card(
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Padding(
-                        padding: EdgeInsets.all(16),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              widget.isSubscription
-                                  ? 'Subscription Summary'
-                                  : 'Order Summary',
-                              style: Theme.of(context).textTheme.titleLarge,
-                            ),
-                            SizedBox(height: 16),
-                            if (widget.singleProduct != null) ...[
-                              ListTile(
-                                contentPadding: EdgeInsets.zero,
-                                title: Text(widget.singleProduct!.productName),
-                                subtitle: Text('Quantity: ${widget.quantity}'),
-                                trailing: Text(
-                                  widget.isSubscription
-                                      ? '₹${widget.price!.toStringAsFixed(2)}'
-                                      : '₹${widget.singleProduct!.finalPrice}',
-                                ),
-                              ),
-                            ] else ...[
-                              ...widget.cart!.items.map(
-                                (item) => ListTile(
+                              SizedBox(height: 16),
+                              if (widget.singleProduct != null) ...[
+                                ListTile(
                                   contentPadding: EdgeInsets.zero,
-                                  title: Text(item.productVariant.productName),
-                                  subtitle: Text('Quantity: ${item.quantity}'),
-                                  trailing: Text('₹${item.totalPrice}'),
+                                  leading: _buildProductImage(widget.singleProduct!),
+                                  title: Text(widget.singleProduct!.productName , style: TextStyle(fontSize: 14),),  
+                                  subtitle: Text('Quantity: ${widget.quantity}'),
+                                  trailing: Text(
+                                    widget.isSubscription
+                                        ? '₹${widget.price!.toStringAsFixed(2)}'
+                                        : '₹${widget.singleProduct!.finalPrice.toStringAsFixed(2)}',
+                                  ),
                                 ),
-                              ),
-                            ],
-                            Divider(height: 24),
-                            // Delivery Charges
-                            if (widget.deliveryCharges > 0)
-                              Padding(
-                                padding: EdgeInsets.symmetric(vertical: 8),
-                                child: Row(
+                              ] else ...[
+                                ...widget.cart!.items.map(
+                                  (item) => ListTile(
+                                    contentPadding: EdgeInsets.zero,
+                                    leading: _buildProductImage(item.productVariant),
+                                    title: Text(item.productVariant.productName),
+                                    subtitle: Text('Quantity: ${item.quantity}'),
+                                    trailing: Text('₹${item.totalPrice}'),
+                                  ),
+                                ),
+                              ],
+
+                              Divider(height: 24),
+                              // Delivery Charges
+                              if (widget.deliveryCharges > 0 &&
+                                  widget.isSubscription) ...[
+                                ListTile(
+                                  contentPadding: EdgeInsets.zero,
+                                  title: Text("Delivery Charges"),
+                                  subtitle: Text(
+                                    "* for single delivery",
+                                    style: TextStyle(fontSize: 12),
+                                  ),
+                                  trailing: Text(
+                                    '₹${widget.deliveryCharges.toStringAsFixed(2)}',
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+
+                                ListTile(
+                                  contentPadding: EdgeInsets.zero,
+                                  title: Text("Total delivery charges"),
+                                  subtitle: Text(
+                                    "* for ${subscription!.durationMonths} months",
+                                    style: TextStyle(fontSize: 12),
+                                  ),
+                                  trailing: Text(
+                                    '₹${(subscription!.durationMonths.toDouble() * widget.deliveryCharges).toStringAsFixed(2)}',
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                                ListTile(
+                                  contentPadding: EdgeInsets.zero,
+                                  title: Text(
+                                    "Price for ${subscription!.durationMonths} units",
+                                  ),
+                                  subtitle: Text(
+                                    "* for ${subscription!.durationMonths} month plan",
+                                    style: TextStyle(fontSize: 12),
+                                  ),
+                                  trailing: Text(
+                                    '₹${(subscription!.durationMonths.toDouble() * widget.price!).toStringAsFixed(2)}',
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                                ListTile(
+                                  contentPadding: EdgeInsets.zero,
+                                  title: Text("Payable amount"),
+                                  subtitle: Text(
+                                    (_selectedPaymentType == 'FULL')
+                                        ? "* for ${subscription!.durationMonths} month plan"
+                                        : "* for ${subscription!.installmentFrequencyMonths} month installment",
+                                    style: TextStyle(fontSize: 12),
+                                  ),
+                                  trailing: Text(
+                                    (_selectedPaymentType == 'FULL')
+                                        ? '₹${(subscription!.durationMonths.toDouble() * double.parse(totalPrice)).toStringAsFixed(2)}'
+                                        : '₹${(subscription!.installmentFrequencyMonths.toDouble() * double.parse(totalPrice)).toStringAsFixed(2)}',
+                                    style: TextStyle(
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.green,
+                                    ),
+                                  ),
+                                ),
+                              ] else ...[
+                                Padding(
+                                  padding: EdgeInsets.symmetric(vertical: 8),
+                                  child: Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Text(
+                                        'Delivery Charges',
+                                        overflow: TextOverflow.clip,
+                                        style: TextStyle(fontSize: 16),
+                                      ),
+                                      Text(
+                                        '₹${widget.deliveryCharges.toStringAsFixed(2)}',
+                                        style: TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                // Padding(
+                                //   padding: EdgeInsets.symmetric(vertical: 8),
+                                //   child: Row(
+                                //     mainAxisAlignment:
+                                //         MainAxisAlignment.spaceBetween,
+                                //     children: [
+                                //       Text(
+                                //         'Expected Delivery Date',
+                                //         overflow: TextOverflow.clip,
+                                //         style: TextStyle(fontSize: 16),
+                                //       ),
+                                //       Text(
+                                //         widget.expectedDeliveryDate,
+                                //         style: TextStyle(
+                                //           fontSize: 16,
+                                //           fontWeight: FontWeight.bold,
+                                //         ),
+                                //       ),
+                                //     ],
+                                //   ),
+                                // ),
+                                Divider(height: 24),
+                                Row(
                                   mainAxisAlignment:
                                       MainAxisAlignment.spaceBetween,
                                   children: [
                                     Text(
-                                      'Delivery Charges',
-                                      style: TextStyle(fontSize: 16),
+                                      'Total Amount',
+                                      style: TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.bold,
+                                      ),
                                     ),
                                     Text(
-                                      '₹${widget.deliveryCharges.toStringAsFixed(2)}',
+                                      '₹${(double.parse(totalPrice)).toStringAsFixed(2)}',
                                       style: TextStyle(
-                                        fontSize: 16,
+                                        fontSize: 20,
                                         fontWeight: FontWeight.bold,
+                                        color: Colors.green,
                                       ),
                                     ),
                                   ],
                                 ),
-                              ),
-                            Divider(height: 24),
-                            // Total Amount
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(
-                                  'Total Amount',
-                                  style: TextStyle(
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                                Text(
-                                  '₹${double.parse(totalPrice).toStringAsFixed(2)}',
-                                  style: TextStyle(
-                                    fontSize: 20,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.green,
-                                  ),
-                                ),
                               ],
-                            ),
-                          ],
+
+                              // Total Amount
+                            ],
+                          ),
                         ),
                       ),
-                    ),
-                    // Payment Method Selector
-                    _buildPaymentMethodSelector(),
-                    // Place Order Button
-                    ElevatedButton(
-                      onPressed: _createOrder,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.green,
-                        padding: EdgeInsets.symmetric(vertical: 16),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                      child: Text(
-                        widget.isSubscription ? 'Subscribe Now' : 'Place Order',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  ],
+                      // Payment Method Selector
+                      _buildPaymentMethodSelector(),
+                      ],
+                  ),
                 ),
-              ),
+                      // Place Order Button
+                    bottomNavigationBar:   Container(
+                      margin: EdgeInsets.all(12),
+                      child: ElevatedButton(
+                          onPressed: _createOrder,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.green,
+                            padding: EdgeInsets.symmetric(vertical: 16),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          child: Text(
+                            widget.isSubscription ? 'Subscribe Now' : 'Place Order',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                    ),
+                    
     );
+  }
+}
+
+extension on String {
+  toStringAsFixed(int i) {
+    return double.tryParse(this)?.toStringAsFixed(i) ?? this;
   }
 }
 
@@ -1266,3 +1391,4 @@ void _showSubscriptionDetails(
     },
   );
 }
+

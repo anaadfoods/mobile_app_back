@@ -16,6 +16,8 @@ class Product {
   final String productCategory;
   final List<ProductImage> productImages;
 
+  
+
   Product({
     required this.id,
     required this.sku,
@@ -30,6 +32,7 @@ class Product {
     required this.productDescription,
     required this.productCategory,
     required this.productImages,
+
   });
 
   // Convert Product to ProductVariant

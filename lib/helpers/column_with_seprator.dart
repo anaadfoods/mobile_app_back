@@ -5,7 +5,7 @@ List<Widget> getChildrenWithSeperator(
     required Widget seperator,
     bool addToLastChild = true}) {
   List<Widget> children = [];
-  if (widgets.length > 0) {
+  if (widgets.isNotEmpty) {
     children.add(seperator);
 
     for (int i = 0; i < widgets.length; i++) {

@@ -12,17 +12,18 @@ class NotificationBadgeWidget extends StatefulWidget {
   final VoidCallback? onTap;
 
   const NotificationBadgeWidget({
-    Key? key,
+    super.key,
     required this.child,
     this.showBadge = true,
     this.badgeColor,
     this.textColor,
     this.badgeSize,
     this.onTap,
-  }) : super(key: key);
+  });
 
   @override
-  State<NotificationBadgeWidget> createState() => _NotificationBadgeWidgetState();
+  State<NotificationBadgeWidget> createState() =>
+      _NotificationBadgeWidgetState();
 }
 
 class _NotificationBadgeWidgetState extends State<NotificationBadgeWidget> {
@@ -56,9 +57,9 @@ class _NotificationBadgeWidgetState extends State<NotificationBadgeWidget> {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     int currentCount = prefs.getInt('notification_count') ?? 0;
     int newCount = currentCount + 1;
-    
+
     await prefs.setInt('notification_count', newCount);
-    
+
     if (mounted) {
       setState(() {
         _notificationCount = newCount;
@@ -69,7 +70,7 @@ class _NotificationBadgeWidgetState extends State<NotificationBadgeWidget> {
   Future<void> _clearNotificationCount() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.setInt('notification_count', 0);
-    
+
     if (mounted) {
       setState(() {
         _notificationCount = 0;
@@ -100,7 +101,9 @@ class _NotificationBadgeWidgetState extends State<NotificationBadgeWidget> {
                 ),
                 child: Center(
                   child: Text(
-                    _notificationCount > 99 ? '99+' : _notificationCount.toString(),
+                    _notificationCount > 99
+                        ? '99+'
+                        : _notificationCount.toString(),
                     style: TextStyle(
                       color: widget.textColor ?? Colors.white,
                       fontSize: (widget.badgeSize ?? 20) * 0.6,
@@ -122,11 +125,11 @@ class NotificationListWidget extends StatefulWidget {
   final Function(Map<String, dynamic>)? onNotificationDismiss;
 
   const NotificationListWidget({
-    Key? key,
+    super.key,
     required this.notifications,
     this.onNotificationTap,
     this.onNotificationDismiss,
-  }) : super(key: key);
+  });
 
   @override
   State<NotificationListWidget> createState() => _NotificationListWidgetState();
@@ -136,22 +139,15 @@ class _NotificationListWidgetState extends State<NotificationListWidget> {
   @override
   Widget build(BuildContext context) {
     if (widget.notifications.isEmpty) {
-      return const Center(
+      return  Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              Icons.notifications_none,
-              size: 64,
-              color: Colors.grey,
-            ),
+            Icon(Icons.notifications_none, size: 64, color: Colors.grey),
             SizedBox(height: 16),
             Text(
               'No notifications yet',
-              style: TextStyle(
-                fontSize: 16,
-                color: Colors.grey,
-              ),
+              style: TextStyle(fontSize: 16, color: Colors.grey),
             ),
           ],
         ),
@@ -172,7 +168,7 @@ class _NotificationListWidgetState extends State<NotificationListWidget> {
   }
 }
 
-class _NotificationListItem extends StatelessWidget {
+class _NotificationListItem extends StatefulWidget {
   final Map<String, dynamic> notification;
   final VoidCallback? onTap;
   final VoidCallback? onDismiss;
@@ -184,28 +180,37 @@ class _NotificationListItem extends StatelessWidget {
   });
 
   @override
+  State<_NotificationListItem> createState() => _NotificationListItemState();
+}
+
+class _NotificationListItemState extends State<_NotificationListItem> {
+  bool _isExpanded = false;
+
+  @override
   Widget build(BuildContext context) {
-    final messageType = MessageUtility.getMessageType(notification);
+    final messageType = MessageUtility.getMessageType(widget.notification);
     final icon = MessageUtility.getMessageIcon(messageType);
     final color = MessageUtility.getMessageColor(messageType);
-    final backgroundColor = MessageUtility.getMessageBackgroundColor(messageType);
-    final timestamp = notification['timestamp'] as int? ?? 0;
-    final title = notification['title'] as String? ?? '';
-    final body = notification['body'] as String? ?? '';
-    final isHighPriority = MessageUtility.isHighPriority(notification);
+    final backgroundColor = MessageUtility.getMessageBackgroundColor(
+      messageType,
+    );
+    final timestamp = widget.notification['timestamp'] as int? ?? 0;
+    final title = widget.notification['title'] as String? ?? '';
+    final body = widget.notification['body'] as String? ?? '';
+    final isHighPriority = MessageUtility.isHighPriority(widget.notification);
+
+    // Check if body is long enough to need expansion
+    final bool needsExpansion = body.length > 100;
 
     return Dismissible(
-      key: Key(notification['id']?.toString() ?? timestamp.toString()),
+      key: Key(widget.notification['id']?.toString() ?? timestamp.toString()),
       direction: DismissDirection.endToStart,
-      onDismissed: (direction) => onDismiss?.call(),
+      onDismissed: (direction) => widget.onDismiss?.call(),
       background: Container(
         color: Colors.red,
         alignment: Alignment.centerRight,
         padding: const EdgeInsets.only(right: 16),
-        child: const Icon(
-          Icons.delete,
-          color: Colors.white,
-        ),
+        child: const Icon(Icons.delete, color: Colors.white),
       ),
       child: Container(
         margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
@@ -225,18 +230,11 @@ class _NotificationListItem extends StatelessWidget {
               color: color.withOpacity(0.1),
               borderRadius: BorderRadius.circular(8),
             ),
-            child: Icon(
-              icon,
-              color: color,
-              size: 24,
-            ),
+            child: Icon(icon, color: color, size: 24),
           ),
           title: Text(
             title,
-            style: const TextStyle(
-              fontWeight: FontWeight.bold,
-              fontSize: 16,
-            ),
+            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
           ),
@@ -244,43 +242,65 @@ class _NotificationListItem extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               if (body.isNotEmpty)
-                Text(
-                  body,
-                  style: const TextStyle(
-                    color: Colors.grey,
-                    fontSize: 14,
-                  ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      body,
+                      style: const TextStyle(color: Colors.grey, fontSize: 14),
+                      maxLines: _isExpanded ? null : 2,
+                      overflow: _isExpanded ? null : TextOverflow.ellipsis,
+                    ),
+                    if (needsExpansion)
+                      GestureDetector(
+                        onTap: () {
+                          setState(() {
+                            _isExpanded = !_isExpanded;
+                          });
+                        },
+                        child: Padding(
+                          padding: const EdgeInsets.only(top: 4),
+                          child: Text(
+                            _isExpanded ? 'Show less' : 'Show more',
+                            style: TextStyle(
+                              color: color,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                      ),
+                  ],
                 ),
               const SizedBox(height: 4),
               Text(
                 MessageUtility.formatTimestamp(timestamp),
-                style: const TextStyle(
-                  color: Colors.grey,
-                  fontSize: 12,
-                ),
+                style: const TextStyle(color: Colors.grey, fontSize: 12),
               ),
             ],
           ),
-          trailing: isHighPriority
-              ? Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: color,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: const Text(
-                    'URGENT',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 10,
-                      fontWeight: FontWeight.bold,
+          trailing:
+              isHighPriority
+                  ? Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
                     ),
-                  ),
-                )
-              : null,
-          onTap: onTap,
+                    decoration: BoxDecoration(
+                      color: color,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: const Text(
+                      'URGENT',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  )
+                  : null,
+          onTap: widget.onTap,
         ),
       ),
     );
@@ -294,18 +314,20 @@ class NotificationSettingsWidget extends StatefulWidget {
   final Function(bool)? onSubscriptionNotificationsChanged;
 
   const NotificationSettingsWidget({
-    Key? key,
+    super.key,
     this.onOrderNotificationsChanged,
     this.onProductNotificationsChanged,
     this.onPromoNotificationsChanged,
     this.onSubscriptionNotificationsChanged,
-  }) : super(key: key);
+  });
 
   @override
-  State<NotificationSettingsWidget> createState() => _NotificationSettingsWidgetState();
+  State<NotificationSettingsWidget> createState() =>
+      _NotificationSettingsWidgetState();
 }
 
-class _NotificationSettingsWidgetState extends State<NotificationSettingsWidget> {
+class _NotificationSettingsWidgetState
+    extends State<NotificationSettingsWidget> {
   bool _orderNotifications = true;
   bool _productNotifications = true;
   bool _promoNotifications = true;
@@ -324,7 +346,8 @@ class _NotificationSettingsWidgetState extends State<NotificationSettingsWidget>
       _orderNotifications = prefs.getBool('order_notifications') ?? true;
       _productNotifications = prefs.getBool('product_notifications') ?? true;
       _promoNotifications = prefs.getBool('promo_notifications') ?? true;
-      _subscriptionNotifications = prefs.getBool('subscription_notifications') ?? true;
+      _subscriptionNotifications =
+          prefs.getBool('subscription_notifications') ?? true;
     });
   }
 
@@ -333,7 +356,10 @@ class _NotificationSettingsWidgetState extends State<NotificationSettingsWidget>
     await prefs.setBool('order_notifications', _orderNotifications);
     await prefs.setBool('product_notifications', _productNotifications);
     await prefs.setBool('promo_notifications', _promoNotifications);
-    await prefs.setBool('subscription_notifications', _subscriptionNotifications);
+    await prefs.setBool(
+      'subscription_notifications',
+      _subscriptionNotifications,
+    );
   }
 
   @override
@@ -430,32 +456,22 @@ class _NotificationSettingsWidgetState extends State<NotificationSettingsWidget>
             color: color.withOpacity(0.1),
             borderRadius: BorderRadius.circular(8),
           ),
-          child: Icon(
-            icon,
-            color: color,
-            size: 24,
-          ),
+          child: Icon(icon, color: color, size: 24),
         ),
         title: Text(
           title,
-          style: const TextStyle(
-            fontWeight: FontWeight.bold,
-            fontSize: 16,
-          ),
+          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
         ),
         subtitle: Text(
           subtitle,
-          style: const TextStyle(
-            color: Colors.grey,
-            fontSize: 14,
-          ),
+          style: const TextStyle(color: Colors.grey, fontSize: 14),
         ),
         trailing: Switch(
           value: value,
           onChanged: onChanged,
-          activeColor: color,
+          activeThumbColor: color,
         ),
       ),
     );
   }
-} 
+}

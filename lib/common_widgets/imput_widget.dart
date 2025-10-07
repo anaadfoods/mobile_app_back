@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:grocery_app/styles/colors.dart';
 
 class CustomInput extends StatefulWidget {
   final String hintText;
@@ -7,9 +8,16 @@ class CustomInput extends StatefulWidget {
   final TextInputType? keyboardType;
   final Widget? suffixIcon;
   final Widget? prefixIcon;
+  final BorderRadius? borderRadius;
   final String? Function(String?)? validator;
   final FocusNode? focusNode;
   final void Function(bool)? onValidationChanged;
+
+  // NEW PARAMETERS
+  final double? width;
+  final double? height;
+  final InputBorder? customBorder;
+  final Color? fillColor;
 
   const CustomInput({
     super.key,
@@ -19,9 +27,14 @@ class CustomInput extends StatefulWidget {
     this.keyboardType,
     this.suffixIcon,
     this.prefixIcon,
+    this.borderRadius,
     this.validator,
     this.focusNode,
     this.onValidationChanged,
+    this.width,
+    this.height,
+    this.customBorder,
+    this.fillColor,
   });
 
   @override
@@ -31,6 +44,7 @@ class CustomInput extends StatefulWidget {
 class _CustomInputState extends State<CustomInput> {
   bool _isValid = false;
   String? _errorText;
+  bool _obscure = true; // 👈 for password toggle
 
   void _validateInput(String? value) {
     if (widget.validator != null) {
@@ -45,6 +59,7 @@ class _CustomInputState extends State<CustomInput> {
   @override
   void initState() {
     super.initState();
+    _obscure = widget.obscureText;
     widget.controller.addListener(() {
       _validateInput(widget.controller.text);
     });
@@ -52,44 +67,66 @@ class _CustomInputState extends State<CustomInput> {
 
   @override
   Widget build(BuildContext context) {
-    return TextFormField(
-      controller: widget.controller,
-      obscureText: widget.obscureText,
-      keyboardType: widget.keyboardType,
-      validator: widget.validator,
-      focusNode: widget.focusNode,
-      cursorRadius: const Radius.circular(20),
-      onChanged: _validateInput,
-      style: TextStyle(fontSize: 16, color: Colors.black87),
-      decoration: InputDecoration(
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8.0),
-          borderSide: BorderSide(
-            color: _isValid ? Colors.green : Colors.grey,
-            width: 1.0,
+    return SizedBox(
+      width: widget.width ?? double.infinity,
+      height: widget.height ?? 60,
+      child: TextFormField(
+        controller: widget.controller,
+        obscureText: _obscure,
+        keyboardType: widget.keyboardType,
+        validator: widget.validator,
+        focusNode: widget.focusNode,
+        onChanged: _validateInput,
+        style: const TextStyle(fontSize: 12, color: Colors.white),
+        cursorRadius: const Radius.circular(20),
+                cursorColor: Colors.white,
+
+        decoration: InputDecoration(
+          // 🟢 Fill like in image
+          filled: true,
+          fillColor: widget.fillColor ?? const Color(0xFF2F5D3F), // dark green
+          
+          // 🟢 Rounded pill border
+          enabledBorder: OutlineInputBorder(
+            borderRadius: widget.borderRadius ?? BorderRadius.circular(30.0),
+            borderSide: BorderSide.none,
           ),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8.0),
-          borderSide: BorderSide(
-            color: _isValid ? Colors.green : Theme.of(context).primaryColor,
-            width: 2.0,
+          focusedBorder: OutlineInputBorder(
+            borderRadius: widget.borderRadius ?? BorderRadius.circular(30.0),
+            borderSide: BorderSide(color: Colors.white, width: 1.2),
           ),
+          errorBorder: OutlineInputBorder(
+            borderRadius: widget.borderRadius ?? BorderRadius.circular(30.0),
+            borderSide: BorderSide(color: AppColors.warning, width: 1.0),
+          ),
+          focusedErrorBorder: OutlineInputBorder(
+            borderRadius: widget.borderRadius ?? BorderRadius.circular(30.0),
+            borderSide: BorderSide(color: AppColors.primaryColor, width: 2.0),
+          ),
+
+          // 🟢 Hint / Label
+          hintText: widget.hintText ,
+          hintStyle: const TextStyle(color: Colors.white70),
+
+          // 🟢 Prefix / Suffix icons
+          prefixIcon: widget.prefixIcon,
+          suffixIcon: widget.obscureText
+              ? IconButton(
+                  icon: Icon(
+                    _obscure ? Icons.visibility_off : Icons.visibility,
+                    color: Colors.white70,
+                  ),
+                  onPressed: () {
+                    setState(() {
+                      _obscure = !_obscure;
+                    });
+                  },
+                )
+              : widget.suffixIcon,
+          // errorText: _errorText,
+          errorMaxLines: 2,
+          errorStyle: const TextStyle(color: Colors.red, fontSize: 10),
         ),
-        errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8.0),
-          borderSide: BorderSide(color: Colors.red, width: 1.0),
-        ),
-        focusedErrorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8.0),
-          borderSide: BorderSide(color: Colors.red, width: 2.0),
-        ),
-        prefixIcon: widget.prefixIcon,
-        suffixIcon: widget.suffixIcon,
-        label: Text(widget.hintText),
-        errorText: _errorText,
-        errorMaxLines: 2,
-        errorStyle: TextStyle(color: Colors.red, fontSize: 10),
       ),
     );
   }

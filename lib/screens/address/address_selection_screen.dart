@@ -1,17 +1,19 @@
 import 'package:country_state_city_picker/country_state_city_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:grocery_app/common_widgets/imput_widget.dart';
 import 'package:grocery_app/models/cart_model.dart';
 import 'package:grocery_app/models/product_model.dart';
 import 'package:grocery_app/models/user_model.dart';
 import 'package:grocery_app/screens/checkout/checkout_screen.dart';
 import 'package:grocery_app/services/auth_service.dart';
 import 'package:grocery_app/helpers/snackbar_helper.dart';
+import 'package:grocery_app/styles/colors.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
-/// Updated version – auto‑recalculates delivery charges when
-/// state & city are both chosen, and shows the pre‑filled address
-/// in the dropdowns.
+/// Updated version with a modern green theme, which calculates delivery
+/// charges based on the pincode and passes all delivery details
+/// to the CheckoutScreen.
 class AddressSelectionScreen extends StatefulWidget {
   final CartModel? cart;
   final ProductVariant? singleProduct;
@@ -20,13 +22,10 @@ class AddressSelectionScreen extends StatefulWidget {
   final bool isSubscription;
   final int selectedPlan;
   final UserModel? user = AuthService().currentUser;
-  double? deliveryCharges;
-  final bool showNewAddressForm;
 
   AddressSelectionScreen({
     super.key,
     this.cart,
-    this.showNewAddressForm = true,
     this.price,
     this.singleProduct,
     this.quantity,
@@ -41,53 +40,38 @@ class AddressSelectionScreen extends StatefulWidget {
 class _AddressSelectionScreenState extends State<AddressSelectionScreen> {
   final _formKey = GlobalKey<FormState>();
   final _addressController = TextEditingController();
-  final _countryController = TextEditingController();
   final _cityController = TextEditingController();
   final _stateController = TextEditingController();
   final _pincodeController = TextEditingController();
   final _phoneController = TextEditingController();
 
+  // No need for a separate country controller if it's always India
+  final String _country = 'India';
+
   bool _isLoading = false;
   String? _error;
-  Map<String, dynamic>? _deliveryCharges;
+  Map<String, dynamic>? _deliveryDetails;
 
   List<Map<String, String>> _savedAddresses = [];
   String _selectedAddressType = 'saved'; // 'saved' or 'new'
 
-  // ────────────────────────────────────────────────────────────
-  /// When both state **and** city have values, (re)query delivery fee.
-  void _maybeRecalculateCharges() {
-    final state = _stateController.text.trim();
-    final city = _cityController.text.trim();
-    if (state.isNotEmpty && city.isNotEmpty) {
-      _calculateDeliveryCharges(state, city);
-    }
-  }
-
   @override
   void initState() {
     super.initState();
-    // _loadUserAddress();
+    _pincodeController.addListener(_onPincodeChanged);
     _loadSavedAddresses();
   }
 
-  Future<void> _loadUserAddress() async {
-    try {
-      final authService = AuthService();
-      final user = authService.currentUser;
-
-      if (user != null) {
-        setState(() {
-          _addressController.text = user.address ?? '';
-          _cityController.text = user.city ?? '';
-          _countryController.text = 'India';
-          _stateController.text = user.state ?? '';
-          _pincodeController.text = user.pincode ?? '';
-          _phoneController.text = user.phoneNumber ?? '';
-        });
-      }
-    } catch (e) {
-      setState(() => _error = e.toString());
+  /// Recalculates charges when the pincode is 6 digits long.
+  void _onPincodeChanged() {
+    final pincode = _pincodeController.text.trim();
+    if (pincode.length == 6) {
+      _calculateDeliveryCharges(pincode);
+    } else {
+      // Clear previous delivery details if pincode becomes invalid
+      setState(() {
+        _deliveryDetails = null;
+      });
     }
   }
 
@@ -98,23 +82,28 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen> {
           (widget.user?.city?.isNotEmpty ?? false) &&
           (widget.user?.state?.isNotEmpty ?? false) &&
           (widget.user?.pincode?.isNotEmpty ?? false) &&
-          (widget.user?.phoneNumber?.isNotEmpty ?? false)) {
-        _savedAddresses.add({
+          (widget.user?.phoneNumber.isNotEmpty ?? false)) {
+        final savedAddress = {
           'address': widget.user!.address!,
           'city': widget.user!.city!,
-          'country': 'India',
           'state': widget.user!.state!,
           'pincode': widget.user!.pincode!,
-          'phone': widget.user!.phoneNumber!,
-        });
+          'phone': widget.user!.phoneNumber,
+        };
+        _savedAddresses.add(savedAddress);
+        // Pre-select and calculate charges for the saved address
+        _selectAddress(savedAddress);
+      } else {
+        // If there's no complete saved address, default to the new address form
+        _selectedAddressType = 'new';
       }
-
-      // If there are no saved addresses, default to new.
-      if (_savedAddresses.isEmpty) _selectedAddressType = 'new';
     });
   }
 
-  Future<void> _calculateDeliveryCharges(String state, String city) async {
+  /// **CHANGED**: Calculates charges using pincode for better accuracy.
+  Future<void> _calculateDeliveryCharges(String pincode) async {
+    if (pincode.length != 6) return;
+
     setState(() {
       _isLoading = true;
       _error = null;
@@ -127,226 +116,194 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen> {
         ),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
-          'product_variant_id':
-              widget.singleProduct?.id ??
+          'product_variant_id': widget.singleProduct?.id ??
               widget.cart?.items.first.productVariant.id,
-          'delivery_state': state,
-          'delivery_city': city,
+          'delivery_pincode': pincode,
         }),
       );
 
       if (response.statusCode == 200) {
         setState(() {
-          _deliveryCharges = jsonDecode(response.body);
-          _isLoading = false;
+          _deliveryDetails = jsonDecode(response.body);
         });
       } else {
-        throw Exception('Failed to calculate delivery charges');
+        final errorBody = jsonDecode(response.body);
+        throw Exception(errorBody['error'] ?? 'Failed to calculate delivery charges');
       }
     } catch (e) {
       setState(() {
-        _error = e.toString();
+        _error = e.toString().replaceFirst('Exception: ', '');
+        _deliveryDetails = null; // Clear details on error
+      });
+    } finally {
+      setState(() {
         _isLoading = false;
       });
     }
   }
 
-  /// Fills controllers from a saved address & triggers charge calc.
   void _selectAddress(Map<String, String> address) {
-    final state = address['state'];
-    final city = address['city'];
-    final addr = address['address'];
-    final pincode = address['pincode'];
-    final phone = address['phone'];
-
-    if ([
-      state,
-      city,
-      addr,
-      pincode,
-      phone,
-    ].any((v) => v == null || v.isEmpty)) {
-      setState(
-        () =>
-            _error =
-                'Selected address is incomplete. Please edit or add a new address.',
-      );
-      return;
-    }
-
     setState(() {
-      _addressController.text = addr!;
-      _cityController.text = city!;
-      _stateController.text = state!;
-      _countryController.text = 'India';
-      _pincodeController.text = pincode!;
-      _phoneController.text = phone!;
+      _addressController.text = address['address']!;
+      _cityController.text = address['city']!;
+      _stateController.text = address['state']!;
+      _pincodeController.text = address['pincode']!;
+      _phoneController.text = address['phone']!;
     });
-    _calculateDeliveryCharges(state!, city!);
+    // The listener on _pincodeController will automatically trigger charge calculation.
   }
 
+  void _clearAddressForm() {
+    _formKey.currentState?.reset();
+    _addressController.clear();
+    _cityController.clear();
+    _stateController.clear();
+    _pincodeController.clear();
+    _phoneController.clear();
+    setState(() {
+      _deliveryDetails = null;
+      _error = null;
+    });
+  }
   // ────────────────────────────────────────────────────────────
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final primaryColor = Colors.green.shade700;
+
     return Scaffold(
-      appBar: AppBar(title: const Text('Delivery Address'), elevation: 0),
-      body:
-          _isLoading
-              ? const Center(child: CircularProgressIndicator())
-              : SingleChildScrollView(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    // Saved address radio
-                    if (_savedAddresses.isNotEmpty)
-                      Card(
-                        child: RadioListTile<String>(
-                          value: 'saved',
-                          groupValue: _selectedAddressType,
-                          onChanged: (val) {
-                            setState(() => _selectedAddressType = val!);
-                            if (val == 'saved')
-                              _selectAddress(_savedAddresses[0]);
-                          },
-                          title: Text(_savedAddresses[0]['address']!),
-                          subtitle: Text(
-                            '${_savedAddresses[0]['city']}, ${_savedAddresses[0]['state']}\n${_savedAddresses[0]['phone']}',
-                          ),
-                        ),
-                      ),
+      appBar: AppBar(
+        title: const Text('Delivery Address'),
+        centerTitle: false,
+        elevation: 0,
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            if (_savedAddresses.isNotEmpty)
+              _buildSavedAddressOption(theme, primaryColor),
 
-                    // New address radio
-                    Card(
-                      child: RadioListTile<String>(
-                        value: 'new',
-                        groupValue: _selectedAddressType,
-                        onChanged: (val) {
-                          setState(() => _selectedAddressType = val!);
-                        },
-                        title: const Text('Fill New Address'),
-                      ),
-                    ),
+            _buildNewAddressOption(theme, primaryColor),
 
-                    // New address form
-                    if (_selectedAddressType == 'new')
-                      _buildNewAddressForm(context),
+            if (_selectedAddressType == 'new') _buildNewAddressForm(theme, primaryColor),
+            
+            if (_isLoading)
+              const Padding(
+                padding: EdgeInsets.symmetric(vertical: 24.0),
+                child: Center(child: CircularProgressIndicator()),
+              ),
 
-                    if (_error != null)
-                      Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 8),
-                        child: Text(
-                          _error!,
-                          style: const TextStyle(color: Colors.red),
-                        ),
-                      ),
-
-                    if (_deliveryCharges != null) _buildDeliveryCard(context),
-
-                    const SizedBox(height: 24),
-                    _buildContinueButton(context),
-                  ],
+            if (_error != null)
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                child: Text(
+                  _error!,
+                  style: const TextStyle(color: Colors.red, fontSize: 14),
+                  textAlign: TextAlign.center,
                 ),
               ),
+
+            if (_deliveryDetails != null) _buildDeliveryDetailsCard(theme),
+
+            const SizedBox(height: 24),
+            _buildContinueButton(AppColors.bottonBackgroundColor),
+          ],
+        ),
+      ),
     );
   }
 
-  // ───────────────── UI helpers ───────────────────────────────
-  Widget _buildNewAddressForm(BuildContext context) {
+  // ───────────────── UI Helpers ───────────────────────────────
+
+  Card _buildSavedAddressOption(ThemeData theme, Color primaryColor) {
+    return Card(
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      margin: const EdgeInsets.only(bottom: 12),
+      child: RadioListTile<String>(
+        value: 'saved',
+        groupValue: _selectedAddressType,
+        onChanged: (val) {
+          setState(() => _selectedAddressType = val!);
+          _selectAddress(_savedAddresses[0]);
+        },
+        title: Text('Use Saved Address', style: theme.textTheme.titleMedium),
+        subtitle: Text(
+          '${_savedAddresses[0]['address']}, ${_savedAddresses[0]['city']}',
+          style: theme.textTheme.bodySmall,
+        ),
+        activeColor: primaryColor,
+      ),
+    );
+  }
+
+  Card _buildNewAddressOption(ThemeData theme, Color primaryColor) {
+    return Card(
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      margin: const EdgeInsets.only(bottom: 12),
+      child: RadioListTile<String>(
+        value: 'new',
+        groupValue: _selectedAddressType,
+        onChanged: (val) {
+          setState(() => _selectedAddressType = val!);
+          _clearAddressForm();
+        },
+        title: Text('Add a New Address', style: theme.textTheme.titleMedium),
+        activeColor: primaryColor,
+      ),
+    );
+  }
+
+  Widget _buildNewAddressForm(ThemeData theme, Color primaryColor) {
     return Form(
       key: _formKey,
       child: Card(
+        elevation: 2,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    'New Delivery Address',
-                    style: Theme.of(context).textTheme.titleLarge,
+              Text('New Delivery Address', style: theme.textTheme.titleLarge),
+              const SizedBox(height: 20),
+             CustomInput(
+                    hintText: "Address",
+                    controller: _addressController,
+                    keyboardType: TextInputType.text,
+                    validator: (v) {
+                      if (v!.isEmpty) return 'Enter a message';
+                      return null;
+                    },
                   ),
-                  IconButton(
-                    icon: const Icon(Icons.close),
-                    onPressed: () => Navigator.pop(context),
-                  ),
-                ],
+              const SizedBox(height: 16),
+              // Using the package for State/City selection
+              SelectState(
+                onCountryChanged: (_) {}, // Country is fixed to India
+                onStateChanged: (v) => setState(() => _stateController.text = v),
+                onCityChanged: (v) => setState(() => _cityController.text = v),
+                style: theme.textTheme.bodyLarge,
               ),
               const SizedBox(height: 16),
-              TextFormField(
-                controller: _addressController,
-                decoration: const InputDecoration(
-                  labelText: 'Address',
-                  border: OutlineInputBorder(),
-                ),
-                validator:
-                    (v) =>
-                        v == null || v.isEmpty
-                            ? 'Please enter your address'
-                            : null,
+              CustomInput(
+                hintText: "Pincode",
+                controller: _pincodeController,
+                keyboardType: TextInputType.number,
+                validator: (v) {
+                  if (v!.isEmpty) return 'Pincode is required';
+                  if (v.length != 6) return 'Enter a valid 6-digit pincode';
+                  return null;
+                },
               ),
               const SizedBox(height: 16),
-              Row(
-                children: [
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: SelectState(
-                      // countryController: _countryController,
-                      // stateController: _stateController,
-                      // cityController: _cityController,
-                      onCountryChanged:
-                          (_) =>
-                              setState(() => _countryController.text = 'India'),
-                      onStateChanged: (v) {
-                        setState(() => _stateController.text = v);
-                        _maybeRecalculateCharges();
-                      },
-                      onCityChanged: (v) {
-                        setState(() => _cityController.text = v);
-                        _maybeRecalculateCharges();
-                      },
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
-              Row(
-                children: [
-                  Expanded(
-                    child: TextFormField(
-                      controller: _pincodeController,
-                      decoration: const InputDecoration(
-                        labelText: 'Pincode',
-                        border: OutlineInputBorder(),
-                      ),
-                      keyboardType: TextInputType.number,
-                      validator:
-                          (v) =>
-                              v == null || v.isEmpty
-                                  ? 'Please enter your pincode'
-                                  : null,
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: TextFormField(
-                      controller: _phoneController,
-                      decoration: const InputDecoration(
-                        labelText: 'Phone Number',
-                        border: OutlineInputBorder(),
-                      ),
-                      keyboardType: TextInputType.phone,
-                      validator:
-                          (v) =>
-                              v == null || v.isEmpty
-                                  ? 'Please enter your phone number'
-                                  : null,
-                    ),
-                  ),
-                ],
+              CustomInput(
+                hintText: "Phone Number",
+                controller: _phoneController,
+                keyboardType: TextInputType.phone,
+                validator: (v) => v!.isEmpty ? 'Phone number is required' : null,
               ),
             ],
           ),
@@ -355,131 +312,121 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen> {
     );
   }
 
-  Widget _buildDeliveryCard(BuildContext context) {
+  /// **NEW**: Modern delivery details card with icons.
+  Widget _buildDeliveryDetailsCard(ThemeData theme) {
     return Card(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      elevation: 2,
+      color: Colors.green.shade50,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: BorderSide(color: Colors.green.shade200),
+      ),
+      margin: const EdgeInsets.only(top: 16),
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              'Delivery Charges',
-              style: Theme.of(context).textTheme.titleLarge,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              '₹${_deliveryCharges!['delivery_charges']}',
-              style: const TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-                color: Colors.green,
+            Text('Delivery Details', style: theme.textTheme.titleLarge),
+            const SizedBox(height: 12),
+            ListTile(
+              leading: const Icon(Icons.local_shipping, color: Colors.green),
+              title: const Text('Delivery Charges'),
+              trailing: Text(
+                '₹${_deliveryDetails!['delivery_charges']}',
+                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
               ),
             ),
-            if (_deliveryCharges!['error'] != null) ...[
-              const SizedBox(height: 4),
-              Text(
-                _deliveryCharges!['error'],
-                style: const TextStyle(color: Colors.red),
+            const Divider(),
+            ListTile(
+              leading: const Icon(Icons.calendar_today, color: Colors.green),
+              title: const Text('Expected Delivery Date'),
+              trailing: Text(
+                _deliveryDetails!['expected_delivery_date'] ?? 'N/A',
+                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
               ),
-            ],
+            ),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildContinueButton(BuildContext context) {
+  Widget _buildContinueButton(Color primaryColor) {
     return ElevatedButton(
       onPressed: _onContinuePressed,
       style: ElevatedButton.styleFrom(
-        backgroundColor: Colors.green,
+        backgroundColor: primaryColor,
         padding: const EdgeInsets.symmetric(vertical: 16),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       ),
       child: const Text(
         'Save Address & Continue',
-        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
+      ),
+    );
+  }
+  
+  InputDecoration _inputDecoration(String label, Color primaryColor) {
+    return InputDecoration(
+      labelText: label,
+      counterText: "", // Hides the counter for maxLength
+      border: const OutlineInputBorder(
+        borderRadius: BorderRadius.all(Radius.circular(8)),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: const BorderRadius.all(Radius.circular(8)),
+        borderSide: BorderSide(color: primaryColor, width: 2),
       ),
     );
   }
 
   // ────────────────────────────────────────────────────────────
-  void _onContinuePressed() async {
-    if (_selectedAddressType == 'saved') {
-      final user = widget.user;
-      if (user == null ||
-          [
-            user.address,
-            user.city,
-            user.state,
-            user.pincode,
-            user.phoneNumber,
-          ].any((e) => e == null || e!.isEmpty)) {
-        SnackBarHelper.showError(context, 'Saved address is incomplete.');
-        return;
-      }
-      // Ensure we have delivery fee
-      if (_deliveryCharges == null)
-        await _calculateDeliveryCharges(user.state!, user.city!);
-      if (_deliveryCharges == null) {
-        SnackBarHelper.showError(
-          context,
-          'Failed to calculate delivery charges. Please try again.',
-        );
-        return;
-      }
-      _navigateToCheckout({
-        'address': user.address!,
-        'city': user.city!,
-        'state': user.state!,
-        'pincode': user.pincode!,
-        'phone': user.phoneNumber!,
-      });
-    } else {
-      // new address validation
-      if (!_formKey.currentState!.validate()) return;
-      if (_deliveryCharges == null)
-        await _calculateDeliveryCharges(
-          _stateController.text,
-          _cityController.text,
-        );
-      if (_deliveryCharges == null) {
-        SnackBarHelper.showError(
-          context,
-          'Failed to calculate delivery charges. Please try again.',
-        );
-        return;
-      }
-      _navigateToCheckout({
-        'address': _addressController.text,
-        'city': _cityController.text,
-        'state': _stateController.text,
-        'pincode': _pincodeController.text,
-        'phone': _phoneController.text,
-      });
+  void _onContinuePressed() {
+    // Validate form if a new address is being entered
+    if (_selectedAddressType == 'new' && !_formKey.currentState!.validate()) {
+      return;
     }
+
+    // Check if delivery details have been calculated
+    if (_deliveryDetails == null) {
+      SnackBarHelper.showError(
+        context,
+        'Please enter a valid pincode to calculate delivery charges.',
+      );
+      return;
+    }
+
+    final shippingDetails = {
+      'address': _addressController.text,
+      'city': _cityController.text,
+      'state': _stateController.text,
+      'pincode': _pincodeController.text,
+      'phone': _phoneController.text,
+    };
+
+    _navigateToCheckout(shippingDetails);
   }
 
+  /// **UPDATED**: Passes the full delivery details to the next screen.
   void _navigateToCheckout(Map<String, String> shippingDetails) {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder:
-            (context) => CheckoutScreen(
-              cart: widget.cart,
-              singleProduct: widget.singleProduct,
-              price: widget.price,
-              quantity: widget.quantity,
-              isSubscription: widget.isSubscription,
-              selectedPlan: widget.selectedPlan,
-              shippingDetails: shippingDetails,
-              deliveryCharges:
-                  double.tryParse(
-                    _deliveryCharges?['delivery_charges']?.toString() ?? '0',
-                  ) ??
-                  0.0,
-            ),
+        builder: (context) => CheckoutScreen(
+          cart: widget.cart,
+          singleProduct: widget.singleProduct,
+          price: widget.price,
+          quantity: widget.quantity,
+          isSubscription: widget.isSubscription,
+          selectedPlan: widget.selectedPlan,
+          shippingDetails: shippingDetails,
+          deliveryCharges: double.tryParse(
+                _deliveryDetails?['delivery_charges']?.toString() ?? '0.0',
+              ) ?? 0.0,
+          // **FIXED**: Now passing the expected delivery date
+          expectedDeliveryDate: _deliveryDetails?['expected_delivery_date'] ?? '',
+        ),
       ),
     );
   }
@@ -490,9 +437,9 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen> {
     _addressController.dispose();
     _cityController.dispose();
     _stateController.dispose();
+    _pincodeController.removeListener(_onPincodeChanged); // Important!
     _pincodeController.dispose();
     _phoneController.dispose();
-    _countryController.dispose();
     super.dispose();
   }
 }

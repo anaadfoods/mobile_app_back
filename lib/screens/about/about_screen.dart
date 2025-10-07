@@ -1,4 +1,3 @@
-import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 import 'package:grocery_app/screens/about/about_detail.dart';
 import 'package:grocery_app/screens/home/home_video.dart';

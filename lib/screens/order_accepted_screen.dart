@@ -8,11 +8,11 @@ class OrderAcceptedScreen extends StatelessWidget {
   final bool? isSubscription;
 
   const OrderAcceptedScreen({
-    Key? key,
+    super.key,
     this.order,
     this.paymentStatus,
     this.isSubscription,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

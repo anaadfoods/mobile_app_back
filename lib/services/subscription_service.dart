@@ -1,5 +1,5 @@
 import 'dart:convert';
-import 'package:grocery_app/models/repayment_subscription_model.dart';
+import 'package:flutter/foundation.dart';
 import 'package:grocery_app/models/subscription_plan_product_model.dart';
 import 'package:grocery_app/models/subscription_request_create_model.dart';
 import 'package:http/http.dart' as http;
@@ -11,13 +11,22 @@ import '../models/payment_status_model.dart';
 import 'dart:io';
 import 'package:path_provider/path_provider.dart';
 
+// Top-level function for background JSON parsing
+Map<String, dynamic> _parseJson(String jsonString) {
+  return jsonDecode(jsonString) as Map<String, dynamic>;
+}
+
+// Top-level function for background JSON list parsing
+List<dynamic> _parseJsonList(String jsonString) {
+  return jsonDecode(jsonString) as List<dynamic>;
+}
+
 class SubscriptionService {
   static final SubscriptionService _instance = SubscriptionService._internal();
   factory SubscriptionService() => _instance;
   SubscriptionService._internal();
 
   static const String subscriptionsEndpoint = '/api/subscriptions';
-
   final AuthService _authService = AuthService();
 
   Future<Map<String, dynamic>> createSubscription(
@@ -39,25 +48,20 @@ class SubscriptionService {
         body: jsonEncode(request.toJson()),
       );
 
-      final responseData = jsonDecode(response.body);
-      print('Create subscription response: $responseData');
+      final responseData = await compute(_parseJson, response.body);
 
       if (response.statusCode == 201) {
-        // Check if this is a payment response (has payment_links)
         if (responseData.containsKey('payment_links') &&
             responseData.containsKey('subscription_id')) {
-          // Return raw response for payment flow
           return {
             'success': true,
             'payment_links': responseData['payment_links'],
             'subscription_id': responseData['subscription_id'],
             'merchant_transaction_id': responseData['merchant_transaction_id'],
             'message':
-                responseData['message'] ??
-                'Payment session created successfully',
+                responseData['message'] ?? 'Payment session created successfully',
           };
         } else {
-          // Return parsed subscription for non-payment flow
           return {
             'success': true,
             'data': Subscription.fromJson(responseData),
@@ -76,7 +80,6 @@ class SubscriptionService {
           };
         }
       } else {
-        print('Create subscription error: ${responseData['message']}');
         return {
           'success': false,
           'message': responseData['message'] ?? 'Failed to create subscription',
@@ -84,7 +87,6 @@ class SubscriptionService {
         };
       }
     } catch (e) {
-      print('Error creating subscription: $e');
       return {
         'success': false,
         'message': 'An error occurred while creating the subscription',
@@ -93,6 +95,8 @@ class SubscriptionService {
     }
   }
 
+  // NOTE: Based on your code, this function seems to fetch subscription *plans*, not subscriptions.
+  // The logic is preserved as-is.
   Future<Map<String, dynamic>> getSubscriptionsbyId(int id) async {
     try {
       final token = await _authService.getAccessToken();
@@ -114,7 +118,6 @@ class SubscriptionService {
       );
 
       print('Response status code: ${response.statusCode}');
-      print('Response body: ${response.body}');
 
       if (response.statusCode != 200) {
         return {
@@ -123,31 +126,21 @@ class SubscriptionService {
         };
       }
 
-      final responseData = jsonDecode(response.body);
-      print('Parsed response data: $responseData');
-      print('Response data type: ${responseData.runtimeType}');
+      // The compute function handles both list and map responses by parsing first.
+      final dynamic parsedData =
+          await compute(jsonDecode, response.body);
+      print('Parsed response data: $parsedData');
 
-      // Handle direct array response
-      if (responseData is List) {
-        try {
-          final subscriptions =
-              responseData.map((item) => Subscription.fromJson(item)).toList();
-
-          return {
-            'success': true,
-            'data': subscriptions,
-            'message': 'Subscriptions fetched successfully',
-          };
-        } catch (e) {
-          print('Error parsing subscriptions: $e');
-          return {
-            'success': false,
-            'message': 'Error parsing subscription data',
-            'error': e.toString(),
-          };
-        }
+      if (parsedData is List) {
+        final subscriptions =
+            parsedData.map((item) => Subscription.fromJson(item)).toList();
+        return {
+          'success': true,
+          'data': subscriptions,
+          'message': 'Subscriptions fetched successfully',
+        };
       } else {
-        print('Response is not a list: $responseData');
+        print('Response is not a list: $parsedData');
         return {
           'success': false,
           'message': 'Invalid response format from server',
@@ -183,7 +176,6 @@ class SubscriptionService {
       );
 
       print('Response status code: ${response.statusCode}');
-      print('Response body: ${response.body}');
 
       if (response.statusCode != 200) {
         return {
@@ -192,40 +184,27 @@ class SubscriptionService {
         };
       }
 
-      final responseData = jsonDecode(response.body);
+      final responseData = await compute(_parseJson, response.body);
       print('Parsed response data: $responseData');
-      print('Response data type: ${responseData.runtimeType}');
 
-      if (responseData is Map && responseData.containsKey('subscriptions')) {
-        try {
-          // Extract all subscriptions from the nested structure
-          final allSubscriptions = <Subscription>[];
-          final subscriptionsMap =
-              responseData['subscriptions'] as Map<String, dynamic>;
+      if (responseData.containsKey('subscriptions')) {
+        final allSubscriptions = <Subscription>[];
+        final subscriptionsMap =
+            responseData['subscriptions'] as Map<String, dynamic>;
 
-          subscriptionsMap.forEach((status, subscriptions) {
-            if (subscriptions is List) {
-              allSubscriptions.addAll(
-                subscriptions
-                    .map((item) => Subscription.fromJson(item))
-                    .toList(),
-              );
-            }
-          });
+        subscriptionsMap.forEach((status, subscriptions) {
+          if (subscriptions is List) {
+            allSubscriptions.addAll(subscriptions
+                .map((item) => Subscription.fromJson(item))
+                .toList());
+          }
+        });
 
-          return {
-            'success': true,
-            'data': allSubscriptions,
-            'message': 'Subscriptions fetched successfully',
-          };
-        } catch (e) {
-          print('Error parsing subscriptions: $e');
-          return {
-            'success': false,
-            'message': 'Error parsing subscription data',
-            'error': e.toString(),
-          };
-        }
+        return {
+          'success': true,
+          'data': allSubscriptions,
+          'message': 'Subscriptions fetched successfully',
+        };
       } else {
         print('Response is not in expected format: $responseData');
         return {
@@ -244,8 +223,7 @@ class SubscriptionService {
   }
 
   Future<Map<String, dynamic>> getSubscriptionDetails(
-    int subscriptionId,
-  ) async {
+      int subscriptionId) async {
     try {
       final token = await _authService.getAccessToken();
       if (token == null) {
@@ -263,7 +241,7 @@ class SubscriptionService {
         headers: ApiConfig.getAuthHeaders(token),
       );
 
-      final responseData = jsonDecode(response.body);
+      final responseData = await compute(_parseJson, response.body);
 
       if (response.statusCode == 200) {
         return {
@@ -317,7 +295,7 @@ class SubscriptionService {
         headers: ApiConfig.getAuthHeaders(token),
       );
 
-      final responseData = jsonDecode(response.body);
+      final responseData = await compute(_parseJson, response.body);
 
       if (response.statusCode == 200) {
         return {
@@ -354,12 +332,12 @@ class SubscriptionService {
   Future<Map<String, dynamic>> getSubscriptionPlans() async {
     try {
       final response = await http.get(
-        Uri.parse('${ApiConfig.baseUrl}${ApiConfig.subscriptionPlansEndpoint}'),
+        Uri.parse(
+            '${ApiConfig.baseUrl}${ApiConfig.subscriptionPlansEndpoint}'),
         headers: ApiConfig.getBaseHeaders(),
       );
 
       print('Response status code: ${response.statusCode}');
-      print('Response body: ${response.body}');
 
       if (response.statusCode != 200) {
         return {
@@ -369,38 +347,18 @@ class SubscriptionService {
         };
       }
 
-      final responseData = jsonDecode(response.body);
+      final responseData = await compute(_parseJsonList, response.body);
       print('Parsed response data: $responseData');
-      print('Response data type: ${responseData.runtimeType}');
 
-      // Handle direct array response
-      if (responseData is List) {
-        try {
-          final plans =
-              responseData
-                  .map((item) => SubscriptionPlan.fromJson(item))
-                  .toList();
+      final plans = responseData
+          .map((item) => SubscriptionPlan.fromJson(item))
+          .toList();
 
-          return {
-            'success': true,
-            'data': plans,
-            'message': 'Subscription plans fetched successfully',
-          };
-        } catch (e) {
-          print('Error parsing subscription plans: $e');
-          return {
-            'success': false,
-            'message': 'Error parsing subscription plans data',
-            'error': e.toString(),
-          };
-        }
-      } else {
-        print('Response is not a list: $responseData');
-        return {
-          'success': false,
-          'message': 'Invalid response format from server',
-        };
-      }
+      return {
+        'success': true,
+        'data': plans,
+        'message': 'Subscription plans fetched successfully',
+      };
     } catch (e) {
       print('Error fetching subscription plans: $e');
       return {
@@ -410,8 +368,8 @@ class SubscriptionService {
       };
     }
   }
-
-  Future<Map<String, dynamic>> subscribeToPlan(int planId) async {
+  
+    Future<Map<String, dynamic>> subscribeToPlan(int planId) async {
     try {
       final token = await _authService.getAccessToken();
       if (token == null) {
@@ -428,7 +386,7 @@ class SubscriptionService {
         body: jsonEncode({'plan_id': planId}),
       );
 
-      final responseData = jsonDecode(response.body);
+      final responseData = await compute(_parseJson, response.body);
       print('Subscribe to plan response: $responseData');
 
       if (response.statusCode == 201) {
@@ -486,18 +444,17 @@ class SubscriptionService {
           '${ApiConfig.baseUrl}$subscriptionsEndpoint/$subscriptionId/pause/',
         ),
         headers: ApiConfig.getAuthHeaders(token),
-        body:
-            pauseStartDate != null && pauseEndDate != null
-                ? jsonEncode({
-                  'pause_start_date':
-                      pauseStartDate.toIso8601String().split('T')[0],
-                  'pause_end_date':
-                      pauseEndDate.toIso8601String().split('T')[0],
-                })
-                : null,
+        body: pauseStartDate != null && pauseEndDate != null
+            ? jsonEncode({
+                'pause_start_date':
+                    pauseStartDate.toIso8601String().split('T')[0],
+                'pause_end_date':
+                    pauseEndDate.toIso8601String().split('T')[0],
+              })
+            : null,
       );
 
-      final responseData = jsonDecode(response.body);
+      final responseData = await compute(_parseJson, response.body);
 
       if (response.statusCode == 200) {
         return {
@@ -548,20 +505,17 @@ class SubscriptionService {
       );
 
       print('Response status code: ${response.statusCode}');
-      print('Response body: ${response.body}');
 
       if (response.statusCode == 200) {
-        final data = json.decode(response.body);
+        final data = await compute(_parseJson, response.body);
         print('Parsed response data: $data');
         return {
           'success': true,
           'data': SubscriptionPlanProductsResponse.fromJson(data),
         };
       } else if (response.statusCode == 401) {
-        // Handle token refresh
         final refreshResult = await _authService.refreshAccessToken();
         if (refreshResult) {
-          // Retry the request with new token
           return getSubscriptionPlanProducts(planId);
         }
         return {
@@ -595,7 +549,7 @@ class SubscriptionService {
         headers: ApiConfig.getAuthHeaders(token),
       );
       if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
+        final data = await compute(_parseJson, response.body);
         return SubscriptionPaymentStatus.fromJson(data);
       } else {
         return null;
@@ -624,25 +578,21 @@ class SubscriptionService {
         headers: ApiConfig.getAuthHeaders(token),
       );
 
-      final responseData = jsonDecode(response.body);
+      final responseData = await compute(_parseJson, response.body);
       print('Repayment subscription response: $responseData');
 
       if (response.statusCode == 201 || response.statusCode == 200) {
-        // Check if this is a payment response (has payment_links)
         if (responseData.containsKey('payment_links') &&
             responseData.containsKey('subscription_id')) {
-          // Return raw response for payment flow
           return {
             'success': true,
             'payment_links': responseData['payment_links'],
             'subscription_id': responseData['subscription_id'],
             'merchant_transaction_id': responseData['merchant_transaction_id'],
             'message':
-                responseData['message'] ??
-                'Payment session created successfully',
+                responseData['message'] ?? 'Payment session created successfully',
           };
         } else {
-          // Return parsed response for non-payment flow
           return {
             'success': true,
             'data': responseData,
@@ -684,9 +634,9 @@ class SubscriptionService {
       );
 
       if (response.statusCode == 200) {
-        return jsonDecode(response.body);
+        return await compute(_parseJson, response.body);
       } else {
-        final errorData = jsonDecode(response.body);
+        final errorData = await compute(_parseJson, response.body);
         throw Exception(
           errorData['message'] ?? 'Failed to get subscription invoices',
         );
@@ -696,7 +646,9 @@ class SubscriptionService {
       throw Exception('Failed to get subscription invoices: $e');
     }
   }
-
+  
+  // File I/O should be handled carefully. It can still block the main thread.
+  // For simplicity, this remains as is, but for very large files, consider an isolate.
   Future<String> downloadSubscriptionInvoice(
     String s3Url,
     String displayName,
@@ -722,7 +674,7 @@ class SubscriptionService {
           downloadsDir = await getApplicationDocumentsDirectory();
         }
 
-        if (!await downloadsDir!.exists()) {
+        if (!await downloadsDir.exists()) {
           await downloadsDir.create(recursive: true);
         }
 

@@ -6,7 +6,7 @@ import 'package:grocery_app/common_widgets/app_text.dart';
 import 'package:grocery_app/helpers/snackbar_helper.dart';
 
 class FCMTokenScreen extends StatefulWidget {
-  const FCMTokenScreen({Key? key}) : super(key: key);
+  const FCMTokenScreen({super.key});
 
   @override
   State<FCMTokenScreen> createState() => _FCMTokenScreenState();

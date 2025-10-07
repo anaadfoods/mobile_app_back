@@ -3,6 +3,8 @@ import 'package:grocery_app/common_widgets/app_text.dart';
 import 'package:grocery_app/styles/colors.dart';
 
 class HomeBanner extends StatelessWidget {
+  const HomeBanner({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Container(

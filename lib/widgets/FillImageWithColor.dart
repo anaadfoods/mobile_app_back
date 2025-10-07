@@ -7,7 +7,7 @@ class FillImageWithColor extends StatelessWidget {
   final Color baseColor;
   final int percentage;
 
-  FillImageWithColor({
+  const FillImageWithColor({super.key, 
     required this.imageUrl,
     required this.fillColor,
     required this.baseColor,

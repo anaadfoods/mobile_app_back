@@ -1,4 +1,3 @@
-import 'package:grocery_app/models/shipping_details.dart';
 import 'package:grocery_app/models/product_image_model.dart';
 
 class OrderProduct {
@@ -178,7 +177,7 @@ class Order {
       total: total ?? this.total,
       deliveryCharges: deliveryCharges ?? this.deliveryCharges,
       expectedDeliveryDate: expectedDeliveryDate ?? this.expectedDeliveryDate,
-      itemsCount: this.itemsCount,
+      itemsCount: itemsCount,
       products: products ?? this.products,
       shippingDetails: shippingDetails ?? this.shippingDetails,
     );

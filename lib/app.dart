@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:grocery_app/screens/welcome_screen.dart';
 import 'package:grocery_app/styles/theme.dart';
@@ -16,7 +15,9 @@ class MyApp extends StatelessWidget {
       navigatorKey: NavigationService.globalNavigatorKey,
       theme: AppTheme.lightTheme,
       debugShowCheckedModeBanner: false,
-      home: FutureBuilder<bool>(
+
+      home: 
+      FutureBuilder<bool>(
         future: AuthService().isLoggedIn(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {

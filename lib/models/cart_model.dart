@@ -1,5 +1,3 @@
-import 'dart:convert';
-import 'package:grocery_app/models/product_model.dart';
 import 'package:grocery_app/models/product_image_model.dart';
 
 class CartItem {

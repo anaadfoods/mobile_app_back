@@ -6,6 +6,9 @@ import 'package:grocery_app/services/auth_service.dart';
 import 'package:grocery_app/services/api_config.dart';
 import 'package:grocery_app/models/payment_status_model.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:permission_handler/permission_handler.dart';
+import 'package:open_filex/open_filex.dart'; // To open the downloaded file
+
 
 class OrderService {
   // static const String baseUrl = 'http://192.168.19.81:8000';
@@ -70,7 +73,7 @@ class OrderService {
   }
 
   // Create a new order
-  Future<dynamic> createOrder(OrderModel order) async {
+  Future<dynamic> createOrder(OrderModel order ) async {
     try {
       final token = await _authService.getAccessToken();
       if (token == null) {
@@ -99,7 +102,7 @@ class OrderService {
 
       if (response.statusCode == 201) {
         final data = jsonDecode(response.body);
-        print('Order created successfully: ${data}');
+        print('Order created successfully: $data');
         // If payment_links is present, return OrderCreateResponse
         if (data is Map && data.containsKey('payment_links')) {
           return OrderCreateResponse.fromJson(Map<String, dynamic>.from(data));
@@ -118,7 +121,7 @@ class OrderService {
         throw Exception('Network error while creating order: ${e.message}');
       } else if (e is Map<String, dynamic>) {
         // This is a server error response, pass it through
-        throw e;
+        rethrow;
       }
       throw Exception('Failed to create order: $e');
     }
@@ -231,7 +234,7 @@ class OrderService {
     }
   }
 
-  String _endpoint = "http://13.203.212.133:5000/handleJuspayResponse";
+  final String _endpoint = "http://13.203.212.133:5000/handleJuspayResponse";
 
   /// Posts the order_id to the Juspay response handler.
   /// Returns the HTTP response.
@@ -257,79 +260,253 @@ class OrderService {
     }
   }
 
-  /// Downloads the invoice for a specific order
-  /// Returns the file path where the invoice was saved
-  Future<String> downloadOrderInvoice(String orderNumber) async {
-    try {
-      final token = await _authService.getAccessToken();
-      if (token == null) {
-        throw Exception('Authentication required');
+
+
+
+
+// Helper function to get the downloads directory
+Future<String?> _getDownloadsDirectoryPath() async {
+  Directory? directory;
+  try {
+    if (Platform.isIOS) {
+      // iOS doesn't have a standard "Downloads" folder.
+      // We use the application's documents directory.
+      directory = await getApplicationDocumentsDirectory();
+    } else {
+      // Android has a public downloads directory.
+      directory = Directory('/storage/emulated/0/Download');
+      //
+      // If the directory doesn't exist, try to create it.
+      // This can fail if permissions are not granted.
+      if (!await directory.exists()) {
+        directory = await getExternalStorageDirectory();
       }
-
-      // First, get the invoice data from the API
-      final response = await http.get(
-        Uri.parse('$baseUrl/odoo/orders/$orderNumber/invoice/'),
-        headers: await _getHeaders(),
-      );
-
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-
-        if (data['success'] == true && data['invoice'] != null) {
-          final invoiceData = data['invoice'];
-          final s3Url = invoiceData['s3_url'];
-          final displayName =
-              invoiceData['display_name'] ?? 'Invoice-$orderNumber';
-
-          // Download the PDF from S3 URL
-          final pdfResponse = await http.get(
-            Uri.parse(s3Url),
-            headers: {'Authorization': 'Bearer $token'},
-          );
-
-          if (pdfResponse.statusCode == 200) {
-            // Get the downloads directory
-            Directory? downloadsDir;
-            if (Platform.isAndroid) {
-              downloadsDir = Directory('/storage/emulated/0/Download');
-            } else if (Platform.isIOS) {
-              downloadsDir = await getApplicationDocumentsDirectory();
-            } else {
-              downloadsDir = await getApplicationDocumentsDirectory();
-            }
-
-            // Create the directory if it doesn't exist
-            if (!await downloadsDir!.exists()) {
-              await downloadsDir.create(recursive: true);
-            }
-
-            // Create the file path
-            final fileName = '$displayName.pdf';
-            final filePath = '${downloadsDir.path}/$fileName';
-            final file = File(filePath);
-
-            // Write the PDF bytes to the file
-            await file.writeAsBytes(pdfResponse.bodyBytes);
-
-            print('Invoice downloaded successfully to: $filePath');
-            return filePath;
-          } else {
-            throw Exception(
-              'Failed to download PDF: ${pdfResponse.statusCode}',
-            );
-          }
-        } else {
-          throw Exception('Invoice not available for this order');
-        }
-      } else if (response.statusCode == 404) {
-        throw Exception('Invoice not found for this order');
-      } else {
-        final errorData = jsonDecode(response.body);
-        throw Exception(errorData['message'] ?? 'Failed to get invoice');
-      }
-    } catch (e) {
-      print('Error downloading invoice: $e');
-      throw Exception('Failed to download invoice: $e');
     }
+  } catch (err) {
+    print("Cannot get download directory: $err");
   }
+  return directory?.path;
+}
+
+Future<String> downloadOrderInvoice(String orderNumber) async {
+  try {
+    // 🔐 1. Request storage permission on Android
+    if (Platform.isAndroid) {
+      var status = await Permission.storage.status;
+      if (!status.isGranted) {
+        status = await Permission.storage.request();
+      }
+      if (!status.isGranted) {
+        throw Exception('Storage permission is required to download files.');
+      }
+    }
+
+    // ... (Your existing code to get the token and S3 URL is the same)
+    final token = await _authService.getAccessToken();
+    if (token == null) throw Exception('Authentication required');
+    
+    final response = await http.get(
+      Uri.parse('$baseUrl/api/odoo/orders/$orderNumber/invoice/'),
+      headers: await _getHeaders(),
+    );
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      if (data['success'] == true && data['invoice'] != null) {
+        final invoiceData = data['invoice'];
+        final s3Url = invoiceData['s3_url'];
+        final displayName = invoiceData['display_name'] ?? 'Invoice-$orderNumber';
+
+        // Download the PDF from S3 (without auth headers)
+        final pdfResponse = await http.get(Uri.parse(s3Url));
+
+        if (pdfResponse.statusCode == 200) {
+          // 📂 2. Get the correct downloads path
+          final downloadsPath = await _getDownloadsDirectoryPath();
+          if (downloadsPath == null) {
+            throw Exception("Could not find the downloads directory.");
+          }
+
+          final sanitizedDisplayName = displayName.replaceAll(RegExp(r'[\\/:*?"<>|]'), '_');
+          final filePath = '$downloadsPath/$sanitizedDisplayName.pdf';
+          final file = File(filePath);
+
+          // Write the PDF bytes to the file
+          await file.writeAsBytes(pdfResponse.bodyBytes);
+          print('Invoice downloaded successfully to: $filePath');
+
+          // 🚀 3. Open the downloaded file
+                final openResult = await OpenFilex.open(filePath);
+
+          // final openResult = await OpenFile.open(filePath);
+          // print('OpenFile result: ${openResult.message}');
+
+          return filePath;
+        } else {
+          throw Exception('Failed to download PDF from S3: ${pdfResponse.statusCode}');
+        }
+      } else {
+        throw Exception('Invoice not available for this order');
+      }
+    } else if (response.statusCode == 404) {
+      throw Exception('Invoice not found for this order');
+    } else {
+      throw Exception('Failed to get invoice data: ${response.statusCode}');
+    }
+  } catch (e) {
+    print('Error downloading invoice: $e');
+    throw Exception('Failed to download invoice: $e');
+  }
+}
+
+
+
+// Add open_file_plus to your pubspec.yaml for a better user experience
+// // import 'package:open_file_plus/open_file_plus.dart';
+
+// Future<String> downloadOrderInvoice(String orderNumber) async {
+//   try {
+//     // This token is for YOUR API, not for AWS S3.
+//     final token = await _authService.getAccessToken();
+//     if (token == null) {
+//       throw Exception('Authentication required');
+//     }
+
+//     // 1. Get the invoice data (including the S3 URL) from your API
+//     final response = await http.get(
+//       Uri.parse('$baseUrl/api/odoo/orders/$orderNumber/invoice/'),
+//       headers: await _getHeaders(), // Assuming _getHeaders() adds the Bearer token
+//     );
+
+//     if (response.statusCode == 200) {
+//       final data = jsonDecode(response.body);
+
+//       if (data['success'] == true && data['invoice'] != null) {
+//         final invoiceData = data['invoice'];
+//         final s3Url = invoiceData['s3_url'];
+//         final displayName = invoiceData['display_name'] ?? 'Invoice-$orderNumber';
+
+//         // 2. Download the PDF from the pre-signed S3 URL
+//         // REMOVED the headers from this call. S3 pre-signed URLs
+//         // do not need an Authorization header.
+//         final pdfResponse = await http.get(Uri.parse(s3Url));
+
+//         if (pdfResponse.statusCode == 200) {
+//           // Get a reliable, cross-platform temporary directory
+//           final dir = await getTemporaryDirectory();
+          
+//           // Sanitize the filename to remove characters invalid for file systems
+//           final sanitizedDisplayName = displayName.replaceAll(RegExp(r'[\\/:*?"<>|]'), '_');
+//           final filePath = '${dir.path}/$sanitizedDisplayName.pdf';
+//           final file = File(filePath);
+
+//           // Write the PDF bytes to the file
+//           await file.writeAsBytes(pdfResponse.bodyBytes);
+
+//           print('Invoice downloaded successfully to: $filePath');
+          
+//           // Optional: Open the file for the user immediately
+//           // await OpenFile.open(filePath);
+
+//           return filePath;
+//         } else {
+//           throw Exception(
+//             'Failed to download PDF from S3: ${pdfResponse.statusCode}',
+//           );
+//         }
+//       } else {
+//         throw Exception('Invoice not available for this order');
+//       }
+//     } else if (response.statusCode == 404) {
+//       throw Exception('Invoice not found for this order');
+//     } else {
+//       final errorData = jsonDecode(response.body);
+//       throw Exception(errorData['message'] ?? 'Failed to get invoice');
+//     }
+//   } catch (e) {
+//     print('Error downloading invoice: $e');
+//     throw Exception('Failed to download invoice: $e');
+//   }
+// }
+
+
+  
+
+  // /// Downloads the invoice for a specific order
+  // /// Returns the file path where the invoice was saved
+  // Future<String> downloadOrderInvoice(String orderNumber) async {
+  //   try {
+  //     final token = await _authService.getAccessToken();
+  //     if (token == null) {
+  //       throw Exception('Authentication required');
+  //     }
+
+  //     // First, get the invoice data from the API
+  //     final response = await http.get(
+  //       Uri.parse('$baseUrl/odoo/orders/$orderNumber/invoice/'),
+  //       headers: await _getHeaders(),
+  //     );
+
+  //     if (response.statusCode == 200) {
+  //       final data = jsonDecode(response.body);
+  //       print("REsponse for the data invoice is $data");
+
+  //       if (data['success'] == true && data['invoice'] != null) {
+  //         final invoiceData = data['invoice'];
+  //         final s3Url = invoiceData['s3_url'];
+  //         final displayName =
+  //             invoiceData['display_name'] ?? 'Invoice-$orderNumber';
+
+  //         // Download the PDF from S3 URL
+  //         final pdfResponse = await http.get(
+  //           Uri.parse(s3Url),
+  //           headers: {'Authorization': 'Bearer $token'},
+  //         );
+
+  //         if (pdfResponse.statusCode == 200) {
+  //           // Get the downloads directory
+  //           Directory? downloadsDir;
+  //           if (Platform.isAndroid) {
+  //             downloadsDir = Directory('/storage/emulated/0/Download');
+  //           } else if (Platform.isIOS) {
+  //             downloadsDir = await getApplicationDocumentsDirectory();
+  //           } else {
+  //             downloadsDir = await getApplicationDocumentsDirectory();
+  //           }
+
+  //           // Create the directory if it doesn't exist
+  //           if (!await downloadsDir.exists()) {
+  //             await downloadsDir.create(recursive: true);
+  //           }
+
+  //           // Create the file path
+  //           final fileName = '$displayName.pdf';
+  //           final filePath = '${downloadsDir.path}/$fileName';
+  //           final file = File(filePath);
+
+  //           // Write the PDF bytes to the file
+  //           await file.writeAsBytes(pdfResponse.bodyBytes);
+
+  //           print('Invoice downloaded successfully to: $filePath');
+  //           return filePath;
+  //         } else {
+  //           throw Exception(
+  //             'Failed to download PDF: ${pdfResponse.statusCode}',
+  //           );
+  //         }
+  //       } else {
+  //         throw Exception('Invoice not available for this order');
+  //       }
+  //     } else if (response.statusCode == 404) {
+
+  //       throw Exception('Invoice not found for this order');
+  //     } else {
+  //       final errorData = jsonDecode(response.body);
+  //       throw Exception(errorData['message'] ?? 'Failed to get invoice');
+  //     }
+  //   } catch (e) {
+  //     print('Error downloading invoice: $e');
+  //     throw Exception('Failed to download invoice: $e');
+  //   }
+  // }
 }

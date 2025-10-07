@@ -4,7 +4,7 @@ import 'package:grocery_app/models/category_model.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 
 class CategoryItemCardWidget extends StatelessWidget {
-  CategoryItemCardWidget({
+  const CategoryItemCardWidget({
     super.key,
     required this.item,
     this.color = Colors.blue,

@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 class HelpScreen extends StatelessWidget {
   final String? orderNumber;
 
-  const HelpScreen({Key? key, this.orderNumber}) : super(key: key);
+  const HelpScreen({super.key, this.orderNumber});
 
   @override
   Widget build(BuildContext context) {

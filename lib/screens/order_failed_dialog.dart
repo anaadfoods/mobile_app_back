@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 class OrderFailedDialog extends StatelessWidget {
   final String? error;
 
-  const OrderFailedDialog({Key? key, this.error}) : super(key: key);
+  const OrderFailedDialog({super.key, this.error});
 
   @override
   Widget build(BuildContext context) {

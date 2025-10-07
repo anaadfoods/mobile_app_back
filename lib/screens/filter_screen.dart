@@ -4,6 +4,8 @@ import 'package:grocery_app/common_widgets/app_text.dart';
 import 'package:grocery_app/styles/colors.dart';
 
 class FilterScreen extends StatelessWidget {
+  const FilterScreen({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -69,7 +71,7 @@ class FilterScreen extends StatelessWidget {
 class OptionItem extends StatefulWidget {
   final String text;
 
-  const OptionItem({Key? key, required this.text}) : super(key: key);
+  const OptionItem({super.key, required this.text});
 
   @override
   _OptionItemState createState() => _OptionItemState();
@@ -118,10 +120,10 @@ class _OptionItemState extends State<OptionItem> {
         width: 25,
         height: 25,
         child: Container(
-          decoration: new BoxDecoration(
+          decoration: BoxDecoration(
               border: Border.all(
                   width: checked ? 0 : 1.5, color: Color(0xffB1B1B1)),
-              borderRadius: new BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(8),
               color: checked ? AppColors.primaryColor : Colors.transparent),
           child: Theme(
             data: ThemeData(

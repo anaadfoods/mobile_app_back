@@ -6,11 +6,11 @@ class SkeletonContainer extends StatelessWidget {
   final BorderRadius? borderRadius;
 
   const SkeletonContainer({
-    Key? key,
+    super.key,
     required this.width,
     required this.height,
     this.borderRadius,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -31,11 +31,11 @@ class SkeletonAnimation extends StatefulWidget {
   final Widget? loadingWidget;
 
   const SkeletonAnimation({
-    Key? key,
+    super.key,
     required this.child,
     required this.isLoading,
     this.loadingWidget,
-  }) : super(key: key);
+  });
 
   @override
   _SkeletonAnimationState createState() => _SkeletonAnimationState();
@@ -84,11 +84,13 @@ class _SkeletonAnimationState extends State<SkeletonAnimation>
 }
 
 class SubscriptionSkeletonLoader extends StatelessWidget {
+  const SubscriptionSkeletonLoader({super.key});
+
   @override
   Widget build(BuildContext context) {
     return ListView.builder(
       padding: EdgeInsets.all(16),
-      itemCount: 3, // Show 3 skeleton cards
+      itemCount: 1, // Show 3 skeleton cards
       itemBuilder: (context, index) => _buildSkeletonCard(),
     );
   }
@@ -159,6 +161,8 @@ class SubscriptionSkeletonLoader extends StatelessWidget {
 }
 
 class ProductSkeletonLoader extends StatelessWidget {
+  const ProductSkeletonLoader({super.key});
+
   @override
   Widget build(BuildContext context) {
     return GridView.builder(
@@ -212,6 +216,8 @@ class ProductSkeletonLoader extends StatelessWidget {
 }
 
 class FavoriteSkeletonLoader extends StatelessWidget {
+  const FavoriteSkeletonLoader({super.key});
+
   @override
   Widget build(BuildContext context) {
     return ListView.builder(

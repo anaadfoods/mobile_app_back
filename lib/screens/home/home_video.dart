@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
 
 class AssetVideoPlayer extends StatefulWidget {
-  const AssetVideoPlayer({Key? key}) : super(key: key);
+  const AssetVideoPlayer({super.key});
 
   @override
   _AssetVideoPlayerState createState() => _AssetVideoPlayerState();

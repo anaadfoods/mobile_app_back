@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:grocery_app/common_widgets/app_text.dart';
+import 'package:grocery_app/models/subscription_model.dart';
 import 'package:grocery_app/models/user_model.dart';
+import 'package:grocery_app/screens/MySubscriptionPlan/subscription_plan_detail.dart';
+import 'package:grocery_app/screens/about/about_screen.dart';
+import 'package:grocery_app/screens/order/order_screen.dart';
+import 'package:grocery_app/screens/profile/edit_profile_screen.dart';
 import 'package:grocery_app/screens/profile/profile_screen.dart';
 import 'package:grocery_app/styles/colors.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -9,7 +13,9 @@ import 'package:grocery_app/services/auth_service.dart';
 import 'package:grocery_app/services/notification_service.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 
-import 'account_item.dart';
+// Note: The original AccountItem class was not provided, so I'm commenting this out.
+// The new UI is built with a more direct approach in the build method.
+// import 'account_item.dart';
 
 class AccountScreen extends StatefulWidget {
   const AccountScreen({super.key});
@@ -28,6 +34,8 @@ class _AccountScreenState extends State<AccountScreen> {
     authService = AuthService();
     user = authService.currentUser;
   }
+
+  // --- LOGIC METHODS (UNCHANGED) ---
 
   Future<void> _refreshUser() async {
     final updatedUser = await authService.getUserData();
@@ -67,75 +75,170 @@ class _AccountScreenState extends State<AccountScreen> {
     setState(() {
       user = null;
     });
+    // You might want to navigate to the login screen here
+    // Navigator.of(context).pushReplacement(...);
   }
+
+  // --- UI BUILD METHOD (UPDATED) ---
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: Scaffold(
+    // Assuming a username field exists in your UserModel
+    String userHandle = user?.username ?? "loading...";
+    String userEmail = user?.email ?? "email@example.com";
+    String userName = '${user?.firstName} ${user?.lastName}' ?? "Chlo Jonathan";
+
+    return Scaffold(
+      backgroundColor: Colors.white,
+      appBar: AppBar(
         backgroundColor: Colors.white,
-        body: SingleChildScrollView(
+        elevation: 0,
+        centerTitle: true,
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back, color: Colors.black),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+        title: Text(
+          '@$userHandle',
+          style: TextStyle(
+            color: Colors.black,
+            fontWeight: FontWeight.bold,
+            fontSize: 18,
+          ),
+        ),
+      ),
+      body: SingleChildScrollView(
+        physics: BouncingScrollPhysics(),
+        child: Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(horizontal: 25.0),
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               SizedBox(height: 20),
-              GestureDetector(
-                onTap: () async {
-                  final result = await Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => ProfileScreen()),
-                  );
-                  if (result == true) {
-                    await _refreshUser();
-                    setState(() {});
-                  }
-                },
-                child: ListTile(
-                  leading: ClipRRect(
-                    borderRadius: BorderRadius.circular(50),
-                    child: CircleAvatar(
-                      radius: 25,
-                      backgroundColor: AppColors.primaryColor.withOpacity(0.1),
-                      child:
-                          user?.profilePicture != null
-                              ? Image.network(
-                                user?.profilePicture ?? '',
-                                width: 50,
-                                height: 50,
-                                fit: BoxFit.cover,
-                              )
-                              : Text(
-                                user != null && user!.firstName.isNotEmpty
-                                    ? user!.firstName[0].toUpperCase()
-                                    : "U",
-                                style: TextStyle(
-                                  fontSize: 24,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
+              // -- Profile Picture --
+              Container(
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.grey.withOpacity(0.3),
+                      spreadRadius: 2,
+                      blurRadius: 8,
+                      offset: Offset(0, 4),
                     ),
-                  ),
-                  title: AppText(
-                    text:
-                        user != null
-                            ? "${user!.firstName[0].toUpperCase()}${user!.firstName.substring(1)} ${user!.lastName[0].toUpperCase()}${user!.lastName.substring(1)}"
-                            : "User Name",
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                  ),
-                  subtitle: AppText(
-                    text: user?.email ?? "user@123",
-                    color: Color(0xff7C7C7C),
-                    fontWeight: FontWeight.normal,
-                    fontSize: 16,
+                  ],
+                ),
+                child: CircleAvatar(
+                  radius: 55,
+                  backgroundColor: Colors.white,
+                  child: CircleAvatar(
+                    radius: 52,
+                    backgroundColor: Colors.grey[200],
+                    backgroundImage: user?.profilePicture != null
+                        ? NetworkImage(user!.profilePicture!)
+                        : null,
+                    child: user?.profilePicture == null
+                        ? Icon(Icons.person, size: 60, color: Colors.grey[400])
+                        : null,
                   ),
                 ),
               ),
+              SizedBox(height: 15),
+
+              // -- User Name and Email --
+              Text(
+                userName,
+                style: TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black87,
+                ),
+              ),
+              SizedBox(height: 5),
+              Text(
+                userEmail,
+                style: TextStyle(
+                  fontSize: 16,
+                  color: Colors.grey[600],
+                ),
+              ),
               SizedBox(height: 20),
-              ...accountItems
-                  .map((item) => buildAccountItem(context, item))
-                  .toList(),
+
+              // -- Edit Profile Button --
+              SizedBox(
+                width: 200,
+                child: ElevatedButton.icon(
+                  onPressed: () async {
+                    final result = await Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => EditProfileScreen(userProfile: user!,)),
+                    );
+                    if (result == true) {
+                      await _refreshUser();
+                    }
+                  },
+                  icon: Icon(Icons.edit, size: 16),
+                  label: Text("Edit Profile"),
+                  style: ElevatedButton.styleFrom(
+                    foregroundColor: Colors.white,
+                    backgroundColor: Color(0xFFB58A55),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    padding: EdgeInsets.symmetric(vertical: 12),
+                  ),
+                ),
+              ),
               SizedBox(height: 30),
-              logoutButton(context),
+
+              // -- Menu Items --
+              _buildAccountItem(
+                context,
+                icon: Icons.subscriptions_outlined,
+                label: "My Subscriptions",
+                onTap: () {
+ Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => SubscriptionScreen()),
+                    );                },
+              ),
+              _buildAccountItem(
+                context,
+                icon: Icons.shopping_bag_outlined,
+                label: "My Orders",
+                onTap: () {
+ Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => OrderScreen()),
+                    );                },
+              ),
+              _buildAccountItem(
+                context,
+                icon: Icons.settings_outlined,
+                label: "About",
+                onTap: () {
+ Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => AboutScreen()),
+                    );
+                },
+              ),
+
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 15.0),
+                child: Divider(color: Colors.grey[200]),
+              ),
+
+              _buildAccountItem(
+                context,
+                icon: Icons.logout,
+                label: "Logout",
+                onTap: () => _handleLogout(context),
+              ),
+             
+
+              SizedBox(height: 30),
             ],
           ),
         ),
@@ -143,78 +246,43 @@ class _AccountScreenState extends State<AccountScreen> {
     );
   }
 
-  Widget buildAccountItem(
-    BuildContext context,
-    AccountItem item, {
-    Function()? onTap,
+  // --- HELPER WIDGETS (UPDATED) ---
+
+  Widget _buildAccountItem(
+    BuildContext context, {
+    required IconData icon,
+    required String label,
+    required VoidCallback onTap,
   }) {
-    return GestureDetector(
-      onTap:
-          onTap ??
-          () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => item.screen),
-            );
-          },
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(15),
       child: Container(
-        margin: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+        margin: EdgeInsets.symmetric(vertical: 8),
         padding: EdgeInsets.symmetric(horizontal: 20, vertical: 16),
         decoration: BoxDecoration(
-          color: Colors.grey.shade100,
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.grey.shade200,
-              blurRadius: 6,
-              offset: Offset(0, 3),
-            ),
-          ],
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(15),
+          border: Border.all(color: Colors.grey[200]!, width: 1.5),
+
         ),
         child: Row(
           children: [
-            item.iconPath,
+            Icon(icon, color: Color(0xFFB58A55), size: 24),
             SizedBox(width: 20),
             Expanded(
               child: Text(
-                item.label,
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+                label,
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.black87,
+                ),
               ),
             ),
-            Icon(Icons.arrow_forward_ios, size: 18, color: Colors.grey),
+            Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey[600]),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget logoutButton(BuildContext context) {
-    return Container(
-      margin: EdgeInsets.symmetric(horizontal: 25),
-      width: double.infinity,
-      child: ElevatedButton.icon(
-        icon: SvgPicture.asset(
-          "assets/icons/account_icons/logout_icon.svg",
-          width: 20,
-          height: 20,
-        ),
-        label: Text(
-          "Log Out",
-          style: TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-            color: AppColors.primaryColor,
-          ),
-        ),
-        style: ElevatedButton.styleFrom(
-          elevation: 0,
-          backgroundColor: Color(0xffF2F3F2),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
-          ),
-          padding: EdgeInsets.symmetric(vertical: 16),
-        ),
-        onPressed: () => _handleLogout(context),
       ),
     );
   }

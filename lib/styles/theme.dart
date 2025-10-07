@@ -15,7 +15,6 @@ class AppTheme {
         primary: AppColors.primaryColor,
         secondary: AppColors.secondaryColor,
         surface: AppColors.background,
-        background: AppColors.background,
         error: AppColors.error,
       ),
 
@@ -90,14 +89,6 @@ class AppTheme {
           vertical: 16,
         ),
       ),
-
-      // Card Theme
-      cardTheme: CardTheme(
-        color: AppColors.background,
-        elevation: 0,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      ),
-
       // Divider Theme
       dividerTheme: const DividerThemeData(
         color: AppColors.divider,

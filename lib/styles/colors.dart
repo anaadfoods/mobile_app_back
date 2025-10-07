@@ -10,12 +10,12 @@ class AppColors {
   AppColors._();
 
   // Primary Colors
-  static const primaryColor = Color(0xff53B175);
+  static const primaryColor = Color(0xff3f5e46);
   static const primaryLight = Color(0xff7BC48F);
   static const primaryDark = Color(0xff3A8C54);
 
   // Secondary Colors
-  static const secondaryColor = Color(0xffF8F8F8);
+  static const secondaryColor = Color(0xff6b1e1e);
   static const secondaryLight = Color(0xffFFFFFF);
   static const secondaryDark = Color(0xffE8E8E8);
 
@@ -25,6 +25,7 @@ class AppColors {
   static const textLight = Color(0xffB3B3B3);
 
   // Background Colors
+  static const bottonBackgroundColor = Color(0xffad8441);
   static const background = Color(0xffFFFFFF);
   static const backgroundDark = Color(0xffF2F3F2);
 

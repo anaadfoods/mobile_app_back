@@ -5,10 +5,10 @@ class ItemCounterWidget extends StatefulWidget {
   final int amount;
 
   const ItemCounterWidget({
-    Key? key,
+    super.key,
     required this.onAmountChanged,
     required this.amount,
-  }) : super(key: key);
+  });
 
   @override
   _ItemCounterWidgetState createState() => _ItemCounterWidgetState();
@@ -25,12 +25,8 @@ class _ItemCounterWidgetState extends State<ItemCounterWidget> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: 2, vertical: 2),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(8),
-        color: Colors.grey.shade100,
-      ),
+    return Expanded(
+      
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -40,20 +36,23 @@ class _ItemCounterWidgetState extends State<ItemCounterWidget> {
             padding: EdgeInsets.zero,
             constraints: BoxConstraints(minWidth: 10, minHeight: 10),
           ),
-          Container(
+          SizedBox(
             width: 15,
             child: Center(
               child: Text(
                 amount.toString(),
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500),
               ),
             ),
           ),
-          IconButton(
-            icon: Icon(Icons.add, size: 15),
-            onPressed: incrementAmount,
-            padding: EdgeInsets.zero,
-            constraints: BoxConstraints(minWidth: 10, minHeight: 10),
+          Container(
+            
+            child: IconButton(
+              icon: Icon(Icons.add, size: 15),
+              onPressed: incrementAmount,
+              padding: EdgeInsets.zero,
+              constraints: BoxConstraints(minWidth: 10, minHeight: 10),
+            ),
           ),
         ],
       ),

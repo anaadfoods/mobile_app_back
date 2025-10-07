@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -138,7 +137,16 @@ class NotificationService {
           AndroidNotificationChannel(
             'orders',
             'Orders',
-            description: 'Notifications for order updates',
+            description: 'Notifications for order status changes',
+            importance: Importance.high,
+          );
+
+      const AndroidNotificationChannel subscriptionChannel =
+          AndroidNotificationChannel(
+            'subscriptions',
+            'Subscriptions',
+            description:
+                'Notifications for subscription updates and payment reminders',
             importance: Importance.high,
           );
 
@@ -146,16 +154,24 @@ class NotificationService {
           AndroidNotificationChannel(
             'products',
             'Products',
-            description: 'Notifications for product updates',
+            description: 'Notifications for product launches and updates',
             importance: Importance.low,
           );
 
-      const AndroidNotificationChannel promoChannel =
+      const AndroidNotificationChannel promotionalChannel =
           AndroidNotificationChannel(
             'promotions',
             'Promotions',
-            description: 'Notifications for promotions and offers',
+            description: 'Notifications for marketing and promotional offers',
             importance: Importance.low,
+          );
+
+      const AndroidNotificationChannel systemChannel =
+          AndroidNotificationChannel(
+            'system',
+            'System',
+            description: 'Notifications for system updates and maintenance',
+            importance: Importance.none,
           );
 
       await _localNotifications
@@ -168,13 +184,25 @@ class NotificationService {
           .resolvePlatformSpecificImplementation<
             AndroidFlutterLocalNotificationsPlugin
           >()
+          ?.createNotificationChannel(subscriptionChannel);
+
+      await _localNotifications
+          .resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin
+          >()
           ?.createNotificationChannel(productChannel);
 
       await _localNotifications
           .resolvePlatformSpecificImplementation<
             AndroidFlutterLocalNotificationsPlugin
           >()
-          ?.createNotificationChannel(promoChannel);
+          ?.createNotificationChannel(promotionalChannel);
+
+      await _localNotifications
+          .resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin
+          >()
+          ?.createNotificationChannel(systemChannel);
     }
   }
 
@@ -304,7 +332,6 @@ class NotificationService {
 
     NotificationDetails notificationDetails = NotificationDetails(
       android: androidDetails,
-      iOS: iosDetails,
     );
 
     await _localNotifications.show(
@@ -322,11 +349,16 @@ class NotificationService {
       case 'order':
         return 'orders';
       case 'subscription':
+      case 'payment':
         return 'subscriptions';
-      case 'payment_reminder':
-        return 'payment-reminders';
-      default:
+      case 'product':
+        return 'products';
+      case 'promotional':
         return 'promotions';
+      case 'system':
+        return 'system';
+      default:
+        return 'orders';
     }
   }
 
@@ -334,10 +366,14 @@ class NotificationService {
     switch (channelId) {
       case 'orders':
         return 'Orders';
+      case 'subscriptions':
+        return 'Subscriptions';
       case 'products':
         return 'Products';
       case 'promotions':
         return 'Promotions';
+      case 'system':
+        return 'System';
       default:
         return 'Orders';
     }
@@ -346,42 +382,47 @@ class NotificationService {
   String _getChannelDescription(String channelId) {
     switch (channelId) {
       case 'orders':
-        return 'Notifications for order updates';
+        return 'Notifications for order status changes';
       case 'subscriptions':
-        return 'Notifications for subscription updates';
-      case 'payment-reminders':
-        return 'Notifications for payment reminders';
+        return 'Notifications for subscription updates and payment reminders';
+      case 'products':
+        return 'Notifications for product launches and updates';
+      case 'promotions':
+        return 'Notifications for marketing and promotional offers';
+      case 'system':
+        return 'Notifications for system updates and maintenance';
       default:
-        return 'Notifications for promotions and offers';
+        return 'Notifications for order updates';
     }
   }
 
   void _handleNotificationAction(Map<String, dynamic> data) {
     String? action = data['type'];
-
     String? id = data['id'];
 
     switch (action) {
       case "order":
+        // Redirect to order screen
         _navigateToOrder(id);
         break;
       case "subscription":
-        _navigateToSubscription(id);
-        break;
       case "payment":
+        // Redirect to subscription detail screen
         _navigateToSubscription(id);
         break;
       case "product":
-        _navigateToProduct(id);
-        break;
-      case "profile":
-        _navigateToProfile();
-        break;
       case "promotional":
-        _navigateToPromo(id);
+        // Redirect to home screen
+        _navigateToHome();
+        break;
+      case "system":
+        // Stay on notifications screen for system updates
+        _navigateToNotifications();
         break;
       default:
         debugPrint('Unknown notification action: $action');
+        // Default to notifications screen
+        _navigateToNotifications();
     }
   }
 
@@ -421,24 +462,36 @@ class NotificationService {
     NavigationService.navigateToProductDetails(productId);
   }
 
+  void _navigateToHome() {
+    debugPrint('Navigate to home');
+    NavigationService.navigateToHome();
+  }
+
+  void _navigateToNotifications() {
+    debugPrint('Navigate to notifications');
+    NavigationService.navigateToNotifications();
+  }
+
   // Public methods for sending local notifications
   Future<void> showLocalNotification({
     required String title,
     required String body,
     String? payload,
     int id = 0,
+    String? type,
   }) async {
-    const AndroidNotificationDetails androidDetails =
-        AndroidNotificationDetails(
-          'orders',
-          'Orders',
-          channelDescription: 'Notifications for order updates',
-          importance: Importance.high,
-          priority: Priority.high,
-          ticker: 'ticker',
-        );
+    String channelId = _getChannelId({'type': type ?? 'order'});
 
-    const NotificationDetails notificationDetails = NotificationDetails(
+    AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
+      channelId,
+      _getChannelName(channelId),
+      channelDescription: _getChannelDescription(channelId),
+      importance: Importance.high,
+      priority: Priority.high,
+      ticker: 'ticker',
+    );
+
+    NotificationDetails notificationDetails = NotificationDetails(
       android: androidDetails,
     );
 
@@ -485,8 +538,10 @@ class NotificationService {
     String fcmToken,
     String bearerToken,
   ) async {
+    String deviceID = await getDeviceId();
+
     final url = Uri.parse(
-      'https://app.anaadfoods.com/api/auth/notifications/register-token/',
+      'https://app.anaadfoods.com/api/notifications/register-token/',
     );
     try {
       final response = await http.post(
@@ -496,9 +551,9 @@ class NotificationService {
           'Authorization': 'Bearer $bearerToken',
         },
         body: jsonEncode({
-          'token': fcmToken,
-          'device_id': deviceId,
-          'platform': platform,
+          'token': fcmToken.toString(),
+          'device_id': deviceID.toString(),
+          'platform': platform.toString(),
         }),
       );
       if (response.statusCode == 200) {
@@ -520,13 +575,14 @@ class NotificationService {
       'https://app.anaadfoods.com/api/notifications/logout-device/',
     );
     try {
+      String deviceID = await getDeviceId();
       final response = await http.post(
         url,
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $bearerToken',
         },
-        body: jsonEncode({'token': fcmToken, 'device_id': deviceId}),
+        body: jsonEncode({'token': fcmToken.toString(), 'device_id': deviceID}),
       );
       if (response.statusCode == 200) {
         debugPrint('FCM token removed successfully from backend');

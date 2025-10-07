@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:grocery_app/models/order_model.dart';
 import 'package:grocery_app/models/product_model.dart';
 import 'package:grocery_app/models/product_image_model.dart';
+import 'package:grocery_app/screens/address/address_selection_screen.dart';
 import 'package:grocery_app/screens/auth/login_screen.dart';
 import 'package:grocery_app/screens/checkout/checkout_screen.dart';
 import 'package:grocery_app/screens/product_details/product_details_screen.dart';
@@ -52,16 +53,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
   void initState() {
     super.initState();
     _currentOrder = widget.order;
-    print('Order ID: ${_currentOrder.id}');
-    print('Order Number: ${_currentOrder.orderNumber}');
-    print('Products Count: ${_currentOrder.products.length}');
-    _currentOrder.products.forEach((product) {
-      print('Product: ${product.productName}');
-      print('Product Details: ${product.productDetails?.productName}');
-      print('Quantity: ${product.quantity}');
-      print('Price: ${product.price}');
-      print('Total: ${product.total}');
-    });
+    
   }
 
   void _copyOrderNumber() async {
@@ -261,12 +253,11 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
           context,
           MaterialPageRoute(
             builder:
-                (context) => CheckoutScreen(
+                (context) => AddressSelectionScreen(
                   singleProduct: productVariant,
-                  quantity: firstProduct.quantity,
-                  deliveryCharges:
-                      0.0, // Default delivery charges for buy again
-                ),
+                  quantity: firstProduct.quantity > 0 ? firstProduct.quantity : 1,
+                  
+                )
           ),
         );
       } else {
@@ -353,6 +344,8 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
               ],
               SizedBox(height: 16),
               _buildActionButton(),
+              Container(
+                padding: EdgeInsets.symmetric(vertical:40)),
             ],
           ),
         ),
@@ -361,11 +354,10 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
         backgroundColor: Colors.green,
         child: Icon(Icons.message),
         onPressed: () async {
-          final user = await AuthService().currentUser;
+          final user = AuthService().currentUser;
           final phone = '91XXXXXXXXXX'; // Replace with your WhatsApp number
           final message = Uri.encodeComponent(
-            'Order Support Request\n' +
-                'User: ${user?.firstName ?? ''} ${user?.lastName ?? ''}\n' +
+            'Order Support Request\n' 'User: ${user?.firstName ?? ''} ${user?.lastName ?? ''}\n' +
                 'Phone: ${user?.phoneNumber ?? ''}\n' +
                 'Order Number: ${_currentOrder.orderNumber}\n' +
                 'Order Status: ${_currentOrder.status}\n' +
@@ -716,7 +708,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                     ),
                   ),
                 )
-                .toList(),
+                ,
             Divider(height: 24),
             Container(
               padding: EdgeInsets.all(12),

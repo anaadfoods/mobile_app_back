@@ -5,24 +5,31 @@ class AppButton extends StatelessWidget {
   final String label;
   final double roundness;
   final FontWeight fontWeight;
-  final EdgeInsets padding;
+  final Color? color;
+  final Color? textColor;
+  final double? width;
+
+  final EdgeInsets? padding;
   final Widget? trailingWidget;
   final Function? onPressed;
 
   const AppButton({
-    Key? key,
+    super.key,
     required this.label,
     this.roundness = 18,
     this.fontWeight = FontWeight.bold,
-    this.padding = const EdgeInsets.symmetric(vertical: 24),
+    this.padding ,
     this.trailingWidget,
+    this.color,
+    this.textColor,
+    this.width,
     this.onPressed,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: double.maxFinite,
+    return SizedBox(
+      width: width ?? double.maxFinite,
       child: ElevatedButton(
         onPressed: () {
           onPressed?.call();
@@ -33,13 +40,13 @@ class AppButton extends StatelessWidget {
             borderRadius: BorderRadius.circular(roundness),
           ),
           elevation: 0,
-          backgroundColor: AppColors.primaryColor,
+          backgroundColor: color,
           textStyle: TextStyle(
-            color: const Color.fromARGB(255, 181, 113, 113),
+            color: textColor,
             fontFamily: Theme.of(context).textTheme.bodyLarge?.fontFamily,
             fontWeight: fontWeight,
           ),
-          padding: padding,
+          padding: padding ?? EdgeInsets.symmetric(vertical: 24),
           minimumSize: const Size.fromHeight(50),
         ),
         child: Stack(
@@ -51,7 +58,7 @@ class AppButton extends StatelessWidget {
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   color: Colors.white,
-                  fontSize: 18,
+                  fontSize: 14,
                   fontWeight: fontWeight,
                 ),
               ),

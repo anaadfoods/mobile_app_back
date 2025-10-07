@@ -11,11 +11,11 @@ class ChartItemWidget extends StatefulWidget {
   final VoidCallback onRemove;
 
   const ChartItemWidget({
-    Key? key,
+    super.key,
     required this.item,
     required this.onQuantityChanged,
     required this.onRemove,
-  }) : super(key: key);
+  });
 
   @override
   _ChartItemWidgetState createState() => _ChartItemWidgetState();

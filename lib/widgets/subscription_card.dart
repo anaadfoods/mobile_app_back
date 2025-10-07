@@ -1,13 +1,13 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:grocery_app/helpers/animated_transitions.dart';
 import 'package:grocery_app/helpers/notification_helper.dart';
+import 'package:grocery_app/screens/MySubscriptionPlan/subscription_plan_detail.dart';
 import 'package:grocery_app/screens/checkout/webview_page.dart';
 import 'package:grocery_app/styles/colors.dart';
 import '../models/subscription_model.dart';
 import '../services/subscription_service.dart';
-import 'FillImageWithColor.dart';
 import '../screens/MySubscriptionPlan/subscription_plan_detail_single.dart';
-import 'package:skeletonizer/skeletonizer.dart';
 import 'package:grocery_app/helpers/snackbar_helper.dart';
 
 class SubscriptionCard extends StatelessWidget {
@@ -16,6 +16,8 @@ class SubscriptionCard extends StatelessWidget {
   final int quantity;
   final DateTime nextDeliveryDate;
   final int deliveriesLeft;
+  final double discountedPrice;
+  final double totalPrice;
   final int totalDeliveries;
   final bool isPaused;
   final VoidCallback onViewDetails;
@@ -23,6 +25,7 @@ class SubscriptionCard extends StatelessWidget {
   final VoidCallback onRepayment;
   final int completedDeliveries;
   final String installmantPaymentStatus;
+  final String imageUrl;
 
   const SubscriptionCard({
     super.key,
@@ -37,189 +40,199 @@ class SubscriptionCard extends StatelessWidget {
     required this.onTogglePause,
     required this.onRepayment,
     required this.completedDeliveries,
-    this.installmantPaymentStatus = "PAID",
+    required this.imageUrl,
+    this.installmantPaymentStatus = "PAID", required this.discountedPrice, required this.totalPrice,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      color:
-          installmantPaymentStatus == "PENDING"
-              ? const Color.fromARGB(255, 207, 172, 169)
-              : Colors.white24,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      margin: EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-      elevation: 4,
-      child: Padding(
-        padding: const EdgeInsets.all(10),
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.grey.withOpacity(0.3)),
+        color: Colors.grey[100],
+        // ADDED THIS BOXSHADOW FOR ELEVATION
+        // boxShadow: [
+        //   BoxShadow(
+        //     color: Colors.black.withOpacity(0.08),
+        //     blurRadius: 10,
+        //     offset: const Offset(0, 4),
+        //   ),
+        // ],
+      ),
+      padding: const EdgeInsets.all(12.0),
+      child: GestureDetector(
+        onTap: onViewDetails,
         child: Column(
-          mainAxisSize: MainAxisSize.min,
-          spacing: 3,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Header Section
+            // Subscription Plan Tag
             Container(
-              height: 65,
-              child: Center(
-                child: Text(
-                  '$productName - $planName',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.indigo[900],
+              padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(
+                color: AppColors.primaryColor,
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.check_circle, color: Colors.white, size: 16),
+                  SizedBox(width: 4),
+                  Text(
+                    "Subscription - $planName",
+                    style: TextStyle(color: Colors.white, fontSize: 12),
                   ),
-                ),
+                ],
               ),
             ),
-            SizedBox(height: 8),
 
-            // Info Section
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 10),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      Text(
-                        'Quantity',
-                        style: TextStyle(fontSize: 14, color: Colors.grey[600]),
-                      ),
-                      Text(
-                        quantity.toString(),
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.indigo[900],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 10),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      Text(
-                        'Next Delivery',
-                        style: TextStyle(fontSize: 14, color: Colors.grey[600]),
-                      ),
-                      Text(
-                        '${nextDeliveryDate.day} - ${_getMonthName(nextDeliveryDate.month)} - ${nextDeliveryDate.year}',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w500,
-                          color: Colors.indigo[900],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-            SizedBox(height: 8),
-            Divider(color: Colors.grey[300], thickness: 1),
-            SizedBox(height: 8),
+            SizedBox(height: 12),
 
-            // Actions Section
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Expanded(
-                  child: TextButton(
-                    onPressed: onViewDetails,
-                    child: Text(
-                      'View Details',
-                      style: TextStyle(color: Colors.indigo[900]),
-                    ),
-                  ),
-                ),
-                Container(height: 24, width: 1, color: Colors.grey[300]),
-                if (installmantPaymentStatus == "PAID")
-                  IconButton(
-                    icon: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          isPaused
-                              ? Icons.play_circle_fill
-                              : Icons.pause_circle_filled,
-                        ),
-                        Text(
-                          isPaused ? "play" : "pause",
-                          style: TextStyle(fontSize: 12),
-                        ),
-                      ],
-                    ),
-                    onPressed: onTogglePause,
-                  ),
-                if (installmantPaymentStatus == "PENDING")
-                  TextButton(
-                    onPressed: onRepayment,
-                    child: Text(
-                      "Repayment",
-                      style: TextStyle(color: Colors.red),
-                    ),
-                  ),
-                Container(height: 24, width: 1, color: Colors.grey[300]),
-                Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.all(3.0),
-                    child: Column(
-                      children: [
-                        GestureDetector(
-                          onLongPress: () {
-                            showDialog(
-                              context: context,
-                              builder:
-                                  (context) => AlertDialog(
-                                    title: Text('Delivery Info'),
-                                    content: Text(
-                                      '$deliveriesLeft deliveries left out of $totalDeliveries',
-                                    ),
-                                    actions: [
-                                      TextButton(
-                                        onPressed:
-                                            () => Navigator.of(context).pop(),
-                                        child: Text('OK'),
-                                      ),
-                                    ],
-                                  ),
-                            );
-                          },
-                          child: Tooltip(
-                            message:
-                                '$deliveriesLeft deliveries left out of $totalDeliveries',
-                            child: FillImageWithColor(
-                              imageUrl: 'assets/images/delivery_box.svg',
-                              fillColor: AppColors.primaryColor,
-                              baseColor: const Color(0xFFD1B6B6),
-                              // e.g. 3 done out of 6  →  50 %
-                              percentage:
-                                  ((completedDeliveries / totalDeliveries) *
-                                          100)
-                                      .clamp(0, 100)
-                                      .toInt(),
+            // Product Row
+            Container(
+              padding: EdgeInsets.all(6),
+              margin: EdgeInsets.all(1),
+              decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(8)
+              ),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                                ClipRRect(
+                borderRadius: BorderRadius.circular(12),
+                child: (imageUrl.isNotEmpty)
+                    // If the image list is NOT empty, show the first image
+                    ? CachedNetworkImage(
+                        imageUrl: imageUrl,
+                        height: 100,
+                        width: 100,
+                        fit: BoxFit.cover,
+                        // Show a loading spinner while the image loads
+                        placeholder: (context, url) => Container(
+                          height: 100,
+                          width: 100,
+                          color: Colors.grey[200],
+                          child: Center(
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: Colors.grey[400],
                             ),
                           ),
                         ),
-                        SizedBox(height: 4),
-                        Text(
-                          '${completedDeliveries} Delivered',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Colors.indigo[900],
-                            fontWeight: FontWeight.w500,
+                        // Show an error icon if the image fails to load
+                        errorWidget: (context, url, error) => Container(
+                          height: 100,
+                          width: 100,
+                          color: Colors.grey[200],
+                          child: Icon(
+                            Icons.error_outline,
+                            color: Colors.grey[400],
+                            size: 40,
                           ),
                         ),
+                      )
+                    // If the image list IS empty, show a fallback icon
+                    : Container(
+                        height: 100,
+                        width: 100,
+                        color: Colors.grey[200],
+                        child: Icon(
+                          Icons.image_not_supported_outlined,
+                          color: Colors.grey[400],
+                          size: 40,
+                        ),
+                      ),
+              ),
+
+                  // ClipRRect(
+                  //   borderRadius: BorderRadius.circular(12),
+                  //   child: Image.network(
+                  //     imageUrl[0],
+                  //     // replace with product image
+                  //     height: 100,
+                  //     width: 100,
+                  //     fit: BoxFit.cover,
+                  //   ),
+                  // ),
+                  SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(productName,
+                            style: TextStyle(
+                                fontWeight: FontWeight.bold, fontSize: 14)),
+                        Text(
+                          "$planName – ${quantity}x",
+                          style: TextStyle(color: Colors.grey[600], fontSize: 12),
+                        ),
+                        SizedBox(height: 10),
+                        Row(
+                          children: [
+                            Text("₹$discountedPrice",
+                                style: TextStyle(
+                                    fontSize: 16, fontWeight: FontWeight.bold)),
+                            SizedBox(width: 8),
+                            Text("₹$totalPrice",
+                                style: TextStyle(
+                                    fontSize: 14,
+                                    color: Colors.grey,
+                                    decoration: TextDecoration.lineThrough)),
+                            SizedBox(width: 8),
+                            Container(
+                              padding:
+                                  EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: Colors.orange[100],
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              child: Text("20% Off",
+                                  style: TextStyle(
+                                      fontSize: 12, color: Colors.orange[800])),
+                            )
+                          ],
+                        )
                       ],
                     ),
                   ),
+                ],
+              ),
+            ),
+
+            SizedBox(height: 9),
+
+            // Actions
+            Row(
+              children: [
+                ElevatedButton.icon(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.bottonBackgroundColor,
+                    foregroundColor: Colors.white, // Set icon and text color to white
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12)),
+                  ),
+                  icon: Icon(isPaused ? Icons.play_arrow : Icons.pause),
+                  label: Text(isPaused ? "Resume" : "Pause"),
+                  onPressed: onTogglePause,
                 ),
+                SizedBox(width: 10),
+                Text(
+                  "$deliveriesLeft/$totalDeliveries Deliveries Left",
+                  style: TextStyle(
+                      fontWeight: FontWeight.bold, color: AppColors.bottonBackgroundColor),
+                )
               ],
             ),
+
+            SizedBox(height: 5),
+
+            // Footer
+            Text(
+              "Next Delivery By ${_getMonthName(nextDeliveryDate.month)} ${nextDeliveryDate.day} • $installmantPaymentStatus",
+              style: TextStyle(color: Colors.grey[700], fontSize: 13),
+            )
           ],
         ),
       ),
@@ -312,7 +325,6 @@ class _SubscriptionCarouselState extends State<SubscriptionCarousel> {
         );
         await _loadSubscriptions(); // Reload subscriptions after toggle
       } else {
-        print(response);
         SnackBarHelper.showError(
           context,
           response['detail'] ?? response['message'] ?? 'Failed to toggle pause',
@@ -513,16 +525,43 @@ class _SubscriptionCarouselState extends State<SubscriptionCarousel> {
       return Center(child: Text(""));
     }
 
-    return Skeletonizer(
-      enabled: _isLoading,
-      child: Column(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            "Active Subscription",
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 28),
+          SizedBox(height: 16),
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  "Active Subscription",
+                  style: TextStyle(
+                    color: Colors.black,
+                     fontSize: 18 , 
+                     fontWeight: FontWeight.bold ,
+                     ) 
+                     
+                ),
+                 GestureDetector(
+                  onTap: () => {
+                    Navigator.push(context, MaterialPageRoute(builder: (context) => SubscriptionScreen()))
+                  },
+                   child: const Text(
+                    "See all Plans",
+                    style: TextStyle(
+                      color: AppColors.primaryColor
+                      , fontSize: 14 , 
+                      fontWeight: FontWeight.bold),
+                                   ),
+                 ),
+            
+              ],
+            ),
           ),
+          SizedBox(height: 10,),
           SizedBox(
-            height: 270,
+            height: 280,
             child: Stack(
               children: [
                 PageView.builder(
@@ -540,6 +579,9 @@ class _SubscriptionCarouselState extends State<SubscriptionCarousel> {
                       productName: item.productName,
                       planName: subscription.planName,
                       quantity: item.quantity,
+                      discountedPrice : item.discountedPrice,
+                      totalPrice : item.price,
+                      imageUrl: item.imageUrl ?? '',
                       nextDeliveryDate: DateTime.parse(
                         subscription.nextDeliveryDate,
                       ),
@@ -571,78 +613,78 @@ class _SubscriptionCarouselState extends State<SubscriptionCarousel> {
                   },
                 ),
                 // Navigation Arrows
-                Positioned(
-                  left: 0,
-                  top: 0,
+                // Positioned(
+                //   left: 0,
+                //   top: 0,
 
-                  bottom: 0,
-                  child: Center(
-                    child: IconButton(
-                      icon: Icon(
-                        Icons.chevron_left,
-                        size: 32,
-                        color: Colors.indigo[900],
-                      ),
-                      onPressed: () {
-                        if (_currentPage > 0) {
-                          _pageController.previousPage(
-                            duration: Duration(milliseconds: 300),
-                            curve: Curves.easeInOut,
-                          );
-                        }
-                      },
-                    ),
-                  ),
-                ),
-                Positioned(
-                  right: 0,
-                  top: 0,
-                  bottom: 0,
-                  child: Center(
-                    child: IconButton(
-                      icon: Icon(
-                        Icons.chevron_right,
-                        size: 32,
-                        color: Colors.indigo[900],
-                      ),
-                      onPressed: () {
-                        if (_currentPage < _subscriptions.length - 1) {
-                          _pageController.nextPage(
-                            duration: Duration(milliseconds: 300),
-                            curve: Curves.easeInOut,
-                          );
-                        }
-                      },
-                    ),
-                  ),
-                ),
+                //   bottom: 0,
+                //   child: Center(
+                //     child: IconButton(
+                //       icon: Icon(
+                //         Icons.chevron_left,
+                //         size: 32,
+                //         color: Colors.indigo[900],
+                //       ),
+                //       onPressed: () {
+                //         if (_currentPage > 0) {
+                //           _pageController.previousPage(
+                //             duration: Duration(milliseconds: 300),
+                //             curve: Curves.easeInOut,
+                //           );
+                //         }
+                //       },
+                //     ),
+                //   ),
+                // ),
+                // Positioned(
+                //   right: 0,
+                //   top: 0,
+                //   bottom: 0,
+                //   child: Center(
+                //     child: IconButton(
+                //       icon: Icon(
+                //         Icons.chevron_right,
+                //         size: 32,
+                //         color: Colors.indigo[900],
+                //       ),
+                //       onPressed: () {
+                //         if (_currentPage < _subscriptions.length - 1) {
+                //           _pageController.nextPage(
+                //             duration: Duration(milliseconds: 300),
+                //             curve: Curves.easeInOut,
+                //           );
+                //         }
+                //       },
+                //     ),
+                //   ),
+                // ),
               ],
             ),
           ),
-          SizedBox(height: 8),
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: List.generate(
-                _subscriptions.length,
-                (index) => Container(
-                  width: 8,
-                  height: 8,
-                  margin: EdgeInsets.symmetric(horizontal: 4),
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color:
-                        _currentPage == index
-                            ? Colors.indigo[900]
-                            : Colors.grey[300],
-                  ),
-                ),
-              ),
-            ),
-          ),
+          // SizedBox(height: 8),
+          // SingleChildScrollView(
+          //   scrollDirection: Axis.horizontal,
+          //   child: Row(
+          //     mainAxisAlignment: MainAxisAlignment.center,
+          //     children: List.generate(
+          //       _subscriptions.length,
+          //       (index) => Container(
+          //         width: 8,
+          //         height: 8,
+          //         margin: EdgeInsets.symmetric(horizontal: 4),
+          //         decoration: BoxDecoration(
+          //           shape: BoxShape.circle,
+          //           color:
+          //               _currentPage == index
+          //                   ? AppColors.primaryColor
+          //                   : Colors.grey[300],
+          //         ),
+          //       ),
+          //     ),
+          //   ),
+          // ),
         ],
-      ),
+      
     );
   }
 

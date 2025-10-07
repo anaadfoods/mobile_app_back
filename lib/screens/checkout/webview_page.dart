@@ -21,7 +21,7 @@ class WebViewPage extends StatefulWidget {
   final int subID;
 
   const WebViewPage({
-    Key? key,
+    super.key,
     required this.url,
     required this.orderId,
     this.title,
@@ -32,7 +32,7 @@ class WebViewPage extends StatefulWidget {
     this.subID = 0,
     this.onPaymentResult,
     this.isSubscription = false,
-  }) : super(key: key);
+  });
 
   @override
   _WebViewPageState createState() => _WebViewPageState();
@@ -153,29 +153,27 @@ class _WebViewPageState extends State<WebViewPage> {
         // Find the first subscription with matching id
         Subscription? subscription;
         print(allSubscriptions);
-        if (subscriptionStatus != null) {
-          subscription = allSubscriptions.firstWhere(
-            (sub) => sub.id == subscriptionStatus.subscriptionId,
-            orElse: () => null as Subscription,
-          );
+        subscription = allSubscriptions.firstWhere(
+          (sub) => sub.id == subscriptionStatus.subscriptionId,
+          orElse: () => null as Subscription,
+        );
 
-          if (subscription == null) {
-            // If not found in the list, fetch from the service
-            final detailsResponse = await _subscriptionService
-                .getSubscriptionsbyId(subscriptionStatus.subscriptionId);
-            if (detailsResponse['success'] == true &&
-                detailsResponse['data'] != null) {
-              // If the API returns a list, get the first item; otherwise, use as is
-              if (detailsResponse['data'] is List &&
-                  detailsResponse['data'].isNotEmpty) {
-                subscription = detailsResponse['data'].first;
-              } else if (detailsResponse['data'] is Subscription) {
-                subscription = detailsResponse['data'];
-              }
+        if (subscription == null) {
+          // If not found in the list, fetch from the service
+          final detailsResponse = await _subscriptionService
+              .getSubscriptionsbyId(subscriptionStatus.subscriptionId);
+          if (detailsResponse['success'] == true &&
+              detailsResponse['data'] != null) {
+            // If the API returns a list, get the first item; otherwise, use as is
+            if (detailsResponse['data'] is List &&
+                detailsResponse['data'].isNotEmpty) {
+              subscription = detailsResponse['data'].first;
+            } else if (detailsResponse['data'] is Subscription) {
+              subscription = detailsResponse['data'];
             }
           }
         }
-
+      
         if (subscriptionStatus.transactionStatus == 'SUCCESS' &&
             subscription != null) {
           Navigator.pushReplacement(

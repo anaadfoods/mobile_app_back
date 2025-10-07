@@ -48,7 +48,6 @@ class _AccountScreenFinalState extends State<AccountScreenFinal> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(_isLoggedIn ? "User Detail" : "Login")),
       body: _isLoggedIn ? const AccountScreen() : const AuthScreen(),
     );
   }

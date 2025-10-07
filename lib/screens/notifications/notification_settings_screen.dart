@@ -5,7 +5,7 @@ import '../../widgets/notification_badge_widget.dart';
 import '../../helpers/snackbar_helper.dart';
 
 class NotificationSettingsScreen extends StatefulWidget {
-  const NotificationSettingsScreen({Key? key}) : super(key: key);
+  const NotificationSettingsScreen({super.key});
 
   @override
   State<NotificationSettingsScreen> createState() =>
@@ -253,7 +253,7 @@ class _NotificationSettingsScreenState
                           });
                           _saveNotificationSettings();
                         },
-                        activeColor: Colors.purple,
+                        activeThumbColor: Colors.purple,
                       ),
                     ],
                   ),
@@ -350,7 +350,7 @@ class _NotificationSettingsScreenState
         trailing: Switch(
           value: value,
           onChanged: onChanged,
-          activeColor: color,
+          activeThumbColor: color,
         ),
       ),
     );
@@ -421,7 +421,7 @@ class _NotificationSettingsScreenState
                 ),
               ),
               const SizedBox(width: 16),
-              const Expanded(
+               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [

@@ -13,6 +13,8 @@ import 'package:grocery_app/services/favorite_state_service.dart';
 import 'package:grocery_app/helpers/snackbar_helper.dart';
 
 class FavouriteScreen extends StatefulWidget {
+  const FavouriteScreen({super.key});
+
   @override
   _FavouriteScreenState createState() => _FavouriteScreenState();
 }
@@ -117,7 +119,7 @@ class _FavouriteScreenState extends State<FavouriteScreen> {
     });
 
     try {
-      final result = await _authService.toggleFavorite(favorite.id);
+      final result = await _authService.toggleFavorite(favorite.productId);
 
       if (!mounted) return;
 
@@ -194,11 +196,11 @@ class _FavouriteScreenState extends State<FavouriteScreen> {
           SizedBox(height: 16),
           ElevatedButton(
             onPressed: _loadFavorites,
-            child: Text('Retry'),
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.primaryColor,
               padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
             ),
+            child: Text('Retry'),
           ),
         ],
       ),
@@ -213,7 +215,7 @@ class _FavouriteScreenState extends State<FavouriteScreen> {
           Icon(Icons.favorite_border, size: 64, color: Color(0xFF7C7C7C)),
           SizedBox(height: 16),
           AppText(
-            text: "No Favorite Items",
+            text: "No Favorites Yet",
             fontWeight: FontWeight.w600,
             color: Color(0xFF7C7C7C),
           ),
@@ -228,91 +230,97 @@ class _FavouriteScreenState extends State<FavouriteScreen> {
     );
   }
 
-  Widget _buildFavoriteItem(FavoriteModel favorite) {
-    return GestureDetector(
-      onTap: () async {
-        try {
-          final product = await CategoryService.fetchProductById(favorite.id);
-          if (!mounted) return;
+ Widget _buildFavoriteItem(FavoriteModel favorite) {
+  return GestureDetector(
+    onTap: () async {
+      try {
+        // **FIX 3: Use the correct productId for fetching details**
+        final product = await CategoryService.fetchProductById(favorite.id); 
+        
+        if (!mounted) return;
 
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => ProductDetailsScreen(product: product),
-            ),
-          );
-        } catch (e) {
-          if (!mounted) return;
-
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Failed to load product details: ${e.toString()}'),
-              backgroundColor: Colors.redAccent,
-            ),
-          );
-        }
-      },
-      child: Dismissible(
-        key: Key(favorite.id.toString()),
-        direction: DismissDirection.endToStart,
-        background: Container(
-          alignment: Alignment.centerRight,
-          padding: EdgeInsets.only(right: 20),
-          decoration: BoxDecoration(
-            color: Colors.redAccent,
-            borderRadius: BorderRadius.circular(12),
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => ProductDetailsScreen(product: product),
           ),
-          child: Icon(Icons.delete, color: Colors.white, size: 28),
+        );
+      } catch (e) {
+        if (!mounted) return;
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to load product details: ${e.toString()}'),
+            backgroundColor: Colors.redAccent,
+          ),
+        );
+      }
+    },
+
+        child: Dismissible(
+      key: Key(favorite.id.toString()),
+      direction: DismissDirection.endToStart,
+      background: Container(
+        alignment: Alignment.centerRight,
+        padding: EdgeInsets.only(right: 20),
+        decoration: BoxDecoration(
+          color: Colors.redAccent,
+          borderRadius: BorderRadius.circular(12),
         ),
-        onDismissed: (direction) => _removeFromFavorites(favorite),
-        child: Card(
-          margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          elevation: 6,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(15),
+        child: Icon(Icons.delete, color: Colors.white, size: 28),
+      ),
+      onDismissed: (direction) => _removeFromFavorites(favorite),
+      child: Card(
+        // ... your card UI
+        margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        elevation: 6,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(15),
+        ),
+        child: ListTile(
+          contentPadding: EdgeInsets.all(16),
+          leading: Container(
+            height: 60,
+            width: 60,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(12),
+              color: Color(0xFFF2F2F2),
+            ),
+            child: favorite.image.isNotEmpty
+                ? ClipRRect(
+                    borderRadius: BorderRadius.circular(12),
+                    child: Image.network(
+                      favorite.image ?? "",
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) =>
+                          Icon(Icons.image_not_supported, color: Colors.grey),
+                    ),
+                  )
+                : Icon(Icons.broken_image, color: Colors.grey),
           ),
-          child: ListTile(
-            contentPadding: EdgeInsets.all(16),
-            leading: Container(
-              width: 60,
-              height: 60,
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [
-                    Colors.deepPurpleAccent.withOpacity(0.3),
-                    Colors.deepPurpleAccent.withOpacity(0.6),
-                  ],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Icon(Icons.favorite, color: Colors.white, size: 30),
+          title: Text(
+            favorite.name,
+            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+          ),
+          subtitle: Text(
+            favorite.weight,
+            style: TextStyle(color: Colors.grey, fontSize: 14),
+          ),
+          trailing: IconButton(
+            icon: Icon(
+              Icons.delete_outline,
+              color: Colors.redAccent,
+              size: 28,
             ),
-            title: Text(
-              favorite.name,
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-            ),
-            subtitle: Text(
-              favorite.weight,
-              style: TextStyle(color: Colors.grey, fontSize: 14),
-            ),
-            trailing: IconButton(
-              icon: Icon(
-                Icons.delete_outline,
-                color: Colors.redAccent,
-                size: 28,
-              ),
-              onPressed: () {
-                _removeFromFavorites(favorite);
-              },
-            ),
+            onPressed: () {
+              _removeFromFavorites(favorite);
+            },
           ),
         ),
       ),
-    );
-  }
-
+    ),
+  );
+}
   // Widget _buildFavoriteItem(FavoriteModel favorite) {
   //   return GestureDetector(
   //     onTap: () async {

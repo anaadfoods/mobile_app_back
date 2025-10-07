@@ -8,10 +8,13 @@ import 'package:grocery_app/screens/product_details/product_details_screen.dart'
 import 'package:grocery_app/screens/address/address_selection_screen.dart';
 import 'package:grocery_app/services/cart_service.dart';
 import 'package:grocery_app/services/product_service.dart';
+import 'package:grocery_app/styles/colors.dart';
 import 'package:grocery_app/widgets/chart_item_widget.dart';
 import 'package:grocery_app/helpers/snackbar_helper.dart';
 
 class CartScreen extends StatefulWidget {
+  const CartScreen({super.key});
+
   @override
   _CartScreenState createState() => _CartScreenState();
 }
@@ -58,7 +61,7 @@ class _CartScreenState extends State<CartScreen> {
     return _cart!.items.fold(
       0.0,
       (sum, item) =>
-          sum + (double.parse(item.productVariant.finalPrice) * item.quantity),
+          sum + (double.parse(item.productVariant.finalPrice as String) * item.quantity),
     );
   }
 
@@ -163,6 +166,8 @@ class _CartScreenState extends State<CartScreen> {
     );
   }
 
+
+
   Widget _buildCartList() {
     return Column(
       children: [
@@ -230,7 +235,7 @@ class _CartScreenState extends State<CartScreen> {
                         ),
                       ),
                     );
-                  }).toList(),
+                  }),
                 ],
               ),
             ),
@@ -272,6 +277,20 @@ class _CartScreenState extends State<CartScreen> {
                 ),
               ],
             ),
+            //    Row(
+            //   mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            //   children: [
+            //     Text(
+            //       'Total Savings',
+            //       style: TextStyle(fontSize: 16, color: Colors.grey[700]),
+            //     ),
+            //     Text(
+            //       '${_cart!}',
+            //       style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            //     ),
+            //   ],
+            // ),
+            
             SizedBox(height: 8),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -323,14 +342,15 @@ class _CartScreenState extends State<CartScreen> {
                               selectedPlan: result['selectedPlan'],
                               shippingDetails: result['shippingDetails'],
                               deliveryCharges: result['deliveryCharges'] ?? 0.0,
+                              expectedDeliveryDate: result['expectedDeliveryDate'] ?? '',
                             ),
                       ),
                     );
                   }
                 },
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.green,
-                  padding: EdgeInsets.symmetric(vertical: 16),
+                  backgroundColor: AppColors.bottonBackgroundColor,
+                  padding: EdgeInsets.symmetric(vertical: 14),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
@@ -338,7 +358,7 @@ class _CartScreenState extends State<CartScreen> {
                 child: Text(
                   'Proceed to Checkout',
                   style: TextStyle(
-                    fontSize: 18,
+                    fontSize: 14,
                     color: Colors.white,
                     fontWeight: FontWeight.bold,
                   ),

@@ -5,7 +5,6 @@ import 'package:grocery_app/screens/referral/referral_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:grocery_app/screens/about/about_screen.dart';
 import 'package:grocery_app/screens/order/order_screen.dart';
-import 'package:grocery_app/screens/profile/profile_screen.dart';
 import 'package:grocery_app/screens/account/fcm_token_screen.dart';
 
 class AccountItem {
@@ -17,17 +16,18 @@ class AccountItem {
 }
 
 List<AccountItem> accountItems = [
-  AccountItem("Orders", Icon(Icons.my_library_add), OrderScreen()),
   AccountItem(
     "My Subscriptions",
     Icon(Icons.my_library_add),
     SubscriptionScreen(),
   ),
+    AccountItem("Orders", Icon(Icons.add_box), OrderScreen()),
+
 
   // AccountItem("My Details", Icon(Icons.abc_sharp), ProfileScreen()),
   AccountItem("Referral", Icon(Icons.abc_sharp), ReferAndEarnScreen()),
 
   AccountItem("Help", Icon(Icons.abc_sharp), HelpScreen()),
   AccountItem("About", Icon(Icons.abc_sharp), AboutScreen()),
-  AccountItem("FCM Token", Icon(Icons.notifications), FCMTokenScreen()),
+  // AccountItem("FCM Token", Icon(Icons.notifications), FCMTokenScreen()),
 ];

@@ -24,6 +24,11 @@ class ApiConfig {
   // Order endpoints
   static const String ordersEndpoint = '/api/orders/';
   static const String checkoutEndpoint = '/api/checkout/';
+  static const String createOrderEndpoint = '/api/orders/create/';
+
+static const String getorders = '/api/orders/';
+
+ static const String userDetailsEndpoint = '/api/user/details/';
 
   // Subscription endpoints
   static const String subscriptionsEndpoint = '/api/subscriptions/';
