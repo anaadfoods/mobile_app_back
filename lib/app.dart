@@ -13,7 +13,15 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       navigatorKey: NavigationService.globalNavigatorKey,
-      theme: AppTheme.lightTheme,
+      theme: ThemeData(
+  fontFamily: 'MadeOkineSans',
+  
+  textTheme: const TextTheme(
+    headlineLarge: TextStyle(fontWeight: FontWeight.bold, fontSize: 26),
+    bodyMedium: TextStyle(fontWeight: FontWeight.w400, fontSize: 16),
+    labelLarge: TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+  ),),
+
       debugShowCheckedModeBanner: false,
 
       home: 

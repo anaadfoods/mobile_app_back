@@ -16,8 +16,6 @@ class Product {
   final String productCategory;
   final List<ProductImage> productImages;
 
-  
-
   Product({
     required this.id,
     required this.sku,
@@ -32,7 +30,6 @@ class Product {
     required this.productDescription,
     required this.productCategory,
     required this.productImages,
-
   });
 
   // Convert Product to ProductVariant
@@ -60,20 +57,39 @@ class Product {
       sku: json['sku'] ?? '',
       weight: json['weight'] ?? '',
       weightUnit: json['weight_unit'] ?? '',
-      price: double.tryParse(json['price'] ?? '0') ?? 0,
+      price: double.tryParse(json['price']?.toString() ?? '0') ?? 0,
       discountPercentage:
-          double.tryParse(json['discount_percentage'] ?? '0') ?? 0,
-      finalPrice: double.tryParse(json['final_price'] ?? '0') ?? 0,
+          double.tryParse(json['discount_percentage']?.toString() ?? '0') ?? 0,
+      finalPrice: double.tryParse(json['final_price']?.toString() ?? '0') ?? 0,
       isInStock: json['is_in_stock'] ?? false,
       isActive: json['is_active'] ?? false,
       productName: json['product_name'] ?? '',
       productDescription: json['product_description'] ?? '',
       productCategory: json['product_category'] ?? '',
-      productImages:
-          (json['product_images'] as List<dynamic>?)
+      productImages: (json['product_images'] as List<dynamic>?)
               ?.map((img) => ProductImage.fromJson(img))
               .toList() ??
           [],
     );
+  }
+
+  /// Converts the [Product] instance into a JSON map.
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'sku': sku,
+      'weight': weight,
+      'weight_unit': weightUnit,
+      'price': price,
+      'discount_percentage': discountPercentage,
+      'final_price': finalPrice,
+      'is_in_stock': isInStock,
+      'is_active': isActive,
+      'product_name': productName,
+      'product_description': productDescription,
+      'product_category': productCategory,
+      // This maps each ProductImage in the list to its JSON representation
+      'product_images': productImages.map((image) => image.toJson()).toList(),
+    };
   }
 }

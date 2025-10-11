@@ -156,6 +156,7 @@ class SubscriptionItem {
   final int id;
   final int productVariant;
   final String productName;
+  final String productCategory;
   final int quantity;
   final double price;
   final double discountedPrice;
@@ -175,6 +176,7 @@ class SubscriptionItem {
     required this.unitWeight,
     required this.weightUnit,
     required this.totalWeight,
+     required this.productCategory,
   });
 
   factory SubscriptionItem.fromJson(Map<String, dynamic> json) {
@@ -182,6 +184,7 @@ class SubscriptionItem {
       id: json['id'] ?? 0,
       productVariant: json['product_variant'] ?? 0,
       productName: json['product_name'] ?? '',
+      productCategory : json['product_category'] ?? '',
       imageUrl:
            json["product_var_image"] ?? null,
           

@@ -16,11 +16,11 @@ import 'dart:convert';
 /// to the CheckoutScreen.
 class AddressSelectionScreen extends StatefulWidget {
   final CartModel? cart;
-  final ProductVariant? singleProduct;
+  final Product? singleProduct;
   final double? price;
   final int? quantity;
   final bool isSubscription;
-  final int selectedPlan;
+  final int? selectedPlan;
   final UserModel? user = AuthService().currentUser;
 
   AddressSelectionScreen({
@@ -30,7 +30,7 @@ class AddressSelectionScreen extends StatefulWidget {
     this.singleProduct,
     this.quantity,
     this.isSubscription = false,
-    this.selectedPlan = 0,
+    this.selectedPlan,
   }) : assert(cart != null || (singleProduct != null && quantity != null));
 
   @override
@@ -126,6 +126,7 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen> {
         setState(() {
           _deliveryDetails = jsonDecode(response.body);
         });
+        print(_deliveryDetails);
       } else {
         final errorBody = jsonDecode(response.body);
         throw Exception(errorBody['error'] ?? 'Failed to calculate delivery charges');
@@ -410,6 +411,12 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen> {
 
   /// **UPDATED**: Passes the full delivery details to the next screen.
   void _navigateToCheckout(Map<String, String> shippingDetails) {
+
+    print(widget.cart);
+    print(widget.selectedPlan);
+    print(widget.isSubscription);
+
+   
     Navigator.push(
       context,
       MaterialPageRoute(

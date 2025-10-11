@@ -310,38 +310,52 @@ class NotificationService {
     }
   }
 
-  Future<void> _showLocalNotification(RemoteMessage message) async {
-    String channelId = _getChannelId(message.data);
+  // In notification_service.dart
 
-    AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
-      channelId,
-      _getChannelName(channelId),
-      channelDescription: _getChannelDescription(channelId),
-      importance: Importance.high,
-      priority: Priority.high,
-      ticker: 'ticker',
-      icon: '@mipmap/ic_launcher',
-      color: const Color(0xFF4CAF50), // Green color for the app
-    );
+Future<void> _showLocalNotification(RemoteMessage message) async {
+  String channelId = _getChannelId(message.data);
+  String title = message.notification?.title ?? 'New Notification';
+  String body = message.notification?.body ?? '';
 
-    DarwinNotificationDetails iosDetails = const DarwinNotificationDetails(
-      presentAlert: true,
-      presentBadge: true,
-      presentSound: true,
-    );
+  AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
+    channelId,
+    _getChannelName(channelId),
+    channelDescription: _getChannelDescription(channelId),
+    importance: Importance.max, // Use max importance for heads-up
+    priority: Priority.high,
+    ticker: 'ticker',
+    icon: '@mipmap/ic_launcher',
+    color: const Color(0xFF4CAF50),
 
-    NotificationDetails notificationDetails = NotificationDetails(
-      android: androidDetails,
-    );
+    // ADD THIS TO MAKE THE NOTIFICATION EXPANDABLE
+    styleInformation: BigTextStyleInformation(
+      body, // The main text to be displayed in expanded view
+      htmlFormatBigText: true,
+      contentTitle: title, // Title to be shown in expanded view
+      htmlFormatContentTitle: true,
+    ),
+  );
 
-    await _localNotifications.show(
-      message.hashCode,
-      message.notification?.title ?? 'New Notification',
-      message.notification?.body ?? '',
-      notificationDetails,
-      payload: json.encode(message.data),
-    );
-  }
+  DarwinNotificationDetails iosDetails = const DarwinNotificationDetails(
+    presentAlert: true,
+    presentBadge: true,
+    presentSound: true,
+    subtitle: 'New Notification', // You can add a subtitle for iOS
+  );
+
+  NotificationDetails notificationDetails = NotificationDetails(
+    android: androidDetails,
+    iOS: iosDetails, // Make sure to include iOS details
+  );
+
+  await _localNotifications.show(
+    message.hashCode,
+    title,
+    body,
+    notificationDetails,
+    payload: json.encode(message.data), // The payload will handle the redirect
+  );
+}
 
   String _getChannelId(Map<String, dynamic> data) {
     String? type = data['type'];
@@ -473,36 +487,52 @@ class NotificationService {
   }
 
   // Public methods for sending local notifications
-  Future<void> showLocalNotification({
-    required String title,
-    required String body,
-    String? payload,
-    int id = 0,
-    String? type,
-  }) async {
-    String channelId = _getChannelId({'type': type ?? 'order'});
+  // In notification_service.dart
 
-    AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
-      channelId,
-      _getChannelName(channelId),
-      channelDescription: _getChannelDescription(channelId),
-      importance: Importance.high,
-      priority: Priority.high,
-      ticker: 'ticker',
-    );
+Future<void> showLocalNotification({
+  required String title,
+  required String body,
+  String? payload,
+  int id = 0,
+  String? type,
+}) async {
+  String channelId = _getChannelId({'type': type ?? 'order'});
 
-    NotificationDetails notificationDetails = NotificationDetails(
-      android: androidDetails,
-    );
-
-    await _localNotifications.show(
-      id,
-      title,
+  AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
+    channelId,
+    _getChannelName(channelId),
+    channelDescription: _getChannelDescription(channelId),
+    importance: Importance.max,
+    priority: Priority.high,
+    ticker: 'ticker',
+    // ADD THE STYLE HERE AS WELL
+    styleInformation: BigTextStyleInformation(
       body,
-      notificationDetails,
-      payload: payload,
-    );
-  }
+      htmlFormatBigText: true,
+      contentTitle: title,
+      htmlFormatContentTitle: true,
+    ),
+  );
+  
+  const DarwinNotificationDetails iosDetails = DarwinNotificationDetails(
+    presentAlert: true,
+    presentBadge: true,
+    presentSound: true,
+  );
+
+  NotificationDetails notificationDetails = NotificationDetails(
+    android: androidDetails,
+    iOS: iosDetails,
+  );
+
+  await _localNotifications.show(
+    id,
+    title,
+    body,
+    notificationDetails,
+    payload: payload,
+  );
+}
 
   // Method to subscribe to topics
   Future<void> subscribeToTopic(String topic) async {

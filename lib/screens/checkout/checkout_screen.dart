@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:grocery_app/models/cart_model.dart';
 import 'package:grocery_app/models/order_model.dart';
+import 'package:grocery_app/models/product_model.dart';
 import 'package:grocery_app/models/subscription_plan_model.dart';
 import 'package:grocery_app/models/subscription_request_create_model.dart';
 import 'package:grocery_app/screens/MySubscriptionPlan/subscription_plan_detail_single.dart';
+import 'package:grocery_app/screens/order/order_detail_screen.dart';
+import 'package:grocery_app/screens/order/order_screen.dart';
 import 'package:grocery_app/services/cart_service.dart';
 import 'package:grocery_app/services/order_service.dart';
-import 'package:grocery_app/screens/checkout/shipping_details_form.dart';
 import 'package:grocery_app/screens/order_accepted_screen.dart';
 import 'package:grocery_app/screens/order_failed_dialog.dart';
 import 'package:grocery_app/services/auth_service.dart';
@@ -20,11 +22,11 @@ import 'dart:convert';
 
 class CheckoutScreen extends StatefulWidget {
   final CartModel? cart;
-  final ProductVariant? singleProduct;
+  final Product? singleProduct;
   final double? price;
   final int? quantity;
   final bool isSubscription;
-  final int selectedPlan;
+  final int? selectedPlan;
   final Map<String, String>? shippingDetails;
   final double deliveryCharges;
   final String expectedDeliveryDate;
@@ -36,9 +38,10 @@ class CheckoutScreen extends StatefulWidget {
     this.singleProduct,
     this.quantity,
     this.isSubscription = false,
-    this.selectedPlan = 0,
+    this.selectedPlan,
     this.shippingDetails,
-    required this.deliveryCharges, required this.expectedDeliveryDate,
+    required this.deliveryCharges,
+    required this.expectedDeliveryDate,
   }) : assert(cart != null || (singleProduct != null && quantity != null));
 
   @override
@@ -59,7 +62,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   String? _error;
   String _selectedPaymentMethod = 'UPI';
   bool _useExistingAddress = true;
-  String _selectedPaymentType = 'FULL';
+  late String _selectedPaymentType;
 
   // Calculate total items and price
   int get totalItems => widget.cart?.totalItems ?? widget.quantity!;
@@ -71,7 +74,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       basePrice =
           widget.cart?.totalPrice != null
               ? double.parse(widget.cart!.totalPrice)
-              : (double.parse(widget.singleProduct!.finalPrice) *
+              : (widget.singleProduct!.finalPrice *
                   widget.quantity!);
     }
 
@@ -81,6 +84,13 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   @override
   void initState() {
     super.initState();
+
+    if (widget.isSubscription) {
+      _selectedPaymentType = 'PAID_FULL';
+    } else {
+      _selectedPaymentType = 'FULL';
+    }
+
     _initializeCheckout();
   }
 
@@ -150,7 +160,6 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       } else {
         await _handleNonUPIPayment();
       }
-
     } catch (e) {
       _handleError(e);
     } finally {
@@ -250,7 +259,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               TextButton(
                 onPressed: () {
                   Navigator.of(context).pop();
-                  Navigator.of(context).pop(); 
+                  Navigator.of(context).pop();
                 },
                 child: Text('OK'),
               ),
@@ -269,7 +278,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         response.success &&
         response.paymentLinks?.web != null) {
       await _launchOrderWebView(response);
-    } else if (response is OrderModel) {
+    } else if (response is Order) {
       _navigateToOrderAccepted(response);
 
       NotificationHelper.showNotification(
@@ -315,6 +324,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       deliveryPhone: _shippingDetails!.phone ?? "",
       paymentType: _selectedPaymentType,
       paymentMethod: _selectedPaymentMethod,
+      deliveryFee: widget.deliveryCharges,
+      expectedDeliveryDate: widget.expectedDeliveryDate,
+
       items: [
         SubscriptionCreateItem(
           productVariantId: widget.singleProduct!.id,
@@ -322,6 +334,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         ),
       ],
     );
+    print('${request.paymentMethod}  ${request.items[0]}');
 
     return await _subscriptionService.createSubscription(request);
   }
@@ -330,6 +343,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     return OrderModel.fromShippingDetails(
       paymentMethod: _selectedPaymentMethod,
       shippingDetails: _shippingDetails!,
+      expectedDeliveryDate: widget.expectedDeliveryDate,
+      deliveryFee: widget.deliveryCharges,
       items: _getOrderItems(),
       notes: null,
     );
@@ -490,11 +505,13 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     );
   }
 
-  void _navigateToOrderAccepted(OrderModel order) {
+  void _navigateToOrderAccepted(Order order) {
     Navigator.pushReplacement(
       context,
       AnimatedTransitions.fadeScale(
-        OrderAcceptedScreen(order: order, isSubscription: false),
+        OrderDetailScreen(
+          order: order,
+        ),
       ),
     );
   }
@@ -549,9 +566,10 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       setState(() {
         planDescriptions = result['data'] as List<SubscriptionPlan>;
         if (planDescriptions.isNotEmpty &&
-            widget.selectedPlan > 0 &&
-            widget.selectedPlan <= planDescriptions.length) {
-          subscription = planDescriptions[widget.selectedPlan];
+            widget.selectedPlan! > 0 &&
+            widget.selectedPlan! <= planDescriptions.length) {
+          subscription =
+              planDescriptions.where((p) => p.id == widget.selectedPlan).first;
         }
       });
     } else {
@@ -665,7 +683,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     return error.toString();
   }
 
-  Widget _buildProductImage(ProductVariant variant) {
+  Widget _buildProductImage(Product variant) {
     String? imageUrl;
     if (variant.productImages.isNotEmpty &&
         variant.productImages[0] is String &&
@@ -676,20 +694,25 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     return Container(
       width: 50,
       height: 50,
-      clipBehavior: Clip.antiAlias, // To ensure the child (Image/Icon) is clipped
+      clipBehavior:
+          Clip.antiAlias, // To ensure the child (Image/Icon) is clipped
       decoration: BoxDecoration(
         color: Colors.grey[200],
         borderRadius: BorderRadius.circular(8),
       ),
-      child: imageUrl != null
-          ? Image.network(
-              imageUrl,
-              fit: BoxFit.cover,
-              errorBuilder: (context, error, stackTrace) {
-                return const Icon(Icons.shopping_bag_outlined, color: Colors.grey);
-              },
-            )
-          : const Icon(Icons.shopping_bag_outlined, color: Colors.grey),
+      child:
+          imageUrl != null
+              ? Image.network(
+                imageUrl,
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) {
+                  return const Icon(
+                    Icons.shopping_bag_outlined,
+                    color: Colors.grey,
+                  );
+                },
+              )
+              : const Icon(Icons.shopping_bag_outlined, color: Colors.grey),
     );
   }
 
@@ -712,25 +735,32 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 style: Theme.of(context).textTheme.titleLarge,
               ),
               const SizedBox(height: 16),
-              ListTile(
-                leading: const Icon(Icons.money, color: Colors.green),
-                title: const Text('Cash on Delivery'),
-                onTap: () => Navigator.pop(context, 'COD'),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
+              if (!widget.isSubscription)
+                ListTile(
+                  leading: const Icon(Icons.money, color: Colors.green),
+                  title: const Text('Cash on Delivery'),
+                  onTap: () => Navigator.pop(context, 'COD'),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  tileColor:
+                      _selectedPaymentMethod == 'COD'
+                          ? Colors.green.withOpacity(0.1)
+                          : null,
                 ),
-                tileColor: _selectedPaymentMethod == 'COD' ? Colors.green.withOpacity(0.1) : null,
-              ),
               const Divider(),
               ListTile(
                 leading: const Icon(Icons.payment, color: Colors.blue),
                 title: const Text('Pay Online'),
                 subtitle: const Text('UPI / Card / NetBanking'),
                 onTap: () => Navigator.pop(context, 'UPI'),
-                 shape: RoundedRectangleBorder(
+                shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8),
                 ),
-                tileColor: _selectedPaymentMethod == 'UPI' ? Colors.blue.withOpacity(0.1) : null,
+                tileColor:
+                    _selectedPaymentMethod == 'UPI'
+                        ? Colors.blue.withOpacity(0.1)
+                        : null,
               ),
             ],
           ),
@@ -758,7 +788,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             Text('Payment Type', style: Theme.of(context).textTheme.titleLarge),
             SizedBox(height: 8),
             RadioListTile<String>(
-              value: 'FULL',
+              value: widget.isSubscription ? 'PAID_FULL' : 'FULL',
               groupValue: _selectedPaymentType,
               onChanged: (value) {
                 setState(() {
@@ -779,7 +809,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                           _showSubscriptionDetails(
                             context,
                             subscription!,
-                            widget.selectedPlan,
+                            widget.selectedPlan!,
                             widget.price ?? 0.0,
                             widget.deliveryCharges,
                             showAmountPerDelivery: false,
@@ -799,7 +829,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 borderRadius: BorderRadius.circular(8),
               ),
             ),
-            if (subscription!.installmentFrequencyMonths > 0)
+            if (subscription!.allowsInstallments)
               RadioListTile<String>(
                 value: 'INSTALLMENT',
                 groupValue: _selectedPaymentType,
@@ -825,7 +855,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                             _showSubscriptionDetails(
                               context,
                               subscription!,
-                              widget.selectedPlan,
+                              widget.selectedPlan!,
                               widget.price ?? 0.0,
                               widget.deliveryCharges,
                               showAmountPerDelivery: true,
@@ -888,303 +918,302 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           _isLoading
               ? Center(child: CircularProgressIndicator())
               : SingleChildScrollView(
-                  padding: EdgeInsets.all(12),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      // Delivery Address Card
+                padding: EdgeInsets.all(12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    // Delivery Address Card
                     Column(
-  children: [
-    // 1. WIDGET FOR ESTIMATED DELIVERY DATE
-    Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      decoration: BoxDecoration(
-        // Use a color that matches your design
-        color: const Color(0xFFFEF5E7), 
-        borderRadius: BorderRadius.circular(12.0),
-      ),
-      child: Row(
-        children: [
-          // The truck emoji 🚚
-          const Text('🚚', style: TextStyle(fontSize: 20)), 
-          const SizedBox(width: 12),
-          Text(
-            // Using your variable for the date
-            "Estimated Delivery by ${widget.expectedDeliveryDate}", 
-            style: TextStyle(
-              fontWeight: FontWeight.w500,
-              color: Colors.grey.shade800,
-            ),
-          ),
-        ],
-      ),
-    ),
-
-    const SizedBox(height: 10), // Adds a small space between the two sections
-
-    // 2. WIDGET FOR THE SHIPPING ADDRESS
-    ExpansionTile(
-      // --- Style the ExpansionTile itself ---
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),
-      collapsedShape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),
-      backgroundColor: const Color(0xFFF8F9F9),
-      collapsedBackgroundColor: const Color(0xFFF8F9F9),
-      
-      // Remove the default padding
-      tilePadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8), 
-      
-      // --- The title you see when it's collapsed ---
-      title: Row(
-        children: [
-          Icon(Icons.location_on_outlined, color: Colors.grey.shade700),
-          const SizedBox(width: 12),
-          Expanded( // Use Expanded to prevent overflow with long addresses
-            child: Text(
-              widget.shippingDetails!['address']!,
-              style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: Colors.black87),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ),
-        ],
-      ),
-
-      // --- The content you see when it's expanded (your original code) ---
-      children: [
-        ListTile(
-          title: Text(widget.shippingDetails!['address']!),
-          subtitle: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                '${widget.shippingDetails!['city']}, ${widget.shippingDetails!['state']}',
-              ),
-              Text(
-                'Pincode: ${widget.shippingDetails!['pincode']}',
-              ),
-              Text(
-                'Phone: ${widget.shippingDetails!['phone']}',
-              ),
-            ],
-          ),
-        ),
-      ],
-    ),
-  ],
-),
-                      _buildPaymentTypeSelector(),
-                      // Order Summary Card
-                      Card(
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Padding(
-                          padding: EdgeInsets.all(16),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // 1. WIDGET FOR ESTIMATED DELIVERY DATE
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 12,
+                          ),
+                          decoration: BoxDecoration(
+                            // Use a color that matches your design
+                            color: const Color(0xFFFEF5E7),
+                            borderRadius: BorderRadius.circular(12.0),
+                          ),
+                          child: Row(
                             children: [
+                              // The truck emoji 🚚
+                              const Text('🚚', style: TextStyle(fontSize: 20)),
+                              const SizedBox(width: 12),
                               Text(
-                                widget.isSubscription
-                                    ? 'Subscription Summary'
-                                    : 'Order Summary',
-                                style: Theme.of(context).textTheme.titleLarge,
+                                // Using your variable for the date
+                                "Estimated Delivery by ${widget.expectedDeliveryDate}",
+                                style: TextStyle(
+                                  fontWeight: FontWeight.w500,
+                                  color: Colors.grey.shade800,
+                                ),
                               ),
-                              SizedBox(height: 16),
-                              if (widget.singleProduct != null) ...[
-                                ListTile(
-                                  contentPadding: EdgeInsets.zero,
-                                  leading: _buildProductImage(widget.singleProduct!),
-                                  title: Text(widget.singleProduct!.productName , style: TextStyle(fontSize: 14),),  
-                                  subtitle: Text('Quantity: ${widget.quantity}'),
-                                  trailing: Text(
-                                    widget.isSubscription
-                                        ? '₹${widget.price!.toStringAsFixed(2)}'
-                                        : '₹${widget.singleProduct!.finalPrice.toStringAsFixed(2)}',
-                                  ),
-                                ),
-                              ] else ...[
-                                ...widget.cart!.items.map(
-                                  (item) => ListTile(
-                                    contentPadding: EdgeInsets.zero,
-                                    leading: _buildProductImage(item.productVariant),
-                                    title: Text(item.productVariant.productName),
-                                    subtitle: Text('Quantity: ${item.quantity}'),
-                                    trailing: Text('₹${item.totalPrice}'),
-                                  ),
-                                ),
-                              ],
+                            ],
+                          ),
+                        ),
 
+                        const SizedBox(
+                          height: 10,
+                        ), // Adds a small space between the two sections
+                        // 2. WIDGET FOR THE SHIPPING ADDRESS
+                        ExpansionTile(
+                          // --- Style the ExpansionTile itself ---
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12.0),
+                          ),
+                          collapsedShape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12.0),
+                          ),
+                          backgroundColor: const Color(0xFFF8F9F9),
+                          collapsedBackgroundColor: const Color(0xFFF8F9F9),
+
+                          // Remove the default padding
+                          tilePadding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 8,
+                          ),
+
+                          // --- The title you see when it's collapsed ---
+                          title: Row(
+                            children: [
+                              Icon(
+                                Icons.location_on_outlined,
+                                color: Colors.grey.shade700,
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                // Use Expanded to prevent overflow with long addresses
+                                child: Text(
+                                  widget.shippingDetails!['address']!,
+                                  style: Theme.of(context).textTheme.bodyLarge
+                                      ?.copyWith(color: Colors.black87),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ],
+                          ),
+
+                          // --- The content you see when it's expanded (your original code) ---
+                          children: [
+                            ListTile(
+                              title: Text(widget.shippingDetails!['address']!),
+                              subtitle: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    '${widget.shippingDetails!['city']}, ${widget.shippingDetails!['state']}',
+                                  ),
+                                  Text(
+                                    'Pincode: ${widget.shippingDetails!['pincode']}',
+                                  ),
+                                  Text(
+                                    'Phone: ${widget.shippingDetails!['phone']}',
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                    _buildPaymentTypeSelector(),
+                    // Order Summary Card
+                    Card(
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Padding(
+                        padding: EdgeInsets.all(16),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              widget.isSubscription
+                                  ? 'Subscription ${subscription!.name}'  
+                                  : 'Order Summary',
+                              style: Theme.of(context).textTheme.titleLarge,
+                            ),
+                            SizedBox(height: 16),
+                            if (widget.singleProduct != null) ...[
+                              ListTile(
+                                contentPadding: EdgeInsets.zero,
+                                leading: _buildProductImage(
+                                  widget.singleProduct!,
+                                ),
+                                title: Text(
+                                  widget.singleProduct!.productName,
+                                  style: TextStyle(fontSize: 14),
+                                ),
+                                subtitle: Text('Quantity: ${widget.quantity}'),
+                                trailing: Text(
+                                  widget.isSubscription
+                                      ? '₹${widget.price!.toStringAsFixed(2)}'
+                                      : '₹${widget.singleProduct!.finalPrice.toStringAsFixed(2)}',
+                                ),
+                              ),
+                            ] else ...[
+                              ...widget.cart!.items.map(
+                                (item) => ListTile(
+                                  contentPadding: EdgeInsets.zero,
+                                  leading: _buildProductImage(
+                                    item.productVariant,
+                                  ),
+                                  title: Text(item.productVariant.productName),
+                                  subtitle: Text('Quantity: ${item.quantity}'),
+                                  trailing: Text('₹${item.totalPrice}'),
+                                ),
+                              ),
+                            ],
+
+                            Divider(height: 24),
+                            // Delivery Charges
+                            if (widget.deliveryCharges > 0 &&
+                                widget.isSubscription) ...[
+                              ListTile(
+                                contentPadding: EdgeInsets.zero,
+                                title: Text("Delivery Charges"),
+                                subtitle: Text(
+                                  "* for single delivery",
+                                  style: TextStyle(fontSize: 12),
+                                ),
+                                trailing: Text(
+                                  '₹${widget.deliveryCharges.toStringAsFixed(2)}',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+
+                              ListTile(
+                                contentPadding: EdgeInsets.zero,
+                                title: Text("Total delivery charges"),
+                                subtitle: Text(
+                                  "* for ${subscription!.durationMonths} months",
+                                  style: TextStyle(fontSize: 12),
+                                ),
+                                trailing: Text(
+                                  '₹${(subscription!.durationMonths.toDouble() * widget.deliveryCharges).toStringAsFixed(2)}',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                              ListTile(
+                                contentPadding: EdgeInsets.zero,
+                                title: Text(
+                                  "Price for ${subscription!.durationMonths} units",
+                                ),
+                                subtitle: Text(
+                                  "* for ${subscription!.durationMonths} month plan",
+                                  style: TextStyle(fontSize: 12),
+                                ),
+                                trailing: Text(
+                                  '₹${(subscription!.durationMonths.toDouble() * widget.price!).toStringAsFixed(2)}',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                              ListTile(
+                                contentPadding: EdgeInsets.zero,
+                                title: Text("Payable amount"),
+                                subtitle: Text(
+                                  (_selectedPaymentType == 'PAID_FULL')
+                                      ? "* for ${subscription!.durationMonths} month plan with delivery charges"
+                                      : "* for ${subscription!.installmentFrequencyMonths} month installment month plan with delivery charges",
+                                  style: TextStyle(fontSize: 12),
+                                ),
+                                trailing: Text(
+                                  (_selectedPaymentType == 'PAID_FULL')
+                                      ? '₹${(subscription!.durationMonths.toDouble() * double.parse(totalPrice)).toStringAsFixed(2)}'
+                                      : '₹${(subscription!.installmentFrequencyMonths.toDouble() * double.parse(totalPrice)).toStringAsFixed(2)}',
+                                  style: TextStyle(
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.green,
+                                  ),
+                                ),
+                              ),
+                            ] else ...[
+                              Padding(
+                                padding: EdgeInsets.symmetric(vertical: 8),
+                                child: Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text(
+                                      'Delivery Charges',
+                                      overflow: TextOverflow.clip,
+                                      style: TextStyle(fontSize: 16),
+                                    ),
+                                    Text(
+                                      '₹${widget.deliveryCharges.toStringAsFixed(2)}',
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                             
                               Divider(height: 24),
-                              // Delivery Charges
-                              if (widget.deliveryCharges > 0 &&
-                                  widget.isSubscription) ...[
-                                ListTile(
-                                  contentPadding: EdgeInsets.zero,
-                                  title: Text("Delivery Charges"),
-                                  subtitle: Text(
-                                    "* for single delivery",
-                                    style: TextStyle(fontSize: 12),
-                                  ),
-                                  trailing: Text(
-                                    '₹${widget.deliveryCharges.toStringAsFixed(2)}',
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    'Total Amount',
                                     style: TextStyle(
-                                      fontSize: 16,
+                                      fontSize: 18,
                                       fontWeight: FontWeight.bold,
                                     ),
                                   ),
-                                ),
-
-                                ListTile(
-                                  contentPadding: EdgeInsets.zero,
-                                  title: Text("Total delivery charges"),
-                                  subtitle: Text(
-                                    "* for ${subscription!.durationMonths} months",
-                                    style: TextStyle(fontSize: 12),
-                                  ),
-                                  trailing: Text(
-                                    '₹${(subscription!.durationMonths.toDouble() * widget.deliveryCharges).toStringAsFixed(2)}',
-                                    style: TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                ),
-                                ListTile(
-                                  contentPadding: EdgeInsets.zero,
-                                  title: Text(
-                                    "Price for ${subscription!.durationMonths} units",
-                                  ),
-                                  subtitle: Text(
-                                    "* for ${subscription!.durationMonths} month plan",
-                                    style: TextStyle(fontSize: 12),
-                                  ),
-                                  trailing: Text(
-                                    '₹${(subscription!.durationMonths.toDouble() * widget.price!).toStringAsFixed(2)}',
-                                    style: TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                ),
-                                ListTile(
-                                  contentPadding: EdgeInsets.zero,
-                                  title: Text("Payable amount"),
-                                  subtitle: Text(
-                                    (_selectedPaymentType == 'FULL')
-                                        ? "* for ${subscription!.durationMonths} month plan"
-                                        : "* for ${subscription!.installmentFrequencyMonths} month installment",
-                                    style: TextStyle(fontSize: 12),
-                                  ),
-                                  trailing: Text(
-                                    (_selectedPaymentType == 'FULL')
-                                        ? '₹${(subscription!.durationMonths.toDouble() * double.parse(totalPrice)).toStringAsFixed(2)}'
-                                        : '₹${(subscription!.installmentFrequencyMonths.toDouble() * double.parse(totalPrice)).toStringAsFixed(2)}',
+                                  Text(
+                                    '₹${(double.parse(totalPrice)).toStringAsFixed(2)}',
                                     style: TextStyle(
                                       fontSize: 20,
                                       fontWeight: FontWeight.bold,
                                       color: Colors.green,
                                     ),
                                   ),
-                                ),
-                              ] else ...[
-                                Padding(
-                                  padding: EdgeInsets.symmetric(vertical: 8),
-                                  child: Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      Text(
-                                        'Delivery Charges',
-                                        overflow: TextOverflow.clip,
-                                        style: TextStyle(fontSize: 16),
-                                      ),
-                                      Text(
-                                        '₹${widget.deliveryCharges.toStringAsFixed(2)}',
-                                        style: TextStyle(
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                // Padding(
-                                //   padding: EdgeInsets.symmetric(vertical: 8),
-                                //   child: Row(
-                                //     mainAxisAlignment:
-                                //         MainAxisAlignment.spaceBetween,
-                                //     children: [
-                                //       Text(
-                                //         'Expected Delivery Date',
-                                //         overflow: TextOverflow.clip,
-                                //         style: TextStyle(fontSize: 16),
-                                //       ),
-                                //       Text(
-                                //         widget.expectedDeliveryDate,
-                                //         style: TextStyle(
-                                //           fontSize: 16,
-                                //           fontWeight: FontWeight.bold,
-                                //         ),
-                                //       ),
-                                //     ],
-                                //   ),
-                                // ),
-                                Divider(height: 24),
-                                Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Text(
-                                      'Total Amount',
-                                      style: TextStyle(
-                                        fontSize: 18,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                    Text(
-                                      '₹${(double.parse(totalPrice)).toStringAsFixed(2)}',
-                                      style: TextStyle(
-                                        fontSize: 20,
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.green,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ],
-
-                              // Total Amount
+                                ],
+                              ),
                             ],
-                          ),
+
+                            // Total Amount
+                          ],
                         ),
                       ),
-                      // Payment Method Selector
-                      _buildPaymentMethodSelector(),
-                      ],
-                  ),
-                ),
-                      // Place Order Button
-                    bottomNavigationBar:   Container(
-                      margin: EdgeInsets.all(12),
-                      child: ElevatedButton(
-                          onPressed: _createOrder,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.green,
-                            padding: EdgeInsets.symmetric(vertical: 16),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                          ),
-                          child: Text(
-                            widget.isSubscription ? 'Subscribe Now' : 'Place Order',
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
                     ),
-                    
+                    // Payment Method Selector
+                    _buildPaymentMethodSelector(),
+                  ],
+                ),
+              ),
+      // Place Order Button
+      bottomNavigationBar: Container(
+        margin: EdgeInsets.all(12),
+        child: ElevatedButton(
+          onPressed: _createOrder,
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.green,
+            padding: EdgeInsets.symmetric(vertical: 16),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+          ),
+          child: Text(
+            widget.isSubscription ? 'Subscribe Now' : 'Place Order',
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          ),
+        ),
+      ),
     );
   }
 }
@@ -1391,4 +1420,3 @@ void _showSubscriptionDetails(
     },
   );
 }
-

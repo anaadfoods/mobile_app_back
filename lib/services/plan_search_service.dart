@@ -1,6 +1,6 @@
 import 'dart:convert';
+import 'package:grocery_app/models/plan_Search_model.dart';
 import 'package:http/http.dart' as http;
-import '../models/plan_search_result.dart';
 import 'api_config.dart';
 
 class PlanSearchService {

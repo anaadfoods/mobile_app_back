@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 
 import 'package:grocery_app/helpers/animated_transitions.dart';
+import 'package:grocery_app/helpers/skelton.dart';
 import 'package:grocery_app/models/cummunity_model.dart';
 import 'package:grocery_app/models/product_model.dart';
+import 'package:grocery_app/screens/RFP/contract_farming_screen.dart';
 import 'package:grocery_app/screens/category_items_screen.dart';
 import 'package:grocery_app/screens/comingSoonPage/cummunity_detail_screen.dart';
 import 'package:grocery_app/screens/explore_screen.dart';
@@ -26,33 +28,39 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   List<Product> _featuredProducts = [];
+
+    // MODIFICATION 1: Create a static cache and a Future variable
+  static List<Product>? _cachedFeaturedProducts;
+  Future<List<Product>>? _featuredProductsFuture;
+
   bool _isLoading = true;
   String? _error;
 
   @override
   void initState() {
     super.initState();
-    _loadFeaturedProducts();
+    _featuredProductsFuture = _loadFeaturedProducts();
   }
 
-  Future<void> _loadFeaturedProducts() async {
+    Future<List<Product>> _loadFeaturedProducts() async {
+    // MODIFICATION 2: Check cache first
+    if (_cachedFeaturedProducts != null) {
+      return _cachedFeaturedProducts!;
+    }
+    
     try {
+      // Add an artificial delay to see the loader
+      await Future.delayed(const Duration(milliseconds: 800));
+      
       final products = await CategoryService.fetchFeaturedProducts();
-      if (mounted) {
-        setState(() {
-          _featuredProducts = products;
-          _isLoading = false;
-        });
-      }
+      _cachedFeaturedProducts = products; // Save to cache
+      return products;
     } catch (e) {
-      if (mounted) {
-        setState(() {
-          _error = e.toString();
-          _isLoading = false;
-        });
-      }
+      // Propagate error to FutureBuilder
+      throw Exception('Failed to load featured products: $e');
     }
   }
+
 
   @override
   Widget build(BuildContext context) {
@@ -156,53 +164,117 @@ class _HomeScreenState extends State<HomeScreen> {
   /// 🔹 Featured Products Section
   /// ===============================
   Widget _buildFeaturedProducts() {
-    if (_isLoading) return const Center(child: CircularProgressIndicator());
-    if (_error != null) return const Center(child: Text("Error loading featured products"));
+    // MODIFICATION 3: Use FutureBuilder
+    return FutureBuilder<List<Product>>(
+      future: _featuredProductsFuture,
+      builder: (context, snapshot) {
+        // --- Loading State ---
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return _buildFeaturedProductsSkeleton();
+        }
 
+        // --- Error State ---
+        if (snapshot.hasError) {
+          return Center(child: Text("Error: ${snapshot.error}"));
+        }
+
+        // --- Empty State ---
+        if (!snapshot.hasData || snapshot.data!.isEmpty) {
+          return const Center(child: Text("No featured products found"));
+        }
+
+        // --- Success State ---
+        final featuredProducts = snapshot.data!;
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            padded(
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    "Featured Products",
+                    style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black, fontSize: 20),
+                  ),
+                  TextButton(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        AnimatedTransitions.slideFromRight(
+                          CategoryItemsScreen(name: "Featured Products", allProducts: featuredProducts),
+                        ),
+                      );
+                    },
+                    child: const Text("See All →"),
+                  ),
+                ],
+              ),
+            ),
+            ListView.builder(
+              itemCount: featuredProducts.length,
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemBuilder: (context, index) {
+                final product = featuredProducts[index];
+                return GestureDetector(
+                  onTap: product.isInStock ? () => _onProductClicked(product) : null,
+                  child: Opacity(
+                    opacity: product.isInStock ? 1.0 : 0.5,
+                    child: GroceryItemCardWidget(
+                      item: product,
+                      heroSuffix: "home_screen",
+                      onAddToCart: (productVariantId, quantity) => CartService().addToCart(productVariantId, quantity),
+                    ),
+                  ),
+                );
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+    Widget _buildFeaturedProductsSkeleton() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         padded(
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Text(
-                "Featured Products",
-                style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black, fontSize: 20),
-              ),
-              TextButton(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    AnimatedTransitions.slideFromRight(
-                      CategoryItemsScreen(name: "Featured Products", allProducts: _featuredProducts),
-                    ),
-                  );
-                },
-                child: const Text("See All →"),
-              ),
+            children: const [
+              Skeleton(width: 180, height: 24),
+              Skeleton(width: 80, height: 24),
             ],
           ),
         ),
-        ListView.builder(
-              itemCount: _featuredProducts.length,
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemBuilder: (context, index) {
-                return GestureDetector(
-                  
-                onTap: _featuredProducts[index].isInStock ? () => _onProductClicked(_featuredProducts[index]) : null,
-                child: Opacity(
-                  opacity: _featuredProducts[index].isInStock ? 1.0 : 0.5,
-                  child: GroceryItemCardWidget(item: _featuredProducts[index], heroSuffix: "home_screen", onAddToCart: (productVariantId, quantity) => CartService().addToCart(productVariantId, quantity),),
+        const SizedBox(height: 16),
+        // Simulate 3 list items loading
+        for (int i = 0; i < 3; i++)
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: Row(
+              children: [
+                const Skeleton(width: 80, height: 80, isCircle: false),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: const [
+                      Skeleton(width: double.infinity, height: 20),
+                      SizedBox(height: 8),
+                      Skeleton(width: 100, height: 16),
+                    ],
+                  ),
                 ),
- );
-              },
+              ],
             ),
-
+          ),
       ],
     );
   }
+
+
 
   void _onProductClicked(Product item) {
     Navigator.push(
@@ -391,17 +463,20 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  /// ===============================
-  /// 🔹 Subscription Section
-  /// ===============================
-  Widget _subscriptionSection(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.symmetric(vertical: 5 , horizontal: 5),
-      height: MediaQuery.of(context).size.height * 0.47,
-      child: const SubscriptionTable(),
-    );
-  }
+ // In home_screen.dart, find the _subscriptionSection method
+// In home_screen.dart, find the _subscriptionSection method
 
+Widget _subscriptionSection(BuildContext context) {
+  final screenHeight = MediaQuery.of(context).size.height;
+
+  return Container(
+    padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 5),
+    // ✨ MODIFICATION: Adjust the clamp values to reduce overall height.
+    // Try reducing the max height significantly, and the min height if needed.
+    height: (screenHeight * 0.50).clamp(350.0, 400.0), // Experiment with these values
+    child: const SubscriptionTable(),
+  );
+}
 
 Widget heading(String title, String? all, VoidCallback? onPressed) {
   return Padding(
@@ -465,9 +540,9 @@ Widget heading(String title, String? all, VoidCallback? onPressed) {
           const SizedBox(height: 20),
           Row(
             children: [
-              Expanded(child: _categoryCard("Natural Farming", "assets/images/natural_farming.png")),
+              Expanded(child: _categoryCard("Natural Farming", "assets/images/natural_farming.png" , CombinedScreen())),
               const SizedBox(width: 6),
-              Expanded(child: _categoryCard("Naturally Grown Vegetables", "assets/images/natural_veggies.png")),
+              Expanded(child: _categoryCard("Naturally Grown Vegetables", "assets/images/natural_veggies.png" , ExploreScreen())),
             ],
           ),
         ],
@@ -475,29 +550,33 @@ Widget heading(String title, String? all, VoidCallback? onPressed) {
     );
   }
 
-  Widget _categoryCard(String title, String imagePath) {
-    return Container(
-      height: 100,
-      decoration: BoxDecoration(
-        color: const Color(0xFFFFF3E0),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFD6A35A), width: 2),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.06), blurRadius: 8, offset: const Offset(0, 2))],
-      ),
-      child: Column(
-        children: [
-          Container(
-            padding: const EdgeInsets.symmetric(vertical: 6),
-            child: Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 10, color: Color(0xFF7B3F00))),
-          ),
-          Expanded(
-            child: ClipRRect(
-              borderRadius: const BorderRadius.vertical(bottom: Radius.circular(14)),
-              child: Image.asset(imagePath, fit: BoxFit.cover, width: double.infinity),
+  Widget _categoryCard(String title, String imagePath ,Widget screen ) {
+    return GestureDetector(
+      onTap: () => Navigator.push(context, AnimatedTransitions.slideFromRight(screen) ),
+      child: Container(
+        height: 100,
+        decoration: BoxDecoration(
+          color: const Color(0xFFFFF3E0),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: const Color(0xFFD6A35A), width: 2),
+          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.06), blurRadius: 8, offset: const Offset(0, 2))],
+        ),
+        child: Column(
+          children: [
+            Container(
+              padding: const EdgeInsets.symmetric(vertical: 6),
+              child: Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 10, color: Color(0xFF7B3F00))),
             ),
-          ),
-        ],
+            Expanded(
+              child: ClipRRect(
+                borderRadius: const BorderRadius.vertical(bottom: Radius.circular(14)),
+                child: Image.asset(imagePath, fit: BoxFit.cover, width: double.infinity),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
 }
+

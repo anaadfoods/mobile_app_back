@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:grocery_app/screens/auth/login_screen.dart';
 import 'package:grocery_app/screens/auth/signup_screen.dart';
+import 'package:grocery_app/styles/colors.dart';
 
 class AuthScreen extends StatelessWidget {
   const AuthScreen({super.key});
@@ -10,9 +11,9 @@ class AuthScreen extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 10.0),
       child: Row(
         children: [
-          Icon(icon, size: 28, color: Colors.green[400]),
+          Icon(icon, size: 28, color: AppColors.bottonBackgroundColor),
           const SizedBox(width: 12),
-          Expanded(child: Text(text, style: TextStyle(fontSize: 16))),
+          Expanded(child: Text(text, style: TextStyle(fontSize: 16 , color: Colors.black))),
         ],
       ),
     );
@@ -39,7 +40,8 @@ class AuthScreen extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             
-            const Text("Welcome to Annad", style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+            const Text("Welcome to Annad", style: TextStyle( color: Colors.black
+            , fontSize: 22, fontWeight: FontWeight.bold)),
             const SizedBox(height: 10),
             ElevatedButton(
               onPressed: () {
@@ -47,10 +49,10 @@ class AuthScreen extends StatelessWidget {
               },
               style: ElevatedButton.styleFrom(
                 
-                backgroundColor: const Color.fromARGB(255, 61, 204, 59),
+                backgroundColor: AppColors.primaryColor,
                 minimumSize: Size(double.infinity, 50),
               ),
-              child: const Text("Create account", style: TextStyle(fontSize: 16, color: Colors.white)),
+              child: const Text("Create account", style: TextStyle(  fontSize: 16, color: Colors.white)),
             ),
             const SizedBox(height: 12),
             OutlinedButton(

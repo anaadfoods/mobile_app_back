@@ -7,7 +7,6 @@ import 'package:grocery_app/helpers/snackbar_helper.dart';
 import 'package:grocery_app/styles/colors.dart';
 import 'package:intl/intl.dart';
 
-
 class SubscriptionScreen extends StatefulWidget {
   const SubscriptionScreen({super.key});
 
@@ -71,9 +70,6 @@ class _SubscriptionScreenState extends State<SubscriptionScreen>
     });
   }
 
-
-
-
   @override
   Widget build(BuildContext context) {
     return DefaultTabController(
@@ -96,7 +92,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen>
               if (index == 3) _filterSubscriptions("COMPLETED");
             },
             tabs: [
-              Tab(text: "Active" , ),
+              Tab(text: "Active"),
               Tab(text: "Paused"),
               Tab(text: "Cancelled"),
               Tab(text: "Completed"),
@@ -108,671 +104,745 @@ class _SubscriptionScreenState extends State<SubscriptionScreen>
     );
   }
 
-Widget _buildSubscriptionList() {
-  if (filteredSubscriptions.isEmpty) {
-    return Center(child: Text("No matching subscriptions found"));
-  }
-
-
-
-
-
-  return RefreshIndicator(
-    onRefresh: _fetchSubscriptions,
-    child: ListView.builder(
-      itemCount: filteredSubscriptions.length,
-      itemBuilder: (context, index) {
-        final subscription = filteredSubscriptions[index];
-bool _isLoading = true;
-
- Future<void> _togglePauseSubscription(
-    DateTime? startDate,
-    DateTime? endDate,
-  ) async {
-    setState(() => _isLoading = true);
-    try {
-      final response = await _subscriptionService.togglePauseSubscription(
-        subscription.id,
-      startDate,
-        endDate,
-      );
-
-      if (response['success'] == true) {
-        SnackBarHelper.showSuccess(
-          context,
-          response['details'] ?? 'Subscription status updated successfully',
-        );
-        // Refresh the subscription data
-        Navigator.pop(context, true);
-      } else {
-        SnackBarHelper.showError(
-          context,
-          response['details'] ?? 'Failed to update subscription status',
-        );
-      }
-    } catch (e) {
-      SnackBarHelper.showError(context, 'Error: $e');
-    } finally {
-      setState(() => _isLoading = false);
+  Widget _buildSubscriptionList() {
+    if (filteredSubscriptions.isEmpty) {
+      return Center(child: Text("No matching subscriptions found"));
     }
-  }
 
-  // Replace your old _showToggleConfirmation with this new one
-void _showToggleConfirmation(Subscription subscription) {
-  final isCurrentlyPaused = subscription.status == 'PAUSED';
-  final maxPausesLeft = subscription.remainingPauseTimes;
-  DateTime? selectedStartDate;
-  DateTime? selectedEndDate;
-  DateTime? selectedNextDeliveryDate; // For the UI element, not used in current logic
+    return RefreshIndicator(
+      onRefresh: _fetchSubscriptions,
+      child: ListView.builder(
+        itemCount: filteredSubscriptions.length,
+        itemBuilder: (context, index) {
+          final subscription = filteredSubscriptions[index];
+          bool _isLoading = true;
 
-  // For resuming, we can keep the simpler dialog.
-  if (isCurrentlyPaused) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Resume Subscription?'),
-        content: const Text('Are you sure you want to resume this subscription?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () {
-              // Call with null dates to resume
-              _togglePauseSubscription( null, null);
-              Navigator.of(context).pop();
-            },
-            child: const Text('Confirm'),
-          ),
-        ],
-      ),
-    );
-    return;
-  }
+          Future<void> _togglePauseSubscription(
+            DateTime? startDate,
+            DateTime? endDate,
+          ) async {
+            setState(() => _isLoading = true);
+            try {
+              final response = await _subscriptionService
+                  .togglePauseSubscription(subscription.id, startDate, endDate);
 
-  // For pausing, show the new styled dialog
-  showDialog(
-    context: context,
-    builder: (BuildContext context) {
-      return StatefulBuilder(
-        builder: (context, setState) {
-          final Color primaryColor = const Color(0xFF9F814F);
+              if (response['success'] == true) {
+                SnackBarHelper.showSuccess(
+                  context,
+                  response['details'] ??
+                      'Subscription status updated successfully',
+                );
+                // Refresh the subscription data
+                Navigator.pop(context, true);
+              } else {
+                SnackBarHelper.showError(
+                  context,
+                  response['details'] ?? 'Failed to update subscription status',
+                );
+              }
+            } catch (e) {
+              SnackBarHelper.showError(context, 'Error: $e');
+            } finally {
+              setState(() => _isLoading = false);
+            }
+          }
 
-          return Dialog(
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Padding(
-              padding: const EdgeInsets.all(24.0),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Header with Title and Close button
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          // ⭐️ ADD THIS HELPER METHOD to build the styled date picker fields.
+          Widget _buildDatePickerField({
+            required BuildContext context,
+            required String hintText,
+            required DateTime? selectedDate,
+            required Function() onTap,
+          }) {
+            final Color borderColor = const Color(0xFFC4A464);
+            final Color backgroundColor = const Color(0xFFFFF7E6);
+
+            return Expanded(
+              child: GestureDetector(
+                onTap: onTap,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 6,
+                    vertical: 8,
+                  ),
+                  decoration: BoxDecoration(
+                    color:
+                        hintText == 'From'
+                            ? Colors.transparent
+                            : backgroundColor,
+                    border: Border.all(
+                      color:
+                          hintText == 'From' ? borderColor : Colors.transparent,
+                    ),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Row(
                     children: [
-                      const Text(
-                        "Pause From",
+                      Icon(
+                        Icons.calendar_today_outlined,
+                        color: borderColor,
+                        size: 12,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        selectedDate != null
+                            ? DateFormat('MMM dd, yyyy').format(selectedDate)
+                            : hintText,
                         style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
+                          fontSize: 12,
+                          color:
+                              selectedDate != null
+                                  ? Colors.black87
+                                  : Colors.grey,
                         ),
                       ),
-                      InkWell(
-                        onTap: () => Navigator.of(context).pop(),
-                        customBorder: const CircleBorder(),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          }
+
+          // ⭐️ REPLACE your old _showToggleConfirmation with this new version.
+          void _showToggleConfirmation(Subscription subscription) {
+            final isCurrentlyPaused = subscription.status == 'PAUSED';
+            final maxPausesLeft = subscription.remainingPauseTimes;
+            DateTime? selectedStartDate;
+            DateTime? selectedEndDate;
+            // This is for the new UI element, though the API call doesn't use it yet.
+
+            // --- Logic for RESUMING remains a simple dialog ---
+            if (isCurrentlyPaused) {
+              showDialog(
+                context: context,
+                builder:
+                    (context) => AlertDialog(
+                      title: const Text('Resume Subscription?'),
+                      content: const Text(
+                        'Are you sure you want to resume this subscription?',
+                      ),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.pop(context),
+                          child: const Text('Cancel'),
+                        ),
+                        TextButton(
+                          onPressed: () {
+                            Navigator.pop(context);
+                            _togglePauseSubscription(
+                              null,
+                              null,
+                            ); // Pass nulls to resume
+                          },
+                          child: const Text('Confirm'),
+                        ),
+                      ],
+                    ),
+              );
+              return; // Stop here if resuming
+            }
+
+            // --- NEW custom dialog for PAUSING ---
+            showDialog(
+              context: context,
+              builder: (BuildContext context) {
+                return StatefulBuilder(
+                  builder: (context, setState) {
+                    return Dialog(
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.all(20.0),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // --- Header ---
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                const Text(
+                                  'Pause From',
+                                  style: TextStyle(
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                IconButton(
+                                  onPressed: () => Navigator.pop(context),
+                                  icon: const Icon(Icons.close),
+                                  splashRadius: 20,
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 20),
+
+                            // --- From/To Date Pickers ---
+                            Row(
+                              children: [
+                                _buildDatePickerField(
+                                  context: context,
+                                  hintText: 'From',
+                                  selectedDate: selectedStartDate,
+                                  onTap: () async {
+                                    final date = await showDatePicker(
+                                      context: context,
+                                      initialDate: DateTime.now(),
+                                      firstDate: DateTime.now(),
+                                      lastDate: DateTime.now().add(
+                                        const Duration(days: 365),
+                                      ),
+                                    );
+                                    if (date != null) {
+                                      setState(() => selectedStartDate = date);
+                                    }
+                                  },
+                                ),
+                                const Padding(
+                                  padding: EdgeInsets.symmetric(
+                                    horizontal: 8.0,
+                                  ),
+                                  child: Text('To'),
+                                ),
+                                _buildDatePickerField(
+                                  context: context,
+                                  hintText: 'To',
+                                  selectedDate: selectedEndDate,
+                                  onTap: () async {
+                                    final date = await showDatePicker(
+                                      context: context,
+                                      initialDate:
+                                          selectedStartDate ?? DateTime.now(),
+                                      firstDate:
+                                          selectedStartDate ?? DateTime.now(),
+                                      lastDate: DateTime.now().add(
+                                        const Duration(days: 365),
+                                      ),
+                                    );
+                                    if (date != null) {
+                                      setState(() => selectedEndDate = date);
+                                    }
+                                  },
+                                ),
+                              ],
+                            ),
+                            // const SizedBox(height: 24),
+
+                            // // --- Set Next Delivery ---
+                            // Row(
+                            //   children: [
+                            //     const Expanded(
+                            //       child: Text(
+                            //         'Set Next Delivery To',
+                            //         style: TextStyle(fontSize: 16, color: Colors.black54),
+                            //       ),
+                            //     ),
+                            //     const SizedBox(width: 16),
+                            //     // This is a separate date picker field
+                            //     _buildDatePickerField(
+                            //       context: context,
+                            //       hintText: 'Select Date',
+                            //       selectedDate: selectedNextDeliveryDate,
+                            //       onTap: () async {
+                            //         final date = await showDatePicker(
+                            //           context: context,
+                            //           initialDate: DateTime.now(),
+                            //           firstDate: DateTime.now(),
+                            //           lastDate: DateTime.now().add(const Duration(days: 365)),
+                            //         );
+                            //         if (date != null) {
+                            //           setState(() => selectedNextDeliveryDate = date);
+                            //         }
+                            //       },
+                            //     ),
+                            //   ],
+                            // ),
+                            const SizedBox(height: 32),
+
+                            // --- Save Button ---
+                            SizedBox(
+                              width: double.infinity,
+                              child: ElevatedButton(
+                                onPressed: () {
+                                  // --- Reusing your existing validation logic ---
+                                  if (maxPausesLeft <= 0) {
+                                    SnackBarHelper.showError(
+                                      context,
+                                      'No pauses remaining.',
+                                    );
+                                    return;
+                                  }
+                                  if (selectedStartDate == null ||
+                                      selectedEndDate == null) {
+                                    SnackBarHelper.showError(
+                                      context,
+                                      'Please select both start and end dates.',
+                                    );
+                                    return;
+                                  }
+                                  if (selectedEndDate!.isBefore(
+                                    selectedStartDate!,
+                                  )) {
+                                    SnackBarHelper.showError(
+                                      context,
+                                      'End date must be after start date.',
+                                    );
+                                    return;
+                                  }
+
+                                  Navigator.pop(context); // Close the dialog
+                                  _togglePauseSubscription(
+                                    selectedStartDate,
+                                    selectedEndDate,
+                                  );
+                                },
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: const Color(0xFFC4A464),
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 10,
+                                  ),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                ),
+                                child: const Text(
+                                  'Save Changes',
+                                  style: TextStyle(fontSize: 12),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                );
+              },
+            );
+          }
+
+          //       void _showToggleConfirmation() {
+          //   final isCurrentlyPaused = subscription.status == 'PAUSED';
+          //   final maxPausesLeft = subscription.remainingPauseTimes;
+          //   DateTime? selectedStartDate;
+          //   DateTime? selectedEndDate;
+
+          //   showDialog(
+          //     context: context,
+          //     builder: (BuildContext context) {
+          //       return StatefulBuilder(
+          //         builder: (context, setState) {
+          //           return AlertDialog(
+          //             title: Text(
+          //               isCurrentlyPaused
+          //                   ? 'Resume Now?'
+          //                   : 'Pause From?',
+          //                   style: TextStyle(
+          //                     fontSize: 18,
+
+          //                     fontWeight: FontWeight.bold
+          //                   ),
+          //             ),
+          //             content: Column(
+          //               mainAxisSize: MainAxisSize.min,
+          //               crossAxisAlignment: CrossAxisAlignment.start,
+          //               children: [
+          //                 Text(
+          //                   isCurrentlyPaused
+          //                       ? 'Are you sure you want to resume this subscription?'
+          //                       : 'Are you sure you want to pause this subscription?',
+          //                 ),
+          //                 SizedBox(height: 16),
+          //                 if (!isCurrentlyPaused) ...[
+          //                   Text(
+          //                     'Pauses remaining: $maxPausesLeft',
+          //                     style: TextStyle(
+          //                       color:
+          //                           maxPausesLeft > 0
+          //                               ? Colors.green[700]
+          //                               : Colors.red[700],
+          //                       fontWeight: FontWeight.w500,
+          //                     ),
+          //                   ),
+          //                   // SizedBox(height: 16),
+          //                   // Text(
+          //                   //   'Select Pause Period:',
+          //                   //   style: TextStyle(
+          //                   //     fontWeight: FontWeight.bold,
+          //                   //     fontSize: 16,
+          //                   //   ),
+          //                   // ),
+          //                   SizedBox(height: 8),
+          //                   Row(
+          //                     children: [
+          //                       Expanded(
+          //                         child: Column(
+          //                           crossAxisAlignment: CrossAxisAlignment.start,
+          //                           children: [
+          //                             TextButton(
+          //                               onPressed: () async {
+          //                                 final date = await showDatePicker(
+          //                                   context: context,
+          //                                   initialDate: DateTime.now(),
+          //                                   firstDate: DateTime.now(),
+          //                                   lastDate: DateTime.now().add(
+          //                                     Duration(days: 365),
+          //                                   ),
+          //                                 );
+          //                                 if (date != null) {
+          //                                   setState(() {
+          //                                     selectedStartDate = date;
+          //                                   });
+          //                                 }
+          //                               },
+          //                               child: Text(
+          //                                 selectedStartDate != null
+          //                                     ? '${selectedStartDate!.day}/${selectedStartDate!.month}/${selectedStartDate!.year}'
+          //                                     : 'From',
+          //                               ),
+          //                             ),
+          //                           ],
+          //                         ),
+          //                       ),
+          //                       SizedBox(width: 8),
+          //                       Expanded(
+          //                         child: Column(
+          //                           crossAxisAlignment: CrossAxisAlignment.start,
+          //                           children: [
+          //                             TextButton(
+          //                               onPressed: () async {
+          //                                 final date = await showDatePicker(
+          //                                   context: context,
+          //                                   initialDate:
+          //                                       selectedStartDate ?? DateTime.now(),
+          //                                   firstDate:
+          //                                       selectedStartDate ?? DateTime.now(),
+          //                                   lastDate: DateTime.now().add(
+          //                                     Duration(days: 365),
+          //                                   ),
+          //                                 );
+          //                                 if (date != null) {
+          //                                   setState(() {
+          //                                     selectedEndDate = date;
+          //                                   });
+          //                                 }
+          //                               },
+          //                               child: Text(
+          //                                 selectedEndDate != null
+          //                                     ? '${selectedEndDate!.day}/${selectedEndDate!.month}/${selectedEndDate!.year}'
+          //                                     : 'To',
+          //                               ),
+          //                             ),
+          //                           ],
+          //                         ),
+          //                       ),
+          //                     ],
+          //                   ),
+          //                 ],
+          //               ],
+          //             ),
+          //             actions: [
+          //               TextButton(
+          //                 onPressed: () => Navigator.of(context).pop(),
+          //                 child: Text('Cancel'),
+          //               ),
+          //               TextButton(
+          //                 onPressed: () {
+          //                   if (!isCurrentlyPaused) {
+          //                     if (selectedStartDate == null ||
+          //                         selectedEndDate == null) {
+          //                       ScaffoldMessenger.of(context).showSnackBar(
+          //                         SnackBar(
+          //                           content: Text(
+          //                             'Please select both start and end dates',
+          //                           ),
+          //                           backgroundColor: Colors.red,
+          //                         ),
+          //                       );
+          //                       return;
+          //                     }
+          //                     if (selectedEndDate!.isBefore(selectedStartDate!)) {
+          //                       SnackBarHelper.showError(
+          //                         context,
+          //                         'End date must be after start date',
+          //                       );
+          //                       return;
+          //                     }
+          //                   }
+
+          //                   if (!isCurrentlyPaused && maxPausesLeft <= 0) {
+          //                     Navigator.of(context).pop();
+          //                     SnackBarHelper.showError(
+          //                       context,
+          //                       'No pauses remaining for this subscription',
+          //                     );
+          //                     return;
+          //                   }
+
+          //                   _togglePauseSubscription(
+          //                     isCurrentlyPaused ? null : selectedStartDate,
+          //                     isCurrentlyPaused ? null : selectedEndDate,
+          //                   );
+          //                   Navigator.of(context).pop();
+          //                 },
+          //                 child: Text('Confirm'),
+          //               ),
+          //             ],
+          //           );
+          //         },
+          //       );
+          //     },
+          //   );
+          // }
+
+          return GestureDetector(
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder:
+                      (context) => SubscriptionPlanDetailScreen(
+                        subscription: subscription,
+                      ),
+                ),
+              );
+            },
+            child: Container(
+              margin: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black12,
+                    blurRadius: 5,
+                    offset: Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Column(
+                children: [
+                  Padding(
+                    padding: EdgeInsets.all(12),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Placeholder for product image
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Container(
+                              padding: EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 4,
+                              ),
+                              margin: EdgeInsets.only(bottom: 3),
+                              decoration: BoxDecoration(
+                                color: AppColors.primaryColor,
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              child: Text(
+                                'Subscription - ${subscription.planName}',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 10,
+                                ),
+                              ),
+                            ),
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(12),
+                              child:
+                                  (subscription.items.isNotEmpty &&
+                                          subscription.items[0].imageUrl !=
+                                              null &&
+                                          subscription
+                                              .items[0]
+                                              .imageUrl!
+                                              .isNotEmpty)
+                                      // If the image list is NOT empty, show the first image
+                                      ? CachedNetworkImage(
+                                        imageUrl:
+                                            subscription.items[0].imageUrl!,
+                                        height: 100,
+                                        width: 100,
+                                        fit: BoxFit.cover,
+                                        // Show a loading spinner while the image loads
+                                        placeholder:
+                                            (context, url) => Container(
+                                              height: 100,
+                                              width: 100,
+                                              color: Colors.grey[200],
+                                              child: Center(
+                                                child:
+                                                    CircularProgressIndicator(
+                                                      strokeWidth: 2,
+                                                      color: Colors.grey[400],
+                                                    ),
+                                              ),
+                                            ),
+                                        // Show an error icon if the image fails to load
+                                        errorWidget:
+                                            (context, url, error) => Container(
+                                              height: 100,
+                                              width: 100,
+                                              color: Colors.grey[200],
+                                              child: Icon(
+                                                Icons.error_outline,
+                                                color: Colors.grey[400],
+                                                size: 40,
+                                              ),
+                                            ),
+                                      )
+                                      // If the image list IS empty, show a fallback icon
+                                      : Container(
+                                        height: 100,
+                                        width: 100,
+                                        color: Colors.grey[200],
+                                        child: Icon(
+                                          Icons.image_not_supported_outlined,
+                                          color: Colors.grey[400],
+                                          size: 40,
+                                        ),
+                                      ),
+                            ),
+                          ],
+                        ),
+                        SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              // Tag + Next Delivery + Payment Status
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    'Next Delivery: ${subscription.nextDeliveryDate.toString().split(' ')[0]}',
+                                    style: TextStyle(
+                                      fontSize: 10,
+                                      color: Colors.black,
+                                    ),
+                                  ),
+                                  SizedBox(width: 2),
+                                  Text(
+                                    subscription.installmentPaymentStatus ==
+                                            "PENDING"
+                                        ? "Pending"
+                                        : "Paid",
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      color:
+                                          subscription.installmentPaymentStatus ==
+                                                  "PENDING"
+                                              ? Colors.red
+                                              : Colors.green,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              SizedBox(height: 8),
+                              // Product info
+                              Text(
+                                subscription.items[0].productName,
+                                style: TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.black87,
+                                ),
+                              ),
+                              SizedBox(height: 6),
+                              // Price line
+                              Row(
+                                children: [
+                                  Text(
+                                    '₹${subscription.items[0].discountedPrice}',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 14,
+                                    ),
+                                  ),
+                                  SizedBox(width: 6),
+                                  Text(
+                                    '₹${subscription.items[0].price}',
+                                    style: TextStyle(
+                                      decoration: TextDecoration.lineThrough,
+                                      fontSize: 12,
+                                      color: Colors.grey,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              SizedBox(height: 2),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  // Pause/Resume Button
+                  Row(
+                    children: [
+                      Expanded(
                         child: Container(
-                          padding: const EdgeInsets.all(4),
-                           decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              border: Border.all(color: Colors.black54)
-                           ),
-                          child: const Icon(Icons.close, size: 18),
+                          padding: EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 6,
+                          ),
+                          child: ElevatedButton.icon(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppColors.bottonBackgroundColor,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              padding: EdgeInsets.symmetric(vertical: 10),
+                            ),
+                            icon: Icon(
+                              subscription.status == "PAUSED"
+                                  ? Icons.play_arrow
+                                  : Icons.pause,
+                              color: Colors.white,
+                              size: 18,
+                            ),
+                            label: Text(
+                              subscription.status == "PAUSED"
+                                  ? "Resume"
+                                  : "Pause",
+                              style: TextStyle(color: Colors.white),
+                            ),
+                            onPressed: () {
+                              _showToggleConfirmation(subscription);
+                              // showPauseDialog(context);
+                              // Optional: Implement pause/resume here or redirect
+                            },
+                          ),
+                        ),
+                      ),
+                      Expanded(
+                        child: Text(
+                          '${(subscription.totalDeliveries) - (subscription.completedDeliveries)} /${subscription.totalDeliveries} Deliveries Left',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: AppColors.bottonBackgroundColor,
+                            fontWeight: FontWeight.w500,
+                          ),
                         ),
                       ),
                     ],
-                  ),
-                  const SizedBox(height: 24),
-
-                  // From & To Date Pickers
-                  Row(
-                    children: [
-                      _buildStyledDateField(
-                        context: context,
-                        label: "From",
-                        selectedDate: selectedStartDate,
-                        isSelected: true, // This one has the border
-                        onTap: () async {
-                          final date = await showDatePicker(
-                            context: context,
-                            initialDate: DateTime.now(),
-                            firstDate: DateTime.now(),
-                            lastDate: DateTime.now().add(const Duration(days: 365)),
-                          );
-                          if (date != null) {
-                            setState(() => selectedStartDate = date);
-                          }
-                        },
-                      ),
-                      const Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 8.0),
-                        child: Text("To"),
-                      ),
-                      _buildStyledDateField(
-                        context: context,
-                        label: "To",
-                        selectedDate: selectedEndDate,
-                        onTap: () async {
-                          final date = await showDatePicker(
-                            context: context,
-                            initialDate: selectedStartDate ?? DateTime.now(),
-                            firstDate: selectedStartDate ?? DateTime.now(),
-                            lastDate: DateTime.now().add(const Duration(days: 365)),
-                          );
-                          if (date != null) {
-                            setState(() => selectedEndDate = date);
-                          }
-                        },
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 24),
-
-                  // Set Next Delivery Date
-                  const Text(
-                    "Set Next Delivery To",
-                    style: TextStyle(
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Row(
-                    children: [
-                       _buildStyledDateField(
-                         context: context,
-                         label: "Select Date",
-                         selectedDate: selectedNextDeliveryDate,
-                         onTap: () async {
-                           final date = await showDatePicker(
-                             context: context,
-                             initialDate: DateTime.now(),
-                             firstDate: DateTime.now(),
-                             lastDate: DateTime.now().add(const Duration(days: 365)),
-                           );
-                           if (date != null) {
-                              setState(() => selectedNextDeliveryDate = date);
-                           }
-                         },
-                       ),
-                    ],
-                  ),
-                  const SizedBox(height: 32),
-                  
-                  // Save Changes Button
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: () {
-                        // --- PRESERVED LOGIC ---
-                        if (selectedStartDate == null || selectedEndDate == null) {
-                          SnackBarHelper.showError(context, 'Please select both start and end dates');
-                          return;
-                        }
-                        if (selectedEndDate!.isBefore(selectedStartDate!)) {
-                          SnackBarHelper.showError(context, 'End date must be after start date');
-                          return;
-                        }
-                        if (maxPausesLeft <= 0) {
-                          SnackBarHelper.showError(context, 'No pauses remaining for this subscription');
-                          return;
-                        }
-                        _togglePauseSubscription( selectedStartDate, selectedEndDate);
-                        Navigator.of(context).pop();
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: primaryColor,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                      ),
-                      child: const Text("Save Changes"),
-                    ),
                   ),
                 ],
               ),
             ),
           );
         },
-      );
-    },
-  );
+      ),
+    );
+  }
 }
-
-
-
-
-  //       void _showToggleConfirmation() {
-  //   final isCurrentlyPaused = subscription.status == 'PAUSED';
-  //   final maxPausesLeft = subscription.remainingPauseTimes;
-  //   DateTime? selectedStartDate;
-  //   DateTime? selectedEndDate;
-
-  //   showDialog(
-  //     context: context,
-  //     builder: (BuildContext context) {
-  //       return StatefulBuilder(
-  //         builder: (context, setState) {
-  //           return AlertDialog(
-  //             title: Text(
-  //               isCurrentlyPaused
-  //                   ? 'Resume Now?'
-  //                   : 'Pause From?',
-  //                   style: TextStyle(
-  //                     fontSize: 18,
-
-  //                     fontWeight: FontWeight.bold
-  //                   ),
-  //             ),
-  //             content: Column(
-  //               mainAxisSize: MainAxisSize.min,
-  //               crossAxisAlignment: CrossAxisAlignment.start,
-  //               children: [
-  //                 Text(
-  //                   isCurrentlyPaused
-  //                       ? 'Are you sure you want to resume this subscription?'
-  //                       : 'Are you sure you want to pause this subscription?',
-  //                 ),
-  //                 SizedBox(height: 16),
-  //                 if (!isCurrentlyPaused) ...[
-  //                   Text(
-  //                     'Pauses remaining: $maxPausesLeft',
-  //                     style: TextStyle(
-  //                       color:
-  //                           maxPausesLeft > 0
-  //                               ? Colors.green[700]
-  //                               : Colors.red[700],
-  //                       fontWeight: FontWeight.w500,
-  //                     ),
-  //                   ),
-  //                   // SizedBox(height: 16),
-  //                   // Text(
-  //                   //   'Select Pause Period:',
-  //                   //   style: TextStyle(
-  //                   //     fontWeight: FontWeight.bold,
-  //                   //     fontSize: 16,
-  //                   //   ),
-  //                   // ),
-  //                   SizedBox(height: 8),
-  //                   Row(
-  //                     children: [
-  //                       Expanded(
-  //                         child: Column(
-  //                           crossAxisAlignment: CrossAxisAlignment.start,
-  //                           children: [
-  //                             TextButton(
-  //                               onPressed: () async {
-  //                                 final date = await showDatePicker(
-  //                                   context: context,
-  //                                   initialDate: DateTime.now(),
-  //                                   firstDate: DateTime.now(),
-  //                                   lastDate: DateTime.now().add(
-  //                                     Duration(days: 365),
-  //                                   ),
-  //                                 );
-  //                                 if (date != null) {
-  //                                   setState(() {
-  //                                     selectedStartDate = date;
-  //                                   });
-  //                                 }
-  //                               },
-  //                               child: Text(
-  //                                 selectedStartDate != null
-  //                                     ? '${selectedStartDate!.day}/${selectedStartDate!.month}/${selectedStartDate!.year}'
-  //                                     : 'From',
-  //                               ),
-  //                             ),
-  //                           ],
-  //                         ),
-  //                       ),
-  //                       SizedBox(width: 8),
-  //                       Expanded(
-  //                         child: Column(
-  //                           crossAxisAlignment: CrossAxisAlignment.start,
-  //                           children: [
-  //                             TextButton(
-  //                               onPressed: () async {
-  //                                 final date = await showDatePicker(
-  //                                   context: context,
-  //                                   initialDate:
-  //                                       selectedStartDate ?? DateTime.now(),
-  //                                   firstDate:
-  //                                       selectedStartDate ?? DateTime.now(),
-  //                                   lastDate: DateTime.now().add(
-  //                                     Duration(days: 365),
-  //                                   ),
-  //                                 );
-  //                                 if (date != null) {
-  //                                   setState(() {
-  //                                     selectedEndDate = date;
-  //                                   });
-  //                                 }
-  //                               },
-  //                               child: Text(
-  //                                 selectedEndDate != null
-  //                                     ? '${selectedEndDate!.day}/${selectedEndDate!.month}/${selectedEndDate!.year}'
-  //                                     : 'To',
-  //                               ),
-  //                             ),
-  //                           ],
-  //                         ),
-  //                       ),
-  //                     ],
-  //                   ),
-  //                 ],
-  //               ],
-  //             ),
-  //             actions: [
-  //               TextButton(
-  //                 onPressed: () => Navigator.of(context).pop(),
-  //                 child: Text('Cancel'),
-  //               ),
-  //               TextButton(
-  //                 onPressed: () {
-  //                   if (!isCurrentlyPaused) {
-  //                     if (selectedStartDate == null ||
-  //                         selectedEndDate == null) {
-  //                       ScaffoldMessenger.of(context).showSnackBar(
-  //                         SnackBar(
-  //                           content: Text(
-  //                             'Please select both start and end dates',
-  //                           ),
-  //                           backgroundColor: Colors.red,
-  //                         ),
-  //                       );
-  //                       return;
-  //                     }
-  //                     if (selectedEndDate!.isBefore(selectedStartDate!)) {
-  //                       SnackBarHelper.showError(
-  //                         context,
-  //                         'End date must be after start date',
-  //                       );
-  //                       return;
-  //                     }
-  //                   }
-
-  //                   if (!isCurrentlyPaused && maxPausesLeft <= 0) {
-  //                     Navigator.of(context).pop();
-  //                     SnackBarHelper.showError(
-  //                       context,
-  //                       'No pauses remaining for this subscription',
-  //                     );
-  //                     return;
-  //                   }
-
-  //                   _togglePauseSubscription(
-  //                     isCurrentlyPaused ? null : selectedStartDate,
-  //                     isCurrentlyPaused ? null : selectedEndDate,
-  //                   );
-  //                   Navigator.of(context).pop();
-  //                 },
-  //                 child: Text('Confirm'),
-  //               ),
-  //             ],
-  //           );
-  //         },
-  //       );
-  //     },
-  //   );
-  // }
-
-        return GestureDetector(
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => SubscriptionPlanDetailScreen(
-                  subscription: subscription,
-                ),
-              ),
-            );
-          },
-          child: Container(
-            margin: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(12),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black12,
-                  blurRadius: 5,
-                  offset: Offset(0, 2),
-                ),
-              ],
-            ),
-            child: Column(
-              children: [
-                Padding(
-                  padding: EdgeInsets.all(12),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Placeholder for product image
-                      Column(
-                        children: [ Container(
-                                  padding: EdgeInsets.symmetric(
-                                    horizontal: 8,
-                                    vertical: 4,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: AppColors.primaryColor,
-                                    borderRadius: BorderRadius.circular(20),
-                                  ),
-                                  child: Text(
-                                    'Subscription - ${subscription.planName}',
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 10,
-                                    ),
-                                  ),
-                                ),
-                             ClipRRect(
-                borderRadius: BorderRadius.circular(12),
-                child: (subscription.items.isNotEmpty &&
-                        subscription.items[0].imageUrl != null &&
-                        subscription.items[0].imageUrl!.isNotEmpty)
-                    // If the image list is NOT empty, show the first image
-                    ? CachedNetworkImage(
-                        imageUrl: subscription.items[0].imageUrl!,
-                        height: 100,
-                        width: 100,
-                        fit: BoxFit.cover,
-                        // Show a loading spinner while the image loads
-                        placeholder: (context, url) => Container(
-                          height: 100,
-                          width: 100,
-                          color: Colors.grey[200],
-                          child: Center(
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              color: Colors.grey[400],
-                            ),
-                          ),
-                        ),
-                        // Show an error icon if the image fails to load
-                        errorWidget: (context, url, error) => Container(
-                          height: 100,
-                          width: 100,
-                          color: Colors.grey[200],
-                          child: Icon(
-                            Icons.error_outline,
-                            color: Colors.grey[400],
-                            size: 40,
-                          ),
-                        ),
-                      )
-                    // If the image list IS empty, show a fallback icon
-                    : Container(
-                        height: 100,
-                        width: 100,
-                        color: Colors.grey[200],
-                        child: Icon(
-                          Icons.image_not_supported_outlined,
-                          color: Colors.grey[400],
-                          size: 40,
-                        ),
-                      ),
-              ),
-                        ],
-                      ),
-                      SizedBox(width: 12),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            // Tag + Next Delivery + Payment Status
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                               
-                                Text(
-                                  'Next Delivery: ${subscription.nextDeliveryDate.toString().split(' ')[0]}',
-                                  style: TextStyle(
-                                    fontSize: 10,
-                                    color: Colors.black,
-                                  ),
-                                ),
-                                SizedBox(height: 2),
-                                Text(
-                                  subscription.installmentPaymentStatus == "PENDING"
-                                      ? "Pending"
-                                      : "Paid",
-                                  style: TextStyle(
-                                    fontSize: 11,
-                                    color: subscription.installmentPaymentStatus == "PENDING"
-                                        ? Colors.red
-                                        : Colors.green,
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            SizedBox(height: 8),
-                            // Product info
-                            Text(
-                              subscription.items[0].productName,
-                              style: TextStyle(
-                                fontSize: 15,
-                                fontWeight: FontWeight.w600,
-                                color: Colors.black87,
-                              ),
-                            ),
-                            SizedBox(height: 6),
-                            // Price line
-                            Row(
-                              children: [
-                                Text(
-                                  subscription.items[0].discountedPrice.toString(),
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 14,
-                                  ),
-                                ),
-                                SizedBox(width: 6),
-                                Text(
-                                  subscription.items[0].price.toString(),
-                                  style: TextStyle(
-                                    decoration: TextDecoration.lineThrough,
-                                    fontSize: 12,
-                                    color: Colors.grey,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            SizedBox(height: 2),
-                           
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                // Pause/Resume Button
-                Row(
-                  children: [
-                    Expanded(
-                      child: Container(
-                      
-                        padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                        child: ElevatedButton.icon(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.bottonBackgroundColor,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            padding: EdgeInsets.symmetric(vertical: 10),
-                          ),
-                          icon: Icon(
-                            subscription.status == "PAUSED"
-                                ? Icons.play_arrow
-                                : Icons.pause,
-                            color: Colors.white,
-                            size: 18,
-                          ),
-                          label: Text(
-                            subscription.status == "PAUSED" ? "Resume" : "Pause",
-                            style: TextStyle(color: Colors.white),
-                          ),
-                          onPressed: () {
-                            _showToggleConfirmation(subscription);
-                      // showPauseDialog(context);
-                            // Optional: Implement pause/resume here or redirect
-                          },
-                        ),
-                      ),
-                    ),
-                     Container(
-                      width: 150,
-                       child: Text(
-                              '${(subscription.totalDeliveries)-(subscription.completedDeliveries)} /${subscription.totalDeliveries} Deliveries Left'  ,
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color:AppColors.bottonBackgroundColor,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                     ),
-                       Container(
-                      width: 100,
-                       child: Text(
-                              ""  ,
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color:AppColors.bottonBackgroundColor,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                     ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-    ),
-  );
-}
-
-
-    }
-
-
-
-
 
 void showPauseDialog(BuildContext context) {
   DateTime? fromDate;
@@ -808,10 +878,7 @@ void showPauseDialog(BuildContext context) {
                   /// Title
                   Text(
                     "Pause From",
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w600,
-                    ),
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
                   ),
 
                   SizedBox(height: 16),
@@ -897,9 +964,6 @@ void showPauseDialog(BuildContext context) {
                     width: double.infinity,
                     child: ElevatedButton(
                       onPressed: () {
-
-
-
                         Navigator.of(context).pop();
                       },
                       style: ElevatedButton.styleFrom(
@@ -941,7 +1005,8 @@ Widget _buildStyledDateField({
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
         decoration: BoxDecoration(
           color: isSelected ? Colors.transparent : fillColor,
-          border: isSelected ? Border.all(color: primaryColor, width: 1.5) : null,
+          border:
+              isSelected ? Border.all(color: primaryColor, width: 1.5) : null,
           borderRadius: BorderRadius.circular(8),
         ),
         child: Row(
@@ -953,7 +1018,8 @@ Widget _buildStyledDateField({
               selectedDate != null ? formatter.format(selectedDate) : label,
               style: TextStyle(
                 color: primaryColor,
-                fontWeight: selectedDate != null ? FontWeight.w600 : FontWeight.normal,
+                fontWeight:
+                    selectedDate != null ? FontWeight.w600 : FontWeight.normal,
               ),
             ),
           ],
@@ -970,9 +1036,8 @@ Widget _buildDateField(
   required VoidCallback onTap,
 }) {
   final hasDate = selectedDate != null;
-  final text = hasDate
-      ? DateFormat('dd MMM yyyy').format(selectedDate!)
-      : label;
+  final text =
+      hasDate ? DateFormat('dd MMM yyyy').format(selectedDate!) : label;
 
   return InkWell(
     onTap: onTap,

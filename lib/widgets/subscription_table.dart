@@ -3,10 +3,12 @@ import 'dart:ui';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 import 'package:grocery_app/helpers/animated_transitions.dart';
+import 'package:grocery_app/helpers/responsive_helper.dart';
 import 'package:grocery_app/models/product_model.dart';
 import 'package:grocery_app/models/subscription_plan_model.dart';
 import 'package:grocery_app/models/subscription_plan_product_model.dart';
 import 'package:grocery_app/screens/product_details/product_details_screen.dart';
+import 'package:grocery_app/services/cart_service.dart';
 import 'package:grocery_app/services/product_service.dart';
 import 'package:grocery_app/services/subscription_service.dart';
 import 'package:grocery_app/screens/auth/login_screen.dart';
@@ -29,25 +31,48 @@ class _SubscriptionTableState extends State<SubscriptionTable> {
   List<SubscriptionPlan> _plans = [];
   bool _isLoading = true;
   String? _error;
+
+    // MODIFICATION 1: Create static variables for caching
+  static List<SubscriptionPlan>? _cachedPlans;
+  static final Map<int, List<SubscriptionPlanProduct>> _cachedPlanProducts = {};
+
   final Map<int, List<SubscriptionPlanProduct>> _planProducts = {};
   final Map<int, bool> _loadingProducts = {};
   bool _isLoadingDropdownData = true;
   List<String> _dropdownItems = [];
+  late ResponsiveHelper responsive = ResponsiveHelper(
+    context,
+    BoxConstraints(
+      maxWidth: MediaQuery.of(context).size.width,
+      minWidth: 0,
+      minHeight: 0,
+      maxHeight: MediaQuery.of(context).size.height,
+    ),
+  );
   
   // MODIFICATION 1: Add a state variable to track the current index
   int _currentIndex = 1; // Start at 1 to match initialPage
 
-  @override
+    @override
   void initState() {
     super.initState();
-    _loadSubscriptionPlans();
-    // Pre-load products for a smoother experience
-    _loadPlanProducts(1);
-    _loadPlanProducts(2);
-    _loadPlanProducts(3);
-    _loadPlanProducts(4);
+    _loadData();
   }
 
+  Future<void> _loadData() async {
+    // Check cache first
+    if (_cachedPlans != null && _cachedPlans!.isNotEmpty) {
+      setState(() {
+        _plans = _cachedPlans!;
+        _isLoading = false;
+      });
+      // Pre-load products from cache or fetch if not available
+      _cachedPlans!.forEach((plan) => _loadPlanProducts(plan.id));
+    } else {
+      // Fetch from network if cache is empty
+      await _loadSubscriptionPlans();
+    }
+  }
   // ... (Your existing data loading methods like _loadSubscriptionPlans, _loadPlanProducts, etc. remain unchanged)
   Future<void> _loadSubscriptionPlans() async {
     setState(() {
@@ -61,8 +86,11 @@ class _SubscriptionTableState extends State<SubscriptionTable> {
         if (result['success']) {
           setState(() {
             _plans = result['data'] as List<SubscriptionPlan>;
+            _cachedPlans = _plans; // Cache the fetched plans
             _isLoading = false;
           });
+          // Pre-load products after fetching plans
+          _plans.forEach((plan) => _loadPlanProducts(plan.id));
         } else {
           setState(() {
             _error = result['message'];
@@ -81,28 +109,31 @@ class _SubscriptionTableState extends State<SubscriptionTable> {
   }
 
   Future<void> _loadPlanProducts(int planId) async {
+        if (_cachedPlanProducts.containsKey(planId)) {
+      setState(() {
+        _planProducts[planId] = _cachedPlanProducts[planId]!;
+      });
+
+      return;
+    }
+
     if (_loadingProducts[planId] == true) return; // Prevent multiple calls
 
     setState(() {
       _loadingProducts[planId] = true;
     });
 
-    try {
-      final result = await _subscriptionService.getSubscriptionPlanProducts(
-        planId,
-      );
-
+     try {
+      final result = await _subscriptionService.getSubscriptionPlanProducts(planId);
       if (mounted) {
         if (result['success']) {
           final response = result['data'] as SubscriptionPlanProductsResponse;
           setState(() {
             _planProducts[planId] = response.products;
-            _loadingProducts[planId] = false;
-            _isLoadingDropdownData = false;
-            _dropdownItems =
-                response.products.map((p) => p.productName).toList();
+            _cachedPlanProducts[planId] = response.products; // Cache products
+            //...
           });
-        } else {
+        }  else {
           if (result['requiresLogin'] == true) {
             Navigator.push(
               context,
@@ -131,6 +162,13 @@ class _SubscriptionTableState extends State<SubscriptionTable> {
     }
   }
 
+  Future<void> _refreshData() async {
+    // Clear cache
+    _cachedPlans = null;
+    _cachedPlanProducts.clear();
+    // Fetch fresh data
+    await _loadSubscriptionPlans();
+  }
   Future<void> _handleSubscribe(SubscriptionPlan plan) async {
     try {
       final result = await _subscriptionService.subscribeToPlan(plan.id);
@@ -187,7 +225,7 @@ class _SubscriptionTableState extends State<SubscriptionTable> {
     if (_isLoading) {
       return SkeletonAnimation(
         isLoading: true,
-        loadingWidget: SubscriptionSkeletonLoader(),
+        loadingWidget: SubscriptionSkeletonLoader(responsive: responsive),
         child: Container(),
       );
     }
@@ -197,7 +235,7 @@ class _SubscriptionTableState extends State<SubscriptionTable> {
     }
 
     return RefreshIndicator(
-      onRefresh: _loadSubscriptionPlans,
+      onRefresh: _refreshData,
       child: SizedBox(
         height: 500,
         // MODIFICATION 2: Use CarouselSlider.builder for conditional styling
@@ -213,7 +251,7 @@ class _SubscriptionTableState extends State<SubscriptionTable> {
           // MODIFICATION 3: Update CarouselOptions for the desired effect
           options: CarouselOptions(
             height: 500,
-            viewportFraction: 0.7,
+            viewportFraction: 0.8,
             autoPlay: true,
             autoPlayInterval: const Duration(seconds: 5),
             enlargeCenterPage: true, // Make the center card larger
@@ -520,7 +558,7 @@ class _SubscriptionPopupContentState extends State<_SubscriptionPopupContent> {
         ),
         _infoRow(
           "Savings",
-          "${widget.plan.totalDiscountPercentage}% Discount 🔥",
+          "${widget.plan.totalDiscountPercentage}% Discount ",
         ),
         _infoRow(
           "Installments",
@@ -556,10 +594,12 @@ class _SubscriptionPopupContentState extends State<_SubscriptionPopupContent> {
                   return DropdownMenuItem<String>(
                     value: p.productName,
                     child: Text(p.productName),
-                    onTap: () {
-                      //              Navigator.push(
-                      // context,
-                      // AnimatedTransitions.fadeScale(ProductDetailsScreen(product: p)), },
+                    onTap: () async {
+                      final product = await CategoryService.fetchProductById(p.productId);
+
+                                   Navigator.push(
+                      context,
+                      AnimatedTransitions.fadeScale(ProductDetailsScreen(product: product)));
                     },
                   );
                 }).toList(),

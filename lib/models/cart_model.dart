@@ -1,8 +1,9 @@
 import 'package:grocery_app/models/product_image_model.dart';
+import 'package:grocery_app/models/product_model.dart';
 
 class CartItem {
   final int id;
-  final ProductVariant productVariant;
+  final Product productVariant;
   int quantity;
   final String totalPrice;
   final DateTime createdAt;
@@ -17,10 +18,31 @@ class CartItem {
     required this.updatedAt,
   });
 
+  // --- 👇 COPYWITH METHOD ADDED HERE ---
+  /// Creates a copy of this CartItem but with the given fields replaced with the new values.
+  CartItem copyWith({
+    int? id,
+    Product? productVariant,
+    int? quantity,
+    String? totalPrice,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+  }) {
+    return CartItem(
+      id: id ?? this.id,
+      productVariant: productVariant ?? this.productVariant,
+      quantity: quantity ?? this.quantity,
+      totalPrice: totalPrice ?? this.totalPrice,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+    );
+  }
+  // --- END OF ADDED METHOD ---
+
   factory CartItem.fromJson(Map<String, dynamic> json) {
     return CartItem(
       id: json['id'],
-      productVariant: ProductVariant.fromJson(json['product_variant']),
+      productVariant: Product.fromJson(json['product_variant']),
       quantity: json['quantity'],
       totalPrice: json['total_price'].toString(),
       createdAt: DateTime.parse(json['created_at']),
@@ -69,10 +91,9 @@ class CartModel {
 
     return CartModel(
       id: data['id'],
-      items:
-          (data['items'] as List)
-              .map((item) => CartItem.fromJson(item))
-              .toList(),
+      items: (data['items'] as List)
+          .map((item) => CartItem.fromJson(item))
+          .toList(),
       totalPrice: data['total_price'].toString(),
       totalItems: data['total_items'],
       createdAt: DateTime.parse(data['created_at']),
@@ -139,10 +160,9 @@ class ProductVariant {
       productName: json['product_name'],
       productDescription: json['product_description'],
       productCategory: json['product_category'],
-      productImages:
-          (json['product_images'] as List)
-              .map((image) => ProductImage.fromJson(image))
-              .toList(),
+      productImages: (json['product_images'] as List)
+          .map((image) => ProductImage.fromJson(image))
+          .toList(),
     );
   }
 

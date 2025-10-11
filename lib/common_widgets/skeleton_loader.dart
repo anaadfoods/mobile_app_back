@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:grocery_app/helpers/responsive_helper.dart';
 
 class SkeletonContainer extends StatelessWidget {
   final double width;
@@ -84,7 +85,7 @@ class _SkeletonAnimationState extends State<SkeletonAnimation>
 }
 
 class SubscriptionSkeletonLoader extends StatelessWidget {
-  const SubscriptionSkeletonLoader({super.key});
+  const SubscriptionSkeletonLoader({super.key, required ResponsiveHelper responsive});
 
   @override
   Widget build(BuildContext context) {

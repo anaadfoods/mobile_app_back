@@ -1,13 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
-import 'package:grocery_app/models/subscription_model.dart';
+
 import 'package:grocery_app/models/user_model.dart';
 import 'package:grocery_app/screens/MySubscriptionPlan/subscription_plan_detail.dart';
 import 'package:grocery_app/screens/about/about_screen.dart';
+import 'package:grocery_app/screens/help/help_screen.dart';
 import 'package:grocery_app/screens/order/order_screen.dart';
 import 'package:grocery_app/screens/profile/edit_profile_screen.dart';
-import 'package:grocery_app/screens/profile/profile_screen.dart';
-import 'package:grocery_app/styles/colors.dart';
+
 import 'package:url_launcher/url_launcher.dart';
 import 'package:grocery_app/services/auth_service.dart';
 import 'package:grocery_app/services/notification_service.dart';
@@ -93,13 +92,10 @@ class _AccountScreenState extends State<AccountScreen> {
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
-        centerTitle: true,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
+        
+       
         title: Text(
-          '@$userHandle',
+          '$userHandle',
           style: TextStyle(
             color: Colors.black,
             fontWeight: FontWeight.bold,
@@ -213,6 +209,17 @@ class _AccountScreenState extends State<AccountScreen> {
                       MaterialPageRoute(builder: (context) => OrderScreen()),
                     );                },
               ),
+               _buildAccountItem(
+                context,
+                icon: Icons.shopping_bag_outlined,
+                label: "Help",
+                onTap: () {
+ Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => HelpScreen()),
+                    );                },
+              ),
+
               _buildAccountItem(
                 context,
                 icon: Icons.settings_outlined,

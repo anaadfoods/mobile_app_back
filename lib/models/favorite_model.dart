@@ -6,7 +6,7 @@ class FavoriteModel {
   
   /// The unique ID of the associated product.
   final int productId;
-
+  final String price;
   final String name;
   final String weight;
   final DateTime createdAt;
@@ -17,6 +17,7 @@ class FavoriteModel {
   FavoriteModel({
     required this.id,
     required this.productId,
+    required this.price,
     required this.name,
     required this.weight,
     required this.createdAt,
@@ -50,6 +51,7 @@ class FavoriteModel {
         
         // Store the product's ID separately.
         productId: product['id'] ?? 0,
+        price: product['price'] ?? "",
 
         // Use fallback values to prevent crashes if other data is missing.
         name: product['name'] ?? 'Unknown Product',
@@ -71,7 +73,7 @@ class FavoriteModel {
   Map<String, dynamic> toJson() {
     return {
       'id': id,
-      'product': {'id': productId, 'name': name, 'weight': weight, 'image': image},
+      'product': {'id': productId, 'name': name, 'weight': weight, 'image': image , 'price':price},
       'created_at': createdAt.toIso8601String(),
     };
   }

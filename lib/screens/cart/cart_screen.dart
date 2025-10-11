@@ -58,29 +58,61 @@ class _CartScreenState extends State<CartScreen> {
   }
 
   double getTotalAmount() {
+    if (_cart == null || _cart!.items.isEmpty) {
+      return 0.0;
+    }
     return _cart!.items.fold(
       0.0,
       (sum, item) =>
-          sum + (double.parse(item.productVariant.finalPrice as String) * item.quantity),
+          sum + (item.productVariant.finalPrice * item.quantity),
     );
   }
 
   void _onQuantityChanged(int productVariantId, int newQuantity) async {
+    final itemIndex = _cart!.items.indexWhere(
+      (item) => item.productVariant.id == productVariantId,
+    );
+    if (itemIndex == -1) return;
+
+    final item = _cart!.items[itemIndex];
+    final oldQuantity = item.quantity;
+
     setState(() {
-      _isLoading = true;
+      _cart!.items[itemIndex] = item.copyWith(quantity: newQuantity);
     });
+
     try {
       await _cartService.updateCartItem(productVariantId, newQuantity);
-      await _loadCart(); // Refresh cart from backend
     } catch (e) {
-      print(e);
-      // Optionally show an error message
-      SnackBarHelper.showError(context, 'Failed to update cart item');
-    } finally {
       if (mounted) {
         setState(() {
-          _isLoading = false;
+          _cart!.items[itemIndex] = item.copyWith(quantity: oldQuantity);
         });
+        SnackBarHelper.showError(context, 'Failed to update item. Please try again.');
+      }
+    }
+  }
+
+  // --- 👇 NEW OPTIMISTIC REMOVE FUNCTION ---
+  void _onRemoveItem(int productVariantId) async {
+    final itemIndex =
+        _cart!.items.indexWhere((i) => i.productVariant.id == productVariantId);
+    if (itemIndex == -1) return;
+
+    final removedItem = _cart!.items[itemIndex];
+
+    setState(() {
+      _cart!.items.removeAt(itemIndex);
+    });
+
+    try {
+      await _cartService.removeFromCart(productVariantId);
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _cart!.items.insert(itemIndex, removedItem);
+        });
+        SnackBarHelper.showError(context, 'Failed to remove item. Please try again.');
       }
     }
   }
@@ -92,7 +124,7 @@ class _CartScreenState extends State<CartScreen> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Icon(Icons.shopping_cart_outlined, size: 86, color: Colors.grey[400]),
-          SizedBox(height: 16),
+          const SizedBox(height: 16),
           Text(
             'Cart is empty',
             style: TextStyle(
@@ -101,35 +133,35 @@ class _CartScreenState extends State<CartScreen> {
               color: Colors.grey[700],
             ),
           ),
-          SizedBox(height: 8),
+          const SizedBox(height: 8),
           Text(
-            'Bro, your thali is starving. Add some courage to it.',
+            'Looks like you haven\'t added anything to your cart yet.',
             style: TextStyle(fontSize: 14, color: Colors.grey[600]),
           ),
-          SizedBox(height: 24),
-          // ElevatedButton(
-          //   onPressed: () => Navigator.pop(context),
-          //   style: ElevatedButton.styleFrom(
-          //     backgroundColor: Colors.green,
-          //     padding: EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-          //     shape: RoundedRectangleBorder(
-          //       borderRadius: BorderRadius.circular(12),
-          //     ),
-          //   ),
-          //   child: Text('Start Shopping', style: TextStyle(fontSize: 16)),
-          // ),
+          const SizedBox(height: 24),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Theme.of(context).primaryColor,
+              padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+            child: const Text('Start Shopping', style: TextStyle(fontSize: 16)),
+          ),
         ],
       ),
     );
   }
 
   Widget _buildErrorState() {
-    return Center(
+     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Icon(Icons.error_outline, size: 64, color: Colors.red[400]),
-          SizedBox(height: 16),
+          const SizedBox(height: 16),
           Text(
             'Oops! Something went wrong',
             style: TextStyle(
@@ -138,35 +170,33 @@ class _CartScreenState extends State<CartScreen> {
               color: Colors.grey[800],
             ),
           ),
-          SizedBox(height: 8),
+          const SizedBox(height: 8),
           Text(
             "Login to see or add to cart",
             style: TextStyle(fontSize: 16, color: Colors.grey[600]),
             textAlign: TextAlign.center,
           ),
-          SizedBox(height: 24),
+          const SizedBox(height: 24),
           ElevatedButton(
             onPressed: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => LoginScreen()),
+                MaterialPageRoute(builder: (context) => const LoginScreen()),
               );
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: Theme.of(context).primaryColor,
-              padding: EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+              padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
               ),
             ),
-            child: Text('Login', style: TextStyle(fontSize: 16)),
+            child: const Text('Login', style: TextStyle(fontSize: 16, color: Colors.white)),
           ),
         ],
       ),
     );
   }
-
-
 
   Widget _buildCartList() {
     return Column(
@@ -174,70 +204,55 @@ class _CartScreenState extends State<CartScreen> {
         Expanded(
           child: RefreshIndicator(
             onRefresh: _loadCart,
-            child: SingleChildScrollView(
-              physics: AlwaysScrollableScrollPhysics(),
-              padding: EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-              child: Column(
-                children: [
-                  ..._cart!.items.map((item) {
-                    return Padding(
-                      padding: const EdgeInsets.only(bottom: 12),
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(16),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.05),
-                              blurRadius: 10,
-                              offset: Offset(0, 4),
-                            ),
-                          ],
+            child: ListView.builder(
+              physics: const AlwaysScrollableScrollPhysics(),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+              itemCount: _cart!.items.length,
+              itemBuilder: (context, index) {
+                final item = _cart!.items[index];
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.05),
+                          blurRadius: 10,
+                          offset: const Offset(0, 4),
                         ),
-                        child: GestureDetector(
-                          onTap: () async {
-                            final product =
-                                await CategoryService.fetchProductById(
-                                  item.productVariant.id,
-                                );
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder:
-                                    (context) =>
-                                        ProductDetailsScreen(product: product),
-                              ),
-                            );
-                          },
-                          child: ChartItemWidget(
-                            item: item,
-                            onQuantityChanged: (quantity) async {
-                              _onQuantityChanged(
-                                item.productVariant.id,
-                                quantity,
-                              );
-                            },
-                            onRemove: () async {
-                              try {
-                                await _cartService.removeFromCart(
-                                  item.productVariant.id,
-                                );
-                                await _loadCart(); // Refresh cart after removal
-                              } catch (e) {
-                                if (!mounted) return;
-                                SnackBarHelper.showError(
-                                  context,
-                                  'Failed to remove item',
-                                );
-                              }
-                            },
+                      ],
+                    ),
+                    child: GestureDetector(
+                      onTap: () async {
+                        final product = await CategoryService.fetchProductById(
+                            item.productVariant.id);
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) =>
+                                ProductDetailsScreen(product: product),
                           ),
-                        ),
+                        );
+                      },
+                      child: ChartItemWidget(
+                        item: item,
+                        onQuantityChanged: (quantity) {
+                          _onQuantityChanged(
+                            item.productVariant.id,
+                            quantity,
+                          );
+                        },
+                        // --- 👇 UPDATED ONREMOVE CALLBACK ---
+                        onRemove: () {
+                          _onRemoveItem(item.productVariant.id);
+                        },
                       ),
-                    );
-                  }),
-                ],
-              ),
+                    ),
+                  ),
+                );
+              },
             ),
           ),
         ),
@@ -247,16 +262,16 @@ class _CartScreenState extends State<CartScreen> {
   }
 
   Widget _buildCheckoutSection() {
-    return Container(
-      padding: EdgeInsets.all(20),
+     return Container(
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.05),
             blurRadius: 10,
-            offset: Offset(0, -4),
+            offset: const Offset(0, -4),
           ),
         ],
       ),
@@ -273,29 +288,15 @@ class _CartScreenState extends State<CartScreen> {
                 ),
                 Text(
                   '${_cart!.totalItems}',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                 ),
               ],
             ),
-            //    Row(
-            //   mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            //   children: [
-            //     Text(
-            //       'Total Savings',
-            //       style: TextStyle(fontSize: 16, color: Colors.grey[700]),
-            //     ),
-            //     Text(
-            //       '${_cart!}',
-            //       style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-            //     ),
-            //   ],
-            // ),
-            
-            SizedBox(height: 8),
+            const SizedBox(height: 8),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
+                const Text(
                   'Total Amount:',
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
@@ -309,53 +310,45 @@ class _CartScreenState extends State<CartScreen> {
                 ),
               ],
             ),
-            SizedBox(height: 16),
+            const SizedBox(height: 16),
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
                 onPressed: () async {
-                  setState(() {
-                    _isLoading = true;
-                  });
-                  final latestCart = await _cartService.getCart();
-                  setState(() {
-                    _isLoading = false;
-                  });
                   final result = await Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder:
-                          (context) => AddressSelectionScreen(cart: latestCart),
+                      builder: (context) => AddressSelectionScreen(cart: _cart),
                     ),
                   );
-                  if (result != null) {
+
+                  if (result != null && mounted) {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder:
-                            (context) => CheckoutScreen(
-                              cart: result['cart'],
-                              singleProduct: result['singleProduct'],
-                              price: result['price'],
-                              quantity: result['quantity'],
-                              isSubscription: result['isSubscription'] ?? false,
-                              selectedPlan: result['selectedPlan'],
-                              shippingDetails: result['shippingDetails'],
-                              deliveryCharges: result['deliveryCharges'] ?? 0.0,
-                              expectedDeliveryDate: result['expectedDeliveryDate'] ?? '',
-                            ),
+                        builder: (context) => CheckoutScreen(
+                          cart: result['cart'],
+                          singleProduct: result['singleProduct'],
+                          price: result['price'],
+                          quantity: result['quantity'],
+                          isSubscription: result['isSubscription'] ?? false,
+                          selectedPlan: result['selectedPlan'],
+                          shippingDetails: result['shippingDetails'],
+                          deliveryCharges: result['deliveryCharges'] ?? 0.0,
+                          expectedDeliveryDate: result['expectedDeliveryDate'] ?? '',
+                        ),
                       ),
                     );
                   }
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.bottonBackgroundColor,
-                  padding: EdgeInsets.symmetric(vertical: 14),
+                  padding: const EdgeInsets.symmetric(vertical: 14),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
                 ),
-                child: Text(
+                child: const Text(
                   'Proceed to Checkout',
                   style: TextStyle(
                     fontSize: 14,
@@ -376,27 +369,28 @@ class _CartScreenState extends State<CartScreen> {
     return Scaffold(
       backgroundColor: Colors.grey[100],
       appBar: AppBar(
-        title: Text('My Cart', style: TextStyle(color: Colors.black)),
+        title: const Text('My Cart', style: TextStyle(color: Colors.black)),
         backgroundColor: Colors.white,
         elevation: 0,
+        centerTitle: true,
         actions: [
           IconButton(
-            onPressed: () {
-              _cartService.clearCart();
-              _loadCart();
+            onPressed: (_cart == null || _cart!.isEmpty) ? null : () async {
+              setState(() => _isLoading = true);
+              await _cartService.clearCart();
+              await _loadCart();
             },
-            icon: Icon(Icons.delete),
+            icon: const Icon(Icons.delete_outline),
           ),
         ],
       ),
-      body:
-          _isLoading
-              ? Center(child: CircularProgressIndicator())
-              : _error != null
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : _error != null
               ? _buildErrorState()
               : _cart == null || _cart!.isEmpty
-              ? _buildEmptyState()
-              : _buildCartList(),
+                  ? _buildEmptyState()
+                  : _buildCartList(),
     );
   }
 }

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:grocery_app/screens/about/about_detail.dart';
-import 'package:grocery_app/screens/home/home_video.dart';
 
 class AboutScreen extends StatelessWidget {
   AboutScreen({super.key});
@@ -41,7 +40,6 @@ class AboutScreen extends StatelessWidget {
                 ),
               ),
 
-              AssetVideoPlayer(),
               // About Us Section
               Padding(
                 padding: const EdgeInsets.fromLTRB(16, 24, 16, 8),

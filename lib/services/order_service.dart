@@ -234,7 +234,7 @@ class OrderService {
     }
   }
 
-  final String _endpoint = "http://13.203.212.133:5000/handleJuspayResponse";
+  final String _endpoint = "http://65.2.69.45:5000/handleJuspayResponse";
 
   /// Posts the order_id to the Juspay response handler.
   /// Returns the HTTP response.
@@ -290,18 +290,7 @@ Future<String?> _getDownloadsDirectoryPath() async {
 
 Future<String> downloadOrderInvoice(String orderNumber) async {
   try {
-    // 🔐 1. Request storage permission on Android
-    if (Platform.isAndroid) {
-      var status = await Permission.storage.status;
-      if (!status.isGranted) {
-        status = await Permission.storage.request();
-      }
-      if (!status.isGranted) {
-        throw Exception('Storage permission is required to download files.');
-      }
-    }
-
-    // ... (Your existing code to get the token and S3 URL is the same)
+  
     final token = await _authService.getAccessToken();
     if (token == null) throw Exception('Authentication required');
     
@@ -322,7 +311,9 @@ Future<String> downloadOrderInvoice(String orderNumber) async {
 
         if (pdfResponse.statusCode == 200) {
           // 📂 2. Get the correct downloads path
+            print(pdfResponse.statusCode);
           final downloadsPath = await _getDownloadsDirectoryPath();
+          print(downloadsPath);
           if (downloadsPath == null) {
             throw Exception("Could not find the downloads directory.");
           }

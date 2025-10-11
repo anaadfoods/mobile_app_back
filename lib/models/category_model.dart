@@ -22,7 +22,7 @@ class Category {
         id: json['id'] ?? 0,
         name: json['name'] ?? '',
         description: json['description'] ?? '',
-        image: json['image'] ?? 'assets/images/categories_images/fruit.png',
+        image: json['image'] ?? '',
         isActive: json['is_active'] ?? true,
         productsCount: json['products_count'] ?? 0,
       );

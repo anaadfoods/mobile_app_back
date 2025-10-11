@@ -93,7 +93,7 @@ class _ChartItemWidgetState extends State<ChartItemWidget> {
           ),
           SizedBox(width: 4),
           IconButton(
-            icon: Icon(Icons.remove_circle_outline, color: Colors.red[400]),
+            icon: Icon(Icons.remove_circle_outline, color: AppColors.bottonBackgroundColor),
             onPressed: () {
               showDialog(
                 context: context,
@@ -121,7 +121,7 @@ class _ChartItemWidgetState extends State<ChartItemWidget> {
                           SnackBarHelper.showSuccess(context, 'Item removed from cart');
                         },
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.red[400],
+                          backgroundColor: AppColors.bottonBackgroundColor,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(20),
                           ),

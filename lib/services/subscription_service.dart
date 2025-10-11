@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
+import 'package:grocery_app/models/subscription_invoice_model.dart';
 import 'package:grocery_app/models/subscription_plan_product_model.dart';
 import 'package:grocery_app/models/subscription_request_create_model.dart';
 import 'package:http/http.dart' as http;
@@ -80,6 +81,8 @@ class SubscriptionService {
           };
         }
       } else {
+
+        print(responseData['errors']);
         return {
           'success': false,
           'message': responseData['message'] ?? 'Failed to create subscription',
@@ -110,7 +113,6 @@ class SubscriptionService {
 
       final url =
           '${ApiConfig.baseUrl}${ApiConfig.subscriptionsEndpoint}/plans/$id/';
-      print('Fetching subscriptions from: $url');
 
       final response = await http.get(
         Uri.parse(url),
@@ -129,7 +131,6 @@ class SubscriptionService {
       // The compute function handles both list and map responses by parsing first.
       final dynamic parsedData =
           await compute(jsonDecode, response.body);
-      print('Parsed response data: $parsedData');
 
       if (parsedData is List) {
         final subscriptions =
@@ -140,7 +141,6 @@ class SubscriptionService {
           'message': 'Subscriptions fetched successfully',
         };
       } else {
-        print('Response is not a list: $parsedData');
         return {
           'success': false,
           'message': 'Invalid response format from server',
@@ -168,14 +168,12 @@ class SubscriptionService {
       }
 
       final url = '${ApiConfig.baseUrl}${ApiConfig.subscriptionsEndpoint}';
-      print('Fetching subscriptions from: $url');
 
       final response = await http.get(
         Uri.parse(url),
         headers: ApiConfig.getAuthHeaders(token),
       );
 
-      print('Response status code: ${response.statusCode}');
 
       if (response.statusCode != 200) {
         return {
@@ -185,7 +183,6 @@ class SubscriptionService {
       }
 
       final responseData = await compute(_parseJson, response.body);
-      print('Parsed response data: $responseData');
 
       if (responseData.containsKey('subscriptions')) {
         final allSubscriptions = <Subscription>[];
@@ -206,14 +203,12 @@ class SubscriptionService {
           'message': 'Subscriptions fetched successfully',
         };
       } else {
-        print('Response is not in expected format: $responseData');
         return {
           'success': false,
           'message': 'Invalid response format from server',
         };
       }
     } catch (e) {
-      print('Error fetching subscriptions: $e');
       return {
         'success': false,
         'message': 'An error occurred while fetching subscriptions',
@@ -268,7 +263,6 @@ class SubscriptionService {
         };
       }
     } catch (e) {
-      print('Error fetching subscription details: $e');
       return {
         'success': false,
         'message': 'An error occurred while fetching subscription details',
@@ -348,7 +342,6 @@ class SubscriptionService {
       }
 
       final responseData = await compute(_parseJsonList, response.body);
-      print('Parsed response data: $responseData');
 
       final plans = responseData
           .map((item) => SubscriptionPlan.fromJson(item))
@@ -508,7 +501,6 @@ class SubscriptionService {
 
       if (response.statusCode == 200) {
         final data = await compute(_parseJson, response.body);
-        print('Parsed response data: $data');
         return {
           'success': true,
           'data': SubscriptionPlanProductsResponse.fromJson(data),
@@ -617,79 +609,43 @@ class SubscriptionService {
     }
   }
 
-  Future<Map<String, dynamic>> getSubscriptionInvoices(
-    int subscriptionId,
-  ) async {
-    try {
-      final token = await _authService.getAccessToken();
-      if (token == null) {
-        throw Exception('Authentication required');
-      }
+Future<ApiResponse> getSubscriptionInvoices(int subscriptionId) async {
+  try {
 
-      final response = await http.get(
-        Uri.parse(
-          '${ApiConfig.baseUrl}/odoo/subscriptions/$subscriptionId/invoices/',
-        ),
-        headers: ApiConfig.getAuthHeaders(token),
-      );
-
-      if (response.statusCode == 200) {
-        return await compute(_parseJson, response.body);
-      } else {
-        final errorData = await compute(_parseJson, response.body);
-        throw Exception(
-          errorData['message'] ?? 'Failed to get subscription invoices',
-        );
-      }
-    } catch (e) {
-      print('Error getting subscription invoices: $e');
-      throw Exception('Failed to get subscription invoices: $e');
+    ApiResponse _parseApiResponse(String responseBody) {
+  return apiResponseFromJson(responseBody);
+}
+    final token = await _authService.getAccessToken();
+    if (token == null) {
+      throw Exception('Authentication token is missing');
     }
+
+
+
+    final response = await http.get(
+      Uri.parse(
+        '${ApiConfig.baseUrl}/api/odoo/subscriptions/$subscriptionId/invoices/',
+      ),
+      headers: ApiConfig.getAuthHeaders(token),
+    );
+
+    if (response.statusCode == 200) {
+        print(response.statusCode);
+      // Use compute to parse the JSON and create the model in a background isolate.
+      return await compute(_parseApiResponse, response.body);
+    } else {
+      // For errors, parse the generic JSON to get the message.
+      final errorData = await compute(_parseJson, response.body);
+      throw Exception(
+        errorData['message'] ?? 'Failed to load invoices: Status code ${response.statusCode}',
+      );
+    }
+  } catch (e) {
+    // Log the original error for debugging, but throw a more user-friendly message.
+    print('Error getting subscription invoices: $e');
+    throw Exception('An error occurred while fetching your invoices. Please try again.');
   }
-  
+}
   // File I/O should be handled carefully. It can still block the main thread.
-  // For simplicity, this remains as is, but for very large files, consider an isolate.
-  Future<String> downloadSubscriptionInvoice(
-    String s3Url,
-    String displayName,
-  ) async {
-    try {
-      final token = await _authService.getAccessToken();
-      if (token == null) {
-        throw Exception('Authentication required');
-      }
 
-      final response = await http.get(
-        Uri.parse(s3Url),
-        headers: {'Authorization': 'Bearer $token'},
-      );
-
-      if (response.statusCode == 200) {
-        Directory? downloadsDir;
-        if (Platform.isAndroid) {
-          downloadsDir = Directory('/storage/emulated/0/Download');
-        } else if (Platform.isIOS) {
-          downloadsDir = await getApplicationDocumentsDirectory();
-        } else {
-          downloadsDir = await getApplicationDocumentsDirectory();
-        }
-
-        if (!await downloadsDir.exists()) {
-          await downloadsDir.create(recursive: true);
-        }
-
-        final fileName = '$displayName.pdf';
-        final filePath = '${downloadsDir.path}/$fileName';
-        final file = File(filePath);
-        await file.writeAsBytes(response.bodyBytes);
-        print('Invoice downloaded successfully to: $filePath');
-        return filePath;
-      } else {
-        throw Exception('Failed to download PDF: ${response.statusCode}');
-      }
-    } catch (e) {
-      print('Error downloading invoice: $e');
-      throw Exception('Failed to download invoice: $e');
-    }
-  }
 }
