@@ -1,26 +1,8 @@
-import 'dart:developer';
 import 'dart:ui';
-import 'package:flutter/material.dart';
-import 'package:grocery_app/helpers/animated_transitions.dart';
-import 'package:grocery_app/helpers/snackbar_helper.dart';
-import 'package:grocery_app/models/cart_model.dart';
-import 'package:grocery_app/models/favorite_model.dart';
-import 'package:grocery_app/models/plan_Search_model.dart';
-import 'package:grocery_app/models/product_model.dart';
-import 'package:grocery_app/models/subscription_plan_model.dart';
-import 'package:grocery_app/screens/auth/login_screen.dart';
-import 'package:grocery_app/screens/address/address_selection_screen.dart';
-import 'package:grocery_app/screens/product_details/favourite_toggle_icon_widget.dart';
-import 'package:grocery_app/services/auth_service.dart';
-import 'package:grocery_app/services/cart_service.dart';
-import 'package:grocery_app/services/favorite_state_service.dart';
-import 'package:grocery_app/services/plan_search_service.dart';
-import 'package:grocery_app/services/product_service.dart';
-import 'package:grocery_app/services/subscription_service.dart';
-import 'package:cached_network_image/cached_network_image.dart';
-import 'package:grocery_app/styles/colors.dart';
-import 'package:grocery_app/widgets/item_counter_widget.dart';
-import 'package:shimmer/shimmer.dart'; // Import shimmer
+import 'package:collection/collection.dart';
+import 'package:grocery_app/common_widgets/global_import.dart';
+
+// --- CUBIT & STATE IMPORTS (Ensure paths are correct) ---
 
 class ProductDetailsScreen extends StatefulWidget {
   final Product product;
@@ -31,42 +13,38 @@ class ProductDetailsScreen extends StatefulWidget {
 }
 
 class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
-  // --- STATE VARIABLES ---
-int? _selectedPlanId; 
+  // --- NON-CART STATE VARIABLES (Remain unchanged) ---
+  int? _selectedPlanId;
   bool isFavorite = false;
   bool _isTogglingFavorite = false;
-  bool _isProcessingCart = false;
-
-  // 👇 NEW: Granular loading states
   bool _isLoadingFavorite = true;
   bool _isLoadingPlans = true;
   bool _isLoadingSimilarProduct = true;
-
-
   List<SubscriptionPlan> allPlans = [];
   List<PlanSearchResult> availablePlansForProduct = [];
-  List<ProductVariant> similarProducts = [];
-
-
+  List<Product> similarProducts = [];
   final PageController _pageController = PageController();
   int _currentPage = 0;
 
-  // --- SERVICES ---
+  // --- REMOVED CART-RELATED STATE ---
+  // The CartCubit now manages all cart state.
+
+  // --- SERVICES (CartService is no longer needed here) ---
   final FavoriteStateService _favoriteStateService = FavoriteStateService();
   final SubscriptionService _subscriptionService = SubscriptionService();
   final AuthService _authService = AuthService();
-  final _categoryService = CategoryService();
-  final CartService _cartService = CartService();
 
   @override
   void initState() {
     super.initState();
-    // 👇 Fire off background data fetches without waiting
+    // Fire off background data fetches
     _loadFavoriteStatus();
     _loadSubscriptionPlans();
+    _loadCategoryProducts();
+    // REMOVED: _loadCartStatus(); is no longer needed. The BlocBuilder will handle it.
 
     _pageController.addListener(() {
-      if (_pageController.page?.round() != _currentPage) {
+      if (mounted && _pageController.page?.round() != _currentPage) {
         setState(() {
           _currentPage = _pageController.page!.round();
         });
@@ -80,9 +58,24 @@ int? _selectedPlanId;
     super.dispose();
   }
 
-  // --- NEW: Separate fetching functions ---
+  // --- DATA FETCHING (Unchanged) ---
+  Future<void> _loadCategoryProducts() async {
+    try {
+      final products = await CategoryService.fetchProductsByCategory(
+        widget.product.productCategory,
+      );
+      if (products.isNotEmpty && mounted) {
+        setState(() {
+          similarProducts = products;
+          _isLoadingSimilarProduct = false;
+        });
+      }
+    } catch (e) {
+      log('Error fetching category products: $e');
+      if (mounted) setState(() => _isLoadingSimilarProduct = false);
+    }
+  }
 
-  /// Fetches only the favorite status in the background.
   Future<void> _loadFavoriteStatus() async {
     try {
       final favResult = await _authService.getFavorites();
@@ -90,12 +83,13 @@ int? _selectedPlanId;
         final favorites = favResult['data'] as List<FavoriteModel>;
 
         setState(() {
-          isFavorite = favorites.any((fav) => fav.productId == widget.product.id);
+          isFavorite = favorites.any(
+            (fav) => fav.productId == widget.product.id,
+          );
         });
       }
     } catch (e) {
       log('Error fetching favorite status: $e');
-      // Optionally show a message or just fail silently
     } finally {
       if (mounted) {
         setState(() => _isLoadingFavorite = false);
@@ -103,7 +97,6 @@ int? _selectedPlanId;
     }
   }
 
-  /// Fetches all subscription and plan data in the background.
   Future<void> _loadSubscriptionPlans() async {
     try {
       final results = await Future.wait([
@@ -131,40 +124,18 @@ int? _selectedPlanId;
     }
   }
 
-
-   Future<void> _loadingSimilarProducts() async {
-    try {
-      final results = await Future.wait([
-        // _categoryService.(widget.product.id),
-        _subscriptionService.getSubscriptionPlans(),
-      ]);
-
-      if (!mounted) return;
-
-      final similarProduct = results[0] as List<PlanSearchResult>;
-
-      setState(() {
-           similarProducts = similarProducts;
-       
-      });
-    } catch (e) {
-      log('Error fetching Similar Products : $e');
-    } finally {
-      if (mounted) {
-        setState(() => _isLoadingSimilarProduct = false);
-      }
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
-    final backgroundImage = widget.product.productImages.isNotEmpty
-        ? widget.product.productImages.first.image
-        : 'https://via.placeholder.com/400';
+    final backgroundImage =
+        widget.product.productImages.isNotEmpty
+            ? widget.product.productImages.first.image
+            : 'https://via.placeholder.com/400';
 
     // No longer need a full-screen loader. The UI builds instantly.
+
     return Scaffold(
       backgroundColor: Colors.white,
+
       body: Stack(
         children: [
           // Blurred Background
@@ -172,64 +143,94 @@ int? _selectedPlanId;
             decoration: BoxDecoration(
               image: DecorationImage(
                 image: CachedNetworkImageProvider(backgroundImage),
+
                 fit: BoxFit.cover,
               ),
             ),
+
             child: BackdropFilter(
               filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
+
               child: Container(color: Colors.black.withOpacity(0.4)),
             ),
           ),
+
           // Main Content
           Column(
             children: [
               SafeArea(child: _buildTopNavBar()),
+
               Expanded(
                 child: ClipRRect(
                   borderRadius: const BorderRadius.vertical(
                     top: Radius.circular(35),
                   ),
+
                   child: Container(
-                    
                     child: SingleChildScrollView(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
+
                         children: [
-                           Padding(
-                             padding: const EdgeInsets.symmetric(vertical: 10 , horizontal: 10),
-                             child: Column(
-                               crossAxisAlignment: CrossAxisAlignment.start,
-                               children: [
-                                 _buildBestsellerTag(),
-                                 const SizedBox(height: 12),
-                                 _buildProductTitle(),
-                                 const SizedBox(height: 8),
-                                 _buildRatingAndOrders(),
-                                 const SizedBox(height: 20),
-                                 _buildPriceAndSubscribe(),
-                                 const SizedBox(height: 20),
-                                 ExpandableDescription(
-                                   text: widget.product.productDescription,
-                                 ),
-                               ],
-                             ),
-                           ),
-                          _buildImageCarousel(),                           SizedBox(height: 10,),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(
+                              vertical: 10,
+                              horizontal: 10,
+                            ),
+
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+
+                              children: [
+                                _buildBestsellerTag(),
+
+                                const SizedBox(height: 12),
+
+                                _buildProductTitle(),
+
+                                const SizedBox(height: 8),
+
+                                _buildRatingAndOrders(),
+
+                                const SizedBox(height: 20),
+
+                                _buildPriceAndSubscribe(),
+
+                                const SizedBox(height: 20),
+
+                                ExpandableDescription(
+                                  text: widget.product.productDescription,
+                                ),
+                              ],
+                            ),
+                          ),
+
+                          _buildImageCarousel(),
+                          SizedBox(height: 10),
 
                           if (widget.product.productImages.length > 1)
                             _buildCarouselIndicators(),
+
                           const SizedBox(height: 24),
+
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 20),
+
                             width: double.infinity,
+
                             color: Colors.white,
+
                             child: Column(
                               children: [
                                 const SizedBox(height: 12),
+
                                 _buildSubscriptionPlansSection(),
-                                const SizedBox(height: 24),
+
+                                const SizedBox(height: 10),
+
                                 _buildSimilarProductsSection(),
-                                const SizedBox(height: 24),
+
+                                const SizedBox(height: 12),
                               ],
                             ),
                           ),
@@ -243,10 +244,10 @@ int? _selectedPlanId;
           ),
         ],
       ),
+
       bottomNavigationBar: _buildBottomActionBar(),
     );
   }
-
   // --- UI BUILDER WIDGETS ---
 
   Widget _buildTopNavBar() {
@@ -262,28 +263,63 @@ int? _selectedPlanId;
           Padding(
             padding: const EdgeInsets.only(right: 16.0),
             // 👇 This local loader works perfectly now
-            child: _isLoadingFavorite
-                ? const SizedBox(
-                    width: 24,
-                    height: 24,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFB9A06D)),
+            child:
+                _isLoadingFavorite
+                    ? const SizedBox(
+                      width: 24,
+                      height: 24,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        valueColor: AlwaysStoppedAnimation<Color>(
+                          Color(0xFFB9A06D),
+                        ),
+                      ),
+                    )
+                    : FavoriteToggleIcon(
+                      favorite: isFavorite,
+                      onToggle: () => handleFavoriteToggle(widget.product.id),
                     ),
-                  )
-                : FavoriteToggleIcon(
-                    favorite: isFavorite,
-                    onToggle: () => handleFavoriteToggle(widget.product.id),
-                  ),
           ),
         ],
       ),
     );
   }
 
+  void handleFavoriteToggle(int productId) async {
+    if (_isTogglingFavorite) return;
+
+    setState(() => _isTogglingFavorite = true);
+
+    final result = await _authService.toggleFavorite(productId);
+
+    if (!mounted) return;
+
+    if (result['success']) {
+      setState(() => isFavorite = !isFavorite);
+
+      _favoriteStateService.notifyFavoriteChanged();
+
+      SnackBarHelper.showSuccess(context, result['message']);
+    } else if (result['requiresLogin'] == true) {
+      Navigator.push(
+        context,
+
+        AnimatedTransitions.slideFromRight(LoginScreen()),
+      );
+    } else {
+      SnackBarHelper.showError(
+        context,
+
+        result['message'] ?? 'Failed to update favorite',
+      );
+    }
+
+    setState(() => _isTogglingFavorite = false);
+  }
+
   // ... (All other _build... widgets from _buildBestsellerTag to _buildProductCard remain the same)
-  
-    Widget _buildBestsellerTag() {
+
+  Widget _buildBestsellerTag() {
     // You can add logic here to show this tag conditionally
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
@@ -429,129 +465,179 @@ int? _selectedPlanId;
       }),
     );
   }
-Widget _buildSubscriptionPlansSection() {
-  if (_isLoadingPlans) {
-    return _buildPlansSkeleton();
-  }
-  if (availablePlansForProduct.isEmpty || allPlans.isEmpty) {
-    return const SizedBox.shrink();
-  }
 
-  return Padding(
-    padding: const EdgeInsets.symmetric(horizontal: 5),
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          "Subscription Plans",
-          style: TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-            color: Colors.black,
-          ),
-        ),
-        const SizedBox(height: 16),
-        SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            // We still build from allPlans to show disabled states correctly
-            children: List.generate(allPlans.length > 4 ? 4 : allPlans.length, (index) {
-              final plan = allPlans[index];
-              
-              // Find the corresponding available plan to get its data (including planId)
-              final availablePlanData = availablePlansForProduct.firstWhere(
-                (p) => p.planName == plan.name,
-                orElse: () => PlanSearchResult(planId: 0, planName: '', discountPercentage: 0.0, discountedPrice: 0.0),
-              );
-
-              final bool isEnabled = availablePlanData.planId != 0;
-              // ✅ KEY CHANGE: Check if the current plan's ID matches the selected ID in state
-              final bool isSelected = _selectedPlanId == availablePlanData.planId;
-
-              return GestureDetector(
-                onTap: isEnabled
-                    ? () {
-                        // ✅ KEY CHANGE: Update state with the planId, not the index
-                        setState(() => _selectedPlanId = availablePlanData.planId);
-                        // Pass the actual planId to the bottom sheet
-                        _showSubscriptionSelectionSheet(initialPlanId: availablePlanData.planId , initialPlanIndex: index);
-                      }
-                    : null,
-                child: Opacity(
-                  opacity: isEnabled ? 1.0 : 0.4,
-                  child: Container(
-                    margin: const EdgeInsets.symmetric(horizontal: 4),
-                    padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 15),
-                    decoration: BoxDecoration(
-                      color: isSelected ? AppColors.bottonBackgroundColor : Colors.white.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(color: isSelected ? Colors.grey.withOpacity(0.5) : Colors.grey.withOpacity(0.5), width: 1.5),
-                    ),
-                    child: Column(
-                      children: [
-                        Text(
-                          plan.name,
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: isSelected ? Colors.white : Colors.black,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Row(
-                          children: [
-                            Text(
-                              "₹${availablePlanData.discountedPrice.toStringAsFixed(0)}",
-                              style: TextStyle(
-                                fontSize: 14,
-                                color: isSelected ? Colors.white : Colors.black,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            SizedBox(width: 2),
-                            Container(
-                              padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 4),
-                              decoration: BoxDecoration(
-                                color: isSelected ? Colors.grey.withOpacity(0.5) : Colors.grey.withOpacity(0.7),
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                              child: Text(
-                                "Save ${availablePlanData.discountPercentage.toStringAsFixed(0)}%",
-                                style: TextStyle(
-                                  fontSize: 10,
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              );
-            }),
-          ),
-        ),
-      ],
-    ),
-  );
-}
-    Widget _buildSimilarProductsSection() {
-    // This should be populated with actual data from a service
-    if (!_isLoadingSimilarProduct) {
+  Widget _buildSubscriptionPlansSection() {
+    if (_isLoadingPlans) {
       return _buildPlansSkeleton();
     }
-    // 👇 Once loaded, if no plans are available, show nothing
     if (availablePlansForProduct.isEmpty || allPlans.isEmpty) {
       return const SizedBox.shrink();
     }
 
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 5),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            "Subscription Plans",
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: Colors.black,
+            ),
+          ),
+          const SizedBox(height: 16),
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              // We still build from allPlans to show disabled states correctly
+              children: List.generate(allPlans.length > 4 ? 4 : allPlans.length, (
+                index,
+              ) {
+                final plan = allPlans[index];
+
+                // Find the corresponding available plan to get its data (including planId)
+                final availablePlanData = availablePlansForProduct.firstWhere(
+                  (p) => p.planName == plan.name,
+                  orElse:
+                      () => PlanSearchResult(
+                        planId: 0,
+                        planName: '',
+                        discountPercentage: 0.0,
+                        discountedPrice: 0.0,
+                      ),
+                );
+
+                final bool isEnabled = availablePlanData.planId != 0;
+                // ✅ KEY CHANGE: Check if the current plan's ID matches the selected ID in state
+                final bool isSelected =
+                    _selectedPlanId == availablePlanData.planId;
+
+                return GestureDetector(
+                  onTap:
+                      isEnabled
+                          ? () {
+                            // ✅ KEY CHANGE: Update state with the planId, not the index
+                            setState(
+                              () => _selectedPlanId = availablePlanData.planId,
+                            );
+                            // Pass the actual planId to the bottom sheet
+                            _showSubscriptionSelectionSheet(
+                              initialPlanId: availablePlanData.planId,
+                              initialPlanIndex: index,
+                            );
+                          }
+                          : null,
+                  child: Opacity(
+                    opacity: isEnabled ? 1.0 : 0.4,
+                    child: Container(
+                      margin: const EdgeInsets.symmetric(horizontal: 4),
+                      padding: const EdgeInsets.symmetric(
+                        vertical: 10,
+                        horizontal: 15,
+                      ),
+                      decoration: BoxDecoration(
+                        color:
+                            isSelected
+                                ? AppColors.buttonBackgroundColor
+                                : Colors.white.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(
+                          color:
+                              isSelected
+                                  ? Colors.grey.withOpacity(0.5)
+                                  : Colors.grey.withOpacity(0.5),
+                          width: 1.5,
+                        ),
+                      ),
+                      child: Column(
+                        children: [
+                          Text(
+                            plan.name,
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: isSelected ? Colors.white : Colors.black,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Row(
+                            children: [
+                              Text(
+                                "₹${availablePlanData.discountedPrice.toStringAsFixed(0)}",
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color:
+                                      isSelected ? Colors.white : Colors.black,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              SizedBox(width: 2),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 5,
+                                  horizontal: 4,
+                                ),
+                                decoration: BoxDecoration(
+                                  color:
+                                      isSelected
+                                          ? Colors.grey.withOpacity(0.5)
+                                          : Colors.grey.withOpacity(0.7),
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                child: Text(
+                                  "Save ${availablePlanData.discountPercentage.toStringAsFixed(0)}%",
+                                  style: TextStyle(
+                                    fontSize: 10,
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                );
+              }),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSimilarProductsSection() {
+    if (_isLoadingSimilarProduct) {
+      return _buildPlansSkeleton();
+    }
+
+    if (availablePlansForProduct.isEmpty ||
+        allPlans.isEmpty ||
+        similarProducts.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    // Defensive: current product id to exclude
+    final int? currentId = widget.product?.id;
+
+    // Filter by product.id only
+    final filtered =
+        (currentId == null)
+            ? List<Product>.from(
+              similarProducts,
+            ) // nothing to exclude if current id unknown
+            : similarProducts.where((p) => p.id != currentId).toList();
+
+    if (filtered.isEmpty) return const SizedBox.shrink();
+
     return Column(
       children: [
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20.0),
+          padding: const EdgeInsets.symmetric(horizontal: 8.0),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -565,7 +651,14 @@ Widget _buildSubscriptionPlansSection() {
               ),
               TextButton(
                 onPressed: () {
-                  /* Navigate to all similar products */
+                  Navigator.of(context).push(
+                    AnimatedTransitions.slideFromRight(
+                      CategoryItemsScreen(
+                        name: widget.product.productCategory,
+                        allProducts: filtered,
+                      ),
+                    ),
+                  );
                 },
                 child: const Row(
                   children: [
@@ -582,98 +675,35 @@ Widget _buildSubscriptionPlansSection() {
             ],
           ),
         ),
-        const SizedBox(height: 8),
-        SizedBox(
-          height: 240,
-          child: ListView.separated(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            scrollDirection: Axis.horizontal,
-            itemCount: 4, // Placeholder count
-            separatorBuilder: (context, index) => const SizedBox(width: 12),
-            itemBuilder:
-                (context, index) => _buildProductCard(), // Placeholder card
-          ),
+
+        ListView.builder(
+          itemCount: filtered.length,
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          itemBuilder: (context, index) {
+            final product = filtered[index];
+            return Opacity(
+              opacity: product.isInStock ? 1.0 : 0.5,
+              child: GroceryItemCardWidget(
+                item: product,
+                heroSuffix:
+                    "similar_products", // Updated suffix for better hero handling
+                onTap:
+                    product.isInStock
+                        ? () => _onProductClicked(context, product)
+                        : null,
+              ),
+            );
+          },
         ),
       ],
     );
   }
 
-  Widget _buildProductCard() {
-    // This is a placeholder, populate with real data
-    return Container(
-      width: 160,
-      decoration: BoxDecoration(
-        color: Colors.black.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Expanded(
-            child: ClipRRect(
-              borderRadius: const BorderRadius.vertical(
-                top: Radius.circular(12),
-              ),
-              child: CachedNetworkImage(
-                imageUrl:
-                    widget.product.productImages.isNotEmpty
-                        ? widget.product.productImages.first.image
-                        : 'https://via.placeholder.com/150',
-                fit: BoxFit.cover,
-                width: double.infinity,
-              ),
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(10.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  "Natural Barnyard Millet",
-                  style: TextStyle(
-                    fontWeight: FontWeight.w600,
-                    fontSize: 14,
-                    color: Colors.black,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 8),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Text(
-                      "₹124",
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
-                        color: Colors.black,
-                      ),
-                    ),
-                    SizedBox(
-                      height: 32,
-                      width: 70,
-                      child: ElevatedButton(
-                        onPressed: () {},
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFFB9A06D),
-                          foregroundColor: Colors.black,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          padding: EdgeInsets.zero,
-                        ),
-                        child: const Text("Add"),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
+  void _onProductClicked(BuildContext context, Product item) {
+    Navigator.push(
+      context,
+      AnimatedTransitions.fadeScale(ProductDetailsScreen(product: item)),
     );
   }
 
@@ -687,11 +717,7 @@ Widget _buildSubscriptionPlansSection() {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Container(
-              width: 180,
-              height: 24,
-              color: Colors.white,
-            ),
+            Container(width: 180, height: 24, color: Colors.white),
             const SizedBox(height: 16),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -714,9 +740,7 @@ Widget _buildSubscriptionPlansSection() {
     );
   }
 
-  // ... (The rest of your code: _buildBottomActionBar, handleFavoriteToggle, _handleBuyNow, _handleAddToCart, _navigateToAddressScreen, _showSubscriptionSelectionSheet, and the ExpandableDescription class remain the same)
-  
-    Widget _buildBottomActionBar() {
+  Widget _buildBottomActionBar() {
     return Container(
       padding: const EdgeInsets.symmetric(
         horizontal: 20,
@@ -730,91 +754,187 @@ Widget _buildSubscriptionPlansSection() {
             color: Colors.black.withOpacity(0.1),
             blurRadius: 10,
             offset: const Offset(0, -5),
-          )
+          ),
         ],
       ),
-      child: Row(
-        children: [
-          Expanded(
-            child: OutlinedButton(
-              onPressed: _handleBuyNow,
-              style: OutlinedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                side: const BorderSide(color: Color(0xFFB9A06D)),
-                foregroundColor: const Color(0xFFB9A06D),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
+      child: SizedBox(
+        height: 55, // Fixed height for smooth animation
+        child: BlocBuilder<CartCubit, CartState>(
+          builder: (context, state) {
+            int cartQuantity = 0;
+            if (state is CartSuccess) {
+              final cartItem = state.cart.items.firstWhereOrNull(
+                (item) => item.productVariant.id == widget.product.id,
+              );
+              cartQuantity = cartItem?.quantity ?? 0;
+            }
+
+            // Show a loader if the cart is initially loading or being cleared.
+            if (state is CartLoading || state is CartInitial) {
+              return const Center(
+                child: CircularProgressIndicator(
+                  color: AppColors.buttonBackgroundColor,
                 ),
-              ),
-              child: const Text(
-                "Buy Now",
-                style: TextStyle(fontWeight: FontWeight.bold),
-              ),
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: ElevatedButton.icon(
-              onPressed: _isProcessingCart ? null : _handleAddToCart,
-              icon: _isProcessingCart
-                  ? const SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: Colors.black,
+              );
+            }
+
+            return AnimatedSwitcher(
+              duration: const Duration(milliseconds: 350),
+              transitionBuilder: (child, animation) {
+                final slideAnimation = Tween<Offset>(
+                  begin: const Offset(0.0, 0.5),
+                  end: Offset.zero,
+                ).animate(
+                  CurvedAnimation(
+                    parent: animation,
+                    curve: Curves.easeInOutCubic,
+                  ),
+                );
+                return FadeTransition(
+                  opacity: animation,
+                  child: SlideTransition(
+                    position: slideAnimation,
+                    child: child,
+                  ),
+                );
+              },
+              child:
+                  cartQuantity == 0
+                      ? _buildAddToCartBar(key: const ValueKey('addToCartBar'))
+                      : _buildQuantitySelectorBar(
+                        key: const ValueKey('quantitySelectorBar'),
+                        quantity: cartQuantity,
                       ),
-                    )
-                  : const Icon(
-                      Icons.shopping_cart_outlined,
-                      size: 20,
-                      color: Colors.white,
-                    ),
-              label: const Text(
-                "Add to Cart",
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                ),
-              ),
-              style: ElevatedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                backgroundColor: AppColors.bottonBackgroundColor,
-                foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
-            ),
-          ),
-        ],
+            );
+          },
+        ),
       ),
     );
   }
 
-  void handleFavoriteToggle(int productId) async {
-    if (_isTogglingFavorite) return;
-    setState(() => _isTogglingFavorite = true);
-    final result = await _authService.toggleFavorite(productId);
-    if (!mounted) return;
+  Widget _buildAddToCartBar({required Key key}) {
+    return Row(
+      key: key,
+      children: [
+        Expanded(
+          child: OutlinedButton(
+            onPressed: _handleBuyNow,
+            style: OutlinedButton.styleFrom(
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              side: const BorderSide(color: Color(0xFFB9A06D)),
+              foregroundColor: const Color(0xFFB9A06D),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+            child: const Text(
+              "Buy Now",
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: ElevatedButton.icon(
+            // Use the cubit's optimistic update, so local loading state is less needed.
+            onPressed: () => _handleQuantityChanged(1),
+            icon: const Icon(
+              Icons.shopping_cart_outlined,
+              size: 20,
+              color: Colors.white,
+            ),
+            label: const Text(
+              "Add to Cart",
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
+            ),
+            style: ElevatedButton.styleFrom(
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              backgroundColor: AppColors.buttonBackgroundColor,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
 
-    if (result['success']) {
-      setState(() => isFavorite = !isFavorite);
-      _favoriteStateService.notifyFavoriteChanged();
-      SnackBarHelper.showSuccess(context, result['message']);
-    } else if (result['requiresLogin'] == true) {
+  Widget _buildQuantitySelectorBar({required Key key, required int quantity}) {
+    return Row(
+      key: key,
+      children: [
+        Expanded(
+          child: OutlinedButton.icon(
+            onPressed:
+                () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const CartScreen()),
+                ),
+            icon: const Icon(Icons.shopping_cart_checkout, size: 20),
+            label: const Text(
+              "View Cart",
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+            style: OutlinedButton.styleFrom(
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              side: BorderSide(color: AppColors.buttonBackgroundColor),
+              foregroundColor: AppColors.buttonBackgroundColor,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: ItemCounterWidget(
+            amount: quantity,
+            onAmountChanged: (newAmount) => _handleQuantityChanged(newAmount),
+            scale: 1.4,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Future<void> _handleQuantityChanged(int newQuantity) async {
+    // Login check remains the same
+    final token = await _authService.getAccessToken();
+    if (token == null) {
+      SnackBarHelper.showWarning(context, 'Please login to modify your cart');
       Navigator.push(
         context,
-        AnimatedTransitions.slideFromRight(LoginScreen()),
+        AnimatedTransitions.slideFromRight(const LoginScreen()),
       );
-    } else {
-      SnackBarHelper.showError(
-        context,
-        result['message'] ?? 'Failed to update favorite',
-      );
+      return;
     }
 
-    setState(() => _isTogglingFavorite = false);
+    final cartCubit = context.read<CartCubit>();
+    final currentState = cartCubit.state;
+    int currentQuantity = 0;
+
+    if (currentState is CartSuccess) {
+      final cartItem = currentState.cart.items.firstWhereOrNull(
+        (item) => item.productVariant.id == widget.product.id,
+      );
+      currentQuantity = cartItem?.quantity ?? 0;
+    }
+
+    // Now, call the correct cubit method based on the action
+    if (newQuantity > 0 && currentQuantity == 0) {
+      // This is an "Add to Cart" action
+      cartCubit.addItem(widget.product, newQuantity);
+    } else if (newQuantity == 0 && currentQuantity > 0) {
+      // This is a "Remove" action
+      cartCubit.removeItem(widget.product.id);
+    } else {
+      // This is a quantity "Update" action
+      cartCubit.updateItem(widget.product.id, newQuantity);
+    }
   }
 
   Future<void> _handleBuyNow() async {
@@ -831,40 +951,11 @@ Widget _buildSubscriptionPlansSection() {
     _navigateToAddressScreen(isSubscription: false, quantity: 1);
   }
 
-  Future<void> _handleAddToCart() async {
-    setState(() => _isProcessingCart = true);
-    final token = await _authService.getAccessToken();
-    if (token == null) {
-      SnackBarHelper.showWarning(context, 'Please login to add items to cart');
-      Navigator.push(
-        context,
-        AnimatedTransitions.slideFromRight(LoginScreen()),
-      );
-      setState(() => _isProcessingCart = false);
-      return;
-    }
-    try {
-      await _cartService.addToCart(
-        widget.product.id,
-        1,
-      ); // Assuming quantity is 1 for now
-      SnackBarHelper.showSuccess(
-        context,
-        '${widget.product.productName} added to cart',
-      );
-    } catch (e) {
-      SnackBarHelper.showError(context, 'Failed to add item to cart: $e');
-    } finally {
-      if (mounted) {
-        setState(() => _isProcessingCart = false);
-      }
-    }
-  }
-
   Future<void> _navigateToAddressScreen({
     required bool isSubscription,
     int? selectedPlanIndex,
     int? quantity,
+    String? paymentType, // New parameter
   }) async {
     double? price;
     int? selectedPlanId;
@@ -877,7 +968,11 @@ Widget _buildSubscriptionPlansSection() {
       price = selectedAvailablePlan.discountedPrice;
       selectedPlanId = selectedAvailablePlan.planId;
     }
-    print('Navigating to Address Screen with: isSubscription=$isSubscription, selectedPlanId=$selectedPlanId, quantity=$quantity, price=$price');
+
+    print(
+      'Navigating to Address Screen with: isSubscription=$isSubscription, selectedPlanId=$selectedPlanId, quantity=$quantity, price=$price, paymentType=$paymentType',
+    );
+
     Navigator.push(
       context,
       AnimatedTransitions.slideFromBottom(
@@ -887,6 +982,7 @@ Widget _buildSubscriptionPlansSection() {
           isSubscription: isSubscription,
           price: price,
           selectedPlan: selectedPlanId ?? 0,
+          paymentType: paymentType, // Pass it to the next screen
         ),
       ),
     );
@@ -894,77 +990,96 @@ Widget _buildSubscriptionPlansSection() {
 
   // PASTE THIS ENTIRE BLOCK INTO YOUR _ProductDetailsScreenState CLASS
 
+  Widget _buildPlanFeaturesRow(SubscriptionPlan plan, bool isSelected) {
+    Color textColor = isSelected ? Colors.white70 : Colors.black54;
+    Color iconColor = isSelected ? Colors.white : const Color(0xFF388E3C);
 
-Widget _buildPlanFeaturesRow(SubscriptionPlan plan, bool isSelected) {
-  Color textColor = isSelected ? Colors.white70 : Colors.black54;
-  Color iconColor = isSelected ? Colors.white : const Color(0xFF388E3C);
-
-  return Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      _buildFeatureItem(iconColor, textColor, "Duration - ${plan.durationMonths} Months"),
-      const SizedBox(height: 4),
-      _buildFeatureItem(iconColor, textColor, "Savings - ${plan.discountPercentage.toString()}% Off"),
-    ],
-  );
-}
-
-Widget _buildPlanFeaturesRow2(SubscriptionPlan plan, bool isSelected) {
-  Color textColor = isSelected ? Colors.white70 : Colors.black54;
-  Color iconColor = isSelected ? Colors.white : const Color(0xFF388E3C);
-
-  return Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      _buildFeatureItem(iconColor, textColor,
-          "One-Time Allowance - ${plan.isOneTimeOnly ? "Yes" : "No"}"),
-      const SizedBox(height: 4),
-      _buildFeatureItem(iconColor, textColor,
-          "Installment Frequency - ${plan.installmentFrequencyMonths} Months"),
-    ],
-  );
-}
-
-Widget _buildFeatureItem(Color iconColor, Color textColor, String text) {
-  return Row(
-    mainAxisSize: MainAxisSize.min,
-    children: [
-      Icon(Icons.check_circle, color: iconColor, size: 14),
-      const SizedBox(width: 4),
-      Flexible(
-        child: Text(
-          text,
-          style: TextStyle(color: textColor, fontSize: 12, fontWeight: FontWeight.w500),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildFeatureItem(
+          iconColor,
+          textColor,
+          "Duration - ${plan.durationMonths} Months",
         ),
-      ),
-    ],
-  );
-}
+        const SizedBox(height: 4),
+        _buildFeatureItem(
+          iconColor,
+          textColor,
+          "Savings - ${plan.discountPercentage.toString()}% Off",
+        ),
+      ],
+    );
+  }
 
+  Widget _buildPlanFeaturesRow2(SubscriptionPlan plan, bool isSelected) {
+    Color textColor = isSelected ? Colors.white70 : Colors.black54;
+    Color iconColor = isSelected ? Colors.white : const Color(0xFF388E3C);
 
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildFeatureItem(
+          iconColor,
+          textColor,
+          "One-Time Only - ${plan.isOneTimeOnly ? "Yes" : "No"}",
+        ),
+        const SizedBox(height: 4),
+        _buildFeatureItem(
+          iconColor,
+          textColor,
+          "Installment Frequency - ${plan.installmentFrequencyMonths} Months",
+        ),
+      ],
+    );
+  }
 
+  Widget _buildFeatureItem(Color iconColor, Color textColor, String text) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(Icons.check_circle, color: iconColor, size: 14),
+        const SizedBox(width: 4),
+        Flexible(
+          child: Text(
+            text,
+            style: TextStyle(
+              color: textColor,
+              fontSize: 12,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
 
+  // PASTE THIS ENTIRE METHOD INTO YOUR _ProductDetailsScreenState CLASS
 
-
-
-
-
-  void _showSubscriptionSelectionSheet({required int initialPlanIndex, required int initialPlanId}) {
+  void _showSubscriptionSelectionSheet({
+    required int initialPlanIndex,
+    required int initialPlanId,
+  }) {
     int selectedIndex = initialPlanIndex;
     int quantity = 1;
+    // 0 for "One Time", 1 for "Installments". This is the source of truth.
     int paymentOption = 0;
-    
-    int sentIndex = 0; // 0 for One Time, 1 for Installments
 
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (context) {
+        // StatefulBuilder creates a local state for the modal sheet
         return StatefulBuilder(
           builder: (BuildContext context, StateSetter setModalState) {
             return Container(
-              padding: const EdgeInsets.fromLTRB(10, 5, 10, 5),
+              padding: const EdgeInsets.fromLTRB(
+                10,
+                5,
+                10,
+                20,
+              ), // Added bottom padding
               decoration: const BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
@@ -978,16 +1093,16 @@ Widget _buildFeatureItem(Color iconColor, Color textColor, String text) {
                     child: Container(
                       width: 50,
                       height: 5,
+                      margin: const EdgeInsets.symmetric(vertical: 8),
                       decoration: BoxDecoration(
-                        color: Colors.black,
+                        color: Colors.grey[300],
                         borderRadius: BorderRadius.circular(12),
                       ),
                     ),
                   ),
-                  const SizedBox(height: 15),
-                  Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: const Text(
+                  const Padding(
+                    padding: EdgeInsets.all(8.0),
+                    child: Text(
                       "Select Subscription",
                       style: TextStyle(
                         fontSize: 20,
@@ -996,7 +1111,7 @@ Widget _buildFeatureItem(Color iconColor, Color textColor, String text) {
                       ),
                     ),
                   ),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 10),
                   ListView.separated(
                     shrinkWrap: true,
                     physics: const NeverScrollableScrollPhysics(),
@@ -1011,7 +1126,7 @@ Widget _buildFeatureItem(Color iconColor, Color textColor, String text) {
                               planId: 0,
                               planName: '',
                               discountedPrice: 0,
-                              discountPercentage: 0
+                              discountPercentage: 0,
                             ),
                       );
                       final bool isEnabled = planData.discountedPrice > 0;
@@ -1030,21 +1145,19 @@ Widget _buildFeatureItem(Color iconColor, Color textColor, String text) {
                           decoration: BoxDecoration(
                             color:
                                 isSelected
-                                    ? AppColors.bottonBackgroundColor
+                                    ? AppColors.buttonBackgroundColor
                                     : Colors.white,
                             borderRadius: BorderRadius.circular(12),
                             border: Border.all(
                               color:
                                   isSelected
-                                      ? Colors.black
+                                      ? AppColors.buttonBackgroundColor
                                       : Colors.grey.shade300,
-                              width: 1.0,
+                              width: 1.5,
                             ),
                           ),
                           child: Opacity(
-                            opacity: (planData.discountedPrice == 0)
-                                    ? 0.2
-                                    : 1,
+                            opacity: isEnabled ? 1.0 : 0.4,
                             child: Column(
                               children: [
                                 Row(
@@ -1052,9 +1165,12 @@ Widget _buildFeatureItem(Color iconColor, Color textColor, String text) {
                                     Icon(
                                       isSelected
                                           ? Icons.check_box_rounded
-                                          : Icons.check_box_outline_blank_rounded,
+                                          : Icons
+                                              .check_box_outline_blank_rounded,
                                       color:
-                                          isSelected ? Colors.white : Colors.grey.withOpacity(0.9),
+                                          isSelected
+                                              ? Colors.white
+                                              : Colors.grey.withOpacity(0.9),
                                       size: 24,
                                     ),
                                     const SizedBox(width: 12),
@@ -1063,8 +1179,6 @@ Widget _buildFeatureItem(Color iconColor, Color textColor, String text) {
                                       style: TextStyle(
                                         fontWeight: FontWeight.bold,
                                         fontSize: 16,
-                                        decoration: (planData.discountedPrice == 0)
-                                            ? TextDecoration.lineThrough : null,
                                         color:
                                             isSelected
                                                 ? Colors.white
@@ -1086,21 +1200,26 @@ Widget _buildFeatureItem(Color iconColor, Color textColor, String text) {
                                   ],
                                 ),
                                 const SizedBox(height: 12),
-                                 Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: [ 
-                                   _buildPlanFeaturesRow(plan, isSelected),
-                                  _buildPlanFeaturesRow2(plan, isSelected),
-                                ]),
-                                if (isSelected) ...[
-                                 
+                                Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    _buildPlanFeaturesRow(plan, isSelected),
+                                    _buildPlanFeaturesRow2(plan, isSelected),
+                                  ],
+                                ),
+                                if (isSelected)
                                   _buildExpandedPlanDetails(
                                     plan,
                                     planData,
-                                    paymentOption,
-                                    setModalState,
+                                    paymentOption, // Pass the current state
+                                    (newOption) {
+                                      // The callback from the child updates the state here
+                                      setModalState(() {
+                                        paymentOption = newOption;
+                                      });
+                                    },
                                   ),
-                                ],
                               ],
                             ),
                           ),
@@ -1109,68 +1228,63 @@ Widget _buildFeatureItem(Color iconColor, Color textColor, String text) {
                     },
                   ),
                   const SizedBox(height: 24),
-                  Text(
+                  const Text(
                     "Select your monthly requirements",
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.bold,
-                      color: AppColors.bottonBackgroundColor,
+                      color: Colors.black54,
                     ),
                   ),
+                  const SizedBox(height: 8),
                   Row(
                     children: [
                       Expanded(
-                        flex: 1,
+                        flex: 2,
                         child: ItemCounterWidget(
                           amount: quantity,
                           onAmountChanged: (newAmount) {
-                            setModalState(() {
-                              quantity = newAmount;
-                            });
+                            setModalState(() => quantity = newAmount);
                           },
+                          scale: 1.3,
                         ),
                       ),
                       const SizedBox(width: 12),
                       Expanded(
-                        flex: 1,
+                        flex: 3,
                         child: ElevatedButton(
                           onPressed: () {
-                            setState(() {
-                              
-                            });
-                            Navigator.pop(context); // Close the bottom sheet
+                            final String paymentType =
+                                (paymentOption == 0)
+                                    ? 'PAID_FULL'
+                                    : 'INSTALLMENT';
+                            Navigator.pop(context);
                             _navigateToAddressScreen(
                               isSubscription: true,
                               selectedPlanIndex: selectedIndex,
                               quantity: quantity,
+                              paymentType: paymentType,
                             );
                           },
                           style: ElevatedButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(vertical: 10),
-                            
-                            backgroundColor: Colors.white,
-                            foregroundColor: AppColors.bottonBackgroundColor,
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            backgroundColor: AppColors.buttonBackgroundColor,
+                            foregroundColor: Colors.white,
                             shape: RoundedRectangleBorder(
-                              side: BorderSide(
-                                color: AppColors.bottonBackgroundColor,
-                                width: 1.5,
-                              ),
                               borderRadius: BorderRadius.circular(12),
-                              
                             ),
                           ),
                           child: const Text(
                             "Subscribe",
                             style: TextStyle(
-                              color: Colors.black,
                               fontSize: 18,
+                              fontWeight: FontWeight.bold,
                             ),
                           ),
                         ),
                       ),
                     ],
                   ),
-                  SizedBox(height: 10,)
                 ],
               ),
             );
@@ -1180,69 +1294,12 @@ Widget _buildFeatureItem(Color iconColor, Color textColor, String text) {
     );
   }
 
-  // // New helper for the always-visible features row
-  // Widget _buildPlanFeaturesRow(SubscriptionPlan plan, bool isSelected) {
-  //   Color textColor = isSelected ? Colors.white70 : Colors.black54;
-  //   Color iconColor = isSelected ? Colors.white : const Color(0xFF388E3C);
-
-  //   return Column(
-  //     mainAxisAlignment: MainAxisAlignment.spaceBetween,
-  //     children: [
-  //       _buildFeatureItem(
-  //         iconColor,
-  //         textColor,
-  //         "Duration- ${plan.durationMonths} Months",
-  //       ),
-  //       SizedBox(width: 10),
-  //        _buildFeatureItem(
-  //         iconColor,
-  //         textColor,
-  //         "Savings- ${plan.discountPercentage}% Off",
-  //       ),
-        
-  //     ],
-  //   );
-  // }
-
-  // Widget _buildPlanFeaturesRow2(SubscriptionPlan plan, bool isSelected) {
-  //   Color textColor = isSelected ? Colors.white70 : Colors.black54;
-  //   Color iconColor = isSelected ? Colors.white : const Color(0xFF388E3C);
-
-  //   return Column(
-  //     mainAxisAlignment: MainAxisAlignment.spaceBetween,
-  //     children: [
-  //       _buildFeatureItem(
-  //         iconColor,
-  //         textColor,
-  //         "One-time Allow- ${plan.isOneTimeOnly ? "Yes" : "No"}",
-  //       ),
-       
-  //       SizedBox(width: 10),
-  //       _buildFeatureItem(
-  //         iconColor,
-  //         textColor,
-  //         "Frequency- ${plan.installmentFrequencyMonths} Months",
-  //       ),
-  //     ],
-  //   );
-  // }
-
-  // Widget _buildFeatureItem(Color iconColor, Color textColor, String text) {
-  //   return Row(
-  //     children: [
-  //       Icon(Icons.check_circle, color: iconColor, size: 16),
-  //       const SizedBox(width: 4),
-  //       Text(text, style: TextStyle(color: textColor, fontSize: 11)),
-  //     ],
-  //   );
-  // }
-
-  // New helper for the expanded details section
+  // ✅ CORRECTED: This widget now uses a callback to update state.
   Widget _buildExpandedPlanDetails(
     SubscriptionPlan plan,
     PlanSearchResult planData,
     int currentPaymentOption,
-    StateSetter setModalState,
+    ValueChanged<int> onPaymentOptionChanged, // The callback function
   ) {
     return Padding(
       padding: const EdgeInsets.only(top: 12.0),
@@ -1250,6 +1307,7 @@ Widget _buildFeatureItem(Color iconColor, Color textColor, String text) {
         children: [
           const Divider(color: Colors.white54),
           const SizedBox(height: 8),
+          // ... (The total/monthly price rows are unchanged)
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             child: Column(
@@ -1280,25 +1338,6 @@ Widget _buildFeatureItem(Color iconColor, Color textColor, String text) {
                     ),
                     Row(
                       children: [
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 6,
-                            vertical: 2,
-                          ),
-                          decoration: BoxDecoration(
-                            color: Colors.black.withOpacity(0.2),
-                            borderRadius: BorderRadius.circular(4),
-                          ),
-                          child: const Text(
-                            '10% Savings',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 10,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 8),
                         Text(
                           '₹${planData.discountedPrice.toStringAsFixed(0)}',
                           style: const TextStyle(
@@ -1313,30 +1352,33 @@ Widget _buildFeatureItem(Color iconColor, Color textColor, String text) {
               ],
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 6),
           Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               const Text(
-                'Payment Options',
+                'Payment Options:',
                 style: TextStyle(
                   color: Colors.white,
+                  fontSize: 14,
                   fontWeight: FontWeight.w500,
                 ),
               ),
-              const Spacer(),
+              const SizedBox(width: 10),
               _buildPaymentOptionRadio(
                 0,
                 'One Time',
                 currentPaymentOption,
-                setModalState,
+                onPaymentOptionChanged, // Pass the callback down
               ),
-              const SizedBox(width: 2),
-              _buildPaymentOptionRadio(
-                1,
-                'Installments',
-                currentPaymentOption,
-                setModalState,
-              ),
+              const SizedBox(width: 10),
+              if (plan.allowsInstallments)
+                _buildPaymentOptionRadio(
+                  1,
+                  'Installments',
+                  currentPaymentOption,
+                  onPaymentOptionChanged, // Pass the callback down
+                ),
             ],
           ),
         ],
@@ -1344,27 +1386,42 @@ Widget _buildFeatureItem(Color iconColor, Color textColor, String text) {
     );
   }
 
-  // New helper for the radio buttons
+  // ✅ CORRECTED: This widget is now stateless and uses the callback.
   Widget _buildPaymentOptionRadio(
     int index,
     String text,
-    int selectedOption,
-    StateSetter setModalState,
+    int groupValue,
+    ValueChanged<int> onChanged,
   ) {
+    bool isSelected = index == groupValue;
     return GestureDetector(
-      onTap: () => setModalState(() => selectedOption = index),
-      child: Row(
-        children: [
-          Radio<int>(
-            value: index,
-            groupValue: selectedOption,
-            onChanged: (value) => setModalState(() => selectedOption = value!),
-            activeColor: Colors.white,
-            fillColor: MaterialStateProperty.all(Colors.white),
-            materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-          ),
-          Text(text, style: const TextStyle(color: Colors.white)),
-        ],
+      onTap:
+          () => onChanged(
+            index,
+          ), // When tapped, call the function passed by the parent.
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 6),
+        decoration: BoxDecoration(
+          color:
+              isSelected ? Colors.white.withOpacity(0.2) : Colors.transparent,
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Row(
+          children: [
+            Icon(
+              isSelected
+                  ? Icons.radio_button_checked
+                  : Icons.radio_button_unchecked,
+              color: Colors.white,
+              size: 16,
+            ),
+            const SizedBox(width: 6),
+            Text(
+              text,
+              style: const TextStyle(color: Colors.white, fontSize: 12),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -1392,7 +1449,7 @@ Widget _buildFeatureItem(Color iconColor, Color textColor, String text) {
 // A helper widget for the expandable description text
 class ExpandableDescription extends StatefulWidget {
   final String text;
-  const ExpandableDescription({Key? key, required this.text}) : super(key: key);
+  const ExpandableDescription({super.key, required this.text});
 
   @override
   _ExpandableDescriptionState createState() => _ExpandableDescriptionState();

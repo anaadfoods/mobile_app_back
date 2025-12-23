@@ -1,7 +1,7 @@
-import 'dart:convert';
-import 'package:grocery_app/models/plan_Search_model.dart';
+
+import 'package:grocery_app/common_widgets/global_import.dart';
+
 import 'package:http/http.dart' as http;
-import 'api_config.dart';
 
 class PlanSearchService {
   static Future<List<PlanSearchResult>> fetchPlansForVariant(

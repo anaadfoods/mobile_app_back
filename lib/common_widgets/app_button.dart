@@ -1,7 +1,6 @@
-import 'package:flutter/material.dart';
-import 'package:grocery_app/styles/colors.dart';
+import "global_import.dart";
 
-class AppButton extends StatelessWidget {
+class AppButton extends StatefulWidget {
   final String label;
   final double roundness;
   final FontWeight fontWeight;
@@ -18,7 +17,7 @@ class AppButton extends StatelessWidget {
     required this.label,
     this.roundness = 18,
     this.fontWeight = FontWeight.bold,
-    this.padding ,
+    this.padding,
     this.trailingWidget,
     this.color,
     this.textColor,
@@ -27,49 +26,68 @@ class AppButton extends StatelessWidget {
   });
 
   @override
+  State<AppButton> createState() => _AppButtonState();
+}
+
+class _AppButtonState extends State<AppButton> {
+  bool _isPressed = false;
+
+  @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      width: width ?? double.maxFinite,
-      child: ElevatedButton(
-        onPressed: () {
-          onPressed?.call();
-        },
-        style: ElevatedButton.styleFrom(
-          visualDensity: VisualDensity.compact,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(roundness),
-          ),
-          elevation: 0,
-          backgroundColor: color,
-          textStyle: TextStyle(
-            color: textColor,
-            fontFamily: Theme.of(context).textTheme.bodyLarge?.fontFamily,
-            fontWeight: fontWeight,
-          ),
-          padding: padding ?? EdgeInsets.symmetric(vertical: 24),
-          minimumSize: const Size.fromHeight(50),
-        ),
-        child: Stack(
-          fit: StackFit.passthrough,
-          children: <Widget>[
-            Center(
-              child: Text(
-                label,
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 14,
-                  fontWeight: fontWeight,
+    final theme = Theme.of(context);
+    final buttonTheme = theme.elevatedButtonTheme.style;
+
+    return GestureDetector(
+      onTapDown: (_) => setState(() => _isPressed = true),
+      onTapUp: (_) => setState(() => _isPressed = false),
+      onTapCancel: () => setState(() => _isPressed = false),
+      child: AnimatedScale(
+        scale: _isPressed ? 0.98 : 1.0,
+        duration: const Duration(milliseconds: AppColors.animFast),
+        curve: Curves.easeInOut,
+        child: SizedBox(
+          width: widget.width ?? double.maxFinite,
+          child: ElevatedButton(
+            onPressed: () {
+              widget.onPressed?.call();
+            },
+            style: (buttonTheme ?? ElevatedButton.styleFrom()).copyWith(
+              backgroundColor:
+                  widget.color != null
+                      ? WidgetStateProperty.all(widget.color)
+                      : null, // Use theme default if null
+              shape: WidgetStateProperty.all(
+                RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(widget.roundness),
                 ),
               ),
+              padding: WidgetStateProperty.all(
+                widget.padding ??
+                    const EdgeInsets.symmetric(vertical: 14, horizontal: 24),
+              ), // Improved padding
+              elevation: WidgetStateProperty.resolveWith((states) {
+                if (states.contains(WidgetState.pressed)) return 0;
+                return 2;
+              }),
             ),
-            if (trailingWidget != null)
-              Positioned(
-                top: 0,
-                right: 25,
-                child: trailingWidget!,
-              ),
-          ],
+            child: Stack(
+              fit: StackFit.passthrough,
+              children: <Widget>[
+                Center(
+                  child: Text(
+                    widget.label,
+                    textAlign: TextAlign.center,
+                    style: theme.textTheme.labelLarge?.copyWith(
+                      color: widget.textColor ?? theme.colorScheme.onPrimary,
+                      fontWeight: widget.fontWeight,
+                    ),
+                  ),
+                ),
+                if (widget.trailingWidget != null)
+                  Positioned(top: 0, right: 25, child: widget.trailingWidget!),
+              ],
+            ),
+          ),
         ),
       ),
     );

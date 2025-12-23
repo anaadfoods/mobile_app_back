@@ -1,13 +1,5 @@
-import 'dart:convert';
-import 'dart:io';
+import 'package:grocery_app/common_widgets/global_import.dart';
 import 'package:http/http.dart' as http;
-import 'package:grocery_app/models/order_model.dart';
-import 'package:grocery_app/services/auth_service.dart';
-import 'package:grocery_app/services/api_config.dart';
-import 'package:grocery_app/models/payment_status_model.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:permission_handler/permission_handler.dart';
-import 'package:open_filex/open_filex.dart'; // To open the downloaded file
 
 
 class OrderService {
@@ -107,7 +99,7 @@ class OrderService {
         if (data is Map && data.containsKey('payment_links')) {
           return OrderCreateResponse.fromJson(Map<String, dynamic>.from(data));
         }
-        return OrderModel.fromJson(data);
+        return Order.fromJson(data);
       } else {
         final errorData = jsonDecode(response.body);
         print('Server error response: $errorData');
@@ -163,7 +155,7 @@ class OrderService {
     }
   }
 
-  Future<OrderModel> getOrderById(int orderId) async {
+  Future<Order> getOrderById(int orderId) async {
     final token = await _authService.getAccessToken();
     final response = await http.get(
       Uri.parse('$baseUrl/api/orders/$orderId/'),
@@ -171,7 +163,7 @@ class OrderService {
     );
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
-      return OrderModel.fromJson(data);
+      return Order.fromJson(data);
     } else {
       throw Exception('Failed to fetch order details');
     }
@@ -234,7 +226,7 @@ class OrderService {
     }
   }
 
-  final String _endpoint = "http://65.2.69.45:5000/handleJuspayResponse";
+  final String _endpoint = "${ApiConfig.paymentUrl}/handleJuspayResponse";
 
   /// Posts the order_id to the Juspay response handler.
   /// Returns the HTTP response.

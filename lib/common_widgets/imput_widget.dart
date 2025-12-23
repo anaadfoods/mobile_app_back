@@ -12,15 +12,17 @@ class CustomInput extends StatefulWidget {
   final String? Function(String?)? validator;
   final FocusNode? focusNode;
   final void Function(bool)? onValidationChanged;
-
-  // NEW PARAMETERS
   final double? width;
   final double? height;
-  final InputBorder? customBorder;
+  final Color? customBorderColor;
+
   final Color? fillColor;
+  final bool onPrimary; // New flag to style for on-primary backgrounds
 
   const CustomInput({
     super.key,
+    this.customBorderColor,
+
     required this.hintText,
     required this.controller,
     this.obscureText = false,
@@ -33,8 +35,8 @@ class CustomInput extends StatefulWidget {
     this.onValidationChanged,
     this.width,
     this.height,
-    this.customBorder,
     this.fillColor,
+    this.onPrimary = false, // Default to normal background
   });
 
   @override
@@ -42,100 +44,139 @@ class CustomInput extends StatefulWidget {
 }
 
 class _CustomInputState extends State<CustomInput> {
-  bool _isValid = false;
-  String? _errorText;
-  bool _obscure = true; // 👈 for password toggle
-
-  void _validateInput(String? value) {
-    if (widget.validator != null) {
-      setState(() {
-        _errorText = widget.validator!(value);
-        _isValid = _errorText == null && value != null && value.isNotEmpty;
-      });
-      widget.onValidationChanged?.call(_isValid);
-    }
-  }
+  bool _obscure = true;
 
   @override
   void initState() {
     super.initState();
     _obscure = widget.obscureText;
-    widget.controller.addListener(() {
-      _validateInput(widget.controller.text);
-    });
   }
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    final onPrimaryColor = colorScheme.onPrimary;
+    final primaryColor = colorScheme.primary;
+
+    final effectiveTextStyle =
+        widget.onPrimary
+            ? theme.textTheme.bodyLarge?.copyWith(color: onPrimaryColor)
+            : theme.textTheme.bodyLarge;
+
+    final effectiveHintStyle =
+        widget.onPrimary
+            ? theme.textTheme.bodyMedium?.copyWith(
+              color: onPrimaryColor.withOpacity(0.7),
+            )
+            : theme.inputDecorationTheme.hintStyle;
+
+    final effectiveFillColor =
+        widget.fillColor ??
+        (widget.onPrimary
+            ? onPrimaryColor.withOpacity(0.1)
+            : theme.inputDecorationTheme.fillColor);
+
+    final finalDecoration = InputDecoration(
+      hintText: widget.hintText,
+      hintStyle: effectiveHintStyle,
+      prefixIcon: widget.prefixIcon,
+      filled: true,
+      fillColor: effectiveFillColor,
+      // Use design system constants for border radius
+      border: OutlineInputBorder(
+        borderRadius:
+            widget.borderRadius ?? BorderRadius.circular(AppColors.radiusM),
+        borderSide: BorderSide(
+          color:
+              widget.onPrimary
+                  ? onPrimaryColor.withOpacity(0.3)
+                  : (widget.customBorderColor ??
+                      theme.inputDecorationTheme.border?.borderSide.color ??
+                      Colors.grey),
+          width: 1,
+        ),
+      ),
+
+      enabledBorder: OutlineInputBorder(
+        borderRadius:
+            widget.borderRadius ?? BorderRadius.circular(AppColors.radiusM),
+        borderSide: BorderSide(
+          color:
+              widget.onPrimary
+                  ? onPrimaryColor.withOpacity(0.4)
+                  : (widget.customBorderColor ??
+                      theme
+                          .inputDecorationTheme
+                          .enabledBorder
+                          ?.borderSide
+                          .color ??
+                      AppColors.border),
+          width: 1,
+        ),
+      ),
+
+      focusedBorder: OutlineInputBorder(
+        borderRadius:
+            widget.borderRadius ?? BorderRadius.circular(AppColors.radiusM),
+        borderSide: BorderSide(
+          color: widget.onPrimary ? onPrimaryColor : primaryColor,
+          width: 2,
+        ),
+      ),
+
+      errorBorder: OutlineInputBorder(
+        borderRadius:
+            widget.borderRadius ?? BorderRadius.circular(AppColors.radiusM),
+        borderSide: BorderSide(color: colorScheme.error, width: 1.0),
+      ),
+      focusedErrorBorder: OutlineInputBorder(
+        borderRadius:
+            widget.borderRadius ?? BorderRadius.circular(AppColors.radiusM),
+        borderSide: BorderSide(color: colorScheme.error, width: 2.0),
+      ),
+      suffixIcon:
+          widget.obscureText
+              ? IconButton(
+                icon: Icon(
+                  _obscure ? Icons.visibility_off : Icons.visibility,
+                  color:
+                      widget.onPrimary
+                          ? onPrimaryColor.withOpacity(0.7)
+                          : theme.iconTheme.color,
+                ),
+                onPressed: () {
+                  setState(() {
+                    _obscure = !_obscure;
+                  });
+                },
+              )
+              : widget.suffixIcon,
+    );
+
     return SizedBox(
       width: widget.width ?? double.infinity,
-      height: widget.height ?? 60,
+      height:
+          widget
+              .height, // Let textformfield determine its own height unless specified
       child: TextFormField(
         controller: widget.controller,
         obscureText: _obscure,
         keyboardType: widget.keyboardType,
         validator: widget.validator,
         focusNode: widget.focusNode,
-        onChanged: _validateInput,
-        style: const TextStyle(fontSize: 12, color: Colors.white),
-        cursorRadius: const Radius.circular(20),
-                cursorColor: Colors.white,
-
-        decoration: InputDecoration(
-          // 🟢 Fill like in image
-          filled: true,
-          fillColor: widget.fillColor ?? const Color(0xFF2F5D3F), // dark green
-          
-          // 🟢 Rounded pill border
-          enabledBorder: OutlineInputBorder(
-            borderRadius: widget.borderRadius ?? BorderRadius.circular(30.0),
-            borderSide: BorderSide.none,
-          ),
-          focusedBorder: OutlineInputBorder(
-            borderRadius: widget.borderRadius ?? BorderRadius.circular(30.0),
-            borderSide: BorderSide(color: Colors.white, width: 1.2),
-          ),
-          errorBorder: OutlineInputBorder(
-            borderRadius: widget.borderRadius ?? BorderRadius.circular(30.0),
-            borderSide: BorderSide(color: AppColors.warning, width: 1.0),
-          ),
-          focusedErrorBorder: OutlineInputBorder(
-            borderRadius: widget.borderRadius ?? BorderRadius.circular(30.0),
-            borderSide: BorderSide(color: AppColors.primaryColor, width: 2.0),
-          ),
-
-          // 🟢 Hint / Label
-          hintText: widget.hintText ,
-          hintStyle: const TextStyle(color: Colors.white70),
-
-          // 🟢 Prefix / Suffix icons
-          prefixIcon: widget.prefixIcon,
-          suffixIcon: widget.obscureText
-              ? IconButton(
-                  icon: Icon(
-                    _obscure ? Icons.visibility_off : Icons.visibility,
-                    color: Colors.white70,
-                  ),
-                  onPressed: () {
-                    setState(() {
-                      _obscure = !_obscure;
-                    });
-                  },
-                )
-              : widget.suffixIcon,
-          // errorText: _errorText,
-          errorMaxLines: 2,
-          errorStyle: const TextStyle(color: Colors.red, fontSize: 10),
-        ),
+        onChanged:
+            widget.onValidationChanged != null
+                ? (value) {
+                  final isValid = widget.validator?.call(value) == null;
+                  widget.onValidationChanged!(isValid);
+                }
+                : null,
+        style: effectiveTextStyle,
+        cursorColor: widget.onPrimary ? onPrimaryColor : primaryColor,
+        decoration: finalDecoration,
       ),
     );
-  }
-
-  @override
-  void dispose() {
-    widget.controller.removeListener(() {
-      _validateInput(widget.controller.text);
-    });
-    super.dispose();
   }
 }

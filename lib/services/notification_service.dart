@@ -1,11 +1,6 @@
-import 'dart:async';
-import 'dart:convert';
-import 'dart:io';
+import 'package:grocery_app/common_widgets/global_import.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'navigation_service.dart';
 import 'package:http/http.dart' as http;
 import 'package:device_info_plus/device_info_plus.dart';
 
@@ -64,7 +59,7 @@ class NotificationService {
   // Get device id
   static Future<String> deviceId = getDeviceId();
 
-  Future<void> initialize() async {
+  Future<void> initialize(NotificationCubit read) async {
     try {
       // Initialize Firebase Messaging
       await _initializeFirebaseMessaging();

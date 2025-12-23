@@ -1,4 +1,3 @@
-// Helper widget for skeleton loading (can be in its own file)
 import 'package:flutter/material.dart';
 
 class Skeleton extends StatelessWidget {
@@ -10,11 +9,12 @@ class Skeleton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Container(
       width: width,
       height: height,
       decoration: BoxDecoration(
-        color: Colors.grey[300],
+        color: theme.colorScheme.surfaceContainerHighest,
         shape: isCircle ? BoxShape.circle : BoxShape.rectangle,
         borderRadius: isCircle ? null : BorderRadius.circular(8),
       ),

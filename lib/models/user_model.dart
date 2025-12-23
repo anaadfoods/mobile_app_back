@@ -1,3 +1,6 @@
+import 'package:grocery_app/services/api_config.dart'; // ++ ADD THIS IMPORT ++
+
+
 class UserModel {
   final String email;
   final String username;
@@ -14,7 +17,6 @@ class UserModel {
   final String? profilePicture;
   final String? referralCode;
   final bool isEmailVerified;
-
   UserModel({
     required this.email,
     required this.username,
@@ -69,6 +71,19 @@ class UserModel {
 
   // Create UserModel from JSON
   factory UserModel.fromJson(Map<String, dynamic> json) {
+
+
+ final String? rawImageUrl = json['profile_picture'];
+    String? finalImageUrl;
+
+    // 2. Check if the URL is valid and complete
+    if (rawImageUrl != null && rawImageUrl.isNotEmpty) {
+      // If it's a full URL, use it directly. Otherwise, prepend the base URL.
+      finalImageUrl = rawImageUrl.startsWith('http')
+          ? rawImageUrl
+          : '${ApiConfig.baseUrl}$rawImageUrl';
+    }
+
     return UserModel(
       email: json['email'] ?? '',
       username: json['username'] ?? '',
@@ -82,7 +97,7 @@ class UserModel {
       pincode: json['pincode'],
       city: json['city'],
       state: json['state'],
-      profilePicture: json['profile_picture'],
+      profilePicture: finalImageUrl,
       referralCode: json['referral_code'],
       isEmailVerified: json['is_email_verified'] ?? false,
     );

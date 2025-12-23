@@ -1,18 +1,22 @@
-import 'package:flutter/material.dart';
-import 'package:carousel_slider/carousel_slider.dart';
-import 'package:grocery_app/screens/about/about_screen.dart';
-// keep this alias
-import 'package:smooth_page_indicator/smooth_page_indicator.dart';
-import 'package:grocery_app/styles/colors.dart';
+import 'package:grocery_app/common_widgets/global_import.dart';
+import 'package:grocery_app/screens/RFP/delivery_screen.dart';
+
+class CarouselItem {
+  final String imageUrl;
+  final String title;
+  final String buttonText;
+  final VoidCallback onTap;
+
+  const CarouselItem({
+    required this.imageUrl,
+    required this.title,
+    required this.buttonText,
+    required this.onTap,
+  });
+}
 
 class TopCurosel extends StatefulWidget {
-  TopCurosel({super.key});
-  final List<String> imageUrls = [
-    'https://res.cloudinary.com/dcuwcjq1f/image/upload/v1759836582/atta_chaki_carousel_zowh5e.jpg',
-    'https://res.cloudinary.com/dcuwcjq1f/image/upload/v1759836622/atta_crousel_image_dpennd.jpg',
-    'https://res.cloudinary.com/dcuwcjq1f/image/upload/v1759836642/farm_carousel_lcnpp8.jpg',
-    'https://res.cloudinary.com/dcuwcjq1f/image/upload/v1759836653/farmer_consultancy_aaosxa.jpg'
-  ];
+  const TopCurosel({super.key});
 
   @override
   State<TopCurosel> createState() => _TopCuroselState();
@@ -24,81 +28,135 @@ class _TopCuroselState extends State<TopCurosel> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final textTheme = theme.textTheme;
+    final screenHeight = MediaQuery.of(context).size.height;
+
+    final List<CarouselItem> carouselItems = [
+      CarouselItem(
+        imageUrl: 'https://res.cloudinary.com/dcuwcjq1f/image/upload/v1759836582/atta_chaki_carousel_zowh5e.jpg',
+        title: 'Freshly Ground Flours',
+        buttonText: 'Know our mission',
+        onTap: () => Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => AboutScreen()),
+        ),
+      ),
+      CarouselItem(
+        imageUrl: 'https://res.cloudinary.com/dcuwcjq1f/image/upload/v1759836622/atta_crousel_image_dpennd.jpg',
+        title: 'Our Mission & Story',
+        buttonText: 'Checkout Products',
+        onTap: () => Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const ExploreScreen()),
+        ),
+      ),
+      CarouselItem(
+        imageUrl: 'https://res.cloudinary.com/dcuwcjq1f/image/upload/v1759836642/farm_carousel_lcnpp8.jpg',
+        title: 'Convenient Products',
+        buttonText: 'View Product',
+        onTap: () async {
+          final produt = await CategoryService.fetchProductById(2);
+          if (!mounted) return;
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+                builder: (context) => ProductDetailsScreen(
+                      product: produt,
+                    )),
+          );
+        },
+      ),
+      CarouselItem(
+        imageUrl: 'https://res.cloudinary.com/dcuwcjq1f/image/upload/v1759836653/farmer_consultancy_aaosxa.jpg',
+        title: 'Remote Farming',
+        buttonText: 'RFP Plan',
+        onTap: () {
+          Navigator.push(context, MaterialPageRoute(builder: (buiilder) {
+            return DeliveryScreen();
+          }));
+        },
+      ),
+    ];
+
     return Column(
       children: [
         CarouselSlider(
-          items:
-              widget.imageUrls.map((url) {
-                return ClipRRect(
-                  borderRadius: BorderRadius.circular(12),
-                  child: Stack(
-                    children: [
-                      // use Image.network(url) or your asset
-                      Image.network(
-                        url,
-                        fit: BoxFit.cover,
-                        width: double.infinity,
-                      ),
-                      Positioned(
-                        bottom: 20,
-                        left: 10,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text(
-                              'Welcome to Anaad Foods',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            const SizedBox(height: 10),
-                            TextButton(
-                              onPressed: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) {
-                                      return AboutScreen();
-                                    },
-                                  ),
-                                );
-                              },
-                              style: TextButton.styleFrom(
-                                backgroundColor:
-                                    AppColors.bottonBackgroundColor,
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 20,
-                                  vertical: 10,
-                                ),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(20),
-                                ),
-                              ),
-                              child: const Text(
-                                "Know Our Mission",
-                                style: TextStyle(
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.white,
-                                ),
-                              ),
-                            ),
-                          ],
+          items: carouselItems.map((item) {
+            return ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  Image.network(
+                    item.imageUrl,
+                    fit: BoxFit.cover,
+                    width: double.infinity,
+                    loadingBuilder: (context, child, loadingProgress) {
+                      if (loadingProgress == null) return child;
+                      return Center(
+                        child: CircularProgressIndicator(
+                          value: loadingProgress.expectedTotalBytes != null
+                              ? loadingProgress.cumulativeBytesLoaded /
+                                  loadingProgress.expectedTotalBytes!
+                              : null,
                         ),
-                      ),
-                    ],
+                      );
+                    },
                   ),
-                );
-              }).toList(),
+                  Container(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [Colors.black.withOpacity(0.6), Colors.transparent],
+                        begin: Alignment.bottomCenter,
+                        end: Alignment.center,
+                      ),
+                    ),
+                  ),
+                  Positioned(
+                    bottom: 20,
+                    left: 20,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          item.title,
+                          style: textTheme.bodyLarge?.copyWith(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            shadows: [const Shadow(blurRadius: 2, color: Colors.black54)],
+                          ),
+                        ),
+                        const SizedBox(height: 5),
+                        TextButton(
+                          onPressed: item.onTap,
+                          style: TextButton.styleFrom(
+                            backgroundColor: colorScheme.primary.withOpacity(0.9),
+                            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 5),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          ),
+                          child: Text(
+                            item.buttonText,
+                            style: textTheme.labelLarge?.copyWith(
+                              fontSize: 12,
+                              color: colorScheme.onPrimary,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }).toList(),
           options: CarouselOptions(
             viewportFraction: 1,
-            height: MediaQuery.of(context).size.height * 0.25,
+            height: screenHeight * 0.22,
             autoPlay: true,
             enlargeCenterPage: true,
             enableInfiniteScroll: true,
-            aspectRatio: 16 / 9,
             onPageChanged: (index, reason) {
               setState(() {
                 _currentPage = index;
@@ -109,14 +167,14 @@ class _TopCuroselState extends State<TopCurosel> {
         const SizedBox(height: 10),
         AnimatedSmoothIndicator(
           activeIndex: _currentPage,
-          count: widget.imageUrls.length,
+          count: carouselItems.length,
           effect: ExpandingDotsEffect(
-            activeDotColor: AppColors.primaryColor,
+            activeDotColor: colorScheme.primary,
+            dotColor: theme.disabledColor,
             dotHeight: 8,
             dotWidth: 8,
           ),
           onDotClicked: (index) {
-            // use the carousel_slider controller's animateToPage
             _carouselController.animateToPage(
               index,
               duration: const Duration(milliseconds: 350),

@@ -43,4 +43,6 @@ class ResponsiveHelper {
 
   // GRID/LAYOUT
   int get categoryCrossAxisCount => value(mobile: 2, tablet: 3, desktop: 4);
+
+  Null get screenHeight => null;
 }

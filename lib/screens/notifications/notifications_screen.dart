@@ -1,10 +1,7 @@
-import 'dart:convert';
-import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import '../../services/notification_service.dart';
-import '../../services/navigation_service.dart';
-import '../../helpers/message_utility.dart';
-import '../../widgets/notification_badge_widget.dart';
+import 'package:grocery_app/common_widgets/global_import.dart';
+
+
+
 
 class NotificationsScreen extends StatefulWidget {
   const NotificationsScreen({super.key});

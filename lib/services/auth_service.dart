@@ -1,26 +1,76 @@
-import 'dart:convert';
-import 'dart:async';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:grocery_app/common_widgets/global_import.dart';
 import 'package:http/http.dart' as http;
-import 'package:shared_preferences/shared_preferences.dart';
-import '../models/user_model.dart';
-import '../models/favorite_model.dart';
-import 'api_config.dart';
 
 class AuthService {
-  // Singleton instance
   static final AuthService _instance = AuthService._internal();
   factory AuthService() => _instance;
   AuthService._internal();
 
-  // Stream controller for auth state changes
   static final _authStateController = StreamController<bool>.broadcast();
   static Stream<bool> get authStateChanges => _authStateController.stream;
 
-  // Current user data
   UserModel? _currentUser;
   UserModel? get currentUser => _currentUser;
 
-  // Save JWT tokens and user data
+  final String serverClientId = dotenv.env["GOOGLE_SERVER_CLIENT_ID"] ?? "";
+
+  late final GoogleSignIn _googleSignIn = GoogleSignIn(
+    serverClientId: serverClientId,
+    scopes: ['email'],
+  );
+
+  Future<String?> getGoogleIdToken() async {
+    try {
+      final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
+
+      if (googleUser == null) {
+        return null;
+      }
+
+      final GoogleSignInAuthentication googleAuth =
+          await googleUser.authentication;
+      return googleAuth.idToken;
+    } catch (error) {
+      print('Google Sign-In Error: $error');
+      return null;
+    }
+  }
+
+  // In AuthService.dart
+  Future<Map<String, dynamic>> loginWithGoogleToken(String idToken) async {
+    final url = Uri.parse(
+      '${ApiConfig.baseUrl}/api/auth/google/',
+    ); // Or your env var
+    try {
+      final response = await http.post(
+        url,
+        body: {'id_token': idToken},
+        // Add headers if needed
+      );
+
+      final responseData = json.decode(response.body);
+      if (response.statusCode == 200) {
+        // You must also save the token here, just like in loginUser
+        await saveToken(
+          responseData['access'], // Adjust keys as needed
+          responseData['refresh'],
+          responseData['user'],
+        );
+        return {'success': true, 'data': responseData['user']};
+      } else {
+        print("Errror occured with else reason");
+        return {
+          'success': false,
+          'message': responseData['error'] ?? 'Google login failed.',
+        };
+      }
+    } catch (e) {
+      print('Google login error: $e');
+      return {'success': false, 'message': e.toString()};
+    }
+  }
+
   Future<void> saveToken(
     String accessToken,
     String refreshToken,
@@ -31,24 +81,20 @@ class AuthService {
     await prefs.setString('refresh_token', refreshToken);
     await prefs.setString('user_data', jsonEncode(userData));
 
-    // Set the current user
     _currentUser = UserModel.fromJson(userData);
     _authStateController.add(true);
   }
 
-  // Get stored access token
   Future<String?> getAccessToken() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getString('access_token');
   }
 
-  // Get stored refresh token
   Future<String?> getRefreshToken() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getString('refresh_token');
   }
 
-  // Get stored user data
   Future<UserModel?> getUserData() async {
     final prefs = await SharedPreferences.getInstance();
     final userData = prefs.getString('user_data');
@@ -59,7 +105,6 @@ class AuthService {
     return null;
   }
 
-  // Clear tokens and user data on logout
   Future<void> clearToken() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove('access_token');
@@ -69,11 +114,9 @@ class AuthService {
     _authStateController.add(false);
   }
 
-  // Check if user is logged in
   Future<bool> isLoggedIn() async {
     final token = await getAccessToken();
     if (token != null) {
-      // If we have a token but no current user, try to load user data
       if (_currentUser == null) {
         await getUserData();
       }
@@ -82,18 +125,15 @@ class AuthService {
     return false;
   }
 
-  // Initialize auth state
   Future<void> initializeAuthState() async {
     final isLoggedIn = await this.isLoggedIn();
     _authStateController.add(isLoggedIn);
   }
 
-  // Dispose the stream controller
   void dispose() {
     _authStateController.close();
   }
 
-  // Register User
   Future<Map<String, dynamic>> registerUser(UserModel user) async {
     try {
       final response = await http.post(
@@ -128,14 +168,12 @@ class AuthService {
     }
   }
 
-  // Login User
   Future<Map<String, dynamic>> loginUser(String email, String password) async {
     try {
       print(
         'Making login request to: ${ApiConfig.baseUrl}${ApiConfig.loginEndpoint}',
       );
 
-      // Create the client outside the try block to ensure proper cleanup
       final client = http.Client();
       try {
         final response = await client
@@ -170,7 +208,6 @@ class AuthService {
           if (responseData['access'] != null &&
               responseData['refresh'] != null &&
               responseData['user'] != null) {
-            // Save tokens and user data
             await saveToken(
               responseData['access'],
               responseData['refresh'],
@@ -223,26 +260,22 @@ class AuthService {
     }
   }
 
-  // Helper method to get authenticated headers
   Future<Map<String, String>> _getAuthHeaders() async {
     final token = await getAccessToken();
     return ApiConfig.getAuthHeaders(token ?? '');
   }
 
-  // Check if access token is expired and refresh if needed
   Future<bool> _checkAndRefreshToken() async {
     try {
       final token = await getAccessToken();
       if (token == null) return false;
 
-      // Check if token is expired by making a test request
       final response = await http.get(
         Uri.parse('${ApiConfig.baseUrl}${ApiConfig.testTokenEndpoint}'),
         headers: await _getAuthHeaders(),
       );
 
       if (response.statusCode == 401) {
-        // Token expired, try to refresh
         return await refreshAccessToken();
       }
 
@@ -253,9 +286,98 @@ class AuthService {
     }
   }
 
+  /// Returns true on success. On failure, logs server response and returns false.
+  Future<bool> updateUserAddress(Map<String, String> addressDetails) async {
+    try {
+      final token = await getAccessToken();
+      if (token == null) {
+        debugPrint('updateUserAddress: no access token');
+        return false;
+      }
+
+      // Get current user data to include required fields
+      final currentUser = _currentUser ?? await getUserData();
+      if (currentUser == null) {
+        debugPrint('updateUserAddress: no current user data');
+        return false;
+      }
+
+      // Use the correct profile endpoint from ApiConfig
+      final uri = Uri.parse('${ApiConfig.baseUrl}${ApiConfig.profileEndpoint}');
+
+      // Include all required user fields along with address updates
+      final bodyMap = {
+        // Required user fields from current profile
+        'username': currentUser.username,
+        'email': currentUser.email,
+        'first_name': currentUser.firstName,
+        'last_name': currentUser.lastName,
+        'phone_number': addressDetails['phone'] ?? currentUser.phoneNumber,
+        // Address fields to update
+        'address': addressDetails['address'] ?? '',
+        'city': addressDetails['city'] ?? '',
+        'state': addressDetails['state'] ?? '',
+        'pincode': addressDetails['pincode'] ?? '',
+      };
+
+      debugPrint('updateUserAddress: sending -> $bodyMap to $uri');
+
+      final response = await http
+          .put(
+            uri,
+            headers: {
+              'Content-Type': 'application/json',
+              'Accept': 'application/json',
+              'Authorization': 'Bearer $token',
+            },
+            body: jsonEncode(bodyMap),
+          )
+          .timeout(const Duration(seconds: 15));
+
+      debugPrint(
+        'updateUserAddress: status=${response.statusCode} body=${response.body}',
+      );
+
+      if (response.statusCode == 200) {
+        // refresh local profile to update _currentUser
+        await getUserProfile();
+        return true;
+      }
+
+      // Handle 401 - try to refresh token and retry once
+      if (response.statusCode == 401) {
+        debugPrint(
+          'updateUserAddress: Unauthorized - attempting token refresh',
+        );
+        final refreshed = await refreshAccessToken();
+        if (refreshed) {
+          // Retry the request with new token
+          return await updateUserAddress(addressDetails);
+        }
+        debugPrint('updateUserAddress: Token refresh failed');
+        return false;
+      }
+
+      // Handle 400 - validation errors
+      if (response.statusCode == 400) {
+        try {
+          final decoded = jsonDecode(response.body);
+          debugPrint('updateUserAddress validation errors: $decoded');
+        } catch (_) {}
+      }
+
+      return false;
+    } on TimeoutException catch (_) {
+      debugPrint('updateUserAddress: request timed out');
+      return false;
+    } catch (e, st) {
+      debugPrint('updateUserAddress: unexpected error: $e\n$st');
+      return false;
+    }
+  }
+
   Future<Map<String, dynamic>> toggleFavorite(int productId) async {
     try {
-      // Check if the user is authenticated
       final isAuthenticated = await isLoggedIn();
       if (!isAuthenticated) {
         return {
@@ -265,7 +387,6 @@ class AuthService {
         };
       }
 
-      // Refresh token if needed
       final tokenValid = await _checkAndRefreshToken();
       if (!tokenValid) {
         return {
@@ -347,7 +468,6 @@ class AuthService {
     }
   }
 
-  // Refresh Access Token
   Future<bool> refreshAccessToken() async {
     final refreshToken = await getRefreshToken();
     if (refreshToken == null) return false;
@@ -373,18 +493,14 @@ class AuthService {
     return false;
   }
 
-  // Logout user
   Future<void> logout() async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      // Clear tokens and user data
       await prefs.remove('access_token');
       await prefs.remove('refresh_token');
       await prefs.remove('user_data');
 
-      // Clear current user
       _currentUser = null;
-      // Notify listeners about auth state change
       _authStateController.add(false);
     } catch (e) {
       print('Error during logout: $e');
@@ -392,7 +508,6 @@ class AuthService {
     }
   }
 
-  // Get user's favorite items
   Future<Map<String, dynamic>> getFavorites() async {
     try {
       final accessToken = await getAccessToken();
@@ -420,10 +535,8 @@ class AuthService {
           'message': 'Favorites fetched successfully',
         };
       } else if (response.statusCode == 401) {
-        // Try to refresh the token
         final refreshResult = await refreshAccessToken();
         if (refreshResult) {
-          // Retry with new token
           return getFavorites();
         } else {
           return {
@@ -471,17 +584,14 @@ class AuthService {
           final userData = responseData['data'];
           final userProfile = UserModel.fromJson(userData);
 
-          // Cache the profile data
           final prefs = await SharedPreferences.getInstance();
           await prefs.setString('user_profile', jsonEncode(userData));
 
           return userProfile;
         }
       } else if (response.statusCode == 401) {
-        // Try to refresh the token
         final refreshResult = await refreshAccessToken();
         if (refreshResult) {
-          // Retry with new token
           return getUserProfile();
         }
       }
@@ -529,16 +639,13 @@ class AuthService {
       if (response.statusCode == 200) {
         final responseData = jsonDecode(response.body);
 
-        // Check if the response has data directly or nested under 'data'
         final userData = responseData['data'] ?? responseData;
 
         if (userData != null) {
-          // Update cached profile data
           final prefs = await SharedPreferences.getInstance();
           await prefs.setString('user_profile', jsonEncode(userData));
           await prefs.setString('user_data', jsonEncode(userData));
 
-          // Update current user
           _currentUser = UserModel.fromJson(userData);
           _authStateController.add(true);
 
@@ -549,10 +656,8 @@ class AuthService {
           };
         }
       } else if (response.statusCode == 401) {
-        // Try to refresh the token
         final refreshResult = await refreshAccessToken();
         if (refreshResult) {
-          // Retry with new token
           return updateProfile(updatedProfile);
         }
         return {
@@ -561,7 +666,6 @@ class AuthService {
         };
       }
 
-      // Try to parse error message from response
       try {
         final responseData = jsonDecode(response.body);
         final message =
@@ -586,7 +690,6 @@ class AuthService {
     }
   }
 
-  // Send OTP to email or phone
   Future<Map<String, dynamic>> sendOtp({
     required String identifier,
     required String type,
@@ -619,7 +722,6 @@ class AuthService {
     }
   }
 
-  // Verify OTP for email or phone
   Future<Map<String, dynamic>> verifyOtp({
     required String identifier,
     required String otp,

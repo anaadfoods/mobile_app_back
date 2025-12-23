@@ -1,18 +1,14 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
-import 'package:grocery_app/common_widgets/app_text.dart';
-import 'package:grocery_app/helpers/animated_transitions.dart';
-import 'package:grocery_app/models/product_model.dart';
-import 'package:grocery_app/screens/product_details/product_details_screen.dart';
-import 'package:grocery_app/services/cart_service.dart';
-import 'package:grocery_app/widgets/grocery_item_card_widget.dart';
-import 'filter_screen.dart';
+import 'package:grocery_app/common_widgets/global_import.dart';
 
 class CategoryItemsScreen extends StatefulWidget {
   final String name;
   final List<Product> allProducts;
 
-  const CategoryItemsScreen({super.key, required this.name, required this.allProducts});
+  const CategoryItemsScreen({
+    super.key,
+    required this.name,
+    required this.allProducts,
+  });
 
   @override
   State<CategoryItemsScreen> createState() => _CategoryItemsScreenState();
@@ -41,24 +37,13 @@ class _CategoryItemsScreenState extends State<CategoryItemsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        centerTitle: true,
-        automaticallyImplyLeading: false,
-        leading: GestureDetector(
-          onTap: () {
-            Navigator.pop(context);
-          },
-          child: Container(
-            padding: EdgeInsets.only(left: 25),
-            child: Icon(Icons.arrow_back_ios, color: Colors.black),
-          ),
-        ),
+        title: AppText(text: widget.name),
         actions: [
           PopupMenuButton<String>(
-            icon: Icon(Icons.sort, color: Colors.black),
             onSelected: (value) {
               if (value == 'id') {
                 _sortById();
@@ -68,54 +53,71 @@ class _CategoryItemsScreenState extends State<CategoryItemsScreen> {
             },
             itemBuilder:
                 (context) => [
-                  PopupMenuItem(value: 'price', child: Text('Sort by Price')),
+                  const PopupMenuItem(
+                    value: 'price',
+                    child: Text('Sort by Price'),
+                  ),
                 ],
           ),
         ],
-        title: Container(
-          padding: EdgeInsets.symmetric(horizontal: 25),
-          child: AppText(
-            text: widget.name,
-            fontWeight: FontWeight.bold,
-            fontSize: 20,
-          ),
-        ),
       ),
-      body: SingleChildScrollView(
-        child: filteredProducts.isNotEmpty
+      body:
+          filteredProducts.isNotEmpty
               ? ListView.builder(
-              itemCount: filteredProducts.length,
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemBuilder: (context, index) {
-                return GestureDetector(
-                  
-                onTap: filteredProducts[index].isInStock ? () => _onProductClicked(filteredProducts[index]) : null,
-                child: Opacity(
-                  opacity: filteredProducts[index].isInStock ? 1.0 : 0.5,
-                  child: GroceryItemCardWidget(item: filteredProducts[index], heroSuffix: "home_screen", onAddToCart: (productVariantId, quantity) => CartService().addToCart(productVariantId, quantity),),
-
+                padding: const EdgeInsets.all(AppColors.spacingL),
+                itemCount: filteredProducts.length,
+                itemBuilder: (context, index) {
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: AppColors.spacingM),
+                    child: Opacity(
+                      opacity: filteredProducts[index].isInStock ? 1.0 : 0.5,
+                      child: GroceryItemCardWidget(
+                        item: filteredProducts[index],
+                        heroSuffix: "home_screen",
+                        onTap:
+                            filteredProducts[index].isInStock
+                                ? () =>
+                                    _onProductClicked(filteredProducts[index])
+                                : null,
+                      ),
+                    ),
+                  );
+                },
+              )
+              : Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(AppColors.spacingXL),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.inventory_2_outlined,
+                        size: 80,
+                        color: theme.disabledColor.withOpacity(0.5),
+                      ),
+                      const SizedBox(height: AppColors.spacingL),
+                      Text(
+                        'No products found',
+                        style: theme.textTheme.titleMedium,
+                      ),
+                      const SizedBox(height: AppColors.spacingS),
+                      Text(
+                        'Check back later for new items',
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: theme.hintColor,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-              );
-              },
-            )
-              : SizedBox(height: 10),
-        
-      ),
+              ),
     );
   }
- void _onProductClicked(Product item) {
+
+  void _onProductClicked(Product item) {
     Navigator.push(
       context,
       AnimatedTransitions.fadeScale(ProductDetailsScreen(product: item)),
     );
   }
-  // void onItemClicked(BuildContext context, Product product) {
-  //   Navigator.push(
-  //     context,
-  //     MaterialPageRoute(
-  //       builder: (context) => ProductDetailsScreen(product: product),
-  //     ),
-  //   );
-  // }
 }

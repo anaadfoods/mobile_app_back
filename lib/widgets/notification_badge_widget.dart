@@ -1,7 +1,4 @@
-import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import '../services/notification_service.dart';
-import '../helpers/message_utility.dart';
+import 'package:grocery_app/common_widgets/global_import.dart';
 
 class NotificationBadgeWidget extends StatefulWidget {
   final Widget child;
@@ -22,8 +19,7 @@ class NotificationBadgeWidget extends StatefulWidget {
   });
 
   @override
-  State<NotificationBadgeWidget> createState() =>
-      _NotificationBadgeWidgetState();
+  State<NotificationBadgeWidget> createState() => _NotificationBadgeWidgetState();
 }
 
 class _NotificationBadgeWidgetState extends State<NotificationBadgeWidget> {
@@ -80,35 +76,40 @@ class _NotificationBadgeWidgetState extends State<NotificationBadgeWidget> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final badgeColor = widget.badgeColor ?? theme.colorScheme.error;
+    final textColor = widget.textColor ?? theme.colorScheme.onError;
+
     return Stack(
+      clipBehavior: Clip.none,
       children: [
         widget.child,
         if (widget.showBadge && _notificationCount > 0)
           Positioned(
-            right: 0,
-            top: 0,
+            right: -4,
+            top: -4,
             child: GestureDetector(
               onTap: () {
                 widget.onTap?.call();
                 _clearNotificationCount();
               },
               child: Container(
-                width: widget.badgeSize ?? 20,
-                height: widget.badgeSize ?? 20,
+                width: widget.badgeSize ?? 22,
+                height: widget.badgeSize ?? 22,
                 decoration: BoxDecoration(
-                  color: widget.badgeColor ?? Colors.red,
+                  color: badgeColor,
                   shape: BoxShape.circle,
+                  border: Border.all(color: theme.cardColor, width: 2),
                 ),
                 child: Center(
                   child: Text(
-                    _notificationCount > 99
-                        ? '99+'
-                        : _notificationCount.toString(),
+                    _notificationCount > 99 ? '99+' : _notificationCount.toString(),
                     style: TextStyle(
-                      color: widget.textColor ?? Colors.white,
-                      fontSize: (widget.badgeSize ?? 20) * 0.6,
+                      color: textColor,
+                      fontSize: (widget.badgeSize ?? 22) * 0.55,
                       fontWeight: FontWeight.bold,
                     ),
+                    textAlign: TextAlign.center,
                   ),
                 ),
               ),
@@ -119,7 +120,7 @@ class _NotificationBadgeWidgetState extends State<NotificationBadgeWidget> {
   }
 }
 
-class NotificationListWidget extends StatefulWidget {
+class NotificationListWidget extends StatelessWidget {
   final List<Map<String, dynamic>> notifications;
   final Function(Map<String, dynamic>)? onNotificationTap;
   final Function(Map<String, dynamic>)? onNotificationDismiss;
@@ -132,22 +133,19 @@ class NotificationListWidget extends StatefulWidget {
   });
 
   @override
-  State<NotificationListWidget> createState() => _NotificationListWidgetState();
-}
-
-class _NotificationListWidgetState extends State<NotificationListWidget> {
-  @override
   Widget build(BuildContext context) {
-    if (widget.notifications.isEmpty) {
-      return  Center(
+    final theme = Theme.of(context);
+
+    if (notifications.isEmpty) {
+      return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.notifications_none, size: 64, color: Colors.grey),
-            SizedBox(height: 16),
+            Icon(Icons.notifications_none, size: 64, color: theme.disabledColor),
+            const SizedBox(height: 16),
             Text(
               'No notifications yet',
-              style: TextStyle(fontSize: 16, color: Colors.grey),
+              style: theme.textTheme.bodyLarge,
             ),
           ],
         ),
@@ -155,13 +153,13 @@ class _NotificationListWidgetState extends State<NotificationListWidget> {
     }
 
     return ListView.builder(
-      itemCount: widget.notifications.length,
+      itemCount: notifications.length,
       itemBuilder: (context, index) {
-        final notification = widget.notifications[index];
+        final notification = notifications[index];
         return _NotificationListItem(
           notification: notification,
-          onTap: () => widget.onNotificationTap?.call(notification),
-          onDismiss: () => widget.onNotificationDismiss?.call(notification),
+          onTap: () => onNotificationTap?.call(notification),
+          onDismiss: () => onNotificationDismiss?.call(notification),
         );
       },
     );
@@ -188,18 +186,17 @@ class _NotificationListItemState extends State<_NotificationListItem> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final textTheme = theme.textTheme;
     final messageType = MessageUtility.getMessageType(widget.notification);
     final icon = MessageUtility.getMessageIcon(messageType);
     final color = MessageUtility.getMessageColor(messageType);
-    final backgroundColor = MessageUtility.getMessageBackgroundColor(
-      messageType,
-    );
+    final backgroundColor = MessageUtility.getMessageBackgroundColor(messageType);
     final timestamp = widget.notification['timestamp'] as int? ?? 0;
     final title = widget.notification['title'] as String? ?? '';
     final body = widget.notification['body'] as String? ?? '';
     final isHighPriority = MessageUtility.isHighPriority(widget.notification);
 
-    // Check if body is long enough to need expansion
     final bool needsExpansion = body.length > 100;
 
     return Dismissible(
@@ -207,10 +204,10 @@ class _NotificationListItemState extends State<_NotificationListItem> {
       direction: DismissDirection.endToStart,
       onDismissed: (direction) => widget.onDismiss?.call(),
       background: Container(
-        color: Colors.red,
+        color: theme.colorScheme.error,
         alignment: Alignment.centerRight,
         padding: const EdgeInsets.only(right: 16),
-        child: const Icon(Icons.delete, color: Colors.white),
+        child: Icon(Icons.delete, color: theme.colorScheme.onError),
       ),
       child: Container(
         margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
@@ -234,7 +231,7 @@ class _NotificationListItemState extends State<_NotificationListItem> {
           ),
           title: Text(
             title,
-            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+            style: textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.bold),
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
           ),
@@ -247,7 +244,7 @@ class _NotificationListItemState extends State<_NotificationListItem> {
                   children: [
                     Text(
                       body,
-                      style: const TextStyle(color: Colors.grey, fontSize: 14),
+                      style: textTheme.bodyMedium,
                       maxLines: _isExpanded ? null : 2,
                       overflow: _isExpanded ? null : TextOverflow.ellipsis,
                     ),
@@ -262,9 +259,8 @@ class _NotificationListItemState extends State<_NotificationListItem> {
                           padding: const EdgeInsets.only(top: 4),
                           child: Text(
                             _isExpanded ? 'Show less' : 'Show more',
-                            style: TextStyle(
+                            style: textTheme.bodySmall?.copyWith(
                               color: color,
-                              fontSize: 12,
                               fontWeight: FontWeight.w500,
                             ),
                           ),
@@ -275,31 +271,29 @@ class _NotificationListItemState extends State<_NotificationListItem> {
               const SizedBox(height: 4),
               Text(
                 MessageUtility.formatTimestamp(timestamp),
-                style: const TextStyle(color: Colors.grey, fontSize: 12),
+                style: textTheme.bodySmall,
               ),
             ],
           ),
-          trailing:
-              isHighPriority
-                  ? Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 4,
+          trailing: isHighPriority
+              ? Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    color: color,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text(
+                    'URGENT',
+                    style: textTheme.labelSmall?.copyWith(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
                     ),
-                    decoration: BoxDecoration(
-                      color: color,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: const Text(
-                      'URGENT',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 10,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  )
-                  : null,
+                  ),
+                )
+              : null,
           onTap: widget.onTap,
         ),
       ),
@@ -322,12 +316,10 @@ class NotificationSettingsWidget extends StatefulWidget {
   });
 
   @override
-  State<NotificationSettingsWidget> createState() =>
-      _NotificationSettingsWidgetState();
+  State<NotificationSettingsWidget> createState() => _NotificationSettingsWidgetState();
 }
 
-class _NotificationSettingsWidgetState
-    extends State<NotificationSettingsWidget> {
+class _NotificationSettingsWidgetState extends State<NotificationSettingsWidget> {
   bool _orderNotifications = true;
   bool _productNotifications = true;
   bool _promoNotifications = true;
@@ -342,13 +334,14 @@ class _NotificationSettingsWidgetState
 
   Future<void> _loadNotificationSettings() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    setState(() {
-      _orderNotifications = prefs.getBool('order_notifications') ?? true;
-      _productNotifications = prefs.getBool('product_notifications') ?? true;
-      _promoNotifications = prefs.getBool('promo_notifications') ?? true;
-      _subscriptionNotifications =
-          prefs.getBool('subscription_notifications') ?? true;
-    });
+    if (mounted) {
+      setState(() {
+        _orderNotifications = prefs.getBool('order_notifications') ?? true;
+        _productNotifications = prefs.getBool('product_notifications') ?? true;
+        _promoNotifications = prefs.getBool('promo_notifications') ?? true;
+        _subscriptionNotifications = prefs.getBool('subscription_notifications') ?? true;
+      });
+    }
   }
 
   Future<void> _saveNotificationSettings() async {
@@ -370,12 +363,10 @@ class _NotificationSettingsWidgetState
           title: 'Order Updates',
           subtitle: 'Get notified about order status changes',
           icon: Icons.shopping_bag,
-          color: Colors.blue,
+          color: AppColors.info,
           value: _orderNotifications,
           onChanged: (value) {
-            setState(() {
-              _orderNotifications = value;
-            });
+            setState(() => _orderNotifications = value);
             _saveNotificationSettings();
             widget.onOrderNotificationsChanged?.call(value);
           },
@@ -384,12 +375,10 @@ class _NotificationSettingsWidgetState
           title: 'Product Updates',
           subtitle: 'Get notified about product availability',
           icon: Icons.inventory,
-          color: Colors.green,
+          color: AppColors.success,
           value: _productNotifications,
           onChanged: (value) {
-            setState(() {
-              _productNotifications = value;
-            });
+            setState(() => _productNotifications = value);
             _saveNotificationSettings();
             widget.onProductNotificationsChanged?.call(value);
           },
@@ -398,12 +387,10 @@ class _NotificationSettingsWidgetState
           title: 'Promotions',
           subtitle: 'Get notified about special offers and deals',
           icon: Icons.local_offer,
-          color: Colors.red,
+          color: AppColors.error,
           value: _promoNotifications,
           onChanged: (value) {
-            setState(() {
-              _promoNotifications = value;
-            });
+            setState(() => _promoNotifications = value);
             _saveNotificationSettings();
             widget.onPromoNotificationsChanged?.call(value);
           },
@@ -412,12 +399,10 @@ class _NotificationSettingsWidgetState
           title: 'Subscription Updates',
           subtitle: 'Get notified about subscription changes',
           icon: Icons.subscriptions,
-          color: Colors.orange,
+          color: AppColors.warning,
           value: _subscriptionNotifications,
           onChanged: (value) {
-            setState(() {
-              _subscriptionNotifications = value;
-            });
+            setState(() => _subscriptionNotifications = value);
             _saveNotificationSettings();
             widget.onSubscriptionNotificationsChanged?.call(value);
           },
@@ -434,17 +419,19 @@ class _NotificationSettingsWidgetState
     required bool value,
     required ValueChanged<bool> onChanged,
   }) {
+    final theme = Theme.of(context);
+    final textTheme = theme.textTheme;
+
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: theme.cardColor,
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
-            spreadRadius: 1,
-            blurRadius: 4,
-            offset: const Offset(0, 2),
+            color: theme.shadowColor.withOpacity(0.08),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
@@ -458,18 +445,14 @@ class _NotificationSettingsWidgetState
           ),
           child: Icon(icon, color: color, size: 24),
         ),
-        title: Text(
-          title,
-          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-        ),
-        subtitle: Text(
-          subtitle,
-          style: const TextStyle(color: Colors.grey, fontSize: 14),
-        ),
+        title: Text(title, style: textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.bold)),
+        subtitle: Text(subtitle, style: textTheme.bodyMedium),
         trailing: Switch(
           value: value,
           onChanged: onChanged,
-          activeThumbColor: color,
+          activeColor: color,
+          inactiveTrackColor: color.withOpacity(0.3),
+          activeTrackColor: color.withOpacity(0.5),
         ),
       ),
     );

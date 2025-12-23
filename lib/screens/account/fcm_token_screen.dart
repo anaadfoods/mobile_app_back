@@ -1,9 +1,5 @@
-import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:grocery_app/helpers/notification_helper.dart';
-import 'package:grocery_app/styles/colors.dart';
-import 'package:grocery_app/common_widgets/app_text.dart';
-import 'package:grocery_app/helpers/snackbar_helper.dart';
+import "package:grocery_app/common_widgets/global_import.dart";
+
 
 class FCMTokenScreen extends StatefulWidget {
   const FCMTokenScreen({super.key});

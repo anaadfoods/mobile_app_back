@@ -1,8 +1,6 @@
-import 'dart:io';
+import 'package:grocery_app/common_widgets/global_import.dart';
 import 'package:http/http.dart' as http;
-// import 'package:shared_preferences/shared_preferences.dart';
-import 'api_config.dart';
-import 'auth_service.dart';
+
 
 class ProfileService {
   static const String baseUrl = ApiConfig.baseUrl;

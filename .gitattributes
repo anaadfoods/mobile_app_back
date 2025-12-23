@@ -1,0 +1,37 @@
+# Auto-detect text files and normalize line endings
+* text=auto
+
+# ================================
+# Cross-Platform Script Compatibility
+# ================================
+
+# Force LF for Unix scripts (critical for Mac/Linux team)
+gradlew text eol=lf
+*.sh text eol=lf
+
+# Force LF for Gradle files
+*.gradle text eol=lf
+*.gradle.kts text eol=lf
+
+# Force CRLF for Windows batch files
+*.bat text eol=crlf
+
+# ================================
+# Binary Files (no conversion)
+# ================================
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.ttf binary
+*.otf binary
+*.woff binary
+*.woff2 binary
+*.eot binary
+*.mp4 binary
+*.mp3 binary
+*.pdf binary
+*.zip binary
+*.jar binary
+*.aar binary

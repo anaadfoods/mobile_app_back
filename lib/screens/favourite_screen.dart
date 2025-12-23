@@ -1,16 +1,4 @@
-import 'dart:async';
-import 'package:flutter/material.dart';
-import 'package:grocery_app/common_widgets/shimmer_loading.dart';
-import 'package:grocery_app/models/favorite_model.dart';
-import 'package:grocery_app/models/product_model.dart';
-import 'package:grocery_app/screens/product_details/product_details_screen.dart';
-import 'package:grocery_app/services/auth_service.dart';
-import 'package:grocery_app/screens/auth/login_screen.dart';
-import 'package:grocery_app/styles/colors.dart';
-import 'package:grocery_app/services/product_service.dart';
-import 'package:grocery_app/services/favorite_state_service.dart';
-import 'package:grocery_app/helpers/snackbar_helper.dart';
-import 'package:grocery_app/services/cart_service.dart';
+import 'package:grocery_app/common_widgets/global_import.dart';
 
 class FavouriteScreen extends StatefulWidget {
   const FavouriteScreen({super.key});
@@ -22,9 +10,15 @@ class FavouriteScreen extends StatefulWidget {
 class _FavouriteScreenState extends State<FavouriteScreen> {
   final AuthService _authService = AuthService();
   final FavoriteStateService _favoriteStateService = FavoriteStateService();
+  final CartService _cartService = CartService();
+
   List<FavoriteModel> _favorites = [];
+  Map<int, int> _cartQuantities = {};
+  final Set<int> _processingItems = {};
   bool _isLoading = true;
   String? _error;
+  bool _isUpdatingInternally = false;
+
   StreamSubscription? _authSubscription;
   StreamSubscription? _favoriteSubscription;
 
@@ -34,20 +28,19 @@ class _FavouriteScreenState extends State<FavouriteScreen> {
     _loadFavorites();
 
     _authSubscription = AuthService.authStateChanges.listen((isLoggedIn) {
-      if (mounted) {
-        if (isLoggedIn) {
-          _loadFavorites();
-        } else {
-          setState(() {
-            _favorites = [];
-            _error = 'Please login to view favorites';
-          });
-        }
+      if (!mounted) return;
+      if (isLoggedIn) {
+        _loadFavorites();
+      } else {
+        setState(() {
+          _favorites = [];
+          _error = 'Please login to view favorites';
+        });
       }
     });
 
     _favoriteSubscription = _favoriteStateService.onFavoriteChanged.listen((_) {
-      if (mounted) _loadFavorites();
+      if (mounted && !_isUpdatingInternally) _loadFavorites();
     });
   }
 
@@ -60,6 +53,7 @@ class _FavouriteScreenState extends State<FavouriteScreen> {
 
   Future<void> _loadFavorites() async {
     if (!mounted) return;
+
     setState(() {
       _isLoading = true;
       _error = null;
@@ -77,236 +71,367 @@ class _FavouriteScreenState extends State<FavouriteScreen> {
         return;
       }
 
-      final result = await _authService.getFavorites();
+      final results = await Future.wait([
+        _authService.getFavorites(),
+        _cartService.getCart(),
+      ]);
+
       if (!mounted) return;
 
-      if (result['success']) {
-
-        // --- THE FIX IS HERE ---
-        // The data from the service is already a List<FavoriteModel>.
-        // We just need to cast it, not map it again.
-        final favoriteList = result['data'] as List<FavoriteModel>;
-        
-        if(mounted) {
-          setState(() {
-            _favorites = favoriteList;
-            _isLoading = false;
-          });
-        }
+      final favResult = results[0] as Map<String, dynamic>;
+      if (favResult['success']) {
+        final favoriteList = favResult['data'] as List<FavoriteModel>;
+        setState(() {
+          _favorites = favoriteList;
+        });
       } else {
-        if(mounted) {
-          setState(() {
-            _error = result['message'];
-            if (result['code'] == 'unauthenticated' ||
-                result['code'] == 'token_expired') {
-              _error = 'Your session has expired. Please login again.';
-            }
-            _isLoading = false;
-          });
-        }
+        setState(() {
+          _error =
+              favResult['message'] ?? 'Failed to load favorites. Please login.';
+        });
+      }
+
+      final cart = results[1] as CartModel?;
+      if (cart != null) {
+        setState(() {
+          _cartQuantities = {
+            for (var i in cart.items) i.productVariant.id: i.quantity,
+          };
+        });
       }
     } catch (e) {
-      if (!mounted) return;
-      setState(() {
-        _isLoading = false;
-        // The error message from the screenshot is generated here
-        _error = 'Error parsing favorites data: $e';
-      });
+      if (mounted) setState(() => _error = 'Error loading data: $e');
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
-  Future<void> _removeFromFavorites(FavoriteModel favorite, int index) async {
+  Future<void> _removeFromFavorites(FavoriteModel favorite) async {
+    if (_processingItems.contains(favorite.productId)) return;
+
+    final originalIndex = _favorites.indexWhere((f) => f.id == favorite.id);
+    if (originalIndex == -1) return;
+
     setState(() {
-      _favorites.removeAt(index);
+      _processingItems.add(favorite.productId);
+      _isUpdatingInternally = true;
+      _favorites.removeAt(originalIndex);
     });
 
     try {
       final result = await _authService.toggleFavorite(favorite.productId);
       if (!mounted) return;
 
-      if (result['success']) {
-        _favoriteStateService.notifyFavoriteChanged();
-        SnackBarHelper.showSuccess(context, result['message'] ?? 'Removed from favorites');
-      } else {
-        if (mounted) {
-          setState(() {
-            _favorites.insert(index, favorite);
-          });
-        }
+      final isSuccess =
+          result['success'] == true ||
+          (result['message'] as String?)?.toLowerCase().contains('removed') ==
+              true;
 
-        if (result['code'] == 'unauthenticated' ||
-            result['code'] == 'token_expired') {
-          if (mounted) Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const LoginScreen()));
-        } else {
-          if (mounted) SnackBarHelper.showError(context, result['message'] ?? 'Failed to remove favorite');
-        }
+      if (isSuccess) {
+        SnackBarHelper.showSuccess(
+          context,
+          result['message'] ?? 'Removed from favorites',
+        );
+        _favoriteStateService.notifyFavoriteChanged();
+      } else {
+        setState(() {
+          _favorites.insert(originalIndex, favorite);
+        });
+        SnackBarHelper.showError(
+          context,
+          result['message'] ?? 'Failed to remove favorite',
+        );
       }
     } catch (e) {
+      setState(() {
+        _favorites.insert(originalIndex, favorite);
+      });
+      SnackBarHelper.showError(context, 'An error occurred. Please try again.');
+    } finally {
       if (mounted) {
         setState(() {
-          _favorites.insert(index, favorite);
+          _processingItems.remove(favorite.productId);
+          _isUpdatingInternally = false;
         });
-        SnackBarHelper.showError(context, 'An error occurred. Please try again.');
       }
     }
   }
 
-  void _addToCart(FavoriteModel favorite) {
-    CartService().addToCart(favorite.productId, 1).then((_) {
-      SnackBarHelper.showSuccess(context, '${favorite.name} added to cart');
-    }).catchError((_) {
-      SnackBarHelper.showError(context, 'Failed to add item to cart');
-    });
-  }
+  Future<void> _handleQuantityChanged(
+    FavoriteModel favorite,
+    int newQuantity,
+  ) async {
+    if (_processingItems.contains(favorite.productId)) return;
+    setState(() => _processingItems.add(favorite.productId));
 
-  Widget _buildBody() {
-    if (_isLoading) {
-      return _buildLoadingState();
+    final oldQuantity = _cartQuantities[favorite.productId] ?? 0;
+
+    setState(() => _cartQuantities[favorite.productId] = newQuantity);
+
+    try {
+      if (newQuantity > 0 && oldQuantity == 0) {
+        await _cartService.addToCart(favorite.productId, newQuantity);
+        if (mounted) {
+          SnackBarHelper.showSuccess(context, '${favorite.name} added to cart');
+        }
+      } else if (newQuantity == 0 && oldQuantity > 0) {
+        await _cartService.removeFromCart(favorite.productId);
+        if (mounted) {
+          SnackBarHelper.showInfo(
+            context,
+            '${favorite.name} removed from cart',
+          );
+        }
+      } else if (newQuantity > 0) {
+        await _cartService.addToCart(favorite.productId, newQuantity);
+      }
+    } catch (e) {
+      setState(() => _cartQuantities[favorite.productId] = oldQuantity);
+
+      final errorMessage = e.toString();
+      final backendMessageMatch = RegExp(
+        r'"message"\s*:\s*"([^"]+)"',
+      ).firstMatch(errorMessage);
+      final displayMessage =
+          backendMessageMatch != null
+              ? backendMessageMatch.group(1)
+              : 'Failed to update cart. Please try again.';
+
+      SnackBarHelper.showError(context, displayMessage!);
+    } finally {
+      if (mounted) setState(() => _processingItems.remove(favorite.productId));
     }
-    if (_error != null) {
-      return _buildErrorState();
-    }
-    if (_favorites.isEmpty) {
-      return _buildEmptyState();
-    }
-    return RefreshIndicator(
-      onRefresh: _loadFavorites,
-      child: ListView.builder(
-        padding: const EdgeInsets.symmetric(vertical: 8),
-        itemCount: _favorites.length,
-        itemBuilder: (context, index) {
-          final favorite = _favorites[index];
-          return _buildFavoriteItem(favorite, index);
-        },
-      ),
-    );
   }
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F8F8),
-      appBar: AppBar(
-        title: const Text("My Wishlist"),
-        centerTitle: true,
-        backgroundColor: Colors.white,
-        elevation: 1,
-      ),
-      body: _buildBody(),
+      appBar: AppBar(title: const Text("My Wishlist")),
+      body:
+          _isLoading
+              ? _buildLoadingState()
+              : _error != null
+              ? _buildErrorState()
+              : _favorites.isEmpty
+              ? _buildEmptyState()
+              : RefreshIndicator(
+                onRefresh: _loadFavorites,
+                color: theme.colorScheme.primary,
+                child: ListView.builder(
+                  padding: const EdgeInsets.symmetric(
+                    vertical: AppColors.spacingS,
+                    horizontal: AppColors.spacingL,
+                  ),
+                  itemCount: _favorites.length,
+                  itemBuilder:
+                      (context, index) => _buildFavoriteCard(_favorites[index]),
+                ),
+              ),
     );
   }
 
-  Widget _buildFavoriteItem(FavoriteModel favorite, int index) {
+  Widget _buildFavoriteCard(FavoriteModel favorite) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final quantity = _cartQuantities[favorite.productId] ?? 0;
+    final isProcessing = _processingItems.contains(favorite.productId);
+    final isBeingRemoved =
+        isProcessing && !_cartQuantities.containsKey(favorite.productId);
+    final isDark = theme.brightness == Brightness.dark;
+
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      child: Dismissible(
-        key: Key(favorite.id.toString()),
-        direction: DismissDirection.endToStart,
-        onDismissed: (direction) => _removeFromFavorites(favorite, index),
-        background: Container(
-          alignment: Alignment.centerRight,
-          padding: const EdgeInsets.only(right: 20),
-          decoration: BoxDecoration(
-            color: Colors.red.shade400,
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: const Icon(Icons.delete_sweep_outlined, color: Colors.white, size: 28),
-        ),
-        child: GestureDetector(
-          onTap: () async {
-            try {
-              final product = await CategoryService.fetchProductById(favorite.productId);
-              if (mounted) {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => ProductDetailsScreen(product: product),
-                  ),
-                );
-              }
-            } catch (e) {
-              if (mounted) {
-                SnackBarHelper.showError(context, 'Failed to load product details');
-              }
-            }
-          },
-          child: Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(12),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.grey.withOpacity(0.1),
-                  spreadRadius: 2,
-                  blurRadius: 5,
-                  offset: const Offset(0, 3),
-                ),
-              ],
+      padding: const EdgeInsets.symmetric(vertical: AppColors.spacingS),
+      child: GestureDetector(
+        onTap: () async {
+          final product = await CategoryService.fetchProductById(
+            favorite.productId,
+          );
+          if (!mounted) return;
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => ProductDetailsScreen(product: product),
             ),
-            child: Row(
-              children: [
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(8),
-                  child: Image.network(
-                    favorite.image,
+          );
+        },
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: AppColors.animMedium),
+          padding: const EdgeInsets.all(AppColors.spacingM),
+          decoration: BoxDecoration(
+            color: theme.cardColor,
+            borderRadius: BorderRadius.circular(AppColors.radiusL),
+            border: Border.all(
+              color: isDark ? Colors.grey.shade800 : Colors.grey.shade200,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: theme.shadowColor.withOpacity(
+                  AppColors.shadowOpacityLight,
+                ),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Product Image
+              Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(AppColors.radiusM),
+                  border: Border.all(
+                    color: isDark ? Colors.grey.shade700 : Colors.grey.shade200,
+                  ),
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(AppColors.radiusM),
+                  child: CachedNetworkImage(
+                    imageUrl: favorite.image,
                     width: 70,
                     height: 70,
                     fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) =>
-                        const Icon(Icons.image_not_supported, color: Colors.grey, size: 40),
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        favorite.name,
-                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        favorite.weight,
-                        style: TextStyle(color: Colors.grey.shade600, fontSize: 14),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        '₹${favorite.price}',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
-                          color: Theme.of(context).primaryColor,
+                    placeholder:
+                        (context, url) => Container(
+                          color:
+                              isDark
+                                  ? Colors.grey.shade900
+                                  : Colors.grey.shade100,
+                          child: Center(
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: colorScheme.primary,
+                            ),
+                          ),
                         ),
+                    errorWidget:
+                        (context, url, error) => Container(
+                          color:
+                              isDark
+                                  ? Colors.grey.shade900
+                                  : Colors.grey.shade100,
+                          child: Icon(
+                            Icons.image_not_supported,
+                            color: theme.disabledColor,
+                            size: 32,
+                          ),
+                        ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: AppColors.spacingM),
+
+              // Product Details
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    AutoSizeText(
+                      favorite.name,
+                      maxLines: 1,
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
                       ),
-                    ],
-                  ),
-                ),
-                const SizedBox(width: 16),
-                ElevatedButton(
-                  onPressed: () => _addToCart(favorite),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primaryColor,
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
                     ),
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                  ),
-                  child: const Text('Add'),
+                    const SizedBox(height: AppColors.spacingXS),
+                    Text(
+                      favorite.weight,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.hintColor,
+                      ),
+                    ),
+                    const SizedBox(height: AppColors.spacingS),
+                    Text(
+                      '₹${favorite.price}',
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        color: colorScheme.primary,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
+              ),
+              const SizedBox(width: AppColors.spacingS),
+
+              // Actions
+              Column(
+                children: [
+                  // Remove Button
+                  SizedBox(
+                    height: 28,
+                    width: 28,
+                    child:
+                        isBeingRemoved
+                            ? Padding(
+                              padding: const EdgeInsets.all(4.0),
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: colorScheme.primary,
+                              ),
+                            )
+                            : IconButton(
+                              padding: EdgeInsets.zero,
+                              iconSize: 20,
+                              icon: Icon(
+                                Icons.favorite,
+                                color: Colors.red.shade400,
+                              ),
+                              onPressed: () => _removeFromFavorites(favorite),
+                            ),
+                  ),
+                  const SizedBox(height: AppColors.spacingS),
+
+                  // Cart Button
+                  AnimatedSwitcher(
+                    duration: const Duration(
+                      milliseconds: AppColors.animMedium,
+                    ),
+                    child:
+                        isProcessing && !isBeingRemoved
+                            ? SizedBox(
+                              width: 92,
+                              height: 36,
+                              child: Center(
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: colorScheme.primary,
+                                ),
+                              ),
+                            )
+                            : quantity == 0
+                            ? SizedBox(
+                              width: 92,
+                              height: 36,
+                              child: ElevatedButton(
+                                onPressed:
+                                    () => _handleQuantityChanged(favorite, 1),
+                                child: const Text('Add'),
+                              ),
+                            )
+                            : SizedBox(
+                              width: 92,
+                              height: 36,
+                              child: ItemCounterWidget(
+                                amount: quantity,
+                                onAmountChanged:
+                                    (newAmount) => _handleQuantityChanged(
+                                      favorite,
+                                      newAmount,
+                                    ),
+                              ),
+                            ),
+                  ),
+                ],
+              ),
+            ],
           ),
         ),
       ),
     );
   }
-  
-  // Omitted other build states for brevity, they remain the same.
+
   Widget _buildLoadingState() {
     return ListView.builder(
       padding: const EdgeInsets.symmetric(vertical: 8),
@@ -315,6 +440,7 @@ class _FavouriteScreenState extends State<FavouriteScreen> {
         return Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           child: ShimmerLoading(
+            isLoading: true,
             child: Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
@@ -329,7 +455,11 @@ class _FavouriteScreenState extends State<FavouriteScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Container(width: double.infinity, height: 16, color: Colors.white),
+                        Container(
+                          width: double.infinity,
+                          height: 16,
+                          color: Colors.white,
+                        ),
                         const SizedBox(height: 8),
                         Container(width: 100, height: 14, color: Colors.white),
                         const SizedBox(height: 8),
@@ -349,34 +479,38 @@ class _FavouriteScreenState extends State<FavouriteScreen> {
   }
 
   Widget _buildErrorState() {
+    final theme = Theme.of(context);
+    final textTheme = theme.textTheme;
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(24.0),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.cloud_off, size: 64, color: Colors.grey.shade400),
+            Icon(Icons.cloud_off, size: 64, color: theme.disabledColor),
             const SizedBox(height: 16),
             Text(
               _error ?? 'An error occurred',
               textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w600,
-                color: Colors.grey.shade700,
+              style: textTheme.bodyLarge?.copyWith(
+                color: textTheme.bodyMedium?.color,
               ),
             ),
             const SizedBox(height: 24),
-            if (_error != null && _error!.toLowerCase().contains('login'))
-              ElevatedButton(
-                onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const LoginScreen())),
-                child: const Text('Login'),
-              )
-            else
-              ElevatedButton(
-                onPressed: _loadFavorites,
-                child: const Text('Retry'),
+            ElevatedButton(
+              onPressed:
+                  _error != null && _error!.toLowerCase().contains('login')
+                      ? () => Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const LoginScreen()),
+                      )
+                      : _loadFavorites,
+              child: Text(
+                _error != null && _error!.toLowerCase().contains('login')
+                    ? 'Login'
+                    : 'Retry',
               ),
+            ),
           ],
         ),
       ),
@@ -384,23 +518,35 @@ class _FavouriteScreenState extends State<FavouriteScreen> {
   }
 
   Widget _buildEmptyState() {
+    final theme = Theme.of(context);
+    final textTheme = theme.textTheme;
+
     return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.favorite_border, size: 80, color: Colors.grey.shade400),
-          const SizedBox(height: 20),
-          const Text(
-            "Your Wishlist is Empty",
-            style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 10),
-          Text(
-            "Tap the heart on any product to save it here.",
-            textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 16, color: Colors.grey.shade600),
-          ),
-        ],
+      child: Padding(
+        padding: const EdgeInsets.all(AppColors.spacingXL),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.favorite_border,
+              size: 80,
+              color: theme.disabledColor.withOpacity(0.5),
+            ),
+            const SizedBox(height: AppColors.spacingXL),
+            Text(
+              "Your Wishlist is Empty",
+              style: textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: AppColors.spacingM),
+            Text(
+              "Tap the heart on any product to save it here.",
+              textAlign: TextAlign.center,
+              style: textTheme.bodyMedium?.copyWith(color: theme.hintColor),
+            ),
+          ],
+        ),
       ),
     );
   }

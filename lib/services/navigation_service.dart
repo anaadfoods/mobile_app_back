@@ -1,16 +1,6 @@
-import 'package:flutter/material.dart';
-import 'package:grocery_app/models/subscription_model.dart';
-import 'package:grocery_app/screens/MySubscriptionPlan/subscription_plan_detail_single.dart';
-import 'package:grocery_app/screens/dashboard/dashboard_screen.dart';
-import 'package:grocery_app/screens/notifications/notifications_screen.dart';
-import 'package:grocery_app/screens/order/order_detail_screen.dart';
-import 'package:grocery_app/screens/product_details/product_details_screen.dart';
-import 'package:grocery_app/screens/cart/cart_screen.dart';
-import 'package:grocery_app/screens/account/account_screen_final.dart';
-import 'package:grocery_app/models/order_model.dart';
-import 'package:grocery_app/services/order_service.dart';
-import 'package:grocery_app/services/product_service.dart';
-import 'package:grocery_app/services/subscription_service.dart';
+import 'package:grocery_app/common_widgets/global_import.dart';
+
+
 
 class NavigationService {
   static final NavigationService _instance = NavigationService._internal();
@@ -36,14 +26,14 @@ class NavigationService {
   static Future<void> navigateToOrderDetails(String? orderId) async {
     final context = _instance.navigatorKey.currentContext;
     if (context != null && orderId != null) {
-      final OrderModel order = await OrderService().getOrderById(
+      final Order order = await OrderService().getOrderById(
         orderId as int,
       );
       // For now, navigate to notifications screen as order details require Order object
       await Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) => OrderDetailScreen(order: order as Order),
+          builder: (context) => OrderDetailScreen(order: order),
         ),
       );
     }

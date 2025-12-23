@@ -1,17 +1,4 @@
-import 'dart:async';
-import 'package:flutter/material.dart';
-import 'package:grocery_app/screens/category_items_screen.dart';
-import 'package:grocery_app/screens/product_details/product_details_screen.dart';
-import 'package:grocery_app/services/cart_service.dart';
-import 'package:grocery_app/services/product_service.dart';
-import 'package:grocery_app/models/category_model.dart';
-import 'package:grocery_app/models/product_model.dart';
-import 'package:grocery_app/styles/colors.dart';
-import 'package:grocery_app/widgets/search_bar_widget.dart';
-import 'package:grocery_app/widgets/grocery_item_card_widget.dart';
-import 'package:grocery_app/helpers/animated_transitions.dart';
-import 'package:cached_network_image/cached_network_image.dart';
-import 'package:shimmer/shimmer.dart'; // Import the shimmer package
+import 'package:grocery_app/common_widgets/global_import.dart';
 
 class ExploreScreen extends StatefulWidget {
   const ExploreScreen({super.key});
@@ -21,102 +8,80 @@ class ExploreScreen extends StatefulWidget {
 }
 
 class _ExploreScreenState extends State<ExploreScreen> {
-  // ---------- Simple In-Memory Cache ----------
+  // --- CACHING (Categories only) ---
   static List<Category>? _cachedCategories;
-  static List<Product>? _cachedBestsellers;
 
-  // ---------- State Variables ----------
+  // --- LOCAL STATE ---
   List<Category> _categories = [];
   List<Category> _filteredCategories = [];
   List<Product> _bestsellers = [];
   bool _isLoading = true;
-  bool _isLoadingBestsellers = false;
+  bool _isLoadingBestsellers = true;
   String? _error;
 
   @override
   void initState() {
     super.initState();
-    _loadCachedOrFetch();
+    _loadData();
   }
 
-  // ---------- Initial Loading with Cache ----------
-  Future<void> _loadCachedOrFetch() async {
-    if (_cachedCategories != null && _cachedBestsellers != null) {
-      // Use cached data instantly
-      setState(() {
-        _categories = _cachedCategories!;
-        _filteredCategories = _categories;
-        _bestsellers = _cachedBestsellers!;
-        _isLoading = false;
-      });
-    } else if (_cachedCategories != null && _cachedBestsellers == null) {
-      // Categories available, load bestsellers in background
-      setState(() {
-        _categories = _cachedCategories!;
-        _filteredCategories = _categories;
-        _isLoading = false;
-      });
-      _loadBestsellersInBackground();
-    } else {
-      // Full first-time load
-      _loadData();
-    }
-  }
-
-  // ---------- Main Loader (Categories first, then Bestsellers) ----------
   Future<void> _loadData() async {
-    setState(() {
-      _isLoading = true;
-      _error = null;
-    });
-
-    try {
-      final isConnected = await CategoryService.testConnection();
-      if (!isConnected) {
+    if (_cachedCategories != null) {
+      if (mounted) {
         setState(() {
-          _error = 'Cannot connect to server. Please check your network.';
+          _categories = _cachedCategories!;
+          _filteredCategories = _categories;
           _isLoading = false;
         });
-        return;
       }
+    } else {
+      await _fetchCategories();
+    }
+    await _fetchBestsellers();
+  }
 
-      // Load categories first
+  Future<void> _fetchCategories() async {
+    if (mounted) {
+      setState(() {
+        _isLoading = true;
+        _error = null;
+      });
+    }
+    try {
       final categories = await CategoryService.fetchCategories();
-
-      setState(() {
-        _categories = categories;
-        _filteredCategories = categories;
-        _cachedCategories = categories;
-        _isLoading = false;
-      });
-
-      // Load bestsellers quietly
-      _loadBestsellersInBackground();
+      if (mounted) {
+        setState(() {
+          _categories = categories;
+          _filteredCategories = categories;
+          _cachedCategories = categories;
+          _isLoading = false;
+        });
+      }
     } catch (e) {
-      setState(() {
-        _error = 'Error loading data: $e';
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _error = 'Error loading categories: $e';
+          _isLoading = false;
+        });
+      }
     }
   }
 
-  // ---------- Background Bestsellers Loader ----------
-  Future<void> _loadBestsellersInBackground() async {
-    if (_isLoadingBestsellers || _cachedBestsellers != null) return;
-
-    setState(() => _isLoadingBestsellers = true);
-
-    // Optional small delay for smoother UX
-    await Future.delayed(const Duration(milliseconds: 500));
-
+  Future<void> _fetchBestsellers() async {
+    if (_isLoadingBestsellers && _bestsellers.isNotEmpty) return;
+    if (mounted) {
+      setState(() {
+        _isLoadingBestsellers = true;
+      });
+    }
     try {
       final bestsellers = await CategoryService.fetchBestsellerProducts();
-      setState(() {
-        _bestsellers = bestsellers;
-        _cachedBestsellers = bestsellers;
-      });
+      if (mounted) {
+        setState(() {
+          _bestsellers = bestsellers;
+        });
+      }
     } catch (_) {
-      // ignore failure silently, user already sees categories
     } finally {
       if (mounted) {
         setState(() => _isLoadingBestsellers = false);
@@ -124,111 +89,118 @@ class _ExploreScreenState extends State<ExploreScreen> {
     }
   }
 
-  // ---------- Search ----------
+  Future<void> _handleRefresh() async {
+    _cachedCategories = null;
+    await _loadData();
+  }
+
   void _filterCategories(String query) {
     setState(() {
-      if (query.isEmpty) {
-        _filteredCategories = _categories;
-      } else {
-        _filteredCategories = _categories
-            .where((category) =>
-                category.name.toLowerCase().contains(query.toLowerCase()))
-            .toList();
-      }
+      _filteredCategories =
+          query.isEmpty
+              ? _categories
+              : _categories
+                  .where(
+                    (c) => c.name.toLowerCase().contains(query.toLowerCase()),
+                  )
+                  .toList();
     });
   }
 
-  // ---------- Build ----------
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Scaffold(
       appBar: AppBar(
-        leading: const Icon(Icons.arrow_back),
         centerTitle: false,
-        title: const Text(
-          "Category",
-          style: TextStyle(fontWeight: FontWeight.bold),
-        ),
+        title: const Text("Category"),
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
-            onPressed: () {
-              // Clear cache and reload everything fresh
-              _cachedCategories = null;
-              _cachedBestsellers = null;
-              _loadData();
-            },
-          )
+            onPressed: _handleRefresh,
+          ),
         ],
       ),
       body: SafeArea(
-        child: _isLoading
-            ? _buildSkeletonLoader() // Use skeleton loader on initial load
-            : _error != null
-                ? Center(
-                    child: Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Text(_error!, textAlign: TextAlign.center),
-                  ))
-                : Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+        child: RefreshIndicator(
+          onRefresh: _handleRefresh,
+          child:
+              _isLoading
+                  ? _buildSkeletonLoader(theme)
+                  : _error != null
+                  ? Center(
+                    child: Text(
+                      _error!,
+                      style: TextStyle(color: theme.colorScheme.error),
+                    ),
+                  )
+                  : Column(
                     children: [
-                      SearchBarWidget(
-                        hintText: 'Search',
-                        onChanged: _filterCategories,
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: AppColors.spacingL,
+                          vertical: AppColors.spacingS,
+                        ),
+                        child: SearchBarWidget(
+                          hintText: 'Search Categories',
+                          onChanged: _filterCategories,
+                        ),
                       ),
-                      Expanded(child: _buildBody()),
+                      Expanded(child: _buildBody(theme)),
                     ],
                   ),
+        ),
       ),
     );
   }
 
-  // ---------- UI Body ----------
-  Widget _buildBody() {
+  Widget _buildBody(ThemeData theme) {
     return SingleChildScrollView(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // ---------- Categories ----------
-          const Padding(
-            padding: EdgeInsets.all(16),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(
+              AppColors.spacingL,
+              AppColors.spacingL,
+              AppColors.spacingL,
+              AppColors.spacingS,
+            ),
             child: Text(
               'Categories',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              style: theme.textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
             ),
           ),
           if (_filteredCategories.isEmpty)
             Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: const [
-                  Icon(Icons.category_outlined, size: 48, color: Colors.grey),
-                  SizedBox(height: 16),
-                  Text(
-                    'No matching categories found',
-                    style: TextStyle(color: Colors.grey),
-                  ),
-                ],
+              child: Padding(
+                padding: const EdgeInsets.all(AppColors.spacingL),
+                child: Text(
+                  'No matching categories found',
+                  style: theme.textTheme.bodyMedium,
+                ),
               ),
             )
           else
-            _buildCategoryGrid(),
-
-          // ---------- Bestsellers ----------
-          if (_bestsellers.isNotEmpty || _isLoadingBestsellers)
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 5),
-              child: Text(
-                'Trending Products',
-                style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.textPrimary),
+            _buildCategoryGrid(theme),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(
+              AppColors.spacingL,
+              AppColors.spacingXL,
+              AppColors.spacingL,
+              AppColors.spacingM,
+            ),
+            child: Text(
+              'Trending Products',
+              style: theme.textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.bold,
               ),
             ),
-          if (_isLoadingBestsellers && _bestsellers.isEmpty)
-            _buildBestsellerListSkeleton() // Use skeleton for bestsellers
+          ),
+          if (_isLoadingBestsellers)
+            _buildBestsellerListSkeleton(theme)
           else if (_bestsellers.isNotEmpty)
             ListView.builder(
               itemCount: _bestsellers.length,
@@ -236,49 +208,58 @@ class _ExploreScreenState extends State<ExploreScreen> {
               physics: const NeverScrollableScrollPhysics(),
               itemBuilder: (context, index) {
                 final item = _bestsellers[index];
-                return GestureDetector(
-                  onTap: item.isInStock ? () => _onProductClicked(item) : null,
-                  child: Opacity(
-                    opacity: item.isInStock ? 1.0 : 0.5,
-                    child: GroceryItemCardWidget(
-                      item: item,
-                      heroSuffix: "home_screen",
-                      onAddToCart: (id, q) => CartService().addToCart(id, q),
-                    ),
+                return Opacity(
+                  opacity: item.isInStock ? 1.0 : 0.5,
+                  child: GroceryItemCardWidget(
+                    item: item,
+                    heroSuffix: "explore_screen",
+                    onTap:
+                        item.isInStock ? () => _onProductClicked(item) : null,
                   ),
                 );
               },
             )
           else
-            const SizedBox(height: 10),
+            const Center(
+              child: Padding(
+                padding: EdgeInsets.all(AppColors.spacingL),
+                child: Text("No trending products available right now."),
+              ),
+            ),
+          const SizedBox(height: AppColors.spacingL),
         ],
       ),
     );
   }
 
-  // ---------- Category Grid ----------
-  Widget _buildCategoryGrid() {
+  Widget _buildCategoryGrid(ThemeData theme) {
+    final isDark = theme.brightness == Brightness.dark;
+
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppColors.spacingL,
+        vertical: AppColors.spacingM,
+      ),
       child: GridView.builder(
         shrinkWrap: true,
         physics: const NeverScrollableScrollPhysics(),
         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: 2,
-          crossAxisSpacing: 10,
-          mainAxisSpacing: 10,
-          childAspectRatio: 0.9, // Adjust aspect ratio for card
+          crossAxisSpacing: AppColors.spacingM,
+          mainAxisSpacing: AppColors.spacingM,
+          childAspectRatio: 0.9,
         ),
         itemCount: _filteredCategories.length,
         itemBuilder: (context, index) {
           final category = _filteredCategories[index];
           return GestureDetector(
-            onTap: category.isActive
-                ? () => _onCategoryItemClicked(context, category)
-                : null,
+            onTap:
+                category.isActive
+                    ? () => _onCategoryItemClicked(context, category)
+                    : null,
             child: Opacity(
               opacity: category.isActive ? 1.0 : 0.5,
-              child: _buildCachedCategoryCard(category),
+              child: _buildCachedCategoryCard(category, theme, isDark),
             ),
           );
         },
@@ -286,92 +267,84 @@ class _ExploreScreenState extends State<ExploreScreen> {
     );
   }
 
-  // ---------- Cached Category Image Card ----------
-  Widget _buildCachedCategoryCard(Category category) {
+  Widget _buildCachedCategoryCard(
+    Category category,
+    ThemeData theme,
+    bool isDark,
+  ) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
+        color: theme.cardColor,
+        borderRadius: BorderRadius.circular(AppColors.radiusM),
+        border: Border.all(
+          color: isDark ? Colors.grey.shade800 : Colors.grey.shade200,
+          width: 1,
+        ),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
-            spreadRadius: 1,
-            blurRadius: 3,
-            offset: const Offset(0, 1),
+            color: theme.shadowColor.withOpacity(AppColors.shadowOpacityLight),
+            blurRadius: 6,
+            offset: const Offset(0, 2),
           ),
         ],
       ),
-      child: Container(
-        decoration: BoxDecoration(
-          
-        ),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(10),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Expanded(
-                flex: 3,
-                child: Container(
-                  decoration: BoxDecoration(
-                    border: Border.all(
-                      color: AppColors.bottonBackgroundColor,
-                      width: 2,
-                                   )                 ),
-                  child: CachedNetworkImage(
-                    imageUrl: category.image,
-                    fit: BoxFit.cover,
-                    placeholder: (context, url) => Container(
-                      color: Colors.grey[200],
-                      child: Center(
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(AppColors.radiusM),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Expanded(
+              flex: 3,
+              child: Container(
+                decoration: BoxDecoration(
+                  color: isDark ? Colors.grey.shade900 : Colors.grey.shade50,
+                ),
+                child: CachedNetworkImage(
+                  imageUrl: category.image,
+                  fit: BoxFit.cover,
+                  placeholder:
+                      (context, url) => Center(
                         child: CircularProgressIndicator(
                           strokeWidth: 2,
-                          valueColor:
-                              AlwaysStoppedAnimation<Color>(Colors.grey[400]!),
+                          color: theme.colorScheme.primary,
                         ),
                       ),
-                    ),
-                    errorWidget: (context, url, error) => Container(
-                      color: Colors.grey[200],
-                      child: Icon(Icons.image_not_supported,
-                          color: Colors.grey[400], size: 40),
-                    ),
-                    memCacheWidth: 150,
-                    memCacheHeight: 150,
-                    maxWidthDiskCache: 150,
-                    maxHeightDiskCache: 150,
-                  ),
-                ),
-              ),
-              Expanded(
-                flex: 1,
-                child: Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                  color: Colors.white,
-                  child: Center(
-                    child: Text(
-                      category.name,
-                      style: const TextStyle(
-                        color: Colors.black,
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
+                  errorWidget:
+                      (context, url, error) => Icon(
+                        Icons.image_not_supported,
+                        color: theme.disabledColor,
+                        size: 32,
                       ),
-                      textAlign: TextAlign.center,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ),
+            Expanded(
+              flex: 1,
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppColors.spacingS,
+                  vertical: AppColors.spacingXS,
+                ),
+                color: theme.cardColor,
+                child: Center(
+                  child: Text(
+                    category.name,
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      fontWeight: FontWeight.w600,
                     ),
+                    textAlign: TextAlign.center,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
   }
 
-  // ---------- Navigation ----------
   void _onProductClicked(Product item) {
     Navigator.push(
       context,
@@ -380,9 +353,10 @@ class _ExploreScreenState extends State<ExploreScreen> {
   }
 
   void _onCategoryItemClicked(BuildContext context, Category category) async {
-    final products =
-        await CategoryService.fetchProductsByCategory(category.name);
-
+    final products = await CategoryService.fetchProductsByCategory(
+      category.name,
+    );
+    if (!mounted) return;
     Navigator.of(context).push(
       AnimatedTransitions.slideFromRight(
         CategoryItemsScreen(name: category.name, allProducts: products),
@@ -390,84 +364,66 @@ class _ExploreScreenState extends State<ExploreScreen> {
     );
   }
 
-  // ---------- SKELETON WIDGETS ----------
-
-  /// A reusable box for skeleton placeholders.
-  Widget _skeletonBox({
-    double? width,
-    double? height,
-    double radius = 8.0,
-    EdgeInsetsGeometry margin = EdgeInsets.zero,
-  }) {
-    return Container(
-      width: width,
-      height: height,
-      margin: margin,
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(radius),
-      ),
-    );
-  }
-
-  /// The main skeleton loader for the entire screen.
-  Widget _buildSkeletonLoader() {
+  Widget _buildSkeletonLoader(ThemeData theme) {
     return Shimmer.fromColors(
-      baseColor: Colors.grey[300]!,
-      highlightColor: Colors.grey[100]!,
+      baseColor: theme.colorScheme.surface.withOpacity(0.5),
+      highlightColor: theme.colorScheme.surface,
       child: SingleChildScrollView(
         physics: const NeverScrollableScrollPhysics(),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Search Bar Skeleton
-            _skeletonBox(
+            _buildSkeletonContainer(
               height: 50,
+              borderRadius: 8,
               margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
             ),
-            // "Categories" Title Skeleton
-            _skeletonBox(
+            _buildSkeletonContainer(
               width: 150,
               height: 24,
+              borderRadius: 8,
               margin: const EdgeInsets.all(16),
             ),
-            // Category Grid Skeleton
-            _buildCategoryGridSkeleton(),
-            // "Trending Products" Title Skeleton
-            _skeletonBox(
+            _buildCategoryGridSkeleton(theme),
+            _buildSkeletonContainer(
               width: 200,
               height: 20,
+              borderRadius: 8,
               margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
             ),
-            // Bestseller List Skeleton
-            _buildBestsellerListSkeleton(),
+            _buildBestsellerListSkeleton(theme),
           ],
         ),
       ),
     );
   }
 
-  /// Builds a skeleton placeholder for the category grid.
-  Widget _buildCategoryGridSkeleton() {
+  Widget _buildCategoryGridSkeleton(ThemeData theme) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
       child: GridView.builder(
         shrinkWrap: true,
         physics: const NeverScrollableScrollPhysics(),
         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: 2,
-          crossAxisSpacing: 10,
-          mainAxisSpacing: 10,
+          crossAxisSpacing: 12,
+          mainAxisSpacing: 12,
           childAspectRatio: 0.9,
         ),
-        itemCount: 4, // Display 4 placeholder items
+        itemCount: 4,
         itemBuilder: (context, index) {
           return Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Expanded(flex: 3, child: _skeletonBox()),
+              Expanded(
+                flex: 3,
+                child: _buildSkeletonContainer(borderRadius: 8),
+              ),
               const SizedBox(height: 8),
-              Expanded(flex: 1, child: _skeletonBox()),
+              Expanded(
+                flex: 1,
+                child: _buildSkeletonContainer(borderRadius: 8),
+              ),
             ],
           );
         },
@@ -475,49 +431,57 @@ class _ExploreScreenState extends State<ExploreScreen> {
     );
   }
 
-  /// Builds a skeleton placeholder for the bestseller list.
-  Widget _buildBestsellerListSkeleton() {
-    return Shimmer.fromColors(
-      baseColor: Colors.grey[300]!,
-      highlightColor: Colors.grey[100]!,
-      child: ListView.builder(
-        itemCount: 3, // Display 3 placeholder items
-        shrinkWrap: true,
-        physics: const NeverScrollableScrollPhysics(),
-        itemBuilder: (context, index) {
-          return Container(
-            margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Row(
-              children: [
-                _skeletonBox(width: 80, height: 80),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _skeletonBox(height: 20),
-                      const SizedBox(height: 8),
-                      _skeletonBox(height: 16, width: 100),
-                      const SizedBox(height: 12),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          _skeletonBox(height: 20, width: 60),
-                          _skeletonBox(height: 30, width: 30, radius: 15),
-                        ],
-                      )
-                    ],
-                  ),
+  Widget _buildBestsellerListSkeleton(ThemeData theme) {
+    return ListView.builder(
+      itemCount: 3,
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      itemBuilder: (context, index) {
+        return Container(
+          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: theme.cardColor,
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Row(
+            children: [
+              _buildSkeletonContainer(width: 80, height: 80, borderRadius: 8),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildSkeletonContainer(height: 20, borderRadius: 4),
+                    const SizedBox(height: 8),
+                    _buildSkeletonContainer(
+                      height: 16,
+                      width: 100,
+                      borderRadius: 4,
+                    ),
+                  ],
                 ),
-              ],
-            ),
-          );
-        },
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildSkeletonContainer({
+    double? width,
+    double? height,
+    EdgeInsetsGeometry? margin,
+    double borderRadius = 0,
+  }) {
+    return Container(
+      width: width,
+      height: height,
+      margin: margin,
+      decoration: BoxDecoration(
+        color: Colors.white, // This will be covered by the shimmer
+        borderRadius: BorderRadius.circular(borderRadius),
       ),
     );
   }

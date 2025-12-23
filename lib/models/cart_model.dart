@@ -113,6 +113,14 @@ class CartModel {
   }
 
   bool get isEmpty => items.isEmpty;
+
+  CartModel copyWith({
+    List<CartItem>? items,
+    String? totalPrice,
+    int? totalItems,
+  }) {
+    return CartModel(id: id, items: items ?? this.items, totalPrice: totalPrice ?? this.totalPrice, totalItems: totalItems ?? this.totalItems, createdAt: createdAt, updatedAt: updatedAt);
+  }
 }
 
 class ProductVariant {

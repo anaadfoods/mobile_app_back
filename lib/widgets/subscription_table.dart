@@ -1,25 +1,8 @@
 import 'dart:ui';
-
-import 'package:carousel_slider/carousel_slider.dart';
-import 'package:flutter/material.dart';
-import 'package:grocery_app/helpers/animated_transitions.dart';
-import 'package:grocery_app/helpers/responsive_helper.dart';
-import 'package:grocery_app/models/product_model.dart';
-import 'package:grocery_app/models/subscription_plan_model.dart';
-import 'package:grocery_app/models/subscription_plan_product_model.dart';
-import 'package:grocery_app/screens/product_details/product_details_screen.dart';
-import 'package:grocery_app/services/cart_service.dart';
-import 'package:grocery_app/services/product_service.dart';
-import 'package:grocery_app/services/subscription_service.dart';
-import 'package:grocery_app/screens/auth/login_screen.dart';
-import 'package:grocery_app/common_widgets/skeleton_loader.dart';
-import 'package:grocery_app/styles/colors.dart';
-import 'package:grocery_app/helpers/snackbar_helper.dart';
-
+import 'package:grocery_app/common_widgets/global_import.dart';
 
 class SubscriptionTable extends StatefulWidget {
   final Function(SubscriptionPlan)? onPlanSelected;
-
   const SubscriptionTable({super.key, this.onPlanSelected});
 
   @override
@@ -31,66 +14,59 @@ class _SubscriptionTableState extends State<SubscriptionTable> {
   List<SubscriptionPlan> _plans = [];
   bool _isLoading = true;
   String? _error;
-
-    // MODIFICATION 1: Create static variables for caching
   static List<SubscriptionPlan>? _cachedPlans;
   static final Map<int, List<SubscriptionPlanProduct>> _cachedPlanProducts = {};
-
   final Map<int, List<SubscriptionPlanProduct>> _planProducts = {};
   final Map<int, bool> _loadingProducts = {};
-  bool _isLoadingDropdownData = true;
-  List<String> _dropdownItems = [];
-  late ResponsiveHelper responsive = ResponsiveHelper(
-    context,
-    BoxConstraints(
-      maxWidth: MediaQuery.of(context).size.width,
-      minWidth: 0,
-      minHeight: 0,
-      maxHeight: MediaQuery.of(context).size.height,
-    ),
-  );
-  
-  // MODIFICATION 1: Add a state variable to track the current index
-  int _currentIndex = 1; // Start at 1 to match initialPage
+  int _currentIndex = 1;
 
-    @override
+  @override
   void initState() {
     super.initState();
+    // Moved _loadData to didChangeDependencies
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
     _loadData();
   }
 
   Future<void> _loadData() async {
-    // Check cache first
     if (_cachedPlans != null && _cachedPlans!.isNotEmpty) {
-      setState(() {
-        _plans = _cachedPlans!;
-        _isLoading = false;
-      });
-      // Pre-load products from cache or fetch if not available
-      _cachedPlans!.forEach((plan) => _loadPlanProducts(plan.id));
+      if (mounted) {
+        setState(() {
+          _plans = _cachedPlans!;
+          _isLoading = false;
+        });
+      }
+      for (var plan in _cachedPlans!) {
+        _loadPlanProducts(plan.id);
+      }
     } else {
-      // Fetch from network if cache is empty
       await _loadSubscriptionPlans();
     }
   }
-  // ... (Your existing data loading methods like _loadSubscriptionPlans, _loadPlanProducts, etc. remain unchanged)
-  Future<void> _loadSubscriptionPlans() async {
-    setState(() {
-      _isLoading = true;
-      _error = null;
-    });
 
+  Future<void> _loadSubscriptionPlans() async {
+    if (mounted) {
+      setState(() {
+        _isLoading = true;
+        _error = null;
+      });
+    }
     try {
       final result = await _subscriptionService.getSubscriptionPlans();
       if (mounted) {
         if (result['success']) {
           setState(() {
             _plans = result['data'] as List<SubscriptionPlan>;
-            _cachedPlans = _plans; // Cache the fetched plans
+            _cachedPlans = _plans;
             _isLoading = false;
           });
-          // Pre-load products after fetching plans
-          _plans.forEach((plan) => _loadPlanProducts(plan.id));
+          for (var plan in _plans) {
+            _loadPlanProducts(plan.id);
+          }
         } else {
           setState(() {
             _error = result['message'];
@@ -109,35 +85,38 @@ class _SubscriptionTableState extends State<SubscriptionTable> {
   }
 
   Future<void> _loadPlanProducts(int planId) async {
-        if (_cachedPlanProducts.containsKey(planId)) {
-      setState(() {
-        _planProducts[planId] = _cachedPlanProducts[planId]!;
-      });
-
+    if (_cachedPlanProducts.containsKey(planId)) {
+      if (mounted) {
+        setState(() {
+          _planProducts[planId] = _cachedPlanProducts[planId]!;
+        });
+      }
       return;
     }
+    if (_loadingProducts[planId] == true) return;
 
-    if (_loadingProducts[planId] == true) return; // Prevent multiple calls
+    if (mounted) {
+      setState(() {
+        _loadingProducts[planId] = true;
+      });
+    }
 
-    setState(() {
-      _loadingProducts[planId] = true;
-    });
-
-     try {
-      final result = await _subscriptionService.getSubscriptionPlanProducts(planId);
+    try {
+      final result = await _subscriptionService.getSubscriptionPlanProducts(
+        planId,
+      );
       if (mounted) {
         if (result['success']) {
           final response = result['data'] as SubscriptionPlanProductsResponse;
           setState(() {
             _planProducts[planId] = response.products;
-            _cachedPlanProducts[planId] = response.products; // Cache products
-            //...
+            _cachedPlanProducts[planId] = response.products;
           });
-        }  else {
+        } else {
           if (result['requiresLogin'] == true) {
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (context) => LoginScreen()),
+              MaterialPageRoute(builder: (context) => const LoginScreen()),
             );
           } else {
             SnackBarHelper.showError(
@@ -145,364 +124,496 @@ class _SubscriptionTableState extends State<SubscriptionTable> {
               result['message'] ?? 'Failed to load products',
             );
           }
-          setState(() {
-            _loadingProducts[planId] = false;
-            _isLoadingDropdownData = false;
-          });
         }
       }
     } catch (e) {
       if (mounted) {
         SnackBarHelper.showError(context, 'Error loading products: $e');
+      }
+    } finally {
+      if (mounted) {
         setState(() {
           _loadingProducts[planId] = false;
-          _isLoadingDropdownData = false;
         });
       }
     }
   }
 
   Future<void> _refreshData() async {
-    // Clear cache
     _cachedPlans = null;
     _cachedPlanProducts.clear();
-    // Fetch fresh data
     await _loadSubscriptionPlans();
   }
-  Future<void> _handleSubscribe(SubscriptionPlan plan) async {
-    try {
-      final result = await _subscriptionService.subscribeToPlan(plan.id);
 
-      if (!mounted) return;
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final size = MediaQuery.of(context).size;
 
-      if (result['success']) {
-        SnackBarHelper.showSuccess(context, result['message']);
-        if (widget.onPlanSelected != null) {
-          widget.onPlanSelected!(plan);
-        }
-      } else {
-        String errorMsg = result['message'] ?? 'Failed to subscribe';
-        if (result['errors'] != null) {
-          errorMsg += '\n${result['errors']}';
-        }
-        if (result['requiresLogin'] == true) {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => LoginScreen()),
-          );
-        } else {
-          SnackBarHelper.showError(context, errorMsg);
-        }
-      }
-    } catch (e) {
-      SnackBarHelper.showError(context, 'Error subscribing to plan: $e');
+    // Responsive Carousel Height based on screen size
+    // Small phones: 55% of height, larger screens: 50%
+    final isCompactHeight = size.height < 700;
+    final heightFraction = isCompactHeight ? 0.55 : 0.50;
+    final double carouselHeight = (size.height * heightFraction).clamp(
+      380.0,
+      580.0,
+    );
+
+    if (_isLoading) {
+      return Center(
+        child: AnimatedOpacity(
+          opacity: 1.0,
+          duration: const Duration(milliseconds: AppColors.animMedium),
+          child: const CircularProgressIndicator(),
+        ),
+      );
     }
+    if (_error != null) {
+      return _buildErrorState(theme);
+    }
+
+    return RefreshIndicator(
+      onRefresh: _refreshData,
+      child: CarouselSlider.builder(
+        itemCount: _plans.length,
+        itemBuilder: (context, index, realIndex) {
+          final plan = _plans[index];
+          final isSelected = (index == _currentIndex);
+          return _buildPlanCard(
+            plan,
+            context,
+            isSelected: isSelected,
+            theme: theme,
+          );
+        },
+        options: CarouselOptions(
+          height: carouselHeight,
+          viewportFraction:
+              size.width < 400 ? 0.92 : 0.85, // Fuller width on small screens
+          autoPlay: true,
+          autoPlayInterval: const Duration(seconds: 5),
+          enlargeCenterPage: true,
+          enlargeFactor:
+              size.width < 400
+                  ? 0.15
+                  : 0.18, // Smaller enlarge on compact screens
+          enableInfiniteScroll: true,
+          initialPage: 1,
+          onPageChanged: (index, reason) {
+            setState(() {
+              _currentIndex = index;
+            });
+          },
+        ),
+      ),
+    );
   }
 
-  Widget _buildErrorState() {
+  Widget _buildErrorState(ThemeData theme) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Text(
             _error ?? 'An error occurred',
-            style: TextStyle(color: Colors.red),
+            style: TextStyle(color: theme.colorScheme.error),
             textAlign: TextAlign.center,
           ),
-          SizedBox(height: 16),
+          const SizedBox(height: 16),
           ElevatedButton(
             onPressed: _loadSubscriptionPlans,
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
-            child: Text('Retry'),
+            child: const Text('Retry'),
           ),
         ],
       ),
     );
   }
 
-  @override
-  Widget build(BuildContext context) {
-    if (_isLoading) {
-      return SkeletonAnimation(
-        isLoading: true,
-        loadingWidget: SubscriptionSkeletonLoader(responsive: responsive),
-        child: Container(),
-      );
-    }
+  Widget _buildPlanCard(
+    SubscriptionPlan plan,
+    BuildContext context, {
+    required bool isSelected,
+    required ThemeData theme,
+  }) {
+    final textTheme = theme.textTheme;
+    final size = MediaQuery.of(context).size;
 
-    if (_error != null) {
-      return _buildErrorState();
-    }
+    // Multi-tier responsive breakpoints
+    final isExtraSmall = size.width < 320;
+    final isSmallScreen = size.width < 380;
+    final isCompactHeight = size.height < 700;
 
-    return RefreshIndicator(
-      onRefresh: _refreshData,
-      child: SizedBox(
-        height: 500,
-        // MODIFICATION 2: Use CarouselSlider.builder for conditional styling
-        child: CarouselSlider.builder(
-          itemCount: _plans.length,
-          itemBuilder: (context, index, realIndex) {
-            final plan = _plans[index];
-            // Determine if the current card is the one in the center
-            final isSelected = (index == _currentIndex);
-            // Pass the `isSelected` flag to the card builder
-            return _buildPlanCard(plan, isSelected: isSelected);
-          },
-          // MODIFICATION 3: Update CarouselOptions for the desired effect
-          options: CarouselOptions(
-            height: 500,
-            viewportFraction: 0.8,
-            autoPlay: true,
-            autoPlayInterval: const Duration(seconds: 5),
-            enlargeCenterPage: true, // Make the center card larger
-            enlargeFactor: 0.3, // Control the scaling of the center card
-            enableInfiniteScroll: true,
-            initialPage: 1,
-            onPageChanged: (index, reason) {
-              // Update the state when the page changes
-              setState(() {
-                _currentIndex = index;
-              });
-            },
-          ),
-        ),
-      ),
-    );
-  }
+    // Dynamic spacing based on screen size
+    final basePadding = isExtraSmall ? 12.0 : (isSmallScreen ? 16.0 : 20.0);
+    final verticalMargin =
+        isCompactHeight ? size.height * 0.01 : size.height * 0.012;
 
-  // MODIFICATION 4: Update the card builder to accept and use the `isSelected` flag
-  Widget _buildPlanCard(SubscriptionPlan plan, {required bool isSelected}) {
-    // Use AnimatedContainer for smooth transitions between selected/unselected states
+    // Design Tokens based on Mockups
+    final backgroundColor =
+        isSelected
+            ? const Color(0xFF355E3B)
+            : Colors.white; // Hunter Green vs White
+    final primaryTextColor = isSelected ? Colors.white : Colors.black;
+    final secondaryTextColor =
+        isSelected
+            ? Colors.white.withOpacity(0.8)
+            : Colors.black.withOpacity(0.6);
+    final borderColor =
+        isSelected ? Colors.transparent : Colors.grey.withOpacity(0.2);
+    final buttonBorderColor = isSelected ? Colors.white : Colors.black;
+    final buttonTextColor = isSelected ? Colors.white : Colors.black;
+
     return AnimatedContainer(
       duration: const Duration(milliseconds: 300),
       curve: Curves.easeInOut,
-      height: 400,
-      margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 24),
+      margin: EdgeInsets.symmetric(
+        horizontal: isSmallScreen ? 4 : 8,
+        vertical: verticalMargin,
+      ),
+      padding: EdgeInsets.all(basePadding),
       decoration: BoxDecoration(
-        // Conditionally change color opacity
-        color: isSelected ? AppColors.primaryColor : Colors.white,
+        color: backgroundColor,
         borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: borderColor, width: 1),
         boxShadow: [
-          // Only show shadow on the selected card for a "lifting" effect
-          if (isSelected)
-            BoxShadow(
-              color: Colors.black.withOpacity(0.1),
-              blurRadius: 20,
-              offset: const Offset(0, 5),
-            ),
-        ],
-        // Conditionally change border opacity
-        border: Border.all(
-          color: isSelected ? Colors.white : Colors.black.withOpacity(0.5),
-          width: 2,
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Title and description
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      plan.name,
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        // Conditionally change text opacity
-                        color: isSelected ? Colors.white : Colors.black.withOpacity(0.85),
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      plan.description,
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: isSelected ? Colors.white : Colors.black.withOpacity(0.85),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              // Icon
-              Container(
-                margin: const EdgeInsets.only(left: 12),
-                width: 65,
-                height: 65,
-                decoration: const BoxDecoration(
-                  color: Colors.white,
-                  shape: BoxShape.circle,
-                ),
-                child: const Center(
-                  child: Icon(
-                    Icons.eco,
-                    color: Color(0xFF2E5E3A),
-                    size: 32,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 24),
-          // Know More Button
-          OutlinedButton.icon(
-            onPressed: () {
-              final products = _planProducts[plan.id] ?? [];
-              showSubscriptionPopup(context, plan, products);
-            },
-            style: OutlinedButton.styleFrom(
-              side: BorderSide(
-                color: isSelected ? Colors.white : Colors.black.withOpacity(0.7),
-                width: 1.5,
-              ),
-              foregroundColor: isSelected ? Colors.white : Colors.black.withOpacity(0.7),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(30),
-              ),
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-            ),
-            icon: const Text(
-              "Know More",
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
-            ),
-            label: const Icon(Icons.arrow_forward, size: 14),
-          ),
-          const SizedBox(height: 8),
-          // Divider
-          Divider(color: Colors.white.withOpacity(0.6), thickness: 1),
-          const SizedBox(height: 8),
-          // Info Rows
-          _styledInfoRow(
-            icon: Icons.check_circle,
-            label: "Duration",
-            value: "${plan.durationMonths} Months",
-            isSelected: isSelected,
-          ),
-          const SizedBox(height: 8),
-          _styledInfoRow(
-            icon: Icons.check_circle,
-            label: "One-Time Allowance",
-            value: plan.isOneTimeOnly ? "Yes" : "No",
-            isSelected: isSelected,
-          ),
-          const SizedBox(height: 8),
-          _styledInfoRow(
-            icon: Icons.check_circle,
-            label: "Savings",
-            value: "${plan.totalDiscountPercentage}% off 🔥",
-            isSelected: isSelected,
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 15,
+            offset: const Offset(0, 8),
           ),
         ],
       ),
-    );
-  }
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          return SingleChildScrollView(
+            physics: const BouncingScrollPhysics(),
+            child: ConstrainedBox(
+              constraints: BoxConstraints(minHeight: constraints.maxHeight),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Header: Title + Icon
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  plan.name,
+                                  style: textTheme.headlineSmall?.copyWith(
+                                    color: primaryTextColor,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize:
+                                        isExtraSmall
+                                            ? 16
+                                            : (isSmallScreen ? 18 : null),
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                                SizedBox(height: isSmallScreen ? 4 : 8),
+                                Text(
+                                  plan.description,
+                                  style: textTheme.bodySmall?.copyWith(
+                                    color: secondaryTextColor,
+                                    height: 1.3,
+                                    fontSize:
+                                        isExtraSmall
+                                            ? 10
+                                            : (isSmallScreen ? 11 : 12),
+                                  ),
+                                  maxLines: isCompactHeight ? 2 : 3,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          CircleAvatar(
+                            radius:
+                                isExtraSmall ? 20 : (isSmallScreen ? 22 : 26),
+                            backgroundColor: Colors.white,
+                            child: Icon(
+                              Icons.eco_rounded,
+                              color: const Color(0xFF355E3B),
+                              size:
+                                  isExtraSmall ? 20 : (isSmallScreen ? 22 : 28),
+                            ),
+                          ),
+                        ],
+                      ),
 
-  // Helper for info row (also updated to use `isSelected`)
-  Widget _styledInfoRow({
-    required IconData icon,
-    required String label,
-    required String value,
-    required bool isSelected,
-  }) {
-    final Color textColor = isSelected ? Colors.white : Colors.black.withOpacity(0.85);
-    return Row(
-      children: [
-        Icon(icon, color: textColor, size: 14),
-        const SizedBox(width: 8),
-        Expanded(
-          child: Text(
-            label,
-            style: TextStyle(
-              color: textColor,
-              fontSize: 14,
-              fontWeight: FontWeight.w500,
+                      SizedBox(height: isCompactHeight ? 12 : 20),
+
+                      // Action Button "Know More ->"
+                      OutlinedButton(
+                        onPressed: () {
+                          showSubscriptionPopup(
+                            context: context,
+                            allPlans: _plans,
+                            initialPlan: plan,
+                            allProducts: _planProducts,
+                            loadingProductsState: _loadingProducts,
+                            loadProductsCallback: _loadPlanProducts,
+                          );
+                        },
+                        style: OutlinedButton.styleFrom(
+                          side: BorderSide(color: buttonBorderColor),
+                          foregroundColor: buttonTextColor,
+                          padding: EdgeInsets.symmetric(
+                            horizontal: 20,
+                            vertical: isSmallScreen ? 8 : 12,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(30),
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              "Know More",
+                              style: TextStyle(
+                                fontWeight: FontWeight.w600,
+                                fontSize: isSmallScreen ? 12 : 14,
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Icon(
+                              Icons.arrow_forward,
+                              size: isSmallScreen ? 14 : 16,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+
+                  // Divider (now part of the scrollable flow)
+                  Padding(
+                    padding: EdgeInsets.symmetric(
+                      vertical: isCompactHeight ? 12 : 16,
+                    ),
+                    child: Divider(color: secondaryTextColor.withOpacity(0.2)),
+                  ),
+
+                  // Details Section
+                  Column(
+                    children: [
+                      _StyledInfoRow(
+                        icon: Icons.check_circle,
+                        label: "Duration",
+                        value: "${plan.durationMonths} Months",
+                        textColor: primaryTextColor,
+                        pillColor:
+                            isSelected
+                                ? Colors.white.withOpacity(0.2)
+                                : Colors.grey.withOpacity(0.1),
+                        isSmallScreen: isSmallScreen,
+                        isExtraSmall: isExtraSmall,
+                      ),
+                      SizedBox(height: isCompactHeight ? 6 : 10),
+                      _StyledInfoRow(
+                        icon: Icons.check_circle,
+                        label: "Installments",
+                        value: plan.allowsInstallments ? "Yes" : "No",
+                        textColor: primaryTextColor,
+                        pillColor:
+                            isSelected
+                                ? Colors.white.withOpacity(0.2)
+                                : Colors.grey.withOpacity(0.1),
+                        isSmallScreen: isSmallScreen,
+                        isExtraSmall: isExtraSmall,
+                      ),
+                      SizedBox(height: isCompactHeight ? 6 : 10),
+                      _StyledInfoRow(
+                        icon: Icons.check_circle,
+                        label: "Savings",
+                        value: "${plan.totalDiscountPercentage}% off",
+                        textColor: primaryTextColor,
+                        pillColor:
+                            isSelected
+                                ? Colors.white.withOpacity(0.2)
+                                : Colors.grey.withOpacity(0.1),
+                        isSmallScreen: isSmallScreen,
+                        isExtraSmall: isExtraSmall,
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
-          ),
-        ),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-          decoration: BoxDecoration(
-            color: isSelected
-                ? Colors.white.withOpacity(0.18)
-                : Colors.white.withOpacity(0.1),
-            borderRadius: BorderRadius.circular(16),
-          ),
-          child: Text(
-            value,
-            style: TextStyle(
-              color: textColor,
-              fontWeight: FontWeight.bold,
-              fontSize: 10,
-            ),
-          ),
-        ),
-      ],
+          );
+        },
+      ),
     );
   }
 }
-/// POPUP CODE
-void showSubscriptionPopup(
-  BuildContext context,
-  SubscriptionPlan plan,
-  List<SubscriptionPlanProduct> products,
-) {
+
+class _StyledInfoRow extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final String value;
+  final Color textColor;
+  final Color pillColor;
+  final bool isSmallScreen;
+  final bool isExtraSmall;
+
+  const _StyledInfoRow({
+    required this.icon,
+    required this.label,
+    required this.value,
+    required this.textColor,
+    required this.pillColor,
+    this.isSmallScreen = false,
+    this.isExtraSmall = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final iconSize = isExtraSmall ? 14.0 : (isSmallScreen ? 16.0 : 18.0);
+    final labelFontSize = isExtraSmall ? 11.0 : (isSmallScreen ? 12.0 : 14.0);
+    final pillPaddingH = isExtraSmall ? 8.0 : (isSmallScreen ? 10.0 : 14.0);
+    final pillPaddingV = isExtraSmall ? 4.0 : (isSmallScreen ? 5.0 : 7.0);
+
+    return Padding(
+      padding: EdgeInsets.symmetric(
+        vertical: isExtraSmall ? 1 : (isSmallScreen ? 2 : 4),
+      ),
+      child: Row(
+        children: [
+          Icon(icon, color: textColor, size: iconSize),
+          SizedBox(width: isExtraSmall ? 6 : (isSmallScreen ? 8 : 12)),
+          Expanded(
+            child: Text(
+              label,
+              style: TextStyle(
+                color: textColor,
+                fontWeight: FontWeight.w500,
+                fontSize: labelFontSize,
+              ),
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+          AnimatedContainer(
+            duration: const Duration(milliseconds: AppColors.animFast),
+            padding: EdgeInsets.symmetric(
+              horizontal: pillPaddingH,
+              vertical: pillPaddingV,
+            ),
+            decoration: BoxDecoration(
+              color: pillColor,
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: textColor.withOpacity(0.1), width: 1),
+            ),
+            child: Text(
+              value,
+              style: TextStyle(
+                color: textColor,
+                fontWeight: FontWeight.bold,
+                fontSize: isExtraSmall ? 10 : 11,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+void showSubscriptionPopup({
+  required BuildContext context,
+  required List<SubscriptionPlan> allPlans,
+  required SubscriptionPlan initialPlan,
+  required Map<int, List<SubscriptionPlanProduct>> allProducts,
+  required Map<int, bool> loadingProductsState,
+  required Future<void> Function(int) loadProductsCallback,
+}) {
   showGeneralDialog(
     context: context,
     barrierDismissible: true,
-    barrierLabel: '',
-    barrierColor: Colors.black.withOpacity(0.3),
+    barrierLabel: 'Subscription Details',
+    barrierColor: Colors.black.withOpacity(0.5),
     transitionDuration: const Duration(milliseconds: 300),
     pageBuilder: (context, anim1, anim2) {
-      return BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 6, sigmaY: 6),
-        child: Center(
-          child: Material(
-            color: Colors.transparent,
-            child: Container(
-              margin: const EdgeInsets.symmetric(horizontal: 16),
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: AppColors.primaryColor,
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: SizedBox(
-                height: MediaQuery.of(context).size.height * 0.52,
-                width: MediaQuery.of(context).size.width * 0.9,
-                child: _SubscriptionPopupContent(
-                  plan: plan,
-                  products: products,
+      return Stack(
+        children: [
+          // Blurred Background
+          Positioned.fill(
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
+              child: Container(color: Colors.transparent),
+            ),
+          ),
+          // Centered Dialog
+          Center(
+            child: Material(
+              color: Colors.transparent,
+              child: Container(
+                margin: const EdgeInsets.symmetric(horizontal: 20),
+                constraints: BoxConstraints(
+                  maxWidth: 400,
+                  maxHeight: MediaQuery.of(context).size.height * 0.7,
+                ),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF355E3B), // Match the card Green
+                  borderRadius: BorderRadius.circular(24),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.3),
+                      blurRadius: 30,
+                      offset: const Offset(0, 10),
+                    ),
+                  ],
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(24),
+                  child: _SubscriptionPopupContent(
+                    allPlans: allPlans,
+                    initialPlan: initialPlan,
+                    allProducts: allProducts,
+                    loadingProductsState: loadingProductsState,
+                    loadProductsCallback: loadProductsCallback,
+                  ),
                 ),
               ),
             ),
           ),
-        ),
+        ],
       );
     },
     transitionBuilder: (context, anim1, anim2, child) {
-      return SlideTransition(
-        position: Tween(
-          begin: const Offset(0, 1),
-          end: Offset.zero,
-        ).animate(CurvedAnimation(parent: anim1, curve: Curves.easeOut)),
-        child: child,
+      return FadeTransition(
+        opacity: anim1,
+        child: ScaleTransition(
+          scale: CurvedAnimation(parent: anim1, curve: Curves.easeOutBack),
+          child: child,
+        ),
       );
     },
   );
 }
 
 class _SubscriptionPopupContent extends StatefulWidget {
-  final SubscriptionPlan plan;
-  final List<SubscriptionPlanProduct> products;
+  final List<SubscriptionPlan> allPlans;
+  final SubscriptionPlan initialPlan;
+  final Map<int, List<SubscriptionPlanProduct>> allProducts;
+  final Map<int, bool> loadingProductsState;
+  final Future<void> Function(int) loadProductsCallback;
 
   const _SubscriptionPopupContent({
-    super.key,
-    required this.plan,
-    required this.products,
+    required this.allPlans,
+    required this.initialPlan,
+    required this.allProducts,
+    required this.loadingProductsState,
+    required this.loadProductsCallback,
   });
 
   @override
@@ -511,202 +622,214 @@ class _SubscriptionPopupContent extends StatefulWidget {
 }
 
 class _SubscriptionPopupContentState extends State<_SubscriptionPopupContent> {
+  late SubscriptionPlan _selectedPlan;
   String? _selectedProduct;
 
   @override
+  void initState() {
+    super.initState();
+    _selectedPlan = widget.initialPlan;
+    _loadProductsForPlan(_selectedPlan.id);
+  }
+
+  Future<void> _loadProductsForPlan(int planId) async {
+    if (!widget.allProducts.containsKey(planId) &&
+        widget.loadingProductsState[planId] != true) {
+      await widget.loadProductsCallback(planId);
+      if (mounted) {
+        setState(() {});
+      }
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final currentProducts = widget.allProducts[_selectedPlan.id] ?? [];
+    final areProductsLoading =
+        widget.loadingProductsState[_selectedPlan.id] == true;
+
+    // We use a Column with [Flexible] for the scrollable area
+    // This allows the modal to shrink-wrap content but scroll if it exceeds constraints.
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min, // Shrink to fit content
       children: [
-        // Title + Icon
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              widget.plan.name,
-              style: const TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-              ),
+        Flexible(
+          fit: FlexFit.loose,
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Header
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            _selectedPlan.name,
+                            style: const TextStyle(
+                              fontSize: 24,
+                              fontWeight: FontWeight.bold, // Headline
+                              color: Colors.white,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            _selectedPlan.description,
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Colors.white.withOpacity(0.8),
+                              height: 1.4,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    CircleAvatar(
+                      radius: 32,
+                      backgroundColor: Colors.white,
+                      child: const Icon(
+                        Icons.eco_rounded,
+                        color: Color(0xFF355E3B),
+                        size: 36,
+                      ),
+                    ),
+                  ],
+                ),
+
+                const SizedBox(height: 20),
+                Divider(color: Colors.white.withOpacity(0.2)),
+                const SizedBox(height: 20),
+
+                _StyledInfoRow(
+                  icon: Icons.check_circle,
+                  label: "Duration",
+                  value: "${_selectedPlan.durationMonths} Months",
+                  textColor: Colors.white,
+                  pillColor: Colors.white.withOpacity(0.2),
+                ),
+                const SizedBox(height: 12),
+                _StyledInfoRow(
+                  icon: Icons.check_circle,
+                  label: "Allows Installments",
+                  value: _selectedPlan.allowsInstallments ? "Yes" : "No",
+                  textColor: Colors.white,
+                  pillColor: Colors.white.withOpacity(0.2),
+                ),
+                const SizedBox(height: 12),
+                _StyledInfoRow(
+                  icon: Icons.check_circle,
+                  label: "One-Time Allowance",
+                  value: _selectedPlan.isOneTimeOnly ? "Yes" : "No",
+                  textColor: Colors.white,
+                  pillColor: Colors.white.withOpacity(0.2),
+                ),
+                const SizedBox(height: 12),
+                _StyledInfoRow(
+                  icon: Icons.check_circle,
+                  label: "Savings",
+                  value:
+                      "${_selectedPlan.totalDiscountPercentage}% Discount 🔥",
+                  textColor: Colors.white,
+                  pillColor: Colors.white.withOpacity(0.2),
+                ),
+              ],
             ),
-            const CircleAvatar(
-              backgroundColor: Colors.white,
-              radius: 32,
-              child: Icon(Icons.eco, color: Color(0xFF2E5E3A), size: 32),
-            ),
-          ],
+          ),
         ),
-        const SizedBox(height: 12),
 
-        // Description
-        Text(
-          widget.plan.description,
-          style: const TextStyle(color: Colors.white70, fontSize: 16),
-        ),
-        const Divider(color: Colors.white54, height: 30),
-
-        // Info rows
-        _infoRow("Duration", "${widget.plan.durationMonths} Months"),
-        _infoRow(
-          "Allows Installments",
-          widget.plan.allowsInstallments ? "Yes" : "No",
-        ),
-        _infoRow(
-          "One-Time Allowance",
-          widget.plan.isOneTimeOnly ? "Yes" : "No",
-        ),
-        _infoRow(
-          "Savings",
-          "${widget.plan.totalDiscountPercentage}% Discount ",
-        ),
-        _infoRow(
-          "Installments",
-          "${widget.plan.installmentFrequencyMonths} Installments",
-        ),
-        _infoRow("Active", widget.plan.isActive ? "Yes" : "No"),
-
-        const Spacer(),
-
-        // Dropdown for products
+        // Product Selector Pinned to Bottom
         Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-          height: 50,
+          padding: const EdgeInsets.all(24),
           decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.1),
-            borderRadius: BorderRadius.circular(30),
-
-            border: Border.all(color: Colors.white, width: 1),
-          ),
-          child: DropdownButton<String>(
-            isExpanded: true,
-            dropdownColor: AppColors.primaryColor,
-            value: _selectedProduct,
-            borderRadius: BorderRadius.circular(30),
-            style: TextStyle(color: Colors.white),
-            hint: const Text(
-              "Select Product",
-              style: TextStyle(color: Colors.white),
+            color: const Color(
+              0xFF2C4E31,
+            ), // Slightly darker green for footer area
+            border: Border(
+              top: BorderSide(color: Colors.white.withOpacity(0.1)),
             ),
-            icon: const Icon(Icons.arrow_drop_down, color: Colors.white),
-            items:
-                widget.products.map((p) {
-                  return DropdownMenuItem<String>(
-                    value: p.productName,
-                    child: Text(p.productName),
-                    onTap: () async {
-                      final product = await CategoryService.fetchProductById(p.productId);
-
-                                   Navigator.push(
-                      context,
-                      AnimatedTransitions.fadeScale(ProductDetailsScreen(product: product)));
-                    },
-                  );
-                }).toList(),
-            onChanged: (val) {
-              setState(() {
-                _selectedProduct = val;
-              });
-            },
+          ),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(30),
+              border: Border.all(color: Colors.white.withOpacity(0.5)),
+              color: Colors.transparent,
+            ),
+            child:
+                areProductsLoading
+                    ? const Center(
+                      child: Padding(
+                        padding: EdgeInsets.all(8.0),
+                        child: SizedBox(
+                          height: 20,
+                          width: 20,
+                          child: CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 2,
+                          ),
+                        ),
+                      ),
+                    )
+                    : DropdownButtonHideUnderline(
+                      child: DropdownButton<String>(
+                        isExpanded: true,
+                        value: _selectedProduct,
+                        dropdownColor: const Color(0xFF355E3B),
+                        icon: const Icon(
+                          Icons.keyboard_arrow_down,
+                          color: Colors.white,
+                        ),
+                        hint: Text(
+                          currentProducts.isEmpty
+                              ? "No products available"
+                              : "Select Product",
+                          style: TextStyle(
+                            color: Colors.white.withOpacity(0.7),
+                          ),
+                        ),
+                        items:
+                            currentProducts.map((p) {
+                              return DropdownMenuItem<String>(
+                                value: p.productName,
+                                child: Text(
+                                  p.productName,
+                                  style: const TextStyle(color: Colors.white),
+                                ),
+                                onTap: () async {
+                                  // Navigate to product details
+                                  final product =
+                                      await CategoryService.fetchProductById(
+                                        p.productId,
+                                      );
+                                  if (!context.mounted) return;
+                                  Navigator.push(
+                                    context,
+                                    AnimatedTransitions.fadeScale(
+                                      ProductDetailsScreen(product: product),
+                                    ),
+                                  );
+                                },
+                              );
+                            }).toList(),
+                        onChanged:
+                            currentProducts.isEmpty
+                                ? null
+                                : (val) {
+                                  setState(() {
+                                    _selectedProduct = val;
+                                  });
+                                },
+                      ),
+                    ),
           ),
         ),
-
-        const SizedBox(height: 8),
-
-        // Subscribe button
-        // SizedBox(
-        //   width: double.infinity,
-        //   child: ElevatedButton(
-        //     style: ElevatedButton.styleFrom(
-        //       backgroundColor: Colors.white,
-        //       foregroundColor: const Color(0xFF2E5E3A),
-        //       shape: RoundedRectangleBorder(
-        //         borderRadius: BorderRadius.circular(16),
-        //       ),
-        //       padding: const EdgeInsets.symmetric(vertical: 14),
-        //     ),
-        //     onPressed: () {
-        //       Navigator.pop(context); // close popup
-        //       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        //         content: Text(
-        //             "Subscribed to ${widget.plan.name} with product $_selectedProduct"),
-        //       ));
-        //     },
-        //     child: const Text("Subscribe",
-        //         style: TextStyle(fontWeight: FontWeight.bold)),
-        //   ),
-        // ),
       ],
     );
   }
-}
-
-Widget _infoRow(String label, String value) {
-  return Padding(
-    padding: const EdgeInsets.symmetric(vertical: 6),
-    child: Row(
-      children: [
-        const Icon(Icons.check_circle, color: Colors.white, size: 16),
-        const SizedBox(width: 8),
-        Expanded(
-          child: Text(
-            label,
-            style: const TextStyle(color: Colors.white, fontSize: 14),
-          ),
-        ),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-          decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.2),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Text(
-            value,
-            style: const TextStyle(
-              color: Colors.white,
-              fontWeight: FontWeight.bold,
-              fontSize: 12,
-            ),
-          ),
-        ),
-      ],
-    ),
-  );
-}
-
-Widget _buildInfoRow(String label, String value) {
-  return Padding(
-    padding: const EdgeInsets.only(top: 3),
-    child: Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 14,
-            color: Colors.grey[600],
-            fontWeight: FontWeight.w500,
-          ),
-          textAlign: TextAlign.center,
-        ),
-        const SizedBox(height: 2),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-          decoration: BoxDecoration(
-            color: AppColors.primaryColor.withOpacity(0.1),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Text(
-            value,
-            style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.bold,
-              color: AppColors.primaryColor,
-            ),
-            textAlign: TextAlign.center,
-          ),
-        ),
-      ],
-    ),
-  );
 }

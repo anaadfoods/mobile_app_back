@@ -1,7 +1,6 @@
-import 'dart:convert';
-import 'package:grocery_app/services/api_config.dart';
+import 'package:grocery_app/common_widgets/global_import.dart';
+
 import 'package:http/http.dart' as http;
-import '../models/cummunity_model.dart';
 
 class CommunityService {
   static const String communitiesEndpoint = '/api/core/communities/';

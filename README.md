@@ -41,6 +41,96 @@ Anaad Foods UI is a modern, feature-rich grocery shopping application built with
 3. Run `flutter pub get` to install dependencies
 4. Launch the application using `flutter run`
 
+---
+
+### 🔐 Setup for Team (Required)
+
+> **⚠️ Firebase Configuration Files (Not in Repository)**
+>
+> For security, Firebase configuration files are excluded from version control.
+
+**Request these files from the project lead:**
+
+| File | Destination | Platform |
+|------|-------------|----------|
+| `google-services.json` | `android/app/` | Android |
+| `GoogleService-Info.plist` | `ios/Runner/` | iOS |
+| `.env` | Project root (`./`) | All |
+
+**Without these files, the app will fail to build or connect to Firebase services.**
+
+---
+
+### 🛠️ Building the App
+
+#### **Windows Team**
+
+```powershell
+# Clone the repository
+git clone git@github.com:anaadfoods/mobile_app_back.git
+cd mobile_app_back
+
+# Install dependencies
+flutter pub get
+
+# Run on Android emulator/device
+flutter run
+
+# Build APK (debug)
+flutter build apk --debug
+
+# Build APK (release)
+flutter build apk --release
+
+# Build Windows desktop app
+flutter build windows
+```
+
+#### **Mac Team**
+
+```bash
+# Clone the repository
+git clone git@github.com:anaadfoods/mobile_app_back.git
+cd mobile_app_back
+
+# IMPORTANT: Fix gradlew permissions (first time only)
+chmod +x android/gradlew
+
+# Install dependencies
+flutter pub get
+
+# Run on iOS simulator
+flutter run
+
+# Build iOS (requires Xcode)
+flutter build ios
+
+# Build Android APK
+flutter build apk --release
+
+# Build macOS desktop app
+flutter build macos
+```
+
+#### **Common Commands (All Platforms)**
+
+```bash
+# Check Flutter installation
+flutter doctor
+
+# Clean build cache (if issues occur)
+flutter clean && flutter pub get
+
+# Run with verbose logging
+flutter run -v
+
+# Run on specific device
+flutter devices              # List available devices
+flutter run -d <device_id>   # Run on specific device
+```
+
+---
+
 ### Target Platforms
 
 The application is configured to run on multiple platforms:

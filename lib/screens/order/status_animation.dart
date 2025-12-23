@@ -5,10 +5,10 @@ class LiveStatusIcon extends StatefulWidget {
   final Color color;
 
   const LiveStatusIcon({
-    Key? key,
+    super.key,
     required this.icon,
     required this.color,
-  }) : super(key: key);
+  });
 
   @override
   _LiveStatusIconState createState() => _LiveStatusIconState();

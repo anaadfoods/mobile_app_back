@@ -1,69 +1,53 @@
-import 'package:flutter/material.dart';
-import 'package:grocery_app/common_widgets/app_button.dart';
-import 'package:grocery_app/common_widgets/app_text.dart';
-import 'package:grocery_app/styles/colors.dart';
+import 'package:grocery_app/common_widgets/global_import.dart';
 
 class FilterScreen extends StatelessWidget {
   const FilterScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0.0,
-        centerTitle: true,
-        leading: GestureDetector(
-          onTap: () {
-            Navigator.pop(context);
-          },
-          child: Container(
-            child: Icon(
-              Icons.close,
-              color: Colors.black,
-            ),
-          ),
-        ),
-        title: AppText(
-          text: "Filters",
-          fontSize: 20,
-          fontWeight: FontWeight.bold,
-        ),
+        leading: const CloseButton(),
+        title: const Text("Filters"),
       ),
-      body: Container(
-        width: double.maxFinite,
-        padding: EdgeInsets.symmetric(horizontal: 25, vertical: 30),
-        decoration: BoxDecoration(
-          color: Color(0xFFF2F3F2),
-          borderRadius: BorderRadius.circular(30),
-        ),
+      body: Padding(
+        padding: const EdgeInsets.all(AppColors.spacingL),
         child: Column(
-          mainAxisSize: MainAxisSize.max,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            getLabel("Categories"),
-            SizedBox(height: 15),
-            OptionItem(text: "Eggs"),
-            SizedBox(height: 15),
-            Spacer(),
-            AppButton(
-              label: "Apply Filter",
-              fontWeight: FontWeight.w600,
-              onPressed: () {
-                Navigator.pop(context);
-              },
-            )
+            Text(
+              "Categories",
+              style: theme.textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: AppColors.spacingL),
+            Container(
+              decoration: BoxDecoration(
+                color: theme.cardColor,
+                borderRadius: BorderRadius.circular(AppColors.radiusL),
+                border: Border.all(
+                  color: isDark ? Colors.grey.shade800 : Colors.grey.shade200,
+                ),
+              ),
+              child: const Column(children: [OptionItem(text: "Eggs")]),
+            ),
+            const Spacer(),
+            SizedBox(
+              width: double.infinity,
+              child: AppButton(
+                label: "Apply Filter",
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+              ),
+            ),
           ],
         ),
       ),
-    );
-  }
-
-  Widget getLabel(String text) {
-    return Text(
-      text,
-      style: TextStyle(
-          color: Colors.black, fontSize: 20, fontWeight: FontWeight.bold),
     );
   }
 }
@@ -78,67 +62,24 @@ class OptionItem extends StatefulWidget {
 }
 
 class _OptionItemState extends State<OptionItem> {
-  bool checked = false;
+  bool _checked = false;
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () {
+    final theme = Theme.of(context);
+
+    return CheckboxListTile(
+      title: Text(widget.text),
+      value: _checked,
+      activeColor: theme.colorScheme.primary,
+      checkboxShape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(4),
+      ),
+      onChanged: (bool? value) {
         setState(() {
-          checked = !checked;
+          _checked = value ?? false;
         });
       },
-      child: Container(
-        child: Row(
-          children: [
-            getCheckBox(),
-            SizedBox(
-              width: 12,
-            ),
-            getTextWidget(),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget getTextWidget() {
-    return Text(
-      widget.text,
-      style: TextStyle(
-        color: checked ? AppColors.primaryColor : Colors.black,
-        fontSize: 16,
-        fontWeight: FontWeight.w600,
-      ),
-    );
-  }
-
-  Widget getCheckBox() {
-    return ClipRRect(
-      borderRadius: BorderRadius.all(Radius.circular(8)),
-      child: SizedBox(
-        width: 25,
-        height: 25,
-        child: Container(
-          decoration: BoxDecoration(
-              border: Border.all(
-                  width: checked ? 0 : 1.5, color: Color(0xffB1B1B1)),
-              borderRadius: BorderRadius.circular(8),
-              color: checked ? AppColors.primaryColor : Colors.transparent),
-          child: Theme(
-            data: ThemeData(
-              unselectedWidgetColor: Colors.transparent,
-            ),
-            child: Checkbox(
-              value: checked,
-              onChanged: (state) => setState(() => checked = !checked),
-              activeColor: Colors.transparent,
-              checkColor: Colors.white,
-              materialTapTargetSize: MaterialTapTargetSize.padded,
-            ),
-          ),
-        ),
-      ),
     );
   }
 }

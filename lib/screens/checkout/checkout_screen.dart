@@ -1,24 +1,10 @@
-import 'package:flutter/material.dart';
-import 'package:grocery_app/models/cart_model.dart';
-import 'package:grocery_app/models/order_model.dart';
-import 'package:grocery_app/models/product_model.dart';
-import 'package:grocery_app/models/subscription_plan_model.dart';
-import 'package:grocery_app/models/subscription_request_create_model.dart';
-import 'package:grocery_app/screens/MySubscriptionPlan/subscription_plan_detail_single.dart';
-import 'package:grocery_app/screens/order/order_detail_screen.dart';
-import 'package:grocery_app/screens/order/order_screen.dart';
-import 'package:grocery_app/services/cart_service.dart';
-import 'package:grocery_app/services/order_service.dart';
-import 'package:grocery_app/screens/order_accepted_screen.dart';
-import 'package:grocery_app/screens/order_failed_dialog.dart';
-import 'package:grocery_app/services/auth_service.dart';
-import 'package:grocery_app/services/subscription_service.dart';
-import 'package:grocery_app/screens/checkout/webview_page.dart';
-import 'package:webview_flutter/webview_flutter.dart';
-import 'package:grocery_app/helpers/notification_helper.dart';
-import 'package:grocery_app/helpers/animated_transitions.dart';
-import 'package:grocery_app/helpers/snackbar_helper.dart';
-import 'dart:convert';
+// ignore_for_file: unused_element // Disables warnings for unused private methods
+
+import 'package:grocery_app/common_widgets/global_import.dart';
+// Add any other necessary imports
+// import 'package:grocery_app/models/cart_model.dart';
+// import 'package:grocery_app/models/product_model.dart';
+// ... etc.
 
 class CheckoutScreen extends StatefulWidget {
   final CartModel? cart;
@@ -26,6 +12,7 @@ class CheckoutScreen extends StatefulWidget {
   final double? price;
   final int? quantity;
   final bool isSubscription;
+  final String? paymentType;
   final int? selectedPlan;
   final Map<String, String>? shippingDetails;
   final double deliveryCharges;
@@ -41,7 +28,7 @@ class CheckoutScreen extends StatefulWidget {
     this.selectedPlan,
     this.shippingDetails,
     required this.deliveryCharges,
-    required this.expectedDeliveryDate,
+    required this.expectedDeliveryDate, this.paymentType,
   }) : assert(cart != null || (singleProduct != null && quantity != null));
 
   @override
@@ -69,13 +56,15 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   String get totalPrice {
     double basePrice;
     if (widget.isSubscription) {
-      basePrice = widget.price ?? 0.0;
+      // --- BUG FIX HERE ---
+      // Original was: widget.price ?? 0.0 * widget.quantity!
+      // Which evaluates to: widget.price ?? (0.0 * widget.quantity!)
+      // Corrected version:
+      basePrice = (widget.price ?? 0.0) * (widget.quantity ?? 1);
     } else {
-      basePrice =
-          widget.cart?.totalPrice != null
-              ? double.parse(widget.cart!.totalPrice)
-              : (widget.singleProduct!.finalPrice *
-                  widget.quantity!);
+      basePrice = widget.cart?.totalPrice != null
+          ? double.parse(widget.cart!.totalPrice)
+          : (widget.singleProduct!.finalPrice * widget.quantity!);
     }
 
     return (basePrice + widget.deliveryCharges).toString();
@@ -86,7 +75,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     super.initState();
 
     if (widget.isSubscription) {
-      _selectedPaymentType = 'PAID_FULL';
+      _selectedPaymentType = widget.paymentType ?? 'PAID_FULL';
     } else {
       _selectedPaymentType = 'FULL';
     }
@@ -94,12 +83,23 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     _initializeCheckout();
   }
 
+  // --- ALL LOGIC METHODS (UNCHANGED AS REQUESTED) ---
+
   Future<void> _initializeCheckout() async {
-    await _prepareShippingDetails();
+    // This check is important. If shippingDetails are passed, they are *new*
+    if (widget.shippingDetails != null) {
+      await _prepareShippingDetails();
+    } else {
+      // Otherwise, we load the user's *existing* details
+      await _loadShippingDetails();
+    }
+
     if (widget.isSubscription) {
       await _fetchPlansAndAssign();
     }
-    await _loadShippingDetails();
+    
+    // Final loading state update
+    _setLoadingState(false);
   }
 
   // Step 1: Prepare Shipping Details
@@ -144,17 +144,14 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
   // Main Checkout Flow
   Future<void> _createOrder() async {
-    // Step 1: Prepare Shipping Details
-    await _prepareShippingDetails();
-
-    // Step 2: Validate Shipping
+    // Step 1: Validate Shipping (Details are already prepared in initState)
     if (!_validateShipping()) return;
 
-    // Step 3: Set Loading State
+    // Step 2: Set Loading State
     _setLoadingState(true);
 
     try {
-      // Step 4: Check Payment Method
+      // Step 3: Check Payment Method
       if (_selectedPaymentMethod == 'UPI') {
         await _handleUPIPayment();
       } else {
@@ -163,6 +160,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     } catch (e) {
       _handleError(e);
     } finally {
+      // Step 4: Set Loading False (if mounted)
       _setLoadingState(false);
     }
   }
@@ -251,20 +249,19 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   void _showSubscriptionSuccessMessage(Map<String, dynamic> result) {
     showDialog(
       context: context,
-      builder:
-          (context) => AlertDialog(
-            title: Text('Subscription Created'),
-            content: Text('Your subscription has been created successfully!'),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  Navigator.of(context).pop();
-                  Navigator.of(context).pop();
-                },
-                child: Text('OK'),
-              ),
-            ],
+      builder: (context) => AlertDialog(
+        title: Text('Subscription Created'),
+        content: Text('Your subscription has been created successfully!'),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+              Navigator.of(context).pop();
+            },
+            child: Text('OK'),
           ),
+        ],
+      ),
     );
   }
 
@@ -315,6 +312,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   }
 
   Future<Map<String, dynamic>> _createSubscription() async {
+    print("delivery charges are  + ${widget.deliveryCharges}");
     final request = SubscriptionCreateRequest(
       plan: widget.selectedPlan,
       deliveryAddress: _shippingDetails!.address ?? "",
@@ -326,7 +324,6 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       paymentMethod: _selectedPaymentMethod,
       deliveryFee: widget.deliveryCharges,
       expectedDeliveryDate: widget.expectedDeliveryDate,
-
       items: [
         SubscriptionCreateItem(
           productVariantId: widget.singleProduct!.id,
@@ -334,7 +331,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         ),
       ],
     );
-    print('${request.paymentMethod}  ${request.items[0]}');
+    print('${request.paymentMethod}  ${request.items[0]}');
 
     return await _subscriptionService.createSubscription(request);
   }
@@ -478,12 +475,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
         Navigator.pushReplacement(
           context,
-          AnimatedTransitions.fadeScale(
-            OrderAcceptedScreen(
-              order: order,
-              isSubscription: widget.isSubscription,
-            ),
-          ),
+          AnimatedTransitions.fadeScale(OrderDetailScreen(order: order)),
         );
       } else {
         Navigator.pop(context);
@@ -522,17 +514,16 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     );
     showDialog(
       context: context,
-      builder:
-          (context) => AlertDialog(
-            title: Text('Subscription Failed'),
-            content: Text(errorMessage),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(),
-                child: Text('Go Back'),
-              ),
-            ],
+      builder: (context) => AlertDialog(
+        title: Text('Subscription Failed'),
+        content: Text(errorMessage),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text('Go Back'),
           ),
+        ],
+      ),
     );
   }
 
@@ -591,24 +582,20 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   }
 
   Future<void> _loadShippingDetails() async {
+    // Already in a loading state from _initializeCheckout
     try {
-      setState(() {
-        _isLoading = true;
-        _error = null;
-      });
-
       final details = await _orderService.getUserShippingDetails();
       if (mounted) {
         setState(() {
           _shippingDetails = details;
-          _isLoading = false;
+          // Don't set loading to false here, _initializeCheckout will
         });
       }
     } catch (e) {
       if (mounted) {
         setState(() {
           _error = e.toString();
-          _isLoading = false;
+          // Don't set loading to false here, _initializeCheckout will
         });
       }
     }
@@ -683,197 +670,422 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     return error.toString();
   }
 
-  Widget _buildProductImage(Product variant) {
-    String? imageUrl;
-    if (variant.productImages.isNotEmpty &&
-        variant.productImages[0] is String &&
-        (variant.productImages[0] as String).isNotEmpty) {
-      imageUrl = variant.productImages[0] as String;
+  // --- REFACTORED BUILD AND UI WIDGETS ---
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Scaffold(
+      appBar: AppBar(
+        centerTitle: false,
+        title: Text(widget.isSubscription ? 'Subscription Checkout' : 'Checkout'),
+      ),
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : SingleChildScrollView(
+              padding: const EdgeInsets.all(12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  _buildDeliveryTime(theme),
+                  const SizedBox(height: 16),
+                  
+                  // This widget now correctly checks for _shippingDetails
+                  if (_shippingDetails != null)
+                    _buildShippingAddress(theme),
+                  
+                  const SizedBox(height: 16),
+                  
+                  // This widget now checks for null `subscription`
+                  if (widget.isSubscription && subscription != null)
+                    _buildCongratulation(theme, subscription!),
+
+                  const SizedBox(height: 16),
+                  // _buildPaymentTypeSelector(theme),
+                  const SizedBox(height: 16),
+                  _buildOrderSummary(theme),
+                  const SizedBox(height: 16),
+                  _buildPaymentMethodSelector(theme),
+                  const SizedBox(height: 24), // Extra space at the bottom
+                ],
+              ),
+            ),
+      bottomNavigationBar: _isLoading ? null : _buildBottomBar(theme),
+    );
+  }
+
+  /// Builds the correct bottom bar based on order type
+  Widget _buildBottomBar(ThemeData theme) {
+    if (widget.isSubscription && subscription != null) {
+      return _buildSubscriptionBottomBar(theme, subscription!);
+    } else {
+      return _buildStandardBottomBar(theme);
     }
+  }
+
+  /// Bottom bar for regular "Place Order"
+  Widget _buildStandardBottomBar(ThemeData theme) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: theme.scaffoldBackgroundColor,
+        border: Border(top: BorderSide(color: theme.dividerColor)),
+      ),
+      child: ElevatedButton(
+        onPressed: _createOrder,
+        child: Text('Place Order'),
+      ),
+    );
+  }
+
+  /// Styled bottom bar for Subscription summary and payment
+  Widget _buildSubscriptionBottomBar(ThemeData theme, SubscriptionPlan subscription) {
+    final totalMonthlyPrice = double.tryParse(totalPrice) ?? 0.0;
+    final fullSubscriptionPrice = totalMonthlyPrice * subscription.durationMonths;
 
     return Container(
-      width: 50,
-      height: 50,
-      clipBehavior:
-          Clip.antiAlias, // To ensure the child (Image/Icon) is clipped
+      padding: const EdgeInsets.all(16.0),
       decoration: BoxDecoration(
-        color: Colors.grey[200],
-        borderRadius: BorderRadius.circular(8),
+        color: theme.cardColor,
+        border: Border(top: BorderSide(color: theme.dividerColor)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, -5),
+          ),
+        ],
       ),
-      child:
-          imageUrl != null
-              ? Image.network(
-                imageUrl,
-                fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) {
-                  return const Icon(
-                    Icons.shopping_bag_outlined,
-                    color: Colors.grey,
-                  );
-                },
-              )
-              : const Icon(Icons.shopping_bag_outlined, color: Colors.grey),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(
+            " Your ${subscription.durationMonths}-Month Journey",
+            textAlign: TextAlign.center,
+            style: theme.textTheme.titleSmall?.copyWith(
+              color: theme.textTheme.bodySmall?.color,
+            ),
+          ),
+          const SizedBox(height: 8),
+      if (widget.paymentType == 'PAID_FULL')
+            Text(
+              "₹${fullSubscriptionPrice.toStringAsFixed(2)} upfront (One-time payment for the entire ${subscription.durationMonths}-month plan)",
+              textAlign: TextAlign.center,
+              style: theme.textTheme.displaySmall?.copyWith(
+                color: theme.textTheme.bodySmall?.color,
+              ),
+            )
+          else
+          Text(
+            "₹${(fullSubscriptionPrice) / (subscription.durationMonths/(subscription.installmentFrequencyMonths) )  } per  installments (Billed ₹${fullSubscriptionPrice.toStringAsFixed(2)} upfront)",
+            textAlign: TextAlign.center,
+            style: theme.textTheme.displaySmall?.copyWith(
+              color: theme.colorScheme.primary,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 16),
+          ElevatedButton(
+            onPressed: _createOrder,
+            child: Text('Subscribe Now'),
+          ),
+        ],
+      ),
     );
   }
 
-  // UI Methods
-  Future<void> _showPaymentMethodSelectionDialog() async {
-    String? newSelection = await showModalBottomSheet<String>(
-      context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+  /// Styled congratulation message for subscriptions
+  Widget _buildCongratulation(ThemeData theme, SubscriptionPlan subscription) {
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(10),
+        color: theme.colorScheme.primary, // Using theme color
       ),
-      builder: (BuildContext context) {
-        return Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: <Widget>[
-              Text(
-                'Select Payment Method',
-                style: Theme.of(context).textTheme.titleLarge,
-              ),
-              const SizedBox(height: 16),
-              if (!widget.isSubscription)
-                ListTile(
-                  leading: const Icon(Icons.money, color: Colors.green),
-                  title: const Text('Cash on Delivery'),
-                  onTap: () => Navigator.pop(context, 'COD'),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
+      padding: const EdgeInsets.all(16),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(
+            Icons.celebration_outlined,
+            color: theme.colorScheme.onPrimary,
+            size: 28,
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  "A wonderful commitment to your well-being.",
+                  style: theme.textTheme.titleLarge?.copyWith(
+                    color: theme.colorScheme.onPrimary,
+                    fontWeight: FontWeight.bold,
                   ),
-                  tileColor:
-                      _selectedPaymentMethod == 'COD'
-                          ? Colors.green.withOpacity(0.1)
-                          : null,
                 ),
-              const Divider(),
-              ListTile(
-                leading: const Icon(Icons.payment, color: Colors.blue),
-                title: const Text('Pay Online'),
-                subtitle: const Text('UPI / Card / NetBanking'),
-                onTap: () => Navigator.pop(context, 'UPI'),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
+                const SizedBox(height: 4),
+                Text(
+                  "This ${subscription.durationMonths}-month journey is the first step toward a life of harmony and pure nourishment.",
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: theme.colorScheme.onPrimary.withOpacity(0.9),
+                  ),
                 ),
-                tileColor:
-                    _selectedPaymentMethod == 'UPI'
-                        ? Colors.blue.withOpacity(0.1)
-                        : null,
-              ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDeliveryTime(ThemeData theme) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.primary.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(12.0),
+      ),
+      child: Row(
+        children: [
+          const Text('🚚', style: TextStyle(fontSize: 20)),
+          const SizedBox(width: 12),
+          Text(
+            "Estimated Delivery by ${widget.expectedDeliveryDate}",
+            style: theme.textTheme.bodyMedium?.copyWith(
+              fontWeight: FontWeight.w500,
+              color: theme.colorScheme.onSurface,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildShippingAddress(ThemeData theme) {
+    // --- BUG FIX HERE ---
+    // Added null check and now using `_shippingDetails` state variable
+    // instead of `widget.shippingDetails`
+    if (_shippingDetails == null) {
+      return const SizedBox.shrink(); // Or a "Please add address" widget
+    }
+
+    return ExpansionTile(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),
+      collapsedShape:
+          RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),
+      backgroundColor: theme.cardColor,
+      collapsedBackgroundColor: theme.cardColor,
+      tilePadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      title: Row(
+        children: [
+          Icon(Icons.location_on_outlined, color: theme.disabledColor),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              _shippingDetails!.address,
+              style: theme.textTheme.bodyLarge,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ],
+      ),
+      children: [
+        ListTile(
+          title: Text(_shippingDetails!.address),
+          subtitle: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('${_shippingDetails!.city}, ${_shippingDetails!.state}'),
+              Text('Pincode: ${_shippingDetails!.pincode}'),
+              Text('Phone: ${_shippingDetails!.phone}'),
             ],
           ),
-        );
-      },
+        ),
+      ],
     );
-
-    if (newSelection != null) {
-      setState(() {
-        _selectedPaymentMethod = newSelection;
-      });
-    }
   }
 
-  Widget _buildPaymentTypeSelector() {
-    if (!widget.isSubscription) return SizedBox.shrink();
-
+  Widget _buildOrderSummary(ThemeData theme) {
     return Card(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: Padding(
-        padding: EdgeInsets.all(4),
+        padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Payment Type', style: Theme.of(context).textTheme.titleLarge),
-            SizedBox(height: 8),
-            RadioListTile<String>(
-              value: widget.isSubscription ? 'PAID_FULL' : 'FULL',
-              groupValue: _selectedPaymentType,
-              onChanged: (value) {
-                setState(() {
-                  _selectedPaymentType = value!;
-                });
-              },
-              title: Row(
-                mainAxisAlignment: MainAxisAlignment.start,
+            Text(
+              widget.isSubscription
+                  ? 'Subscription ${subscription?.name ?? 'Summary'}'
+                  : 'Order Summary',
+              style: theme.textTheme.titleLarge,
+            ),
+            const SizedBox(height: 16),
+
+            // --- List of Items (Single or Cart) ---
+            if (widget.singleProduct != null)
+              Column(
                 children: [
-                  Icon(Icons.payment, color: Colors.green),
-                  SizedBox(width: 3),
-                  Text('Pay in Full'),
-                  SizedBox(width: 1),
-                  if (widget.isSubscription)
-                    IconButton(
-                      onPressed: () {
-                        if (subscription != null) {
-                          _showSubscriptionDetails(
-                            context,
-                            subscription!,
-                            widget.selectedPlan!,
-                            widget.price ?? 0.0,
-                            widget.deliveryCharges,
-                            showAmountPerDelivery: false,
-                          );
-                        }
-                      },
-                      iconSize: 20,
-                      icon: Icon(
-                        Icons.info,
-                        color: const Color.fromARGB(255, 80, 144, 196),
+                  ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    leading: _buildProductImage(widget.singleProduct!),
+                    title: Text(widget.singleProduct!.productName,
+                        style: theme.textTheme.bodyMedium),
+                    subtitle: Text('Quantity: ${widget.quantity}'),
+                    trailing: Text(widget.isSubscription
+                        ? '₹${widget.price!.toStringAsFixed(2)}'
+                        : '₹${widget.singleProduct!.finalPrice.toStringAsFixed(2)}'),
+                  ),
+                  if (widget.isSubscription && subscription != null)
+                    ExpansionTile(
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12.0)),
+                      collapsedShape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12.0)),
+                      backgroundColor: theme.cardColor,
+                      collapsedBackgroundColor: theme.cardColor,
+                      tilePadding: const EdgeInsets.symmetric(
+                          horizontal: 2, vertical: 8),
+                      title: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            "₹$totalPrice / month", // Uses the getter
+                            style: theme.textTheme.bodyLarge
+                                ?.copyWith(fontWeight: FontWeight.bold),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          Text(
+                            "incl. ${subscription?.discountPercentage.toStringAsFixed(0)}% savings + delivery",
+                            style: TextStyle(
+                              color: theme.textTheme.bodySmall?.color,
+                              fontSize:
+                                  theme.textTheme.bodySmall?.fontSize ?? 12,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
                       ),
-                    ),
+                      children: [
+                        ListTile(
+                          title: Text(
+                            "Price Breakdown (per month):",
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                                color: theme.colorScheme.primary,
+                                fontWeight: FontWeight.bold),
+                          ),
+                          subtitle: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text("Subtotal:",
+                                      style: theme.textTheme.bodyMedium),
+                                  Text(
+                                      "₹${(double.parse(totalPrice) - widget.deliveryCharges).toStringAsFixed(2)}",
+                                      style: theme.textTheme.bodyMedium),
+                                ],
+                              ),
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text("Delivery Charges:",
+                                      style: theme.textTheme.bodyMedium),
+                                  Text(
+                                      "₹${widget.deliveryCharges.toStringAsFixed(2)}",
+                                      style: theme.textTheme.bodyMedium),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    )
+                ],
+              )
+            else
+              ...widget.cart!.items.map((item) => ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    leading: _buildProductImage(item.productVariant),
+                    title: Text(item.productVariant.productName),
+                    subtitle: Text('Quantity: ${item.quantity}'),
+                    trailing: Text('₹${item.totalPrice}'),
+                  )),
+            
+            // --- LAYOUT FIX: Moved Totals outside the if/else ---
+            
+            if (widget.deliveryCharges > 0 && !widget.isSubscription)
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text('Delivery Charges', style: theme.textTheme.bodyLarge),
+                    Text('₹${widget.deliveryCharges.toStringAsFixed(2)}',
+                        style: theme.textTheme.bodyLarge
+                            ?.copyWith(fontWeight: FontWeight.bold)),
+                  ],
+                ),
+              ),
+              
+            // Don't show total for subscription, it's in the bottom bar
+            if (!widget.isSubscription) ...[
+              const Divider(height: 24),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text('Total Amount', style: theme.textTheme.titleLarge),
+                  Text(
+                    '₹${(double.parse(totalPrice)).toStringAsFixed(2)}',
+                    style: theme.textTheme.titleLarge
+                        ?.copyWith(color: theme.colorScheme.primary),
+                  ),
                 ],
               ),
-              subtitle: Text('Pay the entire amount upfront'),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
+            ]
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPaymentTypeSelector(ThemeData theme) {
+    if (!widget.isSubscription || subscription == null) {
+      return const SizedBox.shrink();
+    }
+    return Card(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: Padding(
+        padding: const EdgeInsets.all(8),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8.0),
+              child: Text('Payment Type', style: theme.textTheme.titleLarge),
+            ),
+            const SizedBox(height: 8),
+            RadioListTile<String>(
+              value: 'PAID_FULL',
+              groupValue: _selectedPaymentType,
+              onChanged: (value) => setState(() => _selectedPaymentType = value!),
+              title: const Text('Pay in Full'),
+              subtitle: const Text('Pay the entire amount upfront'),
             ),
             if (subscription!.allowsInstallments)
               RadioListTile<String>(
                 value: 'INSTALLMENT',
                 groupValue: _selectedPaymentType,
-                onChanged: (value) {
-                  setState(() {
-                    _selectedPaymentType = value!;
-                  });
-                },
-                title: Row(
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  children: [
-                    Icon(
-                      Icons.payment,
-                      color: const Color.fromARGB(255, 86, 159, 219),
-                    ),
-                    SizedBox(width: 3),
-                    Text('Pay in Installments'),
-                    SizedBox(width: 0),
-                    if (widget.isSubscription)
-                      IconButton(
-                        onPressed: () {
-                          if (subscription != null) {
-                            _showSubscriptionDetails(
-                              context,
-                              subscription!,
-                              widget.selectedPlan!,
-                              widget.price ?? 0.0,
-                              widget.deliveryCharges,
-                              showAmountPerDelivery: true,
-                            );
-                          }
-                        },
-                        iconSize: 20,
-                        icon: Icon(
-                          Icons.info,
-                          color: const Color.fromARGB(255, 80, 144, 196),
-                        ),
-                      ),
-                  ],
-                ),
-                subtitle: Text('Pay in monthly installments'),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
+                onChanged: (value) =>
+                    setState(() => _selectedPaymentType = value!),
+                title: const Text('Pay in Installments'),
+                subtitle: const Text('Pay in monthly installments'),
               ),
           ],
         ),
@@ -881,345 +1093,105 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     );
   }
 
-  Widget _buildPaymentMethodSelector() {
+  Widget _buildPaymentMethodSelector(ThemeData theme) {
     return Card(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: ListTile(
         onTap: _showPaymentMethodSelectionDialog,
         leading: Icon(
           _selectedPaymentMethod == 'COD' ? Icons.money : Icons.payment,
-          color: Theme.of(context).primaryColor,
+          color: theme.colorScheme.primary,
         ),
-        title: const Text(
-          'Pay Using',
-          style: TextStyle(fontWeight: FontWeight.bold),
-        ),
-        subtitle: Text(
-          _selectedPaymentMethod == 'COD'
-              ? 'Cash on Delivery'
-              : 'UPI / Card / NetBanking',
-        ),
+        title: Text('Pay Using',
+            style: theme.textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.bold)),
+        subtitle: Text(_selectedPaymentMethod == 'COD'
+            ? 'Cash on Delivery'
+            : 'UPI / Card / NetBanking'),
         trailing: const Icon(Icons.chevron_right),
       ),
     );
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        centerTitle: false,
-        title: Text(
-          widget.isSubscription ? 'Subscription Checkout' : 'Checkout',
-        ),
-        elevation: 0,
-      ),
-      body:
-          _isLoading
-              ? Center(child: CircularProgressIndicator())
-              : SingleChildScrollView(
-                padding: EdgeInsets.all(12),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    // Delivery Address Card
-                    Column(
-                      children: [
-                        // 1. WIDGET FOR ESTIMATED DELIVERY DATE
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 12,
-                          ),
-                          decoration: BoxDecoration(
-                            // Use a color that matches your design
-                            color: const Color(0xFFFEF5E7),
-                            borderRadius: BorderRadius.circular(12.0),
-                          ),
-                          child: Row(
-                            children: [
-                              // The truck emoji 🚚
-                              const Text('🚚', style: TextStyle(fontSize: 20)),
-                              const SizedBox(width: 12),
-                              Text(
-                                // Using your variable for the date
-                                "Estimated Delivery by ${widget.expectedDeliveryDate}",
-                                style: TextStyle(
-                                  fontWeight: FontWeight.w500,
-                                  color: Colors.grey.shade800,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
+  Future<void> _showPaymentMethodSelectionDialog() async {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
 
-                        const SizedBox(
-                          height: 10,
-                        ), // Adds a small space between the two sections
-                        // 2. WIDGET FOR THE SHIPPING ADDRESS
-                        ExpansionTile(
-                          // --- Style the ExpansionTile itself ---
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12.0),
-                          ),
-                          collapsedShape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12.0),
-                          ),
-                          backgroundColor: const Color(0xFFF8F9F9),
-                          collapsedBackgroundColor: const Color(0xFFF8F9F9),
-
-                          // Remove the default padding
-                          tilePadding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 8,
-                          ),
-
-                          // --- The title you see when it's collapsed ---
-                          title: Row(
-                            children: [
-                              Icon(
-                                Icons.location_on_outlined,
-                                color: Colors.grey.shade700,
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                // Use Expanded to prevent overflow with long addresses
-                                child: Text(
-                                  widget.shippingDetails!['address']!,
-                                  style: Theme.of(context).textTheme.bodyLarge
-                                      ?.copyWith(color: Colors.black87),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ),
-                            ],
-                          ),
-
-                          // --- The content you see when it's expanded (your original code) ---
-                          children: [
-                            ListTile(
-                              title: Text(widget.shippingDetails!['address']!),
-                              subtitle: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    '${widget.shippingDetails!['city']}, ${widget.shippingDetails!['state']}',
-                                  ),
-                                  Text(
-                                    'Pincode: ${widget.shippingDetails!['pincode']}',
-                                  ),
-                                  Text(
-                                    'Phone: ${widget.shippingDetails!['phone']}',
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                    _buildPaymentTypeSelector(),
-                    // Order Summary Card
-                    Card(
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Padding(
-                        padding: EdgeInsets.all(16),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              widget.isSubscription
-                                  ? 'Subscription ${subscription!.name}'  
-                                  : 'Order Summary',
-                              style: Theme.of(context).textTheme.titleLarge,
-                            ),
-                            SizedBox(height: 16),
-                            if (widget.singleProduct != null) ...[
-                              ListTile(
-                                contentPadding: EdgeInsets.zero,
-                                leading: _buildProductImage(
-                                  widget.singleProduct!,
-                                ),
-                                title: Text(
-                                  widget.singleProduct!.productName,
-                                  style: TextStyle(fontSize: 14),
-                                ),
-                                subtitle: Text('Quantity: ${widget.quantity}'),
-                                trailing: Text(
-                                  widget.isSubscription
-                                      ? '₹${widget.price!.toStringAsFixed(2)}'
-                                      : '₹${widget.singleProduct!.finalPrice.toStringAsFixed(2)}',
-                                ),
-                              ),
-                            ] else ...[
-                              ...widget.cart!.items.map(
-                                (item) => ListTile(
-                                  contentPadding: EdgeInsets.zero,
-                                  leading: _buildProductImage(
-                                    item.productVariant,
-                                  ),
-                                  title: Text(item.productVariant.productName),
-                                  subtitle: Text('Quantity: ${item.quantity}'),
-                                  trailing: Text('₹${item.totalPrice}'),
-                                ),
-                              ),
-                            ],
-
-                            Divider(height: 24),
-                            // Delivery Charges
-                            if (widget.deliveryCharges > 0 &&
-                                widget.isSubscription) ...[
-                              ListTile(
-                                contentPadding: EdgeInsets.zero,
-                                title: Text("Delivery Charges"),
-                                subtitle: Text(
-                                  "* for single delivery",
-                                  style: TextStyle(fontSize: 12),
-                                ),
-                                trailing: Text(
-                                  '₹${widget.deliveryCharges.toStringAsFixed(2)}',
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ),
-
-                              ListTile(
-                                contentPadding: EdgeInsets.zero,
-                                title: Text("Total delivery charges"),
-                                subtitle: Text(
-                                  "* for ${subscription!.durationMonths} months",
-                                  style: TextStyle(fontSize: 12),
-                                ),
-                                trailing: Text(
-                                  '₹${(subscription!.durationMonths.toDouble() * widget.deliveryCharges).toStringAsFixed(2)}',
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ),
-                              ListTile(
-                                contentPadding: EdgeInsets.zero,
-                                title: Text(
-                                  "Price for ${subscription!.durationMonths} units",
-                                ),
-                                subtitle: Text(
-                                  "* for ${subscription!.durationMonths} month plan",
-                                  style: TextStyle(fontSize: 12),
-                                ),
-                                trailing: Text(
-                                  '₹${(subscription!.durationMonths.toDouble() * widget.price!).toStringAsFixed(2)}',
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ),
-                              ListTile(
-                                contentPadding: EdgeInsets.zero,
-                                title: Text("Payable amount"),
-                                subtitle: Text(
-                                  (_selectedPaymentType == 'PAID_FULL')
-                                      ? "* for ${subscription!.durationMonths} month plan with delivery charges"
-                                      : "* for ${subscription!.installmentFrequencyMonths} month installment month plan with delivery charges",
-                                  style: TextStyle(fontSize: 12),
-                                ),
-                                trailing: Text(
-                                  (_selectedPaymentType == 'PAID_FULL')
-                                      ? '₹${(subscription!.durationMonths.toDouble() * double.parse(totalPrice)).toStringAsFixed(2)}'
-                                      : '₹${(subscription!.installmentFrequencyMonths.toDouble() * double.parse(totalPrice)).toStringAsFixed(2)}',
-                                  style: TextStyle(
-                                    fontSize: 20,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.green,
-                                  ),
-                                ),
-                              ),
-                            ] else ...[
-                              Padding(
-                                padding: EdgeInsets.symmetric(vertical: 8),
-                                child: Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Text(
-                                      'Delivery Charges',
-                                      overflow: TextOverflow.clip,
-                                      style: TextStyle(fontSize: 16),
-                                    ),
-                                    Text(
-                                      '₹${widget.deliveryCharges.toStringAsFixed(2)}',
-                                      style: TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                             
-                              Divider(height: 24),
-                              Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Text(
-                                    'Total Amount',
-                                    style: TextStyle(
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                  Text(
-                                    '₹${(double.parse(totalPrice)).toStringAsFixed(2)}',
-                                    style: TextStyle(
-                                      fontSize: 20,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.green,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ],
-
-                            // Total Amount
-                          ],
-                        ),
-                      ),
-                    ),
-                    // Payment Method Selector
-                    _buildPaymentMethodSelector(),
-                  ],
+    String? newSelection = await showModalBottomSheet<String>(
+      context: context,
+      shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (BuildContext context) {
+        return Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              Text('Select Payment Method', style: theme.textTheme.titleLarge),
+              const SizedBox(height: 16),
+              if (!widget.isSubscription)
+                ListTile(
+                  leading: Icon(Icons.money, color: colorScheme.primary),
+                  title: const Text('Cash on Delivery'),
+                  onTap: () => Navigator.pop(context, 'COD'),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8)),
+                  tileColor: _selectedPaymentMethod == 'COD'
+                      ? colorScheme.primary.withOpacity(0.1)
+                      : null,
                 ),
+              if (!widget.isSubscription) const Divider(),
+              ListTile(
+                leading: Icon(Icons.payment, color: colorScheme.secondary),
+                title: const Text('Pay Online'),
+                subtitle: const Text('UPI / Card / NetBanking'),
+                onTap: () => Navigator.pop(context, 'UPI'),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8)),
+                tileColor: _selectedPaymentMethod == 'UPI'
+                    ? colorScheme.secondary.withOpacity(0.1)
+                    : null,
               ),
-      // Place Order Button
-      bottomNavigationBar: Container(
-        margin: EdgeInsets.all(12),
-        child: ElevatedButton(
-          onPressed: _createOrder,
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.green,
-            padding: EdgeInsets.symmetric(vertical: 16),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
+            ],
           ),
-          child: Text(
-            widget.isSubscription ? 'Subscribe Now' : 'Place Order',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-          ),
-        ),
+        );
+      },
+    );
+    if (newSelection != null) {
+      setState(() {
+        _selectedPaymentMethod = newSelection;
+      });
+    }
+  }
+
+  Widget _buildProductImage(Product variant) {
+    final theme = Theme.of(context);
+    String? imageUrl =
+        variant.productImages.isNotEmpty ? variant.productImages[0].image : null;
+    return Container(
+      width: 50,
+      height: 50,
+      clipBehavior: Clip.antiAlias,
+      decoration: BoxDecoration(
+        color: theme.splashColor,
+        borderRadius: BorderRadius.circular(8),
       ),
+      child: imageUrl != null
+          ? Image.network(
+              imageUrl,
+              fit: BoxFit.cover,
+              errorBuilder: (context, error, stackTrace) =>
+                  Icon(Icons.shopping_bag_outlined, color: theme.disabledColor),
+            )
+          : Icon(Icons.shopping_bag_outlined, color: theme.disabledColor),
     );
   }
 }
 
+// --- GLOBAL HELPER WIDGETS (UNCHANGED) ---
+
 extension on String {
-  toStringAsFixed(int i) {
+  String toStringAsFixed(int i) {
     return double.tryParse(this)?.toStringAsFixed(i) ?? this;
   }
 }

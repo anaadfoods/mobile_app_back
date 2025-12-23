@@ -1,11 +1,6 @@
-import 'package:flutter/material.dart';
-import 'package:grocery_app/common_widgets/app_text.dart';
-import 'package:grocery_app/models/cart_model.dart';
-import 'package:grocery_app/styles/colors.dart';
-import 'package:grocery_app/widgets/item_counter_widget.dart';
-import 'package:grocery_app/helpers/snackbar_helper.dart';
+import 'package:grocery_app/common_widgets/global_import.dart';
 
-class ChartItemWidget extends StatefulWidget {
+class ChartItemWidget extends StatelessWidget {
   final CartItem item;
   final Function(int) onQuantityChanged;
   final VoidCallback onRemove;
@@ -18,121 +13,154 @@ class ChartItemWidget extends StatefulWidget {
   });
 
   @override
-  _ChartItemWidgetState createState() => _ChartItemWidgetState();
-}
-
-class _ChartItemWidgetState extends State<ChartItemWidget> {
-  @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final textTheme = theme.textTheme;
+    final colorScheme = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
+
     return Container(
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey.shade200),
+        color: theme.cardColor,
+        borderRadius: BorderRadius.circular(AppColors.radiusL),
+        border: Border.all(
+          color: isDark ? Colors.grey.shade800 : Colors.grey.shade200,
+          width: 1,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: theme.shadowColor.withOpacity(AppColors.shadowOpacityLight),
+            blurRadius: 6,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
-      padding: EdgeInsets.all(8),
+      padding: const EdgeInsets.all(AppColors.spacingM),
       child: Row(
         children: [
+          // Product Image
           Container(
             height: 70,
             width: 70,
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(12),
-              color: Color(0xFFF2F2F2),
+              borderRadius: BorderRadius.circular(AppColors.radiusM),
+              color: isDark ? Colors.grey.shade900 : Colors.grey.shade50,
+              border: Border.all(
+                color: isDark ? Colors.grey.shade700 : Colors.grey.shade100,
+                width: 1,
+              ),
             ),
             child:
-                widget.item.productVariant.productImages.isNotEmpty
+                item.productVariant.productImages.isNotEmpty
                     ? ClipRRect(
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(AppColors.radiusM),
                       child: Image.network(
-                        widget.item.productVariant.productImages.first.image,
+                        item.productVariant.productImages.first.image,
                         fit: BoxFit.cover,
                         errorBuilder:
                             (context, error, stackTrace) => Icon(
                               Icons.image_not_supported,
-                              color: Colors.grey,
+                              color: theme.disabledColor,
                             ),
                       ),
                     )
-                    : Icon(Icons.shopping_bag_outlined, color: Colors.grey),
+                    : Icon(
+                      Icons.shopping_bag_outlined,
+                      color: theme.disabledColor,
+                    ),
           ),
-          SizedBox(width: 12),
+          const SizedBox(width: AppColors.spacingM),
+          // Product Details
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 AppText(
-                  text: widget.item.productVariant.productName,
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
+                  text: item.productVariant.productName,
+                  style: textTheme.bodyLarge?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
                 ),
-                SizedBox(height: 4),
-                SizedBox(height: 8),
+                const SizedBox(height: AppColors.spacingXS),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Flexible(
                       child: Text(
-                        'Rs.${widget.item.productVariant.finalPrice}',
-                        style: TextStyle(
-                          fontSize: 14,
+                        '₹${item.productVariant.finalPrice.toStringAsFixed(0)}',
+                        style: textTheme.titleMedium?.copyWith(
                           fontWeight: FontWeight.bold,
-                          color: Color(0xFF7C7C7C),
+                          color: colorScheme.primary,
                         ),
+                        maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
-                    SizedBox(width: 1),
+                    const SizedBox(width: AppColors.spacingS),
                     ItemCounterWidget(
-                      onAmountChanged: widget.onQuantityChanged,
-                      amount: widget.item.quantity,
+                      onAmountChanged: onQuantityChanged,
+                      amount: item.quantity,
                     ),
                   ],
                 ),
               ],
             ),
           ),
-          SizedBox(width: 4),
-          IconButton(
-            icon: Icon(Icons.remove_circle_outline, color: AppColors.bottonBackgroundColor),
-            onPressed: () {
-              showDialog(
-                context: context,
-                builder: (BuildContext context) {
-                  return AlertDialog(
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    title: Text('Remove Item'),
-                    content: Text(
-                      'Are you sure you want to remove this item from your cart?',
-                    ),
-                    actions: [
-                      TextButton(
-                        onPressed: () => Navigator.of(context).pop(),
-                        child: Text(
-                          'Cancel',
-                          style: TextStyle(color: Colors.grey[600]),
-                        ),
+          const SizedBox(width: AppColors.spacingXS),
+          // Remove Button
+          Container(
+            decoration: BoxDecoration(
+              color: colorScheme.error.withOpacity(0.1),
+              shape: BoxShape.circle,
+            ),
+            child: IconButton(
+              icon: Icon(
+                Icons.delete_outline,
+                color: colorScheme.error,
+                size: 22,
+              ),
+              onPressed: () {
+                showDialog(
+                  context: context,
+                  builder: (BuildContext context) {
+                    return AlertDialog(
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(AppColors.radiusXL),
                       ),
-                      ElevatedButton(
-                        onPressed: () {
-                          widget.onRemove();
-                          Navigator.of(context).pop();
-                          SnackBarHelper.showSuccess(context, 'Item removed from cart');
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.bottonBackgroundColor,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(20),
+                      title: const Text('Remove Item'),
+                      content: const Text(
+                        'Are you sure you want to remove this item from your cart?',
+                      ),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.of(context).pop(),
+                          child: Text(
+                            'Cancel',
+                            style: TextStyle(
+                              color: theme.colorScheme.onSurface,
+                            ),
                           ),
                         ),
-                        child: Text('Remove'),
-                      ),
-                    ],
-                  );
-                },
-              );
-            },
+                        ElevatedButton(
+                          onPressed: () {
+                            onRemove();
+                            Navigator.of(context).pop();
+                            SnackBarHelper.showSuccess(
+                              context,
+                              'Item removed from cart',
+                            );
+                          },
+                          style: theme.elevatedButtonTheme.style,
+                          child: const Text('Remove'),
+                        ),
+                      ],
+                    );
+                  },
+                );
+              },
+            ),
           ),
         ],
       ),

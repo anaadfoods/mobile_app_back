@@ -1,19 +1,15 @@
-import 'dart:convert';
-import 'dart:async';
-import 'api_config.dart';
+import 'package:grocery_app/common_widgets/global_import.dart';
 import 'package:http/http.dart' as http;
-import 'package:grocery_app/models/cart_model.dart';
-import 'package:grocery_app/services/auth_service.dart';
 
 class CartService {
   static final String baseUrl = ApiConfig.baseUrl;
   static const String getcartEndpoint = '/api/cart/details/';
   static const String cartEndpoint = '/api/cart/';
-
   static const String addCartItemEndpoint = '/api/cart/items/add/';
   static const String updateCartItemEndpoint = '/api/cart/items/update/';
-  static const String clearCartItemEndpoint = 'clear/';
-  static const int timeoutSeconds = 30;
+  static const String removeItemEndpoint = 'items/remove/'; // Relative to cartEndpoint
+  static const String clearCartItemEndpoint = 'clear/'; // Relative to cartEndpoint
+  static const int timeoutSeconds = 60;
 
   final AuthService _authService = AuthService();
 
@@ -22,11 +18,13 @@ class CartService {
   factory CartService() => _instance;
   CartService._internal();
 
-  // Stream controller for cart state changes
+  // The last successfully fetched cart, for synchronous access.
+  static CartModel? lastKnownCart;
+
+  // Stream controller for broadcasting cart state changes to listeners.
   static final _cartStateController = StreamController<CartModel>.broadcast();
   static Stream<CartModel> get cartStateChanges => _cartStateController.stream;
 
-  // Helper method to get headers
   Future<Map<String, String>> _getHeaders() async {
     final token = await _authService.getAccessToken();
     return {
@@ -36,280 +34,152 @@ class CartService {
     };
   }
 
-  // Get cart items
+  /// Fetches the user's cart from the server.
+  /// This is the SINGLE SOURCE OF TRUTH for the cart state.
   Future<CartModel> getCart() async {
     try {
-      final isAuthenticated = await _authService.isLoggedIn();
-      if (!isAuthenticated) {
+      if (!await _authService.isLoggedIn()) {
         throw Exception('User not authenticated');
       }
 
       final response = await http
-          .get(
-            Uri.parse('$baseUrl$getcartEndpoint'),
-            headers: await _getHeaders(),
-          )
-          .timeout(Duration(seconds: timeoutSeconds));
+          .get(Uri.parse('$baseUrl$getcartEndpoint'), headers: await _getHeaders())
+          .timeout(const Duration(seconds: timeoutSeconds));
 
       if (response.statusCode == 200) {
         final responseData = jsonDecode(response.body);
         final cart = CartModel.fromJson(responseData);
+        
+        // --- KEY ---
+        // ALWAYS update both the stream and the cache here.
         _cartStateController.add(cart);
+        lastKnownCart = cart;
+
         return cart;
       } else if (response.statusCode == 401) {
-        // Try to refresh the token
-        final refreshed = await _authService.refreshAccessToken();
-        if (refreshed) {
-          // Retry with new token
-          return getCart();
+        if (await _authService.refreshAccessToken()) {
+          return getCart(); // Retry
         } else {
           throw Exception('Authentication failed');
         }
       } else {
-        throw Exception('Failed to load cart');
+        throw Exception('Failed to load cart. Status: ${response.statusCode}');
       }
     } catch (e) {
-      print('Error loading cart: $e');
-      throw Exception('Error loading cart: $e');
+      log('Error loading cart: $e');
+      rethrow; // Re-throw the original error to be handled by the UI
     }
   }
 
-  // Add item to cart
+  /// Adds an item to the cart and then fetches the updated cart state.
   Future<CartModel> addToCart(int productId, int quantity) async {
     try {
-      final isAuthenticated = await _authService.isLoggedIn();
-      if (!isAuthenticated) {
-        throw Exception('User not authenticated');
-      }
+      final response = await http.post(
+        Uri.parse('$baseUrl$addCartItemEndpoint'),
+        headers: await _getHeaders(),
+        body: jsonEncode({'product_variant_id': productId, 'quantity': quantity}),
+      ).timeout(const Duration(seconds: timeoutSeconds));
 
-      print('Adding to cart - Product ID: $productId, Quantity: $quantity');
-
-      final headers = await _getHeaders();
-      final body = {'product_variant_id': productId, 'quantity': quantity};
-
-      final response = await http
-          .post(
-            Uri.parse('$baseUrl$addCartItemEndpoint'),
-            headers: headers,
-            body: jsonEncode(body),
-          )
-          .timeout(Duration(seconds: timeoutSeconds));
-
-      print('Response Status Code: ${response.statusCode}');
-      print('Response Body: ${response.body}');
-
-      // Handle both 200 and 201 as success
+      // On ANY success (200 or 201), fetch the latest cart state.
       if (response.statusCode == 200 || response.statusCode == 201) {
-        final responseData = jsonDecode(response.body);
-
-        // Check if we need to get the updated cart
-        if (responseData['status'] == 'success' &&
-            !responseData.containsKey('items')) {
-          // If the response doesn't contain the full cart, fetch it
-          return await getCart();
-        }
-
-        final cart = CartModel.fromJson(responseData);
-        _cartStateController.add(cart);
-        return cart;
+        return await getCart(); // CORRECT: Guarantees state is updated
       } else if (response.statusCode == 401) {
-        // Try to refresh the token
-        final refreshed = await _authService.refreshAccessToken();
-        if (refreshed) {
-          // Retry with new token
-          return addToCart(productId, quantity);
+        if (await _authService.refreshAccessToken()) {
+          return addToCart(productId, quantity); // Retry
         } else {
           throw Exception('Authentication failed');
         }
-      } else {
-        final responseBody = response.body;
-        try {
-          final errorData = jsonDecode(responseBody);
-          throw Exception(
-            'Failed to add item to cart: ${errorData['message'] ?? responseBody}',
-          );
-        } catch (_) {
-          throw Exception('Failed to add item to cart: $responseBody');
-        }
+      }
+      else if(response.statusCode == 400){
+        throw Exception('Invalid request');
+      }
+      else {
+        throw Exception('Failed to add item. Status: ${response.statusCode}');
       }
     } catch (e) {
-      print('Error adding to cart: $e');
-      if (e is TimeoutException) {
-        throw Exception('Request timed out while adding item to cart');
-      } else if (e is http.ClientException) {
-        throw Exception(
-          'Network error while adding item to cart: ${e.message}',
-        );
-      }
-      throw Exception('Error adding item to cart: $e');
+      log('Error adding to cart: $e');
+      rethrow;
     }
   }
 
-  // Update cart item quantity
-  Future<CartModel> updateCartItem(int cartItemId, int quantity) async {
+  /// Updates an item's quantity and then fetches the updated cart state.
+  Future<CartModel> updateCartItem(int productId, int quantity) async {
     try {
-      final isAuthenticated = await _authService.isLoggedIn();
-      if (!isAuthenticated) {
-        throw Exception('User not authenticated');
-      }
-
-      final response = await http
-          .post(
-            Uri.parse('$baseUrl$updateCartItemEndpoint'),
-            headers: await _getHeaders(),
-            body: jsonEncode({
-              'product_variant_id': cartItemId,
-              'quantity': quantity,
-            }),
-          )
-          .timeout(Duration(seconds: timeoutSeconds));
+      final response = await http.post(
+        Uri.parse('$baseUrl$updateCartItemEndpoint'),
+        headers: await _getHeaders(),
+        body: jsonEncode({'product_variant_id': productId, 'quantity': quantity}),
+      ).timeout(const Duration(seconds: timeoutSeconds));
 
       if (response.statusCode == 200) {
-        // Don't try to parse the response as CartModel, just fetch the latest cart
-        return await getCart();
+        return await getCart(); // CORRECT: Guarantees state is updated
       } else if (response.statusCode == 401) {
-        final refreshed = await _authService.refreshAccessToken();
-        if (refreshed) {
-          return updateCartItem(cartItemId, quantity);
+        if (await _authService.refreshAccessToken()) {
+          return updateCartItem(productId, quantity); // Retry
         } else {
           throw Exception('Authentication failed');
         }
       } else {
-        throw Exception('Failed to update cart item');
+        throw Exception('Failed to update item. Status: ${response.statusCode}');
       }
     } catch (e) {
-      throw Exception('Error updating cart item: $e');
+      log('Error updating cart item: $e');
+      rethrow;
     }
   }
 
-  // Remove item from cart
-  Future<void> removeFromCart(int cartItemId) async {
-    const String removeItemEndpoint = 'items/remove/';
+  /// Removes an item from the cart and then fetches the updated cart state.
+  Future<CartModel> removeFromCart(int productId) async {
     try {
-      final isAuthenticated = await _authService.isLoggedIn();
-      if (!isAuthenticated) {
-        throw Exception('User not authenticated');
-      }
-
-      print('Removing item from cart - Item ID: $cartItemId');
-
-      final headers = await _getHeaders();
-      final body = {'product_variant_id': cartItemId};
-
-      print('Request Body: $body');
-
-      final response = await http
-          .post(
-            Uri.parse('$baseUrl$cartEndpoint$removeItemEndpoint'),
-            headers: headers,
-            body: jsonEncode(body),
-          )
-          .timeout(Duration(seconds: timeoutSeconds));
-
-      print('Response Status Code: ${response.statusCode}');
-      print('Response Body: ${response.body}');
-
-      // Handle both 200 and 204 as success
+      final response = await http.post(
+        Uri.parse('$baseUrl$cartEndpoint$removeItemEndpoint'),
+        headers: await _getHeaders(),
+        body: jsonEncode({'product_variant_id': productId}),
+      ).timeout(const Duration(seconds: timeoutSeconds));
+      
+      // On ANY success (200 or 204 No Content), fetch the latest cart state.
       if (response.statusCode == 200 || response.statusCode == 204) {
-        try {
-          if (response.body.isNotEmpty) {
-            final responseData = jsonDecode(response.body);
-            if (responseData['status'] == 'success') {
-              // If we have cart data in the response, use it
-              if (responseData.containsKey('data') &&
-                  responseData['data'] != null) {
-                final cart = CartModel.fromJson(responseData);
-                _cartStateController.add(cart);
-                return;
-              }
-            }
-          }
-          // If no cart data in response, fetch the updated cart
-          final updatedCart = await getCart();
-          _cartStateController.add(updatedCart);
-        } catch (e) {
-          print('Error parsing response: $e');
-          // Still try to get the updated cart even if parsing fails
-          final updatedCart = await getCart();
-          _cartStateController.add(updatedCart);
-        }
+        return await getCart(); // CORRECT: Guarantees state is updated
       } else if (response.statusCode == 401) {
-        // Try to refresh the token
-        final refreshed = await _authService.refreshAccessToken();
-        if (refreshed) {
-          // Retry with new token
-          return removeFromCart(cartItemId);
+        if (await _authService.refreshAccessToken()) {
+          return removeFromCart(productId); // Retry
         } else {
           throw Exception('Authentication failed');
         }
       } else {
-        final responseBody = response.body;
-        try {
-          final errorData = jsonDecode(responseBody);
-          throw Exception(
-            'Failed to remove item from cart: ${errorData['message'] ?? responseBody}',
-          );
-        } catch (_) {
-          throw Exception('Failed to remove item from cart: $responseBody');
-        }
+        throw Exception('Failed to remove item. Status: ${response.statusCode}');
       }
     } catch (e) {
-      print('Error removing item from cart: $e');
-      if (e is TimeoutException) {
-        throw Exception('Request timed out while removing item from cart');
-      } else if (e is http.ClientException) {
-        throw Exception(
-          'Network error while removing item from cart: ${e.message}',
-        );
-      }
-      throw Exception('Error removing item from cart: $e');
+      log('Error removing item from cart: $e');
+      rethrow;
     }
   }
 
-  // Clear cart
-  Future<void> clearCart() async {
+  /// Clears all items from the cart and then fetches the (now empty) cart state.
+  Future<CartModel> clearCart() async {
     try {
-      final isAuthenticated = await _authService.isLoggedIn();
-      if (!isAuthenticated) {
-        throw Exception('User not authenticated');
-      }
-
       final response = await http
-          .post(
-            Uri.parse('$baseUrl$cartEndpoint$clearCartItemEndpoint'),
-            headers: await _getHeaders(),
-          )
-          .timeout(Duration(seconds: timeoutSeconds));
+          .post(Uri.parse('$baseUrl$cartEndpoint$clearCartItemEndpoint'), headers: await _getHeaders())
+          .timeout(const Duration(seconds: timeoutSeconds));
 
-      if (response.statusCode == 204) {
-        // Create empty cart model
-        final emptyCart = CartModel(
-          id: 0,
-          items: [],
-          totalPrice: '0',
-          totalItems: 0,
-          createdAt: DateTime.now(),
-          updatedAt: DateTime.now(),
-        );
-        _cartStateController.add(emptyCart);
+      if (response.statusCode == 200 || response.statusCode == 204) {
+        return await getCart(); // CORRECT: Guarantees state is updated with empty cart
       } else if (response.statusCode == 401) {
-        // Try to refresh the token
-        final refreshed = await _authService.refreshAccessToken();
-        if (refreshed) {
-          // Retry with new token
-          return clearCart();
+        if (await _authService.refreshAccessToken()) {
+          return clearCart(); // Retry
         } else {
           throw Exception('Authentication failed');
         }
       } else {
-        throw Exception('Failed to clear cart');
+        throw Exception('Failed to clear cart. Status: ${response.statusCode}');
       }
     } catch (e) {
-      throw Exception('Error clearing cart: $e');
+      log('Error clearing cart: $e');
+      rethrow;
     }
   }
 
-  // Dispose of the stream controller
+  // Dispose of the stream controller when the app is terminated.
   void dispose() {
     _cartStateController.close();
   }

@@ -1,19 +1,22 @@
-import 'package:flutter/material.dart';
-import 'package:grocery_app/screens/auth/login_screen.dart';
-import 'package:grocery_app/screens/auth/signup_screen.dart';
-import 'package:grocery_app/styles/colors.dart';
+import "package:grocery_app/common_widgets/global_import.dart";
+
 
 class AuthScreen extends StatelessWidget {
   const AuthScreen({super.key});
 
-  Widget _buildBenefitItem(IconData icon, String text) {
+  // Helper method now takes BuildContext to access the theme
+  Widget _buildBenefitItem(BuildContext context, IconData icon, String text) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final textTheme = theme.textTheme;
+
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 10.0),
       child: Row(
         children: [
-          Icon(icon, size: 28, color: AppColors.bottonBackgroundColor),
+          Icon(icon, size: 28, color: colorScheme.primary),
           const SizedBox(width: 12),
-          Expanded(child: Text(text, style: TextStyle(fontSize: 16 , color: Colors.black))),
+          Expanded(child: Text(text, style: textTheme.bodyLarge)),
         ],
       ),
     );
@@ -21,59 +24,62 @@ class AuthScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        titleSpacing: 0,
-        title: Row(
-          children: [
-          
+    // Get theme properties to apply them to the UI
+    final theme = Theme.of(context);
+    final textTheme = theme.textTheme;
+    final colorScheme = theme.colorScheme;
 
-          ],
-        ),
+    return Scaffold(
+      backgroundColor: theme.scaffoldBackgroundColor,
+      appBar: AppBar(
+        // AppBar is styled by the theme in main.dart
+        elevation: 0,
       ),
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 2),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            
-            const Text("Welcome to Annad", style: TextStyle( color: Colors.black
-            , fontSize: 22, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 10),
+            Text(
+              "Welcome to Annad",
+              // Using themed text style
+              style: textTheme.displaySmall,
+            ),
+            const SizedBox(height: 20), // Increased spacing
             ElevatedButton(
               onPressed: () {
-                Navigator.push(context, MaterialPageRoute(builder: (context) => SignupScreen()));
+                Navigator.push(context,
+                    MaterialPageRoute(builder: (context) => const SignupScreen()));
               },
-              style: ElevatedButton.styleFrom(
-                
-                backgroundColor: AppColors.primaryColor,
-                minimumSize: Size(double.infinity, 50),
+              style: theme.elevatedButtonTheme.style?.copyWith(
+                minimumSize: MaterialStateProperty.all(const Size(double.infinity, 50)),
               ),
-              child: const Text("Create account", style: TextStyle(  fontSize: 16, color: Colors.white)),
+              child: Text(
+                "Create account",
+                // Using themed text style for text on a primary button
+                style: textTheme.labelLarge?.copyWith(color: colorScheme.onPrimary),
+              ),
             ),
             const SizedBox(height: 12),
             OutlinedButton(
               onPressed: () {
                 Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => LoginScreen(),
-                          ),
-                        );
+                  context,
+                  MaterialPageRoute(builder: (context) => const LoginScreen()),
+                );
               },
               style: OutlinedButton.styleFrom(
-                minimumSize: Size(double.infinity, 50),
+                minimumSize: const Size(double.infinity, 50),
+                foregroundColor: colorScheme.primary,
+                side: BorderSide(color: colorScheme.primary),
+                shape: theme.elevatedButtonTheme.style?.shape?.resolve({}), // Match button shape
               ),
-              child: const Text("Login", style: TextStyle(fontSize: 16)),
+              child: Text("Login", style: textTheme.labelLarge),
             ),
             const SizedBox(height: 30),
-            _buildBenefitItem(Icons.currency_rupee, "Upto ₹100 cashback on your first order"),
-            _buildBenefitItem(Icons.local_shipping, "Free Delivery on first order – for top categories"),
-            // _buildBenefitItem(Icons.loop, "Easy Returns"),
-            _buildBenefitItem(Icons.money, "Pay on Delivery"),
+            _buildBenefitItem(context, Icons.currency_rupee, "Upto ₹100 cashback on your first order"),
+            _buildBenefitItem(context, Icons.local_shipping, "Free Delivery on first order – for top categories"),
+            _buildBenefitItem(context, Icons.money, "Pay on Delivery"),
           ],
         ),
       ),

@@ -1,15 +1,7 @@
-import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'dart:io';
-import 'package:image_picker/image_picker.dart';
-import '../../models/user_model.dart';
-import '../../services/auth_service.dart';
-import '../../services/profile_service.dart';
-import '../../helpers/snackbar_helper.dart';
+import 'package:grocery_app/common_widgets/global_import.dart';
 
 class EditProfileScreen extends StatefulWidget {
   final UserModel userProfile;
-
   const EditProfileScreen({super.key, required this.userProfile});
 
   @override
@@ -17,15 +9,11 @@ class EditProfileScreen extends StatefulWidget {
 }
 
 class _EditProfileScreenState extends State<EditProfileScreen> {
-  // --- STATE AND SERVICES ---
   final _authService = AuthService();
   final _profileService = ProfileService();
   final _imagePicker = ImagePicker();
-
   bool _isLoading = false;
   File? _selectedImage;
-
-  // --- CONTROLLERS ---
   late final TextEditingController _firstNameController;
   late final TextEditingController _lastNameController;
   late final TextEditingController _usernameController;
@@ -39,21 +27,35 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   @override
   void initState() {
     super.initState();
-    // Initialize all controllers with current user profile data
-    _firstNameController = TextEditingController(text: widget.userProfile.firstName ?? "");
-    _lastNameController = TextEditingController(text: widget.userProfile.lastName ?? "");
-    _usernameController = TextEditingController(text: widget.userProfile.username ?? "");
+    _firstNameController = TextEditingController(
+      text: widget.userProfile.firstName ?? "",
+    );
+    _lastNameController = TextEditingController(
+      text: widget.userProfile.lastName ?? "",
+    );
+    _usernameController = TextEditingController(
+      text: widget.userProfile.username ?? "",
+    );
     _emailController = TextEditingController(text: widget.userProfile.email);
-    _phoneController = TextEditingController(text: widget.userProfile.phoneNumber);
-    _addressController = TextEditingController(text: widget.userProfile.address ?? '');
-    _cityController = TextEditingController(text: widget.userProfile.city ?? '');
-    _stateController = TextEditingController(text: widget.userProfile.state ?? '');
-    _pincodeController = TextEditingController(text: widget.userProfile.pincode ?? '');
+    _phoneController = TextEditingController(
+      text: widget.userProfile.phoneNumber,
+    );
+    _addressController = TextEditingController(
+      text: widget.userProfile.address ?? '',
+    );
+    _cityController = TextEditingController(
+      text: widget.userProfile.city ?? '',
+    );
+    _stateController = TextEditingController(
+      text: widget.userProfile.state ?? '',
+    );
+    _pincodeController = TextEditingController(
+      text: widget.userProfile.pincode ?? '',
+    );
   }
 
   @override
   void dispose() {
-    // Dispose all controllers to prevent memory leaks
     _firstNameController.dispose();
     _lastNameController.dispose();
     _usernameController.dispose();
@@ -66,15 +68,12 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     super.dispose();
   }
 
-  // --- LOGIC METHODS (UNCHANGED) ---
-
   Future<void> _pickImage() async {
     try {
       final XFile? pickedFile = await _imagePicker.pickImage(
         source: ImageSource.gallery,
         imageQuality: 80,
       );
-
       if (pickedFile != null) {
         setState(() {
           _selectedImage = File(pickedFile.path);
@@ -87,11 +86,11 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
   Future<void> _updateProfile() async {
     setState(() => _isLoading = true);
-
     try {
-      // 1. Update profile image if a new one is selected
       if (_selectedImage != null) {
-        final imageResult = await _profileService.uploadProfileImage(_selectedImage!);
+        final imageResult = await _profileService.uploadProfileImage(
+          _selectedImage!,
+        );
         if (!imageResult['success']) {
           if (mounted) {
             SnackBarHelper.showError(
@@ -103,8 +102,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           return;
         }
       }
-
-      // 2. Prepare the updated user profile data
       final updatedProfile = widget.userProfile.copyWith(
         firstName: _firstNameController.text,
         lastName: _lastNameController.text,
@@ -116,15 +113,11 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         city: _cityController.text,
         state: _stateController.text,
       );
-      
-      // 3. Call the update service
       final result = await _authService.updateProfile(updatedProfile);
-
       if (!mounted) return;
-
       if (result['success']) {
         SnackBarHelper.showSuccess(context, 'Profile updated successfully');
-        Navigator.pop(context, true); // Pop with a success flag
+        Navigator.pop(context, true);
       } else {
         SnackBarHelper.showError(
           context,
@@ -132,7 +125,11 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         );
       }
     } catch (e) {
-      if(mounted) SnackBarHelper.showError(context, 'An error occurred while updating profile');
+      if (mounted)
+        SnackBarHelper.showError(
+          context,
+          'An error occurred while updating profile',
+        );
     } finally {
       if (mounted) {
         setState(() => _isLoading = false);
@@ -140,37 +137,22 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     }
   }
 
-  // --- UI BUILD METHOD ---
-
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
     String userHandle = widget.userProfile.username ?? "edit_profile";
 
     return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        centerTitle: true,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
-        title: Text(
-          '@$userHandle',
-          style: TextStyle(
-            color: Colors.black,
-            fontWeight: FontWeight.bold,
-            fontSize: 18,
-          ),
-        ),
-      ),
+      backgroundColor: theme.scaffoldBackgroundColor,
+      appBar: AppBar(title: Text('@$userHandle')),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 25.0, vertical: 10.0),
+        padding: const EdgeInsets.all(AppColors.spacingL),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            // -- Profile Picture --
+            // Profile Picture
             GestureDetector(
               onTap: _pickImage,
               child: Stack(
@@ -178,29 +160,47 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   Container(
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
+                      border: Border.all(
+                        color: colorScheme.primary.withOpacity(0.3),
+                        width: 3,
+                      ),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.grey.withOpacity(0.3),
-                          spreadRadius: 2,
-                          blurRadius: 8,
-                          offset: Offset(0, 4),
+                          color: theme.shadowColor.withOpacity(
+                            AppColors.shadowOpacityMedium,
+                          ),
+                          blurRadius: 12,
+                          offset: const Offset(0, 4),
                         ),
                       ],
                     ),
                     child: CircleAvatar(
                       radius: 55,
-                      backgroundColor: Colors.white,
+                      backgroundColor: theme.cardColor,
                       child: CircleAvatar(
                         radius: 52,
-                        backgroundColor: Colors.grey[200],
-                        backgroundImage: _selectedImage != null
-                            ? FileImage(_selectedImage!)
-                            : (widget.userProfile.profilePicture != null
-                                ? NetworkImage(widget.userProfile.profilePicture!)
-                                : null) as ImageProvider?,
-                        child: (_selectedImage == null && widget.userProfile.profilePicture == null)
-                            ? Icon(Icons.person, size: 60, color: Colors.grey[400])
-                            : null,
+                        backgroundColor:
+                            isDark
+                                ? Colors.grey.shade800
+                                : Colors.grey.shade100,
+                        backgroundImage:
+                            _selectedImage != null
+                                ? FileImage(_selectedImage!)
+                                : (widget.userProfile.profilePicture != null
+                                        ? NetworkImage(
+                                          widget.userProfile.profilePicture!,
+                                        )
+                                        : null)
+                                    as ImageProvider?,
+                        child:
+                            (_selectedImage == null &&
+                                    widget.userProfile.profilePicture == null)
+                                ? Icon(
+                                  Icons.person,
+                                  size: 60,
+                                  color: theme.disabledColor,
+                                )
+                                : null,
                       ),
                     ),
                   ),
@@ -208,30 +208,90 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     bottom: 4,
                     right: 4,
                     child: Container(
-                      padding: EdgeInsets.all(6),
+                      padding: const EdgeInsets.all(AppColors.spacingS),
                       decoration: BoxDecoration(
-                        color: Colors.grey[700],
+                        color: colorScheme.primary,
                         shape: BoxShape.circle,
-                        border: Border.all(color: Colors.white, width: 2),
+                        border: Border.all(color: theme.cardColor, width: 2),
+                        boxShadow: [
+                          BoxShadow(
+                            color: colorScheme.primary.withOpacity(0.3),
+                            blurRadius: 8,
+                          ),
+                        ],
                       ),
-                      child: Icon(Icons.edit, color: Colors.white, size: 18),
+                      child: Icon(
+                        Icons.camera_alt,
+                        color: colorScheme.onPrimary,
+                        size: 16,
+                      ),
                     ),
                   ),
                 ],
               ),
             ),
-            SizedBox(height: 30),
+            const SizedBox(height: AppColors.spacingXL),
 
-            // -- Form Fields --
-            _buildTextField(label: 'First Name', controller: _firstNameController),
-            _buildTextField(label: 'Last Name', controller: _lastNameController),
-            _buildTextField(label: 'Username', controller: _usernameController),
-            _buildTextField(label: 'Email', controller: _emailController, readOnly: true),
-            _buildTextField(label: 'Phone Number', controller: _phoneController, readOnly: true),
-            _buildTextField(label: 'Address', controller: _addressController),
-            _buildTextField(label: 'City', controller: _cityController),
-            _buildTextField(label: 'State', controller: _stateController),
-            _buildTextField(label: 'Pincode', controller: _pincodeController, keyboardType: TextInputType.number),
+            // Personal Info Section
+            _buildSectionCard(
+              title: 'Personal Information',
+              icon: Icons.person_outline,
+              children: [
+                _buildTextField(
+                  label: 'First Name',
+                  controller: _firstNameController,
+                ),
+                _buildTextField(
+                  label: 'Last Name',
+                  controller: _lastNameController,
+                ),
+                _buildTextField(
+                  label: 'Username',
+                  controller: _usernameController,
+                ),
+              ],
+            ),
+            const SizedBox(height: AppColors.spacingL),
+
+            // Contact Info Section
+            _buildSectionCard(
+              title: 'Contact Information',
+              icon: Icons.contact_mail_outlined,
+              children: [
+                _buildTextField(
+                  label: 'Email',
+                  controller: _emailController,
+                  readOnly: true,
+                ),
+                _buildTextField(
+                  label: 'Phone Number',
+                  controller: _phoneController,
+                  readOnly: true,
+                ),
+              ],
+            ),
+            const SizedBox(height: AppColors.spacingL),
+
+            // Address Section
+            _buildSectionCard(
+              title: 'Address',
+              icon: Icons.location_on_outlined,
+              children: [
+                _buildTextField(
+                  label: 'Address',
+                  controller: _addressController,
+                ),
+                _buildTextField(label: 'City', controller: _cityController),
+                _buildTextField(label: 'State', controller: _stateController),
+                _buildTextField(
+                  label: 'Pincode',
+                  controller: _pincodeController,
+                  keyboardType: TextInputType.number,
+                  isLast: true,
+                ),
+              ],
+            ),
+            const SizedBox(height: AppColors.spacingL),
           ],
         ),
       ),
@@ -239,45 +299,101 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     );
   }
 
-  // --- UI HELPER WIDGETS ---
+  Widget _buildSectionCard({
+    required String title,
+    required IconData icon,
+    required List<Widget> children,
+  }) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(AppColors.spacingL),
+      decoration: BoxDecoration(
+        color: theme.cardColor,
+        borderRadius: BorderRadius.circular(AppColors.radiusL),
+        border: Border.all(
+          color: isDark ? Colors.grey.shade800 : Colors.grey.shade200,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: theme.shadowColor.withOpacity(AppColors.shadowOpacityLight),
+            blurRadius: 6,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(AppColors.spacingS),
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.primary.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(AppColors.radiusS),
+                ),
+                child: Icon(icon, color: theme.colorScheme.primary, size: 20),
+              ),
+              const SizedBox(width: AppColors.spacingM),
+              Text(
+                title,
+                style: theme.textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: AppColors.spacingL),
+          ...children,
+        ],
+      ),
+    );
+  }
 
   Widget _buildTextField({
     required String label,
     required TextEditingController controller,
     bool readOnly = false,
     TextInputType? keyboardType,
+    bool isLast = false,
   }) {
+    final theme = Theme.of(context);
+    final textTheme = theme.textTheme;
+
     return Padding(
-      padding: const EdgeInsets.only(bottom: 20.0),
+      padding: EdgeInsets.only(bottom: isLast ? 0 : AppColors.spacingL),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             label,
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.black87),
+            style: textTheme.labelLarge?.copyWith(color: theme.hintColor),
           ),
-          SizedBox(height: 8),
+          const SizedBox(height: AppColors.spacingS),
           TextFormField(
             controller: controller,
             readOnly: readOnly,
             keyboardType: keyboardType,
             decoration: InputDecoration(
-              filled: true,
-              fillColor: readOnly ? Colors.grey[100] : Colors.grey[50],
-              contentPadding: EdgeInsets.symmetric(horizontal: 20, vertical: 16),
               border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(15),
-                borderSide: BorderSide.none,
+                borderRadius: BorderRadius.circular(AppColors.radiusM),
               ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(15),
-                borderSide: BorderSide(color: Colors.grey[200]!),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(15),
-                borderSide: BorderSide(color: Color(0xFFB58A55), width: 1.5),
-              ),
-            ),
+              fillColor:
+                  readOnly
+                      ? theme.inputDecorationTheme.fillColor?.withOpacity(0.5)
+                      : null,
+              suffixIcon:
+                  readOnly
+                      ? Icon(
+                        Icons.lock_outline,
+                        size: 18,
+                        color: theme.disabledColor,
+                      )
+                      : null,
+            ).applyDefaults(theme.inputDecorationTheme),
           ),
         ],
       ),
@@ -285,50 +401,59 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   }
 
   Widget _buildBottomButtons() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 25, vertical: 20),
-      child: Row(
-        children: [
-          Expanded(
-            child: OutlinedButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: Text('Cancel'),
-              style: OutlinedButton.styleFrom(
-                padding: EdgeInsets.symmetric(vertical: 16),
-                foregroundColor: Color(0xFFB58A55),
-                side: BorderSide(color: Color(0xFFB58A55), width: 1.5),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(15),
-                ),
-              ),
-            ),
-          ),
-          SizedBox(width: 15),
-          Expanded(
-            child: ElevatedButton(
-              onPressed: _isLoading ? null : _updateProfile,
-              child: _isLoading
-                  ? SizedBox(
-                      height: 20,
-                      width: 20,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                      ),
-                    )
-                  : Text('Save Changes'),
-              style: ElevatedButton.styleFrom(
-                  padding: EdgeInsets.symmetric(vertical: 16),
-                  backgroundColor: Color(0xFFB58A55),
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(15),
-                  ),
-                  elevation: 2,
-                  shadowColor: Color(0xFFB58A55).withOpacity(0.4)),
-            ),
+    final theme = Theme.of(context);
+
+    return Container(
+      padding: const EdgeInsets.all(AppColors.spacingL),
+      decoration: BoxDecoration(
+        color: theme.cardColor,
+        boxShadow: [
+          BoxShadow(
+            color: theme.shadowColor.withOpacity(AppColors.shadowOpacityLight),
+            blurRadius: 8,
+            offset: const Offset(0, -2),
           ),
         ],
+      ),
+      child: SafeArea(
+        child: Row(
+          children: [
+            Expanded(
+              child: OutlinedButton(
+                onPressed:
+                    _isLoading ? null : () => Navigator.of(context).pop(),
+                style: OutlinedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(
+                    vertical: AppColors.spacingM,
+                  ),
+                ),
+                child: const Text('Cancel'),
+              ),
+            ),
+            const SizedBox(width: AppColors.spacingL),
+            Expanded(
+              child: ElevatedButton(
+                onPressed: _isLoading ? null : _updateProfile,
+                style: ElevatedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(
+                    vertical: AppColors.spacingM,
+                  ),
+                ),
+                child:
+                    _isLoading
+                        ? SizedBox(
+                          height: 20,
+                          width: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: theme.colorScheme.onPrimary,
+                          ),
+                        )
+                        : const Text('Save Changes'),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

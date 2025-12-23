@@ -1,16 +1,7 @@
-import 'dart:convert';
+import 'package:grocery_app/common_widgets/global_import.dart';
+
 import 'package:flutter/foundation.dart';
-import 'package:grocery_app/models/subscription_invoice_model.dart';
-import 'package:grocery_app/models/subscription_plan_product_model.dart';
-import 'package:grocery_app/models/subscription_request_create_model.dart';
 import 'package:http/http.dart' as http;
-import '../models/subscription_model.dart';
-import '../models/subscription_plan_model.dart';
-import 'api_config.dart';
-import 'auth_service.dart';
-import '../models/payment_status_model.dart';
-import 'dart:io';
-import 'package:path_provider/path_provider.dart';
 
 // Top-level function for background JSON parsing
 Map<String, dynamic> _parseJson(String jsonString) {
@@ -21,6 +12,22 @@ Map<String, dynamic> _parseJson(String jsonString) {
 List<dynamic> _parseJsonList(String jsonString) {
   return jsonDecode(jsonString) as List<dynamic>;
 }
+
+List<Subscription> _parseSubscriptions(String responseBody) {
+  final parsed = json.decode(responseBody);
+  final subscriptionsMap = parsed['subscriptions'] as Map<String, dynamic>;
+  final List<Subscription> allSubscriptions = [];
+
+  // Iterate over all status lists (ACTIVE, PAUSED, etc.) and combine them
+  subscriptionsMap.forEach((status, list) {
+    if (list is List) {
+      allSubscriptions.addAll(list.map<Subscription>((item) => Subscription.fromJson(item)));
+    }
+  });
+
+  return allSubscriptions;
+}
+
 
 class SubscriptionService {
   static final SubscriptionService _instance = SubscriptionService._internal();
@@ -160,62 +167,37 @@ class SubscriptionService {
     try {
       final token = await _authService.getAccessToken();
       if (token == null) {
-        return {
-          'success': false,
-          'message': 'Not authenticated',
-          'requiresLogin': true,
-        };
+        return {'success': false, 'message': 'User not authenticated.'};
       }
 
       final url = '${ApiConfig.baseUrl}${ApiConfig.subscriptionsEndpoint}';
-
       final response = await http.get(
         Uri.parse(url),
         headers: ApiConfig.getAuthHeaders(token),
       );
-
+      
+      print('--- SUBSCRIPTION RESPONSE ---');
+      print('Status Code: ${response.statusCode}');
+      // print('Response Body: ${response.body}'); // You can keep this for debugging
 
       if (response.statusCode != 200) {
-        return {
-          'success': false,
-          'message': 'Failed to fetch subscriptions: ${response.statusCode}',
-        };
+        final errorBody = jsonDecode(response.body);
+        return {'success': false, 'message': errorBody['detail'] ?? 'Failed to load subscriptions.'};
       }
 
-      final responseData = await compute(_parseJson, response.body);
-
-      if (responseData.containsKey('subscriptions')) {
-        final allSubscriptions = <Subscription>[];
-        final subscriptionsMap =
-            responseData['subscriptions'] as Map<String, dynamic>;
-
-        subscriptionsMap.forEach((status, subscriptions) {
-          if (subscriptions is List) {
-            allSubscriptions.addAll(subscriptions
-                .map((item) => Subscription.fromJson(item))
-                .toList());
-          }
-        });
-
-        return {
-          'success': true,
-          'data': allSubscriptions,
-          'message': 'Subscriptions fetched successfully',
-        };
-      } else {
-        return {
-          'success': false,
-          'message': 'Invalid response format from server',
-        };
-      }
-    } catch (e) {
+      // Use the compute function to parse the complex JSON in the background
+      final List<Subscription> allSubscriptions = await compute(_parseSubscriptions, response.body);
+      
       return {
-        'success': false,
-        'message': 'An error occurred while fetching subscriptions',
-        'error': e.toString(),
+        'success': true,
+        'data': allSubscriptions, // Return the combined list under the 'data' key
       };
+
+    } catch (e) {
+      return {'success': false, 'message': e.toString()};
     }
   }
+
 
   Future<Map<String, dynamic>> getSubscriptionDetails(
       int subscriptionId) async {
@@ -612,7 +594,7 @@ class SubscriptionService {
 Future<ApiResponse> getSubscriptionInvoices(int subscriptionId) async {
   try {
 
-    ApiResponse _parseApiResponse(String responseBody) {
+    ApiResponse parseApiResponse(String responseBody) {
   return apiResponseFromJson(responseBody);
 }
     final token = await _authService.getAccessToken();
@@ -632,7 +614,7 @@ Future<ApiResponse> getSubscriptionInvoices(int subscriptionId) async {
     if (response.statusCode == 200) {
         print(response.statusCode);
       // Use compute to parse the JSON and create the model in a background isolate.
-      return await compute(_parseApiResponse, response.body);
+      return await compute(parseApiResponse, response.body);
     } else {
       // For errors, parse the generic JSON to get the message.
       final errorData = await compute(_parseJson, response.body);

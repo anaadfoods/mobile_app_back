@@ -1,10 +1,9 @@
-import 'dart:convert';
-import 'dart:async';
-import 'api_config.dart';
+import 'package:grocery_app/common_widgets/global_import.dart';
+
+
 
 import 'package:http/http.dart' as http;
-import 'package:grocery_app/models/category_model.dart';
-import 'package:grocery_app/models/product_model.dart';
+
 
 class CategoryService {
   // static const String baseUrl = 'http://192.168.1.40:8000';
@@ -71,12 +70,58 @@ class CategoryService {
     }
   }
 
+  /// Call API
+  Future<List<Product>> searchProducts(String query) async {
+   
+
+    
+    final url =
+        Uri.parse('${ApiConfig.baseUrl}/api/products/variants/search/?q=$query');
+
+    try {
+      final response = await http.get(url);
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = json.decode(response.body);
+        List<Product> results =
+            data.map((item) => Product.fromJson(item)).toList();
+        return results;
+      } else {
+        return [];
+      }
+    } 
+    catch (e) {
+      throw Exception("Error searching products: $e");
+    }
+  }
+
+
   static Future<List<Product>> fetchProductsByCategory(
     String categoryName,
   ) async {
     try {
       final String url =
           "$baseUrl$productsEndpoint?category_name=$categoryName";
+      final response = await http.get(Uri.parse(url));
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = json.decode(response.body);
+        return data.map((item) => Product.fromJson(item)).toList();
+      } else {
+        throw Exception("Failed to load products by category");
+      }
+    } catch (e) {
+      throw Exception("Error loading products by category: $e");
+    }
+  }
+
+
+  static Future<List<Product>> fetchSimilarProduct(
+    String categoryName,
+  ) async {
+    try {
+      final String url =
+          "$baseUrl/api/products/variants/search/?=$categoryName";
       final response = await http.get(Uri.parse(url));
 
       if (response.statusCode == 200) {

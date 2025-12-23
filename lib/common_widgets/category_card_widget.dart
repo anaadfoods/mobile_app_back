@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:grocery_app/models/category_model.dart';
+import 'package:grocery_app/styles/colors.dart';
 
-class CategoryCardWidget extends StatelessWidget {
+class CategoryCardWidget extends StatefulWidget {
   final Category category;
   final VoidCallback onTap;
 
@@ -13,65 +14,103 @@ class CategoryCardWidget extends StatelessWidget {
   });
 
   @override
+  State<CategoryCardWidget> createState() => _CategoryCardWidgetState();
+}
+
+class _CategoryCardWidgetState extends State<CategoryCardWidget> {
+  bool _isPressed = false;
+
+  @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final isActive = widget.category.isActive;
+
     return GestureDetector(
-      onTap: category.isActive ? onTap : null,
-      child: Opacity(
-        opacity: category.isActive ? 1.0 : 0.5,
-        child: Container(
-          padding: EdgeInsets.symmetric(horizontal: 10),
+      onTapDown: isActive ? (_) => setState(() => _isPressed = true) : null,
+      onTapUp: isActive ? (_) => setState(() => _isPressed = false) : null,
+      onTapCancel: isActive ? () => setState(() => _isPressed = false) : null,
+      onTap: isActive ? widget.onTap : null,
+      child: AnimatedScale(
+        scale: _isPressed ? 0.95 : 1.0,
+        duration: const Duration(milliseconds: AppColors.animFast),
+        curve: Curves.easeInOut,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: AppColors.animMedium),
+          margin: const EdgeInsets.all(4),
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(16),
-            // gradient: LinearGradient(
-            //   colors: [Color(0xFFFFF3E0), Color(0xFFFFF8E1)],
-            //   begin: Alignment.topLeft,
-            //   end: Alignment.bottomRight,
-            // // ),
-            // boxShadow: [
-            //   BoxShadow(
-            //     color: Colors.black12,
-            //     blurRadius: 4,
-            //     offset: Offset(2, 2),
-            //   )
-            // ],
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Expanded(
-                flex: 3,
-                child: ClipRRect(
-                  borderRadius: BorderRadius.vertical(top: Radius.circular(25)),
-                  child: CachedNetworkImage(
-                    imageUrl: category.image,
-                    width: double.infinity,
-                    fit: BoxFit.cover,
-                    placeholder: (context, url) =>
-                        Center(child: CircularProgressIndicator(strokeWidth: 2)),
-                    errorWidget: (context, url, error) =>
-                        Icon(Icons.image_not_supported, size: 40, color: Colors.grey),
-                  ),
+            color: theme.cardColor,
+            borderRadius: BorderRadius.circular(AppColors.radiusM),
+            border: Border.all(
+              color: isDark ? Colors.grey.shade800 : Colors.grey.shade200,
+              width: 1,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: theme.shadowColor.withOpacity(
+                  _isPressed ? 0.02 : AppColors.shadowOpacityLight,
                 ),
+                blurRadius: _isPressed ? 2 : 6,
+                offset: Offset(0, _isPressed ? 1 : 2),
               ),
-              Expanded(
-                flex: 1,
-                child: Center(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                    child: Text(
-                      category.name,
-                      style: TextStyle(
-                        fontWeight: FontWeight.w400,
-                        fontSize: 10,
-                      ),
-                      maxLines: 2,
-                      textAlign: TextAlign.center,
-                      overflow: TextOverflow.ellipsis,
+            ],
+          ),
+          clipBehavior: Clip.antiAlias,
+          child: Opacity(
+            opacity: isActive ? 1.0 : 0.5,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Expanded(
+                  flex: 3,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color:
+                          isDark ? Colors.grey.shade900 : Colors.grey.shade50,
+                    ),
+                    child: CachedNetworkImage(
+                      imageUrl: widget.category.image,
+                      width: double.infinity,
+                      fit: BoxFit.cover,
+                      placeholder:
+                          (context, url) => Center(
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: theme.colorScheme.primary,
+                            ),
+                          ),
+                      errorWidget:
+                          (context, url, error) => Icon(
+                            Icons.image_not_supported,
+                            size: 40,
+                            color: theme.disabledColor,
+                          ),
                     ),
                   ),
                 ),
-              )
-            ],
+                Expanded(
+                  flex: 1,
+                  child: Container(
+                    color: theme.cardColor,
+                    child: Center(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                        child: Text(
+                          widget.category.name,
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            fontWeight: FontWeight.w600,
+                            fontSize: 12,
+                          ),
+                          maxLines: 2,
+                          textAlign: TextAlign.center,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),

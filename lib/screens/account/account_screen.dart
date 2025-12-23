@@ -1,49 +1,14 @@
-import 'package:flutter/material.dart';
+import "package:grocery_app/common_widgets/global_import.dart";
+// --- IMPORT ADDED ---
+// Assuming you saved the switch in a common_widgets folder
+import 'package:grocery_app/widgets/custom_switch.dart';
 
-import 'package:grocery_app/models/user_model.dart';
-import 'package:grocery_app/screens/MySubscriptionPlan/subscription_plan_detail.dart';
-import 'package:grocery_app/screens/about/about_screen.dart';
-import 'package:grocery_app/screens/help/help_screen.dart';
-import 'package:grocery_app/screens/order/order_screen.dart';
-import 'package:grocery_app/screens/profile/edit_profile_screen.dart';
-
-import 'package:url_launcher/url_launcher.dart';
-import 'package:grocery_app/services/auth_service.dart';
-import 'package:grocery_app/services/notification_service.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
-
-// Note: The original AccountItem class was not provided, so I'm commenting this out.
-// The new UI is built with a more direct approach in the build method.
-// import 'account_item.dart';
-
-class AccountScreen extends StatefulWidget {
+class AccountScreen extends StatelessWidget {
   const AccountScreen({super.key});
 
-  @override
-  State<AccountScreen> createState() => _AccountScreenState();
-}
+  // --- LOGIC METHODS ARE NOW STATIC OR MOVED ---
 
-class _AccountScreenState extends State<AccountScreen> {
-  late AuthService authService;
-  UserModel? user;
-
-  @override
-  void initState() {
-    super.initState();
-    authService = AuthService();
-    user = authService.currentUser;
-  }
-
-  // --- LOGIC METHODS (UNCHANGED) ---
-
-  Future<void> _refreshUser() async {
-    final updatedUser = await authService.getUserData();
-    setState(() {
-      user = updatedUser;
-    });
-  }
-
-  void openWhatsApp() async {
+  void openWhatsApp(BuildContext context) async {
     final phoneNumber = '+919996166186';
     final message = Uri.encodeComponent(
       "Hello, I want to inquire about your products.",
@@ -53,241 +18,379 @@ class _AccountScreenState extends State<AccountScreen> {
     if (await canLaunchUrl(url)) {
       await launchUrl(url, mode: LaunchMode.externalApplication);
     } else {
-      throw 'Could not launch WhatsApp';
+      // It's good practice to show feedback if it fails
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Could not open WhatsApp.')));
     }
   }
 
-  Future<void> _handleLogout(BuildContext context) async {
-    try {
-      final fcmToken = await FirebaseMessaging.instance.getToken();
-      final bearerToken = await authService.getAccessToken();
-      if (fcmToken != null && bearerToken != null) {
-        await NotificationService().removeFcmTokenFromBackend(
-          fcmToken,
-          bearerToken,
-        );
-      }
-    } catch (e) {
-      debugPrint('Error removing FCM token on logout: ${e.toString()}');
-    }
-    await authService.clearToken();
-    setState(() {
-      user = null;
-    });
-    // You might want to navigate to the login screen here
-    // Navigator.of(context).pushReplacement(...);
+  void _handleLogout(BuildContext context) {
+    // The UI's only job is to tell the cubit to log out.
+    // The cubit handles token removal and state change.
+    // The AuthWrapper handles navigation.
+    context.read<AuthCubit>().logout();
   }
-
-  // --- UI BUILD METHOD (UPDATED) ---
 
   @override
   Widget build(BuildContext context) {
-    // Assuming a username field exists in your UserModel
-    String userHandle = user?.username ?? "loading...";
-    String userEmail = user?.email ?? "email@example.com";
-    String userName = '${user?.firstName} ${user?.lastName}' ?? "Chlo Jonathan";
-
     return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        
-       
-        title: Text(
-          '$userHandle',
-          style: TextStyle(
-            color: Colors.black,
-            fontWeight: FontWeight.bold,
-            fontSize: 18,
-          ),
-        ),
-      ),
-      body: SingleChildScrollView(
-        physics: BouncingScrollPhysics(),
-        child: Container(
-          width: double.infinity,
-          padding: const EdgeInsets.symmetric(horizontal: 25.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              SizedBox(height: 20),
-              // -- Profile Picture --
-              Container(
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.grey.withOpacity(0.3),
-                      spreadRadius: 2,
-                      blurRadius: 8,
-                      offset: Offset(0, 4),
-                    ),
-                  ],
-                ),
-                child: CircleAvatar(
-                  radius: 55,
-                  backgroundColor: Colors.white,
-                  child: CircleAvatar(
-                    radius: 52,
-                    backgroundColor: Colors.grey[200],
-                    backgroundImage: user?.profilePicture != null
-                        ? NetworkImage(user!.profilePicture!)
-                        : null,
-                    child: user?.profilePicture == null
-                        ? Icon(Icons.person, size: 60, color: Colors.grey[400])
-                        : null,
-                  ),
-                ),
-              ),
-              SizedBox(height: 15),
-
-              // -- User Name and Email --
-              Text(
-                userName,
-                style: TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black87,
-                ),
-              ),
-              SizedBox(height: 5),
-              Text(
-                userEmail,
-                style: TextStyle(
-                  fontSize: 16,
-                  color: Colors.grey[600],
-                ),
-              ),
-              SizedBox(height: 20),
-
-              // -- Edit Profile Button --
-              SizedBox(
-                width: 200,
-                child: ElevatedButton.icon(
-                  onPressed: () async {
-                    final result = await Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => EditProfileScreen(userProfile: user!,)),
-                    );
-                    if (result == true) {
-                      await _refreshUser();
-                    }
-                  },
-                  icon: Icon(Icons.edit, size: 16),
-                  label: Text("Edit Profile"),
-                  style: ElevatedButton.styleFrom(
-                    foregroundColor: Colors.white,
-                    backgroundColor: Color(0xFFB58A55),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    padding: EdgeInsets.symmetric(vertical: 12),
-                  ),
-                ),
-              ),
-              SizedBox(height: 30),
-
-              // -- Menu Items --
-              _buildAccountItem(
-                context,
-                icon: Icons.subscriptions_outlined,
-                label: "My Subscriptions",
-                onTap: () {
- Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => SubscriptionScreen()),
-                    );                },
-              ),
-              _buildAccountItem(
-                context,
-                icon: Icons.shopping_bag_outlined,
-                label: "My Orders",
-                onTap: () {
- Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => OrderScreen()),
-                    );                },
-              ),
-               _buildAccountItem(
-                context,
-                icon: Icons.shopping_bag_outlined,
-                label: "Help",
-                onTap: () {
- Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => HelpScreen()),
-                    );                },
-              ),
-
-              _buildAccountItem(
-                context,
-                icon: Icons.settings_outlined,
-                label: "About",
-                onTap: () {
- Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => AboutScreen()),
-                    );
-                },
-              ),
-
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 15.0),
-                child: Divider(color: Colors.grey[200]),
-              ),
-
-              _buildAccountItem(
-                context,
-                icon: Icons.logout,
-                label: "Logout",
-                onTap: () => _handleLogout(context),
-              ),
-             
-
-              SizedBox(height: 30),
-            ],
-          ),
-        ),
+      // Use BlocBuilder to get the current user data from the AuthCubit state
+      body: BlocBuilder<AuthCubit, AuthState>(
+        builder: (context, state) {
+          if (state is Authenticated) {
+            // If the user is authenticated, build the main account screen content.
+            return _buildAccountView(context, state.user);
+          }
+          // If the state is not Authenticated (e.g., loading, error, or unauthenticated),
+          // show a loading indicator. The parent AuthWrapper will handle navigation away
+          // from this screen if the user logs out.
+          return Center(
+            child: CircularProgressIndicator(
+              color: Theme.of(context).colorScheme.primary,
+            ),
+          );
+        },
       ),
     );
   }
 
-  // --- HELPER WIDGETS (UPDATED) ---
+  // --- UI BUILD METHOD ---
+  Widget _buildAccountView(BuildContext context, UserModel user) {
+    final theme = Theme.of(context);
+    final textTheme = theme.textTheme;
+    final colorScheme = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
 
+    final String userHandle = user.username;
+    final String userEmail = user.email;
+    String userName = '${user.firstName} ${user.lastName}'.trim();
+    if (userName.isEmpty) {
+      userName = "User Name";
+    }
+
+    return Scaffold(
+      backgroundColor: theme.scaffoldBackgroundColor,
+      body: CustomScrollView(
+        slivers: [
+          // Profile Header
+          SliverAppBar(
+            expandedHeight: 200,
+            pinned: true,
+            backgroundColor: colorScheme.primary,
+            flexibleSpace: FlexibleSpaceBar(
+              background: Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      colorScheme.primary,
+                      colorScheme.primary.withOpacity(0.8),
+                    ],
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                  ),
+                ),
+                child: SafeArea(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      // Profile Picture
+                      Container(
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: Colors.white.withOpacity(0.3),
+                            width: 3,
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.2),
+                              blurRadius: 12,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
+                        ),
+                        child: CircleAvatar(
+                          radius: 45,
+                          backgroundColor: Colors.white.withOpacity(0.2),
+                          backgroundImage:
+                              user.profilePicture != null &&
+                                      user.profilePicture!.isNotEmpty
+                                  ? NetworkImage(user.profilePicture!)
+                                  : null,
+                          child:
+                              user.profilePicture == null ||
+                                      user.profilePicture!.isEmpty
+                                  ? const Icon(
+                                    Icons.person,
+                                    size: 50,
+                                    color: Colors.white70,
+                                  )
+                                  : null,
+                        ),
+                      ),
+                      const SizedBox(height: AppColors.spacingM),
+                      Text(
+                        userName,
+                        style: textTheme.titleLarge?.copyWith(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: AppColors.spacingXS),
+                      Text(
+                        '@$userHandle',
+                        style: textTheme.bodyMedium?.copyWith(
+                          color: Colors.white70,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+
+          // Content
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.all(AppColors.spacingXL),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  // Email section
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(AppColors.spacingL),
+                    decoration: BoxDecoration(
+                      color: theme.cardColor,
+                      borderRadius: BorderRadius.circular(AppColors.radiusM),
+                      border: Border.all(
+                        color:
+                            isDark
+                                ? Colors.grey.shade800
+                                : Colors.grey.shade200,
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.email_outlined,
+                          color: colorScheme.primary,
+                          size: 20,
+                        ),
+                        const SizedBox(width: AppColors.spacingM),
+                        Expanded(
+                          child: Text(userEmail, style: textTheme.bodyMedium),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: AppColors.spacingL),
+
+                  // Edit Profile Button
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton.icon(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder:
+                                (context) =>
+                                    EditProfileScreen(userProfile: user),
+                          ),
+                        );
+                      },
+                      icon: const Icon(Icons.edit, size: 18),
+                      label: const Text("Edit Profile"),
+                      style: ElevatedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(
+                          vertical: AppColors.spacingM,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: AppColors.spacingXL),
+
+                  // Menu Items
+                  _buildAccountItem(
+                    context,
+                    icon: Icons.subscriptions_outlined,
+                    label: "My Subscriptions",
+                    onTap:
+                        () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const SubscriptionScreen(),
+                          ),
+                        ),
+                  ),
+                  _buildAccountItem(
+                    context,
+                    icon: Icons.shopping_bag_outlined,
+                    label: "My Orders",
+                    onTap:
+                        () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => OrderScreen(),
+                          ),
+                        ),
+                  ),
+                  _buildAccountItem(
+                    context,
+                    icon: Icons.help_outline,
+                    label: "Help",
+                    onTap:
+                        () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const HelpScreen(),
+                          ),
+                        ),
+                  ),
+                  _buildAccountItem(
+                    context,
+                    icon: Icons.info_outline,
+                    label: "About",
+                    onTap:
+                        () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => AboutScreen(),
+                          ),
+                        ),
+                  ),
+
+                  // --- THEME TOGGLE (MODIFIED) ---
+                  BlocBuilder<ThemeCubit, ThemeMode>(
+                    builder: (context, themeMode) {
+                      final isDarkMode =
+                          themeMode == ThemeMode.dark ||
+                          (themeMode == ThemeMode.system &&
+                              MediaQuery.of(context).platformBrightness ==
+                                  Brightness.dark);
+                      return _buildAccountItem(
+                        context,
+                        icon:
+                            isDarkMode
+                                ? Icons.dark_mode_outlined
+                                : Icons.light_mode_outlined,
+                        label: 'Dark Mode',
+                        onTap: () {
+                          context.read<ThemeCubit>().toggleTheme(!isDarkMode);
+                        },
+                        trailing: CustomSwitch(
+                          value: isDarkMode,
+                          onChanged: (value) {
+                            context.read<ThemeCubit>().toggleTheme(value);
+                          },
+                          activeColor: colorScheme.primary,
+                          inactiveColor: theme.dividerColor,
+                          thumbColor: Colors.white,
+                          width: 50,
+                          height: 30,
+                        ),
+                      );
+                    },
+                  ),
+
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                      vertical: AppColors.spacingL,
+                    ),
+                    child: Divider(color: theme.dividerColor),
+                  ),
+
+                  _buildAccountItem(
+                    context,
+                    icon: Icons.logout,
+                    label: "Logout",
+                    onTap: () => _handleLogout(context),
+                    isDestructive: true,
+                  ),
+                  const SizedBox(height: AppColors.spacingXL),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // --- HELPER WIDGET WITH THEME APPLIED ---
   Widget _buildAccountItem(
     BuildContext context, {
     required IconData icon,
     required String label,
     required VoidCallback onTap,
+    Widget? trailing,
+    bool isDestructive = false,
   }) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(15),
-      child: Container(
-        margin: EdgeInsets.symmetric(vertical: 8),
-        padding: EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(15),
-          border: Border.all(color: Colors.grey[200]!, width: 1.5),
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final textTheme = theme.textTheme;
+    final isDark = theme.brightness == Brightness.dark;
 
+    final iconColor = isDestructive ? colorScheme.error : colorScheme.primary;
+    final textColor = isDestructive ? colorScheme.error : null;
+
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        margin: const EdgeInsets.symmetric(vertical: AppColors.spacingS),
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppColors.spacingL,
+          vertical: AppColors.spacingL,
+        ),
+        decoration: BoxDecoration(
+          color: theme.cardColor,
+          borderRadius: BorderRadius.circular(AppColors.radiusM),
+          border: Border.all(
+            color:
+                isDestructive
+                    ? colorScheme.error.withOpacity(0.3)
+                    : (isDark ? Colors.grey.shade800 : Colors.grey.shade200),
+            width: 1,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: theme.shadowColor.withOpacity(
+                AppColors.shadowOpacityLight,
+              ),
+              blurRadius: 4,
+              offset: const Offset(0, 1),
+            ),
+          ],
         ),
         child: Row(
           children: [
-            Icon(icon, color: Color(0xFFB58A55), size: 24),
-            SizedBox(width: 20),
+            Container(
+              padding: const EdgeInsets.all(AppColors.spacingS),
+              decoration: BoxDecoration(
+                color: iconColor.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(AppColors.radiusS),
+              ),
+              child: Icon(icon, color: iconColor, size: 20),
+            ),
+            const SizedBox(width: AppColors.spacingL),
             Expanded(
               child: Text(
                 label,
-                style: TextStyle(
-                  fontSize: 16,
+                style: textTheme.bodyLarge?.copyWith(
                   fontWeight: FontWeight.w500,
-                  color: Colors.black87,
+                  color: textColor,
                 ),
               ),
             ),
-            Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey[600]),
+            trailing ??
+                Icon(
+                  Icons.arrow_forward_ios,
+                  size: 16,
+                  color: isDark ? Colors.grey.shade600 : Colors.grey.shade400,
+                ),
           ],
         ),
       ),

@@ -1,4 +1,4 @@
-import 'dart:async';
+import 'package:grocery_app/common_widgets/global_import.dart';
 
 class FavoriteStateService {
   static final FavoriteStateService _instance =

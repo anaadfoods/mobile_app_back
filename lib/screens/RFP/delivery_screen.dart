@@ -1,102 +1,127 @@
 import 'package:flutter/material.dart';
-import 'package:grocery_app/styles/colors.dart';
+import 'package:grocery_app/models/rfp_delivery_model.dart';
+import 'package:grocery_app/screens/RFP/expandable_delivery_tile.dart';
+import 'package:grocery_app/services/rfp_services.dart';
 
-class DeliveryScreen extends StatelessWidget {
+class DeliveryScreen extends StatefulWidget {
   const DeliveryScreen({super.key});
+
+  @override
+  State<DeliveryScreen> createState() => _DeliveryScreenState();
+}
+
+class _DeliveryScreenState extends State<DeliveryScreen> {
+  final DeliveryService _deliveryService = DeliveryService();
+  late Future<List<Delivery>> _deliveriesFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _deliveriesFuture = _deliveryService.fetchDeliveries();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      appBar: AppBar(
+        title: const Text('Your Deliveries'),
+      ),
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildUpcomingDeliveryCard(context),
-              const SizedBox(height: 24),
-              const Text(
-                "Your Past Deliveries",
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
+        child: FutureBuilder<List<Delivery>>(
+          future: _deliveriesFuture,
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(child: CircularProgressIndicator());
+            }
+
+            if (snapshot.hasError) {
+              return Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Text("Error: ${snapshot.error}"),
+                ),
+              );
+            }
+
+            if (!snapshot.hasData || snapshot.data!.isEmpty) {
+              return const Center(child: Text("No deliveries found."));
+            }
+
+            final deliveries = snapshot.data!;
+            final upcomingDelivery = deliveries.first;
+            final pastDeliveries = deliveries.toList();
+
+            return RefreshIndicator(
+              onRefresh: () async {
+                setState(() {
+                  _deliveriesFuture = _deliveryService.fetchDeliveries();
+                });
+              },
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildUpcomingDeliveryCard(context, upcomingDelivery),
+                    const SizedBox(height: 24),
+                    Text(
+                      "Your Past Deliveries",
+                      style: Theme.of(context).textTheme.headlineSmall,
+                    ),
+                    const SizedBox(height: 16),
+                    ListView.builder(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      itemCount: pastDeliveries.length,
+                      itemBuilder: (context, index) {
+                        final delivery = pastDeliveries[index];
+                        return ExpandableDeliveryTile(delivery: delivery);
+                      },
+                    ),
+                  ],
                 ),
               ),
-              const SizedBox(height: 16),
-              // Past Deliveries List
-              _buildPastDeliveryTile(
-                title: "Nov'25 Week 4 Delivery 2",
-                status: "Delivered",
-                statusColor: Color(0xFF2E7D32),
-                tileColor: const Color(0xFFFFFAF0),
-              ),
-              _buildPastDeliveryTile(
-                title: "Nov'25 Week 4 Delivery 2",
-                status: "",
-                tileColor: const Color(0xFFFFFAF0),
-              ),
-              _buildPastDeliveryTile(
-                title: "Nov'25 Week 4 Delivery 2",
-                status: "",
-                tileColor: const Color(0xFFFFFAF0),
-              ),
-              _buildPastDeliveryTile(
-                title: "Nov'25 Week 4 Delivery 2",
-                status: "",
-                tileColor: const Color(0xFFE6F4E6),
-              ),
-            ],
-          ),
+            );
+          },
         ),
       ),
     );
   }
 
-  // --- TOP ORANGE CARD ---
-  Widget _buildUpcomingDeliveryCard(BuildContext context) {
+  Widget _buildUpcomingDeliveryCard(BuildContext context, Delivery delivery) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
-        color: const Color(0xFFFFA34F),
+        color: colorScheme.secondary,
         borderRadius: BorderRadius.circular(20),
       ),
       padding: const EdgeInsets.all(20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header Row
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
-                "Arriving Soon",
-                style: TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 14,
-                ),
+              Text(
+                "Most Recent Delivery",
+                style: theme.textTheme.bodyMedium?.copyWith(color: colorScheme.onSecondary),
               ),
               Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 3),
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 3),
                 decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(10)
-
-                ),
-                child: const Text(
+                    color: colorScheme.onSecondary,
+                    borderRadius: BorderRadius.circular(10)),
+                child: Text(
                   "Register For RTP",
-                  style: TextStyle(
-                    color:AppColors.bottonBackgroundColor,
-                    fontSize: 12,
-                  ),
+                  style: theme.textTheme.labelSmall?.copyWith(color: colorScheme.secondary),
                 ),
               ),
             ],
           ),
           const SizedBox(height: 16),
-          // Illustration
           Center(
             child: Image.network(
               "https://cdn-icons-png.flaticon.com/512/859/859270.png",
@@ -104,141 +129,36 @@ class DeliveryScreen extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 12),
-          // Delivery Title
-          const Center(
+          Center(
             child: Text(
               "Your Next Delivery",
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-              ),
+              textAlign: TextAlign.center,
+              style: theme.textTheme.headlineSmall?.copyWith(color: colorScheme.onSecondary),
+            ),
+          ),
+          Center(
+            child: Text(
+              "Get Ready for Your next basket",
+              textAlign: TextAlign.center,
+              style: theme.textTheme.bodyLarge?.copyWith(color: colorScheme.onSecondary),
             ),
           ),
           const SizedBox(height: 1),
-          const Center(
-            child: Text(
-              "Get ready for your next basket",
-              style: TextStyle(
-                fontSize: 12,
-                color: Colors.white70,
+          Container(
+            padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 12),
+            decoration: BoxDecoration(
+              color: colorScheme.onSecondary.withOpacity(0.2),
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Center(
+              child: Text(
+                "Soon!",
+                style: theme.textTheme.bodySmall?.copyWith(color: colorScheme.onSecondary),
               ),
             ),
           ),
           const SizedBox(height: 16),
-          // Info Chips Row
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              _infoChip(Icons.calendar_today, "December 01, 2025"),
-              const SizedBox(width: 8),
-              _textChip("Week 1"),
-              const SizedBox(width: 8),
-              _textChip("Delivery 1"),
-            ],
-          ),
         ],
-      ),
-    );
-  }
-
-  Widget _infoChip(IconData icon, String text) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(
-          color: Colors.white
-        )
-      ),
-      child: Row(
-        children: [
-          Icon(icon, color:Colors.white, size: 12),
-          const SizedBox(width: 6),
-          Text(
-            text,
-            style: const TextStyle(
-              color: Colors.white ,
-              fontWeight: FontWeight.w600,
-              fontSize: 12,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _textChip(String text) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(
-          color: Colors.white
-        )
-      ),
-      child: Text(
-        text,
-        style: const TextStyle(
-          color: Colors.white,
-          fontWeight: FontWeight.w600,
-          fontSize: 12,
-        ),
-      ),
-    );
-  }
-
-  // --- PAST DELIVERY ITEM ---
-  Widget _buildPastDeliveryTile({
-    required String title,
-    String? status,
-    Color? statusColor,
-    Color? tileColor,
-  }) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      decoration: BoxDecoration(
-        color: tileColor ?? Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: ListTile(
-        contentPadding:
-            const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-        title: Text(
-          title,
-          style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15),
-        ),
-        trailing: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            if (status != null && status!.isNotEmpty)
-              Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                decoration: BoxDecoration(
-                  color: (statusColor ?? AppColors.primaryColor),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Text(
-                  status!,
-                  style: TextStyle(
-                    color: statusColor ?? Colors.white,
-                    fontSize: 12,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-            const SizedBox(width: 8),
-            const Icon(Icons.chevron_right, color: Colors.black54),
-          ],
-        ),
       ),
     );
   }

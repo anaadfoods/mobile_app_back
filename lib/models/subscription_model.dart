@@ -186,7 +186,7 @@ class SubscriptionItem {
       productName: json['product_name'] ?? '',
       productCategory : json['product_category'] ?? '',
       imageUrl:
-           json["product_var_image"] ?? null,
+           json["product_var_image"],
           
       quantity: int.tryParse(json['quantity']?.toString() ?? '0') ?? 0,
       price: double.tryParse(json['price']?.toString() ?? '0.0') ?? 0.0,

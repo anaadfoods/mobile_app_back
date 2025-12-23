@@ -1,12 +1,4 @@
-import 'package:flutter/material.dart';
-import 'package:grocery_app/models/subscription_model.dart';
-import 'package:grocery_app/screens/MySubscriptionPlan/subscription_plan_detail_single.dart';
-import 'package:webview_flutter/webview_flutter.dart';
-import 'dart:convert';
-import 'package:grocery_app/services/order_service.dart';
-import 'package:grocery_app/screens/order_accepted_screen.dart';
-import 'package:grocery_app/services/subscription_service.dart';
-import 'package:grocery_app/helpers/snackbar_helper.dart';
+import "package:grocery_app/common_widgets/global_import.dart";
 
 class WebViewPage extends StatefulWidget {
   final String url;
@@ -94,19 +86,19 @@ class _WebViewPageState extends State<WebViewPage> {
                 print(url);
 
                 if (url.contains(
-                  "https://app.anaadfoods.com/api/payments/success/",
+                  "${ApiConfig.baseUrl}/api/payments/success/",
                 )) {
                   print(url);
 
                   await _handlePaymentSuccess();
                 } else if (url.contains(
-                  "https://app.anaadfoods.com/api/payment/failure",
+                  "${ApiConfig.baseUrl}/api/payment/failure",
                 )) {
                   await _handlePaymentFailure();
                 }
               },
               onNavigationRequest: (NavigationRequest request) {
-                if (request.url.startsWith("https://app.anaadfoods.com/api/")) {
+                if (request.url.startsWith("${ApiConfig.baseUrl}/api/")) {
                   if (request.url.contains("payment/success")) {
                     _handlePaymentSuccess();
                   } else if (request.url.contains("payment/failure")) {
@@ -150,38 +142,38 @@ class _WebViewPageState extends State<WebViewPage> {
 
         print(subscriptionStatus.transactionStatus);
 
-        // Find the first subscription with matching id
-        Subscription? subscription;
-        print(allSubscriptions);
-        subscription = allSubscriptions.firstWhere(
-          (sub) => sub.id == subscriptionStatus.subscriptionId,
-          orElse: () => null as Subscription,
+        // Fetch subscription details directly by ID instead of searching local list
+        // This is more reliable as newly created subscriptions may not appear in
+        // the list endpoint until their status changes from PENDING to ACTIVE
+        print(
+          'Fetching subscription details for id: ${subscriptionStatus.subscriptionId}',
         );
 
-        if (subscription == null) {
-          // If not found in the list, fetch from the service
-          final detailsResponse = await _subscriptionService
-              .getSubscriptionsbyId(subscriptionStatus.subscriptionId);
-          if (detailsResponse['success'] == true &&
-              detailsResponse['data'] != null) {
-            // If the API returns a list, get the first item; otherwise, use as is
-            if (detailsResponse['data'] is List &&
-                detailsResponse['data'].isNotEmpty) {
-              subscription = detailsResponse['data'].first;
-            } else if (detailsResponse['data'] is Subscription) {
-              subscription = detailsResponse['data'];
-            }
-          }
+        final subscriptionResult = await _subscriptionService
+            .getSubscriptionDetails(subscriptionStatus.subscriptionId);
+
+        if (subscriptionResult['success'] != true ||
+            subscriptionResult['data'] == null) {
+          print(
+            'Failed to fetch subscription details: ${subscriptionResult['message']}',
+          );
+          _showDialog(
+            "Payment successful! Your subscription is being activated. Please check My Subscriptions.",
+            true,
+          );
+          return;
         }
-      
-        if (subscriptionStatus.transactionStatus == 'SUCCESS' &&
-            subscription != null) {
+
+        final Subscription subscription =
+            subscriptionResult['data'] as Subscription;
+
+        if (subscriptionStatus.transactionStatus == 'SUCCESS') {
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(
               builder:
                   (context) =>
-                      SubscriptionPlanDetailScreen(subscription: subscription!),
+                      SubscriptionPlanDetailScreen(subscription: subscription),
             ),
           );
         } else {
