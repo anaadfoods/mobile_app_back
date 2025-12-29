@@ -1,5 +1,7 @@
 import 'dart:ui';
+import 'dart:math' as math;
 import 'package:collection/collection.dart';
+import 'package:flutter/services.dart';
 import 'package:grocery_app/common_widgets/global_import.dart';
 
 // --- CUBIT & STATE IMPORTS (Ensure paths are correct) ---
@@ -12,7 +14,16 @@ class ProductDetailsScreen extends StatefulWidget {
   _ProductDetailsScreenState createState() => _ProductDetailsScreenState();
 }
 
-class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
+class _ProductDetailsScreenState extends State<ProductDetailsScreen>
+    with TickerProviderStateMixin {
+  // --- ANIMATION CONTROLLERS ---
+  late AnimationController _shimmerController;
+  late AnimationController _floatController;
+  late AnimationController _pulseController;
+  late Animation<double> _shimmerAnimation;
+  late Animation<double> _floatAnimation;
+  late Animation<double> _pulseAnimation;
+
   // --- NON-CART STATE VARIABLES (Remain unchanged) ---
   int? _selectedPlanId;
   bool isFavorite = false;
@@ -23,7 +34,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
   List<SubscriptionPlan> allPlans = [];
   List<PlanSearchResult> availablePlansForProduct = [];
   List<Product> similarProducts = [];
-  final PageController _pageController = PageController();
+  final PageController _pageController = PageController(viewportFraction: 0.85);
   int _currentPage = 0;
 
   // --- REMOVED CART-RELATED STATE ---
@@ -37,6 +48,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
   @override
   void initState() {
     super.initState();
+    _initAnimations();
     // Fire off background data fetches
     _loadFavoriteStatus();
     _loadSubscriptionPlans();
@@ -52,11 +64,48 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
     });
   }
 
+  void _initAnimations() {
+    // Shimmer animation
+    _shimmerController = AnimationController(
+      duration: const Duration(milliseconds: 2500),
+      vsync: this,
+    )..repeat();
+    _shimmerAnimation = Tween<double>(begin: -1.0, end: 2.0).animate(
+      CurvedAnimation(parent: _shimmerController, curve: Curves.easeInOut),
+    );
+
+    // Float animation for particles
+    _floatController = AnimationController(
+      duration: const Duration(milliseconds: 3000),
+      vsync: this,
+    )..repeat(reverse: true);
+    _floatAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _floatController, curve: Curves.easeInOutSine),
+    );
+
+    // Pulse animation
+    _pulseController = AnimationController(
+      duration: const Duration(milliseconds: 1500),
+      vsync: this,
+    )..repeat(reverse: true);
+    _pulseAnimation = Tween<double>(begin: 0.95, end: 1.0).animate(
+      CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
+    );
+  }
+
+  void _triggerHaptic() {
+    HapticFeedback.lightImpact();
+  }
+
   @override
   void dispose() {
     _pageController.dispose();
+    _shimmerController.dispose();
+    _floatController.dispose();
+    _pulseController.dispose();
     super.dispose();
   }
+
 
   // --- DATA FETCHING (Unchanged) ---
   Future<void> _loadCategoryProducts() async {
@@ -126,34 +175,68 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
     final backgroundImage =
         widget.product.productImages.isNotEmpty
             ? widget.product.productImages.first.image
             : 'https://via.placeholder.com/400';
 
-    // No longer need a full-screen loader. The UI builds instantly.
-
     return Scaffold(
-      backgroundColor: Colors.white,
-
+      backgroundColor: isDark ? const Color(0xFF0F0F1A) : Colors.white,
       body: Stack(
         children: [
-          // Blurred Background
-          Container(
-            decoration: BoxDecoration(
-              image: DecorationImage(
-                image: CachedNetworkImageProvider(backgroundImage),
-
-                fit: BoxFit.cover,
-              ),
-            ),
-
-            child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
-
-              child: Container(color: Colors.black.withOpacity(0.4)),
-            ),
+          // Blurred Background with shimmer
+          AnimatedBuilder(
+            animation: _shimmerController,
+            builder: (context, _) {
+              return Container(
+                decoration: BoxDecoration(
+                  image: DecorationImage(
+                    image: CachedNetworkImageProvider(backgroundImage),
+                    fit: BoxFit.cover,
+                  ),
+                ),
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [
+                          Colors.black.withOpacity(0.5),
+                          Colors.black.withOpacity(0.7),
+                        ],
+                      ),
+                    ),
+                    // Shimmer overlay
+                    child: Container(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: [
+                            Colors.transparent,
+                            Colors.white.withOpacity(0.03),
+                            Colors.transparent,
+                          ],
+                          stops: [
+                            (_shimmerAnimation.value - 0.3).clamp(0.0, 1.0),
+                            _shimmerAnimation.value.clamp(0.0, 1.0),
+                            (_shimmerAnimation.value + 0.3).clamp(0.0, 1.0),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              );
+            },
           ),
+
+          // Floating particles
+          _buildFloatingParticles(),
 
           // Main Content
           Column(
@@ -250,35 +333,166 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
   }
   // --- UI BUILDER WIDGETS ---
 
+  Widget _buildFloatingParticles() {
+    return AnimatedBuilder(
+      animation: _floatAnimation,
+      builder: (context, _) {
+        return Stack(
+          children: [
+            Positioned(
+              top: 80 + (_floatAnimation.value * 12),
+              right: 30,
+              child: _buildParticle(8, const Color(0xFFB9A06D)),
+            ),
+            Positioned(
+              top: 180 + (_floatAnimation.value * -10),
+              left: 25,
+              child: _buildParticle(5, Colors.white),
+            ),
+            Positioned(
+              top: 280 + (_floatAnimation.value * 8),
+              right: 50,
+              child: _buildParticle(6, const Color(0xFFB9A06D)),
+            ),
+            Positioned(
+              bottom: 350 + (_floatAnimation.value * -6),
+              left: 40,
+              child: _buildParticle(4, Colors.white),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildParticle(double size, Color color) {
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: color.withOpacity(0.4),
+        boxShadow: [
+          BoxShadow(color: color.withOpacity(0.3), blurRadius: 8),
+        ],
+      ),
+    );
+  }
+
   Widget _buildTopNavBar() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 10.0),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          IconButton(
-            icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white),
-            onPressed: () => Navigator.of(context).pop(),
+          // Glassmorphism back button
+          ClipRRect(
+            borderRadius: BorderRadius.circular(14),
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+              child: GestureDetector(
+                onTap: () {
+                  _triggerHaptic();
+                  Navigator.of(context).pop();
+                },
+                child: Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.15),
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(
+                      color: Colors.white.withOpacity(0.2),
+                      width: 1,
+                    ),
+                  ),
+                  child: const Icon(
+                    Icons.arrow_back_ios_new,
+                    color: Colors.white,
+                    size: 20,
+                  ),
+                ),
+              ),
+            ),
           ),
-          Padding(
-            padding: const EdgeInsets.only(right: 16.0),
-            // 👇 This local loader works perfectly now
-            child:
-                _isLoadingFavorite
-                    ? const SizedBox(
-                      width: 24,
-                      height: 24,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        valueColor: AlwaysStoppedAnimation<Color>(
-                          Color(0xFFB9A06D),
+          // Actions row
+          Row(
+            children: [
+              // Share button
+              ClipRRect(
+                borderRadius: BorderRadius.circular(14),
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                  child: GestureDetector(
+                    onTap: () => _triggerHaptic(),
+                    child: Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.15),
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(
+                          color: Colors.white.withOpacity(0.2),
+                          width: 1,
                         ),
                       ),
-                    )
-                    : FavoriteToggleIcon(
-                      favorite: isFavorite,
-                      onToggle: () => handleFavoriteToggle(widget.product.id),
+                      child: const Icon(
+                        Icons.share_outlined,
+                        color: Colors.white,
+                        size: 20,
+                      ),
                     ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              // Favorite button
+              ClipRRect(
+                borderRadius: BorderRadius.circular(14),
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                  child: Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.15),
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(
+                        color: Colors.white.withOpacity(0.2),
+                        width: 1,
+                      ),
+                    ),
+                    child: _isLoadingFavorite
+                        ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                Color(0xFFB9A06D),
+                              ),
+                            ),
+                          )
+                        : GestureDetector(
+                            onTap: () {
+                              _triggerHaptic();
+                              handleFavoriteToggle(widget.product.id);
+                            },
+                            child: AnimatedSwitcher(
+                              duration: const Duration(milliseconds: 300),
+                              child: Icon(
+                                isFavorite
+                                    ? Icons.favorite_rounded
+                                    : Icons.favorite_border_rounded,
+                                key: ValueKey(isFavorite),
+                                color: isFavorite
+                                    ? const Color(0xFFE53935)
+                                    : Colors.white,
+                                size: 20,
+                              ),
+                            ),
+                          ),
+                  ),
+                ),
+              ),
+            ],
           ),
         ],
       ),
@@ -320,53 +534,130 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
   // ... (All other _build... widgets from _buildBestsellerTag to _buildProductCard remain the same)
 
   Widget _buildBestsellerTag() {
-    // You can add logic here to show this tag conditionally
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.15),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: const Text(
-        'Bestseller',
-        style: TextStyle(
-          color: Colors.white,
-          fontWeight: FontWeight.bold,
-          fontSize: 12,
-        ),
-      ),
+    return TweenAnimationBuilder<double>(
+      tween: Tween(begin: 0.0, end: 1.0),
+      duration: const Duration(milliseconds: 600),
+      curve: Curves.easeOutBack,
+      builder: (context, value, child) {
+        return Transform.scale(
+          scale: value,
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [Color(0xFFB9A06D), Color(0xFFD4B98E)],
+              ),
+              borderRadius: BorderRadius.circular(20),
+              boxShadow: [
+                BoxShadow(
+                  color: const Color(0xFFB9A06D).withOpacity(0.4),
+                  blurRadius: 10,
+                  offset: const Offset(0, 3),
+                ),
+              ],
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.star_rounded, color: Colors.white, size: 14),
+                const SizedBox(width: 4),
+                const Text(
+                  'Bestseller',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 12,
+                    letterSpacing: 0.5,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 
   Widget _buildProductTitle() {
-    return Text(
-      '${widget.product.productName} - ${widget.product.weight}',
-      style: const TextStyle(
-        fontSize: 24,
-        fontWeight: FontWeight.bold,
-        color: Colors.white,
-      ),
+    return TweenAnimationBuilder<double>(
+      tween: Tween(begin: 0.0, end: 1.0),
+      duration: const Duration(milliseconds: 500),
+      builder: (context, value, child) {
+        return Opacity(
+          opacity: value,
+          child: Transform.translate(
+            offset: Offset(0, 15 * (1 - value)),
+            child: Text(
+              '${widget.product.productName} - ${widget.product.weight}',
+              style: const TextStyle(
+                fontSize: 26,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+                letterSpacing: 0.3,
+                shadows: [
+                  Shadow(
+                    color: Colors.black26,
+                    blurRadius: 8,
+                    offset: Offset(0, 2),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 
   Widget _buildRatingAndOrders() {
-    // Replace with actual data from your product model if available
-    return Row(
-      children: [
-        const Icon(Icons.star, color: Colors.amber, size: 20),
-        const SizedBox(width: 8),
-        Text(
-          '4.6 (1.2k reviews)',
-          style: TextStyle(color: Colors.grey[300], fontSize: 14),
-        ),
-        const SizedBox(width: 8),
-        Text('|', style: TextStyle(color: Colors.grey[600], fontSize: 14)),
-        const SizedBox(width: 8),
-        Text(
-          '8.5k orders',
-          style: TextStyle(color: Colors.grey[300], fontSize: 14),
-        ),
-      ],
+    return TweenAnimationBuilder<double>(
+      tween: Tween(begin: 0.0, end: 1.0),
+      duration: const Duration(milliseconds: 600),
+      builder: (context, value, child) {
+        return Opacity(
+          opacity: value,
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.15),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.star_rounded, color: Colors.amber, size: 16),
+                    const SizedBox(width: 4),
+                    const Text(
+                      '4.6',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 10),
+              Text(
+                '1.2k reviews',
+                style: TextStyle(color: Colors.grey[300], fontSize: 13),
+              ),
+              const SizedBox(width: 12),
+              Container(width: 4, height: 4, decoration: BoxDecoration(
+                color: Colors.grey[500],
+                shape: BoxShape.circle,
+              )),
+              const SizedBox(width: 12),
+              Text(
+                '8.5k orders',
+                style: TextStyle(color: Colors.grey[300], fontSize: 13),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 
@@ -376,72 +667,207 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
             widget.product.price) *
         100;
 
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        Text(
-          "₹${widget.product.finalPrice.toStringAsFixed(0)}",
-          style: const TextStyle(
-            color: Colors.white,
-            fontSize: 32,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        const SizedBox(width: 12),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              "₹${widget.product.price.toStringAsFixed(0)}",
-              style: const TextStyle(
-                color: Colors.grey,
-                fontSize: 16,
-                decoration: TextDecoration.lineThrough,
-              ),
-            ),
-            if (discount > 0)
-              Text(
-                'Get ${discount.toStringAsFixed(0)}% OFF',
-                style: const TextStyle(
-                  color: Color(0xFF388E3C),
-                  fontSize: 12,
-                  fontWeight: FontWeight.bold,
+    return TweenAnimationBuilder<double>(
+      tween: Tween(begin: 0.0, end: 1.0),
+      duration: const Duration(milliseconds: 700),
+      curve: Curves.easeOut,
+      builder: (context, value, child) {
+        return Opacity(
+          opacity: value,
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(20),
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+              child: Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(
+                    color: Colors.white.withOpacity(0.2),
+                    width: 1,
+                  ),
+                ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    // Price column
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            Text(
+                              '₹${widget.product.finalPrice.toStringAsFixed(0)}',
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 32,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            const SizedBox(width: 10),
+                            Padding(
+                              padding: const EdgeInsets.only(bottom: 4),
+                              child: Text(
+                                '₹${widget.product.price.toStringAsFixed(0)}',
+                                style: TextStyle(
+                                  color: Colors.grey[400],
+                                  fontSize: 16,
+                                  decoration: TextDecoration.lineThrough,
+                                  decorationColor: Colors.grey[400],
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        if (widget.product.isInStock)
+                          Row(
+                            children: [
+                              Container(
+                                width: 8,
+                                height: 8,
+                                decoration: const BoxDecoration(
+                                  color: Color(0xFF4CAF50),
+                                  shape: BoxShape.circle,
+                                ),
+                              ),
+                              const SizedBox(width: 6),
+                              const Text(
+                                'In Stock',
+                                style: TextStyle(
+                                  color: Color(0xFF4CAF50),
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ],
+                          ),
+                      ],
+                    ),
+                    const Spacer(),
+                    // Discount badge
+                    if (discount > 0)
+                      ScaleTransition(
+                        scale: _pulseAnimation,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 14,
+                            vertical: 8,
+                          ),
+                          decoration: BoxDecoration(
+                            gradient: const LinearGradient(
+                              colors: [Color(0xFF4CAF50), Color(0xFF388E3C)],
+                            ),
+                            borderRadius: BorderRadius.circular(12),
+                            boxShadow: [
+                              BoxShadow(
+                                color: const Color(0xFF4CAF50).withOpacity(0.4),
+                                blurRadius: 10,
+                                offset: const Offset(0, 3),
+                              ),
+                            ],
+                          ),
+                          child: Text(
+                            '${discount.toStringAsFixed(0)}% OFF',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ),
+                  ],
                 ),
               ),
-          ],
-        ),
-      ],
+            ),
+          ),
+        );
+      },
     );
   }
 
   Widget _buildImageCarousel() {
     final productImages = widget.product.productImages;
     if (productImages.isEmpty) {
-      return const SizedBox(
-        height: 250,
+      return Container(
+        height: 280,
+        margin: const EdgeInsets.symmetric(horizontal: 20),
+        decoration: BoxDecoration(
+          color: Colors.grey.withOpacity(0.2),
+          borderRadius: BorderRadius.circular(24),
+        ),
         child: Center(
-          child: Text(
-            "No Images Available",
-            style: TextStyle(color: Colors.white),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.image_outlined, color: Colors.grey[400], size: 48),
+              const SizedBox(height: 8),
+              Text(
+                'No Images Available',
+                style: TextStyle(color: Colors.grey[400], fontSize: 14),
+              ),
+            ],
           ),
         ),
       );
     }
+    
     return SizedBox(
-      height: 250,
+      height: 280,
       child: PageView.builder(
         controller: _pageController,
         itemCount: productImages.length,
+        physics: const BouncingScrollPhysics(),
         itemBuilder: (context, index) {
-          return Container(
-            margin: const EdgeInsets.symmetric(horizontal: 20.0),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(20),
-              image: DecorationImage(
-                image: CachedNetworkImageProvider(productImages[index].image),
-                fit: BoxFit.cover,
-              ),
-            ),
+          return AnimatedBuilder(
+            animation: _pageController,
+            builder: (context, child) {
+              double value = 1.0;
+              if (_pageController.position.haveDimensions) {
+                value = (_pageController.page! - index).abs();
+                value = (1 - (value * 0.15)).clamp(0.85, 1.0);
+              }
+              return Center(
+                child: Transform.scale(
+                  scale: value,
+                  child: Container(
+                    margin: const EdgeInsets.symmetric(horizontal: 8),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(24),
+                      boxShadow: [
+                        BoxShadow(
+                          color: const Color(0xFFB9A06D).withOpacity(0.3),
+                          blurRadius: 20,
+                          offset: const Offset(0, 10),
+                        ),
+                      ],
+                    ),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(24),
+                      child: CachedNetworkImage(
+                        imageUrl: productImages[index].image,
+                        fit: BoxFit.cover,
+                        placeholder: (context, url) => Container(
+                          color: Colors.grey.withOpacity(0.2),
+                          child: const Center(
+                            child: CircularProgressIndicator(
+                              color: Color(0xFFB9A06D),
+                              strokeWidth: 2,
+                            ),
+                          ),
+                        ),
+                        errorWidget: (context, url, error) => Container(
+                          color: Colors.grey.withOpacity(0.2),
+                          child: const Icon(Icons.error_outline, color: Colors.grey),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              );
+            },
           );
         },
       ),
@@ -452,14 +878,40 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: List.generate(widget.product.productImages.length, (index) {
-        return AnimatedContainer(
-          duration: const Duration(milliseconds: 300),
-          margin: const EdgeInsets.symmetric(horizontal: 4.0),
-          height: 8.0,
-          width: _currentPage == index ? 24.0 : 8.0,
-          decoration: BoxDecoration(
-            color: _currentPage == index ? Colors.white : Colors.grey[700],
-            borderRadius: BorderRadius.circular(12),
+        final isActive = _currentPage == index;
+        return GestureDetector(
+          onTap: () {
+            _triggerHaptic();
+            _pageController.animateToPage(
+              index,
+              duration: const Duration(milliseconds: 300),
+              curve: Curves.easeInOut,
+            );
+          },
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeInOut,
+            margin: const EdgeInsets.symmetric(horizontal: 4.0),
+            height: 8.0,
+            width: isActive ? 28.0 : 8.0,
+            decoration: BoxDecoration(
+              gradient: isActive
+                  ? const LinearGradient(
+                      colors: [Color(0xFFB9A06D), Color(0xFFD4B98E)],
+                    )
+                  : null,
+              color: isActive ? null : Colors.grey[600],
+              borderRadius: BorderRadius.circular(12),
+              boxShadow: isActive
+                  ? [
+                      BoxShadow(
+                        color: const Color(0xFFB9A06D).withOpacity(0.5),
+                        blurRadius: 6,
+                        offset: const Offset(0, 2),
+                      ),
+                    ]
+                  : null,
+            ),
           ),
         );
       }),
@@ -1054,7 +1506,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
     );
   }
 
-  // PASTE THIS ENTIRE METHOD INTO YOUR _ProductDetailsScreenState CLASS
+  // Modern Subscription Selection Sheet
 
   void _showSubscriptionSelectionSheet({
     required int initialPlanIndex,
@@ -1062,235 +1514,102 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
   }) {
     int selectedIndex = initialPlanIndex;
     int quantity = 1;
-    // 0 for "One Time", 1 for "Installments". This is the source of truth.
     int paymentOption = 0;
 
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    HapticFeedback.lightImpact();
+    
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
+      barrierColor: Colors.black.withOpacity(0.5),
       builder: (context) {
-        // StatefulBuilder creates a local state for the modal sheet
         return StatefulBuilder(
           builder: (BuildContext context, StateSetter setModalState) {
-            return Container(
-              padding: const EdgeInsets.fromLTRB(
-                10,
-                5,
-                10,
-                20,
-              ), // Added bottom padding
-              decoration: const BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Drag Handle
-                  Center(
-                    child: Container(
-                      width: 50,
-                      height: 5,
-                      margin: const EdgeInsets.symmetric(vertical: 8),
-                      decoration: BoxDecoration(
-                        color: Colors.grey[300],
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                  ),
-                  const Padding(
-                    padding: EdgeInsets.all(8.0),
-                    child: Text(
-                      "Select Subscription",
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  ListView.separated(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    itemCount: allPlans.length,
-                    separatorBuilder: (_, __) => const SizedBox(height: 12),
-                    itemBuilder: (context, index) {
-                      final plan = allPlans[index];
-                      final planData = availablePlansForProduct.firstWhere(
-                        (p) => p.planName == plan.name,
-                        orElse:
-                            () => PlanSearchResult(
-                              planId: 0,
-                              planName: '',
-                              discountedPrice: 0,
-                              discountPercentage: 0,
-                            ),
-                      );
-                      final bool isEnabled = planData.discountedPrice > 0;
-                      final bool isSelected = selectedIndex == index;
-
-                      return GestureDetector(
-                        onTap:
-                            isEnabled
-                                ? () =>
-                                    setModalState(() => selectedIndex = index)
-                                : null,
-                        child: AnimatedContainer(
-                          duration: const Duration(milliseconds: 300),
-                          curve: Curves.easeInOut,
-                          padding: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(
-                            color:
-                                isSelected
-                                    ? AppColors.buttonBackgroundColor
-                                    : Colors.white,
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(
-                              color:
-                                  isSelected
-                                      ? AppColors.buttonBackgroundColor
-                                      : Colors.grey.shade300,
-                              width: 1.5,
-                            ),
-                          ),
-                          child: Opacity(
-                            opacity: isEnabled ? 1.0 : 0.4,
-                            child: Column(
-                              children: [
-                                Row(
-                                  children: [
-                                    Icon(
-                                      isSelected
-                                          ? Icons.check_box_rounded
-                                          : Icons
-                                              .check_box_outline_blank_rounded,
-                                      color:
-                                          isSelected
-                                              ? Colors.white
-                                              : Colors.grey.withOpacity(0.9),
-                                      size: 24,
-                                    ),
-                                    const SizedBox(width: 12),
-                                    Text(
-                                      plan.name,
-                                      style: TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 16,
-                                        color:
-                                            isSelected
-                                                ? Colors.white
-                                                : Colors.black,
-                                      ),
-                                    ),
-                                    const Spacer(),
-                                    Text(
-                                      "₹${planData.discountedPrice.toStringAsFixed(0)}",
-                                      style: TextStyle(
-                                        fontSize: 18,
-                                        fontWeight: FontWeight.bold,
-                                        color:
-                                            isSelected
-                                                ? Colors.white
-                                                : Colors.black,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                const SizedBox(height: 12),
-                                Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    _buildPlanFeaturesRow(plan, isSelected),
-                                    _buildPlanFeaturesRow2(plan, isSelected),
-                                  ],
-                                ),
-                                if (isSelected)
-                                  _buildExpandedPlanDetails(
-                                    plan,
-                                    planData,
-                                    paymentOption, // Pass the current state
-                                    (newOption) {
-                                      // The callback from the child updates the state here
-                                      setModalState(() {
-                                        paymentOption = newOption;
-                                      });
-                                    },
-                                  ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                  const SizedBox(height: 24),
-                  const Text(
-                    "Select your monthly requirements",
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black54,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Row(
-                    children: [
-                      Expanded(
-                        flex: 2,
-                        child: ItemCounterWidget(
-                          amount: quantity,
-                          onAmountChanged: (newAmount) {
-                            setModalState(() => quantity = newAmount);
-                          },
-                          scale: 1.3,
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        flex: 3,
-                        child: ElevatedButton(
-                          onPressed: () {
-                            final String paymentType =
-                                (paymentOption == 0)
-                                    ? 'PAID_FULL'
-                                    : 'INSTALLMENT';
-                            Navigator.pop(context);
-                            _navigateToAddressScreen(
-                              isSubscription: true,
-                              selectedPlanIndex: selectedIndex,
-                              quantity: quantity,
-                              paymentType: paymentType,
-                            );
-                          },
-                          style: ElevatedButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(vertical: 16),
-                            backgroundColor: AppColors.buttonBackgroundColor,
-                            foregroundColor: Colors.white,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                          ),
-                          child: const Text(
-                            "Subscribe",
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
+            return _ModernSubscriptionSheet(
+              allPlans: allPlans,
+              availablePlansForProduct: availablePlansForProduct,
+              selectedIndex: selectedIndex,
+              quantity: quantity,
+              paymentOption: paymentOption,
+              onPlanSelected: (index) => setModalState(() => selectedIndex = index),
+              onQuantityChanged: (newQty) => setModalState(() => quantity = newQty),
+              onPaymentOptionChanged: (opt) => setModalState(() => paymentOption = opt),
+              onSubscribe: () {
+                final String paymentType = (paymentOption == 0) ? 'PAID_FULL' : 'INSTALLMENT';
+                Navigator.pop(context);
+                _navigateToAddressScreen(
+                  isSubscription: true,
+                  selectedPlanIndex: selectedIndex,
+                  quantity: quantity,
+                  paymentType: paymentType,
+                );
+              },
             );
           },
         );
       },
+    );
+  }
+
+  // Legacy plan card widgets (kept for compatibility)
+  Widget _buildLegacyPlanCard(
+    SubscriptionPlan plan,
+    PlanSearchResult planData,
+    bool isSelected,
+    bool isEnabled,
+    int paymentOption,
+    ValueChanged<int> onPaymentOptionChanged,
+  ) {
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeInOut,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: isSelected ? AppColors.buttonBackgroundColor : Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: isSelected ? AppColors.buttonBackgroundColor : Colors.grey.shade300,
+          width: 1.5,
+        ),
+      ),
+      child: Opacity(
+        opacity: isEnabled ? 1.0 : 0.4,
+        child: Column(
+          children: [
+            Row(
+              children: [
+                Icon(
+                  isSelected ? Icons.check_box_rounded : Icons.check_box_outline_blank_rounded,
+                  color: isSelected ? Colors.white : Colors.grey.withOpacity(0.9),
+                  size: 24,
+                ),
+                const SizedBox(width: 12),
+                Text(
+                  plan.name,
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                    color: isSelected ? Colors.white : Colors.black,
+                  ),
+                ),
+                const Spacer(),
+                Text(
+                  "₹${planData.discountedPrice.toStringAsFixed(0)}",
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: isSelected ? Colors.white : Colors.black,
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -1488,6 +1807,539 @@ class _ExpandableDescriptionState extends State<ExpandableDescription> {
           ),
         ),
       ],
+    );
+  }
+}
+
+// Modern Subscription Selection Sheet Widget
+class _ModernSubscriptionSheet extends StatefulWidget {
+  final List<SubscriptionPlan> allPlans;
+  final List<PlanSearchResult> availablePlansForProduct;
+  final int selectedIndex;
+  final int quantity;
+  final int paymentOption;
+  final ValueChanged<int> onPlanSelected;
+  final ValueChanged<int> onQuantityChanged;
+  final ValueChanged<int> onPaymentOptionChanged;
+  final VoidCallback onSubscribe;
+
+  const _ModernSubscriptionSheet({
+    required this.allPlans,
+    required this.availablePlansForProduct,
+    required this.selectedIndex,
+    required this.quantity,
+    required this.paymentOption,
+    required this.onPlanSelected,
+    required this.onQuantityChanged,
+    required this.onPaymentOptionChanged,
+    required this.onSubscribe,
+  });
+
+  @override
+  State<_ModernSubscriptionSheet> createState() => _ModernSubscriptionSheetState();
+}
+
+class _ModernSubscriptionSheetState extends State<_ModernSubscriptionSheet>
+    with TickerProviderStateMixin {
+  late AnimationController _slideController;
+  late AnimationController _glowController;
+  late Animation<Offset> _slideAnimation;
+  late Animation<double> _fadeAnimation;
+  late Animation<double> _glowAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _slideController = AnimationController(
+      duration: const Duration(milliseconds: 400),
+      vsync: this,
+    );
+    _glowController = AnimationController(
+      duration: const Duration(milliseconds: 2000),
+      vsync: this,
+    )..repeat(reverse: true);
+
+    _slideAnimation = Tween<Offset>(
+      begin: const Offset(0, 0.3),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(parent: _slideController, curve: Curves.easeOutCubic));
+
+    _fadeAnimation = Tween<double>(begin: 0, end: 1).animate(
+      CurvedAnimation(parent: _slideController, curve: Curves.easeOut),
+    );
+
+    _glowAnimation = Tween<double>(begin: 0.3, end: 0.6).animate(
+      CurvedAnimation(parent: _glowController, curve: Curves.easeInOut),
+    );
+
+    _slideController.forward();
+  }
+
+  @override
+  void dispose() {
+    _slideController.dispose();
+    _glowController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final accentColor = theme.colorScheme.primary;
+
+    return SlideTransition(
+      position: _slideAnimation,
+      child: FadeTransition(
+        opacity: _fadeAnimation,
+        child: Container(
+          constraints: BoxConstraints(
+            maxHeight: MediaQuery.of(context).size.height * 0.85,
+          ),
+          decoration: BoxDecoration(
+            color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+            boxShadow: [
+              BoxShadow(
+                color: accentColor.withOpacity(0.15),
+                blurRadius: 30,
+                offset: const Offset(0, -10),
+              ),
+            ],
+          ),
+          child: ClipRRect(
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+            child: Stack(
+              children: [
+                // Animated glow at top
+                AnimatedBuilder(
+                  animation: _glowController,
+                  builder: (context, child) {
+                    return Positioned(
+                      top: 0,
+                      left: 0,
+                      right: 0,
+                      child: Container(
+                        height: 100,
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            colors: [
+                              accentColor.withOpacity(_glowAnimation.value * 0.3),
+                              accentColor.withOpacity(_glowAnimation.value * 0.1),
+                              Colors.transparent,
+                            ],
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                ),
+
+                // Content
+                SingleChildScrollView(
+                  padding: const EdgeInsets.fromLTRB(20, 12, 20, 32),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Handle bar with glow
+                      Center(
+                        child: AnimatedBuilder(
+                          animation: _glowController,
+                          builder: (context, child) {
+                            return Container(
+                              width: 48,
+                              height: 5,
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  colors: [
+                                    accentColor.withOpacity(0.3),
+                                    accentColor.withOpacity(0.6),
+                                    accentColor.withOpacity(0.3),
+                                  ],
+                                ),
+                                borderRadius: BorderRadius.circular(3),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: accentColor.withOpacity(_glowAnimation.value * 0.5),
+                                    blurRadius: 8,
+                                    spreadRadius: 1,
+                                  ),
+                                ],
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+
+                      // Header
+                      Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                colors: [
+                                  accentColor.withOpacity(0.2),
+                                  accentColor.withOpacity(0.1),
+                                ],
+                              ),
+                              borderRadius: BorderRadius.circular(14),
+                            ),
+                            child: Icon(
+                              Icons.card_membership_rounded,
+                              color: accentColor,
+                              size: 26,
+                            ),
+                          ),
+                          const SizedBox(width: 14),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Choose Your Plan',
+                                  style: theme.textTheme.titleLarge?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  'Subscribe & save with monthly deliveries',
+                                  style: theme.textTheme.bodySmall?.copyWith(
+                                    color: theme.hintColor,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 24),
+
+                      // Plan Cards
+                      ...List.generate(widget.allPlans.length, (index) {
+                        final plan = widget.allPlans[index];
+                        final planData = widget.availablePlansForProduct.firstWhere(
+                          (p) => p.planName == plan.name,
+                          orElse: () => PlanSearchResult(
+                            planId: 0,
+                            planName: '',
+                            discountedPrice: 0,
+                            discountPercentage: 0,
+                          ),
+                        );
+                        final isEnabled = planData.discountedPrice > 0;
+                        final isSelected = widget.selectedIndex == index;
+
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 12),
+                          child: _buildModernPlanCard(
+                            context,
+                            theme,
+                            isDark,
+                            plan,
+                            planData,
+                            isSelected,
+                            isEnabled,
+                            index,
+                          ),
+                        );
+                      }),
+
+                      const SizedBox(height: 24),
+
+                      // Quantity Section
+                      Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: isDark ? Colors.grey.shade900 : Colors.grey.shade50,
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                            color: isDark ? Colors.grey.shade800 : Colors.grey.shade200,
+                          ),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(
+                              Icons.shopping_basket_rounded,
+                              color: accentColor,
+                              size: 24,
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Monthly Quantity',
+                                    style: theme.textTheme.titleSmall?.copyWith(
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  Text(
+                                    'How many do you need per month?',
+                                    style: theme.textTheme.bodySmall?.copyWith(
+                                      color: theme.hintColor,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            ModernQuantitySelector(
+                              quantity: widget.quantity,
+                              onChanged: widget.onQuantityChanged,
+                              accentColor: accentColor,
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      const SizedBox(height: 24),
+
+                      // Subscribe Button
+                      ModernBottomSheetButton(
+                        label: 'Subscribe Now',
+                        icon: Icons.rocket_launch_rounded,
+                        onTap: widget.onSubscribe,
+                        color: accentColor,
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildModernPlanCard(
+    BuildContext context,
+    ThemeData theme,
+    bool isDark,
+    SubscriptionPlan plan,
+    PlanSearchResult planData,
+    bool isSelected,
+    bool isEnabled,
+    int index,
+  ) {
+    final accentColor = theme.colorScheme.primary;
+
+    return GestureDetector(
+      onTap: isEnabled ? () {
+        HapticFeedback.selectionClick();
+        widget.onPlanSelected(index);
+      } : null,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeOutCubic,
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          gradient: isSelected
+              ? LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [accentColor, accentColor.withOpacity(0.85)],
+                )
+              : null,
+          color: isSelected ? null : (isDark ? Colors.grey.shade900 : Colors.grey.shade50),
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(
+            color: isSelected
+                ? accentColor.withOpacity(0.5)
+                : (isDark ? Colors.grey.shade800 : Colors.grey.shade200),
+            width: isSelected ? 2 : 1,
+          ),
+          boxShadow: isSelected
+              ? [
+                  BoxShadow(
+                    color: accentColor.withOpacity(0.3),
+                    blurRadius: 16,
+                    offset: const Offset(0, 6),
+                  ),
+                ]
+              : null,
+        ),
+        child: Opacity(
+          opacity: isEnabled ? 1.0 : 0.5,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  // Selection indicator
+                  AnimatedContainer(
+                    duration: const Duration(milliseconds: 200),
+                    width: 26,
+                    height: 26,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: isSelected ? Colors.white.withOpacity(0.2) : Colors.transparent,
+                      border: Border.all(
+                        color: isSelected
+                            ? Colors.white
+                            : (isDark ? Colors.grey.shade600 : Colors.grey.shade400),
+                        width: 2,
+                      ),
+                    ),
+                    child: isSelected
+                        ? const Icon(Icons.check, size: 16, color: Colors.white)
+                        : null,
+                  ),
+                  const SizedBox(width: 14),
+                  
+                  // Plan info
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          plan.name,
+                          style: theme.textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: isSelected ? Colors.white : null,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          '${plan.durationMonths} months • ${planData.discountPercentage.toStringAsFixed(0)}% off',
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: isSelected
+                                ? Colors.white.withOpacity(0.8)
+                                : theme.hintColor,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  // Price
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Text(
+                        '₹${planData.discountedPrice.toStringAsFixed(0)}',
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: isSelected ? Colors.white : accentColor,
+                        ),
+                      ),
+                      Text(
+                        '/month',
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: isSelected
+                              ? Colors.white.withOpacity(0.7)
+                              : theme.hintColor,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+
+              // Expanded content when selected
+              if (isSelected) ...[
+                const SizedBox(height: 16),
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.15),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Column(
+                    children: [
+                      _buildPriceRow(
+                        'Total for ${plan.durationMonths} months',
+                        '₹${(planData.discountedPrice * plan.durationMonths).toStringAsFixed(0)}',
+                      ),
+                      const SizedBox(height: 8),
+                      _buildPriceRow(
+                        'Monthly payment',
+                        '₹${planData.discountedPrice.toStringAsFixed(0)}',
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 12),
+
+                // Payment options
+                Row(
+                  children: [
+                    const Text(
+                      'Payment:',
+                      style: TextStyle(color: Colors.white70, fontSize: 13),
+                    ),
+                    const SizedBox(width: 12),
+                    _buildPaymentChip('One Time', 0),
+                    const SizedBox(width: 8),
+                    if (plan.allowsInstallments)
+                      _buildPaymentChip('Installments', 1),
+                  ],
+                ),
+              ],
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPriceRow(String label, String value) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(label, style: const TextStyle(color: Colors.white70, fontSize: 13)),
+        Text(
+          value,
+          style: const TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+            fontSize: 14,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildPaymentChip(String label, int value) {
+    final isSelected = widget.paymentOption == value;
+
+    return GestureDetector(
+      onTap: () {
+        HapticFeedback.selectionClick();
+        widget.onPaymentOptionChanged(value);
+      },
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        decoration: BoxDecoration(
+          color: isSelected ? Colors.white.withOpacity(0.25) : Colors.transparent,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: Colors.white.withOpacity(isSelected ? 0.5 : 0.3),
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              isSelected ? Icons.radio_button_checked : Icons.radio_button_unchecked,
+              color: Colors.white,
+              size: 16,
+            ),
+            const SizedBox(width: 6),
+            Text(
+              label,
+              style: const TextStyle(color: Colors.white, fontSize: 12),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

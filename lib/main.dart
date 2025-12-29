@@ -29,6 +29,14 @@ Future<void> main() async {
   final notificationService = NotificationService();
   await notificationService.getFreshFCMToken();
 
+  SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+  SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
+    statusBarColor: Colors.transparent,
+    systemNavigationBarColor: Colors.transparent,
+    statusBarIconBrightness: Brightness.dark,
+    systemNavigationBarIconBrightness: Brightness.dark,
+  ));
+
   runApp(MyApp(hasSeenWelcome : hasSeenWelcome));
 }
 

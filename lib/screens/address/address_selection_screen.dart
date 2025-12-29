@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+import 'package:flutter/services.dart';
 import "package:grocery_app/common_widgets/global_import.dart";
 import "package:grocery_app/common_widgets/global_import.dart" as http;
 import "package:grocery_app/common_widgets/select_state.dart";
@@ -29,7 +31,8 @@ class AddressSelectionScreen extends StatefulWidget {
   _AddressSelectionScreenState createState() => _AddressSelectionScreenState();
 }
 
-class _AddressSelectionScreenState extends State<AddressSelectionScreen> {
+class _AddressSelectionScreenState extends State<AddressSelectionScreen>
+    with TickerProviderStateMixin {
   final _formKey = GlobalKey<FormState>();
   final _addressController = TextEditingController();
   final _cityController = TextEditingController();
@@ -45,15 +48,59 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen> {
   final authService = AuthService();
 
   OrderType _orderType = OrderType.self;
-
-  // default to 'new' so UI won't assume saved address exists
   String _selectedAddressType = 'new';
+
+  // Animation Controllers
+  late AnimationController _headerController;
+  late AnimationController _contentController;
+  late AnimationController _particleController;
+
+  late Animation<double> _headerSlide;
+  late Animation<double> _headerFade;
+  late Animation<double> _contentFade;
 
   @override
   void initState() {
-    super.initState(); 
+    super.initState();
+    _initAnimations();
     _pincodeController.addListener(_onPincodeChanged);
     _loadSavedAddress();
+  }
+
+  void _initAnimations() {
+    _headerController = AnimationController(
+      duration: const Duration(milliseconds: 800),
+      vsync: this,
+    );
+
+    _contentController = AnimationController(
+      duration: const Duration(milliseconds: 600),
+      vsync: this,
+    );
+
+    _particleController = AnimationController(
+      duration: const Duration(seconds: 20),
+      vsync: this,
+    )..repeat();
+
+    _headerSlide = Tween<double>(begin: -30, end: 0).animate(
+      CurvedAnimation(parent: _headerController, curve: Curves.easeOutCubic),
+    );
+
+    _headerFade = Tween<double>(begin: 0, end: 1).animate(
+      CurvedAnimation(parent: _headerController, curve: Curves.easeOut),
+    );
+
+    _contentFade = Tween<double>(begin: 0, end: 1).animate(
+      CurvedAnimation(parent: _contentController, curve: Curves.easeOut),
+    );
+
+    Future.delayed(const Duration(milliseconds: 100), () {
+      if (mounted) _headerController.forward();
+    });
+    Future.delayed(const Duration(milliseconds: 300), () {
+      if (mounted) _contentController.forward();
+    });
   }
 
   @override
@@ -64,6 +111,9 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen> {
     _pincodeController.removeListener(_onPincodeChanged);
     _pincodeController.dispose();
     _phoneController.dispose();
+    _headerController.dispose();
+    _contentController.dispose();
+    _particleController.dispose();
     super.dispose();
   }
 
@@ -94,74 +144,70 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen> {
         'pincode': user.pincode!,
         'phone': user.phoneNumber,
       };
-      // default to saved if we have one
       _selectedAddressType = 'saved';
-      // set form fields from saved address
       _selectAddress(_savedAddress!);
     } else {
       _selectedAddressType = 'new';
     }
-    // ensure UI updates
     setState(() {});
   }
 
- Future<void> _calculateDeliveryCharges(String pincode) async {
-  if (pincode.length != 6) return;
+  Future<void> _calculateDeliveryCharges(String pincode) async {
+    if (pincode.length != 6) return;
 
-  setState(() {
-    _isLoading = true;
-    _error = null;
-  });
-
-  try {
-    // determine product_variant_id (safe null checks)
-    final int? variantId = widget.singleProduct?.id ??
-        widget.cart?.items.first.productVariant.id;
-
-    if (variantId == null) {
-      throw Exception('No product variant found to calculate delivery charges.');
-    }
-
-    final body = jsonEncode({
-      'delivery_pincode': pincode,
-      'items': [
-        {'product_variant_id': variantId}
-      ]
-    });
-
-    final response = await http.post(
-      Uri.parse('${ApiConfig.baseUrl}/api/core/delivery/calculate-charges/'),
-      headers: {'Content-Type': 'application/json'},
-      body: body,
-    );
-
-    if (response.statusCode == 200) {
-      // expected response: { "expected_delivery_date": "...", "delivery_charges": 93, "currency": "INR" }
-      setState(() {
-        _deliveryDetails = jsonDecode(response.body) as Map<String, dynamic>?;
-        _error = null;
-      });
-    } else {
-      final errorBody = response.body.isNotEmpty ? jsonDecode(response.body) : null;
-      throw Exception(
-          (errorBody is Map && errorBody['error'] != null) ? errorBody['error'] : 'Failed to calculate delivery charges');
-    }
-  } catch (e) {
     setState(() {
-      _error = e.toString().replaceFirst('Exception: ', '');
-      _deliveryDetails = null;
+      _isLoading = true;
+      _error = null;
     });
-  } finally {
-    if (mounted) {
-      setState(() => _isLoading = false);
-    } else {
-      _isLoading = false;
+
+    try {
+      final int? variantId =
+          widget.singleProduct?.id ?? widget.cart?.items.first.productVariant.id;
+
+      if (variantId == null) {
+        throw Exception('No product variant found to calculate delivery charges.');
+      }
+
+      final body = jsonEncode({
+        'delivery_pincode': pincode,
+        'items': [
+          {'product_variant_id': variantId}
+        ]
+      });
+
+      final response = await http.post(
+        Uri.parse('${ApiConfig.baseUrl}/api/core/delivery/calculate-charges/'),
+        headers: {'Content-Type': 'application/json'},
+        body: body,
+      );
+
+      if (response.statusCode == 200) {
+        setState(() {
+          _deliveryDetails = jsonDecode(response.body) as Map<String, dynamic>?;
+          _error = null;
+        });
+      } else {
+        final errorBody =
+            response.body.isNotEmpty ? jsonDecode(response.body) : null;
+        throw Exception((errorBody is Map && errorBody['error'] != null)
+            ? errorBody['error']
+            : 'Failed to calculate delivery charges');
+      }
+    } catch (e) {
+      setState(() {
+        _error = e.toString().replaceFirst('Exception: ', '');
+        _deliveryDetails = null;
+      });
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      } else {
+        _isLoading = false;
+      }
     }
   }
-}
 
   void _selectAddress(Map<String, String> address) {
-    // Defensive: ensure keys exist
     setState(() {
       _addressController.text = address['address'] ?? '';
       _cityController.text = address['city'] ?? '';
@@ -170,10 +216,8 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen> {
       _phoneController.text = address['phone'] ?? '';
     });
 
-    // After programmatic set, check pincode and calculate delivery if valid
     final pincode = (address['pincode'] ?? '').trim();
     if (pincode.length == 6 && RegExp(r'^\d{6}$').hasMatch(pincode)) {
-      // run calculation; don't await here to keep UI responsive
       _calculateDeliveryCharges(pincode);
     } else {
       setState(() {
@@ -188,18 +232,12 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen> {
     _cityController.clear();
     _stateController.clear();
     _pincodeController.clear();
-    _phone_controller_clear_and_reset_delivery();
-  }
-
-  // small helper to clear pincode/delivery error state when clearing form
-  void _phone_controller_clear_and_reset_delivery() {
     _phoneController.clear();
     setState(() {
       _deliveryDetails = null;
       _error = null;
     });
   }
-  
 
   Future<bool> _updateUserAddress(Map<String, String> addressDetails) async {
     setState(() => _isLoading = true);
@@ -215,6 +253,8 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen> {
   }
 
   void _onContinuePressed() async {
+    HapticFeedback.mediumImpact();
+
     if ((_orderType == OrderType.other ||
             (_orderType == OrderType.self && _selectedAddressType == 'new')) &&
         !(_formKey.currentState?.validate() ?? false)) {
@@ -267,69 +307,312 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Delivery Address'),
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            _buildOrderTypeSelector(theme),
-            const SizedBox(height: 20),
-            AnimatedSwitcher(
-              duration: const Duration(milliseconds: 300),
-              child: _orderType == OrderType.self
-                  ? Column(
-                      key: const ValueKey('self'),
+      backgroundColor: theme.scaffoldBackgroundColor,
+      body: Stack(
+        children: [
+          CustomScrollView(
+            physics: const BouncingScrollPhysics(),
+            slivers: [
+              // Animated Header
+              _buildAnimatedHeader(theme, isDark),
+
+              // Content
+              SliverToBoxAdapter(
+                child: AnimatedBuilder(
+                  animation: _contentController,
+                  builder: (context, child) {
+                    return Transform.translate(
+                      offset: Offset(0, 20 * (1 - _contentFade.value)),
+                      child: Opacity(
+                        opacity: _contentFade.value,
+                        child: child,
+                      ),
+                    );
+                  },
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        if (_savedAddress != null) _buildSavedAddressOption(theme),
-                        _buildNewAddressOption(theme, isForSelf: true),
-                        if (_selectedAddressType == 'new') _buildNewAddressForm(theme, isForSelf: true),
-                      ],
-                    )
-                  : Column(
-                      key: const ValueKey('other'),
-                      children: [
-                        _buildNewAddressForm(theme, isForSelf: false),
+                        _buildOrderTypeSelector(theme),
+                        const SizedBox(height: 20),
+                        AnimatedSwitcher(
+                          duration: const Duration(milliseconds: 300),
+                          child: _orderType == OrderType.self
+                              ? Column(
+                                  key: const ValueKey('self'),
+                                  children: [
+                                    if (_savedAddress != null)
+                                      _buildSavedAddressCard(theme, isDark),
+                                    _buildNewAddressOption(theme, isDark, isForSelf: true),
+                                    if (_selectedAddressType == 'new')
+                                      _buildNewAddressForm(theme, isDark, isForSelf: true),
+                                  ],
+                                )
+                              : Column(
+                                  key: const ValueKey('other'),
+                                  children: [
+                                    _buildNewAddressForm(theme, isDark, isForSelf: false),
+                                  ],
+                                ),
+                        ),
+                        if (_error != null) _buildErrorMessage(theme),
+                        if (_deliveryDetails != null)
+                          _buildDeliveryDetailsCard(theme, isDark),
+                        const SizedBox(height: 100),
                       ],
                     ),
-            ),
-            if (_isLoading)
-              const Padding(
-                padding: EdgeInsets.symmetric(vertical: 24.0),
-                child: Center(child: CircularProgressIndicator()),
-              ),
-            if (_error != null)
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 8),
-                child: Text(
-                  _error!,
-                  style: TextStyle(color: theme.colorScheme.error, fontSize: 14),
-                  textAlign: TextAlign.center,
+                  ),
                 ),
               ),
-            if (_deliveryDetails != null) _buildDeliveryDetailsCard(theme),
-            const SizedBox(height: 24),
-            _buildContinueButton(),
-          ],
+            ],
+          ),
+
+          // Bottom Continue Button
+          _buildBottomButton(theme, isDark),
+
+          // Loading Overlay
+          if (_isLoading) _buildLoadingOverlay(theme),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAnimatedHeader(ThemeData theme, bool isDark) {
+    return SliverToBoxAdapter(
+      child: AnimatedBuilder(
+        animation: _headerController,
+        builder: (context, child) {
+          return Transform.translate(
+            offset: Offset(0, _headerSlide.value),
+            child: Opacity(
+              opacity: _headerFade.value,
+              child: child,
+            ),
+          );
+        },
+        child: Container(
+          height: 200,
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                theme.colorScheme.primary,
+                theme.colorScheme.primary.withOpacity(0.85),
+                isDark
+                    ? theme.colorScheme.primary.withOpacity(0.7)
+                    : Colors.green.shade400,
+              ],
+            ),
+            borderRadius: const BorderRadius.only(
+              bottomLeft: Radius.circular(32),
+              bottomRight: Radius.circular(32),
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: theme.colorScheme.primary.withOpacity(0.3),
+                blurRadius: 20,
+                offset: const Offset(0, 10),
+              ),
+            ],
+          ),
+          child: Stack(
+            children: [
+              // Floating Particles
+              ...List.generate(8, (index) => _buildFloatingParticle(index)),
+
+              // Decorative circles
+              Positioned(
+                top: -30,
+                right: -30,
+                child: Container(
+                  width: 120,
+                  height: 120,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Colors.white.withOpacity(0.1),
+                  ),
+                ),
+              ),
+              Positioned(
+                bottom: 20,
+                left: -40,
+                child: Container(
+                  width: 100,
+                  height: 100,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Colors.white.withOpacity(0.08),
+                  ),
+                ),
+              ),
+
+              // Header Content
+              SafeArea(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 8, 20, 20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Back Button
+                      _buildIconButton(
+                        Icons.arrow_back_ios_new_rounded,
+                        () {
+                          HapticFeedback.lightImpact();
+                          Navigator.pop(context);
+                        },
+                      ),
+                      const Spacer(),
+                      // Title Row
+                      Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.2),
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                            child: const Icon(
+                              Icons.location_on_rounded,
+                              color: Colors.white,
+                              size: 28,
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  "Delivery Address",
+                                  style: theme.textTheme.headlineMedium?.copyWith(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  "Where should we deliver your order?",
+                                  style: theme.textTheme.bodyMedium?.copyWith(
+                                    color: Colors.white.withOpacity(0.9),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFloatingParticle(int index) {
+    final random = math.Random(index);
+    final size = 4.0 + random.nextDouble() * 6;
+    final startX = random.nextDouble() * 400;
+    final startY = random.nextDouble() * 200;
+    final duration = 10 + random.nextInt(10);
+
+    return AnimatedBuilder(
+      animation: _particleController,
+      builder: (context, child) {
+        final progress = (_particleController.value * duration) % 1.0;
+        final x = startX + math.sin(progress * math.pi * 2 + index) * 25;
+        final y = startY + math.cos(progress * math.pi * 2 + index) * 15;
+        final opacity = 0.1 + (math.sin(progress * math.pi * 2) * 0.15);
+
+        return Positioned(
+          left: x,
+          top: y,
+          child: Container(
+            width: size,
+            height: size,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: Colors.white.withOpacity(opacity.clamp(0.05, 0.25)),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildIconButton(IconData icon, VoidCallback onTap) {
+    return Material(
+      color: Colors.white.withOpacity(0.2),
+      borderRadius: BorderRadius.circular(12),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(12),
+        child: Padding(
+          padding: const EdgeInsets.all(10),
+          child: Icon(icon, color: Colors.white, size: 22),
         ),
       ),
     );
   }
 
   Widget _buildOrderTypeSelector(ThemeData theme) {
-    return SegmentedButton<OrderType>(
-      segments: const <ButtonSegment<OrderType>>[
-        ButtonSegment(value: OrderType.self, label: Text('For Myself'), icon: Icon(Icons.person)),
-        ButtonSegment(
-            value: OrderType.other, label: Text('For Someone Else'), icon: Icon(Icons.card_giftcard)),
-      ],
-      selected: {_orderType},
-      onSelectionChanged: (Set<OrderType> newSelection) {
+    return Container(
+      decoration: BoxDecoration(
+        color: theme.cardColor,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: theme.shadowColor.withOpacity(0.08),
+            blurRadius: 20,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      padding: const EdgeInsets.all(6),
+      child: Row(
+        children: [
+          Expanded(
+            child: _buildOrderTypeButton(
+              theme,
+              OrderType.self,
+              'For Myself',
+              Icons.person_rounded,
+            ),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: _buildOrderTypeButton(
+              theme,
+              OrderType.other,
+              'For Someone Else',
+              Icons.card_giftcard_rounded,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildOrderTypeButton(
+    ThemeData theme,
+    OrderType type,
+    String label,
+    IconData icon,
+  ) {
+    final isSelected = _orderType == type;
+    return GestureDetector(
+      onTap: () {
+        HapticFeedback.selectionClick();
         setState(() {
-          _orderType = newSelection.first;
+          _orderType = type;
           if (_orderType == OrderType.self) {
             _loadSavedAddress();
           } else {
@@ -338,233 +621,33 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen> {
           }
         });
       },
-      style: SegmentedButton.styleFrom(
-          selectedBackgroundColor: theme.colorScheme.primary.withOpacity(0.2),
-          selectedForegroundColor: theme.colorScheme.primary,
-          textStyle: theme.textTheme.labelLarge),
-    );
-  }
-
-  Widget _buildSavedAddressOption(ThemeData theme) {
-    if (_savedAddress == null) return const SizedBox.shrink();
-
-    final bool isSelected = _selectedAddressType == 'saved';
-    return InkWell(
-      onTap: () {
-        setState(() {
-          _selectedAddressType = 'saved';
-          // ensure saved address exists
-          if (_savedAddress != null) _selectAddress(_savedAddress!);
-        });
-      },
-      borderRadius: BorderRadius.circular(12),
-      child: Card(
-        elevation: isSelected ? 4 : 2,
-        shape: RoundedRectangleBorder(
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 12),
+        decoration: BoxDecoration(
+          color: isSelected
+              ? theme.colorScheme.primary
+              : Colors.transparent,
           borderRadius: BorderRadius.circular(12),
-          side: BorderSide(
-            color: isSelected ? theme.colorScheme.primary.withOpacity(0.6) : theme.dividerColor,
-            width: 1.25,
-          ),
         ),
-        margin: const EdgeInsets.only(bottom: 12),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-          child: Row(
-            children: [
-              // selection indicator (check icon)
-              Container(
-                padding: const EdgeInsets.all(6),
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  border: Border.all(color: isSelected ? theme.colorScheme.primary : theme.dividerColor),
-                  color: isSelected ? theme.colorScheme.primary.withOpacity(0.12) : Colors.transparent,
-                ),
-                child: Icon(
-                  isSelected ? Icons.check : Icons.check_box_outline_blank,
-                  size: 18,
-                  color: isSelected ? theme.colorScheme.primary : theme.dividerColor,
-                ),
-              ),
-              const SizedBox(width: 12),
-              // content
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('Use Saved Address', style: theme.textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.bold)),
-                    const SizedBox(height: 4),
-                    Text(
-                      '${_savedAddress!['address']}, ${_savedAddress!['city']}',
-                      style: theme.textTheme.bodyMedium,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 8),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildNewAddressOption(ThemeData theme, {required bool isForSelf}) {
-    final bool isSelected = _selectedAddressType == 'new';
-    return InkWell(
-      onTap: () {
-        setState(() {
-          _selectedAddressType = 'new';
-          _clearAddressForm();
-        });
-      },
-      borderRadius: BorderRadius.circular(12),
-      child: Card(
-        elevation: isSelected ? 4 : 2,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-          side: BorderSide(
-            color: isSelected ? theme.colorScheme.primary.withOpacity(0.6) : theme.dividerColor,
-            width: 1.25,
-          ),
-        ),
-        margin: const EdgeInsets.only(bottom: 12),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-          child: Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(6),
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  border: Border.all(color: isSelected ? theme.colorScheme.primary : theme.dividerColor),
-                  color: isSelected ? theme.colorScheme.primary.withOpacity(0.12) : Colors.transparent,
-                ),
-                child: Icon(
-                  isSelected ? Icons.check : Icons.add,
-                  size: 18,
-                  color: isSelected ? theme.colorScheme.primary : theme.dividerColor,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Text(
-                  isForSelf ? 'Add & Save a New Address' : 'Add a New Address',
-                  style: theme.textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.bold),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildNewAddressForm(ThemeData theme, {bool isForSelf = true}) {
-    return Form(
-      key: _formKey,
-      child: Card(
-        elevation: 2,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                isForSelf ? 'New Address (will be saved)' : "Recipient's Address",
-                style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 20),
-              CustomInput(
-                hintText: "Full Address (House No, Street, Landmark)",
-                controller: _addressController,
-                keyboardType: TextInputType.streetAddress,
-                validator: (v) => v == null || v.trim().isEmpty ? 'Address is required' : null,
-              ),
-              const SizedBox(height: 16),
-              SelectState(
-                onCountryChanged: (_) {},
-                onStateChanged: (v) => setState(() => _state_controller_safe_set(v)),
-                onCityChanged: (v) => setState(() => _city_controller_safe_set(v)),
-                style: theme.textTheme.bodyLarge,
-              ),
-              const SizedBox(height: 16),
-              CustomInput(
-                hintText: "Pincode",
-                controller: _pincodeController,
-                keyboardType: TextInputType.number,
-                validator: (v) {
-                  if (v == null || v.trim().isEmpty) return 'Pincode is required';
-                  final val = v.trim();
-                  if (!RegExp(r'^\d{6}$').hasMatch(val)) return 'Enter a valid 6-digit pincode';
-                  return null;
-                },
-              ),
-              const SizedBox(height: 16),
-              CustomInput(
-                hintText: "Recipient's Phone Number",
-                controller: _phoneController,
-                keyboardType: TextInputType.phone,
-                validator: (v) {
-                  if (v == null || v.trim().isEmpty) return 'Phone number is required';
-                  final val = v.trim();
-                  if (!RegExp(r'^\d{10}$').hasMatch(val)) return 'Enter a valid 10-digit number';
-                  return null;
-                },
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  // helper setters to avoid null-check operators in callbacks
-  void _state_controller_safe_set(String? v) {
-    _stateController.text = v ?? '';
-  }
-
-  void _city_controller_safe_set(String? v) {
-    _cityController.text = v ?? '';
-  }
-
-  Widget _buildDeliveryDetailsCard(ThemeData theme) {
-    final colorScheme = theme.colorScheme;
-    return Card(
-      elevation: 2,
-      color: colorScheme.primary.withOpacity(0.05),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-        side: BorderSide(color: colorScheme.primary.withOpacity(0.3)),
-      ),
-      margin: const EdgeInsets.only(top: 16),
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text('Delivery Details', style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
-            const SizedBox(height: 12),
-            ListTile(
-              contentPadding: EdgeInsets.zero,
-              leading: Icon(Icons.local_shipping, color: colorScheme.primary),
-              title: const Text('Delivery Charges'),
-              trailing: Text(
-                '₹${_deliveryDetails?['delivery_charges'] ?? '0.0'}',
-                style: theme.textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.bold),
-              ),
+            Icon(
+              icon,
+              size: 20,
+              color: isSelected ? Colors.white : theme.hintColor,
             ),
-            const Divider(),
-            ListTile(
-              contentPadding: EdgeInsets.zero,
-              leading: Icon(Icons.calendar_today, color: colorScheme.primary),
-              title: const Text('Expected Delivery'),
-              trailing: Text(
-                _deliveryDetails?['expected_delivery_date'] ?? 'N/A',
-                style: theme.textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.bold),
+            const SizedBox(width: 8),
+            Flexible(
+              child: Text(
+                label,
+                style: TextStyle(
+                  color: isSelected ? Colors.white : theme.hintColor,
+                  fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                  fontSize: 13,
+                ),
+                overflow: TextOverflow.ellipsis,
               ),
             ),
           ],
@@ -573,16 +656,636 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen> {
     );
   }
 
-  Widget _buildContinueButton() {
-    return ElevatedButton(
-      onPressed: _isLoading ? null : _onContinuePressed,
-      child: _isLoading
-          ? const SizedBox(
-              height: 24,
+  Widget _buildSavedAddressCard(ThemeData theme, bool isDark) {
+    if (_savedAddress == null) return const SizedBox.shrink();
+
+    final isSelected = _selectedAddressType == 'saved';
+    return GestureDetector(
+      onTap: () {
+        HapticFeedback.selectionClick();
+        setState(() {
+          _selectedAddressType = 'saved';
+          if (_savedAddress != null) _selectAddress(_savedAddress!);
+        });
+      },
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        margin: const EdgeInsets.only(bottom: 12),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: theme.cardColor,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: isSelected
+                ? theme.colorScheme.primary
+                : isDark
+                    ? Colors.grey.shade800
+                    : Colors.grey.shade200,
+            width: isSelected ? 2 : 1,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: isSelected
+                  ? theme.colorScheme.primary.withOpacity(0.15)
+                  : theme.shadowColor.withOpacity(0.06),
+              blurRadius: isSelected ? 16 : 8,
+              offset: Offset(0, isSelected ? 6 : 3),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            // Selection Indicator
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
               width: 24,
-              child: CircularProgressIndicator(strokeWidth: 3, color: Colors.white),
-            )
-          : const Text('Save Address & Continue'),
+              height: 24,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: isSelected
+                    ? theme.colorScheme.primary
+                    : Colors.transparent,
+                border: Border.all(
+                  color: isSelected
+                      ? theme.colorScheme.primary
+                      : theme.hintColor.withOpacity(0.3),
+                  width: 2,
+                ),
+              ),
+              child: isSelected
+                  ? const Icon(Icons.check, color: Colors.white, size: 16)
+                  : null,
+            ),
+            const SizedBox(width: 16),
+            // Address Icon
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: theme.colorScheme.primary.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(
+                Icons.home_rounded,
+                color: theme.colorScheme.primary,
+                size: 24,
+              ),
+            ),
+            const SizedBox(width: 14),
+            // Address Details
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Text(
+                        'Saved Address',
+                        style: theme.textTheme.titleSmall?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 2,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.green.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Text(
+                          'Default',
+                          style: TextStyle(
+                            color: Colors.green.shade700,
+                            fontSize: 10,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    '${_savedAddress!['address']}, ${_savedAddress!['city']}',
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.hintColor,
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    '${_savedAddress!['state']} - ${_savedAddress!['pincode']}',
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.hintColor,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildNewAddressOption(ThemeData theme, bool isDark, {required bool isForSelf}) {
+    final isSelected = _selectedAddressType == 'new';
+    return GestureDetector(
+      onTap: () {
+        HapticFeedback.selectionClick();
+        setState(() {
+          _selectedAddressType = 'new';
+          _clearAddressForm();
+        });
+      },
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        margin: const EdgeInsets.only(bottom: 16),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: theme.cardColor,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: isSelected
+                ? theme.colorScheme.primary
+                : isDark
+                    ? Colors.grey.shade800
+                    : Colors.grey.shade200,
+            width: isSelected ? 2 : 1,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: isSelected
+                  ? theme.colorScheme.primary.withOpacity(0.15)
+                  : theme.shadowColor.withOpacity(0.06),
+              blurRadius: isSelected ? 16 : 8,
+              offset: Offset(0, isSelected ? 6 : 3),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            // Selection Indicator
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              width: 24,
+              height: 24,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: isSelected
+                    ? theme.colorScheme.primary
+                    : Colors.transparent,
+                border: Border.all(
+                  color: isSelected
+                      ? theme.colorScheme.primary
+                      : theme.hintColor.withOpacity(0.3),
+                  width: 2,
+                ),
+              ),
+              child: isSelected
+                  ? const Icon(Icons.check, color: Colors.white, size: 16)
+                  : null,
+            ),
+            const SizedBox(width: 16),
+            // Add Icon
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: theme.colorScheme.primary.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(
+                Icons.add_location_alt_rounded,
+                color: theme.colorScheme.primary,
+                size: 24,
+              ),
+            ),
+            const SizedBox(width: 14),
+            // Label
+            Expanded(
+              child: Text(
+                isForSelf ? 'Add & Save New Address' : 'Add New Address',
+                style: theme.textTheme.titleSmall?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+            Icon(
+              Icons.arrow_forward_ios_rounded,
+              size: 16,
+              color: theme.hintColor,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildNewAddressForm(ThemeData theme, bool isDark, {bool isForSelf = true}) {
+    return Form(
+      key: _formKey,
+      child: Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: theme.cardColor,
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: theme.shadowColor.withOpacity(0.08),
+              blurRadius: 20,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(
+                  Icons.edit_location_alt_rounded,
+                  color: theme.colorScheme.primary,
+                  size: 24,
+                ),
+                const SizedBox(width: 12),
+                Text(
+                  isForSelf ? 'New Address' : "Recipient's Address",
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 20),
+            _buildModernInput(
+              theme,
+              isDark,
+              controller: _addressController,
+              label: 'Full Address',
+              hint: 'House No, Street, Landmark',
+              icon: Icons.home_work_rounded,
+              validator: (v) =>
+                  v == null || v.trim().isEmpty ? 'Address is required' : null,
+            ),
+            const SizedBox(height: 16),
+            SelectState(
+              onCountryChanged: (_) {},
+              onStateChanged: (v) => setState(() => _stateController.text = v ?? ''),
+              onCityChanged: (v) => setState(() => _cityController.text = v ?? ''),
+              style: theme.textTheme.bodyLarge,
+            ),
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                Expanded(
+                  child: _buildModernInput(
+                    theme,
+                    isDark,
+                    controller: _pincodeController,
+                    label: 'Pincode',
+                    hint: '6 digits',
+                    icon: Icons.pin_drop_rounded,
+                    keyboardType: TextInputType.number,
+                    validator: (v) {
+                      if (v == null || v.trim().isEmpty) return 'Required';
+                      if (!RegExp(r'^\d{6}$').hasMatch(v.trim())) {
+                        return 'Invalid pincode';
+                      }
+                      return null;
+                    },
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: _buildModernInput(
+                    theme,
+                    isDark,
+                    controller: _phoneController,
+                    label: 'Phone Number',
+                    hint: '10 digits',
+                    icon: Icons.phone_rounded,
+                    keyboardType: TextInputType.phone,
+                    validator: (v) {
+                      if (v == null || v.trim().isEmpty) return 'Required';
+                      if (!RegExp(r'^\d{10}$').hasMatch(v.trim())) {
+                        return 'Invalid number';
+                      }
+                      return null;
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildModernInput(
+    ThemeData theme,
+    bool isDark, {
+    required TextEditingController controller,
+    required String label,
+    required String hint,
+    required IconData icon,
+    TextInputType? keyboardType,
+    String? Function(String?)? validator,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: theme.textTheme.bodySmall?.copyWith(
+            color: theme.hintColor,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        const SizedBox(height: 8),
+        TextFormField(
+          controller: controller,
+          keyboardType: keyboardType,
+          validator: validator,
+          style: theme.textTheme.bodyLarge,
+          decoration: InputDecoration(
+            hintText: hint,
+            hintStyle: TextStyle(
+              color: theme.hintColor.withOpacity(0.5),
+            ),
+            prefixIcon: Icon(
+              icon,
+              color: theme.colorScheme.primary.withOpacity(0.7),
+              size: 22,
+            ),
+            filled: true,
+            fillColor: isDark ? Colors.grey.shade900 : Colors.grey.shade50,
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(14),
+              borderSide: BorderSide.none,
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(14),
+              borderSide: BorderSide(
+                color: isDark ? Colors.grey.shade800 : Colors.grey.shade200,
+              ),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(14),
+              borderSide: BorderSide(
+                color: theme.colorScheme.primary,
+                width: 2,
+              ),
+            ),
+            errorBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(14),
+              borderSide: BorderSide(
+                color: theme.colorScheme.error,
+              ),
+            ),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 14,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildErrorMessage(ThemeData theme) {
+    return Container(
+      margin: const EdgeInsets.only(top: 12),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.error.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: theme.colorScheme.error.withOpacity(0.3),
+        ),
+      ),
+      child: Row(
+        children: [
+          Icon(
+            Icons.error_outline_rounded,
+            color: theme.colorScheme.error,
+            size: 20,
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              _error!,
+              style: TextStyle(
+                color: theme.colorScheme.error,
+                fontSize: 14,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDeliveryDetailsCard(ThemeData theme, bool isDark) {
+    return Container(
+      margin: const EdgeInsets.only(top: 20),
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            theme.colorScheme.primary.withOpacity(0.1),
+            theme.colorScheme.primary.withOpacity(0.05),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: theme.colorScheme.primary.withOpacity(0.3),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.primary.withOpacity(0.2),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Icon(
+                  Icons.local_shipping_rounded,
+                  color: theme.colorScheme.primary,
+                  size: 22,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Text(
+                'Delivery Details',
+                style: theme.textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 20),
+          Row(
+            children: [
+              Expanded(
+                child: _buildDeliveryInfoItem(
+                  theme,
+                  Icons.payments_rounded,
+                  'Delivery Charges',
+                  '₹${_deliveryDetails?['delivery_charges'] ?? '0'}',
+                ),
+              ),
+              Container(
+                width: 1,
+                height: 50,
+                color: theme.colorScheme.primary.withOpacity(0.2),
+              ),
+              Expanded(
+                child: _buildDeliveryInfoItem(
+                  theme,
+                  Icons.calendar_month_rounded,
+                  'Expected Delivery',
+                  _deliveryDetails?['expected_delivery_date'] ?? 'N/A',
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDeliveryInfoItem(
+    ThemeData theme,
+    IconData icon,
+    String label,
+    String value,
+  ) {
+    return Column(
+      children: [
+        Icon(
+          icon,
+          color: theme.colorScheme.primary,
+          size: 24,
+        ),
+        const SizedBox(height: 8),
+        Text(
+          label,
+          style: theme.textTheme.bodySmall?.copyWith(
+            color: theme.hintColor,
+          ),
+          textAlign: TextAlign.center,
+        ),
+        const SizedBox(height: 4),
+        Text(
+          value,
+          style: theme.textTheme.titleSmall?.copyWith(
+            fontWeight: FontWeight.bold,
+            color: theme.colorScheme.primary,
+          ),
+          textAlign: TextAlign.center,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildBottomButton(ThemeData theme, bool isDark) {
+    return Positioned(
+      left: 0,
+      right: 0,
+      bottom: 0,
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: isDark ? theme.cardColor : Colors.white,
+          boxShadow: [
+            BoxShadow(
+              color: theme.shadowColor.withOpacity(0.1),
+              blurRadius: 20,
+              offset: const Offset(0, -5),
+            ),
+          ],
+        ),
+        child: SafeArea(
+          top: false,
+          child: SizedBox(
+            height: 56,
+            child: ElevatedButton(
+              onPressed: _isLoading ? null : _onContinuePressed,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: theme.colorScheme.primary,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                elevation: 0,
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    _selectedAddressType == 'new'
+                        ? 'Save Address & Continue'
+                        : 'Continue to Checkout',
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Container(
+                    padding: const EdgeInsets.all(4),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.2),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Icon(
+                      Icons.arrow_forward_rounded,
+                      size: 18,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLoadingOverlay(ThemeData theme) {
+    return Container(
+      color: Colors.black.withOpacity(0.3),
+      child: Center(
+        child: Container(
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            color: theme.cardColor,
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              CircularProgressIndicator(
+                color: theme.colorScheme.primary,
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'Processing...',
+                style: theme.textTheme.bodyMedium,
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

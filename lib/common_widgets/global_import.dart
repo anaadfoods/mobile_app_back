@@ -32,6 +32,7 @@ export 'package:grocery_app/cubits/cart/cart_state.dart';
 export 'package:grocery_app/cubits/favorites/favorites_cubit.dart';
 export 'package:grocery_app/cubits/favorites/favorites_state.dart';
 export 'package:grocery_app/common_widgets/app_button.dart';
+export 'package:grocery_app/common_widgets/modern_bottom_sheet.dart';
 export 'package:grocery_app/models/category_model.dart';
 
 // export 'package:grocery_app/common_widgets/shimmer_loading.dart';

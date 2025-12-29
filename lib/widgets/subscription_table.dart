@@ -1,4 +1,6 @@
+import 'dart:async';
 import 'dart:ui';
+import 'package:flutter/services.dart';
 import 'package:grocery_app/common_widgets/global_import.dart';
 
 class SubscriptionTable extends StatefulWidget {
@@ -9,7 +11,8 @@ class SubscriptionTable extends StatefulWidget {
   _SubscriptionTableState createState() => _SubscriptionTableState();
 }
 
-class _SubscriptionTableState extends State<SubscriptionTable> {
+class _SubscriptionTableState extends State<SubscriptionTable>
+    with SingleTickerProviderStateMixin {
   final SubscriptionService _subscriptionService = SubscriptionService();
   List<SubscriptionPlan> _plans = [];
   bool _isLoading = true;
@@ -18,12 +21,38 @@ class _SubscriptionTableState extends State<SubscriptionTable> {
   static final Map<int, List<SubscriptionPlanProduct>> _cachedPlanProducts = {};
   final Map<int, List<SubscriptionPlanProduct>> _planProducts = {};
   final Map<int, bool> _loadingProducts = {};
-  int _currentIndex = 1;
+  int _currentIndex = 0;
+
+  late PageController _pageController;
+  late AnimationController _pulseController;
+  Timer? _autoScrollTimer;
 
   @override
   void initState() {
     super.initState();
-    // Moved _loadData to didChangeDependencies
+    _pageController = PageController(viewportFraction: 0.88, initialPage: 0);
+    _pulseController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 2000),
+    )..repeat(reverse: true);
+    _startAutoScroll();
+  }
+
+  void _startAutoScroll() {
+    _autoScrollTimer?.cancel();
+    _autoScrollTimer = Timer.periodic(const Duration(seconds: 4), (timer) {
+      if (!mounted || _plans.isEmpty) return;
+      final nextPage = (_currentIndex + 1) % _plans.length;
+      _pageController.animateToPage(
+        nextPage,
+        duration: const Duration(milliseconds: 500),
+        curve: Curves.easeInOutCubic,
+      );
+    });
+  }
+
+  void _stopAutoScroll() {
+    _autoScrollTimer?.cancel();
   }
 
   @override
@@ -102,9 +131,7 @@ class _SubscriptionTableState extends State<SubscriptionTable> {
     }
 
     try {
-      final result = await _subscriptionService.getSubscriptionPlanProducts(
-        planId,
-      );
+      final result = await _subscriptionService.getSubscriptionPlanProducts(planId);
       if (mounted) {
         if (result['success']) {
           final response = result['data'] as SubscriptionPlanProductsResponse;
@@ -118,18 +145,11 @@ class _SubscriptionTableState extends State<SubscriptionTable> {
               context,
               MaterialPageRoute(builder: (context) => const LoginScreen()),
             );
-          } else {
-            SnackBarHelper.showError(
-              context,
-              result['message'] ?? 'Failed to load products',
-            );
           }
         }
       }
     } catch (e) {
-      if (mounted) {
-        SnackBarHelper.showError(context, 'Error loading products: $e');
-      }
+      debugPrint('Error loading products: $e');
     } finally {
       if (mounted) {
         setState(() {
@@ -146,65 +166,103 @@ class _SubscriptionTableState extends State<SubscriptionTable> {
   }
 
   @override
+  void dispose() {
+    _autoScrollTimer?.cancel();
+    _pageController.dispose();
+    _pulseController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final size = MediaQuery.of(context).size;
-
-    // Responsive Carousel Height based on screen size
-    // Small phones: 55% of height, larger screens: 50%
-    final isCompactHeight = size.height < 700;
-    final heightFraction = isCompactHeight ? 0.55 : 0.50;
-    final double carouselHeight = (size.height * heightFraction).clamp(
-      380.0,
-      580.0,
-    );
+    final isDark = theme.brightness == Brightness.dark;
 
     if (_isLoading) {
-      return Center(
-        child: AnimatedOpacity(
-          opacity: 1.0,
-          duration: const Duration(milliseconds: AppColors.animMedium),
-          child: const CircularProgressIndicator(),
-        ),
-      );
+      return _buildLoadingState(isDark);
     }
     if (_error != null) {
       return _buildErrorState(theme);
     }
+    if (_plans.isEmpty) {
+      return const SizedBox.shrink();
+    }
 
-    return RefreshIndicator(
-      onRefresh: _refreshData,
-      child: CarouselSlider.builder(
-        itemCount: _plans.length,
-        itemBuilder: (context, index, realIndex) {
-          final plan = _plans[index];
-          final isSelected = (index == _currentIndex);
-          return _buildPlanCard(
-            plan,
-            context,
-            isSelected: isSelected,
-            theme: theme,
-          );
-        },
-        options: CarouselOptions(
-          height: carouselHeight,
-          viewportFraction:
-              size.width < 400 ? 0.92 : 0.85, // Fuller width on small screens
-          autoPlay: true,
-          autoPlayInterval: const Duration(seconds: 5),
-          enlargeCenterPage: true,
-          enlargeFactor:
-              size.width < 400
-                  ? 0.15
-                  : 0.18, // Smaller enlarge on compact screens
-          enableInfiniteScroll: true,
-          initialPage: 1,
-          onPageChanged: (index, reason) {
-            setState(() {
-              _currentIndex = index;
-            });
-          },
+    // Taller cards for more rectangular look
+    final cardHeight = (size.height * 0.48).clamp(340.0, 440.0);
+
+    return Column(
+      children: [
+        SizedBox(
+          height: cardHeight,
+          child: GestureDetector(
+            onPanDown: (_) => _stopAutoScroll(),
+            onPanEnd: (_) => _startAutoScroll(),
+            child: PageView.builder(
+              controller: _pageController,
+              itemCount: _plans.length,
+              onPageChanged: (index) {
+                setState(() => _currentIndex = index);
+              },
+            itemBuilder: (context, index) {
+              final plan = _plans[index];
+              return AnimatedBuilder(
+                animation: _pageController,
+                builder: (context, child) {
+                  double value = 1.0;
+                  if (_pageController.position.haveDimensions) {
+                    value = (_pageController.page! - index).abs();
+                    value = (1 - (value * 0.15)).clamp(0.85, 1.0);
+                  }
+                  return Center(
+                    child: Transform.scale(
+                      scale: value,
+                      child: Opacity(
+                        opacity: value.clamp(0.7, 1.0),
+                        child: child,
+                      ),
+                    ),
+                  );
+                },
+                child: _buildPlanCard(plan, index == _currentIndex, theme, isDark),
+              );
+            },
+            ),
+          ),
         ),
+        const SizedBox(height: 16),
+        // Page indicators
+        _buildPageIndicators(isDark),
+      ],
+    );
+  }
+
+  Widget _buildLoadingState(bool isDark) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: isDark ? Colors.white10 : Colors.black.withOpacity(0.05),
+              shape: BoxShape.circle,
+            ),
+            child: CircularProgressIndicator(
+              strokeWidth: 2.5,
+              color: AppColors.primaryColor,
+            ),
+          ),
+          const SizedBox(height: 12),
+          Text(
+            'Loading plans...',
+            style: TextStyle(
+              color: isDark ? Colors.white60 : Colors.black54,
+              fontSize: 13,
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -214,319 +272,355 @@ class _SubscriptionTableState extends State<SubscriptionTable> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
+          Icon(Icons.error_outline, size: 40, color: theme.colorScheme.error),
+          const SizedBox(height: 12),
           Text(
-            _error ?? 'An error occurred',
+            _error ?? 'Failed to load',
             style: TextStyle(color: theme.colorScheme.error),
             textAlign: TextAlign.center,
           ),
-          const SizedBox(height: 16),
-          ElevatedButton(
+          const SizedBox(height: 12),
+          TextButton.icon(
             onPressed: _loadSubscriptionPlans,
-            child: const Text('Retry'),
+            icon: const Icon(Icons.refresh, size: 18),
+            label: const Text('Retry'),
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildPageIndicators(bool isDark) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: List.generate(_plans.length, (index) {
+        final isActive = index == _currentIndex;
+        return GestureDetector(
+          onTap: () {
+            _pageController.animateToPage(
+              index,
+              duration: const Duration(milliseconds: 400),
+              curve: Curves.easeOutCubic,
+            );
+          },
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 300),
+            margin: const EdgeInsets.symmetric(horizontal: 4),
+            width: isActive ? 24 : 8,
+            height: 8,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(4),
+              color: isActive
+                  ? AppColors.primaryColor
+                  : (isDark ? Colors.white24 : Colors.black12),
+            ),
+          ),
+        );
+      }),
     );
   }
 
   Widget _buildPlanCard(
     SubscriptionPlan plan,
-    BuildContext context, {
-    required bool isSelected,
-    required ThemeData theme,
-  }) {
-    final textTheme = theme.textTheme;
-    final size = MediaQuery.of(context).size;
+    bool isActive,
+    ThemeData theme,
+    bool isDark,
+  ) {
+    // Card colors based on plan type
+    final cardColors = _getCardColors(plan, isDark);
 
-    // Multi-tier responsive breakpoints
-    final isExtraSmall = size.width < 320;
-    final isSmallScreen = size.width < 380;
-    final isCompactHeight = size.height < 700;
-
-    // Dynamic spacing based on screen size
-    final basePadding = isExtraSmall ? 12.0 : (isSmallScreen ? 16.0 : 20.0);
-    final verticalMargin =
-        isCompactHeight ? size.height * 0.01 : size.height * 0.012;
-
-    // Design Tokens based on Mockups
-    final backgroundColor =
-        isSelected
-            ? const Color(0xFF355E3B)
-            : Colors.white; // Hunter Green vs White
-    final primaryTextColor = isSelected ? Colors.white : Colors.black;
-    final secondaryTextColor =
-        isSelected
-            ? Colors.white.withOpacity(0.8)
-            : Colors.black.withOpacity(0.6);
-    final borderColor =
-        isSelected ? Colors.transparent : Colors.grey.withOpacity(0.2);
-    final buttonBorderColor = isSelected ? Colors.white : Colors.black;
-    final buttonTextColor = isSelected ? Colors.white : Colors.black;
-
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 300),
-      curve: Curves.easeInOut,
-      margin: EdgeInsets.symmetric(
-        horizontal: isSmallScreen ? 4 : 8,
-        vertical: verticalMargin,
-      ),
-      padding: EdgeInsets.all(basePadding),
-      decoration: BoxDecoration(
-        color: backgroundColor,
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: borderColor, width: 1),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 15,
-            offset: const Offset(0, 8),
+    return GestureDetector(
+      onTap: () {
+        HapticFeedback.lightImpact();
+        showSubscriptionPopup(
+          context: context,
+          allPlans: _plans,
+          initialPlan: plan,
+          allProducts: _planProducts,
+          loadingProductsState: _loadingProducts,
+          loadProductsCallback: _loadPlanProducts,
+        );
+      },
+      child: Container(
+        margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(24),
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: cardColors.gradient,
           ),
-        ],
-      ),
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          return SingleChildScrollView(
-            physics: const BouncingScrollPhysics(),
-            child: ConstrainedBox(
-              constraints: BoxConstraints(minHeight: constraints.maxHeight),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Header: Title + Icon
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  plan.name,
-                                  style: textTheme.headlineSmall?.copyWith(
-                                    color: primaryTextColor,
-                                    fontWeight: FontWeight.bold,
-                                    fontSize:
-                                        isExtraSmall
-                                            ? 16
-                                            : (isSmallScreen ? 18 : null),
-                                  ),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
+          boxShadow: [
+            BoxShadow(
+              color: cardColors.shadow.withOpacity(isActive ? 0.4 : 0.2),
+              blurRadius: isActive ? 24 : 16,
+              offset: const Offset(0, 8),
+              spreadRadius: isActive ? 2 : 0,
+            ),
+          ],
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(24),
+          child: Stack(
+            children: [
+              // Background pattern
+              Positioned(
+                right: -30,
+                top: -30,
+                child: Container(
+                  width: 140,
+                  height: 140,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Colors.white.withOpacity(0.08),
+                  ),
+                ),
+              ),
+              Positioned(
+                right: 20,
+                bottom: -40,
+                child: Container(
+                  width: 100,
+                  height: 100,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Colors.white.withOpacity(0.05),
+                  ),
+                ),
+              ),
+
+              // Content
+              Padding(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Header row
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              // Badge
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 10,
+                                  vertical: 4,
                                 ),
-                                SizedBox(height: isSmallScreen ? 4 : 8),
-                                Text(
-                                  plan.description,
-                                  style: textTheme.bodySmall?.copyWith(
-                                    color: secondaryTextColor,
-                                    height: 1.3,
-                                    fontSize:
-                                        isExtraSmall
-                                            ? 10
-                                            : (isSmallScreen ? 11 : 12),
-                                  ),
-                                  maxLines: isCompactHeight ? 2 : 3,
-                                  overflow: TextOverflow.ellipsis,
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withOpacity(0.2),
+                                  borderRadius: BorderRadius.circular(20),
                                 ),
-                              ],
-                            ),
+                                child: Text(
+                                  '${plan.durationMonths} MONTHS',
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w700,
+                                    letterSpacing: 1,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(height: 12),
+                              // Plan name
+                              Text(
+                                plan.name,
+                                style: theme.textTheme.headlineSmall?.copyWith(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ],
                           ),
-                          const SizedBox(width: 8),
-                          CircleAvatar(
-                            radius:
-                                isExtraSmall ? 20 : (isSmallScreen ? 22 : 26),
-                            backgroundColor: Colors.white,
-                            child: Icon(
-                              Icons.eco_rounded,
-                              color: const Color(0xFF355E3B),
-                              size:
-                                  isExtraSmall ? 20 : (isSmallScreen ? 22 : 28),
-                            ),
+                        ),
+                        // Icon
+                        Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.2),
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          child: Icon(
+                            cardColors.icon,
+                            color: Colors.white,
+                            size: 28,
+                          ),
+                        ),
+                      ],
+                    ),
+
+                    const SizedBox(height: 12),
+
+                    // Description
+                    Text(
+                      plan.description,
+                      style: TextStyle(
+                        color: Colors.white.withOpacity(0.85),
+                        fontSize: 13,
+                        height: 1.4,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+
+                    const Spacer(),
+
+                    // Stats row
+                    Container(
+                      padding: const EdgeInsets.all(14),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.15),
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceAround,
+                        children: [
+                          _buildStat(
+                            '${plan.totalDiscountPercentage}%',
+                            'Savings',
+                          ),
+                          Container(
+                            width: 1,
+                            height: 30,
+                            color: Colors.white.withOpacity(0.2),
+                          ),
+                          _buildStat(
+                            plan.allowsInstallments ? 'Yes' : 'No',
+                            'EMI',
+                          ),
+                          Container(
+                            width: 1,
+                            height: 30,
+                            color: Colors.white.withOpacity(0.2),
+                          ),
+                          _buildStat(
+                            '${plan.durationMonths}',
+                            'Months',
                           ),
                         ],
                       ),
-
-                      SizedBox(height: isCompactHeight ? 12 : 20),
-
-                      // Action Button "Know More ->"
-                      OutlinedButton(
-                        onPressed: () {
-                          showSubscriptionPopup(
-                            context: context,
-                            allPlans: _plans,
-                            initialPlan: plan,
-                            allProducts: _planProducts,
-                            loadingProductsState: _loadingProducts,
-                            loadProductsCallback: _loadPlanProducts,
-                          );
-                        },
-                        style: OutlinedButton.styleFrom(
-                          side: BorderSide(color: buttonBorderColor),
-                          foregroundColor: buttonTextColor,
-                          padding: EdgeInsets.symmetric(
-                            horizontal: 20,
-                            vertical: isSmallScreen ? 8 : 12,
-                          ),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(30),
-                          ),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(
-                              "Know More",
-                              style: TextStyle(
-                                fontWeight: FontWeight.w600,
-                                fontSize: isSmallScreen ? 12 : 14,
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            Icon(
-                              Icons.arrow_forward,
-                              size: isSmallScreen ? 14 : 16,
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-
-                  // Divider (now part of the scrollable flow)
-                  Padding(
-                    padding: EdgeInsets.symmetric(
-                      vertical: isCompactHeight ? 12 : 16,
                     ),
-                    child: Divider(color: secondaryTextColor.withOpacity(0.2)),
-                  ),
 
-                  // Details Section
-                  Column(
-                    children: [
-                      _StyledInfoRow(
-                        icon: Icons.check_circle,
-                        label: "Duration",
-                        value: "${plan.durationMonths} Months",
-                        textColor: primaryTextColor,
-                        pillColor:
-                            isSelected
-                                ? Colors.white.withOpacity(0.2)
-                                : Colors.grey.withOpacity(0.1),
-                        isSmallScreen: isSmallScreen,
-                        isExtraSmall: isExtraSmall,
+                    const SizedBox(height: 14),
+
+                    // CTA Button
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(14),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.1),
+                            blurRadius: 8,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
                       ),
-                      SizedBox(height: isCompactHeight ? 6 : 10),
-                      _StyledInfoRow(
-                        icon: Icons.check_circle,
-                        label: "Installments",
-                        value: plan.allowsInstallments ? "Yes" : "No",
-                        textColor: primaryTextColor,
-                        pillColor:
-                            isSelected
-                                ? Colors.white.withOpacity(0.2)
-                                : Colors.grey.withOpacity(0.1),
-                        isSmallScreen: isSmallScreen,
-                        isExtraSmall: isExtraSmall,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            'Explore Plan',
+                            style: TextStyle(
+                              color: cardColors.gradient[0],
+                              fontWeight: FontWeight.w700,
+                              fontSize: 14,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Icon(
+                            Icons.arrow_forward_rounded,
+                            color: cardColors.gradient[0],
+                            size: 18,
+                          ),
+                        ],
                       ),
-                      SizedBox(height: isCompactHeight ? 6 : 10),
-                      _StyledInfoRow(
-                        icon: Icons.check_circle,
-                        label: "Savings",
-                        value: "${plan.totalDiscountPercentage}% off",
-                        textColor: primaryTextColor,
-                        pillColor:
-                            isSelected
-                                ? Colors.white.withOpacity(0.2)
-                                : Colors.grey.withOpacity(0.1),
-                        isSmallScreen: isSmallScreen,
-                        isExtraSmall: isExtraSmall,
-                      ),
-                    ],
-                  ),
-                ],
+                    ),
+                  ],
+                ),
               ),
-            ),
-          );
-        },
+            ],
+          ),
+        ),
       ),
     );
   }
+
+  Widget _buildStat(String value, String label) {
+    return Column(
+      children: [
+        Text(
+          value,
+          style: const TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+            fontSize: 18,
+          ),
+        ),
+        const SizedBox(height: 2),
+        Text(
+          label,
+          style: TextStyle(
+            color: Colors.white.withOpacity(0.7),
+            fontSize: 11,
+          ),
+        ),
+      ],
+    );
+  }
+
+  _CardColors _getCardColors(SubscriptionPlan plan, bool isDark) {
+    // Assign different gradients based on plan index
+    final index = _plans.indexOf(plan);
+    switch (index % 4) {
+      case 0:
+        return _CardColors(
+          gradient: [const Color(0xFF2E7D32), const Color(0xFF1B5E20)],
+          shadow: const Color(0xFF2E7D32),
+          icon: Icons.eco_rounded,
+        );
+      case 1:
+        return _CardColors(
+          gradient: [const Color(0xFF1565C0), const Color(0xFF0D47A1)],
+          shadow: const Color(0xFF1565C0),
+          icon: Icons.water_drop_rounded,
+        );
+      case 2:
+        return _CardColors(
+          gradient: [const Color(0xFFE65100), const Color(0xFFBF360C)],
+          shadow: const Color(0xFFE65100),
+          icon: Icons.local_fire_department_rounded,
+        );
+      case 3:
+      default:
+        return _CardColors(
+          gradient: [const Color(0xFF6A1B9A), const Color(0xFF4A148C)],
+          shadow: const Color(0xFF6A1B9A),
+          icon: Icons.auto_awesome_rounded,
+        );
+    }
+  }
 }
 
-class _StyledInfoRow extends StatelessWidget {
+class _CardColors {
+  final List<Color> gradient;
+  final Color shadow;
   final IconData icon;
-  final String label;
-  final String value;
-  final Color textColor;
-  final Color pillColor;
-  final bool isSmallScreen;
-  final bool isExtraSmall;
 
-  const _StyledInfoRow({
+  _CardColors({
+    required this.gradient,
+    required this.shadow,
     required this.icon,
-    required this.label,
-    required this.value,
-    required this.textColor,
-    required this.pillColor,
-    this.isSmallScreen = false,
-    this.isExtraSmall = false,
   });
-
-  @override
-  Widget build(BuildContext context) {
-    final iconSize = isExtraSmall ? 14.0 : (isSmallScreen ? 16.0 : 18.0);
-    final labelFontSize = isExtraSmall ? 11.0 : (isSmallScreen ? 12.0 : 14.0);
-    final pillPaddingH = isExtraSmall ? 8.0 : (isSmallScreen ? 10.0 : 14.0);
-    final pillPaddingV = isExtraSmall ? 4.0 : (isSmallScreen ? 5.0 : 7.0);
-
-    return Padding(
-      padding: EdgeInsets.symmetric(
-        vertical: isExtraSmall ? 1 : (isSmallScreen ? 2 : 4),
-      ),
-      child: Row(
-        children: [
-          Icon(icon, color: textColor, size: iconSize),
-          SizedBox(width: isExtraSmall ? 6 : (isSmallScreen ? 8 : 12)),
-          Expanded(
-            child: Text(
-              label,
-              style: TextStyle(
-                color: textColor,
-                fontWeight: FontWeight.w500,
-                fontSize: labelFontSize,
-              ),
-              overflow: TextOverflow.ellipsis,
-            ),
-          ),
-          AnimatedContainer(
-            duration: const Duration(milliseconds: AppColors.animFast),
-            padding: EdgeInsets.symmetric(
-              horizontal: pillPaddingH,
-              vertical: pillPaddingV,
-            ),
-            decoration: BoxDecoration(
-              color: pillColor,
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: textColor.withOpacity(0.1), width: 1),
-            ),
-            child: Text(
-              value,
-              style: TextStyle(
-                color: textColor,
-                fontWeight: FontWeight.bold,
-                fontSize: isExtraSmall ? 10 : 11,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 }
+
+// ================= POPUP DIALOG (Kept intact) =================
 
 void showSubscriptionPopup({
   required BuildContext context,
@@ -540,31 +634,33 @@ void showSubscriptionPopup({
     context: context,
     barrierDismissible: true,
     barrierLabel: 'Subscription Details',
-    barrierColor: Colors.black.withOpacity(0.5),
+    barrierColor: Colors.black.withOpacity(0.6),
     transitionDuration: const Duration(milliseconds: 300),
     pageBuilder: (context, anim1, anim2) {
       return Stack(
         children: [
-          // Blurred Background
           Positioned.fill(
             child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
+              filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
               child: Container(color: Colors.transparent),
             ),
           ),
-          // Centered Dialog
           Center(
             child: Material(
               color: Colors.transparent,
               child: Container(
-                margin: const EdgeInsets.symmetric(horizontal: 20),
+                margin: const EdgeInsets.symmetric(horizontal: 24),
                 constraints: BoxConstraints(
                   maxWidth: 400,
                   maxHeight: MediaQuery.of(context).size.height * 0.7,
                 ),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF355E3B), // Match the card Green
-                  borderRadius: BorderRadius.circular(24),
+                  gradient: const LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [Color(0xFF2E7D32), Color(0xFF1B5E20)],
+                  ),
+                  borderRadius: BorderRadius.circular(28),
                   boxShadow: [
                     BoxShadow(
                       color: Colors.black.withOpacity(0.3),
@@ -574,7 +670,7 @@ void showSubscriptionPopup({
                   ],
                 ),
                 child: ClipRRect(
-                  borderRadius: BorderRadius.circular(24),
+                  borderRadius: BorderRadius.circular(28),
                   child: _SubscriptionPopupContent(
                     allPlans: allPlans,
                     initialPlan: initialPlan,
@@ -636,9 +732,7 @@ class _SubscriptionPopupContentState extends State<_SubscriptionPopupContent> {
     if (!widget.allProducts.containsKey(planId) &&
         widget.loadingProductsState[planId] != true) {
       await widget.loadProductsCallback(planId);
-      if (mounted) {
-        setState(() {});
-      }
+      if (mounted) setState(() {});
     }
   }
 
@@ -648,21 +742,37 @@ class _SubscriptionPopupContentState extends State<_SubscriptionPopupContent> {
     final areProductsLoading =
         widget.loadingProductsState[_selectedPlan.id] == true;
 
-    // We use a Column with [Flexible] for the scrollable area
-    // This allows the modal to shrink-wrap content but scroll if it exceeds constraints.
     return Column(
-      mainAxisSize: MainAxisSize.min, // Shrink to fit content
+      mainAxisSize: MainAxisSize.min,
       children: [
+        // Close button
+        Align(
+          alignment: Alignment.topRight,
+          child: Padding(
+            padding: const EdgeInsets.only(top: 12, right: 12),
+            child: GestureDetector(
+              onTap: () => Navigator.pop(context),
+              child: Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.2),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.close, color: Colors.white, size: 20),
+              ),
+            ),
+          ),
+        ),
+
         Flexible(
           fit: FlexFit.loose,
           child: SingleChildScrollView(
-            padding: const EdgeInsets.all(24.0),
+            padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // Header
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Expanded(
@@ -672,8 +782,8 @@ class _SubscriptionPopupContentState extends State<_SubscriptionPopupContent> {
                           Text(
                             _selectedPlan.name,
                             style: const TextStyle(
-                              fontSize: 24,
-                              fontWeight: FontWeight.bold, // Headline
+                              fontSize: 26,
+                              fontWeight: FontWeight.bold,
                               color: Colors.white,
                             ),
                           ),
@@ -682,154 +792,202 @@ class _SubscriptionPopupContentState extends State<_SubscriptionPopupContent> {
                             _selectedPlan.description,
                             style: TextStyle(
                               fontSize: 14,
-                              color: Colors.white.withOpacity(0.8),
+                              color: Colors.white.withOpacity(0.85),
                               height: 1.4,
                             ),
                           ),
                         ],
                       ),
                     ),
-                    const SizedBox(width: 12),
-                    CircleAvatar(
-                      radius: 32,
-                      backgroundColor: Colors.white,
+                    const SizedBox(width: 16),
+                    Container(
+                      padding: const EdgeInsets.all(14),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(16),
+                      ),
                       child: const Icon(
                         Icons.eco_rounded,
-                        color: Color(0xFF355E3B),
-                        size: 36,
+                        color: Color(0xFF2E7D32),
+                        size: 32,
                       ),
                     ),
                   ],
                 ),
 
-                const SizedBox(height: 20),
-                Divider(color: Colors.white.withOpacity(0.2)),
-                const SizedBox(height: 20),
+                const SizedBox(height: 24),
 
-                _StyledInfoRow(
-                  icon: Icons.check_circle,
-                  label: "Duration",
-                  value: "${_selectedPlan.durationMonths} Months",
-                  textColor: Colors.white,
-                  pillColor: Colors.white.withOpacity(0.2),
+                // Info cards
+                _buildInfoCard(
+                  Icons.calendar_month_rounded,
+                  'Duration',
+                  '${_selectedPlan.durationMonths} Months',
                 ),
-                const SizedBox(height: 12),
-                _StyledInfoRow(
-                  icon: Icons.check_circle,
-                  label: "Allows Installments",
-                  value: _selectedPlan.allowsInstallments ? "Yes" : "No",
-                  textColor: Colors.white,
-                  pillColor: Colors.white.withOpacity(0.2),
+                const SizedBox(height: 10),
+                _buildInfoCard(
+                  Icons.payment_rounded,
+                  'Installments',
+                  _selectedPlan.allowsInstallments ? 'Available' : 'Not Available',
                 ),
-                const SizedBox(height: 12),
-                _StyledInfoRow(
-                  icon: Icons.check_circle,
-                  label: "One-Time Allowance",
-                  value: _selectedPlan.isOneTimeOnly ? "Yes" : "No",
-                  textColor: Colors.white,
-                  pillColor: Colors.white.withOpacity(0.2),
+                const SizedBox(height: 10),
+                _buildInfoCard(
+                  Icons.local_offer_rounded,
+                  'Total Savings',
+                  '${_selectedPlan.totalDiscountPercentage}% Off',
                 ),
-                const SizedBox(height: 12),
-                _StyledInfoRow(
-                  icon: Icons.check_circle,
-                  label: "Savings",
-                  value:
-                      "${_selectedPlan.totalDiscountPercentage}% Discount 🔥",
-                  textColor: Colors.white,
-                  pillColor: Colors.white.withOpacity(0.2),
+                const SizedBox(height: 10),
+                _buildInfoCard(
+                  Icons.verified_rounded,
+                  'Plan Type',
+                  _selectedPlan.isOneTimeOnly ? 'One-Time' : 'Recurring',
                 ),
               ],
             ),
           ),
         ),
 
-        // Product Selector Pinned to Bottom
+        // Product selector
         Container(
-          padding: const EdgeInsets.all(24),
+          padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
-            color: const Color(
-              0xFF2C4E31,
-            ), // Slightly darker green for footer area
+            color: Colors.black.withOpacity(0.2),
             border: Border(
               top: BorderSide(color: Colors.white.withOpacity(0.1)),
             ),
           ),
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(30),
-              border: Border.all(color: Colors.white.withOpacity(0.5)),
-              color: Colors.transparent,
-            ),
-            child:
-                areProductsLoading
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Select Product',
+                style: TextStyle(
+                  color: Colors.white.withOpacity(0.8),
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(height: 10),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: Colors.white.withOpacity(0.3)),
+                  color: Colors.white.withOpacity(0.1),
+                ),
+                child: areProductsLoading
                     ? const Center(
-                      child: Padding(
-                        padding: EdgeInsets.all(8.0),
-                        child: SizedBox(
-                          height: 20,
-                          width: 20,
-                          child: CircularProgressIndicator(
-                            color: Colors.white,
-                            strokeWidth: 2,
+                        child: Padding(
+                          padding: EdgeInsets.all(12),
+                          child: SizedBox(
+                            height: 20,
+                            width: 20,
+                            child: CircularProgressIndicator(
+                              color: Colors.white,
+                              strokeWidth: 2,
+                            ),
                           ),
                         ),
-                      ),
-                    )
+                      )
                     : DropdownButtonHideUnderline(
-                      child: DropdownButton<String>(
-                        isExpanded: true,
-                        value: _selectedProduct,
-                        dropdownColor: const Color(0xFF355E3B),
-                        icon: const Icon(
-                          Icons.keyboard_arrow_down,
-                          color: Colors.white,
-                        ),
-                        hint: Text(
-                          currentProducts.isEmpty
-                              ? "No products available"
-                              : "Select Product",
-                          style: TextStyle(
-                            color: Colors.white.withOpacity(0.7),
+                        child: DropdownButton<String>(
+                          isExpanded: true,
+                          value: _selectedProduct,
+                          dropdownColor: const Color(0xFF2E7D32),
+                          icon: const Icon(
+                            Icons.keyboard_arrow_down_rounded,
+                            color: Colors.white,
                           ),
-                        ),
-                        items:
-                            currentProducts.map((p) {
-                              return DropdownMenuItem<String>(
-                                value: p.productName,
-                                child: Text(
-                                  p.productName,
-                                  style: const TextStyle(color: Colors.white),
-                                ),
-                                onTap: () async {
-                                  // Navigate to product details
-                                  final product =
-                                      await CategoryService.fetchProductById(
-                                        p.productId,
-                                      );
-                                  if (!context.mounted) return;
-                                  Navigator.push(
-                                    context,
-                                    AnimatedTransitions.fadeScale(
-                                      ProductDetailsScreen(product: product),
-                                    ),
-                                  );
-                                },
-                              );
-                            }).toList(),
-                        onChanged:
+                          hint: Text(
                             currentProducts.isEmpty
-                                ? null
-                                : (val) {
+                                ? 'No products available'
+                                : 'Choose a product',
+                            style: TextStyle(
+                              color: Colors.white.withOpacity(0.7),
+                            ),
+                          ),
+                          items: currentProducts.map((p) {
+                            return DropdownMenuItem<String>(
+                              value: p.productName,
+                              child: Text(
+                                p.productName,
+                                style: const TextStyle(color: Colors.white),
+                              ),
+                              onTap: () async {
+                                final product =
+                                    await CategoryService.fetchProductById(
+                                  p.productId,
+                                );
+                                if (!context.mounted) return;
+                                Navigator.push(
+                                  context,
+                                  AnimatedTransitions.fadeScale(
+                                    ProductDetailsScreen(product: product),
+                                  ),
+                                );
+                              },
+                            );
+                          }).toList(),
+                          onChanged: currentProducts.isEmpty
+                              ? null
+                              : (val) {
                                   setState(() {
                                     _selectedProduct = val;
                                   });
                                 },
+                        ),
                       ),
-                    ),
+              ),
+            ],
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildInfoCard(IconData icon, String label, String value) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.12),
+        borderRadius: BorderRadius.circular(14),
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.15),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Icon(icon, color: Colors.white, size: 20),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Text(
+              label,
+              style: TextStyle(
+                color: Colors.white.withOpacity(0.8),
+                fontSize: 14,
+              ),
+            ),
+          ),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.2),
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Text(
+              value,
+              style: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+                fontSize: 13,
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

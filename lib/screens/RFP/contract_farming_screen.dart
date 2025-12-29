@@ -1,20 +1,695 @@
+import 'dart:ui';
+import 'dart:math' as math;
+import 'package:flutter/services.dart';
 import 'package:grocery_app/common_widgets/global_import.dart';
 import 'package:http/http.dart' as http;
 
-class CombinedScreen extends StatelessWidget {
+class CombinedScreen extends StatefulWidget {
   const CombinedScreen({super.key});
 
   @override
+  State<CombinedScreen> createState() => _CombinedScreenState();
+}
+
+class _CombinedScreenState extends State<CombinedScreen>
+    with TickerProviderStateMixin {
+  late AnimationController _shimmerController;
+  late AnimationController _floatController;
+  late ScrollController _scrollController;
+  double _scrollOffset = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _shimmerController = AnimationController(
+      duration: const Duration(milliseconds: 2500),
+      vsync: this,
+    )..repeat();
+    _floatController = AnimationController(
+      duration: const Duration(milliseconds: 3000),
+      vsync: this,
+    )..repeat(reverse: true);
+    _scrollController = ScrollController()
+      ..addListener(() {
+        setState(() => _scrollOffset = _scrollController.offset);
+      });
+  }
+
+  @override
+  void dispose() {
+    _shimmerController.dispose();
+    _floatController.dispose();
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  void _triggerHaptic() => HapticFeedback.lightImpact();
+
+  @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    
     return Scaffold(
-      appBar: AppBar(title: const Text('Toxin-Free & Contract Farming')),
-      body: SingleChildScrollView(
-        child: Column(
+      backgroundColor: isDark ? const Color(0xFF0F0F1A) : const Color(0xFFF8F9FE),
+      body: CustomScrollView(
+        controller: _scrollController,
+        physics: const BouncingScrollPhysics(),
+        slivers: [
+          _buildAnimatedAppBar(theme, isDark),
+          SliverToBoxAdapter(
+            child: Column(
+              children: [
+                _buildHeroSection(theme, isDark),
+                const SizedBox(height: 24),
+                _buildFeatureCards(theme, isDark),
+                const SizedBox(height: 32),
+                _buildBenefitsSection(theme, isDark),
+                const SizedBox(height: 32),
+                _buildContractFarmingSection(theme, isDark),
+                const SizedBox(height: 32),
+                _buildTimelineSection(theme, isDark),
+                const SizedBox(height: 32),
+                _buildCTAButton(context, theme),
+                const SizedBox(height: 40),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAnimatedAppBar(ThemeData theme, bool isDark) {
+    final collapse = (_scrollOffset / 200).clamp(0.0, 1.0);
+    
+    return SliverAppBar(
+      expandedHeight: 280,
+      floating: false,
+      pinned: true,
+      stretch: true,
+      backgroundColor: isDark ? const Color(0xFF1E1E2E) : Colors.white,
+      leading: GestureDetector(
+        onTap: () {
+          _triggerHaptic();
+          Navigator.pop(context);
+        },
+        child: Container(
+          margin: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: Colors.black.withOpacity(0.3),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: const Icon(Icons.arrow_back_ios_new, color: Colors.white, size: 20),
+        ),
+      ),
+      flexibleSpace: FlexibleSpaceBar(
+        stretchModes: const [StretchMode.zoomBackground, StretchMode.fadeTitle],
+        background: Stack(
+          fit: StackFit.expand,
           children: [
-            ToxinFreeScreen(),
-            const SizedBox(height: 20),
-            ContractFarmingScreen(),
+            // Background image with parallax
+            Transform.translate(
+              offset: Offset(0, _scrollOffset * 0.3),
+              child: Image.network(
+                'https://images.unsplash.com/photo-1542838132-92c53300491e?q=80&w=1974&auto=format&fit=crop',
+                fit: BoxFit.cover,
+              ),
+            ),
+            // Gradient overlay
+            Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    Colors.black.withOpacity(0.3),
+                    Colors.black.withOpacity(0.7),
+                  ],
+                ),
+              ),
+            ),
+            // Floating particles
+            AnimatedBuilder(
+              animation: _floatController,
+              builder: (context, _) {
+                return Stack(
+                  children: [
+                    Positioned(
+                      top: 60 + (_floatController.value * 10),
+                      right: 30,
+                      child: _buildParticle(8, const Color(0xFF4CAF50)),
+                    ),
+                    Positioned(
+                      top: 150 + (_floatController.value * -8),
+                      left: 40,
+                      child: _buildParticle(6, Colors.white),
+                    ),
+                    Positioned(
+                      bottom: 80 + (_floatController.value * 12),
+                      right: 60,
+                      child: _buildParticle(5, const Color(0xFF4CAF50)),
+                    ),
+                  ],
+                );
+              },
+            ),
+            // Title content
+            Positioned(
+              bottom: 30,
+              left: 20,
+              right: 20,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        colors: [Color(0xFF4CAF50), Color(0xFF388E3C)],
+                      ),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: const Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.eco_rounded, color: Colors.white, size: 14),
+                        SizedBox(width: 4),
+                        Text(
+                          '100% Natural',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    'Natural Farming',
+                    style: theme.textTheme.headlineMedium?.copyWith(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Toxin-Free Produce for Your Family',
+                    style: theme.textTheme.bodyLarge?.copyWith(
+                      color: Colors.white.withOpacity(0.9),
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildParticle(double size, Color color) {
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: color.withOpacity(0.6),
+        boxShadow: [BoxShadow(color: color.withOpacity(0.4), blurRadius: 8)],
+      ),
+    );
+  }
+
+  Widget _buildHeroSection(ThemeData theme, bool isDark) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(24),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+          child: Container(
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              color: (isDark ? Colors.white : const Color(0xFF4CAF50)).withOpacity(0.1),
+              borderRadius: BorderRadius.circular(24),
+              border: Border.all(
+                color: const Color(0xFF4CAF50).withOpacity(0.3),
+                width: 1.5,
+              ),
+            ),
+            child: Column(
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          colors: [Color(0xFF4CAF50), Color(0xFF388E3C)],
+                        ),
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: const Icon(Icons.grass_rounded, color: Colors.white, size: 32),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'The Promise of Purity',
+                            style: theme.textTheme.titleLarge?.copyWith(
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            'Beyond organic - a toxin-free guarantee',
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              color: isDark ? Colors.grey[400] : Colors.grey[600],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 20),
+                Text(
+                  'We believe your family deserves the purest produce. Our farming methods go beyond organic standards to deliver truly toxin-free food to your table.',
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: isDark ? Colors.grey[300] : Colors.grey[700],
+                    height: 1.6,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFeatureCards(ThemeData theme, bool isDark) {
+    final features = [
+      {
+        'icon': Icons.home_work_outlined,
+        'title': 'Your Mini Farm',
+        'desc': 'Dedicated section based on family size',
+        'color': const Color(0xFF4CAF50),
+        'image': 'https://images.unsplash.com/photo-1563203432-345337a36416?q=80&w=1964&auto=format&fit=crop',
+      },
+      {
+        'icon': Icons.person_pin_rounded,
+        'title': 'Personal Farmer',
+        'desc': 'A farmer dedicated solely to you',
+        'color': const Color(0xFF2196F3),
+        'image': 'https://images.unsplash.com/photo-1599599810694-b5b37304c847?q=80&w=2070&auto=format&fit=crop',
+      },
+    ];
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: Row(
+        children: features.asMap().entries.map((entry) {
+          final index = entry.key;
+          final feature = entry.value;
+          return Expanded(
+            child: TweenAnimationBuilder<double>(
+              tween: Tween(begin: 0.0, end: 1.0),
+              duration: Duration(milliseconds: 600 + (index * 150)),
+              curve: Curves.easeOutBack,
+              builder: (context, value, child) {
+                final clampedValue = value.clamp(0.0, 1.0);
+                return Transform.scale(
+                  scale: 0.8 + (0.2 * value),
+                  child: Opacity(
+                    opacity: clampedValue,
+                    child: Container(
+                      height: 200,
+                      margin: EdgeInsets.only(right: index == 0 ? 8 : 0, left: index == 1 ? 8 : 0),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(20),
+                        image: DecorationImage(
+                          image: NetworkImage(feature['image'] as String),
+                          fit: BoxFit.cover,
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: (feature['color'] as Color).withOpacity(0.3),
+                            blurRadius: 15,
+                            offset: const Offset(0, 8),
+                          ),
+                        ],
+                      ),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(20),
+                          gradient: LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            colors: [
+                              Colors.transparent,
+                              Colors.black.withOpacity(0.8),
+                            ],
+                          ),
+                        ),
+                        padding: const EdgeInsets.all(16),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(8),
+                              decoration: BoxDecoration(
+                                color: (feature['color'] as Color).withOpacity(0.8),
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              child: Icon(feature['icon'] as IconData, color: Colors.white, size: 20),
+                            ),
+                            const SizedBox(height: 12),
+                            Text(
+                              feature['title'] as String,
+                              style: theme.textTheme.titleMedium?.copyWith(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              feature['desc'] as String,
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                color: Colors.white.withOpacity(0.8),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                );
+              },
+            ),
+          );
+        }).toList(),
+      ),
+    );
+  }
+
+  Widget _buildBenefitsSection(ThemeData theme, bool isDark) {
+    final benefits = [
+      {'icon': Icons.agriculture_outlined, 'title': 'Free Farm Visits', 'desc': 'Connect with the land'},
+      {'icon': Icons.camera_alt_outlined, 'title': 'Real-Time Updates', 'desc': 'Photo & video of crops'},
+      {'icon': Icons.access_time, 'title': 'Early Access', 'desc': 'First to try new products'},
+      {'icon': Icons.verified_outlined, 'title': 'Quality Promise', 'desc': '100% toxin-free guarantee'},
+    ];
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          child: Text(
+            'Benefits',
+            style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+          ),
+        ),
+        const SizedBox(height: 16),
+        SizedBox(
+          height: 150,
+          child: ListView.builder(
+            scrollDirection: Axis.horizontal,
+            physics: const BouncingScrollPhysics(),
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            itemCount: benefits.length,
+            itemBuilder: (context, index) {
+              final benefit = benefits[index];
+              return Container(
+                width: 145,
+                margin: const EdgeInsets.only(right: 12),
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: isDark ? const Color(0xFF1E1E2E) : Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: const Color(0xFF4CAF50).withOpacity(0.2),
+                    width: 1,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.05),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF4CAF50).withOpacity(0.15),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Icon(benefit['icon'] as IconData, color: const Color(0xFF4CAF50), size: 20),
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      benefit['title'] as String,
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        height: 1.2,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      benefit['desc'] as String,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: isDark ? Colors.grey[400] : Colors.grey[600],
+                        height: 1.3,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildContractFarmingSection(ThemeData theme, bool isDark) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: Container(
+        padding: const EdgeInsets.all(24),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: isDark
+                ? [const Color(0xFF1E3A2F), const Color(0xFF0F1F1A)]
+                : [const Color(0xFFE8F5E9), const Color(0xFFC8E6C9)],
+          ),
+          borderRadius: BorderRadius.circular(24),
+          boxShadow: [
+            BoxShadow(
+              color: const Color(0xFF4CAF50).withOpacity(0.2),
+              blurRadius: 20,
+              offset: const Offset(0, 8),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF4CAF50),
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  child: const Icon(Icons.handshake_outlined, color: Colors.white, size: 24),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Contract Farming',
+                        style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+                      ),
+                      Text(
+                        'For Businesses',
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: isDark ? Colors.grey[400] : Colors.grey[600],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 20),
+            Text(
+              'Absolute transparency from seed to supply chain. We dedicate land and resources to fulfill your exact requirements.',
+              style: theme.textTheme.bodyMedium?.copyWith(height: 1.6),
+            ),
+            const SizedBox(height: 24),
+            _buildAdvantageItem(theme, 'Utmost Transparency', 'Know where, when, and how your produce grows'),
+            _buildAdvantageItem(theme, 'Consistent Quality', 'Eliminate unpredictability with dedicated supply'),
+            _buildAdvantageItem(theme, 'Ethical Sourcing', 'Partner with trust and reliability'),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAdvantageItem(ThemeData theme, String title, String desc) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(4),
+            decoration: BoxDecoration(
+              color: const Color(0xFF4CAF50).withOpacity(0.2),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(Icons.check, color: Color(0xFF4CAF50), size: 14),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(title, style: theme.textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w600)),
+                Text(
+                  desc,
+                  style: theme.textTheme.bodySmall?.copyWith(color: Colors.grey[600]),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTimelineSection(ThemeData theme, bool isDark) {
+    final steps = [
+      {'icon': Icons.chat_bubble_outline, 'label': 'Consultation'},
+      {'icon': Icons.agriculture_outlined, 'label': 'Farming'},
+      {'icon': Icons.location_searching, 'label': 'Tracking'},
+      {'icon': Icons.inventory_2_outlined, 'label': 'Supply'},
+    ];
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          child: Text(
+            'Our Process',
+            style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+          ),
+        ),
+        const SizedBox(height: 16),
+        SizedBox(
+          height: 100,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: steps.asMap().entries.map((entry) {
+              final index = entry.key;
+              final step = entry.value;
+              return Expanded(
+                child: Column(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(14),
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          colors: [Color(0xFF4CAF50), Color(0xFF388E3C)],
+                        ),
+                        borderRadius: BorderRadius.circular(14),
+                        boxShadow: [
+                          BoxShadow(
+                            color: const Color(0xFF4CAF50).withOpacity(0.3),
+                            blurRadius: 10,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: Icon(step['icon'] as IconData, color: Colors.white, size: 24),
+                    ),
+                    const SizedBox(height: 10),
+                    Text(
+                      step['label'] as String,
+                      style: theme.textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w500),
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
+                ),
+              );
+            }).toList(),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildCTAButton(BuildContext context, ThemeData theme) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: GestureDetector(
+        onTap: () {
+          _triggerHaptic();
+          _showNotificationForm(context);
+        },
+        child: Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(vertical: 18),
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              colors: [Color(0xFF4CAF50), Color(0xFF388E3C)],
+            ),
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: [
+              BoxShadow(
+                color: const Color(0xFF4CAF50).withOpacity(0.4),
+                blurRadius: 15,
+                offset: const Offset(0, 6),
+              ),
+            ],
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Icons.eco_rounded, color: Colors.white),
+              const SizedBox(width: 12),
+              Text(
+                'Register Your Interest',
+                style: theme.textTheme.titleMedium?.copyWith(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -28,691 +703,177 @@ Future<void> _showNotificationForm(BuildContext context) async {
   final emailController = TextEditingController();
   final messageController = TextEditingController();
   final theme = Theme.of(context);
-
+  final isDark = theme.brightness == Brightness.dark;
   String selectedRequirementType = 'NORMAL';
 
-  await showDialog(
+  await showGeneralDialog(
     context: context,
-    builder: (BuildContext context) {
-      return StatefulBuilder(
-        builder: (context, setDialogState) {
-          return AlertDialog(
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(20),
-            ),
-            backgroundColor: theme.colorScheme.primary,
-            title: Center(
-              child: Text(
-                "Register Your Interest",
-                style: theme.textTheme.headlineSmall?.copyWith(
-                  color: theme.colorScheme.onPrimary,
-                ),
-              ),
-            ),
-            content: SizedBox(
-              width: double.maxFinite,
-              child: SingleChildScrollView(
-                child: Form(
-                  key: formKey,
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      CustomInput(
-                        hintText: "Full name*",
-                        controller: nameController,
-                        keyboardType: TextInputType.name,
-                        onPrimary: true,
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Please enter your name';
-                          }
-                          return null;
-                        },
-                      ),
-                      const SizedBox(height: 15),
-                      CustomInput(
-                        hintText: "Phone number*",
-                        controller: phoneController,
-                        keyboardType: TextInputType.phone,
-                        onPrimary: true,
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Please enter your phone number';
-                          }
-                          return null;
-                        },
-                      ),
-                      const SizedBox(height: 15),
-                      CustomInput(
-                        hintText: "Email (Optional)",
-                        controller: emailController,
-                        keyboardType: TextInputType.emailAddress,
-                        onPrimary: true,
-                      ),
-                      const SizedBox(height: 15),
-                      CustomInput(
-                        hintText: "Message*",
-                        controller: messageController,
-                        keyboardType: TextInputType.text,
-                        onPrimary: true,
-                        validator: (v) {
-                          if (v == null || v.isEmpty)
-                            return 'Please enter a message';
-                          return null;
-                        },
-                      ),
-                      const SizedBox(height: 15),
-                      DropdownButtonFormField<String>(
-                        initialValue: selectedRequirementType,
-                        decoration: const InputDecoration(
-                          labelText: 'Requirement Type',
-                          fillColor: AppColors.primaryColor,
+    barrierDismissible: true,
+    barrierLabel: 'Dismiss',
+    barrierColor: Colors.black.withOpacity(0.6),
+    transitionDuration: const Duration(milliseconds: 300),
+    pageBuilder: (context, animation, secondaryAnimation) => const SizedBox(),
+    transitionBuilder: (context, animation, secondaryAnimation, child) {
+      return ScaleTransition(
+        scale: Tween<double>(begin: 0.8, end: 1.0).animate(
+          CurvedAnimation(parent: animation, curve: Curves.easeOutBack),
+        ),
+        child: FadeTransition(
+          opacity: animation,
+          child: StatefulBuilder(
+            builder: (context, setDialogState) {
+              return Center(
+                child: Container(
+                  margin: const EdgeInsets.symmetric(horizontal: 24),
+                  constraints: const BoxConstraints(maxWidth: 400),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(24),
+                    child: BackdropFilter(
+                      filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: (isDark ? Colors.grey[900] : Colors.white)!.withOpacity(0.95),
+                          borderRadius: BorderRadius.circular(24),
+                          border: Border.all(color: Colors.white.withOpacity(0.2), width: 1),
                         ),
-                        items:
-                            ['NORMAL', 'B2B'].map((String value) {
-                              return DropdownMenuItem<String>(
-                                value: value,
-                                child: Text(value),
-                              );
-                            }).toList(),
-                        onChanged: (newValue) {
-                          setDialogState(() {
-                            selectedRequirementType = newValue!;
-                          });
-                        },
+                        child: SingleChildScrollView(
+                          child: Padding(
+                            padding: const EdgeInsets.all(24),
+                            child: Form(
+                              key: formKey,
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.all(16),
+                                    decoration: BoxDecoration(
+                                      gradient: const LinearGradient(
+                                        colors: [Color(0xFF4CAF50), Color(0xFF388E3C)],
+                                      ),
+                                      borderRadius: BorderRadius.circular(16),
+                                    ),
+                                    child: const Icon(Icons.agriculture_rounded, color: Colors.white, size: 32),
+                                  ),
+                                  const SizedBox(height: 16),
+                                  Text(
+                                    'Register Your Interest',
+                                    style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    'Join our natural farming program',
+                                    style: theme.textTheme.bodyMedium?.copyWith(color: Colors.grey[600]),
+                                  ),
+                                  const SizedBox(height: 24),
+                                  _buildFormField(nameController, 'Full Name *', Icons.person_outline),
+                                  const SizedBox(height: 12),
+                                  _buildFormField(phoneController, 'Phone Number *', Icons.phone_outlined, keyboardType: TextInputType.phone),
+                                  const SizedBox(height: 12),
+                                  _buildFormField(emailController, 'Email (Optional)', Icons.email_outlined, keyboardType: TextInputType.emailAddress),
+                                  const SizedBox(height: 12),
+                                  _buildFormField(messageController, 'Message *', Icons.message_outlined, maxLines: 3),
+                                  const SizedBox(height: 16),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                                    decoration: BoxDecoration(
+                                      color: Colors.grey.withOpacity(0.1),
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    child: DropdownButtonFormField<String>(
+                                      value: selectedRequirementType,
+                                      decoration: const InputDecoration(
+                                        border: InputBorder.none,
+                                        labelText: 'Requirement Type',
+                                      ),
+                                      items: ['NORMAL', 'B2B'].map((value) {
+                                        return DropdownMenuItem(value: value, child: Text(value));
+                                      }).toList(),
+                                      onChanged: (value) => setDialogState(() => selectedRequirementType = value!),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 24),
+                                  GestureDetector(
+                                    onTap: () async {
+                                      if (formKey.currentState!.validate()) {
+                                        try {
+                                          final response = await http.post(
+                                            Uri.parse('${ApiConfig.baseUrl}/api/user-queries/'),
+                                            headers: {'Content-Type': 'application/json'},
+                                            body: jsonEncode({
+                                              'name': nameController.text,
+                                              'phone_number': phoneController.text,
+                                              'email': emailController.text,
+                                              'message': messageController.text,
+                                              'requirement_type': selectedRequirementType,
+                                              'is_from_rfp': selectedRequirementType == 'B2B',
+                                            }),
+                                          );
+                                          if (!context.mounted) return;
+                                          Navigator.pop(context);
+                                          if (response.statusCode == 200 || response.statusCode == 201) {
+                                            SnackBarHelper.showSuccess(context, 'Thank you! We\'ll get back to you soon.');
+                                          } else {
+                                            SnackBarHelper.showError(context, 'Failed. Please try again.');
+                                          }
+                                        } catch (e) {
+                                          if (!context.mounted) return;
+                                          Navigator.pop(context);
+                                          SnackBarHelper.showError(context, 'Error. Please try again.');
+                                        }
+                                      }
+                                    },
+                                    child: Container(
+                                      width: double.infinity,
+                                      padding: const EdgeInsets.symmetric(vertical: 16),
+                                      decoration: BoxDecoration(
+                                        gradient: const LinearGradient(
+                                          colors: [Color(0xFF4CAF50), Color(0xFF388E3C)],
+                                        ),
+                                        borderRadius: BorderRadius.circular(14),
+                                      ),
+                                      child: const Center(
+                                        child: Text(
+                                          'Submit',
+                                          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
                       ),
-                    ],
+                    ),
                   ),
                 ),
-              ),
-            ),
-            actions: [
-              Padding(
-                padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-                child: SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: () async {
-                      if (formKey.currentState!.validate()) {
-                        formKey.currentState!.save();
-                        final bool isFromRfp = selectedRequirementType == 'B2B';
-                        try {
-                          final response = await http.post(
-                            Uri.parse('${ApiConfig.baseUrl}/api/user-queries/'),
-                            headers: {'Content-Type': 'application/json'},
-                            body: jsonEncode({
-                              'name': nameController.text,
-                              'phone_number': phoneController.text,
-                              'email': emailController.text,
-                              'message': messageController.text,
-                              'requirement_type': selectedRequirementType,
-                              'is_from_rfp': isFromRfp,
-                            }),
-                          );
-
-                          if (!context.mounted) return;
-
-                          if (response.statusCode == 200 ||
-                              response.statusCode == 201) {
-                            Navigator.pop(context);
-                            SnackBarHelper.showSuccess(
-                              context,
-                              'Thank you for your query! We will get back to you shortly.',
-                            );
-                          } else {
-                            throw Exception(
-                              'Failed to submit form: ${response.body}',
-                            );
-                          }
-                        } catch (e) {
-                          if (!context.mounted) return;
-                          Navigator.pop(context);
-                          SnackBarHelper.showError(
-                            context,
-                            'Failed to submit. Please try again later.',
-                          );
-                        }
-                      }
-                    },
-                    child: const Text('Submit'),
-                  ),
-                ),
-              ),
-            ],
-            actionsPadding: EdgeInsets.zero,
-          );
-        },
+              );
+            },
+          ),
+        ),
       );
     },
   );
 }
 
-class ToxinFreeScreen extends StatelessWidget {
-  const ToxinFreeScreen({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return SafeArea(
-      top: false,
-      child: Column(
-        children: [_buildHeader(context), _buildContentBody(context)],
+Widget _buildFormField(TextEditingController controller, String hint, IconData icon, {TextInputType? keyboardType, int maxLines = 1}) {
+  return Container(
+    decoration: BoxDecoration(
+      color: Colors.grey.withOpacity(0.1),
+      borderRadius: BorderRadius.circular(12),
+    ),
+    child: TextFormField(
+      controller: controller,
+      keyboardType: keyboardType,
+      maxLines: maxLines,
+      decoration: InputDecoration(
+        hintText: hint,
+        prefixIcon: Icon(icon, color: Colors.grey),
+        border: InputBorder.none,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       ),
-    );
-  }
-
-  Widget _buildHeader(BuildContext context) {
-    final theme = Theme.of(context);
-    return Stack(
-      children: [
-        Container(
-          height: 350,
-          decoration: const BoxDecoration(
-            borderRadius: BorderRadius.only(
-              bottomLeft: Radius.circular(30),
-              bottomRight: Radius.circular(30),
-            ),
-            image: DecorationImage(
-              image: NetworkImage(
-                'https://images.unsplash.com/photo-1542838132-92c53300491e?q=80&w=1974&auto=format&fit=crop',
-              ),
-              fit: BoxFit.cover,
-            ),
-          ),
-        ),
-        Container(
-          height: 350,
-          decoration: BoxDecoration(
-            borderRadius: const BorderRadius.only(
-              bottomLeft: Radius.circular(30),
-              bottomRight: Radius.circular(30),
-            ),
-            gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: [
-                Colors.black.withOpacity(0.2),
-                Colors.black.withOpacity(0.8),
-              ],
-            ),
-          ),
-        ),
-        // Positioned(
-        //   top: 50,
-        //   left: 16,
-        //   right: 16,
-        //   child: Row(
-        //     mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        //     children: [
-        //       IconButton(
-        //         icon: const Icon(Icons.arrow_back_ios, color: Colors.white),
-        //         onPressed: () {
-        //           Navigator.pop(context);
-        //         },
-        //       ),
-        //     ],
-        //   ),
-        // ),
-        Positioned(
-          bottom: 25,
-          left: 24,
-          right: 24,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'The Promise of a Toxin-Free Plate',
-                style: theme.textTheme.headlineSmall?.copyWith(
-                  color: Colors.white,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'We believe your family deserves better. Our RFP service beyond organic, it\'s a promise of purity.',
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  color: Colors.white70,
-                ),
-              ),
-              const SizedBox(height: 10),
-              ElevatedButton(
-                onPressed: () {
-                  _showNotificationForm(context);
-                },
-                child: const Text('Click to Register'),
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildContentBody(BuildContext context) {
-    final theme = Theme.of(context);
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0),
-      margin: const EdgeInsets.only(top: 20),
-      child: Column(
-        children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Expanded(
-                child: _InfoCard(
-                  imageUrl:
-                      'https://images.unsplash.com/photo-1563203432-345337a36416?q=80&w=1964&auto=format&fit=crop',
-                  title: 'Your Family, Mini Farm',
-                  description:
-                      'Based on your family size and consumption patterns, a specific section of our farm is dedicated exclusively to you.',
-                ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: _InfoCard(
-                  imageUrl:
-                      'https://images.unsplash.com/photo-1599599810694-b5b37304c847?q=80&w=2070&auto=format&fit=crop',
-                  title: 'Your Farmer,\nYour Food',
-                  description:
-                      'This is not generic farming. This is your personal mini-farming and cared for by a farmer dedicated solely to you.',
-                  cardColor: theme.colorScheme.primary,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 24),
-          const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 8.0),
-            child: Wrap(
-              spacing: 16,
-              runSpacing: 10,
-              alignment: WrapAlignment.center,
-              children: [
-                _FeatureItem(
-                  icon: Icons.home_work_outlined,
-                  title: 'Dedicated Family Farmer',
-                  subtitle: 'Meet the farmer who grows only for you.',
-                ),
-                _FeatureItem(
-                  icon: Icons.agriculture_outlined,
-                  title: 'Free Farm Visits',
-                  subtitle: 'Connect with the land and your food.',
-                ),
-                _FeatureItem(
-                  icon: Icons.camera_alt_outlined,
-                  title: 'Real-Time Updates',
-                  subtitle: 'Get photo & video updates of your crops.',
-                ),
-                _FeatureItem(
-                  icon: Icons.access_time,
-                  title: 'Early Product Access',
-                  subtitle: 'Be the first to try our new launches.',
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 20),
-        ],
-      ),
-    );
-  }
-}
-
-class _InfoCard extends StatelessWidget {
-  final String imageUrl;
-  final String title;
-  final String description;
-  final Color? cardColor;
-
-  const _InfoCard({
-    required this.imageUrl,
-    required this.title,
-    required this.description,
-    this.cardColor,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Container(
-      height: 280,
-      decoration: BoxDecoration(
-        color: cardColor,
-        borderRadius: BorderRadius.circular(20),
-        image:
-            cardColor == null
-                ? DecorationImage(
-                  image: NetworkImage(imageUrl),
-                  fit: BoxFit.cover,
-                )
-                : null,
-      ),
-      child: Container(
-        padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(20),
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              Colors.black.withOpacity(0.1),
-              Colors.black.withOpacity(0.7),
-            ],
-          ),
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.end,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              title,
-              style: theme.textTheme.headlineSmall?.copyWith(
-                color: Colors.white,
-              ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              description,
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: Colors.white.withOpacity(0.8),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _FeatureItem extends StatelessWidget {
-  final IconData icon;
-  final String title;
-  final String subtitle;
-
-  const _FeatureItem({
-    required this.icon,
-    required this.title,
-    required this.subtitle,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return ConstrainedBox(
-      constraints: const BoxConstraints(maxWidth: 170),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: theme.colorScheme.primary,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Icon(icon, color: theme.colorScheme.onPrimary, size: 28),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: theme.textTheme.bodyLarge?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(subtitle, style: theme.textTheme.bodyMedium),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class ContractFarmingScreen extends StatelessWidget {
-  const ContractFarmingScreen({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Column(
-      children: [
-        SizedBox(
-          height: 300,
-          width: double.infinity,
-          child: Image.network(
-            'https://images.unsplash.com/photo-1598170845058-32b9d6a5da37?q=80&w=2070&auto=format&fit=crop',
-            fit: BoxFit.cover,
-            loadingBuilder: (
-              BuildContext context,
-              Widget child,
-              ImageChunkEvent? loadingProgress,
-            ) {
-              if (loadingProgress == null) return child;
-              return Center(
-                child: CircularProgressIndicator(
-                  value:
-                      loadingProgress.expectedTotalBytes != null
-                          ? loadingProgress.cumulativeBytesLoaded /
-                              loadingProgress.expectedTotalBytes!
-                          : null,
-                ),
-              );
-            },
-            errorBuilder:
-                (context, error, stackTrace) =>
-                    Icon(Icons.error, color: theme.colorScheme.error, size: 50),
-          ),
-        ),
-        Container(
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            color: theme.cardColor,
-            borderRadius: BorderRadius.circular(20.0),
-            boxShadow: [
-              BoxShadow(
-                color: theme.shadowColor.withOpacity(0.1),
-                spreadRadius: 5,
-                blurRadius: 15,
-              ),
-            ],
-          ),
-          child: LayoutBuilder(
-            builder: (context, constraints) {
-              if (constraints.maxWidth > 600) {
-                return _buildWideLayout();
-              } else {
-                return _buildNarrowLayout();
-              }
-            },
-          ),
-        ),
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16.0, 0, 16.0, 32.0),
-          child: SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
-              onPressed: () {
-                _showNotificationForm(context);
-              },
-              child: const Text('Click to Register'),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildWideLayout() {
-    return const Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Expanded(flex: 2, child: _InfoSection()),
-        SizedBox(width: 24),
-        Expanded(flex: 1, child: _TimelineSection()),
-      ],
-    );
-  }
-
-  Widget _buildNarrowLayout() {
-    return const Column(
-      children: [_InfoSection(), SizedBox(height: 32), _TimelineSection()],
-    );
-  }
-}
-
-class _InfoSection extends StatelessWidget {
-  const _InfoSection();
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Contract Farming with Absolute Transparency.',
-          style: theme.textTheme.headlineSmall?.copyWith(height: 1.2),
-        ),
-        const SizedBox(height: 10),
-        Text(
-          'For businesses that demand the best, Anaad offers a groundbreaking contract farming solution. We work closely with you to understand your exact requirements and dedicate land and resources to fulfill your needs. You get unparalleled transparency, from seed to supply chain.',
-          style: theme.textTheme.bodyMedium?.copyWith(height: 1.5),
-        ),
-        const SizedBox(height: 24),
-        Text('Key Advantages', style: theme.textTheme.titleLarge),
-        const SizedBox(height: 16),
-        const _AdvantageItem(
-          title: 'Utmost Transparency',
-          subtitle: 'Know exactly where, when, and how your produce is grown.',
-        ),
-        const _AdvantageItem(
-          title: 'Consistent Quality & Supply',
-          subtitle: 'Eliminate unpredictability with a dedicated supply line.',
-        ),
-        const _AdvantageItem(
-          title: 'Sourced with Trust',
-          subtitle:
-              'Partner with us for reliable and ethical sourcing solutions.',
-        ),
-      ],
-    );
-  }
-}
-
-class _AdvantageItem extends StatelessWidget {
-  final String title;
-  final String subtitle;
-
-  const _AdvantageItem({required this.title, required this.subtitle});
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(Icons.check, color: theme.colorScheme.primary, size: 16),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: theme.textTheme.bodyLarge?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(subtitle, style: theme.textTheme.bodyMedium),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _TimelineSection extends StatelessWidget {
-  const _TimelineSection();
-
-  @override
-  Widget build(BuildContext context) {
-    return const Column(
-      children: [
-        _TimelineStep(icon: Icons.chat_bubble_outline, label: 'Consultation'),
-        _TimelineConnector(),
-        _TimelineStep(
-          icon: Icons.agriculture_outlined,
-          label: 'Contract Farming',
-        ),
-        _TimelineConnector(),
-        _TimelineStep(
-          icon: Icons.location_searching,
-          label: 'Transparent Tracking',
-        ),
-        _TimelineConnector(),
-        _TimelineStep(
-          icon: Icons.inventory_2_outlined,
-          label: 'Consistent Supply',
-        ),
-      ],
-    );
-  }
-}
-
-class _TimelineStep extends StatelessWidget {
-  final IconData icon;
-  final String label;
-
-  const _TimelineStep({required this.icon, required this.label});
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Column(
-      children: [
-        Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: theme.colorScheme.surfaceContainerHighest,
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Icon(icon, color: theme.colorScheme.primary, size: 32),
-        ),
-        const SizedBox(height: 8),
-        Text(
-          label,
-          textAlign: TextAlign.center,
-          style: theme.textTheme.bodyMedium,
-        ),
-      ],
-    );
-  }
-}
-
-class _TimelineConnector extends StatelessWidget {
-  const _TimelineConnector();
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return SizedBox(
-      height: 40,
-      width: 2,
-      child: Column(
-        children: [
-          Expanded(child: Container(color: theme.dividerColor)),
-          Icon(Icons.arrow_downward, color: theme.dividerColor, size: 16),
-          Expanded(child: Container(color: theme.dividerColor)),
-        ],
-      ),
-    );
-  }
+      validator: hint.contains('*') ? (v) => v?.isEmpty == true ? 'Required' : null : null,
+    ),
+  );
 }

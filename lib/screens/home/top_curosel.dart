@@ -1,5 +1,6 @@
 import 'package:grocery_app/common_widgets/global_import.dart';
 import 'package:grocery_app/screens/RFP/delivery_screen.dart';
+import 'package:grocery_app/helpers/color_extractor.dart';
 
 class CarouselItem {
   final String imageUrl;
@@ -16,7 +17,10 @@ class CarouselItem {
 }
 
 class TopCurosel extends StatefulWidget {
-  const TopCurosel({super.key});
+  /// Callback that fires when the dominant color changes based on carousel image
+  final ValueChanged<Color>? onColorChanged;
+
+  const TopCurosel({super.key, this.onColorChanged});
 
   @override
   State<TopCurosel> createState() => _TopCuroselState();
@@ -25,15 +29,23 @@ class TopCurosel extends StatefulWidget {
 class _TopCuroselState extends State<TopCurosel> {
   final CarouselController _carouselController = CarouselController();
   int _currentPage = 0;
+  
+  /// Pre-extracted colors for each carousel image
+  List<Color> _extractedColors = [];
+  bool _colorsLoaded = false;
+
+  // Define carousel items as class-level for color extraction
+  late List<CarouselItem> _carouselItems;
 
   @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-    final textTheme = theme.textTheme;
-    final screenHeight = MediaQuery.of(context).size.height;
+  void initState() {
+    super.initState();
+    _initCarouselItems();
+    _extractColors();
+  }
 
-    final List<CarouselItem> carouselItems = [
+  void _initCarouselItems() {
+    _carouselItems = [
       CarouselItem(
         imageUrl: 'https://res.cloudinary.com/dcuwcjq1f/image/upload/v1759836582/atta_chaki_carousel_zowh5e.jpg',
         title: 'Freshly Ground Flours',
@@ -79,11 +91,52 @@ class _TopCuroselState extends State<TopCurosel> {
         },
       ),
     ];
+  }
+
+  /// Extract dominant colors from all carousel images
+  Future<void> _extractColors() async {
+    final imageUrls = _carouselItems.map((item) => item.imageUrl).toList();
+    
+    try {
+      final colors = await ColorExtractor.extractColorsFromUrls(imageUrls);
+      if (mounted) {
+        setState(() {
+          _extractedColors = colors;
+          _colorsLoaded = true;
+        });
+        // Notify parent with the first image's color
+        if (colors.isNotEmpty) {
+          widget.onColorChanged?.call(colors[0]);
+        }
+      }
+    } catch (e) {
+      debugPrint('Failed to extract carousel colors: $e');
+    }
+  }
+
+  /// Notify parent when carousel page changes
+  void _onPageChanged(int index) {
+    setState(() {
+      _currentPage = index;
+    });
+    
+    // Notify parent with the new color
+    if (_colorsLoaded && _extractedColors.isNotEmpty) {
+      widget.onColorChanged?.call(_extractedColors[index]);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final textTheme = theme.textTheme;
+    final screenHeight = MediaQuery.of(context).size.height;
 
     return Column(
       children: [
         CarouselSlider(
-          items: carouselItems.map((item) {
+          items: _carouselItems.map((item) {
             return ClipRRect(
               borderRadius: BorderRadius.circular(12),
               child: Stack(
@@ -158,16 +211,14 @@ class _TopCuroselState extends State<TopCurosel> {
             enlargeCenterPage: true,
             enableInfiniteScroll: true,
             onPageChanged: (index, reason) {
-              setState(() {
-                _currentPage = index;
-              });
+              _onPageChanged(index);
             },
           ),
         ),
         const SizedBox(height: 10),
         AnimatedSmoothIndicator(
           activeIndex: _currentPage,
-          count: carouselItems.length,
+          count: _carouselItems.length,
           effect: ExpandingDotsEffect(
             activeDotColor: colorScheme.primary,
             dotColor: theme.disabledColor,

@@ -44,6 +44,7 @@ dependencies:
   auto_size_text: ^3.0.0
   flutter_dotenv: ^5.1.0 # Check pub.dev for the latest version
   google_sign_in: ^6.2.1
+  palette_generator: ^0.3.3+4  # For extracting dominant colors from images
 
 
 
