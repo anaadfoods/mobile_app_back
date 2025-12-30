@@ -30,7 +30,9 @@ class _SubscriptionTableState extends State<SubscriptionTable>
   @override
   void initState() {
     super.initState();
-    _pageController = PageController(viewportFraction: 0.88, initialPage: 0);
+    // viewportFraction 0.65 shows ~3 cards (center + partial sides)
+    // initialPage 1000 for infinite scroll illusion
+    _pageController = PageController(viewportFraction: 0.65, initialPage: 1000);
     _pulseController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 2000),
@@ -42,9 +44,10 @@ class _SubscriptionTableState extends State<SubscriptionTable>
     _autoScrollTimer?.cancel();
     _autoScrollTimer = Timer.periodic(const Duration(seconds: 4), (timer) {
       if (!mounted || _plans.isEmpty) return;
-      final nextPage = (_currentIndex + 1) % _plans.length;
+      // For infinite scroll, just go to next page
+      final currentPage = _pageController.page?.round() ?? 1000;
       _pageController.animateToPage(
-        nextPage,
+        currentPage + 1,
         duration: const Duration(milliseconds: 500),
         curve: Curves.easeInOutCubic,
       );
@@ -201,33 +204,42 @@ class _SubscriptionTableState extends State<SubscriptionTable>
             onPanEnd: (_) => _startAutoScroll(),
             child: PageView.builder(
               controller: _pageController,
-              itemCount: _plans.length,
+              itemCount: null, // Infinite scroll
               onPageChanged: (index) {
-                setState(() => _currentIndex = index);
+                setState(() => _currentIndex = index % _plans.length);
               },
-            itemBuilder: (context, index) {
-              final plan = _plans[index];
-              return AnimatedBuilder(
-                animation: _pageController,
-                builder: (context, child) {
-                  double value = 1.0;
-                  if (_pageController.position.haveDimensions) {
-                    value = (_pageController.page! - index).abs();
-                    value = (1 - (value * 0.15)).clamp(0.85, 1.0);
-                  }
-                  return Center(
-                    child: Transform.scale(
-                      scale: value,
-                      child: Opacity(
-                        opacity: value.clamp(0.7, 1.0),
-                        child: child,
+              itemBuilder: (context, index) {
+                final actualIndex = index % _plans.length;
+                final plan = _plans[actualIndex];
+                final isActive = actualIndex == _currentIndex;
+                
+                return AnimatedBuilder(
+                  animation: _pageController,
+                  builder: (context, child) {
+                    double scale = 1.0;
+                    double opacity = 1.0;
+                    
+                    if (_pageController.position.haveDimensions) {
+                      final page = _pageController.page ?? 1000.0;
+                      final diff = (page - index).abs();
+                      // Center card = full size, side cards smaller
+                      scale = (1 - (diff * 0.12)).clamp(0.8, 1.0);
+                      opacity = (1 - (diff * 0.3)).clamp(0.5, 1.0);
+                    }
+                    
+                    return Center(
+                      child: Transform.scale(
+                        scale: scale,
+                        child: Opacity(
+                          opacity: opacity,
+                          child: child,
+                        ),
                       ),
-                    ),
-                  );
-                },
-                child: _buildPlanCard(plan, index == _currentIndex, theme, isDark),
-              );
-            },
+                    );
+                  },
+                  child: _buildPlanCard(plan, isActive, theme, isDark),
+                );
+              },
             ),
           ),
         ),

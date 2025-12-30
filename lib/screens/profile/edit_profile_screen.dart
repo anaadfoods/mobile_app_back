@@ -313,10 +313,6 @@ class _EditProfileScreenState extends State<EditProfileScreen>
                       ),
                       const SizedBox(height: 20),
 
-                      // Anaad Innovations Section
-                      _buildInnovationsCard(theme),
-                      const SizedBox(height: 20),
-
                       // Address Section
                       _buildSectionCard(
                         theme: theme,
@@ -806,104 +802,7 @@ class _EditProfileScreenState extends State<EditProfileScreen>
     }
   }
 
-  // ==================== ANAAD INNOVATIONS CARD ====================
-  Widget _buildInnovationsCard(ThemeData theme) {
-    final isDark = theme.brightness == Brightness.dark;
-    
-    return TweenAnimationBuilder<double>(
-      tween: Tween(begin: 0.0, end: 1.0),
-      duration: const Duration(milliseconds: 600),
-      curve: Curves.easeOutBack,
-      builder: (context, value, child) {
-        return Transform.scale(
-          scale: 0.9 + (0.1 * value),
-          child: Opacity(
-            opacity: value,
-            child: GestureDetector(
-              onTap: () {
-                _triggerHaptic();
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => const AnaadInnovationsScreen(),
-                  ),
-                );
-              },
-              child: Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [Color(0xFF6B21A8), Color(0xFF7C3AED)],
-                  ),
-                  borderRadius: BorderRadius.circular(24),
-                  boxShadow: [
-                    BoxShadow(
-                      color: const Color(0xFF6B21A8).withOpacity(0.4),
-                      blurRadius: 20,
-                      offset: const Offset(0, 8),
-                    ),
-                  ],
-                ),
-                child: Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(14),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.2),
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      child: const Icon(
-                        Icons.rocket_launch_rounded,
-                        color: Colors.white,
-                        size: 28,
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Anaad Innovations',
-                            style: theme.textTheme.titleMedium?.copyWith(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            'Explore rewards, games & more!',
-                            style: theme.textTheme.bodySmall?.copyWith(
-                              color: Colors.white.withOpacity(0.8),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    Container(
-                      padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.2),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: const Icon(
-                        Icons.arrow_forward_ios_rounded,
-                        color: Colors.white,
-                        size: 16,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        );
-      },
-    );
-  }
+
 
   // ==================== PROFILE COMPLETION CARD ====================
   Widget _buildProfileCompletionCard(ThemeData theme, ColorScheme colorScheme) {

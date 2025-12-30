@@ -468,74 +468,100 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       padding: EdgeInsets.symmetric(
         horizontal: MediaQuery.of(context).size.width * 0.05,
       ),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        curve: Curves.easeOut,
+      child: Container(
+        height: 54,
         decoration: BoxDecoration(
-          color: theme.cardColor,
-          borderRadius: BorderRadius.circular(AppColors.radiusRound),
-          border: Border.all(
-            color: _focusNode.hasFocus 
-                ? colorScheme.primary.withOpacity(0.5)
-                : (isDark ? Colors.grey.shade700 : Colors.grey.shade200),
-            width: _focusNode.hasFocus ? 1.5 : 1,
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: _focusNode.hasFocus
-                  ? colorScheme.primary.withOpacity(0.15)
-                  : theme.shadowColor.withOpacity(AppColors.shadowOpacityMedium),
-              blurRadius: _focusNode.hasFocus ? 16 : 12,
-              offset: const Offset(0, 4),
-            ),
-          ],
+          color: isDark ? Colors.grey.shade900 : Colors.grey.shade100,
+          borderRadius: BorderRadius.circular(27),
+          boxShadow: _focusNode.hasFocus
+              ? [
+                  BoxShadow(
+                    color: colorScheme.primary.withOpacity(0.15),
+                    blurRadius: 20,
+                    offset: const Offset(0, 4),
+                  ),
+                ]
+              : [],
         ),
-        child: TextField(
-          controller: _searchController,
-          focusNode: _focusNode,
-          style: theme.textTheme.bodyLarge,
-          onTap: () => setState(() {}), // Trigger rebuild for focus animation
-          decoration: InputDecoration(
-            hintText: "Search products...",
-            hintStyle: TextStyle(color: theme.hintColor),
-            prefixIcon: AnimatedContainer(
-              duration: const Duration(milliseconds: 200),
-              child: Icon(
-                Icons.search, 
-                color: _focusNode.hasFocus 
-                    ? colorScheme.primary 
-                    : colorScheme.primary.withOpacity(0.7),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(27),
+          child: Row(
+            children: [
+              const SizedBox(width: 16),
+              Icon(
+                Icons.search_rounded,
+                color: _focusNode.hasFocus
+                    ? colorScheme.primary
+                    : (isDark ? Colors.grey.shade400 : Colors.grey.shade600),
+                size: 22,
               ),
-            ),
-            suffixIcon:
-                _isSearching
-                    ? Padding(
-                      padding: const EdgeInsets.all(12),
-                      child: SizedBox(
-                        width: 16,
-                        height: 16,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: colorScheme.primary,
-                        ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: TextField(
+                  controller: _searchController,
+                  focusNode: _focusNode,
+                  style: theme.textTheme.bodyLarge,
+                  onTap: () => setState(() {}),
+                  decoration: InputDecoration(
+                    hintText: "Search products...",
+                    hintStyle: TextStyle(
+                      color: isDark ? Colors.grey.shade500 : Colors.grey.shade500,
+                      fontWeight: FontWeight.w400,
+                    ),
+                    border: InputBorder.none,
+                    enabledBorder: InputBorder.none,
+                    focusedBorder: InputBorder.none,
+                    errorBorder: InputBorder.none,
+                    disabledBorder: InputBorder.none,
+                    focusedErrorBorder: InputBorder.none,
+                    contentPadding: const EdgeInsets.symmetric(vertical: 16),
+                    isDense: true,
+                  ),
+                  onChanged: (value) => _performSearch(value.trim()),
+                ),
+              ),
+              if (_isSearching)
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 14),
+                  child: SizedBox(
+                    width: 18,
+                    height: 18,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: colorScheme.primary,
+                    ),
+                  ),
+                )
+              else if (_searchController.text.isNotEmpty)
+                Padding(
+                  padding: const EdgeInsets.only(right: 8),
+                  child: GestureDetector(
+                    onTap: () {
+                      _searchController.clear();
+                      setState(() => _searchResults = []);
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.all(6),
+                      decoration: BoxDecoration(
+                        color: isDark 
+                            ? Colors.grey.shade800 
+                            : Colors.grey.shade300,
+                        shape: BoxShape.circle,
                       ),
-                    )
-                    : (_searchController.text.isNotEmpty
-                        ? IconButton(
-                          icon: Icon(Icons.close, color: theme.hintColor),
-                          onPressed: () {
-                            _searchController.clear();
-                            setState(() => _searchResults = []);
-                          },
-                        )
-                        : null),
-            border: InputBorder.none,
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: AppColors.spacingL,
-              vertical: AppColors.spacingM,
-            ),
+                      child: Icon(
+                        Icons.close_rounded,
+                        color: isDark 
+                            ? Colors.grey.shade400 
+                            : Colors.grey.shade600,
+                        size: 16,
+                      ),
+                    ),
+                  ),
+                )
+              else
+                const SizedBox(width: 16),
+            ],
           ),
-          onChanged: (value) => _performSearch(value.trim()),
         ),
       ),
     );
@@ -543,33 +569,85 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 
   Widget _buildSearchDropdown(BuildContext context) {
     final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    
     return Padding(
       padding: EdgeInsets.symmetric(
         horizontal: MediaQuery.of(context).size.width * 0.05,
       ),
-      child: Material(
-        elevation: 1,
-        borderRadius: BorderRadius.circular(12),
-        color: theme.cardColor,
-        child: ListView.separated(
-          itemCount: _searchResults.length,
-          shrinkWrap: true,
-          separatorBuilder:
-              (_, __) => Divider(height: 1, color: theme.dividerColor),
-          itemBuilder: (context, index) {
-            final product = _searchResults[index];
-            return ListTile(
-              title: Text(
-                product.productName,
-                style: theme.textTheme.bodyLarge,
-              ),
-              subtitle: Text(
-                "₹${product.finalPrice.toString()}",
-                style: theme.textTheme.bodyMedium,
-              ),
-              onTap: () => _onProductClicked(context, product),
-            );
-          },
+      child: Container(
+        margin: const EdgeInsets.only(top: 8),
+        decoration: BoxDecoration(
+          color: theme.cardColor,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: isDark 
+                  ? Colors.black.withOpacity(0.3)
+                  : Colors.black.withOpacity(0.08),
+              blurRadius: 20,
+              offset: const Offset(0, 8),
+            ),
+          ],
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(16),
+          child: ListView.separated(
+            itemCount: _searchResults.length,
+            shrinkWrap: true,
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            separatorBuilder: (_, __) => Divider(
+              height: 1,
+              indent: 16,
+              endIndent: 16,
+              color: theme.dividerColor.withOpacity(0.3),
+            ),
+            itemBuilder: (context, index) {
+              final product = _searchResults[index];
+              return ListTile(
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 4,
+                ),
+                leading: Container(
+                  width: 44,
+                  height: 44,
+                  decoration: BoxDecoration(
+                    color: isDark 
+                        ? Colors.grey.shade800 
+                        : Colors.grey.shade100,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Icon(
+                    Icons.shopping_bag_outlined,
+                    color: theme.colorScheme.primary,
+                    size: 22,
+                  ),
+                ),
+                title: Text(
+                  product.productName,
+                  style: theme.textTheme.bodyLarge?.copyWith(
+                    fontWeight: FontWeight.w500,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                subtitle: Text(
+                  "₹${product.finalPrice.toString()}",
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: theme.colorScheme.primary,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                trailing: Icon(
+                  Icons.arrow_forward_ios_rounded,
+                  size: 16,
+                  color: Colors.grey.shade400,
+                ),
+                onTap: () => _onProductClicked(context, product),
+              );
+            },
+          ),
         ),
       ),
     );

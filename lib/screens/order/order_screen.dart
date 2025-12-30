@@ -75,7 +75,7 @@ class _OrderScreenState extends State<OrderScreen>
         physics: const BouncingScrollPhysics(),
         slivers: [
           // Premium Header
-          _buildSliverAppBar(theme, isDark),
+          _buildAnimatedHeader(theme, isDark),
           // Content
           if (isLoading)
             const SliverFillRemaining(
@@ -122,135 +122,175 @@ class _OrderScreenState extends State<OrderScreen>
     );
   }
 
-  Widget _buildSliverAppBar(ThemeData theme, bool isDark) {
+  Widget _buildAnimatedHeader(ThemeData theme, bool isDark) {
     final activeOrders = orders.where((o) => o.status != 'DELIVERED' && o.status != 'CANCELLED').length;
     final completedOrders = orders.where((o) => o.status == 'DELIVERED').length;
 
-    return SliverAppBar(
-      expandedHeight: 140,
-      floating: false,
-      pinned: true,
-      stretch: true,
-      backgroundColor: isDark ? const Color(0xFF1A1A1A) : AppColors.primaryColor,
-      flexibleSpace: FlexibleSpaceBar(
-        background: Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: isDark
-                  ? [
-                      const Color(0xFF2D2D2D),
-                      const Color(0xFF1A1A1A),
-                    ]
-                  : [
-                      AppColors.primaryColor,
-                      AppColors.primaryColor.withOpacity(0.8),
-                    ],
-            ),
+    return SliverToBoxAdapter(
+      child: Container(
+        height: 200,
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: isDark
+                ? [
+                    const Color(0xFF2D2D2D),
+                    const Color(0xFF1A1A1A),
+                  ]
+                : [
+                    AppColors.primaryColor,
+                    AppColors.primaryColor.withOpacity(0.8),
+                  ],
           ),
-          child: SafeArea(
-            bottom: false,
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(20, 48, 20, 12),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.15),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: const Icon(
-                          Icons.shopping_bag_rounded,
-                          color: Colors.white,
-                          size: 22,
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            'My Orders',
-                            style: theme.textTheme.titleMedium?.copyWith(
+          borderRadius: const BorderRadius.only(
+            bottomLeft: Radius.circular(32),
+            bottomRight: Radius.circular(32),
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.primaryColor.withOpacity(0.3),
+              blurRadius: 20,
+              offset: const Offset(0, 10),
+            ),
+          ],
+        ),
+        child: Stack(
+          children: [
+            // Decorative circles
+            Positioned(
+              top: -40,
+              right: -40,
+              child: Container(
+                width: 120,
+                height: 120,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Colors.white.withOpacity(0.1),
+                ),
+              ),
+            ),
+            Positioned(
+              bottom: 20,
+              left: -30,
+              child: Container(
+                width: 80,
+                height: 80,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Colors.white.withOpacity(0.08),
+                ),
+              ),
+            ),
+
+            // Animated Icon
+            Positioned(
+              top: 60,
+              right: 30,
+              child: Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.2),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.shopping_bag_rounded,
+                  color: Colors.white,
+                  size: 36,
+                ),
+              ),
+            ),
+
+            // Header Content
+            SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(20, 8, 20, 20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Top Row with Back Button and Refresh
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        GestureDetector(
+                          onTap: () => Navigator.pop(context),
+                          child: Container(
+                            padding: const EdgeInsets.all(10),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.2),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: const Icon(
+                              Icons.arrow_back_ios_new_rounded,
                               color: Colors.white,
-                              fontWeight: FontWeight.bold,
+                              size: 20,
                             ),
                           ),
-                          if (!isLoading && orders.isNotEmpty)
-                            Text(
-                              '${orders.length} total orders',
-                              style: theme.textTheme.bodySmall?.copyWith(
-                                color: Colors.white.withOpacity(0.8),
+                        ),
+                        if (!isLoading)
+                          GestureDetector(
+                            onTap: _fetchOrders,
+                            child: Container(
+                              padding: const EdgeInsets.all(10),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withOpacity(0.2),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: const Icon(
+                                Icons.refresh_rounded,
+                                color: Colors.white,
+                                size: 20,
                               ),
                             ),
+                          ),
+                      ],
+                    ),
+                    const Spacer(),
+                    // Title
+                    Text(
+                      "My Orders",
+                      style: theme.textTheme.headlineMedium?.copyWith(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      orders.isEmpty
+                          ? "Your orders will appear here"
+                          : "${orders.length} order${orders.length != 1 ? 's' : ''} total",
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: Colors.white.withOpacity(0.9),
+                      ),
+                    ),
+                    // Stats Row
+                    if (!isLoading && orders.isNotEmpty) ...[
+                      const SizedBox(height: 12),
+                      Row(
+                        children: [
+                          _buildStatChip(
+                            icon: Icons.local_shipping_outlined,
+                            label: 'Active',
+                            count: activeOrders,
+                            color: AppColors.warning,
+                          ),
+                          const SizedBox(width: 8),
+                          _buildStatChip(
+                            icon: Icons.check_circle_outline,
+                            label: 'Completed',
+                            count: completedOrders,
+                            color: AppColors.success,
+                          ),
                         ],
                       ),
                     ],
-                  ),
-                  // Stats Row
-                  if (!isLoading && orders.isNotEmpty) ...[
-                    const SizedBox(height: 12),
-                    Row(
-                      children: [
-                        _buildStatChip(
-                          icon: Icons.local_shipping_outlined,
-                          label: 'Active',
-                          count: activeOrders,
-                          color: AppColors.warning,
-                        ),
-                        const SizedBox(width: 8),
-                        _buildStatChip(
-                          icon: Icons.check_circle_outline,
-                          label: 'Completed',
-                          count: completedOrders,
-                          color: AppColors.success,
-                        ),
-                      ],
-                    ),
                   ],
-                ],
+                ),
               ),
             ),
-          ),
+          ],
         ),
-        collapseMode: CollapseMode.parallax,
       ),
-      leading: IconButton(
-        icon: Container(
-          padding: const EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.15),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: const Icon(Icons.arrow_back_ios_new, size: 18),
-        ),
-        color: Colors.white,
-        onPressed: () => Navigator.pop(context),
-      ),
-      actions: [
-        if (!isLoading)
-          IconButton(
-            icon: Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.15),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: const Icon(Icons.refresh, size: 20),
-            ),
-            color: Colors.white,
-            onPressed: _fetchOrders,
-          ),
-        const SizedBox(width: 8),
-      ],
     );
   }
 

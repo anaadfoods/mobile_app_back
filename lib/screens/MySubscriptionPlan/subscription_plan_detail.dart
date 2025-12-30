@@ -101,63 +101,8 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
       backgroundColor: isDark ? const Color(0xFF0A0A0A) : const Color(0xFFF5F7FA),
       body: CustomScrollView(
         slivers: [
-          // Modern App Bar with gradient
-          SliverAppBar(
-            expandedHeight: 140,
-            floating: true,
-            pinned: true,
-            elevation: 0,
-            backgroundColor: isDark ? const Color(0xFF121212) : AppColors.primaryColor,
-            flexibleSpace: FlexibleSpaceBar(
-              titlePadding: const EdgeInsets.only(left: 56, bottom: 16),
-              title: Text(
-                'My Subscriptions',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  shadows: [
-                    Shadow(
-                      color: Colors.black.withOpacity(0.3),
-                      blurRadius: 8,
-                    ),
-                  ],
-                ),
-              ),
-              background: Container(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: isDark
-                        ? [
-                            const Color(0xFF1A1A1A),
-                            const Color(0xFF121212),
-                          ]
-                        : [
-                            AppColors.primaryColor,
-                            AppColors.primaryDark,
-                          ],
-                  ),
-                ),
-              ),
-            ),
-            actions: [
-              if (!_isLoading)
-                Container(
-                  margin: const EdgeInsets.only(right: 12),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.15),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: IconButton(
-                    icon: const Icon(Icons.refresh_rounded),
-                    onPressed: _fetchSubscriptions,
-                    color: Colors.white,
-                  ),
-                ),
-            ],
-          ),
+          // Modern U-Shape Header
+          _buildAnimatedHeader(theme, isDark),
           // Filter chips
           SliverToBoxAdapter(
             child: _buildFilterTabs(theme, isDark),
@@ -168,6 +113,211 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
           ),
           // Content
           _buildContent(theme, isDark),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAnimatedHeader(ThemeData theme, bool isDark) {
+    final activeCount = _getCountForStatus('ACTIVE');
+    final pausedCount = _getCountForStatus('PAUSED');
+
+    return SliverToBoxAdapter(
+      child: Container(
+        height: 200,
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: isDark
+                ? [
+                    const Color(0xFF2D2D2D),
+                    const Color(0xFF1A1A1A),
+                  ]
+                : [
+                    AppColors.primaryColor,
+                    AppColors.primaryDark,
+                  ],
+          ),
+          borderRadius: const BorderRadius.only(
+            bottomLeft: Radius.circular(32),
+            bottomRight: Radius.circular(32),
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.primaryColor.withOpacity(0.3),
+              blurRadius: 20,
+              offset: const Offset(0, 10),
+            ),
+          ],
+        ),
+        child: Stack(
+          children: [
+            // Decorative circles
+            Positioned(
+              top: -40,
+              right: -40,
+              child: Container(
+                width: 120,
+                height: 120,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Colors.white.withOpacity(0.1),
+                ),
+              ),
+            ),
+            Positioned(
+              bottom: 20,
+              left: -30,
+              child: Container(
+                width: 80,
+                height: 80,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Colors.white.withOpacity(0.08),
+                ),
+              ),
+            ),
+
+            // Animated Icon
+            Positioned(
+              top: 60,
+              right: 30,
+              child: Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.2),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.autorenew_rounded,
+                  color: Colors.white,
+                  size: 36,
+                ),
+              ),
+            ),
+
+            // Header Content
+            SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(20, 8, 20, 20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Top Row with Back Button and Refresh
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        GestureDetector(
+                          onTap: () => Navigator.pop(context),
+                          child: Container(
+                            padding: const EdgeInsets.all(10),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.2),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: const Icon(
+                              Icons.arrow_back_ios_new_rounded,
+                              color: Colors.white,
+                              size: 20,
+                            ),
+                          ),
+                        ),
+                        if (!_isLoading)
+                          GestureDetector(
+                            onTap: _fetchSubscriptions,
+                            child: Container(
+                              padding: const EdgeInsets.all(10),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withOpacity(0.2),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: const Icon(
+                                Icons.refresh_rounded,
+                                color: Colors.white,
+                                size: 20,
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                    const Spacer(),
+                    // Title
+                    Text(
+                      "My Subscriptions",
+                      style: theme.textTheme.headlineMedium?.copyWith(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      allSubscriptions.isEmpty
+                          ? "Your subscriptions will appear here"
+                          : "${allSubscriptions.length} subscription${allSubscriptions.length != 1 ? 's' : ''} total",
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: Colors.white.withOpacity(0.9),
+                      ),
+                    ),
+                    // Stats Row
+                    if (!_isLoading && allSubscriptions.isNotEmpty) ...[
+                      const SizedBox(height: 12),
+                      Row(
+                        children: [
+                          _buildHeaderStatChip(
+                            icon: Icons.autorenew_rounded,
+                            label: 'Active',
+                            count: activeCount,
+                            color: AppColors.success,
+                          ),
+                          const SizedBox(width: 8),
+                          _buildHeaderStatChip(
+                            icon: Icons.pause_circle_outline,
+                            label: 'Paused',
+                            count: pausedCount,
+                            color: AppColors.warning,
+                          ),
+                        ],
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildHeaderStatChip({
+    required IconData icon,
+    required String label,
+    required int count,
+    required Color color,
+  }) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.15),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: Colors.white.withOpacity(0.2),
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, color: color, size: 14),
+          const SizedBox(width: 4),
+          Text(
+            '$count $label',
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 12,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
         ],
       ),
     );

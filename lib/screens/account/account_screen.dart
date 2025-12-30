@@ -1305,27 +1305,8 @@ class _AccountScreenState extends State<AccountScreen>
                   color: theme.textTheme.bodyMedium?.color?.withAlpha(102),
                 ),
               ),
-              const SizedBox(height: 4),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    'Made with ',
-                    style: TextStyle(
-                      fontSize: 11,
-                      color: theme.textTheme.bodyMedium?.color?.withAlpha(76),
-                    ),
-                  ),
-                  _buildPulsingHeart(),
-                  Text(
-                    ' in India',
-                    style: TextStyle(
-                      fontSize: 11,
-                      color: theme.textTheme.bodyMedium?.color?.withAlpha(76),
-                    ),
-                  ),
-                ],
-              ),
+              const SizedBox(height: 10),
+              _buildInnovationBadge(theme),
             ],
           ),
         );
@@ -1333,16 +1314,97 @@ class _AccountScreenState extends State<AccountScreen>
     );
   }
 
-  Widget _buildPulsingHeart() {
+  Widget _buildInnovationBadge(ThemeData theme) {
+    const saffronColor = Color(0xFFFF9933);
+    final isDark = theme.brightness == Brightness.dark;
+    
     return AnimatedBuilder(
       animation: _pulseController,
       builder: (context, child) {
-        final pulseScale = 1.0 + (math.sin(_pulseController.value * math.pi * 2) * 0.15);
-        return Transform.scale(
-          scale: pulseScale,
-          child: const Text(
-            '❤️',
-            style: TextStyle(fontSize: 14, color: Color(0xFFD32F2F)),
+        final glowIntensity = 0.15 + (math.sin(_pulseController.value * math.pi * 2) * 0.1);
+        final pulseScale = 1.0 + (math.sin(_pulseController.value * math.pi * 2) * 0.08);
+        
+        return Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(20),
+            color: isDark 
+                ? saffronColor.withOpacity(0.08) 
+                : saffronColor.withOpacity(0.06),
+            border: Border.all(
+              color: saffronColor.withOpacity(glowIntensity + 0.2),
+              width: 1,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: saffronColor.withOpacity(glowIntensity * 0.4),
+                blurRadius: 8,
+                spreadRadius: 0,
+              ),
+            ],
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Transform.scale(
+                scale: pulseScale,
+                child: ShaderMask(
+                  shaderCallback: (bounds) => LinearGradient(
+                    colors: [
+                      saffronColor,
+                      const Color(0xFFFFD700),
+                      saffronColor,
+                    ],
+                  ).createShader(bounds),
+                  child: const Text(
+                    '⚡',
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              ShaderMask(
+                shaderCallback: (bounds) => LinearGradient(
+                  colors: [
+                    saffronColor,
+                    const Color(0xFFFFD700),
+                    saffronColor,
+                  ],
+                ).createShader(bounds),
+                child: const Text(
+                  'Powered by Indian Innovation',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.white,
+                    letterSpacing: 0.5,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 4),
+              Transform.scale(
+                scale: pulseScale,
+                child: ShaderMask(
+                  shaderCallback: (bounds) => LinearGradient(
+                    colors: [
+                      saffronColor,
+                      const Color(0xFFFFD700),
+                      saffronColor,
+                    ],
+                  ).createShader(bounds),
+                  child: const Text(
+                    '⚡',
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
         );
       },

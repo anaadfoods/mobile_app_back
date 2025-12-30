@@ -212,7 +212,7 @@ class _GroceryItemCardWidgetState extends State<GroceryItemCardWidget> {
                     key: const ValueKey('addButton'),
                     onPressed: () {
                       cartCubit.addItem(widget.item, 1);
-                    },
+                     },
                     child: const Text("Add"),
                   ),
         );
