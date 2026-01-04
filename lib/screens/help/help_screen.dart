@@ -12,8 +12,7 @@ class HelpScreen extends StatefulWidget {
   State<HelpScreen> createState() => _HelpScreenState();
 }
 
-class _HelpScreenState extends State<HelpScreen>
-    with TickerProviderStateMixin {
+class _HelpScreenState extends State<HelpScreen> with TickerProviderStateMixin {
   late AnimationController _headerController;
   late AnimationController _contentController;
   late AnimationController _particleController;
@@ -459,10 +458,7 @@ class _HelpScreenState extends State<HelpScreen>
       duration: Duration(milliseconds: 400 + (delay * 100)),
       curve: Curves.easeOutBack,
       builder: (context, value, child) {
-        return Transform.scale(
-          scale: value,
-          child: child,
-        );
+        return Transform.scale(scale: value, child: child);
       },
       child: GestureDetector(
         onTap: onTap,
@@ -563,16 +559,17 @@ class _HelpScreenState extends State<HelpScreen>
       child: ClipRRect(
         borderRadius: BorderRadius.circular(20),
         child: Column(
-          children: faqs.asMap().entries.map((entry) {
-            final index = entry.key;
-            final faq = entry.value;
-            return _FaqItem(
-              icon: faq['icon'] as IconData,
-              title: faq['title'] as String,
-              content: faq['content'] as String,
-              isLast: index == faqs.length - 1,
-            );
-          }).toList(),
+          children:
+              faqs.asMap().entries.map((entry) {
+                final index = entry.key;
+                final faq = entry.value;
+                return _FaqItem(
+                  icon: faq['icon'] as IconData,
+                  title: faq['title'] as String,
+                  content: faq['content'] as String,
+                  isLast: index == faqs.length - 1,
+                );
+              }).toList(),
         ),
       ),
     );
@@ -648,10 +645,7 @@ class _HelpScreenState extends State<HelpScreen>
                   SizedBox(width: 10),
                   Text(
                     'Fill Out Form',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                    ),
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
                   ),
                 ],
               ),
@@ -699,9 +693,10 @@ class _FaqItemState extends State<_FaqItem>
       parent: _controller,
       curve: Curves.easeOutCubic,
     );
-    _rotationAnimation = Tween<double>(begin: 0, end: 0.5).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic),
-    );
+    _rotationAnimation = Tween<double>(
+      begin: 0,
+      end: 0.5,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic));
   }
 
   @override
@@ -809,7 +804,7 @@ class _QueryFormSheetState extends State<_QueryFormSheet>
   final _phoneController = TextEditingController();
   final _emailController = TextEditingController();
   final _messageController = TextEditingController();
-  String _selectedType = 'NORMAL';
+  String _selectedType = 'INDIVIDUAL';
   bool _isLoading = false;
 
   late AnimationController _animController;
@@ -855,7 +850,8 @@ class _QueryFormSheetState extends State<_QueryFormSheet>
           'email': _emailController.text,
           'message': _messageController.text,
           'requirement_type': _selectedType,
-          'is_from_rfp': _selectedType == 'B2B',
+          'is_from_rfp': false,
+          'redirection_from': 'USER_QUERY',
         }),
       );
 
@@ -953,8 +949,11 @@ class _QueryFormSheetState extends State<_QueryFormSheet>
                   controller: _nameController,
                   label: 'Full Name',
                   icon: Icons.person_outline_rounded,
-                  validator: (v) =>
-                      v == null || v.isEmpty ? 'Please enter your name' : null,
+                  validator:
+                      (v) =>
+                          v == null || v.isEmpty
+                              ? 'Please enter your name'
+                              : null,
                 ),
                 const SizedBox(height: 16),
                 _buildTextField(
@@ -962,10 +961,11 @@ class _QueryFormSheetState extends State<_QueryFormSheet>
                   label: 'Phone Number',
                   icon: Icons.phone_outlined,
                   keyboardType: TextInputType.phone,
-                  validator: (v) =>
-                      v == null || v.isEmpty
-                          ? 'Please enter your phone'
-                          : null,
+                  validator:
+                      (v) =>
+                          v == null || v.isEmpty
+                              ? 'Please enter your phone'
+                              : null,
                 ),
                 const SizedBox(height: 16),
                 _buildTextField(
@@ -980,10 +980,11 @@ class _QueryFormSheetState extends State<_QueryFormSheet>
                   label: 'Your Message',
                   icon: Icons.message_outlined,
                   maxLines: 3,
-                  validator: (v) =>
-                      v == null || v.isEmpty
-                          ? 'Please enter your message'
-                          : null,
+                  validator:
+                      (v) =>
+                          v == null || v.isEmpty
+                              ? 'Please enter your message'
+                              : null,
                 ),
                 const SizedBox(height: 16),
                 // Requirement type selector
@@ -1003,22 +1004,23 @@ class _QueryFormSheetState extends State<_QueryFormSheet>
                         borderRadius: BorderRadius.circular(16),
                       ),
                     ),
-                    child: _isLoading
-                        ? const SizedBox(
-                            width: 24,
-                            height: 24,
-                            child: CircularProgressIndicator(
-                              color: Colors.white,
-                              strokeWidth: 2.5,
+                    child:
+                        _isLoading
+                            ? const SizedBox(
+                              width: 24,
+                              height: 24,
+                              child: CircularProgressIndicator(
+                                color: Colors.white,
+                                strokeWidth: 2.5,
+                              ),
+                            )
+                            : const Text(
+                              'Submit Query',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                              ),
                             ),
-                          )
-                        : const Text(
-                            'Submit Query',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
                   ),
                 ),
               ],
@@ -1093,8 +1095,8 @@ class _QueryFormSheetState extends State<_QueryFormSheet>
               child: _buildTypeChip(
                 theme,
                 colorScheme,
-                'NORMAL',
-                'Personal',
+                'INDIVIDUAL',
+                'Individual',
                 Icons.person_rounded,
               ),
             ),
@@ -1106,6 +1108,16 @@ class _QueryFormSheetState extends State<_QueryFormSheet>
                 'B2B',
                 'Business',
                 Icons.business_rounded,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: _buildTypeChip(
+                theme,
+                colorScheme,
+                'FAMILY',
+                'Family',
+                Icons.family_restroom_rounded,
               ),
             ),
           ],
@@ -1132,10 +1144,16 @@ class _QueryFormSheetState extends State<_QueryFormSheet>
         duration: const Duration(milliseconds: 200),
         padding: const EdgeInsets.symmetric(vertical: 14),
         decoration: BoxDecoration(
-          color: isSelected ? colorScheme.primary : colorScheme.primary.withAlpha(10),
+          color:
+              isSelected
+                  ? colorScheme.primary
+                  : colorScheme.primary.withAlpha(10),
           borderRadius: BorderRadius.circular(14),
           border: Border.all(
-            color: isSelected ? colorScheme.primary : colorScheme.primary.withAlpha(40),
+            color:
+                isSelected
+                    ? colorScheme.primary
+                    : colorScheme.primary.withAlpha(40),
             width: isSelected ? 2 : 1,
           ),
         ),

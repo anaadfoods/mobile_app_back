@@ -230,7 +230,7 @@ class _FavouriteScreenState extends State<FavouriteScreen>
     int newQuantity,
   ) async {
     if (_processingItems.contains(favorite.productId)) return;
-    
+
     HapticFeedback.selectionClick();
     setState(() => _processingItems.add(favorite.productId));
 
@@ -299,10 +299,7 @@ class _FavouriteScreenState extends State<FavouriteScreen>
                 builder: (context, child) {
                   return Transform.translate(
                     offset: Offset(0, 30 * (1 - _contentFade.value)),
-                    child: Opacity(
-                      opacity: _contentFade.value,
-                      child: child,
-                    ),
+                    child: Opacity(opacity: _contentFade.value, child: child),
                   );
                 },
                 child: Padding(
@@ -448,13 +445,13 @@ class _FavouriteScreenState extends State<FavouriteScreen>
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       // Back Button
-                      _buildIconButton(
-                        Icons.arrow_back_ios_new_rounded,
-                        () {
-                          HapticFeedback.lightImpact();
-                          Navigator.pop(context);
-                        },
-                      ),
+                      // _buildIconButton(
+                      //   Icons.arrow_back_ios_new_rounded,
+                      //   () {
+                      //     HapticFeedback.lightImpact();
+                      //     Navigator.pop(context);
+                      //   },
+                      // ),
                       const Spacer(),
                       // Title
                       Text(
@@ -531,8 +528,9 @@ class _FavouriteScreenState extends State<FavouriteScreen>
   }
 
   Widget _buildStatsRow(ThemeData theme, bool isDark) {
-    final inCart = _favorites.where((f) => (_cartQuantities[f.productId] ?? 0) > 0).length;
-    
+    final inCart =
+        _favorites.where((f) => (_cartQuantities[f.productId] ?? 0) > 0).length;
+
     return Row(
       children: [
         Expanded(
@@ -636,11 +634,7 @@ class _FavouriteScreenState extends State<FavouriteScreen>
           color: Colors.red.shade400,
           borderRadius: BorderRadius.circular(20),
         ),
-        child: const Icon(
-          Icons.delete_rounded,
-          color: Colors.white,
-          size: 28,
-        ),
+        child: const Icon(Icons.delete_rounded, color: Colors.white, size: 28),
       ),
       child: GestureDetector(
         onTap: () async {
@@ -680,7 +674,10 @@ class _FavouriteScreenState extends State<FavouriteScreen>
                       width: 80,
                       height: 80,
                       decoration: BoxDecoration(
-                        color: isDark ? Colors.grey.shade900 : Colors.grey.shade100,
+                        color:
+                            isDark
+                                ? Colors.grey.shade900
+                                : Colors.grey.shade100,
                         borderRadius: BorderRadius.circular(16),
                       ),
                       child: ClipRRect(
@@ -688,17 +685,19 @@ class _FavouriteScreenState extends State<FavouriteScreen>
                         child: CachedNetworkImage(
                           imageUrl: favorite.image,
                           fit: BoxFit.cover,
-                          placeholder: (context, url) => Center(
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              color: theme.colorScheme.primary,
-                            ),
-                          ),
-                          errorWidget: (context, url, error) => Icon(
-                            Icons.image_not_supported_rounded,
-                            color: theme.disabledColor,
-                            size: 32,
-                          ),
+                          placeholder:
+                              (context, url) => Center(
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: theme.colorScheme.primary,
+                                ),
+                              ),
+                          errorWidget:
+                              (context, url, error) => Icon(
+                                Icons.image_not_supported_rounded,
+                                color: theme.disabledColor,
+                                size: 32,
+                              ),
                         ),
                       ),
                     ),
@@ -722,20 +721,21 @@ class _FavouriteScreenState extends State<FavouriteScreen>
                             ),
                           ],
                         ),
-                        child: isBeingRemoved
-                            ? const SizedBox(
-                                width: 12,
-                                height: 12,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
+                        child:
+                            isBeingRemoved
+                                ? const SizedBox(
+                                  width: 12,
+                                  height: 12,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    color: Colors.white,
+                                  ),
+                                )
+                                : const Icon(
+                                  Icons.favorite_rounded,
                                   color: Colors.white,
+                                  size: 12,
                                 ),
-                              )
-                            : const Icon(
-                                Icons.favorite_rounded,
-                                color: Colors.white,
-                                size: 12,
-                              ),
                       ),
                     ),
                   ),
@@ -764,9 +764,10 @@ class _FavouriteScreenState extends State<FavouriteScreen>
                           vertical: 4,
                         ),
                         decoration: BoxDecoration(
-                          color: isDark
-                              ? Colors.grey.shade800
-                              : Colors.grey.shade100,
+                          color:
+                              isDark
+                                  ? Colors.grey.shade800
+                                  : Colors.grey.shade100,
                           borderRadius: BorderRadius.circular(6),
                         ),
                         child: Text(
@@ -795,28 +796,29 @@ class _FavouriteScreenState extends State<FavouriteScreen>
                 children: [
                   AnimatedSwitcher(
                     duration: const Duration(milliseconds: 200),
-                    child: isProcessing && !isBeingRemoved
-                        ? Container(
-                            width: 100,
-                            height: 44,
-                            alignment: Alignment.center,
-                            child: SizedBox(
-                              width: 24,
-                              height: 24,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                color: theme.colorScheme.primary,
+                    child:
+                        isProcessing && !isBeingRemoved
+                            ? Container(
+                              width: 100,
+                              height: 44,
+                              alignment: Alignment.center,
+                              child: SizedBox(
+                                width: 24,
+                                height: 24,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: theme.colorScheme.primary,
+                                ),
                               ),
-                            ),
-                          )
-                        : quantity == 0
+                            )
+                            : quantity == 0
                             ? _buildAddToCartButton(theme, favorite)
                             : _buildQuantitySelector(
-                                theme,
-                                isDark,
-                                favorite,
-                                quantity,
-                              ),
+                              theme,
+                              isDark,
+                              favorite,
+                              quantity,
+                            ),
                   ),
                 ],
               ),
@@ -925,11 +927,7 @@ class _FavouriteScreenState extends State<FavouriteScreen>
           color: isDark ? Colors.grey.shade700 : Colors.white,
           borderRadius: BorderRadius.circular(8),
         ),
-        child: Icon(
-          icon,
-          size: 18,
-          color: theme.colorScheme.primary,
-        ),
+        child: Icon(icon, size: 18, color: theme.colorScheme.primary),
       ),
     );
   }
@@ -961,59 +959,25 @@ class _FavouriteScreenState extends State<FavouriteScreen>
   Widget _buildErrorState(ThemeData theme) {
     final isLoginError = _error?.toLowerCase().contains('login') ?? false;
 
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(32),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              padding: const EdgeInsets.all(24),
-              decoration: BoxDecoration(
-                color: Colors.red.withOpacity(0.1),
-                shape: BoxShape.circle,
-              ),
-              child: Icon(
-                isLoginError ? Icons.lock_outline_rounded : Icons.cloud_off_rounded,
-                size: 64,
-                color: Colors.red.shade400,
-              ),
+    if (isLoginError) {
+      return ErrorStateWidget(
+        title: 'Login Required',
+        subtitle: _error ?? 'Please login to view your favorites.',
+        errorType: ErrorType.permission,
+        retryText: 'Login',
+        onRetry:
+            () => Navigator.push(
+              context,
+              AnimatedTransitions.slideFromBottom(const LoginScreen()),
             ),
-            const SizedBox(height: 24),
-            Text(
-              isLoginError ? 'Login Required' : 'Oops!',
-              style: theme.textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              _error ?? 'An error occurred',
-              textAlign: TextAlign.center,
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: theme.hintColor,
-              ),
-            ),
-            const SizedBox(height: 24),
-            ElevatedButton.icon(
-              onPressed: isLoginError
-                  ? () => Navigator.push(
-                        context,
-                        AnimatedTransitions.slideFromBottom(const LoginScreen()),
-                      )
-                  : _loadFavorites,
-              icon: Icon(isLoginError ? Icons.login_rounded : Icons.refresh_rounded),
-              label: Text(isLoginError ? 'Login' : 'Try Again'),
-              style: ElevatedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
+      );
+    }
+
+    return ErrorStateWidget(
+      title: 'Failed to Load Favorites',
+      subtitle: _error ?? 'An error occurred while loading your favorites.',
+      errorType: ErrorType.server,
+      onRetry: _loadFavorites,
     );
   }
 
@@ -1073,12 +1037,18 @@ class _FavouriteScreenState extends State<FavouriteScreen>
             ElevatedButton.icon(
               onPressed: () {
                 HapticFeedback.lightImpact();
-                Navigator.pop(context);
+                // Switch to Categories tab (index 3)
+                final dashboardState =
+                    context.findAncestorStateOfType<DashboardScreenState>();
+                dashboardState?.switchToTab(3);
               },
               icon: const Icon(Icons.explore_rounded),
               label: const Text('Explore Products'),
               style: ElevatedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 32,
+                  vertical: 16,
+                ),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(16),
                 ),

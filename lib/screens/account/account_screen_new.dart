@@ -25,8 +25,10 @@ class _AccountScreenState extends State<AccountScreen>
     _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(parent: _animationController, curve: Curves.easeOut),
     );
-    _slideAnimation =
-        Tween<Offset>(begin: const Offset(0, 0.2), end: Offset.zero).animate(
+    _slideAnimation = Tween<Offset>(
+      begin: const Offset(0, 0.2),
+      end: Offset.zero,
+    ).animate(
       CurvedAnimation(parent: _animationController, curve: Curves.easeOutCubic),
     );
     _animationController.forward();
@@ -48,9 +50,9 @@ class _AccountScreenState extends State<AccountScreen>
     if (await canLaunchUrl(url)) {
       await launchUrl(url, mode: LaunchMode.externalApplication);
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Could not open WhatsApp.')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Could not open WhatsApp.')));
     }
   }
 
@@ -109,24 +111,28 @@ class _AccountScreenState extends State<AccountScreen>
                             icon: Icons.person_outline_rounded,
                             title: 'Edit Profile',
                             subtitle: 'Update your information',
-                            onTap: () => Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) =>
-                                    EditProfileScreen(userProfile: user),
-                              ),
-                            ),
+                            onTap:
+                                () => Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder:
+                                        (context) => EditProfileScreen(
+                                          userProfile: user,
+                                        ),
+                                  ),
+                                ),
                           ),
                           _MenuItem(
                             icon: Icons.location_on_outlined,
                             title: 'Manage Addresses',
                             subtitle: 'Add or edit delivery addresses',
-                            onTap: () => Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => const AddressScreen(),
-                              ),
-                            ),
+                            onTap:
+                                () => Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => const AddressScreen(),
+                                  ),
+                                ),
                           ),
                         ],
                       ),
@@ -139,23 +145,26 @@ class _AccountScreenState extends State<AccountScreen>
                             icon: Icons.shopping_bag_outlined,
                             title: 'My Orders',
                             subtitle: 'Track and manage your orders',
-                            onTap: () => Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => OrderScreen(),
-                              ),
-                            ),
+                            onTap:
+                                () => Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => OrderScreen(),
+                                  ),
+                                ),
                           ),
                           _MenuItem(
                             icon: Icons.autorenew_rounded,
                             title: 'My Subscriptions',
                             subtitle: 'View active subscriptions',
-                            onTap: () => Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => const SubscriptionScreen(),
-                              ),
-                            ),
+                            onTap:
+                                () => Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder:
+                                        (context) => const SubscriptionScreen(),
+                                  ),
+                                ),
                           ),
                         ],
                       ),
@@ -170,12 +179,13 @@ class _AccountScreenState extends State<AccountScreen>
                             icon: Icons.help_outline_rounded,
                             title: 'Help Center',
                             subtitle: 'FAQs and support',
-                            onTap: () => Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => const HelpScreen(),
-                              ),
-                            ),
+                            onTap:
+                                () => Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => const HelpScreen(),
+                                  ),
+                                ),
                           ),
                           _MenuItem(
                             icon: Icons.chat_bubble_outline_rounded,
@@ -187,12 +197,13 @@ class _AccountScreenState extends State<AccountScreen>
                             icon: Icons.info_outline_rounded,
                             title: 'About Us',
                             subtitle: 'Learn more about us',
-                            onTap: () => Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => AboutScreen(),
-                              ),
-                            ),
+                            onTap:
+                                () => Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => AboutScreen(),
+                                  ),
+                                ),
                           ),
                         ],
                       ),
@@ -212,9 +223,14 @@ class _AccountScreenState extends State<AccountScreen>
     );
   }
 
-  Widget _buildHeader(ThemeData theme, Size size, UserModel user, String userName) {
+  Widget _buildHeader(
+    ThemeData theme,
+    Size size,
+    UserModel user,
+    String userName,
+  ) {
     final colorScheme = theme.colorScheme;
-    
+
     return Stack(
       clipBehavior: Clip.none,
       alignment: Alignment.center,
@@ -322,7 +338,7 @@ class _AccountScreenState extends State<AccountScreen>
 
   Widget _buildProfileCard(ThemeData theme, UserModel user, String userName) {
     final colorScheme = theme.colorScheme;
-    
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -358,17 +374,19 @@ class _AccountScreenState extends State<AccountScreen>
               child: CircleAvatar(
                 radius: 29,
                 backgroundColor: colorScheme.primary.withOpacity(0.1),
-                backgroundImage: user.profilePicture != null &&
-                        user.profilePicture!.isNotEmpty
-                    ? NetworkImage(user.profilePicture!)
-                    : null,
-                child: user.profilePicture == null || user.profilePicture!.isEmpty
-                    ? Icon(
-                        Icons.person_rounded,
-                        size: 32,
-                        color: colorScheme.primary,
-                      )
-                    : null,
+                backgroundImage:
+                    user.profilePicture != null &&
+                            user.profilePicture!.isNotEmpty
+                        ? NetworkImage(user.profilePicture!)
+                        : null,
+                child:
+                    user.profilePicture == null || user.profilePicture!.isEmpty
+                        ? Icon(
+                          Icons.person_rounded,
+                          size: 32,
+                          color: colorScheme.primary,
+                        )
+                        : null,
               ),
             ),
           ),
@@ -401,7 +419,10 @@ class _AccountScreenState extends State<AccountScreen>
                 ),
                 const SizedBox(height: 8),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
                     color: colorScheme.primary.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(20),
@@ -431,12 +452,13 @@ class _AccountScreenState extends State<AccountScreen>
           ),
           // Edit Button
           GestureDetector(
-            onTap: () => Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => EditProfileScreen(userProfile: user),
-              ),
-            ),
+            onTap:
+                () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => EditProfileScreen(userProfile: user),
+                  ),
+                ),
             child: Container(
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
@@ -482,9 +504,14 @@ class _AccountScreenState extends State<AccountScreen>
     );
   }
 
-  Widget _buildStatItem(ThemeData theme, String count, String label, IconData icon) {
+  Widget _buildStatItem(
+    ThemeData theme,
+    String count,
+    String label,
+    IconData icon,
+  ) {
     final colorScheme = theme.colorScheme;
-    
+
     return Column(
       children: [
         Container(
@@ -557,25 +584,26 @@ class _AccountScreenState extends State<AccountScreen>
             ],
           ),
           child: Column(
-            children: items.asMap().entries.map((entry) {
-              final index = entry.key;
-              final item = entry.value;
-              final isLast = index == items.length - 1;
+            children:
+                items.asMap().entries.map((entry) {
+                  final index = entry.key;
+                  final item = entry.value;
+                  final isLast = index == items.length - 1;
 
-              return Column(
-                children: [
-                  _buildMenuItem(theme, item),
-                  if (!isLast)
-                    Padding(
-                      padding: const EdgeInsets.only(left: 60),
-                      child: Divider(
-                        height: 1,
-                        color: theme.dividerColor.withOpacity(0.15),
-                      ),
-                    ),
-                ],
-              );
-            }).toList(),
+                  return Column(
+                    children: [
+                      _buildMenuItem(theme, item),
+                      if (!isLast)
+                        Padding(
+                          padding: const EdgeInsets.only(left: 60),
+                          child: Divider(
+                            height: 1,
+                            color: theme.dividerColor.withOpacity(0.15),
+                          ),
+                        ),
+                    ],
+                  );
+                }).toList(),
           ),
         ),
       ],
@@ -584,7 +612,7 @@ class _AccountScreenState extends State<AccountScreen>
 
   Widget _buildMenuItem(ThemeData theme, _MenuItem item) {
     final colorScheme = theme.colorScheme;
-    
+
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -620,7 +648,9 @@ class _AccountScreenState extends State<AccountScreen>
                       item.subtitle,
                       style: TextStyle(
                         fontSize: 12,
-                        color: theme.textTheme.bodyMedium?.color?.withOpacity(0.5),
+                        color: theme.textTheme.bodyMedium?.color?.withOpacity(
+                          0.5,
+                        ),
                       ),
                     ),
                   ],
@@ -640,7 +670,7 @@ class _AccountScreenState extends State<AccountScreen>
 
   Widget _buildPreferencesSection(ThemeData theme) {
     final colorScheme = theme.colorScheme;
-    
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -670,15 +700,21 @@ class _AccountScreenState extends State<AccountScreen>
           ),
           child: BlocBuilder<ThemeCubit, ThemeMode>(
             builder: (context, themeMode) {
-              final isDarkMode = themeMode == ThemeMode.dark ||
+              final isDarkMode =
+                  themeMode == ThemeMode.dark ||
                   (themeMode == ThemeMode.system &&
-                      MediaQuery.of(context).platformBrightness == Brightness.dark);
+                      MediaQuery.of(context).platformBrightness ==
+                          Brightness.dark);
 
               return _buildSwitchItem(
                 theme,
-                icon: isDarkMode ? Icons.dark_mode_rounded : Icons.light_mode_rounded,
+                icon:
+                    isDarkMode
+                        ? Icons.dark_mode_rounded
+                        : Icons.light_mode_rounded,
                 title: 'Dark Mode',
-                subtitle: isDarkMode ? 'Dark theme enabled' : 'Light theme enabled',
+                subtitle:
+                    isDarkMode ? 'Dark theme enabled' : 'Light theme enabled',
                 value: isDarkMode,
                 onChanged: (value) {
                   context.read<ThemeCubit>().toggleTheme(value);
@@ -700,7 +736,7 @@ class _AccountScreenState extends State<AccountScreen>
     required ValueChanged<bool> onChanged,
   }) {
     final colorScheme = theme.colorScheme;
-    
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
       child: Row(
@@ -765,7 +801,11 @@ class _AccountScreenState extends State<AccountScreen>
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(Icons.logout_rounded, size: 20, color: Colors.red.shade600),
+                Icon(
+                  Icons.logout_rounded,
+                  size: 20,
+                  color: Colors.red.shade600,
+                ),
                 const SizedBox(width: 10),
                 Text(
                   'Log Out',
@@ -786,50 +826,62 @@ class _AccountScreenState extends State<AccountScreen>
   void _showLogoutDialog(ThemeData theme) {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: Colors.red.withOpacity(0.1),
-                shape: BoxShape.circle,
-              ),
-              child: Icon(Icons.logout_rounded, color: Colors.red.shade600, size: 20),
+      builder:
+          (context) => AlertDialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
             ),
-            const SizedBox(width: 12),
-            const Text('Log Out'),
-          ],
-        ),
-        content: const Text('Are you sure you want to log out of your account?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(
-              'Cancel',
-              style: TextStyle(
-                color: theme.textTheme.bodyMedium?.color?.withOpacity(0.7),
-              ),
+            title: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.red.withOpacity(0.1),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    Icons.logout_rounded,
+                    color: Colors.red.shade600,
+                    size: 20,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                const Text('Log Out'),
+              ],
             ),
+            content: const Text(
+              'Are you sure you want to log out of your account?',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: Text(
+                  'Cancel',
+                  style: TextStyle(
+                    color: theme.textTheme.bodyMedium?.color?.withOpacity(0.7),
+                  ),
+                ),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                  _handleLogout(context);
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.red.shade600,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 10,
+                  ),
+                ),
+                child: const Text('Log Out'),
+              ),
+            ],
           ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.pop(context);
-              _handleLogout(context);
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red.shade600,
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-            ),
-            child: const Text('Log Out'),
-          ),
-        ],
-      ),
     );
   }
 
@@ -854,11 +906,7 @@ class _AccountScreenState extends State<AccountScreen>
                 color: theme.textTheme.bodyMedium?.color?.withOpacity(0.3),
               ),
             ),
-            Icon(
-              Icons.favorite,
-              size: 12,
-              color: Colors.red.shade400,
-            ),
+            Icon(Icons.favorite, size: 12, color: Colors.red.shade400),
             Text(
               ' in India',
               style: TextStyle(

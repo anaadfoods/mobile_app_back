@@ -1,5 +1,6 @@
 import 'package:grocery_app/models/product_image_model.dart';
 import 'package:grocery_app/models/product_model.dart';
+import 'package:grocery_app/models/order_model.dart' show parseFlexibleDate;
 
 class CartItem {
   final int id;
@@ -45,8 +46,8 @@ class CartItem {
       productVariant: Product.fromJson(json['product_variant']),
       quantity: json['quantity'],
       totalPrice: json['total_price'].toString(),
-      createdAt: DateTime.parse(json['created_at']),
-      updatedAt: DateTime.parse(json['updated_at']),
+      createdAt: parseFlexibleDate(json['created_at']),
+      updatedAt: parseFlexibleDate(json['updated_at']),
     );
   }
 
@@ -91,13 +92,14 @@ class CartModel {
 
     return CartModel(
       id: data['id'],
-      items: (data['items'] as List)
-          .map((item) => CartItem.fromJson(item))
-          .toList(),
+      items:
+          (data['items'] as List)
+              .map((item) => CartItem.fromJson(item))
+              .toList(),
       totalPrice: data['total_price'].toString(),
       totalItems: data['total_items'],
-      createdAt: DateTime.parse(data['created_at']),
-      updatedAt: DateTime.parse(data['updated_at']),
+      createdAt: parseFlexibleDate(data['created_at']),
+      updatedAt: parseFlexibleDate(data['updated_at']),
     );
   }
 
@@ -119,7 +121,14 @@ class CartModel {
     String? totalPrice,
     int? totalItems,
   }) {
-    return CartModel(id: id, items: items ?? this.items, totalPrice: totalPrice ?? this.totalPrice, totalItems: totalItems ?? this.totalItems, createdAt: createdAt, updatedAt: updatedAt);
+    return CartModel(
+      id: id,
+      items: items ?? this.items,
+      totalPrice: totalPrice ?? this.totalPrice,
+      totalItems: totalItems ?? this.totalItems,
+      createdAt: createdAt,
+      updatedAt: updatedAt,
+    );
   }
 }
 
@@ -168,9 +177,10 @@ class ProductVariant {
       productName: json['product_name'],
       productDescription: json['product_description'],
       productCategory: json['product_category'],
-      productImages: (json['product_images'] as List)
-          .map((image) => ProductImage.fromJson(image))
-          .toList(),
+      productImages:
+          (json['product_images'] as List)
+              .map((image) => ProductImage.fromJson(image))
+              .toList(),
     );
   }
 

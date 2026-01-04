@@ -11,21 +11,35 @@ String orderToJson(Order data) => json.encode(data.toJson());
 
 /// A helper function to safely parse date strings from the API,
 /// handling multiple possible formats.
-DateTime _parseDate(String? dateString) {
-  if (dateString == null) {
+DateTime parseFlexibleDate(String? dateString) {
+  if (dateString == null || dateString.isEmpty) {
     return DateTime.now();
   }
-  // Try parsing the format "dd/MM/yyyy"
-  try {
-    return DateFormat('dd/MM/yyyy').parse(dateString);
-  } on FormatException {
-    // If it fails, try the standard ISO 8601 format
+
+  // List of formats to try, in order of priority
+  final formats = [
+    'dd-MM-yyyy HH:mm', // 19-12-2025 07:57
+    'dd-MM-yyyy', // 19-12-2025
+    'dd/MM/yyyy HH:mm', // 19/12/2025 07:57
+    'dd/MM/yyyy', // 19/12/2025
+    'yyyy-MM-dd HH:mm:ss', // 2025-12-19 07:57:00
+    'yyyy-MM-dd', // 2025-12-19
+  ];
+
+  for (final format in formats) {
     try {
-      return DateTime.parse(dateString);
-    } catch (e) {
-      // If all parsing fails, return the current date as a fallback
-      return DateTime.now();
+      return DateFormat(format).parse(dateString);
+    } catch (_) {
+      // Continue to next format
     }
+  }
+
+  // Try standard ISO 8601 format as fallback
+  try {
+    return DateTime.parse(dateString);
+  } catch (_) {
+    // If all parsing fails, return the current date as a fallback
+    return DateTime.now();
   }
 }
 
@@ -101,17 +115,19 @@ class Order {
           double.tryParse(json["delivery_charges"]?.toString() ?? '0') ?? 0.0,
       discount: double.tryParse(json["discount"]?.toString() ?? '0') ?? 0.0,
       total: double.tryParse(json["total"]?.toString() ?? '0') ?? 0.0,
-      createdAt: _parseDate(json["created_at"]),
-      updatedAt: _parseDate(json["updated_at"]),
-      expectedDeliveryDate: _parseDate(json["expected_delivery_date"]),
+      createdAt: parseFlexibleDate(json["created_at"]),
+      updatedAt: parseFlexibleDate(json["updated_at"]),
+      expectedDeliveryDate: parseFlexibleDate(json["expected_delivery_date"]),
       isSubscriptionOrder: json["is_subscription_order"] ?? false,
       isFirstOrder: json["is_first_order"] ?? false,
       hasReferralReward: json["has_referral_reward"] ?? false,
       notes: json["notes"],
-      items: json["items"] == null
-          ? [] 
-          : List<OrderItemResponse>.from(
-              json["items"].map((x) => OrderItemResponse.fromJson(x))),
+      items:
+          json["items"] == null
+              ? []
+              : List<OrderItemResponse>.from(
+                json["items"].map((x) => OrderItemResponse.fromJson(x)),
+              ),
     );
   }
 
@@ -200,7 +216,6 @@ class Order {
   }
 }
 
-
 class OrderItemResponse {
   final Product productDetails;
   final int quantity;
@@ -236,8 +251,6 @@ class OrderItemResponse {
     };
   }
 }
-
-
 
 // class Order {
 //   final int id;
@@ -343,7 +356,6 @@ class OrderItem {
 }
 
 class ShippingDetails {
-
   final String address;
   final String city;
   final String state;
@@ -355,7 +367,8 @@ class ShippingDetails {
     required this.city,
     required this.state,
     required this.pincode,
-    required this.phone, String? name,
+    required this.phone,
+    String? name,
   });
 
   Map<String, dynamic> toJson() {
@@ -379,8 +392,7 @@ class ShippingDetails {
   }
 
   bool get isComplete {
-    return
-        address.isNotEmpty &&
+    return address.isNotEmpty &&
         city.isNotEmpty &&
         state.isNotEmpty &&
         pincode.isNotEmpty &&
@@ -414,11 +426,10 @@ class OrderModel {
     required this.shippingPhone,
     required this.items,
     this.notes,
-    this.status, 
+    this.status,
     required this.expectedDeliveryDate, // Use 'this.'
-  required this.deliveryFee,
+    required this.deliveryFee,
   });
-
 
   Map<String, dynamic> toJson() {
     return {
@@ -454,8 +465,11 @@ class OrderModel {
               .toList() ??
           [],
       notes: orderData['notes'],
-      status: orderData['status'], expectedDeliveryDate: orderData['expected_delivery_date'], 
-    deliveryFee: double.tryParse(orderData['delivery_charges']?.toString() ?? '0.0') ?? 0.0,
+      status: orderData['status'],
+      expectedDeliveryDate: orderData['expected_delivery_date'],
+      deliveryFee:
+          double.tryParse(orderData['delivery_charges']?.toString() ?? '0.0') ??
+          0.0,
     );
   }
 
@@ -481,8 +495,6 @@ class OrderModel {
       notes: notes,
     );
   }
-  
- 
 }
 
 class PaymentLinks {

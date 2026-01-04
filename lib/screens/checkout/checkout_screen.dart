@@ -3,6 +3,7 @@
 import 'dart:math' as math;
 import 'package:flutter/services.dart';
 import 'package:grocery_app/common_widgets/global_import.dart';
+import 'package:grocery_app/services/referral_reward_service.dart';
 
 class CheckoutScreen extends StatefulWidget {
   final CartModel? cart;
@@ -40,6 +41,7 @@ class _CheckoutScreenState extends State<CheckoutScreen>
   final CartService _cartService = CartService();
   final AuthService _authService = AuthService();
   final SubscriptionService _subscriptionService = SubscriptionService();
+  final ReferralRewardService _rewardService = ReferralRewardService();
 
   ShippingDetails? _shippingDetails;
   SubscriptionPlan? subscription;
@@ -50,6 +52,7 @@ class _CheckoutScreenState extends State<CheckoutScreen>
   String _selectedPaymentMethod = 'UPI';
   bool _useExistingAddress = true;
   late String _selectedPaymentType;
+  int _pendingRewardsCount = 0;
 
   // Animation Controllers
   late AnimationController _headerController;
@@ -68,9 +71,10 @@ class _CheckoutScreenState extends State<CheckoutScreen>
     if (widget.isSubscription) {
       basePrice = (widget.price ?? 0.0) * (widget.quantity ?? 1);
     } else {
-      basePrice = widget.cart?.totalPrice != null
-          ? double.parse(widget.cart!.totalPrice)
-          : (widget.singleProduct!.finalPrice * widget.quantity!);
+      basePrice =
+          widget.cart?.totalPrice != null
+              ? double.parse(widget.cart!.totalPrice)
+              : (widget.singleProduct!.finalPrice * widget.quantity!);
     }
     return (basePrice + widget.deliveryCharges).toString();
   }
@@ -156,10 +160,20 @@ class _CheckoutScreenState extends State<CheckoutScreen>
       await _fetchPlansAndAssign();
     }
 
+    // Fetch pending rewards count
+    await _fetchPendingRewards();
+
     _setLoadingState(false);
     Future.delayed(const Duration(milliseconds: 100), () {
       if (mounted) _bottomBarController.forward();
     });
+  }
+
+  Future<void> _fetchPendingRewards() async {
+    final count = await _rewardService.getPendingRewardsCount();
+    if (mounted) {
+      setState(() => _pendingRewardsCount = count);
+    }
   }
 
   Future<void> _prepareShippingDetails() async {
@@ -257,7 +271,14 @@ class _CheckoutScreenState extends State<CheckoutScreen>
       NotificationHelper.showNotification(
         title: 'Subscription Created!',
         body:
-            'Subscription ID: ${result['subscription_id']}\nPayment Mode: Cash on Delivery\nStatus: Pending Payment',
+            'Subscription ID: ${result['subscription_id']}\n'
+            'Payment Mode: Cash on Delivery\n'
+            'Status: Pending Payment',
+        payload: json.encode({
+          'screen': 'subscription_detail',
+          'subscription_id': result['subscription_id'],
+          'type': 'subscription',
+        }),
       );
     } else {
       _showSubscriptionFailedDialog(result);
@@ -298,20 +319,25 @@ class _CheckoutScreenState extends State<CheckoutScreen>
   void _showSubscriptionSuccessMessage(Map<String, dynamic> result) {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Text('Subscription Created'),
-        content: const Text('Your subscription has been created successfully!'),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-              Navigator.of(context).pop();
-            },
-            child: const Text('OK'),
+      builder:
+          (context) => AlertDialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
+            ),
+            title: const Text('Subscription Created'),
+            content: const Text(
+              'Your subscription has been created successfully!',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                  Navigator.of(context).pop();
+                },
+                child: const Text('OK'),
+              ),
+            ],
           ),
-        ],
-      ),
     );
   }
 
@@ -331,7 +357,14 @@ class _CheckoutScreenState extends State<CheckoutScreen>
       NotificationHelper.showNotification(
         title: 'Order Created!',
         body:
-            'Order ID: ${response.orderNumber}\nPayment Mode: Cash on Delivery\nStatus: Pending Payment',
+            'Order ID: ${response.orderNumber}\n'
+            'Payment Mode: Cash on Delivery\n'
+            'Status: Pending Payment',
+        payload: json.encode({
+          'screen': 'order_tracking',
+          'order_id': response.id,
+          'type': 'order',
+        }),
       );
     } else {
       _showOrderFailedDialog(_parseServerError(response));
@@ -349,7 +382,14 @@ class _CheckoutScreenState extends State<CheckoutScreen>
     NotificationHelper.showNotification(
       title: 'Order Created!',
       body:
-          'Order ID: ${createdOrder.orderNumber}\nPayment Mode: Cash on Delivery\nStatus: Pending Payment',
+          'Order ID: ${createdOrder.orderNumber}\n'
+          'Payment Mode: Cash on Delivery\n'
+          'Status: Pending Payment',
+      payload: json.encode({
+        'screen': 'order_tracking',
+        'order_id': createdOrder.id,
+        'type': 'order',
+      }),
     );
   }
 
@@ -431,7 +471,14 @@ class _CheckoutScreenState extends State<CheckoutScreen>
                   NotificationHelper.showNotification(
                     title: 'Payment Successful!',
                     body:
-                        'Subscription ID: $parsedSubscriptionId\nPayment Mode: UPI\nStatus: Paid',
+                        'Subscription ID: $parsedSubscriptionId\n'
+                        'Payment Mode: UPI\n'
+                        'Status: Paid',
+                    payload: json.encode({
+                      'screen': 'subscription_detail',
+                      'subscription_id': parsedSubscriptionId,
+                      'type': 'subscription',
+                    }),
                   );
 
                   Navigator.pushAndRemoveUntil(
@@ -458,7 +505,14 @@ class _CheckoutScreenState extends State<CheckoutScreen>
               NotificationHelper.showNotification(
                 title: 'Payment Failed!',
                 body:
-                    'Subscription ID: $parsedSubscriptionId\nPayment Mode: UPI\nStatus: Failed',
+                    'Subscription ID: $parsedSubscriptionId\n'
+                    'Payment Mode: UPI\n'
+                    'Status: Failed',
+                payload: json.encode({
+                  'screen': 'subscription_detail',
+                  'subscription_id': parsedSubscriptionId,
+                  'type': 'subscription',
+                }),
               );
 
               ScaffoldMessenger.of(context).showSnackBar(
@@ -494,7 +548,14 @@ class _CheckoutScreenState extends State<CheckoutScreen>
             NotificationHelper.showNotification(
               title: 'Payment Failed!',
               body:
-                  'Order ID: ${response.orderId}\nPayment Mode: UPI\nStatus: Failed',
+                  'Order ID: ${response.orderId}\n'
+                  'Payment Mode: UPI\n'
+                  'Status: Failed',
+              payload: json.encode({
+                'screen': 'order_tracking',
+                'order_id': response.orderId,
+                'type': 'order',
+              }),
             );
             SnackBarHelper.showError(context, 'Payment failed or cancelled');
           },
@@ -518,7 +579,14 @@ class _CheckoutScreenState extends State<CheckoutScreen>
         NotificationHelper.showNotification(
           title: 'Payment Successful!',
           body:
-              'Order ID: ${response.orderId}\nPayment Mode: UPI\nStatus: Paid',
+              'Order ID: ${response.orderId}\n'
+              'Payment Mode: UPI\n'
+              'Status: Paid',
+          payload: json.encode({
+            'screen': 'order_tracking',
+            'order_id': response.orderId,
+            'type': 'order',
+          }),
         );
 
         Navigator.pushReplacement(
@@ -548,9 +616,7 @@ class _CheckoutScreenState extends State<CheckoutScreen>
   void _navigateToOrderAccepted(Order order) {
     Navigator.pushReplacement(
       context,
-      AnimatedTransitions.fadeScale(
-        OrderDetailScreen(order: order),
-      ),
+      AnimatedTransitions.fadeScale(OrderDetailScreen(order: order)),
     );
   }
 
@@ -560,17 +626,20 @@ class _CheckoutScreenState extends State<CheckoutScreen>
     );
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Text('Subscription Failed'),
-        content: Text(errorMessage),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Go Back'),
+      builder:
+          (context) => AlertDialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
+            ),
+            title: const Text('Subscription Failed'),
+            content: Text(errorMessage),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: const Text('Go Back'),
+              ),
+            ],
           ),
-        ],
-      ),
     );
   }
 
@@ -749,8 +818,11 @@ class _CheckoutScreenState extends State<CheckoutScreen>
                           const SizedBox(height: 16),
                           _buildOrderSummaryCard(theme, isDark),
                           const SizedBox(height: 16),
+                          if (_pendingRewardsCount > 0)
+                            _buildRewardNotificationCard(theme, isDark),
+                          const SizedBox(height: 16),
                           _buildPaymentMethodCard(theme, isDark),
-                          const SizedBox(height: 120),
+                          const SizedBox(height: 180),
                         ],
                       ),
                     ),
@@ -776,10 +848,7 @@ class _CheckoutScreenState extends State<CheckoutScreen>
         builder: (context, child) {
           return Transform.translate(
             offset: Offset(0, _headerSlide.value),
-            child: Opacity(
-              opacity: _headerFade.value,
-              child: child,
-            ),
+            child: Opacity(opacity: _headerFade.value, child: child),
           );
         },
         child: Container(
@@ -847,13 +916,10 @@ class _CheckoutScreenState extends State<CheckoutScreen>
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       // Back Button
-                      _buildIconButton(
-                        Icons.arrow_back_ios_new_rounded,
-                        () {
-                          HapticFeedback.lightImpact();
-                          Navigator.pop(context);
-                        },
-                      ),
+                      _buildIconButton(Icons.arrow_back_ios_new_rounded, () {
+                        HapticFeedback.lightImpact();
+                        Navigator.pop(context);
+                      }),
                       const Spacer(),
                       // Title Row
                       Row(
@@ -881,11 +947,11 @@ class _CheckoutScreenState extends State<CheckoutScreen>
                                   widget.isSubscription
                                       ? "Subscription"
                                       : "Checkout",
-                                  style:
-                                      theme.textTheme.headlineMedium?.copyWith(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold,
-                                  ),
+                                  style: theme.textTheme.headlineMedium
+                                      ?.copyWith(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.bold,
+                                      ),
                                 ),
                                 const SizedBox(height: 4),
                                 Text(
@@ -956,6 +1022,75 @@ class _CheckoutScreenState extends State<CheckoutScreen>
     );
   }
 
+  Widget _buildRewardNotificationCard(ThemeData theme, bool isDark) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            const Color(0xFFFF9800).withOpacity(0.9),
+            const Color(0xFFFFB74D).withOpacity(0.85),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFFFF9800).withOpacity(0.3),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.25),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(
+              Icons.card_giftcard_rounded,
+              color: Colors.white,
+              size: 28,
+            ),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '🎁 Rewards Waiting!',
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  _pendingRewardsCount == 1
+                      ? 'You have 1 referral reward waiting in your orders!'
+                      : 'You have $_pendingRewardsCount referral rewards waiting in your orders!',
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: Colors.white.withOpacity(0.9),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Icon(
+            Icons.arrow_forward_ios_rounded,
+            color: Colors.white.withOpacity(0.7),
+            size: 18,
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildDeliveryTimeCard(ThemeData theme, bool isDark) {
     return Container(
       padding: const EdgeInsets.all(16),
@@ -969,9 +1104,7 @@ class _CheckoutScreenState extends State<CheckoutScreen>
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: Colors.green.withOpacity(0.3),
-        ),
+        border: Border.all(color: Colors.green.withOpacity(0.3)),
       ),
       child: Row(
         children: [
@@ -1009,21 +1142,22 @@ class _CheckoutScreenState extends State<CheckoutScreen>
               ],
             ),
           ),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-            decoration: BoxDecoration(
-              color: Colors.green,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: const Text(
-              'FREE',
-              style: TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
-                fontSize: 12,
+          if (widget.deliveryCharges == 0)
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+              decoration: BoxDecoration(
+                color: Colors.green,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: const Text(
+                'FREE',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 12,
+                ),
               ),
             ),
-          ),
         ],
       ),
     );
@@ -1101,25 +1235,16 @@ class _CheckoutScreenState extends State<CheckoutScreen>
             ],
           ),
           const SizedBox(height: 16),
-          Text(
-            _shippingDetails!.address,
-            style: theme.textTheme.bodyLarge,
-          ),
+          Text(_shippingDetails!.address, style: theme.textTheme.bodyLarge),
           const SizedBox(height: 8),
           Text(
             '${_shippingDetails!.city}, ${_shippingDetails!.state} - ${_shippingDetails!.pincode}',
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: theme.hintColor,
-            ),
+            style: theme.textTheme.bodyMedium?.copyWith(color: theme.hintColor),
           ),
           const SizedBox(height: 4),
           Row(
             children: [
-              Icon(
-                Icons.phone_rounded,
-                size: 16,
-                color: theme.hintColor,
-              ),
+              Icon(Icons.phone_rounded, size: 16, color: theme.hintColor),
               const SizedBox(width: 6),
               Text(
                 _shippingDetails!.phone,
@@ -1134,7 +1259,10 @@ class _CheckoutScreenState extends State<CheckoutScreen>
     );
   }
 
-  Widget _buildCongratulationCard(ThemeData theme, SubscriptionPlan subscription) {
+  Widget _buildCongratulationCard(
+    ThemeData theme,
+    SubscriptionPlan subscription,
+  ) {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -1240,19 +1368,23 @@ class _CheckoutScreenState extends State<CheckoutScreen>
               isDark,
               widget.singleProduct!,
               widget.quantity!,
-              widget.isSubscription ? widget.price! : widget.singleProduct!.finalPrice,
+              widget.isSubscription
+                  ? widget.price!
+                  : widget.singleProduct!.finalPrice,
             )
           else
-            ...widget.cart!.items.map((item) => Padding(
-                  padding: const EdgeInsets.only(bottom: 12),
-                  child: _buildProductItem(
-                    theme,
-                    isDark,
-                    item.productVariant,
-                    item.quantity,
-                    item.productVariant.finalPrice,
-                  ),
-                )),
+            ...widget.cart!.items.map(
+              (item) => Padding(
+                padding: const EdgeInsets.only(bottom: 12),
+                child: _buildProductItem(
+                  theme,
+                  isDark,
+                  item.productVariant,
+                  item.quantity,
+                  item.productVariant.finalPrice,
+                ),
+              ),
+            ),
 
           const Divider(height: 32),
 
@@ -1316,7 +1448,9 @@ class _CheckoutScreenState extends State<CheckoutScreen>
     double price,
   ) {
     String? imageUrl =
-        product.productImages.isNotEmpty ? product.productImages[0].image : null;
+        product.productImages.isNotEmpty
+            ? product.productImages[0].image
+            : null;
 
     return Row(
       children: [
@@ -1329,19 +1463,21 @@ class _CheckoutScreenState extends State<CheckoutScreen>
           ),
           child: ClipRRect(
             borderRadius: BorderRadius.circular(12),
-            child: imageUrl != null
-                ? CachedNetworkImage(
-                    imageUrl: imageUrl,
-                    fit: BoxFit.cover,
-                    errorWidget: (context, url, error) => Icon(
+            child:
+                imageUrl != null
+                    ? CachedNetworkImage(
+                      imageUrl: imageUrl,
+                      fit: BoxFit.cover,
+                      errorWidget:
+                          (context, url, error) => Icon(
+                            Icons.shopping_bag_outlined,
+                            color: theme.disabledColor,
+                          ),
+                    )
+                    : Icon(
                       Icons.shopping_bag_outlined,
                       color: theme.disabledColor,
                     ),
-                  )
-                : Icon(
-                    Icons.shopping_bag_outlined,
-                    color: theme.disabledColor,
-                  ),
           ),
         ),
         const SizedBox(width: 14),
@@ -1389,16 +1525,15 @@ class _CheckoutScreenState extends State<CheckoutScreen>
       children: [
         Text(
           label,
-          style: theme.textTheme.bodyMedium?.copyWith(
-            color: theme.hintColor,
-          ),
+          style: theme.textTheme.bodyMedium?.copyWith(color: theme.hintColor),
         ),
         Text(
           value,
           style: theme.textTheme.bodyMedium?.copyWith(
-            color: isDiscount
-                ? Colors.green
-                : isDelivery && value == 'FREE'
+            color:
+                isDiscount
+                    ? Colors.green
+                    : isDelivery && value == 'FREE'
                     ? Colors.green
                     : null,
             fontWeight: FontWeight.w600,
@@ -1590,7 +1725,8 @@ class _CheckoutScreenState extends State<CheckoutScreen>
     SubscriptionPlan subscription,
   ) {
     final totalMonthlyPrice = double.tryParse(totalPrice) ?? 0.0;
-    final fullSubscriptionPrice = totalMonthlyPrice * subscription.durationMonths;
+    final fullSubscriptionPrice =
+        totalMonthlyPrice * subscription.durationMonths;
 
     return Positioned(
       left: 0,
@@ -1818,7 +1954,10 @@ class _CheckoutScreenState extends State<CheckoutScreen>
           color: isSelected ? color.withOpacity(0.1) : theme.cardColor,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: isSelected ? color : (isDark ? Colors.grey.shade800 : Colors.grey.shade200),
+            color:
+                isSelected
+                    ? color
+                    : (isDark ? Colors.grey.shade800 : Colors.grey.shade200),
             width: isSelected ? 2 : 1,
           ),
         ),
@@ -1855,15 +1994,8 @@ class _CheckoutScreenState extends State<CheckoutScreen>
             if (isSelected)
               Container(
                 padding: const EdgeInsets.all(4),
-                decoration: BoxDecoration(
-                  color: color,
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(
-                  Icons.check,
-                  color: Colors.white,
-                  size: 16,
-                ),
+                decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+                child: const Icon(Icons.check, color: Colors.white, size: 16),
               ),
           ],
         ),
@@ -1884,9 +2016,7 @@ class _CheckoutScreenState extends State<CheckoutScreen>
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              CircularProgressIndicator(
-                color: theme.colorScheme.primary,
-              ),
+              CircularProgressIndicator(color: theme.colorScheme.primary),
               const SizedBox(height: 16),
               Text(
                 'Processing your order...',

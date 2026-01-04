@@ -128,7 +128,8 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
     final status = _getStatusInfo(_currentOrder.status);
 
     return Scaffold(
-      backgroundColor: isDark ? const Color(0xFF121212) : const Color(0xFFF8F9FA),
+      backgroundColor:
+          isDark ? const Color(0xFF121212) : const Color(0xFFF8F9FA),
       body: CustomScrollView(
         physics: const BouncingScrollPhysics(),
         slivers: [
@@ -145,6 +146,11 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
                     // Order Timeline
                     _buildTimelineCard(theme, isDark),
                     const SizedBox(height: 16),
+                    // Referral Reward Banner
+                    if (_currentOrder.hasReferralReward)
+                      _buildReferralRewardBanner(theme, isDark),
+                    if (_currentOrder.hasReferralReward)
+                      const SizedBox(height: 16),
                     // Products
                     _buildProductsCard(theme, isDark),
                     const SizedBox(height: 16),
@@ -167,7 +173,11 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
     );
   }
 
-  Widget _buildAnimatedHeader(ThemeData theme, bool isDark, _StatusInfo status) {
+  Widget _buildAnimatedHeader(
+    ThemeData theme,
+    bool isDark,
+    _StatusInfo status,
+  ) {
     return SliverToBoxAdapter(
       child: Container(
         height: 220,
@@ -175,10 +185,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [
-              status.color,
-              status.color.withOpacity(0.8),
-            ],
+            colors: [status.color, status.color.withOpacity(0.8)],
           ),
           borderRadius: const BorderRadius.only(
             bottomLeft: Radius.circular(32),
@@ -362,6 +369,78 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
     );
   }
 
+  Widget _buildReferralRewardBanner(ThemeData theme, bool isDark) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            const Color(0xFFFF9800).withOpacity(0.15),
+            const Color(0xFFFFB74D).withOpacity(0.1),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFFF9800), width: 2),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFFFF9800).withOpacity(0.2),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [const Color(0xFFFF9800), const Color(0xFFFFB74D)],
+              ),
+              shape: BoxShape.circle,
+              boxShadow: [
+                BoxShadow(
+                  color: const Color(0xFFFF9800).withOpacity(0.4),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: const Icon(
+              Icons.card_giftcard_rounded,
+              color: Colors.white,
+              size: 24,
+            ),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '🎁 Referral Reward Order!',
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    color: const Color(0xFFFF9800),
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'This order contains your referral reward. Enjoy your free gift!',
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: isDark ? Colors.white70 : Colors.grey[700],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildTimeline(ThemeData theme, bool isDark) {
     final steps = _getTimelineSteps();
 
@@ -382,27 +461,30 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
                   width: 32,
                   height: 32,
                   decoration: BoxDecoration(
-                    color: isCompleted || isCurrent
-                        ? step.color
-                        : (isDark ? Colors.grey[800] : Colors.grey[200]),
+                    color:
+                        isCompleted || isCurrent
+                            ? step.color
+                            : (isDark ? Colors.grey[800] : Colors.grey[200]),
                     shape: BoxShape.circle,
-                    boxShadow: isCurrent
-                        ? [
-                            BoxShadow(
-                              color: step.color.withOpacity(0.4),
-                              blurRadius: 12,
-                              spreadRadius: 2,
-                            ),
-                          ]
-                        : null,
+                    boxShadow:
+                        isCurrent
+                            ? [
+                              BoxShadow(
+                                color: step.color.withOpacity(0.4),
+                                blurRadius: 12,
+                                spreadRadius: 2,
+                              ),
+                            ]
+                            : null,
                   ),
                   child: Icon(
                     isCompleted
                         ? Icons.check_rounded
                         : (isCurrent ? step.icon : step.icon),
-                    color: isCompleted || isCurrent
-                        ? Colors.white
-                        : (isDark ? Colors.grey[600] : Colors.grey[400]),
+                    color:
+                        isCompleted || isCurrent
+                            ? Colors.white
+                            : (isDark ? Colors.grey[600] : Colors.grey[400]),
                     size: 16,
                   ),
                 ),
@@ -410,9 +492,10 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
                   Container(
                     width: 2,
                     height: 40,
-                    color: isCompleted
-                        ? step.color.withOpacity(0.5)
-                        : (isDark ? Colors.grey[800] : Colors.grey[200]),
+                    color:
+                        isCompleted
+                            ? step.color.withOpacity(0.5)
+                            : (isDark ? Colors.grey[800] : Colors.grey[200]),
                   ),
               ],
             ),
@@ -428,9 +511,8 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
                       step.title,
                       style: theme.textTheme.titleSmall?.copyWith(
                         fontWeight: FontWeight.w600,
-                        color: isCompleted || isCurrent
-                            ? null
-                            : theme.hintColor,
+                        color:
+                            isCompleted || isCurrent ? null : theme.hintColor,
                       ),
                     ),
                     const SizedBox(height: 4),
@@ -481,9 +563,10 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
     bool isLast,
   ) {
     final product = item.productDetails;
-    final imageUrl = product.productImages.isNotEmpty
-        ? product.productImages[0].image
-        : null;
+    final imageUrl =
+        product.productImages.isNotEmpty
+            ? product.productImages[0].image
+            : null;
 
     return Column(
       children: [
@@ -500,9 +583,10 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
           child: Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: isDark
-                  ? Colors.white.withOpacity(0.05)
-                  : Colors.grey.withOpacity(0.05),
+              color:
+                  isDark
+                      ? Colors.white.withOpacity(0.05)
+                      : Colors.grey.withOpacity(0.05),
               borderRadius: BorderRadius.circular(16),
             ),
             child: Row(
@@ -519,13 +603,16 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
                   ),
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(11),
-                    child: imageUrl != null
-                        ? Image.network(
-                            imageUrl,
-                            fit: BoxFit.cover,
-                            errorBuilder: (_, __, ___) => _buildImagePlaceholder(isDark),
-                          )
-                        : _buildImagePlaceholder(isDark),
+                    child:
+                        imageUrl != null
+                            ? Image.network(
+                              imageUrl,
+                              fit: BoxFit.cover,
+                              errorBuilder:
+                                  (_, __, ___) =>
+                                      _buildImagePlaceholder(isDark),
+                            )
+                            : _buildImagePlaceholder(isDark),
                   ),
                 ),
                 const SizedBox(width: 14),
@@ -693,12 +780,14 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             decoration: BoxDecoration(
-              color: _getPaymentStatusColor(_currentOrder.paymentStatus)
-                  .withOpacity(0.1),
+              color: _getPaymentStatusColor(
+                _currentOrder.paymentStatus,
+              ).withOpacity(0.1),
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
-                color: _getPaymentStatusColor(_currentOrder.paymentStatus)
-                    .withOpacity(0.3),
+                color: _getPaymentStatusColor(
+                  _currentOrder.paymentStatus,
+                ).withOpacity(0.3),
               ),
             ),
             child: Row(
@@ -752,9 +841,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
       children: [
         Text(
           label,
-          style: theme.textTheme.bodyMedium?.copyWith(
-            color: theme.hintColor,
-          ),
+          style: theme.textTheme.bodyMedium?.copyWith(color: theme.hintColor),
         ),
         Text(
           '${isDiscount && amount != 0 ? '-' : ''}₹${amount.abs().toStringAsFixed(2)}',
@@ -783,9 +870,10 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: isDark
-                  ? Colors.white.withOpacity(0.05)
-                  : Colors.grey.withOpacity(0.05),
+              color:
+                  isDark
+                      ? Colors.white.withOpacity(0.05)
+                      : Colors.grey.withOpacity(0.05),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Column(
@@ -837,9 +925,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
             decoration: BoxDecoration(
               color: AppColors.success.withOpacity(0.1),
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: AppColors.success.withOpacity(0.3),
-              ),
+              border: Border.all(color: AppColors.success.withOpacity(0.3)),
             ),
             child: Row(
               children: [
@@ -878,7 +964,8 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
   }
 
   Widget _buildActionsCard(ThemeData theme, bool isDark) {
-    final canCancel = _currentOrder.status != 'DELIVERED' &&
+    final canCancel =
+        _currentOrder.status != 'DELIVERED' &&
         _currentOrder.status != 'CANCELLED' &&
         _currentOrder.status != 'SHIPPED';
 
@@ -906,9 +993,8 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (_) => HelpScreen(
-                    orderNumber: _currentOrder.orderNumber,
-                  ),
+                  builder:
+                      (_) => HelpScreen(orderNumber: _currentOrder.orderNumber),
                 ),
               );
             },
@@ -961,9 +1047,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
         decoration: BoxDecoration(
           color: color.withOpacity(isDestructive ? 0.08 : 0.1),
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: color.withOpacity(0.2),
-          ),
+          border: Border.all(color: color.withOpacity(0.2)),
         ),
         child: Row(
           children: [
@@ -973,16 +1057,17 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
                 color: color.withOpacity(0.15),
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: isLoading
-                  ? SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: color,
-                      ),
-                    )
-                  : Icon(icon, color: color, size: 20),
+              child:
+                  isLoading
+                      ? SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: color,
+                        ),
+                      )
+                      : Icon(icon, color: color, size: 20),
             ),
             const SizedBox(width: 14),
             Expanded(
@@ -1005,11 +1090,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
                 ],
               ),
             ),
-            Icon(
-              Icons.arrow_forward_ios_rounded,
-              size: 16,
-              color: color,
-            ),
+            Icon(Icons.arrow_forward_ios_rounded, size: 16, color: color),
           ],
         ),
       ),
@@ -1079,49 +1160,62 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
     final steps = <_TimelineStep>[];
 
     // Order Placed - always completed
-    steps.add(_TimelineStep(
-      title: 'Order Placed',
-      subtitle: _formatShortDate(_currentOrder.createdAt),
-      icon: Icons.check_circle_outline,
-      color: AppColors.success,
-      isCompleted: true,
-      isCurrent: status == 'PLACED',
-    ));
+    steps.add(
+      _TimelineStep(
+        title: 'Order Placed',
+        subtitle: _formatShortDate(_currentOrder.createdAt),
+        icon: Icons.check_circle_outline,
+        color: AppColors.success,
+        isCompleted: true,
+        isCurrent: status == 'PLACED',
+      ),
+    );
 
     // Shipped
-    final isShipped = ['SHIPPED', 'OUT_FOR_DELIVERY', 'DELIVERED'].contains(status);
-    steps.add(_TimelineStep(
-      title: 'Order Shipped',
-      subtitle: isShipped ? 'Your order is on the way' : 'Pending',
-      icon: Icons.local_shipping_outlined,
-      color: AppColors.info,
-      isCompleted: isShipped,
-      isCurrent: status == 'SHIPPED',
-    ));
+    final isShipped = [
+      'SHIPPED',
+      'OUT_FOR_DELIVERY',
+      'DELIVERED',
+    ].contains(status);
+    steps.add(
+      _TimelineStep(
+        title: 'Order Shipped',
+        subtitle: isShipped ? 'Your order is on the way' : 'Pending',
+        icon: Icons.local_shipping_outlined,
+        color: AppColors.info,
+        isCompleted: isShipped,
+        isCurrent: status == 'SHIPPED',
+      ),
+    );
 
     // Out for Delivery
     final isOutForDelivery = ['OUT_FOR_DELIVERY', 'DELIVERED'].contains(status);
-    steps.add(_TimelineStep(
-      title: 'Out for Delivery',
-      subtitle: isOutForDelivery ? 'Arriving soon' : 'Pending',
-      icon: Icons.delivery_dining_outlined,
-      color: AppColors.warning,
-      isCompleted: isOutForDelivery,
-      isCurrent: status == 'OUT_FOR_DELIVERY',
-    ));
+    steps.add(
+      _TimelineStep(
+        title: 'Out for Delivery',
+        subtitle: isOutForDelivery ? 'Arriving soon' : 'Pending',
+        icon: Icons.delivery_dining_outlined,
+        color: AppColors.warning,
+        isCompleted: isOutForDelivery,
+        isCurrent: status == 'OUT_FOR_DELIVERY',
+      ),
+    );
 
     // Delivered
     final isDelivered = status == 'DELIVERED';
-    steps.add(_TimelineStep(
-      title: 'Delivered',
-      subtitle: isDelivered
-          ? _formatShortDate(_currentOrder.updatedAt)
-          : 'Expected: ${DateFormat('MMM d').format(_currentOrder.expectedDeliveryDate)}',
-      icon: Icons.home_outlined,
-      color: AppColors.success,
-      isCompleted: isDelivered,
-      isCurrent: isDelivered,
-    ));
+    steps.add(
+      _TimelineStep(
+        title: 'Delivered',
+        subtitle:
+            isDelivered
+                ? _formatShortDate(_currentOrder.updatedAt)
+                : 'Expected: ${DateFormat('MMM d').format(_currentOrder.expectedDeliveryDate)}',
+        icon: Icons.home_outlined,
+        color: AppColors.success,
+        isCompleted: isDelivered,
+        isCurrent: isDelivered,
+      ),
+    );
 
     return steps;
   }
@@ -1182,11 +1276,7 @@ class _StatusInfo {
   final IconData icon;
   final String label;
 
-  _StatusInfo({
-    required this.color,
-    required this.icon,
-    required this.label,
-  });
+  _StatusInfo({required this.color, required this.icon, required this.label});
 }
 
 class _TimelineStep {
@@ -1212,10 +1302,7 @@ class _ModernCard extends StatelessWidget {
   final Widget child;
   final bool isDark;
 
-  const _ModernCard({
-    required this.child,
-    required this.isDark,
-  });
+  const _ModernCard({required this.child, required this.isDark});
 
   @override
   Widget build(BuildContext context) {
@@ -1226,9 +1313,10 @@ class _ModernCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: isDark
-                ? Colors.black.withOpacity(0.3)
-                : Colors.black.withOpacity(0.05),
+            color:
+                isDark
+                    ? Colors.black.withOpacity(0.3)
+                    : Colors.black.withOpacity(0.05),
             blurRadius: 20,
             offset: const Offset(0, 8),
             spreadRadius: -4,
@@ -1247,9 +1335,7 @@ class _CancelConfirmDialog extends StatelessWidget {
     final theme = Theme.of(context);
 
     return AlertDialog(
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(20),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       title: Row(
         children: [
           Container(
@@ -1270,9 +1356,7 @@ class _CancelConfirmDialog extends StatelessWidget {
       ),
       content: Text(
         'Are you sure you want to cancel this order? This action cannot be undone.',
-        style: theme.textTheme.bodyMedium?.copyWith(
-          color: theme.hintColor,
-        ),
+        style: theme.textTheme.bodyMedium?.copyWith(color: theme.hintColor),
       ),
       actions: [
         TextButton(
@@ -1281,9 +1365,7 @@ class _CancelConfirmDialog extends StatelessWidget {
         ),
         ElevatedButton(
           onPressed: () => Navigator.pop(context, true),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: AppColors.error,
-          ),
+          style: ElevatedButton.styleFrom(backgroundColor: AppColors.error),
           child: const Text('Yes, Cancel'),
         ),
       ],

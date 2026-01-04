@@ -29,10 +29,10 @@ class _CombinedScreenState extends State<CombinedScreen>
       duration: const Duration(milliseconds: 3000),
       vsync: this,
     )..repeat(reverse: true);
-    _scrollController = ScrollController()
-      ..addListener(() {
-        setState(() => _scrollOffset = _scrollController.offset);
-      });
+    _scrollController =
+        ScrollController()..addListener(() {
+          setState(() => _scrollOffset = _scrollController.offset);
+        });
   }
 
   @override
@@ -49,9 +49,10 @@ class _CombinedScreenState extends State<CombinedScreen>
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    
+
     return Scaffold(
-      backgroundColor: isDark ? const Color(0xFF0F0F1A) : const Color(0xFFF8F9FE),
+      backgroundColor:
+          isDark ? const Color(0xFF0F0F1A) : const Color(0xFFF8F9FE),
       body: CustomScrollView(
         controller: _scrollController,
         physics: const BouncingScrollPhysics(),
@@ -82,7 +83,7 @@ class _CombinedScreenState extends State<CombinedScreen>
 
   Widget _buildAnimatedAppBar(ThemeData theme, bool isDark) {
     final collapse = (_scrollOffset / 200).clamp(0.0, 1.0);
-    
+
     return SliverAppBar(
       expandedHeight: 280,
       floating: false,
@@ -100,7 +101,11 @@ class _CombinedScreenState extends State<CombinedScreen>
             color: Colors.black.withOpacity(0.3),
             borderRadius: BorderRadius.circular(12),
           ),
-          child: const Icon(Icons.arrow_back_ios_new, color: Colors.white, size: 20),
+          child: const Icon(
+            Icons.arrow_back_ios_new,
+            color: Colors.white,
+            size: 20,
+          ),
         ),
       ),
       flexibleSpace: FlexibleSpaceBar(
@@ -163,7 +168,10 @@ class _CombinedScreenState extends State<CombinedScreen>
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 6,
+                    ),
                     decoration: BoxDecoration(
                       gradient: const LinearGradient(
                         colors: [Color(0xFF4CAF50), Color(0xFF388E3C)],
@@ -233,7 +241,8 @@ class _CombinedScreenState extends State<CombinedScreen>
           child: Container(
             padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
-              color: (isDark ? Colors.white : const Color(0xFF4CAF50)).withOpacity(0.1),
+              color: (isDark ? Colors.white : const Color(0xFF4CAF50))
+                  .withOpacity(0.1),
               borderRadius: BorderRadius.circular(24),
               border: Border.all(
                 color: const Color(0xFF4CAF50).withOpacity(0.3),
@@ -252,7 +261,11 @@ class _CombinedScreenState extends State<CombinedScreen>
                         ),
                         borderRadius: BorderRadius.circular(16),
                       ),
-                      child: const Icon(Icons.grass_rounded, color: Colors.white, size: 32),
+                      child: const Icon(
+                        Icons.grass_rounded,
+                        color: Colors.white,
+                        size: 32,
+                      ),
                     ),
                     const SizedBox(width: 16),
                     Expanded(
@@ -269,7 +282,8 @@ class _CombinedScreenState extends State<CombinedScreen>
                           Text(
                             'Beyond organic - a toxin-free guarantee',
                             style: theme.textTheme.bodyMedium?.copyWith(
-                              color: isDark ? Colors.grey[400] : Colors.grey[600],
+                              color:
+                                  isDark ? Colors.grey[400] : Colors.grey[600],
                             ),
                           ),
                         ],
@@ -300,111 +314,140 @@ class _CombinedScreenState extends State<CombinedScreen>
         'title': 'Your Mini Farm',
         'desc': 'Dedicated section based on family size',
         'color': const Color(0xFF4CAF50),
-        'image': 'https://images.unsplash.com/photo-1563203432-345337a36416?q=80&w=1964&auto=format&fit=crop',
+        'image':
+            'https://images.unsplash.com/photo-1563203432-345337a36416?q=80&w=1964&auto=format&fit=crop',
       },
       {
         'icon': Icons.person_pin_rounded,
         'title': 'Personal Farmer',
         'desc': 'A farmer dedicated solely to you',
         'color': const Color(0xFF2196F3),
-        'image': 'https://images.unsplash.com/photo-1599599810694-b5b37304c847?q=80&w=2070&auto=format&fit=crop',
+        'image':
+            'https://images.unsplash.com/photo-1599599810694-b5b37304c847?q=80&w=2070&auto=format&fit=crop',
       },
     ];
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
       child: Row(
-        children: features.asMap().entries.map((entry) {
-          final index = entry.key;
-          final feature = entry.value;
-          return Expanded(
-            child: TweenAnimationBuilder<double>(
-              tween: Tween(begin: 0.0, end: 1.0),
-              duration: Duration(milliseconds: 600 + (index * 150)),
-              curve: Curves.easeOutBack,
-              builder: (context, value, child) {
-                final clampedValue = value.clamp(0.0, 1.0);
-                return Transform.scale(
-                  scale: 0.8 + (0.2 * value),
-                  child: Opacity(
-                    opacity: clampedValue,
-                    child: Container(
-                      height: 200,
-                      margin: EdgeInsets.only(right: index == 0 ? 8 : 0, left: index == 1 ? 8 : 0),
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(20),
-                        image: DecorationImage(
-                          image: NetworkImage(feature['image'] as String),
-                          fit: BoxFit.cover,
-                        ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: (feature['color'] as Color).withOpacity(0.3),
-                            blurRadius: 15,
-                            offset: const Offset(0, 8),
+        children:
+            features.asMap().entries.map((entry) {
+              final index = entry.key;
+              final feature = entry.value;
+              return Expanded(
+                child: TweenAnimationBuilder<double>(
+                  tween: Tween(begin: 0.0, end: 1.0),
+                  duration: Duration(milliseconds: 600 + (index * 150)),
+                  curve: Curves.easeOutBack,
+                  builder: (context, value, child) {
+                    final clampedValue = value.clamp(0.0, 1.0);
+                    return Transform.scale(
+                      scale: 0.8 + (0.2 * value),
+                      child: Opacity(
+                        opacity: clampedValue,
+                        child: Container(
+                          height: 200,
+                          margin: EdgeInsets.only(
+                            right: index == 0 ? 8 : 0,
+                            left: index == 1 ? 8 : 0,
                           ),
-                        ],
-                      ),
-                      child: Container(
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(20),
-                          gradient: LinearGradient(
-                            begin: Alignment.topCenter,
-                            end: Alignment.bottomCenter,
-                            colors: [
-                              Colors.transparent,
-                              Colors.black.withOpacity(0.8),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(20),
+                            image: DecorationImage(
+                              image: NetworkImage(feature['image'] as String),
+                              fit: BoxFit.cover,
+                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: (feature['color'] as Color).withOpacity(
+                                  0.3,
+                                ),
+                                blurRadius: 15,
+                                offset: const Offset(0, 8),
+                              ),
                             ],
                           ),
-                        ),
-                        padding: const EdgeInsets.all(16),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.end,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.all(8),
-                              decoration: BoxDecoration(
-                                color: (feature['color'] as Color).withOpacity(0.8),
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                              child: Icon(feature['icon'] as IconData, color: Colors.white, size: 20),
-                            ),
-                            const SizedBox(height: 12),
-                            Text(
-                              feature['title'] as String,
-                              style: theme.textTheme.titleMedium?.copyWith(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
+                          child: Container(
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(20),
+                              gradient: LinearGradient(
+                                begin: Alignment.topCenter,
+                                end: Alignment.bottomCenter,
+                                colors: [
+                                  Colors.transparent,
+                                  Colors.black.withOpacity(0.8),
+                                ],
                               ),
                             ),
-                            const SizedBox(height: 4),
-                            Text(
-                              feature['desc'] as String,
-                              style: theme.textTheme.bodySmall?.copyWith(
-                                color: Colors.white.withOpacity(0.8),
-                              ),
+                            padding: const EdgeInsets.all(16),
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.end,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.all(8),
+                                  decoration: BoxDecoration(
+                                    color: (feature['color'] as Color)
+                                        .withOpacity(0.8),
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  child: Icon(
+                                    feature['icon'] as IconData,
+                                    color: Colors.white,
+                                    size: 20,
+                                  ),
+                                ),
+                                const SizedBox(height: 12),
+                                Text(
+                                  feature['title'] as String,
+                                  style: theme.textTheme.titleMedium?.copyWith(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  feature['desc'] as String,
+                                  style: theme.textTheme.bodySmall?.copyWith(
+                                    color: Colors.white.withOpacity(0.8),
+                                  ),
+                                ),
+                              ],
                             ),
-                          ],
+                          ),
                         ),
                       ),
-                    ),
-                  ),
-                );
-              },
-            ),
-          );
-        }).toList(),
+                    );
+                  },
+                ),
+              );
+            }).toList(),
       ),
     );
   }
 
   Widget _buildBenefitsSection(ThemeData theme, bool isDark) {
     final benefits = [
-      {'icon': Icons.agriculture_outlined, 'title': 'Free Farm Visits', 'desc': 'Connect with the land'},
-      {'icon': Icons.camera_alt_outlined, 'title': 'Real-Time Updates', 'desc': 'Photo & video of crops'},
-      {'icon': Icons.access_time, 'title': 'Early Access', 'desc': 'First to try new products'},
-      {'icon': Icons.verified_outlined, 'title': 'Quality Promise', 'desc': '100% toxin-free guarantee'},
+      {
+        'icon': Icons.agriculture_outlined,
+        'title': 'Free Farm Visits',
+        'desc': 'Connect with the land',
+      },
+      {
+        'icon': Icons.camera_alt_outlined,
+        'title': 'Real-Time Updates',
+        'desc': 'Photo & video of crops',
+      },
+      {
+        'icon': Icons.access_time,
+        'title': 'Early Access',
+        'desc': 'First to try new products',
+      },
+      {
+        'icon': Icons.verified_outlined,
+        'title': 'Quality Promise',
+        'desc': '100% toxin-free guarantee',
+      },
     ];
 
     return Column(
@@ -414,7 +457,9 @@ class _CombinedScreenState extends State<CombinedScreen>
           padding: const EdgeInsets.symmetric(horizontal: 20),
           child: Text(
             'Benefits',
-            style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+            style: theme.textTheme.titleLarge?.copyWith(
+              fontWeight: FontWeight.bold,
+            ),
           ),
         ),
         const SizedBox(height: 16),
@@ -456,7 +501,11 @@ class _CombinedScreenState extends State<CombinedScreen>
                         color: const Color(0xFF4CAF50).withOpacity(0.15),
                         borderRadius: BorderRadius.circular(10),
                       ),
-                      child: Icon(benefit['icon'] as IconData, color: const Color(0xFF4CAF50), size: 20),
+                      child: Icon(
+                        benefit['icon'] as IconData,
+                        color: const Color(0xFF4CAF50),
+                        size: 20,
+                      ),
                     ),
                     const SizedBox(height: 12),
                     Text(
@@ -497,9 +546,10 @@ class _CombinedScreenState extends State<CombinedScreen>
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: isDark
-                ? [const Color(0xFF1E3A2F), const Color(0xFF0F1F1A)]
-                : [const Color(0xFFE8F5E9), const Color(0xFFC8E6C9)],
+            colors:
+                isDark
+                    ? [const Color(0xFF1E3A2F), const Color(0xFF0F1F1A)]
+                    : [const Color(0xFFE8F5E9), const Color(0xFFC8E6C9)],
           ),
           borderRadius: BorderRadius.circular(24),
           boxShadow: [
@@ -521,7 +571,11 @@ class _CombinedScreenState extends State<CombinedScreen>
                     color: const Color(0xFF4CAF50),
                     borderRadius: BorderRadius.circular(14),
                   ),
-                  child: const Icon(Icons.handshake_outlined, color: Colors.white, size: 24),
+                  child: const Icon(
+                    Icons.handshake_outlined,
+                    color: Colors.white,
+                    size: 24,
+                  ),
                 ),
                 const SizedBox(width: 16),
                 Expanded(
@@ -530,7 +584,9 @@ class _CombinedScreenState extends State<CombinedScreen>
                     children: [
                       Text(
                         'Contract Farming',
-                        style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+                        style: theme.textTheme.titleLarge?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                       Text(
                         'For Businesses',
@@ -549,9 +605,21 @@ class _CombinedScreenState extends State<CombinedScreen>
               style: theme.textTheme.bodyMedium?.copyWith(height: 1.6),
             ),
             const SizedBox(height: 24),
-            _buildAdvantageItem(theme, 'Utmost Transparency', 'Know where, when, and how your produce grows'),
-            _buildAdvantageItem(theme, 'Consistent Quality', 'Eliminate unpredictability with dedicated supply'),
-            _buildAdvantageItem(theme, 'Ethical Sourcing', 'Partner with trust and reliability'),
+            _buildAdvantageItem(
+              theme,
+              'Utmost Transparency',
+              'Know where, when, and how your produce grows',
+            ),
+            _buildAdvantageItem(
+              theme,
+              'Consistent Quality',
+              'Eliminate unpredictability with dedicated supply',
+            ),
+            _buildAdvantageItem(
+              theme,
+              'Ethical Sourcing',
+              'Partner with trust and reliability',
+            ),
           ],
         ),
       ),
@@ -577,10 +645,17 @@ class _CombinedScreenState extends State<CombinedScreen>
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(title, style: theme.textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w600)),
+                Text(
+                  title,
+                  style: theme.textTheme.bodyLarge?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
                 Text(
                   desc,
-                  style: theme.textTheme.bodySmall?.copyWith(color: Colors.grey[600]),
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: Colors.grey[600],
+                  ),
                 ),
               ],
             ),
@@ -605,7 +680,9 @@ class _CombinedScreenState extends State<CombinedScreen>
           padding: const EdgeInsets.symmetric(horizontal: 20),
           child: Text(
             'Our Process',
-            style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+            style: theme.textTheme.titleLarge?.copyWith(
+              fontWeight: FontWeight.bold,
+            ),
           ),
         ),
         const SizedBox(height: 16),
@@ -613,39 +690,46 @@ class _CombinedScreenState extends State<CombinedScreen>
           height: 100,
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: steps.asMap().entries.map((entry) {
-              final index = entry.key;
-              final step = entry.value;
-              return Expanded(
-                child: Column(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(14),
-                      decoration: BoxDecoration(
-                        gradient: const LinearGradient(
-                          colors: [Color(0xFF4CAF50), Color(0xFF388E3C)],
-                        ),
-                        borderRadius: BorderRadius.circular(14),
-                        boxShadow: [
-                          BoxShadow(
-                            color: const Color(0xFF4CAF50).withOpacity(0.3),
-                            blurRadius: 10,
-                            offset: const Offset(0, 4),
+            children:
+                steps.asMap().entries.map((entry) {
+                  final index = entry.key;
+                  final step = entry.value;
+                  return Expanded(
+                    child: Column(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(14),
+                          decoration: BoxDecoration(
+                            gradient: const LinearGradient(
+                              colors: [Color(0xFF4CAF50), Color(0xFF388E3C)],
+                            ),
+                            borderRadius: BorderRadius.circular(14),
+                            boxShadow: [
+                              BoxShadow(
+                                color: const Color(0xFF4CAF50).withOpacity(0.3),
+                                blurRadius: 10,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
                           ),
-                        ],
-                      ),
-                      child: Icon(step['icon'] as IconData, color: Colors.white, size: 24),
+                          child: Icon(
+                            step['icon'] as IconData,
+                            color: Colors.white,
+                            size: 24,
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        Text(
+                          step['label'] as String,
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            fontWeight: FontWeight.w500,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ],
                     ),
-                    const SizedBox(height: 10),
-                    Text(
-                      step['label'] as String,
-                      style: theme.textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w500),
-                      textAlign: TextAlign.center,
-                    ),
-                  ],
-                ),
-              );
-            }).toList(),
+                  );
+                }).toList(),
           ),
         ),
       ],
@@ -704,7 +788,7 @@ Future<void> _showNotificationForm(BuildContext context) async {
   final messageController = TextEditingController();
   final theme = Theme.of(context);
   final isDark = theme.brightness == Brightness.dark;
-  String selectedRequirementType = 'NORMAL';
+  String selectedRequirementType = 'INDIVIDUAL';
 
   await showGeneralDialog(
     context: context,
@@ -730,116 +814,199 @@ Future<void> _showNotificationForm(BuildContext context) async {
                     borderRadius: BorderRadius.circular(24),
                     child: BackdropFilter(
                       filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: (isDark ? Colors.grey[900] : Colors.white)!.withOpacity(0.95),
-                          borderRadius: BorderRadius.circular(24),
-                          border: Border.all(color: Colors.white.withOpacity(0.2), width: 1),
-                        ),
-                        child: SingleChildScrollView(
-                          child: Padding(
-                            padding: const EdgeInsets.all(24),
-                            child: Form(
-                              key: formKey,
-                              child: Column(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Container(
-                                    padding: const EdgeInsets.all(16),
-                                    decoration: BoxDecoration(
-                                      gradient: const LinearGradient(
-                                        colors: [Color(0xFF4CAF50), Color(0xFF388E3C)],
-                                      ),
-                                      borderRadius: BorderRadius.circular(16),
-                                    ),
-                                    child: const Icon(Icons.agriculture_rounded, color: Colors.white, size: 32),
-                                  ),
-                                  const SizedBox(height: 16),
-                                  Text(
-                                    'Register Your Interest',
-                                    style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
-                                  ),
-                                  const SizedBox(height: 8),
-                                  Text(
-                                    'Join our natural farming program',
-                                    style: theme.textTheme.bodyMedium?.copyWith(color: Colors.grey[600]),
-                                  ),
-                                  const SizedBox(height: 24),
-                                  _buildFormField(nameController, 'Full Name *', Icons.person_outline),
-                                  const SizedBox(height: 12),
-                                  _buildFormField(phoneController, 'Phone Number *', Icons.phone_outlined, keyboardType: TextInputType.phone),
-                                  const SizedBox(height: 12),
-                                  _buildFormField(emailController, 'Email (Optional)', Icons.email_outlined, keyboardType: TextInputType.emailAddress),
-                                  const SizedBox(height: 12),
-                                  _buildFormField(messageController, 'Message *', Icons.message_outlined, maxLines: 3),
-                                  const SizedBox(height: 16),
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                                    decoration: BoxDecoration(
-                                      color: Colors.grey.withOpacity(0.1),
-                                      borderRadius: BorderRadius.circular(12),
-                                    ),
-                                    child: DropdownButtonFormField<String>(
-                                      value: selectedRequirementType,
-                                      decoration: const InputDecoration(
-                                        border: InputBorder.none,
-                                        labelText: 'Requirement Type',
-                                      ),
-                                      items: ['NORMAL', 'B2B'].map((value) {
-                                        return DropdownMenuItem(value: value, child: Text(value));
-                                      }).toList(),
-                                      onChanged: (value) => setDialogState(() => selectedRequirementType = value!),
-                                    ),
-                                  ),
-                                  const SizedBox(height: 24),
-                                  GestureDetector(
-                                    onTap: () async {
-                                      if (formKey.currentState!.validate()) {
-                                        try {
-                                          final response = await http.post(
-                                            Uri.parse('${ApiConfig.baseUrl}/api/user-queries/'),
-                                            headers: {'Content-Type': 'application/json'},
-                                            body: jsonEncode({
-                                              'name': nameController.text,
-                                              'phone_number': phoneController.text,
-                                              'email': emailController.text,
-                                              'message': messageController.text,
-                                              'requirement_type': selectedRequirementType,
-                                              'is_from_rfp': selectedRequirementType == 'B2B',
-                                            }),
-                                          );
-                                          if (!context.mounted) return;
-                                          Navigator.pop(context);
-                                          if (response.statusCode == 200 || response.statusCode == 201) {
-                                            SnackBarHelper.showSuccess(context, 'Thank you! We\'ll get back to you soon.');
-                                          } else {
-                                            SnackBarHelper.showError(context, 'Failed. Please try again.');
-                                          }
-                                        } catch (e) {
-                                          if (!context.mounted) return;
-                                          Navigator.pop(context);
-                                          SnackBarHelper.showError(context, 'Error. Please try again.');
-                                        }
-                                      }
-                                    },
-                                    child: Container(
-                                      width: double.infinity,
-                                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      child: Material(
+                        color: Colors.transparent,
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: (isDark ? Colors.grey[900] : Colors.white)!
+                                .withOpacity(0.95),
+                            borderRadius: BorderRadius.circular(24),
+                            border: Border.all(
+                              color: Colors.white.withOpacity(0.2),
+                              width: 1,
+                            ),
+                          ),
+                          child: SingleChildScrollView(
+                            child: Padding(
+                              padding: const EdgeInsets.all(24),
+                              child: Form(
+                                key: formKey,
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Container(
+                                      padding: const EdgeInsets.all(16),
                                       decoration: BoxDecoration(
-                                        gradient: const LinearGradient(
-                                          colors: [Color(0xFF4CAF50), Color(0xFF388E3C)],
+                                        gradient: LinearGradient(
+                                          colors: [
+                                            theme.colorScheme.primary,
+                                            theme.colorScheme.primary
+                                                .withOpacity(0.8),
+                                          ],
                                         ),
-                                        borderRadius: BorderRadius.circular(14),
+                                        borderRadius: BorderRadius.circular(16),
                                       ),
-                                      child: const Center(
-                                        child: Text(
-                                          'Submit',
-                                          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
+                                      child: const Icon(
+                                        Icons.agriculture_rounded,
+                                        color: Colors.white,
+                                        size: 32,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 16),
+                                    Text(
+                                      'Register Your Interest',
+                                      style: theme.textTheme.titleLarge
+                                          ?.copyWith(
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                    ),
+                                    const SizedBox(height: 8),
+                                    Text(
+                                      'Join our natural farming program',
+                                      style: theme.textTheme.bodyMedium
+                                          ?.copyWith(color: Colors.grey[600]),
+                                    ),
+                                    const SizedBox(height: 24),
+                                    _buildFormField(
+                                      nameController,
+                                      'Full Name *',
+                                      Icons.person_outline,
+                                    ),
+                                    const SizedBox(height: 12),
+                                    _buildFormField(
+                                      phoneController,
+                                      'Phone Number *',
+                                      Icons.phone_outlined,
+                                      keyboardType: TextInputType.phone,
+                                    ),
+                                    const SizedBox(height: 12),
+                                    _buildFormField(
+                                      emailController,
+                                      'Email (Optional)',
+                                      Icons.email_outlined,
+                                      keyboardType: TextInputType.emailAddress,
+                                    ),
+                                    const SizedBox(height: 12),
+                                    _buildFormField(
+                                      messageController,
+                                      'Message *',
+                                      Icons.message_outlined,
+                                      maxLines: 3,
+                                    ),
+                                    const SizedBox(height: 16),
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 16,
+                                        vertical: 4,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: Colors.grey.withOpacity(0.1),
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                      child: DropdownButtonFormField<String>(
+                                        value: selectedRequirementType,
+                                        decoration: const InputDecoration(
+                                          border: InputBorder.none,
+                                          labelText: 'Requirement Type',
+                                        ),
+                                        items:
+                                            ['INDIVIDUAL', "B2B", 'FAMILY'].map(
+                                              (value) {
+                                                return DropdownMenuItem(
+                                                  value: value,
+                                                  child: Text(value),
+                                                );
+                                              },
+                                            ).toList(),
+                                        onChanged:
+                                            (value) => setDialogState(
+                                              () =>
+                                                  selectedRequirementType =
+                                                      value!,
+                                            ),
+                                      ),
+                                    ),
+                                    const SizedBox(height: 24),
+                                    GestureDetector(
+                                      onTap: () async {
+                                        if (formKey.currentState!.validate()) {
+                                          try {
+                                            final response = await http.post(
+                                              Uri.parse(
+                                                '${ApiConfig.baseUrl}/api/user-queries/',
+                                              ),
+                                              headers: {
+                                                'Content-Type':
+                                                    'application/json',
+                                              },
+                                              body: jsonEncode({
+                                                'name': nameController.text,
+                                                'phone_number':
+                                                    phoneController.text,
+                                                'email': emailController.text,
+                                                'message':
+                                                    messageController.text,
+                                                'requirement_type':
+                                                    selectedRequirementType,
+                                                'is_from_rfp': true,
+                                                'redirection_from': 'RFP',
+                                              }),
+                                            );
+                                            if (!context.mounted) return;
+                                            Navigator.pop(context);
+                                            if (response.statusCode == 200 ||
+                                                response.statusCode == 201) {
+                                              SnackBarHelper.showSuccess(
+                                                context,
+                                                'Thank you! We\'ll get back to you soon.',
+                                              );
+                                            } else {
+                                              SnackBarHelper.showError(
+                                                context,
+                                                'Failed. Please try again.',
+                                              );
+                                            }
+                                          } catch (e) {
+                                            if (!context.mounted) return;
+                                            Navigator.pop(context);
+                                            SnackBarHelper.showError(
+                                              context,
+                                              'Error. Please try again.',
+                                            );
+                                          }
+                                        }
+                                      },
+                                      child: Container(
+                                        width: double.infinity,
+                                        padding: const EdgeInsets.symmetric(
+                                          vertical: 16,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          gradient: LinearGradient(
+                                            colors: [
+                                              theme.colorScheme.primary,
+                                              theme.colorScheme.primary
+                                                  .withOpacity(0.8),
+                                            ],
+                                          ),
+                                          borderRadius: BorderRadius.circular(
+                                            14,
+                                          ),
+                                        ),
+                                        child: const Center(
+                                          child: Text(
+                                            'Submit',
+                                            style: TextStyle(
+                                              color: Colors.white,
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 16,
+                                            ),
+                                          ),
                                         ),
                                       ),
                                     ),
-                                  ),
-                                ],
+                                  ],
+                                ),
                               ),
                             ),
                           ),
@@ -857,7 +1024,13 @@ Future<void> _showNotificationForm(BuildContext context) async {
   );
 }
 
-Widget _buildFormField(TextEditingController controller, String hint, IconData icon, {TextInputType? keyboardType, int maxLines = 1}) {
+Widget _buildFormField(
+  TextEditingController controller,
+  String hint,
+  IconData icon, {
+  TextInputType? keyboardType,
+  int maxLines = 1,
+}) {
   return Container(
     decoration: BoxDecoration(
       color: Colors.grey.withOpacity(0.1),
@@ -871,9 +1044,15 @@ Widget _buildFormField(TextEditingController controller, String hint, IconData i
         hintText: hint,
         prefixIcon: Icon(icon, color: Colors.grey),
         border: InputBorder.none,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 14,
+        ),
       ),
-      validator: hint.contains('*') ? (v) => v?.isEmpty == true ? 'Required' : null : null,
+      validator:
+          hint.contains('*')
+              ? (v) => v?.isEmpty == true ? 'Required' : null
+              : null,
     ),
   );
 }

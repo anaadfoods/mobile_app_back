@@ -1,6 +1,8 @@
+import 'dart:async';
 import 'dart:math' as math;
 import 'package:flutter/services.dart';
 import 'package:grocery_app/common_widgets/global_import.dart';
+import 'package:grocery_app/common_widgets/select_state.dart';
 import 'package:grocery_app/screens/innovations/anaad_innovations_screen.dart';
 
 class EditProfileScreen extends StatefulWidget {
@@ -13,8 +15,6 @@ class EditProfileScreen extends StatefulWidget {
 
 class _EditProfileScreenState extends State<EditProfileScreen>
     with TickerProviderStateMixin {
-  final _authService = AuthService();
-  final _profileService = ProfileService();
   final _imagePicker = ImagePicker();
   bool _isLoading = false;
   File? _selectedImage;
@@ -35,39 +35,51 @@ class _EditProfileScreenState extends State<EditProfileScreen>
   late Animation<double> _fadeAnimation;
   late Animation<Offset> _slideAnimation;
 
+  // Subscription for address changes
+  StreamSubscription<UserModel?>? _addressSubscription;
+
   @override
   void initState() {
     super.initState();
     _initTextControllers();
     _initAnimations();
+    _listenToAddressChanges();
+  }
+
+  /// Listen for address updates from other parts of the app
+  void _listenToAddressChanges() {
+    // Listen to the stream for backwards compatibility
+    _addressSubscription = AuthService.addressChanges.listen((user) {
+      _updateAddressFields(user);
+    });
+  }
+
+  /// Updates form fields with the user's address data
+  void _updateAddressFields(UserModel? user) {
+    if (user != null && mounted) {
+      setState(() {
+        _addressController.text = user.address ?? '';
+        _cityController.text = user.city ?? '';
+        _stateController.text = user.state ?? '';
+        _pincodeController.text = user.pincode ?? '';
+        _phoneController.text = user.phoneNumber;
+      });
+    }
   }
 
   void _initTextControllers() {
-    _firstNameController = TextEditingController(
-      text: widget.userProfile.firstName ?? "",
-    );
-    _lastNameController = TextEditingController(
-      text: widget.userProfile.lastName ?? "",
-    );
-    _usernameController = TextEditingController(
-      text: widget.userProfile.username ?? "",
-    );
-    _emailController = TextEditingController(text: widget.userProfile.email);
-    _phoneController = TextEditingController(
-      text: widget.userProfile.phoneNumber,
-    );
-    _addressController = TextEditingController(
-      text: widget.userProfile.address ?? '',
-    );
-    _cityController = TextEditingController(
-      text: widget.userProfile.city ?? '',
-    );
-    _stateController = TextEditingController(
-      text: widget.userProfile.state ?? '',
-    );
-    _pincodeController = TextEditingController(
-      text: widget.userProfile.pincode ?? '',
-    );
+    // Prefer the latest user data from AuthService (in case address was updated)
+    final user = AuthService().currentUser ?? widget.userProfile;
+
+    _firstNameController = TextEditingController(text: user.firstName ?? "");
+    _lastNameController = TextEditingController(text: user.lastName ?? "");
+    _usernameController = TextEditingController(text: user.username ?? "");
+    _emailController = TextEditingController(text: user.email);
+    _phoneController = TextEditingController(text: user.phoneNumber);
+    _addressController = TextEditingController(text: user.address ?? '');
+    _cityController = TextEditingController(text: user.city ?? '');
+    _stateController = TextEditingController(text: user.state ?? '');
+    _pincodeController = TextEditingController(text: user.pincode ?? '');
   }
 
   void _initAnimations() {
@@ -79,8 +91,10 @@ class _EditProfileScreenState extends State<EditProfileScreen>
     _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(parent: _animationController, curve: Curves.easeOut),
     );
-    _slideAnimation =
-        Tween<Offset>(begin: const Offset(0, 0.15), end: Offset.zero).animate(
+    _slideAnimation = Tween<Offset>(
+      begin: const Offset(0, 0.15),
+      end: Offset.zero,
+    ).animate(
       CurvedAnimation(parent: _animationController, curve: Curves.easeOutCubic),
     );
 
@@ -103,6 +117,7 @@ class _EditProfileScreenState extends State<EditProfileScreen>
 
   @override
   void dispose() {
+    _addressSubscription?.cancel();
     _firstNameController.dispose();
     _lastNameController.dispose();
     _usernameController.dispose();
@@ -126,7 +141,7 @@ class _EditProfileScreenState extends State<EditProfileScreen>
   double _calculateProfileCompletion() {
     int filledFields = 0;
     int totalFields = 9;
-    
+
     if (_firstNameController.text.isNotEmpty) filledFields++;
     if (_lastNameController.text.isNotEmpty) filledFields++;
     if (_usernameController.text.isNotEmpty) filledFields++;
@@ -136,7 +151,7 @@ class _EditProfileScreenState extends State<EditProfileScreen>
     if (_cityController.text.isNotEmpty) filledFields++;
     if (_stateController.text.isNotEmpty) filledFields++;
     if (_pincodeController.text.isNotEmpty) filledFields++;
-    
+
     return filledFields / totalFields;
   }
 
@@ -148,9 +163,129 @@ class _EditProfileScreenState extends State<EditProfileScreen>
 
   Future<void> _pickImage() async {
     _triggerHaptic();
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder:
+          (context) => Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: theme.cardColor,
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(24),
+              ),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Handle bar
+                Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: theme.hintColor.withOpacity(0.3),
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+                const SizedBox(height: 20),
+                Text(
+                  'Choose Photo',
+                  style: theme.textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Select a source for your profile picture',
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: theme.hintColor,
+                  ),
+                ),
+                const SizedBox(height: 24),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    // Camera Option
+                    _buildImageSourceOption(
+                      context: context,
+                      theme: theme,
+                      icon: Icons.camera_alt_rounded,
+                      label: 'Camera',
+                      color: colorScheme.primary,
+                      onTap: () {
+                        Navigator.pop(context);
+                        _pickFromSource(ImageSource.camera);
+                      },
+                    ),
+                    // Gallery Option
+                    _buildImageSourceOption(
+                      context: context,
+                      theme: theme,
+                      icon: Icons.photo_library_rounded,
+                      label: 'Gallery',
+                      color: Colors.purple,
+                      onTap: () {
+                        Navigator.pop(context);
+                        _pickFromSource(ImageSource.gallery);
+                      },
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+              ],
+            ),
+          ),
+    );
+  }
+
+  Widget _buildImageSourceOption({
+    required BuildContext context,
+    required ThemeData theme,
+    required IconData icon,
+    required String label,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: () {
+        HapticFeedback.lightImpact();
+        onTap();
+      },
+      child: Column(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [color.withOpacity(0.15), color.withOpacity(0.08)],
+              ),
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: color.withOpacity(0.3), width: 1.5),
+            ),
+            child: Icon(icon, size: 36, color: color),
+          ),
+          const SizedBox(height: 10),
+          Text(
+            label,
+            style: theme.textTheme.bodyMedium?.copyWith(
+              fontWeight: FontWeight.w600,
+              color: color,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _pickFromSource(ImageSource source) async {
     try {
       final XFile? pickedFile = await _imagePicker.pickImage(
-        source: ImageSource.gallery,
+        source: source,
         imageQuality: 80,
       );
       if (pickedFile != null) {
@@ -167,21 +302,6 @@ class _EditProfileScreenState extends State<EditProfileScreen>
     _triggerHaptic();
     setState(() => _isLoading = true);
     try {
-      if (_selectedImage != null) {
-        final imageResult = await _profileService.uploadProfileImage(
-          _selectedImage!,
-        );
-        if (!imageResult['success']) {
-          if (mounted) {
-            SnackBarHelper.showError(
-              context,
-              imageResult['message'] ?? 'Failed to update profile image',
-            );
-          }
-          setState(() => _isLoading = false);
-          return;
-        }
-      }
       final updatedProfile = widget.userProfile.copyWith(
         firstName: _firstNameController.text,
         lastName: _lastNameController.text,
@@ -193,24 +313,31 @@ class _EditProfileScreenState extends State<EditProfileScreen>
         city: _cityController.text,
         state: _stateController.text,
       );
-      final result = await _authService.updateProfile(updatedProfile);
+
+      // Use AuthCubit to update profile - this updates both backend and state
+      await context.read<AuthCubit>().updateUserProfile(
+        updatedData: updatedProfile,
+        imageFile: _selectedImage,
+      );
+
       if (!mounted) return;
-      if (result['success']) {
+
+      // Check if update was successful by checking cubit state
+      final authState = context.read<AuthCubit>().state;
+      if (authState is AuthProfileUpdateSuccess) {
         HapticFeedback.mediumImpact();
-        SnackBarHelper.showSuccess(context, 'Profile updated successfully');
+        SnackBarHelper.showSuccess(context, authState.message);
         Navigator.pop(context, true);
-      } else {
-        SnackBarHelper.showError(
-          context,
-          result['message'] ?? 'Failed to update profile',
-        );
+      } else if (authState is AuthError) {
+        SnackBarHelper.showError(context, authState.message);
       }
     } catch (e) {
-      if (mounted)
+      if (mounted) {
         SnackBarHelper.showError(
           context,
           'An error occurred while updating profile',
         );
+      }
     } finally {
       if (mounted) {
         setState(() => _isLoading = false);
@@ -225,141 +352,153 @@ class _EditProfileScreenState extends State<EditProfileScreen>
     final size = MediaQuery.of(context).size;
     String userHandle = widget.userProfile.username ?? "edit_profile";
 
-    return AnnotatedRegion<SystemUiOverlayStyle>(
-      value: SystemUiOverlayStyle.light.copyWith(
-        statusBarColor: Colors.transparent,
-        statusBarIconBrightness: Brightness.light,
-        statusBarBrightness: Brightness.dark,
-      ),
-      child: Scaffold(
-        backgroundColor: theme.scaffoldBackgroundColor,
-        extendBodyBehindAppBar: true,
-        extendBody: true,
-        body: SingleChildScrollView(
-          physics: const BouncingScrollPhysics(),
-          child: Column(
-            children: [
-              // Animated Header with Avatar
-              _buildAnimatedHeader(theme, colorScheme, size, userHandle),
-              const SizedBox(height: 60),
-              // Profile Completion Card
-              _buildProfileCompletionCard(theme, colorScheme),
-              const SizedBox(height: 20),
-              // Form Content
-              FadeTransition(
-                opacity: _fadeAnimation,
-                child: SlideTransition(
-                  position: _slideAnimation,
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        // Personal Info Section
-                        _buildSectionCard(
-                        theme: theme,
-                        title: 'Personal Information',
-                        icon: Icons.person_outline_rounded,
-                        accentColor: theme.colorScheme.primary,
-                        delay: 0,
+    return BlocListener<AuthCubit, AuthState>(
+      listener: (context, state) {
+        // React to address updates from the cubit
+        if (state is AuthAddressUpdated) {
+          _updateAddressFields(state.user);
+        }
+      },
+      child: AnnotatedRegion<SystemUiOverlayStyle>(
+        value: SystemUiOverlayStyle.light.copyWith(
+          statusBarColor: Colors.transparent,
+          statusBarIconBrightness: Brightness.light,
+          statusBarBrightness: Brightness.dark,
+        ),
+        child: Scaffold(
+          backgroundColor: theme.scaffoldBackgroundColor,
+          extendBodyBehindAppBar: true,
+          extendBody: true,
+          body: SingleChildScrollView(
+            physics: const BouncingScrollPhysics(),
+            child: Column(
+              children: [
+                // Animated Header with Avatar
+                _buildAnimatedHeader(theme, colorScheme, size, userHandle),
+                const SizedBox(height: 60),
+                // Profile Completion Card
+                _buildProfileCompletionCard(theme, colorScheme),
+                const SizedBox(height: 20),
+                // Form Content
+                FadeTransition(
+                  opacity: _fadeAnimation,
+                  child: SlideTransition(
+                    position: _slideAnimation,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
-                          _buildModernTextField(
+                          // Personal Info Section
+                          _buildSectionCard(
                             theme: theme,
-                            label: 'First Name',
-                            controller: _firstNameController,
+                            title: 'Personal Information',
+                            icon: Icons.person_outline_rounded,
                             accentColor: theme.colorScheme.primary,
+                            delay: 0,
+                            children: [
+                              _buildModernTextField(
+                                theme: theme,
+                                label: 'First Name',
+                                controller: _firstNameController,
+                                accentColor: theme.colorScheme.primary,
+                              ),
+                              _buildModernTextField(
+                                theme: theme,
+                                label: 'Last Name',
+                                controller: _lastNameController,
+                                accentColor: theme.colorScheme.primary,
+                              ),
+                              _buildModernTextField(
+                                theme: theme,
+                                label: 'Username',
+                                controller: _usernameController,
+                                accentColor: theme.colorScheme.primary,
+                                isLast: true,
+                              ),
+                            ],
                           ),
-                          _buildModernTextField(
-                            theme: theme,
-                            label: 'Last Name',
-                            controller: _lastNameController,
-                            accentColor: theme.colorScheme.primary,
-                          ),
-                          _buildModernTextField(
-                            theme: theme,
-                            label: 'Username',
-                            controller: _usernameController,
-                            accentColor: theme.colorScheme.primary,
-                            isLast: true,
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 20),
+                          const SizedBox(height: 20),
 
-                      // Contact Info Section
-                      _buildSectionCard(
-                        theme: theme,
-                        title: 'Contact Information',
-                        icon: Icons.contact_mail_outlined,
-                        accentColor: theme.colorScheme.primary,
-                        delay: 1,
-                        children: [
-                          _buildModernTextField(
+                          // Contact Info Section
+                          _buildSectionCard(
                             theme: theme,
-                            label: 'Email',
-                            controller: _emailController,
+                            title: 'Contact Information',
+                            icon: Icons.contact_mail_outlined,
                             accentColor: theme.colorScheme.primary,
-                            readOnly: true,
+                            delay: 1,
+                            children: [
+                              _buildModernTextField(
+                                theme: theme,
+                                label: 'Email',
+                                controller: _emailController,
+                                accentColor: theme.colorScheme.primary,
+                                readOnly: true,
+                              ),
+                              _buildModernTextField(
+                                theme: theme,
+                                label: 'Phone Number',
+                                controller: _phoneController,
+                                accentColor: theme.colorScheme.primary,
+                                readOnly: true,
+                                isLast: true,
+                              ),
+                            ],
                           ),
-                          _buildModernTextField(
-                            theme: theme,
-                            label: 'Phone Number',
-                            controller: _phoneController,
-                            accentColor: theme.colorScheme.primary,
-                            readOnly: true,
-                            isLast: true,
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 20),
+                          const SizedBox(height: 20),
 
-                      // Address Section
-                      _buildSectionCard(
-                        theme: theme,
-                        title: 'Address',
-                        icon: Icons.location_on_outlined,
-                        accentColor: theme.colorScheme.primary,
-                        delay: 2,
-                        children: [
-                          _buildModernTextField(
+                          // Address Section
+                          _buildSectionCard(
                             theme: theme,
-                            label: 'Street Address',
-                            controller: _addressController,
+                            title: 'Address',
+                            icon: Icons.location_on_outlined,
                             accentColor: theme.colorScheme.primary,
+                            delay: 2,
+                            children: [
+                              _buildModernTextField(
+                                theme: theme,
+                                label: 'Street Address',
+                                controller: _addressController,
+                                accentColor: theme.colorScheme.primary,
+                              ),
+                              // Searchable State/City selector
+                              SelectState(
+                                onCountryChanged: (_) {},
+                                onStateChanged:
+                                    (v) => setState(
+                                      () => _stateController.text = v ?? '',
+                                    ),
+                                onCityChanged:
+                                    (v) => setState(
+                                      () => _cityController.text = v ?? '',
+                                    ),
+                                style: theme.textTheme.bodyLarge,
+                                initialState: _stateController.text,
+                                initialCity: _cityController.text,
+                              ),
+                              const SizedBox(height: 8),
+                              _buildModernTextField(
+                                theme: theme,
+                                label: 'Pincode',
+                                controller: _pincodeController,
+                                accentColor: theme.colorScheme.primary,
+                                keyboardType: TextInputType.number,
+                                isLast: true,
+                              ),
+                            ],
                           ),
-                          _buildModernTextField(
-                            theme: theme,
-                            label: 'City',
-                            controller: _cityController,
-                            accentColor: theme.colorScheme.primary,
-                          ),
-                          _buildModernTextField(
-                            theme: theme,
-                            label: 'State',
-                            controller: _stateController,
-                            accentColor: theme.colorScheme.primary,
-                          ),
-                          _buildModernTextField(
-                            theme: theme,
-                            label: 'Pincode',
-                            controller: _pincodeController,
-                            accentColor: theme.colorScheme.primary,
-                            keyboardType: TextInputType.number,
-                            isLast: true,
-                          ),
+                          const SizedBox(height: 100),
                         ],
                       ),
-                      const SizedBox(height: 30),
-                    ],
+                    ),
                   ),
                 ),
-              ),
+              ],
             ),
-          ],
+          ),
+          bottomNavigationBar: _buildBottomButtons(theme, colorScheme),
         ),
       ),
-      bottomNavigationBar: _buildBottomButtons(theme, colorScheme),
-    ),
     );
   }
 
@@ -371,7 +510,7 @@ class _EditProfileScreenState extends State<EditProfileScreen>
     String userHandle,
   ) {
     final statusBarHeight = MediaQuery.of(context).padding.top;
-    
+
     return Stack(
       clipBehavior: Clip.none,
       alignment: Alignment.center,
@@ -512,12 +651,17 @@ class _EditProfileScreenState extends State<EditProfileScreen>
       return AnimatedBuilder(
         animation: _shimmerController,
         builder: (context, child) {
-          final offset = math.sin(_shimmerController.value * math.pi * 2 + index) * 4;
+          final offset =
+              math.sin(_shimmerController.value * math.pi * 2 + index) * 4;
           return Positioned(
             top: pos['top'] != null ? (pos['top'] as double) + offset : null,
-            bottom: pos['bottom'] != null ? (pos['bottom'] as double) + offset : null,
+            bottom:
+                pos['bottom'] != null
+                    ? (pos['bottom'] as double) + offset
+                    : null,
             left: pos['left'] != null ? (pos['left'] as double) + offset : null,
-            right: pos['right'] != null ? (pos['right'] as double) + offset : null,
+            right:
+                pos['right'] != null ? (pos['right'] as double) + offset : null,
             child: Container(
               height: pos['size'] as double,
               width: pos['size'] as double,
@@ -568,20 +712,24 @@ class _EditProfileScreenState extends State<EditProfileScreen>
                   child: CircleAvatar(
                     radius: 48,
                     backgroundColor: colorScheme.primary.withAlpha(25),
-                    backgroundImage: _selectedImage != null
-                        ? FileImage(_selectedImage!)
-                        : (widget.userProfile.profilePicture != null
-                                ? NetworkImage(widget.userProfile.profilePicture!)
-                                : null)
-                            as ImageProvider?,
-                    child: (_selectedImage == null &&
-                            widget.userProfile.profilePicture == null)
-                        ? Icon(
-                            Icons.person_rounded,
-                            size: 50,
-                            color: colorScheme.primary,
-                          )
-                        : null,
+                    backgroundImage:
+                        _selectedImage != null
+                            ? FileImage(_selectedImage!)
+                            : (widget.userProfile.profilePicture != null
+                                    ? NetworkImage(
+                                      widget.userProfile.profilePicture!,
+                                    )
+                                    : null)
+                                as ImageProvider?,
+                    child:
+                        (_selectedImage == null &&
+                                widget.userProfile.profilePicture == null)
+                            ? Icon(
+                              Icons.person_rounded,
+                              size: 50,
+                              color: colorScheme.primary,
+                            )
+                            : null,
                   ),
                 ),
               );
@@ -644,7 +792,7 @@ class _EditProfileScreenState extends State<EditProfileScreen>
     required List<Widget> children,
   }) {
     final isDark = theme.brightness == Brightness.dark;
-    
+
     return TweenAnimationBuilder<double>(
       tween: Tween(begin: 0.0, end: 1.0),
       duration: Duration(milliseconds: 500 + (delay * 100)),
@@ -682,7 +830,10 @@ class _EditProfileScreenState extends State<EditProfileScreen>
                 children: [
                   // Section Header with vivid gradient
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 18,
+                      vertical: 16,
+                    ),
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
                         begin: Alignment.topLeft,
@@ -722,13 +873,19 @@ class _EditProfileScreenState extends State<EditProfileScreen>
                                   borderRadius: BorderRadius.circular(14),
                                   boxShadow: [
                                     BoxShadow(
-                                      color: accentColor.withAlpha(isDark ? 100 : 80),
+                                      color: accentColor.withAlpha(
+                                        isDark ? 100 : 80,
+                                      ),
                                       blurRadius: 12,
                                       offset: const Offset(0, 4),
                                     ),
                                   ],
                                 ),
-                                child: Icon(icon, color: Colors.white, size: 22),
+                                child: Icon(
+                                  icon,
+                                  color: Colors.white,
+                                  size: 22,
+                                ),
                               ),
                             );
                           },
@@ -750,7 +907,9 @@ class _EditProfileScreenState extends State<EditProfileScreen>
                                 _getSectionSubtitle(title),
                                 style: TextStyle(
                                   fontSize: 11,
-                                  color: accentColor.withAlpha(isDark ? 200 : 180),
+                                  color: accentColor.withAlpha(
+                                    isDark ? 200 : 180,
+                                  ),
                                   fontWeight: FontWeight.w500,
                                 ),
                               ),
@@ -776,9 +935,7 @@ class _EditProfileScreenState extends State<EditProfileScreen>
                   // Content area
                   Padding(
                     padding: const EdgeInsets.all(20),
-                    child: Column(
-                      children: children,
-                    ),
+                    child: Column(children: children),
                   ),
                 ],
               ),
@@ -801,8 +958,6 @@ class _EditProfileScreenState extends State<EditProfileScreen>
         return '';
     }
   }
-
-
 
   // ==================== PROFILE COMPLETION CARD ====================
   Widget _buildProfileCompletionCard(ThemeData theme, ColorScheme colorScheme) {
@@ -878,11 +1033,11 @@ class _EditProfileScreenState extends State<EditProfileScreen>
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      percentage >= 90 
-                          ? 'Profile Complete! 🎉' 
-                          : percentage >= 60 
-                              ? 'Almost there!' 
-                              : 'Complete your profile',
+                      percentage >= 90
+                          ? 'Profile Complete! 🎉'
+                          : percentage >= 60
+                          ? 'Almost there!'
+                          : 'Complete your profile',
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
@@ -891,37 +1046,39 @@ class _EditProfileScreenState extends State<EditProfileScreen>
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      percentage >= 90 
+                      percentage >= 90
                           ? 'All your information is up to date'
                           : 'Fill in the remaining fields for better experience',
                       style: TextStyle(
                         fontSize: 12,
-                        color: theme.textTheme.bodyMedium?.color?.withAlpha(160),
+                        color: theme.textTheme.bodyMedium?.color?.withAlpha(
+                          160,
+                        ),
                       ),
                     ),
                     const SizedBox(height: 10),
                     // Progress badges
-                    Row(
+                    Wrap(
                       children: [
                         _buildMiniProgressBadge(
                           'Personal',
-                          _firstNameController.text.isNotEmpty && 
-                          _lastNameController.text.isNotEmpty &&
-                          _usernameController.text.isNotEmpty,
+                          _firstNameController.text.isNotEmpty &&
+                              _lastNameController.text.isNotEmpty &&
+                              _usernameController.text.isNotEmpty,
                           colorScheme.primary,
                         ),
                         const SizedBox(width: 8),
                         _buildMiniProgressBadge(
                           'Contact',
-                          _emailController.text.isNotEmpty && 
-                          _phoneController.text.isNotEmpty,
+                          _emailController.text.isNotEmpty &&
+                              _phoneController.text.isNotEmpty,
                           colorScheme.primary,
                         ),
                         const SizedBox(width: 8),
                         _buildMiniProgressBadge(
                           'Address',
-                          _addressController.text.isNotEmpty && 
-                          _cityController.text.isNotEmpty,
+                          _addressController.text.isNotEmpty &&
+                              _cityController.text.isNotEmpty,
                           colorScheme.primary,
                         ),
                       ],
@@ -950,7 +1107,9 @@ class _EditProfileScreenState extends State<EditProfileScreen>
         mainAxisSize: MainAxisSize.min,
         children: [
           Icon(
-            isComplete ? Icons.check_circle_rounded : Icons.radio_button_unchecked,
+            isComplete
+                ? Icons.check_circle_rounded
+                : Icons.radio_button_unchecked,
             size: 12,
             color: isComplete ? color : Colors.grey,
           ),
@@ -979,7 +1138,7 @@ class _EditProfileScreenState extends State<EditProfileScreen>
     bool isLast = false,
   }) {
     final isDark = theme.brightness == Brightness.dark;
-    
+
     return Padding(
       padding: EdgeInsets.only(bottom: isLast ? 0 : 16),
       child: Column(
@@ -998,7 +1157,10 @@ class _EditProfileScreenState extends State<EditProfileScreen>
               if (readOnly) ...[
                 const Spacer(),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 3,
+                  ),
                   decoration: BoxDecoration(
                     color: theme.dividerColor.withAlpha(40),
                     borderRadius: BorderRadius.circular(6),
@@ -1007,9 +1169,11 @@ class _EditProfileScreenState extends State<EditProfileScreen>
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Icon(
-                        Icons.lock_outline, 
-                        size: 11, 
-                        color: theme.textTheme.bodyMedium?.color?.withAlpha(120),
+                        Icons.lock_outline,
+                        size: 11,
+                        color: theme.textTheme.bodyMedium?.color?.withAlpha(
+                          120,
+                        ),
                       ),
                       const SizedBox(width: 4),
                       Text(
@@ -1017,7 +1181,9 @@ class _EditProfileScreenState extends State<EditProfileScreen>
                         style: TextStyle(
                           fontSize: 10,
                           fontWeight: FontWeight.w500,
-                          color: theme.textTheme.bodyMedium?.color?.withAlpha(120),
+                          color: theme.textTheme.bodyMedium?.color?.withAlpha(
+                            120,
+                          ),
                         ),
                       ),
                     ],
@@ -1035,37 +1201,34 @@ class _EditProfileScreenState extends State<EditProfileScreen>
             style: TextStyle(
               fontSize: 15,
               fontWeight: FontWeight.w500,
-              color: readOnly
-                  ? theme.textTheme.bodyMedium?.color?.withAlpha(130)
-                  : theme.textTheme.bodyLarge?.color,
+              color:
+                  readOnly
+                      ? theme.textTheme.bodyMedium?.color?.withAlpha(130)
+                      : theme.textTheme.bodyLarge?.color,
             ),
             decoration: InputDecoration(
               filled: true,
-              fillColor: readOnly
-                  ? (isDark ? Colors.white.withAlpha(8) : Colors.grey.withAlpha(20))
-                  : (isDark ? Colors.white.withAlpha(5) : Colors.white),
+              fillColor:
+                  readOnly
+                      ? (isDark
+                          ? Colors.white.withAlpha(8)
+                          : Colors.grey.withAlpha(20))
+                      : (isDark ? Colors.white.withAlpha(5) : Colors.white),
               contentPadding: const EdgeInsets.symmetric(
                 horizontal: 16,
                 vertical: 14,
               ),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide(
-                  color: theme.dividerColor.withAlpha(60),
-                ),
+                borderSide: BorderSide(color: theme.dividerColor.withAlpha(60)),
               ),
               enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide(
-                  color: theme.dividerColor.withAlpha(60),
-                ),
+                borderSide: BorderSide(color: theme.dividerColor.withAlpha(60)),
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide(
-                  color: accentColor,
-                  width: 1.5,
-                ),
+                borderSide: BorderSide(color: accentColor, width: 1.5),
               ),
             ),
           ),
@@ -1105,12 +1268,13 @@ class _EditProfileScreenState extends State<EditProfileScreen>
                   color: theme.dividerColor.withAlpha(38),
                   borderRadius: BorderRadius.circular(16),
                   child: InkWell(
-                    onTap: _isLoading
-                        ? null
-                        : () {
-                            _triggerHaptic();
-                            Navigator.of(context).pop();
-                          },
+                    onTap:
+                        _isLoading
+                            ? null
+                            : () {
+                              _triggerHaptic();
+                              Navigator.of(context).pop();
+                            },
                     borderRadius: BorderRadius.circular(16),
                     child: Center(
                       child: Text(
@@ -1118,7 +1282,9 @@ class _EditProfileScreenState extends State<EditProfileScreen>
                         style: TextStyle(
                           fontSize: 15,
                           fontWeight: FontWeight.w600,
-                          color: theme.textTheme.bodyMedium?.color?.withAlpha(178),
+                          color: theme.textTheme.bodyMedium?.color?.withAlpha(
+                            178,
+                          ),
                         ),
                       ),
                     ),
@@ -1156,35 +1322,36 @@ class _EditProfileScreenState extends State<EditProfileScreen>
                         ],
                       ),
                       child: Center(
-                        child: _isLoading
-                            ? const SizedBox(
-                                height: 20,
-                                width: 20,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  color: Colors.white,
-                                ),
-                              )
-                            : const Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Icon(
-                                    Icons.check_rounded,
+                        child:
+                            _isLoading
+                                ? const SizedBox(
+                                  height: 20,
+                                  width: 20,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
                                     color: Colors.white,
-                                    size: 20,
                                   ),
-                                  SizedBox(width: 8),
-                                  Text(
-                                    'Save Changes',
-                                    style: TextStyle(
-                                      fontSize: 15,
-                                      fontWeight: FontWeight.w600,
+                                )
+                                : const Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(
+                                      Icons.check_rounded,
                                       color: Colors.white,
+                                      size: 20,
                                     ),
-                                  ),
-                                ],
-                              ),
+                                    SizedBox(width: 8),
+                                    Text(
+                                      'Save Changes',
+                                      style: TextStyle(
+                                        fontSize: 15,
+                                        fontWeight: FontWeight.w600,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                  ],
+                                ),
                       ),
                     ),
                   ),

@@ -162,17 +162,20 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen>
 
     try {
       final int? variantId =
-          widget.singleProduct?.id ?? widget.cart?.items.first.productVariant.id;
+          widget.singleProduct?.id ??
+          widget.cart?.items.first.productVariant.id;
 
       if (variantId == null) {
-        throw Exception('No product variant found to calculate delivery charges.');
+        throw Exception(
+          'No product variant found to calculate delivery charges.',
+        );
       }
 
       final body = jsonEncode({
         'delivery_pincode': pincode,
         'items': [
-          {'product_variant_id': variantId}
-        ]
+          {'product_variant_id': variantId},
+        ],
       });
 
       final response = await http.post(
@@ -189,9 +192,11 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen>
       } else {
         final errorBody =
             response.body.isNotEmpty ? jsonDecode(response.body) : null;
-        throw Exception((errorBody is Map && errorBody['error'] != null)
-            ? errorBody['error']
-            : 'Failed to calculate delivery charges');
+        throw Exception(
+          (errorBody is Map && errorBody['error'] != null)
+              ? errorBody['error']
+              : 'Failed to calculate delivery charges',
+        );
       }
     } catch (e) {
       setState(() {
@@ -241,11 +246,20 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen>
 
   Future<bool> _updateUserAddress(Map<String, String> addressDetails) async {
     setState(() => _isLoading = true);
-    final success = await AuthService().updateUserAddress(addressDetails);
+
+    // Use AuthCubit to update address - this emits state changes that
+    // all screens listening to the cubit can react to
+    final success = await context.read<AuthCubit>().updateUserAddress(
+      addressDetails,
+    );
+
     setState(() => _isLoading = false);
 
     if (!success && mounted) {
-      SnackBarHelper.showError(context, 'Failed to save address. Please try again.');
+      SnackBarHelper.showError(
+        context,
+        'Failed to save address. Please try again.',
+      );
     } else if (success && mounted) {
       SnackBarHelper.showSuccess(context, 'Address saved to your profile!');
     }
@@ -262,7 +276,10 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen>
     }
 
     if (_deliveryDetails == null) {
-      SnackBarHelper.showError(context, 'Please enter a valid pincode to check delivery.');
+      SnackBarHelper.showError(
+        context,
+        'Please enter a valid pincode to check delivery.',
+      );
       return;
     }
 
@@ -286,20 +303,24 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen>
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => CheckoutScreen(
-          cart: widget.cart,
-          singleProduct: widget.singleProduct,
-          price: widget.price,
-          quantity: widget.quantity,
-          isSubscription: widget.isSubscription,
-          selectedPlan: widget.selectedPlan,
-          shippingDetails: shippingDetails,
-          deliveryCharges: double.tryParse(
-                  _deliveryDetails?['delivery_charges']?.toString() ?? '0.0') ??
-              0.0,
-          expectedDeliveryDate: _deliveryDetails?['expected_delivery_date'] ?? '',
-          paymentType: widget.paymentType,
-        ),
+        builder:
+            (context) => CheckoutScreen(
+              cart: widget.cart,
+              singleProduct: widget.singleProduct,
+              price: widget.price,
+              quantity: widget.quantity,
+              isSubscription: widget.isSubscription,
+              selectedPlan: widget.selectedPlan,
+              shippingDetails: shippingDetails,
+              deliveryCharges:
+                  double.tryParse(
+                    _deliveryDetails?['delivery_charges']?.toString() ?? '0.0',
+                  ) ??
+                  0.0,
+              expectedDeliveryDate:
+                  _deliveryDetails?['expected_delivery_date'] ?? '',
+              paymentType: widget.paymentType,
+            ),
       ),
     );
   }
@@ -326,10 +347,7 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen>
                   builder: (context, child) {
                     return Transform.translate(
                       offset: Offset(0, 20 * (1 - _contentFade.value)),
-                      child: Opacity(
-                        opacity: _contentFade.value,
-                        child: child,
-                      ),
+                      child: Opacity(opacity: _contentFade.value, child: child),
                     );
                   },
                   child: Padding(
@@ -341,23 +359,36 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen>
                         const SizedBox(height: 20),
                         AnimatedSwitcher(
                           duration: const Duration(milliseconds: 300),
-                          child: _orderType == OrderType.self
-                              ? Column(
-                                  key: const ValueKey('self'),
-                                  children: [
-                                    if (_savedAddress != null)
-                                      _buildSavedAddressCard(theme, isDark),
-                                    _buildNewAddressOption(theme, isDark, isForSelf: true),
-                                    if (_selectedAddressType == 'new')
-                                      _buildNewAddressForm(theme, isDark, isForSelf: true),
-                                  ],
-                                )
-                              : Column(
-                                  key: const ValueKey('other'),
-                                  children: [
-                                    _buildNewAddressForm(theme, isDark, isForSelf: false),
-                                  ],
-                                ),
+                          child:
+                              _orderType == OrderType.self
+                                  ? Column(
+                                    key: const ValueKey('self'),
+                                    children: [
+                                      if (_savedAddress != null)
+                                        _buildSavedAddressCard(theme, isDark),
+                                      _buildNewAddressOption(
+                                        theme,
+                                        isDark,
+                                        isForSelf: true,
+                                      ),
+                                      if (_selectedAddressType == 'new')
+                                        _buildNewAddressForm(
+                                          theme,
+                                          isDark,
+                                          isForSelf: true,
+                                        ),
+                                    ],
+                                  )
+                                  : Column(
+                                    key: const ValueKey('other'),
+                                    children: [
+                                      _buildNewAddressForm(
+                                        theme,
+                                        isDark,
+                                        isForSelf: false,
+                                      ),
+                                    ],
+                                  ),
                         ),
                         if (_error != null) _buildErrorMessage(theme),
                         if (_deliveryDetails != null)
@@ -388,10 +419,7 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen>
         builder: (context, child) {
           return Transform.translate(
             offset: Offset(0, _headerSlide.value),
-            child: Opacity(
-              opacity: _headerFade.value,
-              child: child,
-            ),
+            child: Opacity(opacity: _headerFade.value, child: child),
           );
         },
         child: Container(
@@ -459,13 +487,10 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen>
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       // Back Button
-                      _buildIconButton(
-                        Icons.arrow_back_ios_new_rounded,
-                        () {
-                          HapticFeedback.lightImpact();
-                          Navigator.pop(context);
-                        },
-                      ),
+                      _buildIconButton(Icons.arrow_back_ios_new_rounded, () {
+                        HapticFeedback.lightImpact();
+                        Navigator.pop(context);
+                      }),
                       const Spacer(),
                       // Title Row
                       Row(
@@ -489,10 +514,11 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen>
                               children: [
                                 Text(
                                   "Delivery Address",
-                                  style: theme.textTheme.headlineMedium?.copyWith(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold,
-                                  ),
+                                  style: theme.textTheme.headlineMedium
+                                      ?.copyWith(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.bold,
+                                      ),
                                 ),
                                 const SizedBox(height: 4),
                                 Text(
@@ -625,9 +651,7 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen>
         duration: const Duration(milliseconds: 200),
         padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 12),
         decoration: BoxDecoration(
-          color: isSelected
-              ? theme.colorScheme.primary
-              : Colors.transparent,
+          color: isSelected ? theme.colorScheme.primary : Colors.transparent,
           borderRadius: BorderRadius.circular(12),
         ),
         child: Row(
@@ -676,18 +700,20 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen>
           color: theme.cardColor,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color: isSelected
-                ? theme.colorScheme.primary
-                : isDark
+            color:
+                isSelected
+                    ? theme.colorScheme.primary
+                    : isDark
                     ? Colors.grey.shade800
                     : Colors.grey.shade200,
             width: isSelected ? 2 : 1,
           ),
           boxShadow: [
             BoxShadow(
-              color: isSelected
-                  ? theme.colorScheme.primary.withOpacity(0.15)
-                  : theme.shadowColor.withOpacity(0.06),
+              color:
+                  isSelected
+                      ? theme.colorScheme.primary.withOpacity(0.15)
+                      : theme.shadowColor.withOpacity(0.06),
               blurRadius: isSelected ? 16 : 8,
               offset: Offset(0, isSelected ? 6 : 3),
             ),
@@ -702,19 +728,20 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen>
               height: 24,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: isSelected
-                    ? theme.colorScheme.primary
-                    : Colors.transparent,
+                color:
+                    isSelected ? theme.colorScheme.primary : Colors.transparent,
                 border: Border.all(
-                  color: isSelected
-                      ? theme.colorScheme.primary
-                      : theme.hintColor.withOpacity(0.3),
+                  color:
+                      isSelected
+                          ? theme.colorScheme.primary
+                          : theme.hintColor.withOpacity(0.3),
                   width: 2,
                 ),
               ),
-              child: isSelected
-                  ? const Icon(Icons.check, color: Colors.white, size: 16)
-                  : null,
+              child:
+                  isSelected
+                      ? const Icon(Icons.check, color: Colors.white, size: 16)
+                      : null,
             ),
             const SizedBox(width: 16),
             // Address Icon
@@ -790,7 +817,11 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen>
     );
   }
 
-  Widget _buildNewAddressOption(ThemeData theme, bool isDark, {required bool isForSelf}) {
+  Widget _buildNewAddressOption(
+    ThemeData theme,
+    bool isDark, {
+    required bool isForSelf,
+  }) {
     final isSelected = _selectedAddressType == 'new';
     return GestureDetector(
       onTap: () {
@@ -808,18 +839,20 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen>
           color: theme.cardColor,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color: isSelected
-                ? theme.colorScheme.primary
-                : isDark
+            color:
+                isSelected
+                    ? theme.colorScheme.primary
+                    : isDark
                     ? Colors.grey.shade800
                     : Colors.grey.shade200,
             width: isSelected ? 2 : 1,
           ),
           boxShadow: [
             BoxShadow(
-              color: isSelected
-                  ? theme.colorScheme.primary.withOpacity(0.15)
-                  : theme.shadowColor.withOpacity(0.06),
+              color:
+                  isSelected
+                      ? theme.colorScheme.primary.withOpacity(0.15)
+                      : theme.shadowColor.withOpacity(0.06),
               blurRadius: isSelected ? 16 : 8,
               offset: Offset(0, isSelected ? 6 : 3),
             ),
@@ -834,19 +867,20 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen>
               height: 24,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: isSelected
-                    ? theme.colorScheme.primary
-                    : Colors.transparent,
+                color:
+                    isSelected ? theme.colorScheme.primary : Colors.transparent,
                 border: Border.all(
-                  color: isSelected
-                      ? theme.colorScheme.primary
-                      : theme.hintColor.withOpacity(0.3),
+                  color:
+                      isSelected
+                          ? theme.colorScheme.primary
+                          : theme.hintColor.withOpacity(0.3),
                   width: 2,
                 ),
               ),
-              child: isSelected
-                  ? const Icon(Icons.check, color: Colors.white, size: 16)
-                  : null,
+              child:
+                  isSelected
+                      ? const Icon(Icons.check, color: Colors.white, size: 16)
+                      : null,
             ),
             const SizedBox(width: 16),
             // Add Icon
@@ -883,7 +917,11 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen>
     );
   }
 
-  Widget _buildNewAddressForm(ThemeData theme, bool isDark, {bool isForSelf = true}) {
+  Widget _buildNewAddressForm(
+    ThemeData theme,
+    bool isDark, {
+    bool isForSelf = true,
+  }) {
     return Form(
       key: _formKey,
       child: Container(
@@ -926,57 +964,54 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen>
               label: 'Full Address',
               hint: 'House No, Street, Landmark',
               icon: Icons.home_work_rounded,
-              validator: (v) =>
-                  v == null || v.trim().isEmpty ? 'Address is required' : null,
+              validator:
+                  (v) =>
+                      v == null || v.trim().isEmpty
+                          ? 'Address is required'
+                          : null,
             ),
             const SizedBox(height: 16),
             SelectState(
               onCountryChanged: (_) {},
-              onStateChanged: (v) => setState(() => _stateController.text = v ?? ''),
-              onCityChanged: (v) => setState(() => _cityController.text = v ?? ''),
+              onStateChanged:
+                  (v) => setState(() => _stateController.text = v ?? ''),
+              onCityChanged:
+                  (v) => setState(() => _cityController.text = v ?? ''),
               style: theme.textTheme.bodyLarge,
             ),
             const SizedBox(height: 16),
-            Row(
-              children: [
-                Expanded(
-                  child: _buildModernInput(
-                    theme,
-                    isDark,
-                    controller: _pincodeController,
-                    label: 'Pincode',
-                    hint: '6 digits',
-                    icon: Icons.pin_drop_rounded,
-                    keyboardType: TextInputType.number,
-                    validator: (v) {
-                      if (v == null || v.trim().isEmpty) return 'Required';
-                      if (!RegExp(r'^\d{6}$').hasMatch(v.trim())) {
-                        return 'Invalid pincode';
-                      }
-                      return null;
-                    },
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: _buildModernInput(
-                    theme,
-                    isDark,
-                    controller: _phoneController,
-                    label: 'Phone Number',
-                    hint: '10 digits',
-                    icon: Icons.phone_rounded,
-                    keyboardType: TextInputType.phone,
-                    validator: (v) {
-                      if (v == null || v.trim().isEmpty) return 'Required';
-                      if (!RegExp(r'^\d{10}$').hasMatch(v.trim())) {
-                        return 'Invalid number';
-                      }
-                      return null;
-                    },
-                  ),
-                ),
-              ],
+            _buildModernInput(
+              theme,
+              isDark,
+              controller: _pincodeController,
+              label: 'Pincode',
+              hint: '6 digits',
+              icon: Icons.pin_drop_rounded,
+              keyboardType: TextInputType.number,
+              validator: (v) {
+                if (v == null || v.trim().isEmpty) return 'Required';
+                if (!RegExp(r'^\d{6}$').hasMatch(v.trim())) {
+                  return 'Invalid pincode';
+                }
+                return null;
+              },
+            ),
+            const SizedBox(height: 16),
+            _buildModernInput(
+              theme,
+              isDark,
+              controller: _phoneController,
+              label: 'Phone Number',
+              hint: '10 digit mobile number',
+              icon: Icons.phone_rounded,
+              keyboardType: TextInputType.phone,
+              validator: (v) {
+                if (v == null || v.trim().isEmpty) return 'Required';
+                if (!RegExp(r'^\d{10}$').hasMatch(v.trim())) {
+                  return 'Invalid number';
+                }
+                return null;
+              },
             ),
           ],
         ),
@@ -1012,9 +1047,7 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen>
           style: theme.textTheme.bodyLarge,
           decoration: InputDecoration(
             hintText: hint,
-            hintStyle: TextStyle(
-              color: theme.hintColor.withOpacity(0.5),
-            ),
+            hintStyle: TextStyle(color: theme.hintColor.withOpacity(0.5)),
             prefixIcon: Icon(
               icon,
               color: theme.colorScheme.primary.withOpacity(0.7),
@@ -1041,9 +1074,7 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen>
             ),
             errorBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(14),
-              borderSide: BorderSide(
-                color: theme.colorScheme.error,
-              ),
+              borderSide: BorderSide(color: theme.colorScheme.error),
             ),
             contentPadding: const EdgeInsets.symmetric(
               horizontal: 16,
@@ -1062,9 +1093,7 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen>
       decoration: BoxDecoration(
         color: theme.colorScheme.error.withOpacity(0.1),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: theme.colorScheme.error.withOpacity(0.3),
-        ),
+        border: Border.all(color: theme.colorScheme.error.withOpacity(0.3)),
       ),
       child: Row(
         children: [
@@ -1077,10 +1106,7 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen>
           Expanded(
             child: Text(
               _error!,
-              style: TextStyle(
-                color: theme.colorScheme.error,
-                fontSize: 14,
-              ),
+              style: TextStyle(color: theme.colorScheme.error, fontSize: 14),
             ),
           ),
         ],
@@ -1102,9 +1128,7 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen>
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: theme.colorScheme.primary.withOpacity(0.3),
-        ),
+        border: Border.all(color: theme.colorScheme.primary.withOpacity(0.3)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1171,17 +1195,11 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen>
   ) {
     return Column(
       children: [
-        Icon(
-          icon,
-          color: theme.colorScheme.primary,
-          size: 24,
-        ),
+        Icon(icon, color: theme.colorScheme.primary, size: 24),
         const SizedBox(height: 8),
         Text(
           label,
-          style: theme.textTheme.bodySmall?.copyWith(
-            color: theme.hintColor,
-          ),
+          style: theme.textTheme.bodySmall?.copyWith(color: theme.hintColor),
           textAlign: TextAlign.center,
         ),
         const SizedBox(height: 4),
@@ -1247,10 +1265,7 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen>
                       color: Colors.white.withOpacity(0.2),
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    child: const Icon(
-                      Icons.arrow_forward_rounded,
-                      size: 18,
-                    ),
+                    child: const Icon(Icons.arrow_forward_rounded, size: 18),
                   ),
                 ],
               ),
@@ -1274,14 +1289,9 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen>
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              CircularProgressIndicator(
-                color: theme.colorScheme.primary,
-              ),
+              CircularProgressIndicator(color: theme.colorScheme.primary),
               const SizedBox(height: 16),
-              Text(
-                'Processing...',
-                style: theme.textTheme.bodyMedium,
-              ),
+              Text('Processing...', style: theme.textTheme.bodyMedium),
             ],
           ),
         ),

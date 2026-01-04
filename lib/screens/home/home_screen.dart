@@ -138,10 +138,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
               builder: (context, child) {
                 return Transform.scale(
                   scale: _headerScale.value,
-                  child: Opacity(
-                    opacity: _headerFade.value,
-                    child: child,
-                  ),
+                  child: Opacity(opacity: _headerFade.value, child: child),
                 );
               },
               child: Stack(
@@ -198,171 +195,221 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                           bottom: 12,
                         ),
                         child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          // Modern Welcome Section with Avatar
-                          Expanded(
-                            child: BlocBuilder<AuthCubit, AuthState>(
-                              builder: (context, state) {
-                                String name = "User";
-                                String? profilePicture;
-                                if (state is Authenticated) {
-                                  name =
-                                      state.user.firstName[0].toUpperCase() +
-                                      state.user.firstName.substring(1);
-                                  profilePicture = state.user.profilePicture;
-                                }
-                                
-                                // Time-based greeting
-                                final hour = DateTime.now().hour;
-                                String greeting;
-                                IconData greetingIcon;
-                                Color iconColor;
-                                
-                                if (hour < 12) {
-                                  greeting = "Good Morning";
-                                  greetingIcon = Icons.wb_sunny_rounded;
-                                  iconColor = Colors.amber;
-                                } else if (hour < 17) {
-                                  greeting = "Good Afternoon";
-                                  greetingIcon = Icons.wb_sunny_outlined;
-                                  iconColor = Colors.orange;
-                                } else {
-                                  greeting = "Good Evening";
-                                  greetingIcon = Icons.nightlight_round;
-                                  iconColor = Colors.indigo.shade300;
-                                }
-                                
-                                return Row(
-                                  children: [
-                                    // Animated Avatar with glow
-                                    Container(
-                                      padding: const EdgeInsets.all(2),
-                                      decoration: BoxDecoration(
-                                        shape: BoxShape.circle,
-                                        gradient: LinearGradient(
-                                          colors: [
-                                            theme.colorScheme.primary,
-                                            theme.colorScheme.secondary,
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            // Modern Welcome Section with Avatar
+                            Expanded(
+                              child: BlocBuilder<AuthCubit, AuthState>(
+                                builder: (context, state) {
+                                  String name = "User";
+                                  String? profilePicture;
+                                  if (state is Authenticated) {
+                                    name =
+                                        state.user.firstName[0].toUpperCase() +
+                                        state.user.firstName.substring(1);
+                                    profilePicture = state.user.profilePicture;
+                                  }
+
+                                  // Time-based greeting
+                                  final hour = DateTime.now().hour;
+                                  String greeting;
+                                  IconData greetingIcon;
+                                  Color iconColor;
+
+                                  if (hour < 12) {
+                                    greeting = "Good Morning";
+                                    greetingIcon = Icons.wb_sunny_rounded;
+                                    iconColor = Colors.amber;
+                                  } else if (hour < 17) {
+                                    greeting = "Good Afternoon";
+                                    greetingIcon = Icons.wb_sunny_outlined;
+                                    iconColor = Colors.orange;
+                                  } else {
+                                    greeting = "Good Evening";
+                                    greetingIcon = Icons.nightlight_round;
+                                    iconColor = Colors.indigo.shade300;
+                                  }
+
+                                  return Row(
+                                    children: [
+                                      // Animated Avatar with glow
+                                      Container(
+                                        padding: const EdgeInsets.all(2),
+                                        decoration: BoxDecoration(
+                                          shape: BoxShape.circle,
+                                          gradient: LinearGradient(
+                                            colors: [
+                                              theme.colorScheme.primary,
+                                              theme.colorScheme.secondary,
+                                            ],
+                                          ),
+                                          boxShadow: [
+                                            BoxShadow(
+                                              color: theme.colorScheme.primary
+                                                  .withOpacity(0.4),
+                                              blurRadius: 8,
+                                              spreadRadius: 1,
+                                            ),
                                           ],
                                         ),
-                                        boxShadow: [
-                                          BoxShadow(
-                                            color: theme.colorScheme.primary.withOpacity(0.4),
-                                            blurRadius: 8,
-                                            spreadRadius: 1,
-                                          ),
-                                        ],
+                                        child: CircleAvatar(
+                                          radius: 20,
+                                          backgroundColor: theme.cardColor,
+                                          backgroundImage:
+                                              profilePicture != null &&
+                                                      profilePicture.isNotEmpty
+                                                  ? NetworkImage(profilePicture)
+                                                  : null,
+                                          child:
+                                              profilePicture == null ||
+                                                      profilePicture.isEmpty
+                                                  ? Text(
+                                                    name[0].toUpperCase(),
+                                                    style: textTheme.titleMedium
+                                                        ?.copyWith(
+                                                          fontWeight:
+                                                              FontWeight.bold,
+                                                          color:
+                                                              theme
+                                                                  .colorScheme
+                                                                  .primary,
+                                                        ),
+                                                  )
+                                                  : null,
+                                        ),
                                       ),
-                                      child: CircleAvatar(
-                                        radius: 20,
-                                        backgroundColor: theme.cardColor,
-                                        backgroundImage: profilePicture != null && profilePicture.isNotEmpty
-                                            ? NetworkImage(profilePicture)
-                                            : null,
-                                        child: profilePicture == null || profilePicture.isEmpty
-                                            ? Text(
-                                                name[0].toUpperCase(),
-                                                style: textTheme.titleMedium?.copyWith(
-                                                  fontWeight: FontWeight.bold,
-                                                  color: theme.colorScheme.primary,
-                                                ),
-                                              )
-                                            : null,
-                                      ),
-                                    ),
-                                    const SizedBox(width: 12),
-                                    // Greeting Text Column
-                                    Expanded(
-                                      child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          // Time-based greeting with icon
-                                          Row(
-                                            children: [
-                                              TweenAnimationBuilder<double>(
-                                                tween: Tween(begin: 0.0, end: 1.0),
-                                                duration: const Duration(milliseconds: 800),
-                                                builder: (context, value, child) {
-                                                  return Transform.rotate(
-                                                    angle: value * 0.1,
-                                                    child: Opacity(
-                                                      opacity: value,
-                                                      child: Icon(
-                                                        greetingIcon,
-                                                        size: 16,
-                                                        color: iconColor,
-                                                      ),
-                                                    ),
-                                                  );
-                                                },
-                                              ),
-                                              const SizedBox(width: 4),
-                                              Text(
-                                                greeting,
-                                                style: textTheme.bodySmall?.copyWith(
-                                                  color: theme.colorScheme.onPrimary.withOpacity(0.8),
-                                                  fontWeight: FontWeight.w500,
-                                                  letterSpacing: 0.3,
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                          const SizedBox(height: 2),
-                                          // Name with wave animation
-                                          Row(
-                                            children: [
-                                              Flexible(
-                                                child: Text(
-                                                  name,
-                                                  style: textTheme.titleMedium?.copyWith(
-                                                    color: theme.colorScheme.onPrimary,
-                                                    fontWeight: FontWeight.bold,
-                                                    letterSpacing: 0.2,
+                                      const SizedBox(width: 12),
+                                      // Greeting Text Column
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            // Time-based greeting with icon
+                                            Row(
+                                              children: [
+                                                TweenAnimationBuilder<double>(
+                                                  tween: Tween(
+                                                    begin: 0.0,
+                                                    end: 1.0,
                                                   ),
-                                                  overflow: TextOverflow.ellipsis,
-                                                ),
-                                              ),
-                                              const SizedBox(width: 6),
-                                              // Animated waving hand
-                                              TweenAnimationBuilder<double>(
-                                                tween: Tween(begin: 0.0, end: 1.0),
-                                                duration: const Duration(milliseconds: 1500),
-                                                builder: (context, value, child) {
-                                                  final wave = math.sin(value * 2 * math.pi);
-                                                  return Transform.rotate(
-                                                    angle: 0.2 * (1 + wave * 0.3),
-                                                    child: Transform.translate(
-                                                      offset: Offset(0, -2.0 * wave.abs()),
-                                                      child: const Text(
-                                                        "👋",
-                                                        style: TextStyle(fontSize: 18),
+                                                  duration: const Duration(
+                                                    milliseconds: 800,
+                                                  ),
+                                                  builder: (
+                                                    context,
+                                                    value,
+                                                    child,
+                                                  ) {
+                                                    return Transform.rotate(
+                                                      angle: value * 0.1,
+                                                      child: Opacity(
+                                                        opacity: value,
+                                                        child: Icon(
+                                                          greetingIcon,
+                                                          size: 16,
+                                                          color: iconColor,
+                                                        ),
                                                       ),
-                                                    ),
-                                                  );
-                                                },
-                                              ),
-                                            ],
-                                          ),
-                                        ],
+                                                    );
+                                                  },
+                                                ),
+                                                const SizedBox(width: 4),
+                                                Text(
+                                                  greeting,
+                                                  style: textTheme.bodySmall
+                                                      ?.copyWith(
+                                                        color: theme
+                                                            .colorScheme
+                                                            .onPrimary
+                                                            .withOpacity(0.8),
+                                                        fontWeight:
+                                                            FontWeight.w500,
+                                                        letterSpacing: 0.3,
+                                                      ),
+                                                ),
+                                              ],
+                                            ),
+                                            const SizedBox(height: 2),
+                                            // Name with wave animation
+                                            Row(
+                                              children: [
+                                                Flexible(
+                                                  child: Text(
+                                                    name,
+                                                    style: textTheme.titleMedium
+                                                        ?.copyWith(
+                                                          color:
+                                                              theme
+                                                                  .colorScheme
+                                                                  .onPrimary,
+                                                          fontWeight:
+                                                              FontWeight.bold,
+                                                          letterSpacing: 0.2,
+                                                        ),
+                                                    overflow:
+                                                        TextOverflow.ellipsis,
+                                                  ),
+                                                ),
+                                                const SizedBox(width: 6),
+                                                // Animated waving hand
+                                                TweenAnimationBuilder<double>(
+                                                  tween: Tween(
+                                                    begin: 0.0,
+                                                    end: 1.0,
+                                                  ),
+                                                  duration: const Duration(
+                                                    milliseconds: 1500,
+                                                  ),
+                                                  builder: (
+                                                    context,
+                                                    value,
+                                                    child,
+                                                  ) {
+                                                    final wave = math.sin(
+                                                      value * 2 * math.pi,
+                                                    );
+                                                    return Transform.rotate(
+                                                      angle:
+                                                          0.2 *
+                                                          (1 + wave * 0.3),
+                                                      child:
+                                                          Transform.translate(
+                                                            offset: Offset(
+                                                              0,
+                                                              -2.0 * wave.abs(),
+                                                            ),
+                                                            child: const Text(
+                                                              "👋",
+                                                              style: TextStyle(
+                                                                fontSize: 18,
+                                                              ),
+                                                            ),
+                                                          ),
+                                                    );
+                                                  },
+                                                ),
+                                              ],
+                                            ),
+                                          ],
+                                        ),
                                       ),
-                                    ),
-                                  ],
-                                );
-                              },
+                                    ],
+                                  );
+                                },
+                              ),
                             ),
-                          ),
-                          // Modern Animated Notification Bell
-                          _buildModernNotificationBell(context, theme),
-                        ],
+                            // Modern Animated Notification Bell
+                            _buildModernNotificationBell(context, theme),
+                          ],
+                        ),
                       ),
-                    ),
-                    _searchBar(context),
-                  ],
-                ),
-              ],
-            ),
+                      _searchBar(context),
+                    ],
+                  ),
+                ],
+              ),
             ),
 
             const SizedBox(height: 10),
@@ -387,13 +434,15 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                   else if (_searchResults.isNotEmpty && _focusNode.hasFocus)
                     _buildSearchDropdown(context)
                   else ...[
-                    padded(TopCurosel(
-                      onColorChanged: (color) {
-                        setState(() {
-                          _dynamicBgColor = color;
-                        });
-                      },
-                    )),
+                    padded(
+                      TopCurosel(
+                        onColorChanged: (color) {
+                          setState(() {
+                            _dynamicBgColor = color;
+                          });
+                        },
+                      ),
+                    ),
                     padded(const SubscriptionCarousel()),
                     _heading(context, "Subscription Plans", "", () {}),
                     _subscriptionSection(context),
@@ -417,9 +466,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         HapticFeedback.lightImpact();
         Navigator.push(
           context,
-          MaterialPageRoute(
-            builder: (context) => const NotificationsScreen(),
-          ),
+          MaterialPageRoute(builder: (context) => const NotificationsScreen()),
         );
       },
       child: NotificationBadgeWidget(
@@ -471,17 +518,19 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       child: Container(
         height: 54,
         decoration: BoxDecoration(
-          color: isDark ? Colors.grey.shade900 : Colors.grey.shade100,
+          // Use a consistent solid color for dark mode
+          color: isDark ? const Color(0xFF2A2A2A) : Colors.white,
           borderRadius: BorderRadius.circular(27),
-          boxShadow: _focusNode.hasFocus
-              ? [
-                  BoxShadow(
-                    color: colorScheme.primary.withOpacity(0.15),
-                    blurRadius: 20,
-                    offset: const Offset(0, 4),
-                  ),
-                ]
-              : [],
+          boxShadow:
+              _focusNode.hasFocus
+                  ? [
+                    BoxShadow(
+                      color: colorScheme.primary.withOpacity(0.15),
+                      blurRadius: 20,
+                      offset: const Offset(0, 4),
+                    ),
+                  ]
+                  : [],
         ),
         child: ClipRRect(
           borderRadius: BorderRadius.circular(27),
@@ -490,9 +539,12 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
               const SizedBox(width: 16),
               Icon(
                 Icons.search_rounded,
-                color: _focusNode.hasFocus
-                    ? colorScheme.primary
-                    : (isDark ? Colors.grey.shade400 : Colors.grey.shade600),
+                color:
+                    _focusNode.hasFocus
+                        ? colorScheme.primary
+                        : (isDark
+                            ? Colors.grey.shade400
+                            : Colors.grey.shade600),
                 size: 22,
               ),
               const SizedBox(width: 12),
@@ -505,7 +557,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                   decoration: InputDecoration(
                     hintText: "Search products...",
                     hintStyle: TextStyle(
-                      color: isDark ? Colors.grey.shade500 : Colors.grey.shade500,
+                      color:
+                          isDark ? Colors.grey.shade400 : Colors.grey.shade500,
                       fontWeight: FontWeight.w400,
                     ),
                     border: InputBorder.none,
@@ -543,16 +596,18 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                     child: Container(
                       padding: const EdgeInsets.all(6),
                       decoration: BoxDecoration(
-                        color: isDark 
-                            ? Colors.grey.shade800 
-                            : Colors.grey.shade300,
+                        color:
+                            isDark
+                                ? Colors.grey.shade800
+                                : Colors.grey.shade300,
                         shape: BoxShape.circle,
                       ),
                       child: Icon(
                         Icons.close_rounded,
-                        color: isDark 
-                            ? Colors.grey.shade400 
-                            : Colors.grey.shade600,
+                        color:
+                            isDark
+                                ? Colors.grey.shade400
+                                : Colors.grey.shade600,
                         size: 16,
                       ),
                     ),
@@ -570,7 +625,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   Widget _buildSearchDropdown(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    
+
     return Padding(
       padding: EdgeInsets.symmetric(
         horizontal: MediaQuery.of(context).size.width * 0.05,
@@ -582,9 +637,10 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: isDark 
-                  ? Colors.black.withOpacity(0.3)
-                  : Colors.black.withOpacity(0.08),
+              color:
+                  isDark
+                      ? Colors.black.withOpacity(0.3)
+                      : Colors.black.withOpacity(0.08),
               blurRadius: 20,
               offset: const Offset(0, 8),
             ),
@@ -596,12 +652,13 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
             itemCount: _searchResults.length,
             shrinkWrap: true,
             padding: const EdgeInsets.symmetric(vertical: 8),
-            separatorBuilder: (_, __) => Divider(
-              height: 1,
-              indent: 16,
-              endIndent: 16,
-              color: theme.dividerColor.withOpacity(0.3),
-            ),
+            separatorBuilder:
+                (_, __) => Divider(
+                  height: 1,
+                  indent: 16,
+                  endIndent: 16,
+                  color: theme.dividerColor.withOpacity(0.3),
+                ),
             itemBuilder: (context, index) {
               final product = _searchResults[index];
               return ListTile(
@@ -613,9 +670,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                   width: 44,
                   height: 44,
                   decoration: BoxDecoration(
-                    color: isDark 
-                        ? Colors.grey.shade800 
-                        : Colors.grey.shade100,
+                    color: isDark ? Colors.grey.shade800 : Colors.grey.shade100,
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: Icon(
@@ -744,7 +799,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     ];
 
     return GestureDetector(
-      onTap: product.isInStock ? () => _onProductClicked(context, product) : null,
+      onTap:
+          product.isInStock ? () => _onProductClicked(context, product) : null,
       child: Opacity(
         opacity: product.isInStock ? 1.0 : 0.5,
         child: Container(
@@ -772,7 +828,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                     Container(
                       width: double.infinity,
                       decoration: BoxDecoration(
-                        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+                        borderRadius: const BorderRadius.vertical(
+                          top: Radius.circular(20),
+                        ),
                         gradient: LinearGradient(
                           begin: Alignment.topLeft,
                           end: Alignment.bottomRight,
@@ -780,33 +838,43 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                         ),
                       ),
                       child: ClipRRect(
-                        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-                        child: product.productImages.isNotEmpty
-                            ? CachedNetworkImage(
-                                imageUrl: product.productImages[0].image,
-                                fit: BoxFit.cover,
-                                placeholder: (_, __) => Center(
+                        borderRadius: const BorderRadius.vertical(
+                          top: Radius.circular(20),
+                        ),
+                        child:
+                            product.productImages.isNotEmpty
+                                ? CachedNetworkImage(
+                                  imageUrl: product.productImages[0].image,
+                                  fit: BoxFit.cover,
+                                  placeholder:
+                                      (_, __) => Center(
+                                        child: Icon(
+                                          icons[index % icons.length],
+                                          size: 48,
+                                          color: iconColors[index %
+                                                  iconColors.length]
+                                              .withOpacity(0.6),
+                                        ),
+                                      ),
+                                  errorWidget:
+                                      (_, __, ___) => Center(
+                                        child: Icon(
+                                          icons[index % icons.length],
+                                          size: 48,
+                                          color: iconColors[index %
+                                                  iconColors.length]
+                                              .withOpacity(0.6),
+                                        ),
+                                      ),
+                                )
+                                : Center(
                                   child: Icon(
                                     icons[index % icons.length],
                                     size: 48,
-                                    color: iconColors[index % iconColors.length].withOpacity(0.6),
+                                    color: iconColors[index % iconColors.length]
+                                        .withOpacity(0.6),
                                   ),
                                 ),
-                                errorWidget: (_, __, ___) => Center(
-                                  child: Icon(
-                                    icons[index % icons.length],
-                                    size: 48,
-                                    color: iconColors[index % iconColors.length].withOpacity(0.6),
-                                  ),
-                                ),
-                              )
-                            : Center(
-                                child: Icon(
-                                  icons[index % icons.length],
-                                  size: 48,
-                                  color: iconColors[index % iconColors.length].withOpacity(0.6),
-                                ),
-                              ),
                       ),
                     ),
                     // Discount badge
@@ -815,7 +883,10 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                         top: 10,
                         left: 10,
                         child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 4,
+                          ),
                           decoration: BoxDecoration(
                             color: AppColors.error,
                             borderRadius: BorderRadius.circular(8),
@@ -934,7 +1005,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                         child: Container(
                           decoration: BoxDecoration(
                             color: isDark ? Colors.grey[800] : Colors.grey[200],
-                            borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+                            borderRadius: const BorderRadius.vertical(
+                              top: Radius.circular(20),
+                            ),
                           ),
                         ),
                       ),
@@ -1031,7 +1104,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   Widget _buildCategoryShowcase(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    
+
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 10),
       decoration: BoxDecoration(
@@ -1040,7 +1113,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           colors: [
             theme.colorScheme.primary,
             theme.colorScheme.primary.withOpacity(0.85),
-            isDark 
+            isDark
                 ? theme.colorScheme.primary.withOpacity(0.7)
                 : Colors.green.shade400,
           ],
@@ -1106,7 +1179,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
               ),
             ),
           ),
-          
+
           // Main Content
           Padding(
             padding: const EdgeInsets.all(20),
@@ -1155,7 +1228,10 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                 ),
                 const SizedBox(height: 16),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 6,
+                  ),
                   decoration: BoxDecoration(
                     color: Colors.white.withOpacity(0.2),
                     borderRadius: BorderRadius.circular(20),
@@ -1220,10 +1296,11 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   ) {
     final theme = Theme.of(context);
     return _TappableCard(
-      onTap: () => Navigator.push(
-        context,
-        AnimatedTransitions.slideFromRight(screen),
-      ),
+      onTap:
+          () => Navigator.push(
+            context,
+            AnimatedTransitions.slideFromRight(screen),
+          ),
       child: Container(
         height: 130,
         decoration: BoxDecoration(
@@ -1242,12 +1319,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           child: Stack(
             children: [
               // Background Image
-              Positioned.fill(
-                child: Image.asset(
-                  imagePath,
-                  fit: BoxFit.cover,
-                ),
-              ),
+              Positioned.fill(child: Image.asset(imagePath, fit: BoxFit.cover)),
               // Gradient Overlay
               Positioned.fill(
                 child: DecoratedBox(
@@ -1277,11 +1349,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                         color: theme.colorScheme.primary.withOpacity(0.9),
                         borderRadius: BorderRadius.circular(8),
                       ),
-                      child: Icon(
-                        icon,
-                        color: Colors.white,
-                        size: 16,
-                      ),
+                      child: Icon(icon, color: Colors.white, size: 16),
                     ),
                     const SizedBox(height: 8),
                     Text(
@@ -1383,10 +1451,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     int index,
   ) {
     // Delegate to the enhanced card widget
-    return _AnimatedCommunityCard(
-      community: community,
-      index: index,
-    );
+    return _AnimatedCommunityCard(community: community, index: index);
   }
 }
 
@@ -1395,10 +1460,7 @@ class _AnimatedCommunityCard extends StatefulWidget {
   final Community community;
   final int index;
 
-  const _AnimatedCommunityCard({
-    required this.community,
-    required this.index,
-  });
+  const _AnimatedCommunityCard({required this.community, required this.index});
 
   @override
   State<_AnimatedCommunityCard> createState() => _AnimatedCommunityCardState();
@@ -1407,11 +1469,11 @@ class _AnimatedCommunityCard extends StatefulWidget {
 class _AnimatedCommunityCardState extends State<_AnimatedCommunityCard>
     with TickerProviderStateMixin {
   bool _isPressed = false;
-  
+
   // Shimmer animation
   late AnimationController _shimmerController;
   late Animation<double> _shimmerAnimation;
-  
+
   // Floating particles animation
   late AnimationController _floatController;
   late Animation<double> _floatAnimation;
@@ -1419,7 +1481,7 @@ class _AnimatedCommunityCardState extends State<_AnimatedCommunityCard>
   @override
   void initState() {
     super.initState();
-    
+
     // Shimmer sweep
     _shimmerController = AnimationController(
       duration: const Duration(milliseconds: 3000),
@@ -1428,7 +1490,7 @@ class _AnimatedCommunityCardState extends State<_AnimatedCommunityCard>
     _shimmerAnimation = Tween<double>(begin: -1.0, end: 2.0).animate(
       CurvedAnimation(parent: _shimmerController, curve: Curves.easeInOut),
     );
-    
+
     // Floating particles - slow gentle movement
     _floatController = AnimationController(
       duration: const Duration(milliseconds: 4000),
@@ -1493,8 +1555,9 @@ class _AnimatedCommunityCardState extends State<_AnimatedCommunityCard>
             borderRadius: BorderRadius.circular(AppColors.radiusXL),
             boxShadow: [
               BoxShadow(
-                color: (isEvenCard ? Colors.green : Colors.brown)
-                    .withOpacity(_isPressed ? 0.15 : 0.25),
+                color: (isEvenCard ? Colors.green : Colors.brown).withOpacity(
+                  _isPressed ? 0.15 : 0.25,
+                ),
                 blurRadius: _isPressed ? 8 : 16,
                 offset: Offset(0, _isPressed ? 4 : 8),
               ),
@@ -1563,9 +1626,10 @@ class _AnimatedCommunityCardState extends State<_AnimatedCommunityCard>
                 AnimatedBuilder(
                   animation: _floatAnimation,
                   builder: (context, _) {
-                    final accentColor = isEvenCard 
-                        ? const Color(0xFF69F0AE) 
-                        : const Color(0xFFFFAB91);
+                    final accentColor =
+                        isEvenCard
+                            ? const Color(0xFF69F0AE)
+                            : const Color(0xFFFFAB91);
                     return Stack(
                       children: [
                         // Dot 1 - top right
@@ -1656,9 +1720,9 @@ class _AnimatedCommunityCardState extends State<_AnimatedCommunityCard>
                               ),
                               boxShadow: [
                                 BoxShadow(
-                                  color: (isEvenCard 
-                                      ? const Color(0xFF69F0AE) 
-                                      : const Color(0xFFFFAB91))
+                                  color: (isEvenCard
+                                          ? const Color(0xFF69F0AE)
+                                          : const Color(0xFFFFAB91))
                                       .withOpacity(0.3),
                                   blurRadius: 12,
                                   offset: const Offset(0, 4),
@@ -1671,9 +1735,9 @@ class _AnimatedCommunityCardState extends State<_AnimatedCommunityCard>
                                 Container(
                                   padding: const EdgeInsets.all(4),
                                   decoration: BoxDecoration(
-                                    color: (isEvenCard 
-                                        ? const Color(0xFF69F0AE) 
-                                        : const Color(0xFFFFAB91))
+                                    color: (isEvenCard
+                                            ? const Color(0xFF69F0AE)
+                                            : const Color(0xFFFFAB91))
                                         .withOpacity(0.4),
                                     shape: BoxShape.circle,
                                   ),
@@ -1773,10 +1837,7 @@ class _TappableCard extends StatefulWidget {
   final Widget child;
   final VoidCallback onTap;
 
-  const _TappableCard({
-    required this.child,
-    required this.onTap,
-  });
+  const _TappableCard({required this.child, required this.onTap});
 
   @override
   State<_TappableCard> createState() => _TappableCardState();
@@ -1801,8 +1862,7 @@ class _TappableCardState extends State<_TappableCard> {
         curve: Curves.easeOut,
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 100),
-          transform: Matrix4.identity()
-            ..translate(0.0, _isPressed ? 2.0 : 0.0),
+          transform: Matrix4.identity()..translate(0.0, _isPressed ? 2.0 : 0.0),
           child: widget.child,
         ),
       ),

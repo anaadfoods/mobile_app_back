@@ -2,9 +2,6 @@ import 'dart:math' as math;
 import 'package:flutter/services.dart';
 import 'package:grocery_app/common_widgets/global_import.dart';
 
-
-
-
 class NotificationsScreen extends StatefulWidget {
   const NotificationsScreen({super.key});
 
@@ -40,6 +37,12 @@ class _NotificationsScreenState extends State<NotificationsScreen>
     _loadNotifications();
     _loadPromotionalNotifications();
     _listenToNewNotifications();
+    _resetNotificationBadgeCount(); // Reset badge when viewing notifications
+  }
+
+  Future<void> _resetNotificationBadgeCount() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.setInt('notification_count', 0);
   }
 
   @override
@@ -448,33 +451,37 @@ class _NotificationsScreenState extends State<NotificationsScreen>
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final isDark = theme.brightness == Brightness.dark;
-    
+
     return Scaffold(
-      backgroundColor: isDark ? theme.scaffoldBackgroundColor : Colors.grey.shade50,
+      backgroundColor:
+          isDark ? theme.scaffoldBackgroundColor : Colors.grey.shade50,
       body: CustomScrollView(
         slivers: [
           // Modern U-Shape Header
           _buildAnimatedHeader(context, theme, colorScheme, isDark),
-          
+
           // Filter Chips Section
           SliverToBoxAdapter(
             child: _buildModernFilterChips(theme, colorScheme, isDark),
           ),
-          
+
           // Notifications Content
           _isLoading
-              ? SliverFillRemaining(
-                  child: _buildLoadingState(theme),
-                )
+              ? SliverFillRemaining(child: _buildLoadingState(theme))
               : _buildNotificationsContent(theme, colorScheme, isDark),
         ],
       ),
     );
   }
-  
-  Widget _buildAnimatedHeader(BuildContext context, ThemeData theme, ColorScheme colorScheme, bool isDark) {
+
+  Widget _buildAnimatedHeader(
+    BuildContext context,
+    ThemeData theme,
+    ColorScheme colorScheme,
+    bool isDark,
+  ) {
     final unreadCount = _notifications.where((n) => n['read'] != true).length;
-    
+
     return SliverToBoxAdapter(
       child: Container(
         height: 200,
@@ -482,10 +489,7 @@ class _NotificationsScreenState extends State<NotificationsScreen>
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [
-              colorScheme.primary,
-              colorScheme.primary.withOpacity(0.8),
-            ],
+            colors: [colorScheme.primary, colorScheme.primary.withOpacity(0.8)],
           ),
           borderRadius: const BorderRadius.only(
             bottomLeft: Radius.circular(32),
@@ -609,7 +613,7 @@ class _NotificationsScreenState extends State<NotificationsScreen>
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      unreadCount > 0 
+                      unreadCount > 0
                           ? '$unreadCount unread notification${unreadCount > 1 ? 's' : ''}'
                           : 'All caught up!',
                       style: theme.textTheme.bodyMedium?.copyWith(
@@ -625,8 +629,12 @@ class _NotificationsScreenState extends State<NotificationsScreen>
       ),
     );
   }
-  
-  Widget _buildModernFilterChips(ThemeData theme, ColorScheme colorScheme, bool isDark) {
+
+  Widget _buildModernFilterChips(
+    ThemeData theme,
+    ColorScheme colorScheme,
+    bool isDark,
+  ) {
     final filterIcons = {
       'all': Icons.inbox_rounded,
       'payment': Icons.payment_rounded,
@@ -636,7 +644,7 @@ class _NotificationsScreenState extends State<NotificationsScreen>
       'promotional': Icons.local_offer_rounded,
       'system': Icons.settings_rounded,
     };
-    
+
     final filterColors = {
       'all': colorScheme.primary,
       'payment': Colors.green,
@@ -646,106 +654,131 @@ class _NotificationsScreenState extends State<NotificationsScreen>
       'promotional': Colors.pink,
       'system': Colors.grey,
     };
-    
+
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 16),
       child: SingleChildScrollView(
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.symmetric(horizontal: 16),
         child: Row(
-          children: _filterOptions.map((filter) {
-            final isSelected = _selectedFilter == filter;
-            final icon = filterIcons[filter] ?? Icons.notifications;
-            final color = filterColors[filter] ?? colorScheme.primary;
-            final count = _getFilterCount(filter);
-            
-            return Padding(
-              padding: const EdgeInsets.only(right: 10),
-              child: GestureDetector(
-                onTap: () {
-                  HapticFeedback.selectionClick();
-                  setState(() {
-                    _selectedFilter = filter;
-                    _tabController.animateTo(_filterOptions.indexOf(filter));
-                  });
-                  _filterNotifications();
-                },
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 200),
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                  decoration: BoxDecoration(
-                    color: isSelected 
-                        ? color
-                        : (isDark ? Colors.grey.shade800 : Colors.white),
-                    borderRadius: BorderRadius.circular(25),
-                    border: Border.all(
-                      color: isSelected ? color : (isDark ? Colors.grey.shade700 : Colors.grey.shade200),
-                      width: 1.5,
+          children:
+              _filterOptions.map((filter) {
+                final isSelected = _selectedFilter == filter;
+                final icon = filterIcons[filter] ?? Icons.notifications;
+                final color = filterColors[filter] ?? colorScheme.primary;
+                final count = _getFilterCount(filter);
+
+                return Padding(
+                  padding: const EdgeInsets.only(right: 10),
+                  child: GestureDetector(
+                    onTap: () {
+                      HapticFeedback.selectionClick();
+                      setState(() {
+                        _selectedFilter = filter;
+                        _tabController.animateTo(
+                          _filterOptions.indexOf(filter),
+                        );
+                      });
+                      _filterNotifications();
+                    },
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 200),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 10,
+                      ),
+                      decoration: BoxDecoration(
+                        color:
+                            isSelected
+                                ? color
+                                : (isDark
+                                    ? Colors.grey.shade800
+                                    : Colors.white),
+                        borderRadius: BorderRadius.circular(25),
+                        border: Border.all(
+                          color:
+                              isSelected
+                                  ? color
+                                  : (isDark
+                                      ? Colors.grey.shade700
+                                      : Colors.grey.shade200),
+                          width: 1.5,
+                        ),
+                        boxShadow:
+                            isSelected
+                                ? [
+                                  BoxShadow(
+                                    color: color.withOpacity(0.4),
+                                    blurRadius: 8,
+                                    offset: const Offset(0, 3),
+                                  ),
+                                ]
+                                : null,
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            icon,
+                            size: 18,
+                            color: isSelected ? Colors.white : color,
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            filter[0].toUpperCase() + filter.substring(1),
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              color:
+                                  isSelected
+                                      ? Colors.white
+                                      : (isDark
+                                          ? Colors.white70
+                                          : Colors.grey.shade700),
+                              fontWeight:
+                                  isSelected
+                                      ? FontWeight.w600
+                                      : FontWeight.w500,
+                            ),
+                          ),
+                          if (count > 0) ...[
+                            const SizedBox(width: 8),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 2,
+                              ),
+                              decoration: BoxDecoration(
+                                color:
+                                    isSelected
+                                        ? Colors.white.withOpacity(0.3)
+                                        : color.withOpacity(0.15),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Text(
+                                count.toString(),
+                                style: theme.textTheme.labelSmall?.copyWith(
+                                  color: isSelected ? Colors.white : color,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
                     ),
-                    boxShadow: isSelected
-                        ? [
-                            BoxShadow(
-                              color: color.withOpacity(0.4),
-                              blurRadius: 8,
-                              offset: const Offset(0, 3),
-                            ),
-                          ]
-                        : null,
                   ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        icon,
-                        size: 18,
-                        color: isSelected ? Colors.white : color,
-                      ),
-                      const SizedBox(width: 8),
-                      Text(
-                        filter[0].toUpperCase() + filter.substring(1),
-                        style: theme.textTheme.bodyMedium?.copyWith(
-                          color: isSelected 
-                              ? Colors.white 
-                              : (isDark ? Colors.white70 : Colors.grey.shade700),
-                          fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-                        ),
-                      ),
-                      if (count > 0) ...[
-                        const SizedBox(width: 8),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                          decoration: BoxDecoration(
-                            color: isSelected 
-                                ? Colors.white.withOpacity(0.3)
-                                : color.withOpacity(0.15),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Text(
-                            count.toString(),
-                            style: theme.textTheme.labelSmall?.copyWith(
-                              color: isSelected ? Colors.white : color,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ],
-                  ),
-                ),
-              ),
-            );
-          }).toList(),
+                );
+              }).toList(),
         ),
       ),
     );
   }
-  
+
   int _getFilterCount(String filter) {
     if (filter == 'all') return _notifications.length;
     if (filter == 'promotional') return _promotionalNotifications.length;
     return _notifications.where((n) => n['type'] == filter).length;
   }
-  
+
   Widget _buildLoadingState(ThemeData theme) {
     return Center(
       child: Column(
@@ -780,65 +813,60 @@ class _NotificationsScreenState extends State<NotificationsScreen>
           const SizedBox(height: 16),
           Text(
             'Loading notifications...',
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: theme.hintColor,
-            ),
+            style: theme.textTheme.bodyMedium?.copyWith(color: theme.hintColor),
           ),
         ],
       ),
     );
   }
-  
-  Widget _buildNotificationsContent(ThemeData theme, ColorScheme colorScheme, bool isDark) {
+
+  Widget _buildNotificationsContent(
+    ThemeData theme,
+    ColorScheme colorScheme,
+    bool isDark,
+  ) {
     List<Map<String, dynamic>> displayList;
     if (_selectedFilter == 'all') {
       displayList = _notifications;
     } else if (_selectedFilter == 'promotional') {
       displayList = _promotionalNotifications;
     } else {
-      displayList = _notifications.where((n) => n['type'] == _selectedFilter).toList();
+      displayList =
+          _notifications.where((n) => n['type'] == _selectedFilter).toList();
     }
-    
+
     if (displayList.isEmpty) {
-      return SliverFillRemaining(
-        child: _buildEmptyState(theme, colorScheme),
-      );
+      return SliverFillRemaining(child: _buildEmptyState(theme, colorScheme));
     }
-    
+
     return SliverPadding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       sliver: SliverList(
-        delegate: SliverChildBuilderDelegate(
-          (context, index) {
-            final notification = displayList[index];
-            return TweenAnimationBuilder<double>(
-              tween: Tween(begin: 0.0, end: 1.0),
-              duration: Duration(milliseconds: 300 + (index * 50)),
-              builder: (context, value, child) {
-                return Transform.translate(
-                  offset: Offset(0, 20 * (1 - value)),
-                  child: Opacity(
-                    opacity: value,
-                    child: child,
-                  ),
-                );
-              },
-              child: _buildModernNotificationCard(
-                context, 
-                notification, 
-                theme, 
-                colorScheme, 
-                isDark,
-                index,
-              ),
-            );
-          },
-          childCount: displayList.length,
-        ),
+        delegate: SliverChildBuilderDelegate((context, index) {
+          final notification = displayList[index];
+          return TweenAnimationBuilder<double>(
+            tween: Tween(begin: 0.0, end: 1.0),
+            duration: Duration(milliseconds: 300 + (index * 50)),
+            builder: (context, value, child) {
+              return Transform.translate(
+                offset: Offset(0, 20 * (1 - value)),
+                child: Opacity(opacity: value, child: child),
+              );
+            },
+            child: _buildModernNotificationCard(
+              context,
+              notification,
+              theme,
+              colorScheme,
+              isDark,
+              index,
+            ),
+          );
+        }, childCount: displayList.length),
       ),
     );
   }
-  
+
   Widget _buildEmptyState(ThemeData theme, ColorScheme colorScheme) {
     return Center(
       child: Column(
@@ -866,15 +894,13 @@ class _NotificationsScreenState extends State<NotificationsScreen>
           const SizedBox(height: 8),
           Text(
             'You\'re all caught up! Check back later.',
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: theme.hintColor,
-            ),
+            style: theme.textTheme.bodyMedium?.copyWith(color: theme.hintColor),
           ),
         ],
       ),
     );
   }
-  
+
   Widget _buildModernNotificationCard(
     BuildContext context,
     Map<String, dynamic> notification,
@@ -891,7 +917,7 @@ class _NotificationsScreenState extends State<NotificationsScreen>
     final body = notification['body'] as String? ?? '';
     final isHighPriority = MessageUtility.isHighPriority(notification);
     final isRead = notification['read'] == true;
-    
+
     return Dismissible(
       key: Key(notification['id']?.toString() ?? '$timestamp$index'),
       direction: DismissDirection.endToStart,
@@ -911,7 +937,10 @@ class _NotificationsScreenState extends State<NotificationsScreen>
             SizedBox(height: 4),
             Text(
               'Delete',
-              style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
+              style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.w600,
+              ),
             ),
           ],
         ),
@@ -927,14 +956,17 @@ class _NotificationsScreenState extends State<NotificationsScreen>
             color: isDark ? Colors.grey.shade900 : Colors.white,
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
-              color: isHighPriority 
-                  ? color.withOpacity(0.5)
-                  : (isDark ? Colors.grey.shade800 : Colors.grey.shade100),
+              color:
+                  isHighPriority
+                      ? color.withOpacity(0.5)
+                      : (isDark ? Colors.grey.shade800 : Colors.grey.shade100),
               width: isHighPriority ? 2 : 1,
             ),
             boxShadow: [
               BoxShadow(
-                color: (isHighPriority ? color : theme.shadowColor).withOpacity(0.08),
+                color: (isHighPriority ? color : theme.shadowColor).withOpacity(
+                  0.08,
+                ),
                 blurRadius: 12,
                 offset: const Offset(0, 4),
               ),
@@ -953,10 +985,7 @@ class _NotificationsScreenState extends State<NotificationsScreen>
                     gradient: LinearGradient(
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
-                      colors: [
-                        color.withOpacity(0.2),
-                        color.withOpacity(0.1),
-                      ],
+                      colors: [color.withOpacity(0.2), color.withOpacity(0.1)],
                     ),
                     borderRadius: BorderRadius.circular(14),
                   ),
@@ -983,7 +1012,10 @@ class _NotificationsScreenState extends State<NotificationsScreen>
                           ),
                           if (isHighPriority)
                             Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 4,
+                              ),
                               decoration: BoxDecoration(
                                 color: color,
                                 borderRadius: BorderRadius.circular(8),
@@ -1004,13 +1036,60 @@ class _NotificationsScreenState extends State<NotificationsScreen>
                         Text(
                           body,
                           style: theme.textTheme.bodyMedium?.copyWith(
-                            color: isRead 
-                                ? theme.hintColor.withOpacity(0.7)
-                                : theme.hintColor,
+                            color:
+                                isRead
+                                    ? theme.hintColor.withOpacity(0.7)
+                                    : theme.hintColor,
                             height: 1.4,
                           ),
                           maxLines: 3,
                           overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                      // Display image if available
+                      if (notification['image'] != null ||
+                          notification['image_url'] != null) ...[
+                        const SizedBox(height: 10),
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(12),
+                          child: Image.network(
+                            notification['image'] ?? notification['image_url'],
+                            height: 120,
+                            width: double.infinity,
+                            fit: BoxFit.cover,
+                            loadingBuilder: (context, child, loadingProgress) {
+                              if (loadingProgress == null) return child;
+                              return Container(
+                                height: 120,
+                                decoration: BoxDecoration(
+                                  color:
+                                      isDark
+                                          ? Colors.grey.shade800
+                                          : Colors.grey.shade200,
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Center(
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    value:
+                                        loadingProgress.expectedTotalBytes !=
+                                                null
+                                            ? loadingProgress
+                                                    .cumulativeBytesLoaded /
+                                                loadingProgress
+                                                    .expectedTotalBytes!
+                                            : null,
+                                  ),
+                                ),
+                              );
+                            },
+                            errorBuilder: (context, error, stackTrace) {
+                              debugPrint(
+                                'Error loading notification image: $error',
+                              );
+                              return const SizedBox.shrink();
+                            },
+                          ),
                         ),
                       ],
                       const SizedBox(height: 10),

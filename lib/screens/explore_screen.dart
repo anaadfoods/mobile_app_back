@@ -199,10 +199,7 @@ class _ExploreScreenState extends State<ExploreScreen>
                 builder: (context, child) {
                   return Transform.translate(
                     offset: Offset(0, 20 * (1 - _contentFade.value)),
-                    child: Opacity(
-                      opacity: _contentFade.value,
-                      child: child,
-                    ),
+                    child: Opacity(opacity: _contentFade.value, child: child),
                   );
                 },
                 child: _buildSearchBar(theme, isDark),
@@ -219,14 +216,10 @@ class _ExploreScreenState extends State<ExploreScreen>
               SliverToBoxAdapter(child: _buildCategoriesSection(theme, isDark)),
 
               // Trending Products Section
-              SliverToBoxAdapter(
-                child: _buildTrendingSection(theme, isDark),
-              ),
+              SliverToBoxAdapter(child: _buildTrendingSection(theme, isDark)),
 
               // Bottom padding
-              const SliverToBoxAdapter(
-                child: SizedBox(height: 100),
-              ),
+              const SliverToBoxAdapter(child: SizedBox(height: 100)),
             ],
           ],
         ),
@@ -241,10 +234,7 @@ class _ExploreScreenState extends State<ExploreScreen>
         builder: (context, child) {
           return Transform.translate(
             offset: Offset(0, _headerSlide.value),
-            child: Opacity(
-              opacity: _headerFade.value,
-              child: child,
-            ),
+            child: Opacity(opacity: _headerFade.value, child: child),
           );
         },
         child: Container(
@@ -484,24 +474,20 @@ class _ExploreScreenState extends State<ExploreScreen>
           onChanged: _filterCategories,
           decoration: InputDecoration(
             hintText: 'Search categories...',
-            hintStyle: TextStyle(
-              color: theme.hintColor.withOpacity(0.6),
-            ),
+            hintStyle: TextStyle(color: theme.hintColor.withOpacity(0.6)),
             prefixIcon: Icon(
               Icons.search_rounded,
               color: theme.colorScheme.primary,
             ),
-            suffixIcon: _searchQuery.isNotEmpty
-                ? IconButton(
-                    onPressed: () {
-                      _filterCategories('');
-                    },
-                    icon: Icon(
-                      Icons.close_rounded,
-                      color: theme.hintColor,
-                    ),
-                  )
-                : null,
+            suffixIcon:
+                _searchQuery.isNotEmpty
+                    ? IconButton(
+                      onPressed: () {
+                        _filterCategories('');
+                      },
+                      icon: Icon(Icons.close_rounded, color: theme.hintColor),
+                    )
+                    : null,
             border: InputBorder.none,
             contentPadding: const EdgeInsets.symmetric(
               horizontal: 20,
@@ -588,10 +574,7 @@ class _ExploreScreenState extends State<ExploreScreen>
                 height: 24,
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
-                    colors: [
-                      Colors.orange.shade400,
-                      Colors.red.shade400,
-                    ],
+                    colors: [Colors.orange.shade400, Colors.red.shade400],
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
                   ),
@@ -733,19 +716,11 @@ class _ExploreScreenState extends State<ExploreScreen>
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildSkeletonContainer(
-              width: 150,
-              height: 24,
-              borderRadius: 8,
-            ),
+            _buildSkeletonContainer(width: 150, height: 24, borderRadius: 8),
             const SizedBox(height: 16),
             _buildCategoryGridSkeleton(theme),
             const SizedBox(height: 24),
-            _buildSkeletonContainer(
-              width: 200,
-              height: 24,
-              borderRadius: 8,
-            ),
+            _buildSkeletonContainer(width: 200, height: 24, borderRadius: 8),
             const SizedBox(height: 16),
             _buildBestsellerListSkeleton(theme),
           ],
@@ -895,40 +870,37 @@ class _AnimatedCategoryCardState extends State<_AnimatedCategoryCard>
           offset: Offset(0, 30 * (1 - progress)),
           child: Transform.scale(
             scale: 0.8 + (0.2 * progress),
-            child: Opacity(
-              opacity: progress.clamp(0, 1),
-              child: child,
-            ),
+            child: Opacity(opacity: progress.clamp(0, 1), child: child),
           ),
         );
       },
       child: AnimatedBuilder(
         animation: _hoverController,
         builder: (context, child) {
-          return Transform.scale(
-            scale: _scaleAnimation.value,
-            child: child,
-          );
+          return Transform.scale(scale: _scaleAnimation.value, child: child);
         },
         child: GestureDetector(
-          onTapDown: isActive
-              ? (_) {
-                  setState(() => _isPressed = true);
-                  _hoverController.forward();
-                }
-              : null,
-          onTapUp: isActive
-              ? (_) {
-                  setState(() => _isPressed = false);
-                  _hoverController.reverse();
-                }
-              : null,
-          onTapCancel: isActive
-              ? () {
-                  setState(() => _isPressed = false);
-                  _hoverController.reverse();
-                }
-              : null,
+          onTapDown:
+              isActive
+                  ? (_) {
+                    setState(() => _isPressed = true);
+                    _hoverController.forward();
+                  }
+                  : null,
+          onTapUp:
+              isActive
+                  ? (_) {
+                    setState(() => _isPressed = false);
+                    _hoverController.reverse();
+                  }
+                  : null,
+          onTapCancel:
+              isActive
+                  ? () {
+                    setState(() => _isPressed = false);
+                    _hoverController.reverse();
+                  }
+                  : null,
           onTap: isActive ? widget.onTap : null,
           child: AnimatedBuilder(
             animation: _elevationAnimation,
@@ -961,27 +933,31 @@ class _AnimatedCategoryCardState extends State<_AnimatedCategoryCard>
                       child: CachedNetworkImage(
                         imageUrl: widget.category.image,
                         fit: BoxFit.cover,
-                        placeholder: (context, url) => Container(
-                          color: isDark
-                              ? Colors.grey.shade900
-                              : Colors.grey.shade100,
-                          child: Center(
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              color: theme.colorScheme.primary,
+                        placeholder:
+                            (context, url) => Container(
+                              color:
+                                  isDark
+                                      ? Colors.grey.shade900
+                                      : Colors.grey.shade100,
+                              child: Center(
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: theme.colorScheme.primary,
+                                ),
+                              ),
                             ),
-                          ),
-                        ),
-                        errorWidget: (context, url, error) => Container(
-                          color: isDark
-                              ? Colors.grey.shade900
-                              : Colors.grey.shade100,
-                          child: Icon(
-                            Icons.image_not_supported_rounded,
-                            color: theme.disabledColor,
-                            size: 40,
-                          ),
-                        ),
+                        errorWidget:
+                            (context, url, error) => Container(
+                              color:
+                                  isDark
+                                      ? Colors.grey.shade900
+                                      : Colors.grey.shade100,
+                              child: Icon(
+                                Icons.image_not_supported_rounded,
+                                color: theme.disabledColor,
+                                size: 40,
+                              ),
+                            ),
                       ),
                     ),
 
@@ -1034,7 +1010,9 @@ class _AnimatedCategoryCardState extends State<_AnimatedCategoryCard>
                                 vertical: 4,
                               ),
                               decoration: BoxDecoration(
-                                color: theme.colorScheme.primary.withOpacity(0.9),
+                                color: theme.colorScheme.primary.withOpacity(
+                                  0.9,
+                                ),
                                 borderRadius: BorderRadius.circular(12),
                               ),
                               child: Text(
@@ -1124,10 +1102,7 @@ class _AnimatedProductCardState extends State<_AnimatedProductCard> {
         );
         return Transform.translate(
           offset: Offset(30 * (1 - progress), 0),
-          child: Opacity(
-            opacity: progress.clamp(0, 1),
-            child: child,
-          ),
+          child: Opacity(opacity: progress.clamp(0, 1), child: child),
         );
       },
       child: GestureDetector(
@@ -1147,16 +1122,19 @@ class _AnimatedProductCardState extends State<_AnimatedProductCard> {
               color: theme.cardColor,
               borderRadius: BorderRadius.circular(16),
               border: Border.all(
-                color: _isPressed
-                    ? theme.colorScheme.primary.withOpacity(0.5)
-                    : isDark
+                color:
+                    _isPressed
+                        ? theme.colorScheme.primary.withOpacity(0.5)
+                        : isDark
                         ? Colors.grey.shade800
                         : Colors.grey.shade200,
                 width: _isPressed ? 2 : 1,
               ),
               boxShadow: [
                 BoxShadow(
-                  color: theme.shadowColor.withOpacity(_isPressed ? 0.15 : 0.08),
+                  color: theme.shadowColor.withOpacity(
+                    _isPressed ? 0.15 : 0.08,
+                  ),
                   blurRadius: _isPressed ? 16 : 8,
                   offset: Offset(0, _isPressed ? 8 : 4),
                 ),
@@ -1174,31 +1152,36 @@ class _AnimatedProductCardState extends State<_AnimatedProductCard> {
                       height: 80,
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(12),
-                        color: isDark
-                            ? Colors.grey.shade900
-                            : Colors.grey.shade100,
+                        color:
+                            isDark
+                                ? Colors.grey.shade900
+                                : Colors.grey.shade100,
                       ),
                       child: ClipRRect(
                         borderRadius: BorderRadius.circular(12),
-                        child: widget.product.productImages.isNotEmpty
-                            ? CachedNetworkImage(
-                                imageUrl: widget.product.productImages[0].image,
-                                fit: BoxFit.cover,
-                                placeholder: (context, url) => Center(
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                    color: theme.colorScheme.primary,
-                                  ),
-                                ),
-                                errorWidget: (context, url, error) => Icon(
+                        child:
+                            widget.product.productImages.isNotEmpty
+                                ? CachedNetworkImage(
+                                  imageUrl:
+                                      widget.product.productImages[0].image,
+                                  fit: BoxFit.cover,
+                                  placeholder:
+                                      (context, url) => Center(
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2,
+                                          color: theme.colorScheme.primary,
+                                        ),
+                                      ),
+                                  errorWidget:
+                                      (context, url, error) => Icon(
+                                        Icons.image_not_supported_rounded,
+                                        color: theme.disabledColor,
+                                      ),
+                                )
+                                : Icon(
                                   Icons.image_not_supported_rounded,
                                   color: theme.disabledColor,
                                 ),
-                              )
-                            : Icon(
-                                Icons.image_not_supported_rounded,
-                                color: theme.disabledColor,
-                              ),
                       ),
                     ),
                   ),
@@ -1233,11 +1216,13 @@ class _AnimatedProductCardState extends State<_AnimatedProductCard> {
                                 vertical: 4,
                               ),
                               decoration: BoxDecoration(
-                                color: theme.colorScheme.primary.withOpacity(0.1),
+                                color: theme.colorScheme.primary.withOpacity(
+                                  0.1,
+                                ),
                                 borderRadius: BorderRadius.circular(8),
                               ),
                               child: Text(
-                                '₹${widget.product.price.toStringAsFixed(0)}',
+                                '₹${widget.product.finalPrice.toStringAsFixed(0)}',
                                 style: TextStyle(
                                   color: theme.colorScheme.primary,
                                   fontWeight: FontWeight.bold,

@@ -32,6 +32,14 @@ class ApiConfig {
   static const String subscriptionsEndpoint = '/api/subscriptions/';
   static const String subscriptionPlansEndpoint = '/api/subscriptions/plans/';
 
+  // Legal endpoints
+  static const String legalEndpoint = '/api/core/legal/latest/';
+
+  // Referral reward endpoints
+  static const String referralRewardCountEndpoint =
+      '/api/auth/referral_reward_count/';
+  static const String referralsEndpoint = '/api/auth/referrals/';
+
   // Headers
   static Map<String, String> getBaseHeaders() {
     return {'Content-Type': 'application/json', 'Accept': 'application/json'};

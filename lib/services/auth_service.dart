@@ -10,6 +10,17 @@ class AuthService {
   static final _authStateController = StreamController<bool>.broadcast();
   static Stream<bool> get authStateChanges => _authStateController.stream;
 
+  // Address change stream to notify the app when address is updated
+  static final _addressChangeController =
+      StreamController<UserModel?>.broadcast();
+  static Stream<UserModel?> get addressChanges =>
+      _addressChangeController.stream;
+
+  /// Emits the current user to all address change listeners
+  void _notifyAddressChange() {
+    _addressChangeController.add(_currentUser);
+  }
+
   UserModel? _currentUser;
   UserModel? get currentUser => _currentUser;
 
@@ -341,6 +352,8 @@ class AuthService {
       if (response.statusCode == 200) {
         // refresh local profile to update _currentUser
         await getUserProfile();
+        // Emit address change event so the app can react
+        _notifyAddressChange();
         return true;
       }
 
@@ -412,10 +425,12 @@ class AuthService {
               },
             );
 
+        // Empty response typically means the favorite was removed successfully
         if (response.body.trim().isEmpty) {
           return {
-            'success': false,
-            'message': 'Element Removed from favorites',
+            'success': true,
+            'message': 'Removed from favorites successfully',
+            'isAdded': false,
           };
         }
 
@@ -584,8 +599,13 @@ class AuthService {
           final userData = responseData['data'];
           final userProfile = UserModel.fromJson(userData);
 
+          // Update both user_profile and user_data keys to keep them in sync
           final prefs = await SharedPreferences.getInstance();
           await prefs.setString('user_profile', jsonEncode(userData));
+          await prefs.setString('user_data', jsonEncode(userData));
+
+          // Update the in-memory current user as well
+          _currentUser = userProfile;
 
           return userProfile;
         }
@@ -648,6 +668,8 @@ class AuthService {
 
           _currentUser = UserModel.fromJson(userData);
           _authStateController.add(true);
+          // Emit address change event since profile may include address updates
+          _notifyAddressChange();
 
           return {
             'success': true,

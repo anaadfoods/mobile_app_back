@@ -106,7 +106,6 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
     super.dispose();
   }
 
-
   // --- DATA FETCHING (Unchanged) ---
   Future<void> _loadCategoryProducts() async {
     try {
@@ -301,19 +300,20 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
 
                             width: double.infinity,
 
-                            color: Colors.white,
+                            color:
+                                isDark ? const Color(0xFF1A1A2E) : Colors.white,
 
                             child: Column(
                               children: [
-                                const SizedBox(height: 12),
+                                const SizedBox(height: 8),
 
-                                _buildSubscriptionPlansSection(),
+                                _buildSubscriptionPlansSection(isDark),
 
-                                const SizedBox(height: 10),
+                                const SizedBox(height: 4),
 
-                                _buildSimilarProductsSection(),
+                                _buildSimilarProductsSection(isDark),
 
-                                const SizedBox(height: 12),
+                                const SizedBox(height: 8),
                               ],
                             ),
                           ),
@@ -372,9 +372,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         color: color.withOpacity(0.4),
-        boxShadow: [
-          BoxShadow(color: color.withOpacity(0.3), blurRadius: 8),
-        ],
+        boxShadow: [BoxShadow(color: color.withOpacity(0.3), blurRadius: 8)],
       ),
     );
   }
@@ -425,6 +423,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
                   child: GestureDetector(
                     onTap: () => _triggerHaptic(),
                     child: Container(
+                      
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
                         color: Colors.white.withOpacity(0.15),
@@ -459,36 +458,38 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
                         width: 1,
                       ),
                     ),
-                    child: _isLoadingFavorite
-                        ? const SizedBox(
-                            width: 20,
-                            height: 20,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              valueColor: AlwaysStoppedAnimation<Color>(
-                                Color(0xFFB9A06D),
+                    child:
+                        _isLoadingFavorite
+                            ? const SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                valueColor: AlwaysStoppedAnimation<Color>(
+                                  Color(0xFFB9A06D),
+                                ),
+                              ),
+                            )
+                            : GestureDetector(
+                              onTap: () {
+                                _triggerHaptic();
+                                handleFavoriteToggle(widget.product.id);
+                              },
+                              child: AnimatedSwitcher(
+                                duration: const Duration(milliseconds: 300),
+                                child: Icon(
+                                  isFavorite
+                                      ? Icons.favorite_rounded
+                                      : Icons.favorite_border_rounded,
+                                  key: ValueKey(isFavorite),
+                                  color:
+                                      isFavorite
+                                          ? const Color(0xFFE53935)
+                                          : Colors.white,
+                                  size: 20,
+                                ),
                               ),
                             ),
-                          )
-                        : GestureDetector(
-                            onTap: () {
-                              _triggerHaptic();
-                              handleFavoriteToggle(widget.product.id);
-                            },
-                            child: AnimatedSwitcher(
-                              duration: const Duration(milliseconds: 300),
-                              child: Icon(
-                                isFavorite
-                                    ? Icons.favorite_rounded
-                                    : Icons.favorite_border_rounded,
-                                key: ValueKey(isFavorite),
-                                color: isFavorite
-                                    ? const Color(0xFFE53935)
-                                    : Colors.white,
-                                size: 20,
-                              ),
-                            ),
-                          ),
                   ),
                 ),
               ),
@@ -619,14 +620,21 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
           child: Row(
             children: [
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 6,
+                ),
                 decoration: BoxDecoration(
                   color: Colors.white.withOpacity(0.15),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Row(
                   children: [
-                    const Icon(Icons.star_rounded, color: Colors.amber, size: 16),
+                    const Icon(
+                      Icons.star_rounded,
+                      color: Colors.amber,
+                      size: 16,
+                    ),
                     const SizedBox(width: 4),
                     const Text(
                       '4.6',
@@ -645,10 +653,14 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
                 style: TextStyle(color: Colors.grey[300], fontSize: 13),
               ),
               const SizedBox(width: 12),
-              Container(width: 4, height: 4, decoration: BoxDecoration(
-                color: Colors.grey[500],
-                shape: BoxShape.circle,
-              )),
+              Container(
+                width: 4,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.grey[500],
+                  shape: BoxShape.circle,
+                ),
+              ),
               const SizedBox(width: 12),
               Text(
                 '8.5k orders',
@@ -813,7 +825,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
         ),
       );
     }
-    
+
     return SizedBox(
       height: 280,
       child: PageView.builder(
@@ -849,19 +861,24 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
                       child: CachedNetworkImage(
                         imageUrl: productImages[index].image,
                         fit: BoxFit.cover,
-                        placeholder: (context, url) => Container(
-                          color: Colors.grey.withOpacity(0.2),
-                          child: const Center(
-                            child: CircularProgressIndicator(
-                              color: Color(0xFFB9A06D),
-                              strokeWidth: 2,
+                        placeholder:
+                            (context, url) => Container(
+                              color: Colors.grey.withOpacity(0.2),
+                              child: const Center(
+                                child: CircularProgressIndicator(
+                                  color: Color(0xFFB9A06D),
+                                  strokeWidth: 2,
+                                ),
+                              ),
                             ),
-                          ),
-                        ),
-                        errorWidget: (context, url, error) => Container(
-                          color: Colors.grey.withOpacity(0.2),
-                          child: const Icon(Icons.error_outline, color: Colors.grey),
-                        ),
+                        errorWidget:
+                            (context, url, error) => Container(
+                              color: Colors.grey.withOpacity(0.2),
+                              child: const Icon(
+                                Icons.error_outline,
+                                color: Colors.grey,
+                              ),
+                            ),
                       ),
                     ),
                   ),
@@ -895,22 +912,24 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
             height: 8.0,
             width: isActive ? 28.0 : 8.0,
             decoration: BoxDecoration(
-              gradient: isActive
-                  ? const LinearGradient(
-                      colors: [Color(0xFFB9A06D), Color(0xFFD4B98E)],
-                    )
-                  : null,
+              gradient:
+                  isActive
+                      ? const LinearGradient(
+                        colors: [Color(0xFFB9A06D), Color(0xFFD4B98E)],
+                      )
+                      : null,
               color: isActive ? null : Colors.grey[600],
               borderRadius: BorderRadius.circular(12),
-              boxShadow: isActive
-                  ? [
-                      BoxShadow(
-                        color: const Color(0xFFB9A06D).withOpacity(0.5),
-                        blurRadius: 6,
-                        offset: const Offset(0, 2),
-                      ),
-                    ]
-                  : null,
+              boxShadow:
+                  isActive
+                      ? [
+                        BoxShadow(
+                          color: const Color(0xFFB9A06D).withOpacity(0.5),
+                          blurRadius: 6,
+                          offset: const Offset(0, 2),
+                        ),
+                      ]
+                      : null,
             ),
           ),
         );
@@ -918,7 +937,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
     );
   }
 
-  Widget _buildSubscriptionPlansSection() {
+  Widget _buildSubscriptionPlansSection(bool isDark) {
     if (_isLoadingPlans) {
       return _buildPlansSkeleton();
     }
@@ -931,12 +950,12 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
+          Text(
             "Subscription Plans",
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
-              color: Colors.black,
+              color: isDark ? Colors.white : Colors.black,
             ),
           ),
           const SizedBox(height: 16),
@@ -1010,7 +1029,10 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
                             plan.name,
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
-                              color: isSelected ? Colors.white : Colors.black,
+                              color:
+                                  isSelected
+                                      ? Colors.white
+                                      : (isDark ? Colors.white : Colors.black),
                             ),
                           ),
                           const SizedBox(height: 8),
@@ -1021,7 +1043,11 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
                                 style: TextStyle(
                                   fontSize: 14,
                                   color:
-                                      isSelected ? Colors.white : Colors.black,
+                                      isSelected
+                                          ? Colors.white
+                                          : (isDark
+                                              ? Colors.white
+                                              : Colors.black),
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
@@ -1062,7 +1088,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
     );
   }
 
-  Widget _buildSimilarProductsSection() {
+  Widget _buildSimilarProductsSection(bool isDark) {
     if (_isLoadingSimilarProduct) {
       return _buildPlansSkeleton();
     }
@@ -1088,44 +1114,41 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
 
     return Column(
       children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8.0),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Text(
-                "Similar Products",
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black,
-                ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              "Similar Products",
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: isDark ? Colors.white : Colors.black,
               ),
-              TextButton(
-                onPressed: () {
-                  Navigator.of(context).push(
-                    AnimatedTransitions.slideFromRight(
-                      CategoryItemsScreen(
-                        name: widget.product.productCategory,
-                        allProducts: filtered,
-                      ),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).push(
+                  AnimatedTransitions.slideFromRight(
+                    CategoryItemsScreen(
+                      name: widget.product.productCategory,
+                      allProducts: filtered,
                     ),
-                  );
-                },
-                child: const Row(
-                  children: [
-                    Text("See All", style: TextStyle(color: Color(0xFFB9A06D))),
-                    SizedBox(width: 4),
-                    Icon(
-                      Icons.arrow_forward,
-                      color: Color(0xFFB9A06D),
-                      size: 16,
-                    ),
-                  ],
-                ),
+                  ),
+                );
+              },
+              child: const Row(
+                children: [
+                  Text("See All", style: TextStyle(color: Color(0xFFB9A06D))),
+                  SizedBox(width: 4),
+                  Icon(
+                    Icons.arrow_forward,
+                    color: Color(0xFFB9A06D),
+                    size: 16,
+                  ),
+                ],
               ),
-            ],
-          ),
+            ),
+          ],
         ),
 
         ListView.builder(
@@ -1520,7 +1543,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
     final isDark = theme.brightness == Brightness.dark;
 
     HapticFeedback.lightImpact();
-    
+
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -1535,11 +1558,15 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
               selectedIndex: selectedIndex,
               quantity: quantity,
               paymentOption: paymentOption,
-              onPlanSelected: (index) => setModalState(() => selectedIndex = index),
-              onQuantityChanged: (newQty) => setModalState(() => quantity = newQty),
-              onPaymentOptionChanged: (opt) => setModalState(() => paymentOption = opt),
+              onPlanSelected:
+                  (index) => setModalState(() => selectedIndex = index),
+              onQuantityChanged:
+                  (newQty) => setModalState(() => quantity = newQty),
+              onPaymentOptionChanged:
+                  (opt) => setModalState(() => paymentOption = opt),
               onSubscribe: () {
-                final String paymentType = (paymentOption == 0) ? 'PAID_FULL' : 'INSTALLMENT';
+                final String paymentType =
+                    (paymentOption == 0) ? 'PAID_FULL' : 'INSTALLMENT';
                 Navigator.pop(context);
                 _navigateToAddressScreen(
                   isSubscription: true,
@@ -1572,7 +1599,10 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
         color: isSelected ? AppColors.buttonBackgroundColor : Colors.white,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: isSelected ? AppColors.buttonBackgroundColor : Colors.grey.shade300,
+          color:
+              isSelected
+                  ? AppColors.buttonBackgroundColor
+                  : Colors.grey.shade300,
           width: 1.5,
         ),
       ),
@@ -1583,8 +1613,11 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
             Row(
               children: [
                 Icon(
-                  isSelected ? Icons.check_box_rounded : Icons.check_box_outline_blank_rounded,
-                  color: isSelected ? Colors.white : Colors.grey.withOpacity(0.9),
+                  isSelected
+                      ? Icons.check_box_rounded
+                      : Icons.check_box_outline_blank_rounded,
+                  color:
+                      isSelected ? Colors.white : Colors.grey.withOpacity(0.9),
                   size: 24,
                 ),
                 const SizedBox(width: 12),
@@ -1836,7 +1869,8 @@ class _ModernSubscriptionSheet extends StatefulWidget {
   });
 
   @override
-  State<_ModernSubscriptionSheet> createState() => _ModernSubscriptionSheetState();
+  State<_ModernSubscriptionSheet> createState() =>
+      _ModernSubscriptionSheetState();
 }
 
 class _ModernSubscriptionSheetState extends State<_ModernSubscriptionSheet>
@@ -1862,11 +1896,14 @@ class _ModernSubscriptionSheetState extends State<_ModernSubscriptionSheet>
     _slideAnimation = Tween<Offset>(
       begin: const Offset(0, 0.3),
       end: Offset.zero,
-    ).animate(CurvedAnimation(parent: _slideController, curve: Curves.easeOutCubic));
-
-    _fadeAnimation = Tween<double>(begin: 0, end: 1).animate(
-      CurvedAnimation(parent: _slideController, curve: Curves.easeOut),
+    ).animate(
+      CurvedAnimation(parent: _slideController, curve: Curves.easeOutCubic),
     );
+
+    _fadeAnimation = Tween<double>(
+      begin: 0,
+      end: 1,
+    ).animate(CurvedAnimation(parent: _slideController, curve: Curves.easeOut));
 
     _glowAnimation = Tween<double>(begin: 0.3, end: 0.6).animate(
       CurvedAnimation(parent: _glowController, curve: Curves.easeInOut),
@@ -1926,8 +1963,12 @@ class _ModernSubscriptionSheetState extends State<_ModernSubscriptionSheet>
                             begin: Alignment.topCenter,
                             end: Alignment.bottomCenter,
                             colors: [
-                              accentColor.withOpacity(_glowAnimation.value * 0.3),
-                              accentColor.withOpacity(_glowAnimation.value * 0.1),
+                              accentColor.withOpacity(
+                                _glowAnimation.value * 0.3,
+                              ),
+                              accentColor.withOpacity(
+                                _glowAnimation.value * 0.1,
+                              ),
                               Colors.transparent,
                             ],
                           ),
@@ -1963,7 +2004,9 @@ class _ModernSubscriptionSheetState extends State<_ModernSubscriptionSheet>
                                 borderRadius: BorderRadius.circular(3),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: accentColor.withOpacity(_glowAnimation.value * 0.5),
+                                    color: accentColor.withOpacity(
+                                      _glowAnimation.value * 0.5,
+                                    ),
                                     blurRadius: 8,
                                     spreadRadius: 1,
                                   ),
@@ -2023,15 +2066,17 @@ class _ModernSubscriptionSheetState extends State<_ModernSubscriptionSheet>
                       // Plan Cards
                       ...List.generate(widget.allPlans.length, (index) {
                         final plan = widget.allPlans[index];
-                        final planData = widget.availablePlansForProduct.firstWhere(
-                          (p) => p.planName == plan.name,
-                          orElse: () => PlanSearchResult(
-                            planId: 0,
-                            planName: '',
-                            discountedPrice: 0,
-                            discountPercentage: 0,
-                          ),
-                        );
+                        final planData = widget.availablePlansForProduct
+                            .firstWhere(
+                              (p) => p.planName == plan.name,
+                              orElse:
+                                  () => PlanSearchResult(
+                                    planId: 0,
+                                    planName: '',
+                                    discountedPrice: 0,
+                                    discountPercentage: 0,
+                                  ),
+                            );
                         final isEnabled = planData.discountedPrice > 0;
                         final isSelected = widget.selectedIndex == index;
 
@@ -2056,10 +2101,16 @@ class _ModernSubscriptionSheetState extends State<_ModernSubscriptionSheet>
                       Container(
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
-                          color: isDark ? Colors.grey.shade900 : Colors.grey.shade50,
+                          color:
+                              isDark
+                                  ? Colors.grey.shade900
+                                  : Colors.grey.shade50,
                           borderRadius: BorderRadius.circular(16),
                           border: Border.all(
-                            color: isDark ? Colors.grey.shade800 : Colors.grey.shade200,
+                            color:
+                                isDark
+                                    ? Colors.grey.shade800
+                                    : Colors.grey.shade200,
                           ),
                         ),
                         child: Row(
@@ -2131,39 +2182,48 @@ class _ModernSubscriptionSheetState extends State<_ModernSubscriptionSheet>
     final accentColor = theme.colorScheme.primary;
 
     return GestureDetector(
-      onTap: isEnabled ? () {
-        HapticFeedback.selectionClick();
-        widget.onPlanSelected(index);
-      } : null,
+      onTap:
+          isEnabled
+              ? () {
+                HapticFeedback.selectionClick();
+                widget.onPlanSelected(index);
+              }
+              : null,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 300),
         curve: Curves.easeOutCubic,
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          gradient: isSelected
-              ? LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [accentColor, accentColor.withOpacity(0.85)],
-                )
-              : null,
-          color: isSelected ? null : (isDark ? Colors.grey.shade900 : Colors.grey.shade50),
+          gradient:
+              isSelected
+                  ? LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [accentColor, accentColor.withOpacity(0.85)],
+                  )
+                  : null,
+          color:
+              isSelected
+                  ? null
+                  : (isDark ? Colors.grey.shade900 : Colors.grey.shade50),
           borderRadius: BorderRadius.circular(18),
           border: Border.all(
-            color: isSelected
-                ? accentColor.withOpacity(0.5)
-                : (isDark ? Colors.grey.shade800 : Colors.grey.shade200),
+            color:
+                isSelected
+                    ? accentColor.withOpacity(0.5)
+                    : (isDark ? Colors.grey.shade800 : Colors.grey.shade200),
             width: isSelected ? 2 : 1,
           ),
-          boxShadow: isSelected
-              ? [
-                  BoxShadow(
-                    color: accentColor.withOpacity(0.3),
-                    blurRadius: 16,
-                    offset: const Offset(0, 6),
-                  ),
-                ]
-              : null,
+          boxShadow:
+              isSelected
+                  ? [
+                    BoxShadow(
+                      color: accentColor.withOpacity(0.3),
+                      blurRadius: 16,
+                      offset: const Offset(0, 6),
+                    ),
+                  ]
+                  : null,
         ),
         child: Opacity(
           opacity: isEnabled ? 1.0 : 0.5,
@@ -2179,20 +2239,31 @@ class _ModernSubscriptionSheetState extends State<_ModernSubscriptionSheet>
                     height: 26,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: isSelected ? Colors.white.withOpacity(0.2) : Colors.transparent,
+                      color:
+                          isSelected
+                              ? Colors.white.withOpacity(0.2)
+                              : Colors.transparent,
                       border: Border.all(
-                        color: isSelected
-                            ? Colors.white
-                            : (isDark ? Colors.grey.shade600 : Colors.grey.shade400),
+                        color:
+                            isSelected
+                                ? Colors.white
+                                : (isDark
+                                    ? Colors.grey.shade600
+                                    : Colors.grey.shade400),
                         width: 2,
                       ),
                     ),
-                    child: isSelected
-                        ? const Icon(Icons.check, size: 16, color: Colors.white)
-                        : null,
+                    child:
+                        isSelected
+                            ? const Icon(
+                              Icons.check,
+                              size: 16,
+                              color: Colors.white,
+                            )
+                            : null,
                   ),
                   const SizedBox(width: 14),
-                  
+
                   // Plan info
                   Expanded(
                     child: Column(
@@ -2209,9 +2280,10 @@ class _ModernSubscriptionSheetState extends State<_ModernSubscriptionSheet>
                         Text(
                           '${plan.durationMonths} months • ${planData.discountPercentage.toStringAsFixed(0)}% off',
                           style: theme.textTheme.bodySmall?.copyWith(
-                            color: isSelected
-                                ? Colors.white.withOpacity(0.8)
-                                : theme.hintColor,
+                            color:
+                                isSelected
+                                    ? Colors.white.withOpacity(0.8)
+                                    : theme.hintColor,
                           ),
                         ),
                       ],
@@ -2232,9 +2304,10 @@ class _ModernSubscriptionSheetState extends State<_ModernSubscriptionSheet>
                       Text(
                         '/month',
                         style: theme.textTheme.bodySmall?.copyWith(
-                          color: isSelected
-                              ? Colors.white.withOpacity(0.7)
-                              : theme.hintColor,
+                          color:
+                              isSelected
+                                  ? Colors.white.withOpacity(0.7)
+                                  : theme.hintColor,
                         ),
                       ),
                     ],
@@ -2293,7 +2366,10 @@ class _ModernSubscriptionSheetState extends State<_ModernSubscriptionSheet>
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(label, style: const TextStyle(color: Colors.white70, fontSize: 13)),
+        Text(
+          label,
+          style: const TextStyle(color: Colors.white70, fontSize: 13),
+        ),
         Text(
           value,
           style: const TextStyle(
@@ -2318,7 +2394,8 @@ class _ModernSubscriptionSheetState extends State<_ModernSubscriptionSheet>
         duration: const Duration(milliseconds: 200),
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
         decoration: BoxDecoration(
-          color: isSelected ? Colors.white.withOpacity(0.25) : Colors.transparent,
+          color:
+              isSelected ? Colors.white.withOpacity(0.25) : Colors.transparent,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
             color: Colors.white.withOpacity(isSelected ? 0.5 : 0.3),
@@ -2328,7 +2405,9 @@ class _ModernSubscriptionSheetState extends State<_ModernSubscriptionSheet>
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(
-              isSelected ? Icons.radio_button_checked : Icons.radio_button_unchecked,
+              isSelected
+                  ? Icons.radio_button_checked
+                  : Icons.radio_button_unchecked,
               color: Colors.white,
               size: 16,
             ),

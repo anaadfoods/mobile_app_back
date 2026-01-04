@@ -74,7 +74,8 @@ class _AnaadInnovationsScreenState extends State<AnaadInnovationsScreen>
     final isDark = theme.brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: isDark ? const Color(0xFF0F0F1A) : const Color(0xFFF8F9FE),
+      backgroundColor:
+          isDark ? const Color(0xFF0F0F1A) : const Color(0xFFF8F9FE),
       body: Stack(
         children: [
           // Background gradient
@@ -103,9 +104,10 @@ class _AnaadInnovationsScreenState extends State<AnaadInnovationsScreen>
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: isDark
-                ? [const Color(0xFF1A0F2E), const Color(0xFF0F0F1A)]
-                : [const Color(0xFFF0EBFF), const Color(0xFFF8F9FE)],
+            colors:
+                isDark
+                    ? [const Color(0xFF1A0F2E), const Color(0xFF0F0F1A)]
+                    : [const Color(0xFFF0EBFF), const Color(0xFFF8F9FE)],
           ),
         ),
       ),
@@ -151,9 +153,7 @@ class _AnaadInnovationsScreenState extends State<AnaadInnovationsScreen>
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         color: color.withOpacity(0.6),
-        boxShadow: [
-          BoxShadow(color: color.withOpacity(0.4), blurRadius: 10),
-        ],
+        boxShadow: [BoxShadow(color: color.withOpacity(0.4), blurRadius: 10)],
       ),
     );
   }
@@ -177,7 +177,9 @@ class _AnaadInnovationsScreenState extends State<AnaadInnovationsScreen>
               },
               child: Container(
                 decoration: BoxDecoration(
-                  color: (isDark ? Colors.white : Colors.black).withOpacity(0.1),
+                  color: (isDark ? Colors.white : Colors.black).withOpacity(
+                    0.1,
+                  ),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Icon(
@@ -235,7 +237,8 @@ class _AnaadInnovationsScreenState extends State<AnaadInnovationsScreen>
                 gradient: [const Color(0xFF10B981), const Color(0xFF059669)],
                 isComingSoon: true,
                 delay: 0,
-                onTap: () => _navigateTo(context, const AnaadRedemptionsScreen()),
+                onTap:
+                    () => _navigateTo(context, const AnaadRedemptionsScreen()),
               ),
               const SizedBox(height: 16),
 
@@ -289,10 +292,7 @@ class _AnaadInnovationsScreenState extends State<AnaadInnovationsScreen>
 
   void _navigateTo(BuildContext context, Widget screen) {
     HapticFeedback.mediumImpact();
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (_) => screen),
-    );
+    Navigator.push(context, MaterialPageRoute(builder: (_) => screen));
   }
 
   Widget _buildPointsCard(ThemeData theme, bool isDark) {
@@ -303,159 +303,208 @@ class _AnaadInnovationsScreenState extends State<AnaadInnovationsScreen>
           borderRadius: BorderRadius.circular(24),
           child: BackdropFilter(
             filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
-            child: Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(24),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [
-                    const Color(0xFF6B21A8).withOpacity(0.9),
-                    const Color(0xFF7C3AED).withOpacity(0.85),
+            child: ColorFiltered(
+              colorFilter: ColorFilter.matrix([
+                0.5,
+                0.2,
+                0.2,
+                0,
+                0,
+                0.2,
+                0.5,
+                0.2,
+                0,
+                0,
+                0.2,
+                0.2,
+                0.5,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0.7,
+                0,
+              ]),
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(24),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      const Color(0xFF6B21A8).withOpacity(0.6),
+                      const Color(0xFF7C3AED).withOpacity(0.55),
+                    ],
+                  ),
+                  borderRadius: BorderRadius.circular(24),
+                  border: Border.all(
+                    color: Colors.white.withOpacity(0.15),
+                    width: 1.5,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(0xFF6B21A8).withOpacity(0.2),
+                      blurRadius: 25,
+                      offset: const Offset(0, 10),
+                    ),
                   ],
                 ),
-                borderRadius: BorderRadius.circular(24),
-                border: Border.all(
-                  color: Colors.white.withOpacity(0.2),
-                  width: 1.5,
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: const Color(0xFF6B21A8).withOpacity(0.4),
-                    blurRadius: 25,
-                    offset: const Offset(0, 10),
-                  ),
-                ],
-              ),
-              child: Stack(
-                children: [
-                  // Shimmer overlay
-                  Positioned.fill(
-                    child: Container(
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(24),
-                        gradient: LinearGradient(
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                          colors: [
-                            Colors.transparent,
-                            Colors.white.withOpacity(0.1),
-                            Colors.transparent,
-                          ],
-                          stops: [
-                            (_shimmerAnimation.value - 0.3).clamp(0.0, 1.0),
-                            _shimmerAnimation.value.clamp(0.0, 1.0),
-                            (_shimmerAnimation.value + 0.3).clamp(0.0, 1.0),
+                child: Stack(
+                  children: [
+                    // Content
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withOpacity(0.15),
+                                borderRadius: BorderRadius.circular(14),
+                              ),
+                              child: const Icon(
+                                Icons.stars_rounded,
+                                color: Colors.white70,
+                                size: 24,
+                              ),
+                            ),
+                            const SizedBox(width: 14),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Anaad Points',
+                                  style: theme.textTheme.titleMedium?.copyWith(
+                                    color: Colors.white.withOpacity(0.6),
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                                const SizedBox(height: 2),
+                                Row(
+                                  children: [
+                                    Text(
+                                      '$_pointsBalance',
+                                      style: theme.textTheme.headlineMedium
+                                          ?.copyWith(
+                                            color: Colors.white70,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 8,
+                                        vertical: 4,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: const Color(
+                                          0xFF10B981,
+                                        ).withOpacity(0.2),
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                      child: Row(
+                                        children: [
+                                          const Icon(
+                                            Icons.trending_up,
+                                            color: Color(0xFF6EE7B7),
+                                            size: 14,
+                                          ),
+                                          const SizedBox(width: 4),
+                                          Text(
+                                            '+50 this week',
+                                            style: theme.textTheme.labelSmall
+                                                ?.copyWith(
+                                                  color: const Color(
+                                                    0xFF6EE7B7,
+                                                  ).withOpacity(0.7),
+                                                  fontWeight: FontWeight.w600,
+                                                ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
                           ],
                         ),
-                      ),
-                    ),
-                  ),
-                  // Content
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.all(12),
-                            decoration: BoxDecoration(
-                              color: Colors.white.withOpacity(0.2),
-                              borderRadius: BorderRadius.circular(14),
-                            ),
-                            child: const Icon(
-                              Icons.stars_rounded,
-                              color: Colors.white,
-                              size: 24,
-                            ),
+                        const SizedBox(height: 20),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 10,
                           ),
-                          const SizedBox(width: 14),
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
                             children: [
-                              Text(
-                                'Anaad Points',
-                                style: theme.textTheme.titleMedium?.copyWith(
-                                  color: Colors.white.withOpacity(0.8),
-                                  fontWeight: FontWeight.w500,
-                                ),
+                              const Icon(
+                                Icons.hourglass_top_rounded,
+                                color: Colors.white54,
+                                size: 16,
                               ),
-                              const SizedBox(height: 2),
-                              Row(
-                                children: [
-                                  Text(
-                                    '$_pointsBalance',
-                                    style: theme.textTheme.headlineMedium?.copyWith(
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 8,
-                                      vertical: 4,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: const Color(0xFF10B981).withOpacity(0.3),
-                                      borderRadius: BorderRadius.circular(8),
-                                    ),
-                                    child: Row(
-                                      children: [
-                                        const Icon(
-                                          Icons.trending_up,
-                                          color: Color(0xFF6EE7B7),
-                                          size: 14,
-                                        ),
-                                        const SizedBox(width: 4),
-                                        Text(
-                                          '+50 this week',
-                                          style: theme.textTheme.labelSmall?.copyWith(
-                                            color: const Color(0xFF6EE7B7),
-                                            fontWeight: FontWeight.w600,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ],
+                              const SizedBox(width: 8),
+                              Text(
+                                'Coming Soon - Earn points with orders!',
+                                style: theme.textTheme.bodySmall?.copyWith(
+                                  color: Colors.white.withOpacity(0.6),
+                                ),
                               ),
                             ],
                           ),
-                        ],
-                      ),
-                      const SizedBox(height: 20),
-                      Container(
+                        ),
+                      ],
+                    ),
+                    // Coming Soon Badge
+                    Positioned(
+                      top: -4,
+                      right: -4,
+                      child: Container(
                         padding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 10,
+                          horizontal: 10,
+                          vertical: 5,
                         ),
                         decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.15),
+                          color: Colors.orange.withOpacity(0.9),
                           borderRadius: BorderRadius.circular(12),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.orange.withOpacity(0.4),
+                              blurRadius: 8,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
                         ),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             const Icon(
-                              Icons.info_outline_rounded,
-                              color: Colors.white70,
-                              size: 16,
+                              Icons.rocket_launch_rounded,
+                              size: 12,
+                              color: Colors.white,
                             ),
-                            const SizedBox(width: 8),
+                            const SizedBox(width: 4),
                             Text(
-                              'Earn points with every order & referral!',
-                              style: theme.textTheme.bodySmall?.copyWith(
-                                color: Colors.white.withOpacity(0.9),
+                              'COMING SOON',
+                              style: theme.textTheme.labelSmall?.copyWith(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 9,
                               ),
                             ),
                           ],
                         ),
                       ),
-                    ],
-                  ),
-                ],
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
@@ -558,12 +607,17 @@ class _FeatureCardContentState extends State<_FeatureCardContent>
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTapDown: (_) => setState(() => _isPressed = true),
-      onTapUp: (_) {
-        setState(() => _isPressed = false);
-        widget.onTap();
-      },
-      onTapCancel: () => setState(() => _isPressed = false),
+      onTapDown:
+          widget.isComingSoon ? null : (_) => setState(() => _isPressed = true),
+      onTapUp:
+          widget.isComingSoon
+              ? null
+              : (_) {
+                setState(() => _isPressed = false);
+                widget.onTap();
+              },
+      onTapCancel:
+          widget.isComingSoon ? null : () => setState(() => _isPressed = false),
       child: AnimatedScale(
         scale: _isPressed ? 0.97 : 1.0,
         duration: const Duration(milliseconds: 150),
@@ -574,7 +628,9 @@ class _FeatureCardContentState extends State<_FeatureCardContent>
             color: widget.isDark ? const Color(0xFF1E1E2E) : Colors.white,
             borderRadius: BorderRadius.circular(20),
             border: Border.all(
-              color: widget.gradient[0].withOpacity(widget.isComingSoon ? 0.5 : 0.3),
+              color: widget.gradient[0].withOpacity(
+                widget.isComingSoon ? 0.5 : 0.3,
+              ),
               width: widget.isComingSoon ? 2 : 1.5,
             ),
             boxShadow: [
@@ -650,7 +706,10 @@ class _FeatureCardContentState extends State<_FeatureCardContent>
                         Text(
                           widget.subtitle,
                           style: widget.theme.textTheme.bodySmall?.copyWith(
-                            color: widget.isDark ? Colors.grey[400] : Colors.grey[600],
+                            color:
+                                widget.isDark
+                                    ? Colors.grey[400]
+                                    : Colors.grey[600],
                           ),
                         ),
                       ],
@@ -663,8 +722,8 @@ class _FeatureCardContentState extends State<_FeatureCardContent>
                   ),
                 ],
               ),
-              
-              // Coming Soon Banner - Prominent Corner Ribbon
+
+              // Coming Soon Banner - Responsive Corner Ribbon
               if (widget.isComingSoon)
                 Positioned(
                   top: -10,
@@ -677,47 +736,58 @@ class _FeatureCardContentState extends State<_FeatureCardContent>
                         child: child,
                       );
                     },
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 6,
-                      ),
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [
-                            widget.gradient[0],
-                            widget.gradient[1],
-                          ],
-                        ),
-                        borderRadius: BorderRadius.circular(20),
-                        boxShadow: [
-                          BoxShadow(
-                            color: widget.gradient[0].withOpacity(0.5),
-                            blurRadius: 10,
-                            offset: const Offset(0, 3),
+                    child: LayoutBuilder(
+                      builder: (context, constraints) {
+                        final screenWidth = MediaQuery.of(context).size.width;
+                        // Responsive scaling factor based on screen width
+                        final isWideScreen = screenWidth > 600;
+                        final horizontalPadding = isWideScreen ? 12.0 : 8.0;
+                        final verticalPadding = isWideScreen ? 6.0 : 4.0;
+                        final iconSize = isWideScreen ? 14.0 : 10.0;
+                        final fontSize = isWideScreen ? 10.0 : 8.0;
+                        final borderRadius = isWideScreen ? 16.0 : 12.0;
+                        final spacing = isWideScreen ? 5.0 : 3.0;
+
+                        return Container(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: horizontalPadding,
+                            vertical: verticalPadding,
                           ),
-                        ],
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            Icons.rocket_launch_rounded,
-                            size: 12,
-                            color: Colors.white,
-                          ),
-                          const SizedBox(width: 4),
-                          Text(
-                            'COMING SOON',
-                            style: TextStyle(
-                              fontSize: 10,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
-                              letterSpacing: 0.5,
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: [widget.gradient[0], widget.gradient[1]],
                             ),
+                            borderRadius: BorderRadius.circular(borderRadius),
+                            boxShadow: [
+                              BoxShadow(
+                                color: widget.gradient[0].withOpacity(0.4),
+                                blurRadius: 6,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
                           ),
-                        ],
-                      ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                Icons.rocket_launch_rounded,
+                                size: iconSize,
+                                color: Colors.white,
+                              ),
+                              SizedBox(width: spacing),
+                              Text(
+                                'COMING SOON',
+                                style: TextStyle(
+                                  fontSize: fontSize,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                  letterSpacing: 0.3,
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      },
                     ),
                   ),
                 ),

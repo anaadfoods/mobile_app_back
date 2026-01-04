@@ -78,43 +78,33 @@ class _OrderScreenState extends State<OrderScreen>
           _buildAnimatedHeader(theme, isDark),
           // Content
           if (isLoading)
-            const SliverFillRemaining(
-              child: _LoadingState(),
-            )
+            const SliverFillRemaining(child: _LoadingState())
           else if (error != null)
             SliverFillRemaining(
-              child: _ErrorState(
-                error: error!,
-                onRetry: _fetchOrders,
-              ),
+              child: _ErrorState(error: error!, onRetry: _fetchOrders),
             )
           else if (orders.isEmpty)
-            const SliverFillRemaining(
-              child: _EmptyState(),
-            )
+            const SliverFillRemaining(child: _EmptyState())
           else
             SliverPadding(
               padding: const EdgeInsets.fromLTRB(16, 8, 16, 100),
               sliver: SliverList(
-                delegate: SliverChildBuilderDelegate(
-                  (context, index) {
-                    if (index == orders.length) {
-                      return Padding(
-                        padding: const EdgeInsets.only(top: 8),
-                        child: _buildHelpCard(theme, isDark),
-                      );
-                    }
-                    final order = orders[index];
-                    return _AnimatedOrderCard(
-                      order: order,
-                      index: index,
-                      staggerController: _staggerController,
-                      totalItems: orders.length,
-                      onTap: () => _navigateToDetails(order),
+                delegate: SliverChildBuilderDelegate((context, index) {
+                  if (index == orders.length) {
+                    return Padding(
+                      padding: const EdgeInsets.only(top: 8),
+                      child: _buildHelpCard(theme, isDark),
                     );
-                  },
-                  childCount: orders.length + 1,
-                ),
+                  }
+                  final order = orders[index];
+                  return _AnimatedOrderCard(
+                    order: order,
+                    index: index,
+                    staggerController: _staggerController,
+                    totalItems: orders.length,
+                    onTap: () => _navigateToDetails(order),
+                  );
+                }, childCount: orders.length + 1),
               ),
             ),
         ],
@@ -123,7 +113,10 @@ class _OrderScreenState extends State<OrderScreen>
   }
 
   Widget _buildAnimatedHeader(ThemeData theme, bool isDark) {
-    final activeOrders = orders.where((o) => o.status != 'DELIVERED' && o.status != 'CANCELLED').length;
+    final activeOrders =
+        orders
+            .where((o) => o.status != 'DELIVERED' && o.status != 'CANCELLED')
+            .length;
     final completedOrders = orders.where((o) => o.status == 'DELIVERED').length;
 
     return SliverToBoxAdapter(
@@ -133,15 +126,13 @@ class _OrderScreenState extends State<OrderScreen>
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: isDark
-                ? [
-                    const Color(0xFF2D2D2D),
-                    const Color(0xFF1A1A1A),
-                  ]
-                : [
-                    AppColors.primaryColor,
-                    AppColors.primaryColor.withOpacity(0.8),
-                  ],
+            colors:
+                isDark
+                    ? [const Color(0xFF2D2D2D), const Color(0xFF1A1A1A)]
+                    : [
+                      AppColors.primaryColor,
+                      AppColors.primaryColor.withOpacity(0.8),
+                    ],
           ),
           borderRadius: const BorderRadius.only(
             bottomLeft: Radius.circular(32),
@@ -227,22 +218,23 @@ class _OrderScreenState extends State<OrderScreen>
                             ),
                           ),
                         ),
-                        if (!isLoading)
-                          GestureDetector(
-                            onTap: _fetchOrders,
-                            child: Container(
-                              padding: const EdgeInsets.all(10),
-                              decoration: BoxDecoration(
-                                color: Colors.white.withOpacity(0.2),
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: const Icon(
-                                Icons.refresh_rounded,
-                                color: Colors.white,
-                                size: 20,
-                              ),
-                            ),
-                          ),
+                        // ,
+                        // if (!isLoading)
+                        //   GestureDetector(
+                        //     onTap: _fetchOrders,
+                        //     child: Container(
+                        //       padding: const EdgeInsets.all(10),
+                        //       decoration: BoxDecoration(
+                        //         color: Colors.white.withOpacity(0.2),
+                        //         borderRadius: BorderRadius.circular(12),
+                        //       ),
+                        //       child: const Icon(
+                        //         Icons.refresh_rounded,
+                        //         color: Colors.white,
+                        //         size: 20,
+                        //       ),
+                        //     ),
+                        //   ),
                       ],
                     ),
                     const Spacer(),
@@ -305,9 +297,7 @@ class _OrderScreenState extends State<OrderScreen>
       decoration: BoxDecoration(
         color: Colors.white.withOpacity(0.15),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: Colors.white.withOpacity(0.2),
-        ),
+        border: Border.all(color: Colors.white.withOpacity(0.2)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -334,20 +324,19 @@ class _OrderScreenState extends State<OrderScreen>
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: isDark
-              ? [
-                  AppColors.primaryColor.withOpacity(0.2),
-                  AppColors.primaryColor.withOpacity(0.1),
-                ]
-              : [
-                  AppColors.primaryColor.withOpacity(0.08),
-                  AppColors.primaryColor.withOpacity(0.04),
-                ],
+          colors:
+              isDark
+                  ? [
+                    AppColors.primaryColor.withOpacity(0.2),
+                    AppColors.primaryColor.withOpacity(0.1),
+                  ]
+                  : [
+                    AppColors.primaryColor.withOpacity(0.08),
+                    AppColors.primaryColor.withOpacity(0.04),
+                  ],
         ),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: AppColors.primaryColor.withOpacity(0.2),
-        ),
+        border: Border.all(color: AppColors.primaryColor.withOpacity(0.2)),
       ),
       child: Row(
         children: [
@@ -415,9 +404,7 @@ class _OrderScreenState extends State<OrderScreen>
     if (!mounted) return;
     final result = await Navigator.push(
       context,
-      MaterialPageRoute(
-        builder: (_) => OrderDetailScreen(order: orderDetails),
-      ),
+      MaterialPageRoute(builder: (_) => OrderDetailScreen(order: orderDetails)),
     );
     if (result == true) {
       await _fetchOrders();
@@ -449,28 +436,26 @@ class _AnimatedOrderCard extends StatelessWidget {
     final slideAnimation = Tween<Offset>(
       begin: const Offset(0, 0.3),
       end: Offset.zero,
-    ).animate(CurvedAnimation(
-      parent: staggerController,
-      curve: Interval(startInterval, endInterval, curve: Curves.easeOutCubic),
-    ));
+    ).animate(
+      CurvedAnimation(
+        parent: staggerController,
+        curve: Interval(startInterval, endInterval, curve: Curves.easeOutCubic),
+      ),
+    );
 
-    final fadeAnimation = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
-    ).animate(CurvedAnimation(
-      parent: staggerController,
-      curve: Interval(startInterval, endInterval, curve: Curves.easeOut),
-    ));
+    final fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: staggerController,
+        curve: Interval(startInterval, endInterval, curve: Curves.easeOut),
+      ),
+    );
 
     return AnimatedBuilder(
       animation: staggerController,
       builder: (context, child) {
         return FadeTransition(
           opacity: fadeAnimation,
-          child: SlideTransition(
-            position: slideAnimation,
-            child: child,
-          ),
+          child: SlideTransition(position: slideAnimation, child: child),
         );
       },
       child: Padding(
@@ -486,10 +471,7 @@ class _ModernOrderCard extends StatelessWidget {
   final Order order;
   final VoidCallback onTap;
 
-  const _ModernOrderCard({
-    required this.order,
-    required this.onTap,
-  });
+  const _ModernOrderCard({required this.order, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -505,9 +487,10 @@ class _ModernOrderCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(20),
           boxShadow: [
             BoxShadow(
-              color: isDark
-                  ? Colors.black.withOpacity(0.3)
-                  : AppColors.primaryColor.withOpacity(0.08),
+              color:
+                  isDark
+                      ? Colors.black.withOpacity(0.3)
+                      : AppColors.primaryColor.withOpacity(0.08),
               blurRadius: 20,
               offset: const Offset(0, 8),
               spreadRadius: -4,
@@ -521,7 +504,9 @@ class _ModernOrderCard extends StatelessWidget {
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
                 color: status.color.withOpacity(0.08),
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(20),
+                ),
               ),
               child: Row(
                 children: [
@@ -654,9 +639,10 @@ class _ModernOrderCard extends StatelessWidget {
           child: Stack(
             children: List.generate(displayItems.length, (index) {
               final item = displayItems[index];
-              final imageUrl = item.productDetails.productImages.isNotEmpty
-                  ? item.productDetails.productImages[0].image
-                  : null;
+              final imageUrl =
+                  item.productDetails.productImages.isNotEmpty
+                      ? item.productDetails.productImages[0].image
+                      : null;
               return Positioned(
                 left: index * 20.0,
                 child: Container(
@@ -678,13 +664,15 @@ class _ModernOrderCard extends StatelessWidget {
                   ),
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(10),
-                    child: imageUrl != null
-                        ? Image.network(
-                            imageUrl,
-                            fit: BoxFit.cover,
-                            errorBuilder: (_, __, ___) => _buildPlaceholder(isDark),
-                          )
-                        : _buildPlaceholder(isDark),
+                    child:
+                        imageUrl != null
+                            ? Image.network(
+                              imageUrl,
+                              fit: BoxFit.cover,
+                              errorBuilder:
+                                  (_, __, ___) => _buildPlaceholder(isDark),
+                            )
+                            : _buildPlaceholder(isDark),
                   ),
                 ),
               );
@@ -715,9 +703,9 @@ class _ModernOrderCard extends StatelessWidget {
           flex: 2,
           child: Text(
             items.first.productDetails.productName,
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              fontWeight: FontWeight.w500,
-            ),
+            style: Theme.of(
+              context,
+            ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w500),
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
           ),
@@ -809,68 +797,20 @@ class _LoadingState extends StatelessWidget {
   }
 }
 
-// Error State
+// Error State - using centralized ErrorStateWidget
 class _ErrorState extends StatelessWidget {
   final String error;
   final VoidCallback onRetry;
 
-  const _ErrorState({
-    required this.error,
-    required this.onRetry,
-  });
+  const _ErrorState({required this.error, required this.onRetry});
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(32),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              padding: const EdgeInsets.all(24),
-              decoration: BoxDecoration(
-                color: AppColors.error.withOpacity(0.1),
-                shape: BoxShape.circle,
-              ),
-              child: Icon(
-                Icons.cloud_off_rounded,
-                size: 48,
-                color: AppColors.error.withOpacity(0.7),
-              ),
-            ),
-            const SizedBox(height: 24),
-            Text(
-              'Oops! Something went wrong',
-              style: theme.textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              error,
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: theme.hintColor,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 32),
-            ElevatedButton.icon(
-              onPressed: onRetry,
-              icon: const Icon(Icons.refresh),
-              label: const Text('Try Again'),
-              style: ElevatedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 32,
-                  vertical: 16,
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
+    return ErrorStateWidget(
+      title: 'Failed to Load Orders',
+      subtitle: error,
+      errorType: ErrorType.server,
+      onRetry: onRetry,
     );
   }
 }

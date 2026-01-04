@@ -27,14 +27,15 @@ class TopCurosel extends StatefulWidget {
   State<TopCurosel> createState() => _TopCuroselState();
 }
 
-class _TopCuroselState extends State<TopCurosel> with SingleTickerProviderStateMixin {
+class _TopCuroselState extends State<TopCurosel>
+    with SingleTickerProviderStateMixin {
   final CarouselController _carouselController = CarouselController();
   int _currentPage = 0;
-  
+
   /// Pre-extracted colors for each carousel image
   List<Color> _extractedColors = [];
   bool _colorsLoaded = false;
-  
+
   /// Animation controller for pulse/glow effect
   late AnimationController _pulseController;
 
@@ -61,25 +62,30 @@ class _TopCuroselState extends State<TopCurosel> with SingleTickerProviderStateM
   void _initCarouselItems() {
     _carouselItems = [
       CarouselItem(
-        imageUrl: 'https://res.cloudinary.com/dcuwcjq1f/image/upload/v1759836582/atta_chaki_carousel_zowh5e.jpg',
+        imageUrl:
+            'https://res.cloudinary.com/dcuwcjq1f/image/upload/v1759836582/atta_chaki_carousel_zowh5e.jpg',
         title: 'Freshly Ground Flours',
         buttonText: 'Know our mission',
-        onTap: () => Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => AboutScreen()),
-        ),
+        onTap:
+            () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => AboutScreen()),
+            ),
       ),
       CarouselItem(
-        imageUrl: 'https://res.cloudinary.com/dcuwcjq1f/image/upload/v1759836622/atta_crousel_image_dpennd.jpg',
+        imageUrl:
+            'https://res.cloudinary.com/dcuwcjq1f/image/upload/v1759836622/atta_crousel_image_dpennd.jpg',
         title: 'Our Mission & Story',
         buttonText: 'Checkout Products',
-        onTap: () => Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => const ExploreScreen()),
-        ),
+        onTap: () {
+          final dashboardState =
+              context.findAncestorStateOfType<DashboardScreenState>();
+          dashboardState?.switchToTab(3);
+        },
       ),
       CarouselItem(
-        imageUrl: 'https://res.cloudinary.com/dcuwcjq1f/image/upload/v1759836642/farm_carousel_lcnpp8.jpg',
+        imageUrl:
+            'https://res.cloudinary.com/dcuwcjq1f/image/upload/v1759836642/farm_carousel_lcnpp8.jpg',
         title: 'Convenient Products',
         buttonText: 'View Product',
         onTap: () async {
@@ -88,20 +94,25 @@ class _TopCuroselState extends State<TopCurosel> with SingleTickerProviderStateM
           Navigator.push(
             context,
             MaterialPageRoute(
-                builder: (context) => ProductDetailsScreen(
-                      product: produt,
-                    )),
+              builder: (context) => ProductDetailsScreen(product: produt),
+            ),
           );
         },
       ),
       CarouselItem(
-        imageUrl: 'https://res.cloudinary.com/dcuwcjq1f/image/upload/v1759836653/farmer_consultancy_aaosxa.jpg',
+        imageUrl:
+            'https://res.cloudinary.com/dcuwcjq1f/image/upload/v1759836653/farmer_consultancy_aaosxa.jpg',
         title: 'Remote Farming',
         buttonText: 'RFP Plan',
         onTap: () {
-          Navigator.push(context, MaterialPageRoute(builder: (buiilder) {
-            return DeliveryScreen();
-          }));
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (buiilder) {
+                return DeliveryScreen();
+              },
+            ),
+          );
         },
       ),
     ];
@@ -110,7 +121,7 @@ class _TopCuroselState extends State<TopCurosel> with SingleTickerProviderStateM
   /// Extract dominant colors from all carousel images
   Future<void> _extractColors() async {
     final imageUrls = _carouselItems.map((item) => item.imageUrl).toList();
-    
+
     try {
       final colors = await ColorExtractor.extractColorsFromUrls(imageUrls);
       if (mounted) {
@@ -133,7 +144,7 @@ class _TopCuroselState extends State<TopCurosel> with SingleTickerProviderStateM
     setState(() {
       _currentPage = index;
     });
-    
+
     // Notify parent with the new color
     if (_colorsLoaded && _extractedColors.isNotEmpty) {
       widget.onColorChanged?.call(_extractedColors[index]);
@@ -152,11 +163,13 @@ class _TopCuroselState extends State<TopCurosel> with SingleTickerProviderStateM
         AnimatedBuilder(
           animation: _pulseController,
           builder: (context, child) {
-            final glowIntensity = 0.2 + (math.sin(_pulseController.value * math.pi * 2) * 0.15);
-            final currentColor = _colorsLoaded && _extractedColors.isNotEmpty
-                ? _extractedColors[_currentPage]
-                : colorScheme.primary;
-            
+            final glowIntensity =
+                0.2 + (math.sin(_pulseController.value * math.pi * 2) * 0.15);
+            final currentColor =
+                _colorsLoaded && _extractedColors.isNotEmpty
+                    ? _extractedColors[_currentPage]
+                    : colorScheme.primary;
+
             return Container(
               margin: const EdgeInsets.symmetric(horizontal: 8),
               decoration: BoxDecoration(
@@ -179,10 +192,11 @@ class _TopCuroselState extends State<TopCurosel> with SingleTickerProviderStateM
                 itemBuilder: (context, index, realIndex) {
                   final item = _carouselItems[index];
                   final isActive = index == _currentPage;
-                  final itemColor = _colorsLoaded && _extractedColors.length > index
-                      ? _extractedColors[index]
-                      : colorScheme.primary;
-                  
+                  final itemColor =
+                      _colorsLoaded && _extractedColors.length > index
+                          ? _extractedColors[index]
+                          : colorScheme.primary;
+
                   return AnimatedScale(
                     scale: isActive ? 1.0 : 0.92,
                     duration: const Duration(milliseconds: 400),
@@ -193,13 +207,16 @@ class _TopCuroselState extends State<TopCurosel> with SingleTickerProviderStateM
                       child: Container(
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(12),
-                          boxShadow: isActive ? [
-                            BoxShadow(
-                              color: itemColor.withOpacity(0.3),
-                              blurRadius: 12,
-                              spreadRadius: 1,
-                            ),
-                          ] : [],
+                          boxShadow:
+                              isActive
+                                  ? [
+                                    BoxShadow(
+                                      color: itemColor.withOpacity(0.3),
+                                      blurRadius: 12,
+                                      spreadRadius: 1,
+                                    ),
+                                  ]
+                                  : [],
                         ),
                         child: ClipRRect(
                           borderRadius: BorderRadius.circular(12),
@@ -210,14 +227,22 @@ class _TopCuroselState extends State<TopCurosel> with SingleTickerProviderStateM
                                 item.imageUrl,
                                 fit: BoxFit.cover,
                                 width: double.infinity,
-                                loadingBuilder: (context, child, loadingProgress) {
+                                loadingBuilder: (
+                                  context,
+                                  child,
+                                  loadingProgress,
+                                ) {
                                   if (loadingProgress == null) return child;
                                   return Center(
                                     child: CircularProgressIndicator(
-                                      value: loadingProgress.expectedTotalBytes != null
-                                          ? loadingProgress.cumulativeBytesLoaded /
-                                              loadingProgress.expectedTotalBytes!
-                                          : null,
+                                      value:
+                                          loadingProgress.expectedTotalBytes !=
+                                                  null
+                                              ? loadingProgress
+                                                      .cumulativeBytesLoaded /
+                                                  loadingProgress
+                                                      .expectedTotalBytes!
+                                              : null,
                                     ),
                                   );
                                 },
@@ -225,7 +250,10 @@ class _TopCuroselState extends State<TopCurosel> with SingleTickerProviderStateM
                               Container(
                                 decoration: BoxDecoration(
                                   gradient: LinearGradient(
-                                    colors: [Colors.black.withOpacity(0.6), Colors.transparent],
+                                    colors: [
+                                      Colors.black.withOpacity(0.6),
+                                      Colors.transparent,
+                                    ],
                                     begin: Alignment.bottomCenter,
                                     end: Alignment.center,
                                   ),
@@ -242,16 +270,29 @@ class _TopCuroselState extends State<TopCurosel> with SingleTickerProviderStateM
                                       style: textTheme.bodyLarge?.copyWith(
                                         color: Colors.white,
                                         fontWeight: FontWeight.bold,
-                                        shadows: [const Shadow(blurRadius: 2, color: Colors.black54)],
+                                        shadows: [
+                                          const Shadow(
+                                            blurRadius: 2,
+                                            color: Colors.black54,
+                                          ),
+                                        ],
                                       ),
                                     ),
                                     const SizedBox(height: 5),
                                     TextButton(
                                       onPressed: item.onTap,
                                       style: TextButton.styleFrom(
-                                        backgroundColor: colorScheme.primary.withOpacity(0.9),
-                                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 5),
-                                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                        backgroundColor: colorScheme.primary
+                                            .withOpacity(0.9),
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 20,
+                                          vertical: 5,
+                                        ),
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(
+                                            12,
+                                          ),
+                                        ),
                                       ),
                                       child: Text(
                                         item.buttonText,

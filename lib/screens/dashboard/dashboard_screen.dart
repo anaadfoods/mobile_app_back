@@ -11,11 +11,15 @@ import 'navigator_item.dart';
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
 
+  /// Global key to access dashboard state from child screens
+  static final GlobalKey<DashboardScreenState> dashboardKey =
+      GlobalKey<DashboardScreenState>();
+
   @override
-  _DashboardScreenState createState() => _DashboardScreenState();
+  DashboardScreenState createState() => DashboardScreenState();
 }
 
-class _DashboardScreenState extends State<DashboardScreen>
+class DashboardScreenState extends State<DashboardScreen>
     with TickerProviderStateMixin {
   int currentIndex = 0;
   double _pageOffset = 0.0;
@@ -44,7 +48,7 @@ class _DashboardScreenState extends State<DashboardScreen>
       duration: const Duration(milliseconds: 2000),
       vsync: this,
     )..repeat(reverse: true);
-    
+
     // Listen to page scroll to update offset for sliding indicator
     _pageController.addListener(() {
       setState(() {
@@ -64,19 +68,24 @@ class _DashboardScreenState extends State<DashboardScreen>
 
   void _onTabChanged(int index) {
     if (index == currentIndex) return;
-    
+
     // Haptic feedback on tap
     HapticFeedback.selectionClick();
-    
+
     setState(() {
       currentIndex = index;
     });
 
     // Switch tabs directly (no scrolling through intermediate pages)
     _pageController.jumpToPage(index);
-    
+
     // Trigger bounce animation
     _bounceController.forward(from: 0);
+  }
+
+  /// Public method to switch tabs from child screens
+  void switchToTab(int index) {
+    _onTabChanged(index);
   }
 
   void _onPageChanged(int index) {
@@ -99,7 +108,7 @@ class _DashboardScreenState extends State<DashboardScreen>
       canPop: false,
       onPopInvokedWithResult: (didPop, result) {
         if (didPop) return;
-        
+
         final now = DateTime.now();
         final isWarning =
             lastTimeBackPressed == null ||
@@ -145,74 +154,75 @@ class _WaveClipper extends CustomClipper<Path> {
   final double notchRadius;
   final double notchMargin;
 
-  _WaveClipper({
-    this.notchRadius = 28.0,
-    this.notchMargin = 6.0,
-  });
+  _WaveClipper({this.notchRadius = 28.0, this.notchMargin = 6.0});
 
   @override
   Path getClip(Size size) {
     final path = Path();
     final centerX = size.width / 2;
     final notchTotalRadius = notchRadius + notchMargin;
-    
+
     // Start from top-left with wave curve
     path.moveTo(0, 16);
-    
+
     // Left wave curve up
     path.quadraticBezierTo(0, 0, 16, 0);
-    
+
     // Line to before notch
     path.lineTo(centerX - notchTotalRadius - 16, 0);
-    
+
     // Smooth curve into notch
     path.quadraticBezierTo(
-      centerX - notchTotalRadius, 0,
-      centerX - notchTotalRadius, 6,
+      centerX - notchTotalRadius,
+      0,
+      centerX - notchTotalRadius,
+      6,
     );
-    
+
     // Left side of notch curve
     path.arcToPoint(
       Offset(centerX - notchRadius + 4, notchTotalRadius - 4),
       radius: Radius.circular(notchRadius * 0.5),
       clockwise: false,
     );
-    
+
     // Bottom of notch (arc around FAB)
     path.arcToPoint(
       Offset(centerX + notchRadius - 4, notchTotalRadius - 4),
       radius: Radius.circular(notchRadius + 4),
       clockwise: false,
     );
-    
+
     // Right side of notch curve
     path.arcToPoint(
       Offset(centerX + notchTotalRadius, 6),
       radius: Radius.circular(notchRadius * 0.5),
       clockwise: false,
     );
-    
+
     // Smooth curve out of notch
     path.quadraticBezierTo(
-      centerX + notchTotalRadius, 0,
-      centerX + notchTotalRadius + 16, 0,
+      centerX + notchTotalRadius,
+      0,
+      centerX + notchTotalRadius + 16,
+      0,
     );
-    
+
     // Line to top-right
     path.lineTo(size.width - 16, 0);
-    
+
     // Right wave curve
     path.quadraticBezierTo(size.width, 0, size.width, 16);
-    
+
     // Right edge
     path.lineTo(size.width, size.height);
-    
+
     // Bottom edge
     path.lineTo(0, size.height);
-    
+
     // Left edge back to start
     path.lineTo(0, 16);
-    
+
     path.close();
     return path;
   }
@@ -269,30 +279,33 @@ class _PremiumBottomNavBar extends StatelessWidget {
                     gradient: LinearGradient(
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
-                      colors: isDark
-                          ? [
-                              Colors.white.withOpacity(0.18),
-                              Colors.white.withOpacity(0.08),
-                            ]
-                          : [
-                              Colors.white.withOpacity(0.85),
-                              Colors.white.withOpacity(0.65),
-                            ],
+                      colors:
+                          isDark
+                              ? [
+                                Colors.white.withOpacity(0.18),
+                                Colors.white.withOpacity(0.08),
+                              ]
+                              : [
+                                Colors.white.withOpacity(0.85),
+                                Colors.white.withOpacity(0.65),
+                              ],
                     ),
                     boxShadow: [
                       BoxShadow(
-                        color: isDark
-                            ? Colors.black.withOpacity(0.4)
-                            : AppColors.primaryColor.withOpacity(0.15),
+                        color:
+                            isDark
+                                ? Colors.black.withOpacity(0.4)
+                                : AppColors.primaryColor.withOpacity(0.15),
                         blurRadius: 50,
                         offset: const Offset(0, 20),
                         spreadRadius: -5,
                       ),
                       // Inner glow
                       BoxShadow(
-                        color: isDark
-                            ? Colors.white.withOpacity(0.05)
-                            : Colors.white.withOpacity(0.8),
+                        color:
+                            isDark
+                                ? Colors.white.withOpacity(0.05)
+                                : Colors.white.withOpacity(0.8),
                         blurRadius: 20,
                         offset: const Offset(0, -5),
                         spreadRadius: -10,
@@ -332,7 +345,7 @@ class _PremiumBottomNavBar extends StatelessWidget {
               ),
             ),
           ),
-          
+
           // Floating Center FAB
           Positioned(
             top: 5,
@@ -358,24 +371,26 @@ class _GlassBorderPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.0
-      ..shader = LinearGradient(
-        begin: Alignment.topLeft,
-        end: Alignment.bottomRight,
-        colors: isDark
-            ? [
-                Colors.white.withOpacity(0.3),
-                Colors.white.withOpacity(0.1),
-                Colors.white.withOpacity(0.05),
-              ]
-            : [
-                Colors.white.withOpacity(0.9),
-                Colors.white.withOpacity(0.5),
-                Colors.white.withOpacity(0.3),
-              ],
-      ).createShader(Rect.fromLTWH(0, 0, size.width, size.height));
+    final paint =
+        Paint()
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 1.0
+          ..shader = LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors:
+                isDark
+                    ? [
+                      Colors.white.withOpacity(0.3),
+                      Colors.white.withOpacity(0.1),
+                      Colors.white.withOpacity(0.05),
+                    ]
+                    : [
+                      Colors.white.withOpacity(0.9),
+                      Colors.white.withOpacity(0.5),
+                      Colors.white.withOpacity(0.3),
+                    ],
+          ).createShader(Rect.fromLTWH(0, 0, size.width, size.height));
 
     final clipper = _WaveClipper(notchRadius: 28, notchMargin: 6);
     final path = clipper.getClip(size);
@@ -410,7 +425,7 @@ class _FloatingCartFab extends StatelessWidget {
       builder: (context, child) {
         // Gentle floating bob animation
         final floatOffset = math.sin(floatController.value * math.pi) * 2;
-        
+
         return Transform.translate(
           offset: Offset(0, floatOffset),
           child: child,
@@ -427,7 +442,7 @@ class _FloatingCartFab extends StatelessWidget {
             if (cartState is CartSuccess) {
               itemCount = cartState.cart.totalItems;
             }
-            
+
             return Stack(
               clipBehavior: Clip.none,
               children: [
@@ -447,7 +462,9 @@ class _FloatingCartFab extends StatelessWidget {
                       ),
                       if (isActive)
                         BoxShadow(
-                          color: AppColors.buttonBackgroundColor.withOpacity(0.3),
+                          color: AppColors.buttonBackgroundColor.withOpacity(
+                            0.3,
+                          ),
                           blurRadius: 30,
                           spreadRadius: 3,
                         ),
@@ -639,7 +656,7 @@ class _DockNavItemState extends State<_DockNavItem>
   double _calculateDockScale() {
     // Calculate distance from current page offset
     final distance = (widget.pageOffset - widget.itemIndex).abs();
-    
+
     if (distance <= 0.1) {
       // Active item - full scale
       return 1.15;
@@ -656,7 +673,7 @@ class _DockNavItemState extends State<_DockNavItem>
   @override
   Widget build(BuildContext context) {
     final dockScale = _calculateDockScale();
-    
+
     return GestureDetector(
       onTapDown: (_) => _pressController.forward(),
       onTapUp: (_) {
@@ -668,10 +685,7 @@ class _DockNavItemState extends State<_DockNavItem>
       child: AnimatedBuilder(
         animation: _pressAnimation,
         builder: (context, child) {
-          return Transform.scale(
-            scale: _pressAnimation.value,
-            child: child,
-          );
+          return Transform.scale(scale: _pressAnimation.value, child: child);
         },
         child: Padding(
           padding: const EdgeInsets.symmetric(vertical: 4),
@@ -691,16 +705,22 @@ class _DockNavItemState extends State<_DockNavItem>
                       duration: const Duration(milliseconds: 200),
                       padding: const EdgeInsets.all(6),
                       decoration: BoxDecoration(
-                        color: widget.isActive
-                            ? widget.colorScheme.primary.withOpacity(0.12)
-                            : Colors.transparent,
+                        color:
+                            widget.isActive
+                                ? widget.colorScheme.primary.withOpacity(0.12)
+                                : Colors.transparent,
                         borderRadius: BorderRadius.circular(10),
                       ),
                       child: Icon(
-                        widget.isActive ? widget.item.activeIcon : widget.item.icon,
-                        color: widget.isActive
-                            ? widget.colorScheme.primary
-                            : (widget.isDark ? Colors.grey[400] : Colors.grey[600]),
+                        widget.isActive
+                            ? widget.item.activeIcon
+                            : widget.item.icon,
+                        color:
+                            widget.isActive
+                                ? widget.colorScheme.primary
+                                : (widget.isDark
+                                    ? Colors.grey[400]
+                                    : Colors.grey[600]),
                         size: 22,
                       ),
                     ),
@@ -715,10 +735,14 @@ class _DockNavItemState extends State<_DockNavItem>
                   duration: const Duration(milliseconds: 200),
                   style: TextStyle(
                     fontSize: widget.isActive ? 10 : 9,
-                    fontWeight: widget.isActive ? FontWeight.w600 : FontWeight.w500,
-                    color: widget.isActive
-                        ? widget.colorScheme.primary
-                        : (widget.isDark ? Colors.grey[400] : Colors.grey[600]),
+                    fontWeight:
+                        widget.isActive ? FontWeight.w600 : FontWeight.w500,
+                    color:
+                        widget.isActive
+                            ? widget.colorScheme.primary
+                            : (widget.isDark
+                                ? Colors.grey[400]
+                                : Colors.grey[600]),
                     letterSpacing: widget.isActive ? 0.3 : 0,
                   ),
                   child: Text(widget.item.label),

@@ -220,19 +220,26 @@ class _WebViewPageState extends State<WebViewPage> {
       context: context,
       barrierDismissible: false,
       builder:
-          (_) => AlertDialog(
-            title: Text(isSuccess ? "Success" : "Failure"),
-            content: Text(message),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  Navigator.of(context).pop();
-                  Navigator.of(context).pop();
-                },
-                child: Text("OK"),
-              ),
-            ],
-          ),
+          (_) =>
+              isSuccess
+                  ? _SuccessDialog(
+                    message: message,
+                    onDismiss: () {
+                      Navigator.of(context).pop();
+                      Navigator.of(context).pop();
+                    },
+                  )
+                  : ErrorDialog(
+                    title: 'Payment Failed',
+                    message: message,
+                    icon: Icons.payment_rounded,
+                    iconColor: Theme.of(context).colorScheme.error,
+                    showCloseButton: false,
+                    onRetry: null,
+                    onDismiss: () {
+                      Navigator.of(context).pop();
+                    },
+                  ),
     );
   }
 
@@ -302,6 +309,118 @@ class _WebViewPageState extends State<WebViewPage> {
               ),
             ),
         ],
+      ),
+    );
+  }
+}
+
+/// Themed success dialog for payment confirmation
+class _SuccessDialog extends StatelessWidget {
+  final String message;
+  final VoidCallback onDismiss;
+
+  const _SuccessDialog({required this.message, required this.onDismiss});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    return Dialog(
+      backgroundColor: Colors.transparent,
+      elevation: 0,
+      child: TweenAnimationBuilder<double>(
+        tween: Tween(begin: 0.0, end: 1.0),
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeOutBack,
+        builder: (context, value, child) {
+          return Transform.scale(
+            scale: 0.8 + (0.2 * value),
+            child: Opacity(opacity: value.clamp(0.0, 1.0), child: child),
+          );
+        },
+        child: Container(
+          constraints: const BoxConstraints(maxWidth: 340),
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+            borderRadius: BorderRadius.circular(20),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(isDark ? 0.4 : 0.15),
+                blurRadius: 24,
+                offset: const Offset(0, 8),
+              ),
+            ],
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Success icon with glow
+              Container(
+                width: 80,
+                height: 80,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: AppColors.success.withOpacity(0.15),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.success.withOpacity(0.3),
+                      blurRadius: 20,
+                      spreadRadius: 2,
+                    ),
+                  ],
+                ),
+                child: const Icon(
+                  Icons.check_circle_rounded,
+                  size: 48,
+                  color: AppColors.success,
+                ),
+              ),
+              const SizedBox(height: 20),
+
+              // Title
+              Text(
+                'Payment Successful!',
+                style: theme.textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.success,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 12),
+
+              // Message
+              Text(
+                message,
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: isDark ? Colors.grey[400] : AppColors.textSecondary,
+                  height: 1.5,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 24),
+
+              // OK button
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: onDismiss,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.success,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    elevation: 0,
+                  ),
+                  child: const Text('Continue'),
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

@@ -10,6 +10,8 @@ class SelectState extends StatefulWidget {
   final StringCallback? onStateChanged;
   final StringCallback? onCityChanged;
   final TextStyle? style;
+  final String? initialState; // Initial state name to pre-select
+  final String? initialCity; // Initial city name to pre-select
 
   const SelectState({
     Key? key,
@@ -17,6 +19,8 @@ class SelectState extends StatefulWidget {
     this.onStateChanged,
     this.onCityChanged,
     this.style,
+    this.initialState,
+    this.initialCity,
   }) : super(key: key);
 
   @override
@@ -56,6 +60,19 @@ class _SelectStateState extends State<SelectState> {
       setState(() {
         _states = states;
       });
+
+      // Auto-select initial state if provided
+      if (widget.initialState != null && widget.initialState!.isNotEmpty) {
+        final matchingState = states.firstWhere(
+          (s) => s.name.toLowerCase() == widget.initialState!.toLowerCase(),
+          orElse: () => states.first,
+        );
+        if (matchingState.name.toLowerCase() ==
+            widget.initialState!.toLowerCase()) {
+          setState(() => _selectedStateModel = matchingState);
+          await _loadCitiesForState(matchingState, autoSelectCity: true);
+        }
+      }
     } catch (e) {
       setState(() => _error = e.toString());
     } finally {
@@ -63,18 +80,35 @@ class _SelectStateState extends State<SelectState> {
     }
   }
 
-  Future<void> _loadCitiesForState(StateModel stateModel) async {
+  Future<void> _loadCitiesForState(
+    StateModel stateModel, {
+    bool autoSelectCity = false,
+  }) async {
     setState(() {
       _loadingCities = true;
       _error = null;
       _cities = [];
-      _selectedCityModel = null;
+      if (!autoSelectCity) _selectedCityModel = null;
     });
     try {
       final cities = await _locationService.fetchCities(stateId: stateModel.id);
       setState(() {
         _cities = cities;
       });
+
+      // Auto-select initial city if provided and this is initial load
+      if (autoSelectCity &&
+          widget.initialCity != null &&
+          widget.initialCity!.isNotEmpty) {
+        final matchingCity = cities.firstWhere(
+          (c) => c.name.toLowerCase() == widget.initialCity!.toLowerCase(),
+          orElse: () => cities.first,
+        );
+        if (matchingCity.name.toLowerCase() ==
+            widget.initialCity!.toLowerCase()) {
+          setState(() => _selectedCityModel = matchingCity);
+        }
+      }
     } catch (e) {
       setState(() => _error = e.toString());
     } finally {
@@ -82,123 +116,365 @@ class _SelectStateState extends State<SelectState> {
     }
   }
 
+  void _showSearchableStateDialog() {
+    showDialog(
+      context: context,
+      builder:
+          (context) => _SearchableDialog<StateModel>(
+            title: 'Select State',
+            items: _states,
+            getDisplayName: (state) => state.name,
+            onSelected: (stateModel) {
+              setState(() {
+                _selectedStateModel = stateModel;
+                _selectedCityModel = null;
+                _cities = [];
+              });
+              widget.onStateChanged?.call(stateModel.name);
+              _loadCitiesForState(stateModel);
+            },
+          ),
+    );
+  }
+
+  void _showSearchableCityDialog() {
+    if (_cities.isEmpty) return;
+
+    showDialog(
+      context: context,
+      builder:
+          (context) => _SearchableDialog<CityModel>(
+            title: 'Select City',
+            items: _cities,
+            getDisplayName: (city) => city.name,
+            onSelected: (cityModel) {
+              setState(() => _selectedCityModel = cityModel);
+              widget.onCityChanged?.call(cityModel.name);
+            },
+          ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        // State label + dropdown
-        Text('State', style: widget.style ?? theme.textTheme.labelLarge),
+        // State label + searchable field
+        Text(
+          'State',
+          style: theme.textTheme.bodySmall?.copyWith(
+            color: theme.hintColor,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
         const SizedBox(height: 8),
 
         _loadingStates
-            ? SizedBox(
-                height: 56,
-                child: Center(
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: const [
-                      SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2)),
-                      SizedBox(width: 8),
-                      Text('Loading states...'),
-                    ],
-                  ),
-                ),
-              )
-            : DropdownButtonFormField<String>(
-                value: _selectedStateModel?.name,
-                isExpanded: true,
-                decoration: InputDecoration(
-                  hintText: 'Select state',
-                ),
-                items: _states
-                    .map((s) => DropdownMenuItem<String>(
-                          value: s.name,
-                          child: Text(s.name, style: widget.style),
-                        ))
-                    .toList(),
-                onChanged: (String? stateName) {
-                  if (stateName == null) {
-                    setState(() {
-                      _selectedStateModel = null;
-                      _cities = [];
-                      _selectedCityModel = null;
-                    });
-                    widget.onStateChanged?.call(null);
-                    widget.onCityChanged?.call(null);
-                    return;
-                  }
-
-                  final found = _states.firstWhere((s) => s.name == stateName, orElse: () => _states.first);
-                  setState(() {
-                    _selectedStateModel = found;
-                    _selectedCityModel = null;
-                    _cities = [];
-                  });
-
-                  // inform parent with state name (so your AddressSelectionScreen sets _stateController)
-                  widget.onStateChanged?.call(found.name);
-
-                  // load cities for the selected state
-                  _loadCitiesForState(found);
-                },
-              ),
+            ? _buildLoadingIndicator('Loading states...')
+            : _buildSearchableField(
+              theme,
+              isDark,
+              value: _selectedStateModel?.name,
+              hint: 'Search & select state',
+              icon: Icons.location_city_rounded,
+              onTap: _showSearchableStateDialog,
+            ),
 
         const SizedBox(height: 16),
 
-        // City label + dropdown
-        Text('City', style: widget.style ?? theme.textTheme.labelLarge),
+        // City label + searchable field
+        Text(
+          'City',
+          style: theme.textTheme.bodySmall?.copyWith(
+            color: theme.hintColor,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
         const SizedBox(height: 8),
 
         _loadingCities
-            ? SizedBox(
-                height: 56,
-                child: Center(
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: const [
-                      SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2)),
-                      SizedBox(width: 8),
-                      Text('Loading cities...'),
-                    ],
-                  ),
-                ),
-              )
-            : DropdownButtonFormField<String>(
-                value: _selectedCityModel?.name,
-                isExpanded: true,
-                decoration: InputDecoration(
-                  hintText: _selectedStateModel == null ? 'Select a state first' : (_cities.isEmpty ? 'No cities available' : 'Select city'),
-                ),
-                items: _cities
-                    .map((c) => DropdownMenuItem<String>(
-                          value: c.name,
-                          child: Text(c.name, style: widget.style),
-                        ))
-                    .toList(),
-                onChanged: (_cities.isEmpty)
-                    ? null
-                    : (String? cityName) {
-                        if (cityName == null) {
-                          setState(() => _selectedCityModel = null);
-                          widget.onCityChanged?.call(null);
-                          return;
-                        }
-                        final found = _cities.firstWhere((c) => c.name == cityName, orElse: () => _cities.first);
-                        setState(() => _selectedCityModel = found);
-
-                        // inform parent with city name (so your AddressSelectionScreen sets _cityController)
-                        widget.onCityChanged?.call(found.name);
-                      },
-              ),
+            ? _buildLoadingIndicator('Loading cities...')
+            : _buildSearchableField(
+              theme,
+              isDark,
+              value: _selectedCityModel?.name,
+              hint:
+                  _selectedStateModel == null
+                      ? 'Select a state first'
+                      : (_cities.isEmpty
+                          ? 'No cities available'
+                          : 'Search & select city'),
+              icon: Icons.apartment_rounded,
+              onTap: _cities.isEmpty ? null : _showSearchableCityDialog,
+              enabled: _selectedStateModel != null && _cities.isNotEmpty,
+            ),
 
         if (_error != null) ...[
           const SizedBox(height: 12),
-          Text('Error: $_error', style: TextStyle(color: theme.colorScheme.error)),
+          Text(
+            'Error: $_error',
+            style: TextStyle(color: theme.colorScheme.error),
+          ),
         ],
       ],
+    );
+  }
+
+  Widget _buildLoadingIndicator(String text) {
+    return SizedBox(
+      height: 56,
+      child: Center(
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const SizedBox(
+              width: 18,
+              height: 18,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            ),
+            const SizedBox(width: 8),
+            Text(text),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSearchableField(
+    ThemeData theme,
+    bool isDark, {
+    String? value,
+    required String hint,
+    required IconData icon,
+    VoidCallback? onTap,
+    bool enabled = true,
+  }) {
+    return InkWell(
+      onTap: enabled ? onTap : null,
+      borderRadius: BorderRadius.circular(14),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        decoration: BoxDecoration(
+          color: isDark ? Colors.grey.shade900 : Colors.grey.shade50,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(
+            color: isDark ? Colors.grey.shade800 : Colors.grey.shade200,
+          ),
+        ),
+        child: Row(
+          children: [
+            Icon(
+              icon,
+              color: theme.colorScheme.primary.withOpacity(0.7),
+              size: 22,
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                value ?? hint,
+                style:
+                    widget.style?.copyWith(
+                      color:
+                          value != null
+                              ? (isDark ? Colors.white : Colors.black87)
+                              : theme.hintColor.withOpacity(0.5),
+                    ) ??
+                    TextStyle(
+                      color:
+                          value != null
+                              ? (isDark ? Colors.white : Colors.black87)
+                              : theme.hintColor.withOpacity(0.5),
+                      fontSize: 16,
+                    ),
+              ),
+            ),
+            Icon(
+              Icons.search_rounded,
+              color:
+                  enabled
+                      ? theme.colorScheme.primary
+                      : theme.hintColor.withOpacity(0.3),
+              size: 20,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// Searchable Dialog Widget
+class _SearchableDialog<T> extends StatefulWidget {
+  final String title;
+  final List<T> items;
+  final String Function(T) getDisplayName;
+  final void Function(T) onSelected;
+
+  const _SearchableDialog({
+    Key? key,
+    required this.title,
+    required this.items,
+    required this.getDisplayName,
+    required this.onSelected,
+  }) : super(key: key);
+
+  @override
+  State<_SearchableDialog<T>> createState() => _SearchableDialogState<T>();
+}
+
+class _SearchableDialogState<T> extends State<_SearchableDialog<T>> {
+  final TextEditingController _searchController = TextEditingController();
+  List<T> _filteredItems = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _filteredItems = widget.items;
+    _searchController.addListener(_filterItems);
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  void _filterItems() {
+    final query = _searchController.text.toLowerCase();
+    setState(() {
+      if (query.isEmpty) {
+        _filteredItems = widget.items;
+      } else {
+        _filteredItems =
+            widget.items
+                .where(
+                  (item) =>
+                      widget.getDisplayName(item).toLowerCase().contains(query),
+                )
+                .toList();
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    return Dialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      child: Container(
+        constraints: const BoxConstraints(maxHeight: 500, maxWidth: 400),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Header
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: theme.colorScheme.primary,
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(20),
+                  topRight: Radius.circular(20),
+                ),
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.location_on_rounded, color: Colors.white),
+                  const SizedBox(width: 12),
+                  Text(
+                    widget.title,
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const Spacer(),
+                  IconButton(
+                    icon: const Icon(Icons.close, color: Colors.white),
+                    onPressed: () => Navigator.pop(context),
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
+                  ),
+                ],
+              ),
+            ),
+            // Search field
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: TextField(
+                controller: _searchController,
+                autofocus: true,
+                decoration: InputDecoration(
+                  hintText: 'Type to search...',
+                  prefixIcon: Icon(
+                    Icons.search,
+                    color: theme.colorScheme.primary,
+                  ),
+                  filled: true,
+                  fillColor:
+                      isDark ? Colors.grey.shade900 : Colors.grey.shade100,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide.none,
+                  ),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
+                  ),
+                ),
+              ),
+            ),
+            // List
+            Flexible(
+              child:
+                  _filteredItems.isEmpty
+                      ? Center(
+                        child: Padding(
+                          padding: const EdgeInsets.all(24),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                Icons.search_off_rounded,
+                                size: 48,
+                                color: theme.hintColor.withOpacity(0.5),
+                              ),
+                              const SizedBox(height: 12),
+                              Text(
+                                'No results found',
+                                style: TextStyle(color: theme.hintColor),
+                              ),
+                            ],
+                          ),
+                        ),
+                      )
+                      : ListView.builder(
+                        shrinkWrap: true,
+                        itemCount: _filteredItems.length,
+                        itemBuilder: (context, index) {
+                          final item = _filteredItems[index];
+                          return ListTile(
+                            title: Text(widget.getDisplayName(item)),
+                            leading: Icon(
+                              Icons.place_outlined,
+                              color: theme.colorScheme.primary.withOpacity(0.7),
+                            ),
+                            onTap: () {
+                              widget.onSelected(item);
+                              Navigator.pop(context);
+                            },
+                          );
+                        },
+                      ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

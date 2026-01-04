@@ -1,6 +1,9 @@
 import 'dart:ui';
 import 'dart:math' as math;
 import 'package:grocery_app/common_widgets/global_import.dart';
+import 'package:grocery_app/models/legal_document_model.dart';
+import 'package:grocery_app/services/legal_service.dart';
+import 'package:grocery_app/screens/legal/legal_content_screen.dart';
 
 class SignupScreen extends StatefulWidget {
   const SignupScreen({super.key});
@@ -27,6 +30,13 @@ class _SignupScreenState extends State<SignupScreen>
   bool _isEmailVerified = false;
   bool _isPhoneVerified = false;
   String? _selectedGender;
+
+  // Legal documents
+  final LegalService _legalService = LegalService();
+  List<LegalDocument> _legalDocuments = [];
+  bool _isLoadingLegal = true;
+  bool _termsAccepted = false;
+  bool _privacyAccepted = false;
 
   // Animation Controllers
   late AnimationController _cardController;
@@ -55,6 +65,23 @@ class _SignupScreenState extends State<SignupScreen>
   void initState() {
     super.initState();
     _initAnimations();
+    _fetchLegalDocuments();
+  }
+
+  Future<void> _fetchLegalDocuments() async {
+    try {
+      final docs = await _legalService.fetchLegalDocuments();
+      if (mounted) {
+        setState(() {
+          _legalDocuments = docs;
+          _isLoadingLegal = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isLoadingLegal = false);
+      }
+    }
   }
 
   void _initAnimations() {
@@ -91,10 +118,7 @@ class _SignupScreenState extends State<SignupScreen>
       vsync: this,
     );
     _logoBreathing = Tween<double>(begin: 1.0, end: 1.02).animate(
-      CurvedAnimation(
-        parent: _breathingController,
-        curve: Curves.easeInOut,
-      ),
+      CurvedAnimation(parent: _breathingController, curve: Curves.easeInOut),
     );
 
     // Input stagger animation
@@ -153,6 +177,13 @@ class _SignupScreenState extends State<SignupScreen>
       SnackBarHelper.showError(
         context,
         "Please verify your email before signing up.",
+      );
+      return;
+    }
+    if (!_termsAccepted || !_privacyAccepted) {
+      SnackBarHelper.showError(
+        context,
+        "Please accept Terms & Conditions and Privacy Policy.",
       );
       return;
     }
@@ -237,10 +268,13 @@ class _SignupScreenState extends State<SignupScreen>
                         Container(
                           padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(
-                            color: AppColors.buttonBackgroundColor.withOpacity(0.2),
+                            color: AppColors.buttonBackgroundColor.withOpacity(
+                              0.2,
+                            ),
                             shape: BoxShape.circle,
                             border: Border.all(
-                              color: AppColors.buttonBackgroundColor.withOpacity(0.4),
+                              color: AppColors.buttonBackgroundColor
+                                  .withOpacity(0.4),
                               width: 2,
                             ),
                           ),
@@ -294,13 +328,17 @@ class _SignupScreenState extends State<SignupScreen>
                               child: TextButton(
                                 onPressed: () => Navigator.of(context).pop(),
                                 style: TextButton.styleFrom(
-                                  padding: const EdgeInsets.symmetric(vertical: 14),
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 14,
+                                  ),
                                   foregroundColor: colorScheme.onPrimary,
                                 ),
                                 child: Text(
                                   "Cancel",
                                   style: textTheme.labelLarge?.copyWith(
-                                    color: colorScheme.onPrimary.withOpacity(0.8),
+                                    color: colorScheme.onPrimary.withOpacity(
+                                      0.8,
+                                    ),
                                   ),
                                 ),
                               ),
@@ -313,13 +351,16 @@ class _SignupScreenState extends State<SignupScreen>
                                   gradient: LinearGradient(
                                     colors: [
                                       AppColors.buttonBackgroundColor,
-                                      AppColors.buttonBackgroundColor.withRed(200),
+                                      AppColors.buttonBackgroundColor.withRed(
+                                        200,
+                                      ),
                                     ],
                                   ),
                                   borderRadius: BorderRadius.circular(12),
                                   boxShadow: [
                                     BoxShadow(
-                                      color: AppColors.buttonBackgroundColor.withOpacity(0.4),
+                                      color: AppColors.buttonBackgroundColor
+                                          .withOpacity(0.4),
                                       blurRadius: 12,
                                       offset: const Offset(0, 4),
                                     ),
@@ -330,7 +371,9 @@ class _SignupScreenState extends State<SignupScreen>
                                     backgroundColor: Colors.transparent,
                                     shadowColor: Colors.transparent,
                                     foregroundColor: Colors.white,
-                                    padding: const EdgeInsets.symmetric(vertical: 14),
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 14,
+                                    ),
                                     shape: RoundedRectangleBorder(
                                       borderRadius: BorderRadius.circular(12),
                                     ),
@@ -339,7 +382,8 @@ class _SignupScreenState extends State<SignupScreen>
                                       isVerifying
                                           ? null
                                           : () async {
-                                            if (otpController.text.length != 6) {
+                                            if (otpController.text.length !=
+                                                6) {
                                               setDialogState(
                                                 () =>
                                                     dialogError =
@@ -372,7 +416,9 @@ class _SignupScreenState extends State<SignupScreen>
                                               );
                                             } finally {
                                               if (mounted) {
-                                                setDialogState(() => isVerifying = false);
+                                                setDialogState(
+                                                  () => isVerifying = false,
+                                                );
                                               }
                                             }
                                           },
@@ -388,10 +434,11 @@ class _SignupScreenState extends State<SignupScreen>
                                           )
                                           : Text(
                                             "Verify",
-                                            style: textTheme.labelLarge?.copyWith(
-                                              color: Colors.white,
-                                              fontWeight: FontWeight.bold,
-                                            ),
+                                            style: textTheme.labelLarge
+                                                ?.copyWith(
+                                                  color: Colors.white,
+                                                  fontWeight: FontWeight.bold,
+                                                ),
                                           ),
                                 ),
                               ),
@@ -424,10 +471,15 @@ class _SignupScreenState extends State<SignupScreen>
           if (state is Authenticated) {
             Navigator.of(context).pushAndRemoveUntil(
               PageRouteBuilder(
-                pageBuilder: (context, animation, secondaryAnimation) =>
-                    const DashboardScreen(),
-                transitionsBuilder:
-                    (context, animation, secondaryAnimation, child) {
+                pageBuilder:
+                    (context, animation, secondaryAnimation) =>
+                        const DashboardScreen(),
+                transitionsBuilder: (
+                  context,
+                  animation,
+                  secondaryAnimation,
+                  child,
+                ) {
                   return FadeTransition(
                     opacity: CurvedAnimation(
                       parent: animation,
@@ -490,7 +542,8 @@ class _SignupScreenState extends State<SignupScreen>
                         ),
                         // Floating decorative circles
                         Positioned(
-                          top: size.height * 0.15 +
+                          top:
+                              size.height * 0.15 +
                               math.sin(_floatController.value * math.pi) * 15,
                           right: -40,
                           child: _buildFloatingCircle(
@@ -499,7 +552,8 @@ class _SignupScreenState extends State<SignupScreen>
                           ),
                         ),
                         Positioned(
-                          bottom: size.height * 0.2 +
+                          bottom:
+                              size.height * 0.2 +
                               math.cos(_floatController.value * math.pi) * 12,
                           left: -25,
                           child: _buildFloatingCircle(
@@ -525,7 +579,10 @@ class _SignupScreenState extends State<SignupScreen>
                     children: [
                       // Animated Logo with subtle breathing
                       AnimatedBuilder(
-                        animation: Listenable.merge([_cardController, _breathingController]),
+                        animation: Listenable.merge([
+                          _cardController,
+                          _breathingController,
+                        ]),
                         builder: (context, child) {
                           return Transform.scale(
                             scale: _logoScale.value * _logoBreathing.value,
@@ -538,8 +595,12 @@ class _SignupScreenState extends State<SignupScreen>
                                   color: Colors.white,
                                   boxShadow: [
                                     BoxShadow(
-                                      color: colorScheme.primary.withOpacity(0.15 + (_logoBreathing.value - 1.0) * 2),
-                                      blurRadius: 22 + (_logoBreathing.value - 1.0) * 80,
+                                      color: colorScheme.primary.withOpacity(
+                                        0.15 + (_logoBreathing.value - 1.0) * 2,
+                                      ),
+                                      blurRadius:
+                                          22 +
+                                          (_logoBreathing.value - 1.0) * 80,
                                       spreadRadius: 3,
                                     ),
                                   ],
@@ -568,11 +629,15 @@ class _SignupScreenState extends State<SignupScreen>
                           );
                         },
                         child: ClipRRect(
-                          borderRadius: BorderRadius.circular(AppColors.radiusXL),
+                          borderRadius: BorderRadius.circular(
+                            AppColors.radiusXL,
+                          ),
                           child: BackdropFilter(
                             filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
                             child: Container(
-                              padding: const EdgeInsets.all(AppColors.spacingXL),
+                              padding: const EdgeInsets.all(
+                                AppColors.spacingXL,
+                              ),
                               decoration: BoxDecoration(
                                 gradient: LinearGradient(
                                   colors: [
@@ -582,7 +647,9 @@ class _SignupScreenState extends State<SignupScreen>
                                   begin: Alignment.topLeft,
                                   end: Alignment.bottomRight,
                                 ),
-                                borderRadius: BorderRadius.circular(AppColors.radiusXL),
+                                borderRadius: BorderRadius.circular(
+                                  AppColors.radiusXL,
+                                ),
                                 border: Border.all(
                                   color: Colors.white.withOpacity(0.2),
                                   width: 1.5,
@@ -604,11 +671,12 @@ class _SignupScreenState extends State<SignupScreen>
                                       delay: 0.0,
                                       child: Text(
                                         "Create Account",
-                                        style: textTheme.headlineSmall?.copyWith(
-                                          color: colorScheme.onPrimary,
-                                          fontWeight: FontWeight.bold,
-                                          letterSpacing: 0.5,
-                                        ),
+                                        style: textTheme.headlineSmall
+                                            ?.copyWith(
+                                              color: colorScheme.onPrimary,
+                                              fontWeight: FontWeight.bold,
+                                              letterSpacing: 0.5,
+                                            ),
                                       ),
                                     ),
                                     const SizedBox(height: AppColors.spacingXS),
@@ -617,7 +685,8 @@ class _SignupScreenState extends State<SignupScreen>
                                       child: Text(
                                         "Join us for fresh groceries",
                                         style: textTheme.bodyMedium?.copyWith(
-                                          color: colorScheme.onPrimary.withOpacity(0.85),
+                                          color: colorScheme.onPrimary
+                                              .withOpacity(0.85),
                                         ),
                                       ),
                                     ),
@@ -639,10 +708,11 @@ class _SignupScreenState extends State<SignupScreen>
                                                           ? 'Enter first name'
                                                           : null,
                                               onValidationChanged:
-                                                  (isValid) => _updateFieldValidity(
-                                                    'firstName',
-                                                    isValid,
-                                                  ),
+                                                  (isValid) =>
+                                                      _updateFieldValidity(
+                                                        'firstName',
+                                                        isValid,
+                                                      ),
                                             ),
                                           ),
                                           const SizedBox(width: 12),
@@ -657,10 +727,11 @@ class _SignupScreenState extends State<SignupScreen>
                                                           ? 'Enter last name'
                                                           : null,
                                               onValidationChanged:
-                                                  (isValid) => _updateFieldValidity(
-                                                    'lastName',
-                                                    isValid,
-                                                  ),
+                                                  (isValid) =>
+                                                      _updateFieldValidity(
+                                                        'lastName',
+                                                        isValid,
+                                                      ),
                                             ),
                                           ),
                                         ],
@@ -676,7 +747,10 @@ class _SignupScreenState extends State<SignupScreen>
                                         controller: _usernameController,
                                         onPrimary: true,
                                         validator:
-                                            (v) => v!.isEmpty ? 'Enter username' : null,
+                                            (v) =>
+                                                v!.isEmpty
+                                                    ? 'Enter username'
+                                                    : null,
                                         onValidationChanged:
                                             (isValid) => _updateFieldValidity(
                                               'username',
@@ -692,7 +766,8 @@ class _SignupScreenState extends State<SignupScreen>
                                       child: CustomInput(
                                         hintText: "Email",
                                         controller: _emailController,
-                                        keyboardType: TextInputType.emailAddress,
+                                        keyboardType:
+                                            TextInputType.emailAddress,
                                         onPrimary: true,
                                         validator: (v) {
                                           if (v!.isEmpty) return 'Enter email';
@@ -703,11 +778,15 @@ class _SignupScreenState extends State<SignupScreen>
                                           return null;
                                         },
                                         onValidationChanged:
-                                            (isValid) =>
-                                                _updateFieldValidity('email', isValid),
+                                            (isValid) => _updateFieldValidity(
+                                              'email',
+                                              isValid,
+                                            ),
                                         suffixIcon: _buildVerifyButton(
                                           label:
-                                              _isEmailVerified ? "Verified" : "Verify",
+                                              _isEmailVerified
+                                                  ? "Verified"
+                                                  : "Verify",
                                           isVerified: _isEmailVerified,
                                           onPressed: () async {
                                             try {
@@ -727,7 +806,9 @@ class _SignupScreenState extends State<SignupScreen>
                                                 value: _emailController.text,
                                                 onVerified:
                                                     () => setState(
-                                                      () => _isEmailVerified = true,
+                                                      () =>
+                                                          _isEmailVerified =
+                                                              true,
                                                     ),
                                               );
                                             } on AuthException catch (e) {
@@ -752,48 +833,53 @@ class _SignupScreenState extends State<SignupScreen>
                                         keyboardType: TextInputType.number,
                                         onPrimary: true,
                                         validator: (v) {
-                                          if (v!.isEmpty) return 'Enter phone number';
-                                          if (!RegExp(r'^[0-9]{10}$').hasMatch(v))
+                                          if (v!.isEmpty)
+                                            return 'Enter phone number';
+                                          if (!RegExp(
+                                            r'^[0-9]{10}$',
+                                          ).hasMatch(v))
                                             return 'Invalid phone number';
                                           return null;
                                         },
                                         onValidationChanged:
-                                            (isValid) =>
-                                                _updateFieldValidity('phone', isValid),
-                                        suffixIcon: _buildVerifyButton(
-                                          label:
-                                              _isPhoneVerified ? "Verified" : "Verify",
-                                          isVerified: _isPhoneVerified,
-                                          onPressed: () async {
-                                            try {
-                                              await context
-                                                  .read<AuthRepository>()
-                                                  .sendOtp(
-                                                    _phoneController.text,
-                                                    'MOBILE',
-                                                  );
-                                              if (!mounted) return;
-                                              SnackBarHelper.showSuccess(
-                                                context,
-                                                'OTP sent to your phone.',
-                                              );
-                                              await _showOtpDialog(
-                                                type: 'phone',
-                                                value: _phoneController.text,
-                                                onVerified:
-                                                    () => setState(
-                                                      () => _isPhoneVerified = true,
-                                                    ),
-                                              );
-                                            } on AuthException catch (e) {
-                                              if (!mounted) return;
-                                              SnackBarHelper.showError(
-                                                context,
-                                                e.message,
-                                              );
-                                            }
-                                          },
-                                        ),
+                                            (isValid) => _updateFieldValidity(
+                                              'phone',
+                                              isValid,
+                                            ),
+                                        // suffixIcon: _buildVerifyButton(
+                                        //   label:
+                                        //       _isPhoneVerified ? "Verified" : "Verify",
+                                        //   isVerified: _isPhoneVerified,
+                                        //   onPressed: () async {
+                                        //     try {
+                                        //       await context
+                                        //           .read<AuthRepository>()
+                                        //           .sendOtp(
+                                        //             _phoneController.text,
+                                        //             'MOBILE',
+                                        //           );
+                                        //       if (!mounted) return;
+                                        //       SnackBarHelper.showSuccess(
+                                        //         context,
+                                        //         'OTP sent to your phone.',
+                                        //       );
+                                        //       await _showOtpDialog(
+                                        //         type: 'phone',
+                                        //         value: _phoneController.text,
+                                        //         onVerified:
+                                        //             () => setState(
+                                        //               () => _isPhoneVerified = true,
+                                        //             ),
+                                        //       );
+                                        //     } on AuthException catch (e) {
+                                        //       if (!mounted) return;
+                                        //       SnackBarHelper.showError(
+                                        //         context,
+                                        //         e.message,
+                                        //       );
+                                        //     }
+                                        //   },
+                                        // ),
                                       ),
                                     ),
                                     const SizedBox(height: AppColors.spacingL),
@@ -807,8 +893,10 @@ class _SignupScreenState extends State<SignupScreen>
                                         obscureText: true,
                                         onPrimary: true,
                                         validator: (v) {
-                                          if (v!.isEmpty) return 'Enter password';
-                                          if (v.length < 6) return 'Min 6 characters';
+                                          if (v!.isEmpty)
+                                            return 'Enter password';
+                                          if (v.length < 6)
+                                            return 'Min 6 characters';
                                           return null;
                                         },
                                         onValidationChanged:
@@ -829,7 +917,8 @@ class _SignupScreenState extends State<SignupScreen>
                                         obscureText: true,
                                         onPrimary: true,
                                         validator: (v) {
-                                          if (v!.isEmpty) return 'Confirm password';
+                                          if (v!.isEmpty)
+                                            return 'Confirm password';
                                           if (v != _passwordController.text)
                                             return 'Passwords do not match';
                                           return null;
@@ -854,13 +943,23 @@ class _SignupScreenState extends State<SignupScreen>
                                     ),
                                     const SizedBox(height: AppColors.spacingL),
 
+                                    // Legal Checkboxes
+                                    _buildStaggeredWidget(
+                                      delay: 0.42,
+                                      child: _buildLegalCheckboxes(),
+                                    ),
+                                    const SizedBox(height: AppColors.spacingL),
+
                                     // Sign Up Button
                                     _buildStaggeredWidget(
                                       delay: 0.45,
                                       child: _buildShimmerButton(
                                         label: "Sign Up",
                                         isLoading: isLoading,
-                                        isEnabled: _isFormValid,
+                                        isEnabled:
+                                            _isFormValid &&
+                                            _termsAccepted &&
+                                            _privacyAccepted,
                                         onPressed: _handleSignup,
                                       ),
                                     ),
@@ -870,28 +969,37 @@ class _SignupScreenState extends State<SignupScreen>
                                     _buildStaggeredWidget(
                                       delay: 0.5,
                                       child: Row(
-                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
                                         children: [
                                           Text(
                                             "Already have an account?",
-                                            style: textTheme.bodySmall?.copyWith(
-                                              color: colorScheme.onPrimary.withOpacity(0.8),
-                                            ),
+                                            style: textTheme.bodySmall
+                                                ?.copyWith(
+                                                  color: colorScheme.onPrimary
+                                                      .withOpacity(0.8),
+                                                ),
                                           ),
                                           TextButton(
                                             onPressed:
                                                 isLoading
                                                     ? null
-                                                    : () => Navigator.pushReplacement(
-                                                      context,
-                                                      _buildPageRoute(const LoginScreen()),
-                                                    ),
+                                                    : () =>
+                                                        Navigator.pushReplacement(
+                                                          context,
+                                                          _buildPageRoute(
+                                                            const LoginScreen(),
+                                                          ),
+                                                        ),
                                             child: Text(
                                               "Login",
-                                              style: textTheme.bodyMedium?.copyWith(
-                                                color: AppColors.buttonBackgroundColor,
-                                                fontWeight: FontWeight.bold,
-                                              ),
+                                              style: textTheme.bodyMedium
+                                                  ?.copyWith(
+                                                    color:
+                                                        AppColors
+                                                            .buttonBackgroundColor,
+                                                    fontWeight: FontWeight.bold,
+                                                  ),
                                             ),
                                           ),
                                         ],
@@ -910,12 +1018,15 @@ class _SignupScreenState extends State<SignupScreen>
                       AnimatedBuilder(
                         animation: _inputController,
                         builder: (context, child) {
-                          final opacity = Tween<double>(begin: 0.0, end: 1.0)
-                              .animate(CurvedAnimation(
-                                parent: _inputController,
-                                curve: const Interval(0.6, 0.8),
-                              ))
-                              .value;
+                          final opacity =
+                              Tween<double>(begin: 0.0, end: 1.0)
+                                  .animate(
+                                    CurvedAnimation(
+                                      parent: _inputController,
+                                      curve: const Interval(0.6, 0.8),
+                                    ),
+                                  )
+                                  .value;
                           return Opacity(opacity: opacity, child: child);
                         },
                         child: Row(
@@ -942,18 +1053,28 @@ class _SignupScreenState extends State<SignupScreen>
                       AnimatedBuilder(
                         animation: _inputController,
                         builder: (context, child) {
-                          final slideValue = Tween<double>(begin: 30.0, end: 0.0)
-                              .animate(CurvedAnimation(
-                                parent: _inputController,
-                                curve: const Interval(0.7, 0.9, curve: Curves.easeOut),
-                              ))
-                              .value;
-                          final opacity = Tween<double>(begin: 0.0, end: 1.0)
-                              .animate(CurvedAnimation(
-                                parent: _inputController,
-                                curve: const Interval(0.7, 0.9),
-                              ))
-                              .value;
+                          final slideValue =
+                              Tween<double>(begin: 30.0, end: 0.0)
+                                  .animate(
+                                    CurvedAnimation(
+                                      parent: _inputController,
+                                      curve: const Interval(
+                                        0.7,
+                                        0.9,
+                                        curve: Curves.easeOut,
+                                      ),
+                                    ),
+                                  )
+                                  .value;
+                          final opacity =
+                              Tween<double>(begin: 0.0, end: 1.0)
+                                  .animate(
+                                    CurvedAnimation(
+                                      parent: _inputController,
+                                      curve: const Interval(0.7, 0.9),
+                                    ),
+                                  )
+                                  .value;
                           return Transform.translate(
                             offset: Offset(0, slideValue),
                             child: Opacity(opacity: opacity, child: child),
@@ -962,7 +1083,8 @@ class _SignupScreenState extends State<SignupScreen>
                         child: Center(
                           child: _GoogleSignUpButton(
                             isLoading: isLoading,
-                            onPressed: () => context.read<AuthCubit>().googleLogin(),
+                            onPressed:
+                                () => context.read<AuthCubit>().googleLogin(),
                           ),
                         ),
                       ),
@@ -996,10 +1118,7 @@ class _SignupScreenState extends State<SignupScreen>
     );
   }
 
-  Widget _buildStaggeredWidget({
-    required double delay,
-    required Widget child,
-  }) {
+  Widget _buildStaggeredWidget({required double delay, required Widget child}) {
     return AnimatedBuilder(
       animation: _inputController,
       builder: (context, _) {
@@ -1015,10 +1134,7 @@ class _SignupScreenState extends State<SignupScreen>
         );
         return Transform.translate(
           offset: Offset(0, 15 * (1 - animation.value)),
-          child: Opacity(
-            opacity: animation.value,
-            child: child,
-          ),
+          child: Opacity(opacity: animation.value, child: child),
         );
       },
     );
@@ -1046,21 +1162,20 @@ class _SignupScreenState extends State<SignupScreen>
                   AppColors.buttonBackgroundColor.withRed(200),
                   AppColors.buttonBackgroundColor,
                 ],
-                stops: [
-                  0.0,
-                  _shimmerController.value,
-                  1.0,
-                ],
+                stops: [0.0, _shimmerController.value, 1.0],
               ),
-              boxShadow: isEnabled
-                  ? [
-                      BoxShadow(
-                        color: AppColors.buttonBackgroundColor.withOpacity(0.4),
-                        blurRadius: 15,
-                        offset: const Offset(0, 6),
-                      ),
-                    ]
-                  : null,
+              boxShadow:
+                  isEnabled
+                      ? [
+                        BoxShadow(
+                          color: AppColors.buttonBackgroundColor.withOpacity(
+                            0.4,
+                          ),
+                          blurRadius: 15,
+                          offset: const Offset(0, 6),
+                        ),
+                      ]
+                      : null,
             ),
             child: Material(
               color: Colors.transparent,
@@ -1074,27 +1189,28 @@ class _SignupScreenState extends State<SignupScreen>
                     vertical: AppColors.spacingL,
                   ),
                   child: Center(
-                    child: isLoading
-                        ? const SizedBox(
-                            width: 24,
-                            height: 24,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2.5,
-                              valueColor:
-                                  AlwaysStoppedAnimation<Color>(Colors.white),
-                            ),
-                          )
-                        : Text(
-                            label,
-                            style: Theme.of(context)
-                                .textTheme
-                                .titleMedium
-                                ?.copyWith(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.bold,
-                                  letterSpacing: 0.5,
+                    child:
+                        isLoading
+                            ? const SizedBox(
+                              width: 24,
+                              height: 24,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2.5,
+                                valueColor: AlwaysStoppedAnimation<Color>(
+                                  Colors.white,
                                 ),
-                          ),
+                              ),
+                            )
+                            : Text(
+                              label,
+                              style: Theme.of(
+                                context,
+                              ).textTheme.titleMedium?.copyWith(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                                letterSpacing: 0.5,
+                              ),
+                            ),
                   ),
                 ),
               ),
@@ -1113,14 +1229,10 @@ class _SignupScreenState extends State<SignupScreen>
           position: Tween<Offset>(
             begin: const Offset(1.0, 0.0),
             end: Offset.zero,
-          ).animate(CurvedAnimation(
-            parent: animation,
-            curve: Curves.easeOutCubic,
-          )),
-          child: FadeTransition(
-            opacity: animation,
-            child: child,
+          ).animate(
+            CurvedAnimation(parent: animation, curve: Curves.easeOutCubic),
           ),
+          child: FadeTransition(opacity: animation, child: child),
         );
       },
       transitionDuration: const Duration(milliseconds: 400),
@@ -1139,9 +1251,7 @@ class _SignupScreenState extends State<SignupScreen>
         onPressed: isVerified ? null : onPressed,
         style: TextButton.styleFrom(
           backgroundColor:
-              isVerified
-                  ? AppColors.success
-                  : AppColors.buttonBackgroundColor,
+              isVerified ? AppColors.success : AppColors.buttonBackgroundColor,
           foregroundColor: Colors.white,
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           shape: RoundedRectangleBorder(
@@ -1158,14 +1268,146 @@ class _SignupScreenState extends State<SignupScreen>
               ),
             Text(
               label,
-              style: const TextStyle(
-                fontWeight: FontWeight.w600,
-                fontSize: 12,
-              ),
+              style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 12),
             ),
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildLegalCheckboxes() {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
+    if (_isLoadingLegal) {
+      return const SizedBox(
+        height: 60,
+        child: Center(
+          child: CircularProgressIndicator(
+            strokeWidth: 2,
+            valueColor: AlwaysStoppedAnimation<Color>(Colors.white70),
+          ),
+        ),
+      );
+    }
+
+    // Find terms and privacy documents
+    LegalDocument? termsDoc;
+    LegalDocument? privacyDoc;
+    for (final doc in _legalDocuments) {
+      if (doc.isTermsAndConditions) {
+        termsDoc = doc;
+      } else if (doc.isPrivacyPolicy) {
+        privacyDoc = doc;
+      }
+    }
+
+    return Column(
+      children: [
+        // Terms of Service checkbox
+        _buildLegalCheckboxRow(
+          label: 'I agree to the ',
+          linkText: 'Terms of Service',
+          isChecked: _termsAccepted,
+          onChanged: (value) => setState(() => _termsAccepted = value ?? false),
+          onLinkTap:
+              termsDoc != null
+                  ? () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => LegalContentScreen(document: termsDoc!),
+                    ),
+                  )
+                  : null,
+          colorScheme: colorScheme,
+          textTheme: textTheme,
+        ),
+        const SizedBox(height: AppColors.spacingS),
+        // Privacy Policy checkbox
+        _buildLegalCheckboxRow(
+          label: 'I agree to the ',
+          linkText: 'Privacy Policy',
+          isChecked: _privacyAccepted,
+          onChanged:
+              (value) => setState(() => _privacyAccepted = value ?? false),
+          onLinkTap:
+              privacyDoc != null
+                  ? () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => LegalContentScreen(document: privacyDoc!),
+                    ),
+                  )
+                  : null,
+          colorScheme: colorScheme,
+          textTheme: textTheme,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildLegalCheckboxRow({
+    required String label,
+    required String linkText,
+    required bool isChecked,
+    required ValueChanged<bool?> onChanged,
+    required VoidCallback? onLinkTap,
+    required ColorScheme colorScheme,
+    required TextTheme textTheme,
+  }) {
+    return Row(
+      children: [
+        SizedBox(
+          width: 24,
+          height: 24,
+          child: Checkbox(
+            value: isChecked,
+            onChanged: onChanged,
+            fillColor: WidgetStateProperty.resolveWith((states) {
+              if (states.contains(WidgetState.selected)) {
+                return AppColors.buttonBackgroundColor;
+              }
+              return Colors.white.withOpacity(0.2);
+            }),
+            checkColor: Colors.white,
+            side: BorderSide(color: Colors.white.withOpacity(0.5)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(4),
+            ),
+          ),
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: GestureDetector(
+            onTap: () => onChanged(!isChecked),
+            child: RichText(
+              text: TextSpan(
+                style: textTheme.bodySmall?.copyWith(
+                  color: colorScheme.onPrimary.withOpacity(0.9),
+                ),
+                children: [
+                  TextSpan(text: label),
+                  WidgetSpan(
+                    child: GestureDetector(
+                      onTap: onLinkTap,
+                      child: Text(
+                        linkText,
+                        style: textTheme.bodySmall?.copyWith(
+                          color: AppColors.buttonBackgroundColor,
+                          fontWeight: FontWeight.bold,
+                          decoration: TextDecoration.underline,
+                          decorationColor: AppColors.buttonBackgroundColor,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 }
@@ -1175,10 +1417,7 @@ class _GoogleSignUpButton extends StatefulWidget {
   final bool isLoading;
   final VoidCallback onPressed;
 
-  const _GoogleSignUpButton({
-    required this.isLoading,
-    required this.onPressed,
-  });
+  const _GoogleSignUpButton({required this.isLoading, required this.onPressed});
 
   @override
   State<_GoogleSignUpButton> createState() => _GoogleSignUpButtonState();
@@ -1220,10 +1459,13 @@ class _GoogleSignUpButtonState extends State<_GoogleSignUpButton>
         onTapDown: (_) => setState(() => _isPressed = true),
         onTapUp: (_) => setState(() => _isPressed = false),
         onTapCancel: () => setState(() => _isPressed = false),
-        onTap: widget.isLoading ? null : () {
-          HapticFeedback.lightImpact();
-          widget.onPressed();
-        },
+        onTap:
+            widget.isLoading
+                ? null
+                : () {
+                  HapticFeedback.lightImpact();
+                  widget.onPressed();
+                },
         child: AnimatedScale(
           scale: _isPressed ? 0.95 : 1.0,
           duration: const Duration(milliseconds: 100),
@@ -1258,19 +1500,17 @@ class _GoogleSignUpButtonState extends State<_GoogleSignUpButton>
                   child: SizedBox(
                     width: 20,
                     height: 20,
-                    child: CustomPaint(
-                      painter: _GoogleLogoPainter(),
-                    ),
+                    child: CustomPaint(painter: _GoogleLogoPainter()),
                   ),
                 ),
                 const SizedBox(width: AppColors.spacingM),
                 Text(
                   "Sign up with Google",
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: Colors.grey.shade700,
-                        fontWeight: FontWeight.w600,
-                        letterSpacing: 0.2,
-                      ),
+                    color: Colors.grey.shade700,
+                    fontWeight: FontWeight.w600,
+                    letterSpacing: 0.2,
+                  ),
                 ),
               ],
             ),
@@ -1289,60 +1529,60 @@ class _GoogleLogoPainter extends CustomPainter {
     final double center = s / 2;
     final double outerRadius = s / 2;
     final double innerRadius = s * 0.28;
-    
+
     // Google brand colors
     const Color blue = Color(0xFF4285F4);
     const Color red = Color(0xFFEA4335);
     const Color yellow = Color(0xFFFBBC05);
     const Color green = Color(0xFF34A853);
-    
+
     final paint = Paint()..style = PaintingStyle.fill;
-    
+
     // Draw the colored arcs (outer ring)
     // Blue section (right side, from -45° to 45°)
     paint.color = blue;
     canvas.drawArc(
       Rect.fromCircle(center: Offset(center, center), radius: outerRadius),
       -0.78, // -45 degrees
-      1.57,  // 90 degrees
+      1.57, // 90 degrees
       true,
       paint,
     );
-    
+
     // Green section (bottom right, from 45° to 135°)
     paint.color = green;
     canvas.drawArc(
       Rect.fromCircle(center: Offset(center, center), radius: outerRadius),
-      0.78,  // 45 degrees
-      1.57,  // 90 degrees
+      0.78, // 45 degrees
+      1.57, // 90 degrees
       true,
       paint,
     );
-    
+
     // Yellow section (bottom left, from 135° to 225°)
     paint.color = yellow;
     canvas.drawArc(
       Rect.fromCircle(center: Offset(center, center), radius: outerRadius),
-      2.36,  // 135 degrees
-      1.57,  // 90 degrees
+      2.36, // 135 degrees
+      1.57, // 90 degrees
       true,
       paint,
     );
-    
+
     // Red section (top, from 225° to 315°)
     paint.color = red;
     canvas.drawArc(
       Rect.fromCircle(center: Offset(center, center), radius: outerRadius),
-      3.93,  // 225 degrees
-      1.57,  // 90 degrees
+      3.93, // 225 degrees
+      1.57, // 90 degrees
       true,
       paint,
     );
-    
+
     // Cut out the inner circle (white center)
     paint.color = Colors.white;
     canvas.drawCircle(Offset(center, center), innerRadius, paint);
-    
+
     // Cut out the top-right opening of the G
     paint.color = Colors.white;
     final path = Path();
@@ -1353,12 +1593,17 @@ class _GoogleLogoPainter extends CustomPainter {
     path.lineTo(center, center - innerRadius);
     path.close();
     canvas.drawPath(path, paint);
-    
+
     // Draw the horizontal bar of the G (blue)
     paint.color = blue;
     final barHeight = s * 0.22;
     final barRect = RRect.fromRectAndRadius(
-      Rect.fromLTWH(center - s * 0.02, center - barHeight / 2, s * 0.54, barHeight),
+      Rect.fromLTWH(
+        center - s * 0.02,
+        center - barHeight / 2,
+        s * 0.54,
+        barHeight,
+      ),
       const Radius.circular(1),
     );
     canvas.drawRRect(barRect, paint);

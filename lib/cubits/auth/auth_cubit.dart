@@ -8,8 +8,8 @@ class AuthCubit extends Cubit<AuthState> {
   final AuthRepository _authRepository;
 
   AuthCubit({required AuthRepository authRepository})
-      : _authRepository = authRepository,
-        super(AuthInitial());
+    : _authRepository = authRepository,
+      super(AuthInitial());
 
   Future<void> checkAuthStatus() async {
     emit(AuthLoading());
@@ -85,16 +85,24 @@ class AuthCubit extends Cubit<AuthState> {
       UserModel finalUpdatedUser = updatedData;
 
       if (imageFile != null) {
-        final userAfterImageUpload = await _authRepository.uploadProfileImage(imageFile);
+        final userAfterImageUpload = await _authRepository.uploadProfileImage(
+          imageFile,
+        );
         finalUpdatedUser = finalUpdatedUser.copyWith(
           profilePicture: userAfterImageUpload.profilePicture,
         );
       }
 
-      final fullyUpdatedUser = await _authRepository.updateProfile(finalUpdatedUser);
+      final fullyUpdatedUser = await _authRepository.updateProfile(
+        finalUpdatedUser,
+      );
 
-      emit(AuthProfileUpdateSuccess(fullyUpdatedUser, 'Profile updated successfully!'));
-
+      emit(
+        AuthProfileUpdateSuccess(
+          fullyUpdatedUser,
+          'Profile updated successfully!',
+        ),
+      );
     } on Exception catch (e) {
       emit(AuthError(e.toString()));
       if (currentUser != null) {
@@ -102,6 +110,37 @@ class AuthCubit extends Cubit<AuthState> {
       } else {
         emit(Unauthenticated());
       }
+    }
+  }
+
+  /// Updates the user's address and emits [AuthAddressUpdated] on success.
+  /// This allows screens listening to auth state to react to address changes.
+  Future<bool> updateUserAddress(Map<String, String> addressDetails) async {
+    UserModel? currentUser;
+    if (state is Authenticated) {
+      currentUser = (state as Authenticated).user;
+    }
+
+    try {
+      final success = await _authRepository.updateAddress(addressDetails);
+      if (success) {
+        // After updateAddress, AuthService._currentUser is already updated
+        // Get the fresh user data from checkAuthStatus to ensure we have latest
+        final updatedUser = await _authRepository.checkAuthStatus();
+        if (updatedUser != null) {
+          emit(
+            AuthAddressUpdated(updatedUser, 'Address updated successfully!'),
+          );
+          return true;
+        }
+      }
+      return false;
+    } catch (e) {
+      print('AuthCubit.updateUserAddress error: $e');
+      if (currentUser != null) {
+        emit(Authenticated(currentUser));
+      }
+      return false;
     }
   }
 }

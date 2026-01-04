@@ -124,9 +124,7 @@ class _CartScreenState extends State<CartScreen> with TickerProviderStateMixin {
                       _buildCartItemsList(theme, isDark, state.cart),
 
                       // Bottom padding for checkout section
-                      const SliverToBoxAdapter(
-                        child: SizedBox(height: 180),
-                      ),
+                      const SliverToBoxAdapter(child: SizedBox(height: 180)),
                     ],
                   ],
                 ],
@@ -154,10 +152,7 @@ class _CartScreenState extends State<CartScreen> with TickerProviderStateMixin {
         builder: (context, child) {
           return Transform.translate(
             offset: Offset(0, _headerSlide.value),
-            child: Opacity(
-              opacity: _headerFade.value,
-              child: child,
-            ),
+            child: Opacity(opacity: _headerFade.value, child: child),
           );
         },
         child: Container(
@@ -226,24 +221,21 @@ class _CartScreenState extends State<CartScreen> with TickerProviderStateMixin {
                     children: [
                       // Top Row with Back Button and Clear
                       Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        mainAxisAlignment: MainAxisAlignment.end,
                         children: [
-                          _buildIconButton(
-                            Icons.arrow_back_ios_new_rounded,
-                            () {
-                              HapticFeedback.lightImpact();
-                              Navigator.pop(context);
-                            },
-                          ),
+                          // _buildIconButton(
+                          //   Icons.arrow_back_ios_new_rounded,
+                          //   () {
+                          //     HapticFeedback.lightImpact();
+                          //     Navigator.pop(context);
+                          //   },
+                          // ),
                           if (state is CartSuccess &&
                               state.cart.items.isNotEmpty)
-                            _buildIconButton(
-                              Icons.delete_sweep_rounded,
-                              () {
-                                HapticFeedback.mediumImpact();
-                                _showClearCartDialog(context);
-                              },
-                            ),
+                            _buildIconButton(Icons.delete_sweep_rounded, () {
+                              HapticFeedback.mediumImpact();
+                              _showClearCartDialog(context);
+                            }),
                         ],
                       ),
                       const Spacer(),
@@ -269,11 +261,11 @@ class _CartScreenState extends State<CartScreen> with TickerProviderStateMixin {
                               children: [
                                 Text(
                                   "My Cart",
-                                  style:
-                                      theme.textTheme.headlineMedium?.copyWith(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold,
-                                  ),
+                                  style: theme.textTheme.headlineMedium
+                                      ?.copyWith(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.bold,
+                                      ),
                                 ),
                                 const SizedBox(height: 4),
                                 Text(
@@ -350,66 +342,57 @@ class _CartScreenState extends State<CartScreen> with TickerProviderStateMixin {
     return SliverPadding(
       padding: const EdgeInsets.fromLTRB(16, 20, 16, 0),
       sliver: SliverList(
-        delegate: SliverChildBuilderDelegate(
-          (context, index) {
-            final item = cart.items[index];
-            return AnimatedBuilder(
-              animation: _contentController,
-              builder: (context, child) {
-                final delay = index * 80;
-                final progress = Curves.easeOutCubic.transform(
-                  ((_contentController.value * 1000) - delay).clamp(0, 300) /
-                      300,
-                );
-                return Transform.translate(
-                  offset: Offset(30 * (1 - progress), 0),
-                  child: Opacity(
-                    opacity: progress.clamp(0, 1),
-                    child: child,
-                  ),
-                );
-              },
-              child: Padding(
-                padding: const EdgeInsets.only(bottom: 12),
-                child: _AnimatedCartItem(
-                  item: item,
-                  onTap: () async {
-                    HapticFeedback.lightImpact();
-                    final product = await CategoryService.fetchProductById(
-                      item.productVariant.id,
-                    );
-                    if (!mounted) return;
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) =>
-                            ProductDetailsScreen(product: product),
-                      ),
-                    );
-                  },
-                  onQuantityChanged: (newQty) {
-                    HapticFeedback.selectionClick();
-                    newQty == 0
-                        ? context.read<CartCubit>().removeItem(
-                              item.productVariant.id,
-                            )
-                        : context.read<CartCubit>().updateItem(
-                              item.productVariant.id,
-                              newQty,
-                            );
-                  },
-                  onRemove: () {
-                    HapticFeedback.mediumImpact();
-                    context.read<CartCubit>().removeItem(
-                          item.productVariant.id,
-                        );
-                  },
-                ),
+        delegate: SliverChildBuilderDelegate((context, index) {
+          final item = cart.items[index];
+          return AnimatedBuilder(
+            animation: _contentController,
+            builder: (context, child) {
+              final delay = index * 80;
+              final progress = Curves.easeOutCubic.transform(
+                ((_contentController.value * 1000) - delay).clamp(0, 300) / 300,
+              );
+              return Transform.translate(
+                offset: Offset(30 * (1 - progress), 0),
+                child: Opacity(opacity: progress.clamp(0, 1), child: child),
+              );
+            },
+            child: Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: _AnimatedCartItem(
+                item: item,
+                onTap: () async {
+                  HapticFeedback.lightImpact();
+                  final product = await CategoryService.fetchProductById(
+                    item.productVariant.id,
+                  );
+                  if (!mounted) return;
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder:
+                          (context) => ProductDetailsScreen(product: product),
+                    ),
+                  );
+                },
+                onQuantityChanged: (newQty) {
+                  HapticFeedback.selectionClick();
+                  newQty == 0
+                      ? context.read<CartCubit>().removeItem(
+                        item.productVariant.id,
+                      )
+                      : context.read<CartCubit>().updateItem(
+                        item.productVariant.id,
+                        newQty,
+                      );
+                },
+                onRemove: () {
+                  HapticFeedback.mediumImpact();
+                  context.read<CartCubit>().removeItem(item.productVariant.id);
+                },
               ),
-            );
-          },
-          childCount: cart.items.length,
-        ),
+            ),
+          );
+        }, childCount: cart.items.length),
       ),
     );
   }
@@ -437,9 +420,7 @@ class _CartScreenState extends State<CartScreen> with TickerProviderStateMixin {
         child: Container(
           decoration: BoxDecoration(
             color: isDark ? theme.cardColor : Colors.white,
-            borderRadius: const BorderRadius.vertical(
-              top: Radius.circular(28),
-            ),
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
             boxShadow: [
               BoxShadow(
                 color: theme.shadowColor.withOpacity(0.15),
@@ -533,8 +514,8 @@ class _CartScreenState extends State<CartScreen> with TickerProviderStateMixin {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) =>
-                                AddressSelectionScreen(cart: cart),
+                            builder:
+                                (context) => AddressSelectionScreen(cart: cart),
                           ),
                         );
                       },
@@ -585,56 +566,54 @@ class _CartScreenState extends State<CartScreen> with TickerProviderStateMixin {
     final theme = Theme.of(context);
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
-        ),
-        title: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: theme.colorScheme.error.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Icon(
-                Icons.delete_sweep_rounded,
-                color: theme.colorScheme.error,
-                size: 24,
-              ),
+      builder:
+          (context) => AlertDialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
             ),
-            const SizedBox(width: 12),
-            const Text('Clear Cart'),
-          ],
-        ),
-        content: const Text(
-          'Are you sure you want to remove all items from your cart?',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(
-              'Cancel',
-              style: TextStyle(color: theme.hintColor),
+            title: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.error.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Icon(
+                    Icons.delete_sweep_rounded,
+                    color: theme.colorScheme.error,
+                    size: 24,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                const Text('Clear Cart'),
+              ],
             ),
+            content: const Text(
+              'Are you sure you want to remove all items from your cart?',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: Text('Cancel', style: TextStyle(color: theme.hintColor)),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  context.read<CartCubit>().clearCart();
+                  Navigator.pop(context);
+                  HapticFeedback.mediumImpact();
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: theme.colorScheme.error,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                child: const Text('Clear All'),
+              ),
+            ],
           ),
-          ElevatedButton(
-            onPressed: () {
-              context.read<CartCubit>().clearCart();
-              Navigator.pop(context);
-              HapticFeedback.mediumImpact();
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: theme.colorScheme.error,
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
-            child: const Text('Clear All'),
-          ),
-        ],
-      ),
     );
   }
 
@@ -645,72 +624,30 @@ class _CartScreenState extends State<CartScreen> with TickerProviderStateMixin {
       child: ListView.builder(
         padding: const EdgeInsets.all(16),
         itemCount: 4,
-        itemBuilder: (context, index) => Padding(
-          padding: const EdgeInsets.only(bottom: 12),
-          child: Container(
-            height: 100,
-            decoration: BoxDecoration(
-              color: theme.cardColor,
-              borderRadius: BorderRadius.circular(20),
+        itemBuilder:
+            (context, index) => Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: Container(
+                height: 100,
+                decoration: BoxDecoration(
+                  color: theme.cardColor,
+                  borderRadius: BorderRadius.circular(20),
+                ),
+              ),
             ),
-          ),
-        ),
       ),
     );
   }
 
   Widget _buildErrorState(ThemeData theme, String message) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(32),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              padding: const EdgeInsets.all(24),
-              decoration: BoxDecoration(
-                color: theme.colorScheme.error.withOpacity(0.1),
-                shape: BoxShape.circle,
-              ),
-              child: Icon(
-                Icons.error_outline_rounded,
-                size: 64,
-                color: theme.colorScheme.error.withOpacity(0.7),
-              ),
-            ),
-            const SizedBox(height: 24),
-            Text(
-              'Oops! Something went wrong',
-              style: theme.textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              message,
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: theme.hintColor,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 32),
-            ElevatedButton.icon(
-              onPressed: () {
-                HapticFeedback.lightImpact();
-                context.read<CartCubit>().loadCart();
-              },
-              icon: const Icon(Icons.refresh_rounded),
-              label: const Text('Retry'),
-              style: ElevatedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 32,
-                  vertical: 14,
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
+    return ErrorStateWidget(
+      title: 'Failed to Load Cart',
+      subtitle: message,
+      errorType: ErrorType.server,
+      onRetry: () {
+        HapticFeedback.lightImpact();
+        context.read<CartCubit>().loadCart();
+      },
     );
   }
 
@@ -727,10 +664,7 @@ class _CartScreenState extends State<CartScreen> with TickerProviderStateMixin {
               duration: const Duration(milliseconds: 800),
               curve: Curves.elasticOut,
               builder: (context, value, child) {
-                return Transform.scale(
-                  scale: value,
-                  child: child,
-                );
+                return Transform.scale(scale: value, child: child);
               },
               child: Container(
                 padding: const EdgeInsets.all(32),
@@ -772,7 +706,12 @@ class _CartScreenState extends State<CartScreen> with TickerProviderStateMixin {
             ElevatedButton.icon(
               onPressed: () {
                 HapticFeedback.lightImpact();
-                Navigator.pop(context);
+                // Navigate to Categories tab (index 3) instead of popping
+                final dashboardState =
+                    context.findAncestorStateOfType<DashboardScreenState>();
+                if (dashboardState != null) {
+                  dashboardState.switchToTab(3); // Categories tab
+                }
               },
               icon: const Icon(Icons.shopping_bag_outlined),
               label: const Text('Start Shopping'),
@@ -835,9 +774,10 @@ class _AnimatedCartItemState extends State<_AnimatedCartItem> {
             color: theme.cardColor,
             borderRadius: BorderRadius.circular(20),
             border: Border.all(
-              color: _isPressed
-                  ? theme.colorScheme.primary.withOpacity(0.5)
-                  : isDark
+              color:
+                  _isPressed
+                      ? theme.colorScheme.primary.withOpacity(0.5)
+                      : isDark
                       ? Colors.grey.shade800
                       : Colors.grey.shade200,
               width: _isPressed ? 2 : 1,
@@ -864,27 +804,30 @@ class _AnimatedCartItemState extends State<_AnimatedCartItem> {
                   ),
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(16),
-                    child: item.productVariant.productImages.isNotEmpty
-                        ? CachedNetworkImage(
-                            imageUrl:
-                                item.productVariant.productImages.first.image,
-                            fit: BoxFit.cover,
-                            placeholder: (context, url) => Center(
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                color: theme.colorScheme.primary,
-                              ),
-                            ),
-                            errorWidget: (context, url, error) => Icon(
-                              Icons.image_not_supported_rounded,
+                    child:
+                        item.productVariant.productImages.isNotEmpty
+                            ? CachedNetworkImage(
+                              imageUrl:
+                                  item.productVariant.productImages.first.image,
+                              fit: BoxFit.cover,
+                              placeholder:
+                                  (context, url) => Center(
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      color: theme.colorScheme.primary,
+                                    ),
+                                  ),
+                              errorWidget:
+                                  (context, url, error) => Icon(
+                                    Icons.image_not_supported_rounded,
+                                    color: theme.disabledColor,
+                                  ),
+                            )
+                            : Icon(
+                              Icons.shopping_bag_outlined,
                               color: theme.disabledColor,
+                              size: 32,
                             ),
-                          )
-                        : Icon(
-                            Icons.shopping_bag_outlined,
-                            color: theme.disabledColor,
-                            size: 32,
-                          ),
                   ),
                 ),
               ),
@@ -936,9 +879,10 @@ class _AnimatedCartItemState extends State<_AnimatedCartItem> {
                         // Quantity Controls
                         Container(
                           decoration: BoxDecoration(
-                            color: isDark
-                                ? Colors.grey.shade800
-                                : Colors.grey.shade100,
+                            color:
+                                isDark
+                                    ? Colors.grey.shade800
+                                    : Colors.grey.shade100,
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: Row(
@@ -947,13 +891,13 @@ class _AnimatedCartItemState extends State<_AnimatedCartItem> {
                               _buildQuantityButton(
                                 theme,
                                 Icons.remove,
-                                () => widget.onQuantityChanged(
-                                  item.quantity - 1,
-                                ),
+                                () =>
+                                    widget.onQuantityChanged(item.quantity - 1),
                               ),
                               Padding(
-                                padding:
-                                    const EdgeInsets.symmetric(horizontal: 12),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                ),
                                 child: Text(
                                   '${item.quantity}',
                                   style: theme.textTheme.titleMedium?.copyWith(
@@ -964,9 +908,8 @@ class _AnimatedCartItemState extends State<_AnimatedCartItem> {
                               _buildQuantityButton(
                                 theme,
                                 Icons.add,
-                                () => widget.onQuantityChanged(
-                                  item.quantity + 1,
-                                ),
+                                () =>
+                                    widget.onQuantityChanged(item.quantity + 1),
                               ),
                             ],
                           ),
@@ -1014,11 +957,7 @@ class _AnimatedCartItemState extends State<_AnimatedCartItem> {
         borderRadius: BorderRadius.circular(8),
         child: Padding(
           padding: const EdgeInsets.all(8),
-          child: Icon(
-            icon,
-            size: 18,
-            color: theme.colorScheme.primary,
-          ),
+          child: Icon(icon, size: 18, color: theme.colorScheme.primary),
         ),
       ),
     );
@@ -1027,39 +966,37 @@ class _AnimatedCartItemState extends State<_AnimatedCartItem> {
   void _showRemoveDialog(BuildContext context, ThemeData theme) {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
-        ),
-        title: const Text('Remove Item'),
-        content: const Text(
-          'Are you sure you want to remove this item from your cart?',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(
-              'Cancel',
-              style: TextStyle(color: theme.hintColor),
+      builder:
+          (context) => AlertDialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
             ),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              widget.onRemove();
-              Navigator.pop(context);
-              SnackBarHelper.showSuccess(context, 'Item removed from cart');
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: theme.colorScheme.error,
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
+            title: const Text('Remove Item'),
+            content: const Text(
+              'Are you sure you want to remove this item from your cart?',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: Text('Cancel', style: TextStyle(color: theme.hintColor)),
               ),
-            ),
-            child: const Text('Remove'),
+              ElevatedButton(
+                onPressed: () {
+                  widget.onRemove();
+                  Navigator.pop(context);
+                  SnackBarHelper.showSuccess(context, 'Item removed from cart');
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: theme.colorScheme.error,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                child: const Text('Remove'),
+              ),
+            ],
           ),
-        ],
-      ),
     );
   }
 }

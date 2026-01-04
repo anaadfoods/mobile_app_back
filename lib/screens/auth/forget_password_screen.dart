@@ -83,10 +83,7 @@ class _ForgetPasswordScreenState extends State<ForgetPasswordScreen>
       vsync: this,
     );
     _logoBreathing = Tween<double>(begin: 1.0, end: 1.02).animate(
-      CurvedAnimation(
-        parent: _breathingController,
-        curve: Curves.easeInOut,
-      ),
+      CurvedAnimation(parent: _breathingController, curve: Curves.easeInOut),
     );
 
     // Input stagger animation
@@ -170,9 +167,7 @@ class _ForgetPasswordScreenState extends State<ForgetPasswordScreen>
 
     try {
       final response = await http.post(
-        Uri.parse(
-          'https://app.anaadfoods.com/api/auth/forgot-password/send-otp/',
-        ),
+        Uri.parse('${ApiConfig.baseUrl}/api/auth/forgot-password/send-otp/'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({'identifier': identifier, 'type': type}),
       );
@@ -218,15 +213,14 @@ class _ForgetPasswordScreenState extends State<ForgetPasswordScreen>
     if (!_isPasswordValid(newPassword)) {
       setState(() {
         _isResetLoading = false;
-        _passwordError =
-            'Password does not meet the security requirements.';
+        _passwordError = 'Password does not meet the security requirements.';
       });
       return;
     }
 
     try {
       final response = await http.post(
-        Uri.parse('https://app.anaadfoods.com/api/auth/forgot-password/reset/'),
+        Uri.parse('${ApiConfig.baseUrl}/api/auth/forgot-password/reset/'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
           'identifier': identifier,
@@ -238,7 +232,8 @@ class _ForgetPasswordScreenState extends State<ForgetPasswordScreen>
       final responseBody = jsonDecode(response.body);
       if (response.statusCode == 200) {
         setState(() {
-          _resetSuccess = responseBody['message'] ?? 'Password changed successfully!';
+          _resetSuccess =
+              responseBody['message'] ?? 'Password changed successfully!';
           Future.delayed(const Duration(seconds: 2), () {
             if (mounted) Navigator.of(context).pop();
           });
@@ -283,7 +278,9 @@ class _ForgetPasswordScreenState extends State<ForgetPasswordScreen>
 
               try {
                 final response = await http.post(
-                  Uri.parse('https://app.anaadfoods.com/api/auth/forgot-password/verify-otp/'),
+                  Uri.parse(
+                    '${ApiConfig.baseUrl}/api/auth/forgot-password/verify-otp/',
+                  ),
                   headers: {'Content-Type': 'application/json'},
                   body: jsonEncode({
                     'identifier': _identifierController.text.trim(),
@@ -296,7 +293,9 @@ class _ForgetPasswordScreenState extends State<ForgetPasswordScreen>
                   Navigator.of(context).pop(); // Close dialog on success
                   setState(() => _showPasswordFields = true);
                 } else {
-                  setDialogState(() => dialogError = responseBody['error'] ?? 'Invalid OTP');
+                  setDialogState(
+                    () => dialogError = responseBody['error'] ?? 'Invalid OTP',
+                  );
                 }
               } catch (e) {
                 setDialogState(() => dialogError = 'Network error');
@@ -308,14 +307,19 @@ class _ForgetPasswordScreenState extends State<ForgetPasswordScreen>
             }
 
             return Dialog(
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(24),
+              ),
               backgroundColor: Colors.transparent,
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(24),
                 child: BackdropFilter(
                   filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 32.0),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 24.0,
+                      vertical: 32.0,
+                    ),
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
                         begin: Alignment.topLeft,
@@ -345,10 +349,13 @@ class _ForgetPasswordScreenState extends State<ForgetPasswordScreen>
                         Container(
                           padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(
-                            color: AppColors.buttonBackgroundColor.withOpacity(0.2),
+                            color: AppColors.buttonBackgroundColor.withOpacity(
+                              0.2,
+                            ),
                             shape: BoxShape.circle,
                             border: Border.all(
-                              color: AppColors.buttonBackgroundColor.withOpacity(0.4),
+                              color: AppColors.buttonBackgroundColor
+                                  .withOpacity(0.4),
                               width: 2,
                             ),
                           ),
@@ -380,9 +387,13 @@ class _ForgetPasswordScreenState extends State<ForgetPasswordScreen>
                           length: 6,
                           controller: _otpController,
                           onCompleted: (_) => verifyOtpAction(),
-                          onChanged: (_) => setDialogState(() => dialogError = null),
+                          onChanged:
+                              (_) => setDialogState(() => dialogError = null),
                           forceErrorState: dialogError != null,
-                          errorTextStyle: TextStyle(color: theme.colorScheme.error, fontSize: 13),
+                          errorTextStyle: TextStyle(
+                            color: theme.colorScheme.error,
+                            fontSize: 13,
+                          ),
                           errorText: dialogError,
                         ),
                         const SizedBox(height: 24),
@@ -390,20 +401,24 @@ class _ForgetPasswordScreenState extends State<ForgetPasswordScreen>
                           children: [
                             Expanded(
                               child: TextButton(
-                                onPressed: isVerifying
-                                    ? null
-                                    : () {
-                                        Navigator.of(context).pop();
-                                        _sendOtp();
-                                      },
+                                onPressed:
+                                    isVerifying
+                                        ? null
+                                        : () {
+                                          Navigator.of(context).pop();
+                                          _sendOtp();
+                                        },
                                 style: TextButton.styleFrom(
-                                  padding: const EdgeInsets.symmetric(vertical: 14),
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 14,
+                                  ),
                                   foregroundColor: theme.colorScheme.onPrimary,
                                 ),
                                 child: Text(
                                   'Resend',
                                   style: theme.textTheme.labelLarge?.copyWith(
-                                    color: theme.colorScheme.onPrimary.withOpacity(0.8),
+                                    color: theme.colorScheme.onPrimary
+                                        .withOpacity(0.8),
                                   ),
                                 ),
                               ),
@@ -416,13 +431,16 @@ class _ForgetPasswordScreenState extends State<ForgetPasswordScreen>
                                   gradient: LinearGradient(
                                     colors: [
                                       AppColors.buttonBackgroundColor,
-                                      AppColors.buttonBackgroundColor.withRed(200),
+                                      AppColors.buttonBackgroundColor.withRed(
+                                        200,
+                                      ),
                                     ],
                                   ),
                                   borderRadius: BorderRadius.circular(12),
                                   boxShadow: [
                                     BoxShadow(
-                                      color: AppColors.buttonBackgroundColor.withOpacity(0.4),
+                                      color: AppColors.buttonBackgroundColor
+                                          .withOpacity(0.4),
                                       blurRadius: 12,
                                       offset: const Offset(0, 4),
                                     ),
@@ -433,28 +451,33 @@ class _ForgetPasswordScreenState extends State<ForgetPasswordScreen>
                                     backgroundColor: Colors.transparent,
                                     shadowColor: Colors.transparent,
                                     foregroundColor: Colors.white,
-                                    padding: const EdgeInsets.symmetric(vertical: 14),
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 14,
+                                    ),
                                     shape: RoundedRectangleBorder(
                                       borderRadius: BorderRadius.circular(12),
                                     ),
                                   ),
-                                  onPressed: isVerifying ? null : verifyOtpAction,
-                                  child: isVerifying
-                                      ? const SizedBox(
-                                          width: 22,
-                                          height: 22,
-                                          child: CircularProgressIndicator(
-                                            strokeWidth: 2,
-                                            color: Colors.white,
+                                  onPressed:
+                                      isVerifying ? null : verifyOtpAction,
+                                  child:
+                                      isVerifying
+                                          ? const SizedBox(
+                                            width: 22,
+                                            height: 22,
+                                            child: CircularProgressIndicator(
+                                              strokeWidth: 2,
+                                              color: Colors.white,
+                                            ),
+                                          )
+                                          : Text(
+                                            "Verify",
+                                            style: theme.textTheme.labelLarge
+                                                ?.copyWith(
+                                                  color: Colors.white,
+                                                  fontWeight: FontWeight.bold,
+                                                ),
                                           ),
-                                        )
-                                      : Text(
-                                          "Verify",
-                                          style: theme.textTheme.labelLarge?.copyWith(
-                                            color: Colors.white,
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                        ),
                                 ),
                               ),
                             ),
@@ -516,7 +539,8 @@ class _ForgetPasswordScreenState extends State<ForgetPasswordScreen>
                     ),
                     // Floating decorative circles
                     Positioned(
-                      top: screenHeight * 0.12 +
+                      top:
+                          screenHeight * 0.12 +
                           math.sin(_floatController.value * math.pi) * 15,
                       right: -35,
                       child: _buildFloatingCircle(
@@ -525,7 +549,8 @@ class _ForgetPasswordScreenState extends State<ForgetPasswordScreen>
                       ),
                     ),
                     Positioned(
-                      bottom: screenHeight * 0.25 +
+                      bottom:
+                          screenHeight * 0.25 +
                           math.cos(_floatController.value * math.pi) * 12,
                       left: -25,
                       child: _buildFloatingCircle(
@@ -545,13 +570,19 @@ class _ForgetPasswordScreenState extends State<ForgetPasswordScreen>
               physics: const BouncingScrollPhysics(),
               child: Container(
                 constraints: BoxConstraints(minHeight: minLayoutHeight),
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 30),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24,
+                  vertical: 30,
+                ),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     // Animated Logo with subtle breathing
                     AnimatedBuilder(
-                      animation: Listenable.merge([_cardController, _breathingController]),
+                      animation: Listenable.merge([
+                        _cardController,
+                        _breathingController,
+                      ]),
                       builder: (context, child) {
                         return Transform.scale(
                           scale: _logoScale.value * _logoBreathing.value,
@@ -564,8 +595,11 @@ class _ForgetPasswordScreenState extends State<ForgetPasswordScreen>
                                 color: Colors.white,
                                 boxShadow: [
                                   BoxShadow(
-                                    color: colorScheme.primary.withOpacity(0.15 + (_logoBreathing.value - 1.0) * 2),
-                                    blurRadius: 22 + (_logoBreathing.value - 1.0) * 80,
+                                    color: colorScheme.primary.withOpacity(
+                                      0.15 + (_logoBreathing.value - 1.0) * 2,
+                                    ),
+                                    blurRadius:
+                                        22 + (_logoBreathing.value - 1.0) * 80,
                                     spreadRadius: 3,
                                   ),
                                 ],
@@ -608,7 +642,9 @@ class _ForgetPasswordScreenState extends State<ForgetPasswordScreen>
                                   colorScheme.primary.withOpacity(0.85),
                                 ],
                               ),
-                              borderRadius: BorderRadius.circular(AppColors.radiusXL),
+                              borderRadius: BorderRadius.circular(
+                                AppColors.radiusXL,
+                              ),
                               border: Border.all(
                                 color: Colors.white.withOpacity(0.2),
                                 width: 1.5,
@@ -631,10 +667,12 @@ class _ForgetPasswordScreenState extends State<ForgetPasswordScreen>
                                     child: Container(
                                       padding: const EdgeInsets.all(14),
                                       decoration: BoxDecoration(
-                                        color: AppColors.buttonBackgroundColor.withOpacity(0.15),
+                                        color: AppColors.buttonBackgroundColor
+                                            .withOpacity(0.15),
                                         shape: BoxShape.circle,
                                         border: Border.all(
-                                          color: AppColors.buttonBackgroundColor.withOpacity(0.3),
+                                          color: AppColors.buttonBackgroundColor
+                                              .withOpacity(0.3),
                                           width: 2,
                                         ),
                                       ),
@@ -656,11 +694,12 @@ class _ForgetPasswordScreenState extends State<ForgetPasswordScreen>
                                       _showPasswordFields
                                           ? "Reset Password"
                                           : "Forgot Password",
-                                      style: theme.textTheme.headlineSmall?.copyWith(
-                                        color: colorScheme.onPrimary,
-                                        fontWeight: FontWeight.bold,
-                                        letterSpacing: 0.5,
-                                      ),
+                                      style: theme.textTheme.headlineSmall
+                                          ?.copyWith(
+                                            color: colorScheme.onPrimary,
+                                            fontWeight: FontWeight.bold,
+                                            letterSpacing: 0.5,
+                                          ),
                                     ),
                                   ),
                                   const SizedBox(height: 8),
@@ -672,9 +711,11 @@ class _ForgetPasswordScreenState extends State<ForgetPasswordScreen>
                                       _showPasswordFields
                                           ? "Create a new secure password"
                                           : "Enter your email or phone to proceed",
-                                      style: theme.textTheme.bodyMedium?.copyWith(
-                                        color: colorScheme.onPrimary.withOpacity(0.8),
-                                      ),
+                                      style: theme.textTheme.bodyMedium
+                                          ?.copyWith(
+                                            color: colorScheme.onPrimary
+                                                .withOpacity(0.8),
+                                          ),
                                       textAlign: TextAlign.center,
                                     ),
                                   ),
@@ -697,9 +738,10 @@ class _ForgetPasswordScreenState extends State<ForgetPasswordScreen>
                                         ),
                                       );
                                     },
-                                    child: !_showPasswordFields
-                                        ? _buildIdentifierSection(theme)
-                                        : _buildResetPasswordSection(theme),
+                                    child:
+                                        !_showPasswordFields
+                                            ? _buildIdentifierSection(theme)
+                                            : _buildResetPasswordSection(theme),
                                   ),
                                 ],
                               ),
@@ -715,12 +757,15 @@ class _ForgetPasswordScreenState extends State<ForgetPasswordScreen>
                     AnimatedBuilder(
                       animation: _inputController,
                       builder: (context, child) {
-                        final opacity = Tween<double>(begin: 0.0, end: 1.0)
-                            .animate(CurvedAnimation(
-                              parent: _inputController,
-                              curve: const Interval(0.6, 1.0),
-                            ))
-                            .value;
+                        final opacity =
+                            Tween<double>(begin: 0.0, end: 1.0)
+                                .animate(
+                                  CurvedAnimation(
+                                    parent: _inputController,
+                                    curve: const Interval(0.6, 1.0),
+                                  ),
+                                )
+                                .value;
                         return Opacity(opacity: opacity, child: child);
                       },
                       child: TextButton.icon(
@@ -766,10 +811,7 @@ class _ForgetPasswordScreenState extends State<ForgetPasswordScreen>
     );
   }
 
-  Widget _buildStaggeredWidget({
-    required double delay,
-    required Widget child,
-  }) {
+  Widget _buildStaggeredWidget({required double delay, required Widget child}) {
     return AnimatedBuilder(
       animation: _inputController,
       builder: (context, _) {
@@ -785,10 +827,7 @@ class _ForgetPasswordScreenState extends State<ForgetPasswordScreen>
         );
         return Transform.translate(
           offset: Offset(0, 15 * (1 - animation.value)),
-          child: Opacity(
-            opacity: animation.value,
-            child: child,
-          ),
+          child: Opacity(opacity: animation.value, child: child),
         );
       },
     );
@@ -903,7 +942,9 @@ class _ForgetPasswordScreenState extends State<ForgetPasswordScreen>
               color: theme.colorScheme.onPrimary.withOpacity(0.7),
             ),
             onPressed: () {
-              setState(() => _obscureConfirmPassword = !_obscureConfirmPassword);
+              setState(
+                () => _obscureConfirmPassword = !_obscureConfirmPassword,
+              );
             },
           ),
         ),
@@ -974,9 +1015,7 @@ class _ForgetPasswordScreenState extends State<ForgetPasswordScreen>
             decoration: BoxDecoration(
               color: AppColors.success.withOpacity(0.1),
               borderRadius: BorderRadius.circular(8),
-              border: Border.all(
-                color: AppColors.success.withOpacity(0.3),
-              ),
+              border: Border.all(color: AppColors.success.withOpacity(0.3)),
             ),
             child: Row(
               children: [
@@ -1027,11 +1066,7 @@ class _ForgetPasswordScreenState extends State<ForgetPasswordScreen>
                 AppColors.buttonBackgroundColor.withRed(200),
                 AppColors.buttonBackgroundColor,
               ],
-              stops: [
-                0.0,
-                _shimmerController.value,
-                1.0,
-              ],
+              stops: [0.0, _shimmerController.value, 1.0],
             ),
             boxShadow: [
               BoxShadow(
@@ -1053,27 +1088,28 @@ class _ForgetPasswordScreenState extends State<ForgetPasswordScreen>
                   vertical: AppColors.spacingL,
                 ),
                 child: Center(
-                  child: isLoading
-                      ? const SizedBox(
-                          width: 24,
-                          height: 24,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2.5,
-                            valueColor:
-                                AlwaysStoppedAnimation<Color>(Colors.white),
-                          ),
-                        )
-                      : Text(
-                          label,
-                          style: Theme.of(context)
-                              .textTheme
-                              .titleMedium
-                              ?.copyWith(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
-                                letterSpacing: 0.5,
+                  child:
+                      isLoading
+                          ? const SizedBox(
+                            width: 24,
+                            height: 24,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2.5,
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                Colors.white,
                               ),
-                        ),
+                            ),
+                          )
+                          : Text(
+                            label,
+                            style: Theme.of(
+                              context,
+                            ).textTheme.titleMedium?.copyWith(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                              letterSpacing: 0.5,
+                            ),
+                          ),
                 ),
               ),
             ),
