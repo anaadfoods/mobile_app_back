@@ -1,7 +1,39 @@
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+
 class ApiConfig {
   // static const String baseUrl = 'http://34.131.42.218';
-  static const String baseUrl = 'https://bac.anaadfoods.com';
+  // static const String baseUrl = 'https://bac.anaadfoods.com';
+  static const String baseUrl = "http://192.168.29.209:8000";
+
+
+
   static const String paymentUrl = 'http://34.131.42.218:5000';
+
+  /// Panchang may be hosted on a different backend than the main app APIs.
+  /// Set this to the correct Panchang host when available.
+  ///
+  /// Example: 'https://panchang.anaadfoods.com' (no trailing slash)
+  static String get panchangBaseUrl {
+    final value = ApiConfig.baseUrl;
+    if (value == null) return baseUrl;
+    final trimmed = value.trim();
+    if (trimmed.isEmpty) return baseUrl;
+    return trimmed.endsWith('/') ? trimmed.substring(0, trimmed.length - 1) : trimmed;
+  }
+
+  // Panchang Calendar endpoints
+  static const String panchangCalenderBase = '/api/panchang-calender/';
+  static const String panchangDayEndpoint = '${panchangCalenderBase}day/';
+  static const String panchangRangeEndpoint = '${panchangCalenderBase}range/';
+  static const String panchangMonthEndpoint = '${panchangCalenderBase}month/';
+  static const String panchangFestivalsEndpoint = '${panchangCalenderBase}festivals/';
+  static const String panchangFestivalSearchEndpoint =
+    '${panchangCalenderBase}festivals/search/';
+  static const String panchangHighlightsEndpoint =
+    '${panchangCalenderBase}highlights/';
+  static const String panchangBundlesEndpoint = '${panchangCalenderBase}bundles/';
+  static String panchangFestivalDetailEndpoint(String code) =>
+    '${panchangCalenderBase}festivals/$code/';
   // Auth endpoints
   static const String registerEndpoint = '/api/auth/register/';
   static const String loginEndpoint = '/api/auth/token/';

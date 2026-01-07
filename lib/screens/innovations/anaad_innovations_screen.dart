@@ -6,6 +6,7 @@ import 'package:grocery_app/screens/innovations/anaad_redemptions_screen.dart';
 import 'package:grocery_app/screens/innovations/anaad_robots_screen.dart';
 import 'package:grocery_app/screens/innovations/anaad_games_screen.dart';
 import 'package:grocery_app/screens/innovations/refer_earn_screen.dart';
+import 'package:grocery_app/screens/innovations/panchang/panchang_home_screen.dart';
 
 class AnaadInnovationsScreen extends StatefulWidget {
   const AnaadInnovationsScreen({super.key});
@@ -281,6 +282,20 @@ class _AnaadInnovationsScreenState extends State<AnaadInnovationsScreen>
                 isComingSoon: false,
                 delay: 3,
                 onTap: () => _navigateTo(context, const ReferEarnScreen()),
+              ),
+              const SizedBox(height: 40),
+
+              _buildFeatureCard(
+                context: context,
+                theme: theme,
+                isDark: isDark,
+                icon: Icons.calendar_month_rounded,
+                title: 'Panchang Calendar',
+                subtitle: 'Today\'s Panchang & calendar view',
+                gradient: [const Color(0xFF6B21A8), const Color(0xFF7C3AED)],
+                isComingSoon: false,
+                delay: 4,
+                onTap: () => _navigateTo(context, const PanchangHomeScreen()),
               ),
               const SizedBox(height: 40),
             ],

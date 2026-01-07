@@ -911,23 +911,29 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                   padding: const EdgeInsets.all(12),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(
-                        product.productName,
-                        style: theme.textTheme.titleSmall?.copyWith(
-                          fontWeight: FontWeight.w600,
-                        ),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            product.productName,
+                            style: theme.textTheme.titleSmall?.copyWith(
+                              fontWeight: FontWeight.w600,
+                            ),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            '${product.weight} ${product.weightUnit}',
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: theme.hintColor,
+                            ),
+                          ),
+                        ],
                       ),
-                      const SizedBox(height: 4),
-                      Text(
-                        '${product.weight} ${product.weightUnit}',
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: theme.hintColor,
-                        ),
-                      ),
-                      const Spacer(),
                       Row(
                         children: [
                           Text(
