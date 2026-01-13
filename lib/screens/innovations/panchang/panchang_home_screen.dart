@@ -837,7 +837,7 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
   Widget _buildHighlightsSection(PanchangHighlightsResponse highlights, bool isDark) {
     final upcomingHighlights = highlights.items
         .where((item) => item.isUpcoming)
-        .take(3)
+        .take(5)
         .toList();
 
     if (upcomingHighlights.isEmpty) return const SizedBox.shrink();
@@ -848,13 +848,31 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(
-              'Upcoming Festivals',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: isDark ? Colors.white : Colors.black87,
-              ),
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(6),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFFFB020).withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Icon(
+                    Icons.celebration_rounded,
+                    size: 16,
+                    color: Color(0xFFFFB020),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Text(
+                  'Upcoming Festivals',
+                  style: TextStyle(
+                    fontSize: 17,
+                    fontWeight: FontWeight.w800,
+                    color: isDark ? Colors.white : Colors.black87,
+                    letterSpacing: -0.3,
+                  ),
+                ),
+              ],
             ),
             GestureDetector(
               onTap: () {
@@ -865,93 +883,125 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                   ),
                 );
               },
-              child: Text(
-                'View All',
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  color: const Color(0xFF9333EA),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF9333EA).withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Text(
+                  'View All',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                    color: Color(0xFF9333EA),
+                  ),
                 ),
               ),
             ),
           ],
         ),
-        const SizedBox(height: 16),
-        ...upcomingHighlights.map((highlight) => _buildHighlightItem(highlight, isDark)),
+        const SizedBox(height: 12),
+        SizedBox(
+          height: 90,
+          child: ListView.separated(
+            scrollDirection: Axis.horizontal,
+            itemCount: upcomingHighlights.length,
+            separatorBuilder: (_, __) => const SizedBox(width: 10),
+            itemBuilder: (context, index) {
+              return _buildHighlightItem(upcomingHighlights[index], isDark);
+            },
+          ),
+        ),
       ],
     );
   }
 
   Widget _buildHighlightItem(HighlightItem highlight, bool isDark) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: isDark
-            ? const Color(0xFF1A1A2E).withOpacity(0.6)
-            : Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: (isDark ? Colors.white : Colors.black).withOpacity(0.05),
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: (isDark ? Colors.purple : Colors.black).withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
+    final dateParts = highlight.formattedDate.split(' ');
+    final day = dateParts.length > 1 ? dateParts[1] : '';
+    final month = dateParts.isNotEmpty ? dateParts[0] : '';
+
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const PanchangFestivalsScreen()),
+        );
+      },
+      child: Container(
+        width: 130,
+        padding: const EdgeInsets.all(10),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: isDark
+                ? [const Color(0xFF2D2D3A), const Color(0xFF1A1A24)]
+                : [Colors.white, const Color(0xFFFFFBF0)],
           ),
-        ],
-      ),
-      child: Row(
-          children: [
-          Container(
-            width: 60,
-            height: 60,
-            decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: [Color(0xFFFFD700), Color(0xFFFFA500)],
-              ),
-              borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(
+            color: const Color(0xFFFFB020).withValues(alpha: isDark ? 0.25 : 0.3),
+            width: 1,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: const Color(0xFFFFB020).withValues(alpha: isDark ? 0.08 : 0.12),
+              blurRadius: 8,
+              offset: const Offset(0, 3),
             ),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
               children: [
-                Text(
-                  highlight.formattedDate.split(' ')[1],
-                  style: const TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      colors: [Color(0xFFFFB020), Color(0xFFFF8C00)],
+                    ),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    day,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w900,
+                      color: Colors.white,
+                    ),
                   ),
                 ),
+                const SizedBox(width: 6),
                 Text(
-                  highlight.formattedDate.split(' ')[0],
-                  style: const TextStyle(
+                  month,
+                  style: TextStyle(
                     fontSize: 11,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.white70,
+                    fontWeight: FontWeight.w700,
+                    color: isDark ? Colors.white60 : Colors.black54,
                   ),
                 ),
               ],
             ),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Text(
-              highlight.name,
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-                color: isDark ? Colors.white : Colors.black87,
+            const SizedBox(height: 8),
+            Expanded(
+              child: Text(
+                highlight.name,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
+                  color: isDark ? Colors.white : Colors.black87,
+                  height: 1.2,
+                ),
               ),
             ),
-          ),
-          Icon(
-            Icons.arrow_forward_ios_rounded,
-            size: 16,
-            color: (isDark ? Colors.white : Colors.black).withOpacity(0.3),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

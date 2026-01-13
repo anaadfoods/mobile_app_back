@@ -19,12 +19,8 @@ class PanchangFestivalsResponse {
     for (var item in itemsJson) {
       if (item is Map<String, dynamic>) {
         final date = (item['date'] ?? '').toString();
-        final entry = FestivalEntry(
-          name: (item['name'] ?? '').toString(),
-          type: (item['type'] ?? '').toString(),
-          source: (item['source'] ?? '').toString(),
-          code: item['code']?.toString(),
-        );
+        // Preserve optional fields like name_hi/name_en/description/etc.
+        final entry = FestivalEntry.fromJson(item);
         
         if (!groupedByDate.containsKey(date)) {
           groupedByDate[date] = [];

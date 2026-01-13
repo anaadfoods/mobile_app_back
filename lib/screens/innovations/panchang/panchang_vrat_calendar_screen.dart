@@ -1,5 +1,3 @@
-import 'dart:ui';
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -24,17 +22,41 @@ class _PanchangVratCalendarScreenState extends State<PanchangVratCalendarScreen>
     with SingleTickerProviderStateMixin {
   late final PanchangVratCubit _cubit;
   late final AnimationController _animController;
+  late final ScrollController _scrollController;
   int _lastDays = 90;
   DateTimeRange? _lastRange;
+  bool _isHindi = false;
+
+  DateTime _focusedMonth = DateTime(DateTime.now().year, DateTime.now().month, 1);
+  DateTime? _selectedDate;
+
+  // Caches (performance)
+  DateTime _cachedMonthStart = DateTime(0);
+  List<DateTime> _cachedMonthDays = const [];
+  List<String> _cachedMonthDayKeys = const [];
+
+  List<VratItem>? _cachedCountsSourceItems;
+  Map<String, int> _cachedVratCounts = <String, int>{};
+
+  List<VratItem>? _cachedFilteredSourceItems;
+  String? _cachedFilteredImportance;
+  List<VratItem> _cachedFilteredItems = const [];
+
+  List<VratItem>? _cachedItemsByDateSourceItems;
+  String? _cachedItemsByDateImportance;
+  Map<String, List<VratItem>> _cachedItemsByDate = <String, List<VratItem>>{};
 
   // Theme colors
   static const _gradientStart = Color(0xFF6B46C1);
   static const _gradientEnd = Color(0xFF9333EA);
 
+  static final DateFormat _dateKeyFormat = DateFormat('yyyy-MM-dd');
+
   @override
   void initState() {
     super.initState();
     _cubit = PanchangVratCubit(repository: PanchangRepository());
+    _scrollController = ScrollController();
     _animController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 800),
@@ -45,6 +67,7 @@ class _PanchangVratCalendarScreenState extends State<PanchangVratCalendarScreen>
   @override
   void dispose() {
     _animController.dispose();
+    _scrollController.dispose();
     _cubit.close();
     super.dispose();
   }
@@ -61,13 +84,24 @@ class _PanchangVratCalendarScreenState extends State<PanchangVratCalendarScreen>
           listener: (context, state) {
             if (state is PanchangVratSuccess) {
               _animController.forward(from: 0);
+              _ensureSelectedDateInRange(state.calendar);
             }
           },
           builder: (context, state) {
             return CustomScrollView(
+              controller: _scrollController,
               physics: const BouncingScrollPhysics(),
               slivers: [
                 _buildSliverAppBar(isDark, state),
+                if (state is PanchangVratSuccess)
+                  _buildPinnedNextUpcoming(state, isDark),
+                if (state is PanchangVratSuccess)
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 14, 16, 12),
+                      child: _buildMonthCalendar(state, isDark),
+                    ),
+                  ),
                 if (state is PanchangVratLoading)
                   const SliverFillRemaining(
                     child: Center(child: CircularProgressIndicator()),
@@ -90,110 +124,155 @@ class _PanchangVratCalendarScreenState extends State<PanchangVratCalendarScreen>
   }
 
   Widget _buildSliverAppBar(bool isDark, PanchangVratState state) {
+    const expandedHeight = 200.0;
+
     return SliverAppBar(
-      expandedHeight: 200,
+      expandedHeight: expandedHeight,
       pinned: true,
       stretch: true,
       backgroundColor: isDark ? const Color(0xFF0A0A0F) : Colors.white,
       foregroundColor: Colors.white,
       flexibleSpace: FlexibleSpaceBar(
         stretchModes: const [StretchMode.zoomBackground],
-        background: Container(
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [_gradientStart, _gradientEnd],
-            ),
-          ),
-          child: Stack(
-            children: [
-              // Decorative circles
-              Positioned(
-                top: -50,
-                right: -50,
-                child: Container(
-                  width: 200,
-                  height: 200,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: Colors.white.withValues(alpha: 0.1),
-                  ),
+        background: LayoutBuilder(
+          builder: (context, constraints) {
+            final maxH = constraints.maxHeight;
+            final t = ((maxH - kToolbarHeight) / (expandedHeight - kToolbarHeight))
+                .clamp(0.0, 1.0);
+            final showSubtitle = t > 0.55;
+            final showStats = t > 0.70;
+            final topPadding = 14 + (56 - 14) * t;
+
+            return Container(
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [_gradientStart, _gradientEnd],
                 ),
               ),
-              Positioned(
-                bottom: -30,
-                left: -30,
-                child: Container(
-                  width: 120,
-                  height: 120,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: Colors.white.withValues(alpha: 0.08),
+              child: Stack(
+                children: [
+                  // Decorative circles
+                  Positioned(
+                    top: -50,
+                    right: -50,
+                    child: Container(
+                      width: 200,
+                      height: 200,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: Colors.white.withValues(alpha: 0.1),
+                      ),
+                    ),
                   ),
-                ),
-              ),
-              // Content
-              SafeArea(
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 56, 20, 16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
+                  Positioned(
+                    bottom: -30,
+                    left: -30,
+                    child: Container(
+                      width: 120,
+                      height: 120,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: Colors.white.withValues(alpha: 0.08),
+                      ),
+                    ),
+                  ),
+                  // Content (must adapt while collapsing to avoid RenderFlex overflow)
+                  SafeArea(
+                    child: Padding(
+                      padding: EdgeInsets.fromLTRB(20, topPadding, 20, 12),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Container(
-                            padding: const EdgeInsets.all(10),
-                            decoration: BoxDecoration(
-                              color: Colors.white.withValues(alpha: 0.2),
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: const Icon(
-                              Icons.self_improvement_rounded,
-                              color: Colors.white,
-                              size: 28,
-                            ),
-                          ),
-                          const SizedBox(width: 14),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const Text(
-                                  'Vrat Calendar',
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 24,
-                                    fontWeight: FontWeight.w800,
-                                    letterSpacing: -0.5,
-                                  ),
+                          Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(10),
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withValues(alpha: 0.2),
+                                  borderRadius: BorderRadius.circular(12),
                                 ),
-                                if (state is PanchangVratSuccess)
-                                  Text(
-                                    _getRangeSubtitle(state.calendar),
-                                    style: TextStyle(
-                                      color: Colors.white.withValues(alpha: 0.85),
-                                      fontSize: 13,
-                                      fontWeight: FontWeight.w500,
+                                child: const Icon(
+                                  Icons.self_improvement_rounded,
+                                  color: Colors.white,
+                                  size: 28,
+                                ),
+                              ),
+                              const SizedBox(width: 14),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Text(
+                                      _isHindi ? 'व्रत कैलेंडर' : 'Vrat Calendar',
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 24,
+                                        fontWeight: FontWeight.w800,
+                                        letterSpacing: -0.5,
+                                      ),
                                     ),
-                                  ),
-                              ],
-                            ),
+                                    if (showSubtitle && state is PanchangVratSuccess)
+                                      Text(
+                                        _getRangeSubtitle(state.calendar),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: TextStyle(
+                                          color: Colors.white.withValues(alpha: 0.85),
+                                          fontSize: 13,
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                      ),
+                                  ],
+                                ),
+                              ),
+                            ],
                           ),
+                          if (showStats && state is PanchangVratSuccess) ...[
+                            const Spacer(),
+                            _buildStatsRow(state.calendar),
+                          ],
                         ],
                       ),
-                      const Spacer(),
-                      if (state is PanchangVratSuccess)
-                        _buildStatsRow(state.calendar),
-                    ],
+                    ),
                   ),
-                ),
+                ],
               ),
-            ],
-          ),
+            );
+          },
         ),
       ),
       actions: [
+        // Language toggle
+        Container(
+          margin: const EdgeInsets.only(right: 4),
+          decoration: BoxDecoration(
+            color: Colors.white.withValues(alpha: 0.2),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: InkWell(
+            onTap: () {
+              HapticFeedback.selectionClick();
+              setState(() => _isHindi = !_isHindi);
+            },
+            borderRadius: BorderRadius.circular(8),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+              child: Text(
+                _isHindi ? 'अ' : 'EN',
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+            ),
+          ),
+        ),
         IconButton(
           onPressed: () => _pickDateRange(isDark),
           tooltip: 'Choose date range',
@@ -217,19 +296,19 @@ class _PanchangVratCalendarScreenState extends State<PanchangVratCalendarScreen>
         _statChip(
           icon: Icons.event_available_rounded,
           label: '${calendar.count}',
-          subtitle: 'Vrats',
+          subtitle: _isHindi ? 'व्रत' : 'Vrats',
         ),
         const SizedBox(width: 12),
         _statChip(
           icon: Icons.calendar_today_rounded,
           label: '${calendar.uniqueDatesCount}',
-          subtitle: 'Days',
+          subtitle: _isHindi ? 'दिन' : 'Days',
         ),
         const SizedBox(width: 12),
         _statChip(
           icon: Icons.schedule_rounded,
           label: '${calendar.days}',
-          subtitle: 'Range',
+          subtitle: _isHindi ? 'अवधि' : 'Range',
         ),
       ],
     );
@@ -289,12 +368,29 @@ class _PanchangVratCalendarScreenState extends State<PanchangVratCalendarScreen>
   }
 
   List<Widget> _buildSuccessContent(PanchangVratSuccess state, bool isDark) {
-    final items = state.filteredItems;
+    final selectedDate = _selectedDate;
+    final selectedKey = selectedDate == null ? null : _formatDateKey(selectedDate);
+    final filteredItems = _getFilteredItems(state);
+    final itemsByDate = _getItemsByDate(filteredItems, state.selectedImportance);
+    final items = selectedKey == null
+      ? filteredItems
+      : (itemsByDate[selectedKey] ?? const <VratItem>[]);
 
     return [
       SliverToBoxAdapter(
         child: _buildFilters(state, isDark),
       ),
+      if (selectedDate != null)
+        SliverToBoxAdapter(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 10),
+            child: _buildSelectedDateHeader(
+              isDark: isDark,
+              date: selectedDate,
+              vratCount: items.length,
+            ),
+          ),
+        ),
       if (items.isEmpty)
         SliverFillRemaining(child: _buildEmpty(isDark))
       else
@@ -327,6 +423,494 @@ class _PanchangVratCalendarScreenState extends State<PanchangVratCalendarScreen>
     ];
   }
 
+  SliverPersistentHeader _buildPinnedNextUpcoming(
+    PanchangVratSuccess state,
+    bool isDark,
+  ) {
+    final next = _findNextUpcomingVrat(state.calendar.items);
+
+    return SliverPersistentHeader(
+      pinned: true,
+      delegate: _PinnedHeaderDelegate(
+        minExtent: 76,
+        maxExtent: 76,
+        child: SizedBox(
+          height: 76,
+          child: Container(
+            color: isDark ? const Color(0xFF0A0A0F) : const Color(0xFFF8F9FC),
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+            child: Row(
+              children: [
+                Expanded(
+                  child: next == null
+                      ? _buildTodayHint(isDark)
+                      : _buildNextUpcomingCard(next: next, isDark: isDark),
+                ),
+                const SizedBox(width: 12),
+                _buildTodayJumpButton(isDark),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTodayHint(bool isDark) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      decoration: BoxDecoration(
+        color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: isDark
+              ? Colors.white.withValues(alpha: 0.08)
+              : Colors.black.withValues(alpha: 0.05),
+        ),
+      ),
+      child: Row(
+        children: [
+          Icon(
+            Icons.calendar_month_rounded,
+            size: 18,
+            color: isDark ? Colors.white70 : Colors.black54,
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              _isHindi ? 'दिन चुनें — व्रत देखें' : 'Pick a day to see vrats',
+              style: TextStyle(
+                color: isDark ? Colors.white70 : Colors.black54,
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTodayJumpButton(bool isDark) {
+    return InkWell(
+      onTap: () {
+        HapticFeedback.selectionClick();
+        final today = DateTime.now();
+        setState(() {
+          _focusedMonth = DateTime(today.year, today.month, 1);
+          _selectedDate = DateTime(today.year, today.month, today.day);
+        });
+        _scrollController.animateTo(
+          0,
+          duration: const Duration(milliseconds: 350),
+          curve: Curves.easeOutCubic,
+        );
+      },
+      borderRadius: BorderRadius.circular(16),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [_gradientStart, _gradientEnd],
+          ),
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: _gradientStart.withValues(alpha: 0.25),
+              blurRadius: 14,
+              offset: const Offset(0, 6),
+            ),
+          ],
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.my_location_rounded, size: 18, color: Colors.white),
+            const SizedBox(width: 8),
+            Text(
+              _isHindi ? 'आज' : 'Today',
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 13,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildNextUpcomingCard({required VratItem next, required bool isDark}) {
+    final date = next.dateTime;
+    final dateLabel = DateFormat('EEE, d MMM').format(date);
+
+    return InkWell(
+      onTap: () {
+        HapticFeedback.selectionClick();
+        setState(() {
+          _focusedMonth = DateTime(date.year, date.month, 1);
+          _selectedDate = DateTime(date.year, date.month, date.day);
+        });
+      },
+      borderRadius: BorderRadius.circular(16),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        decoration: BoxDecoration(
+          color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: isDark
+                ? Colors.white.withValues(alpha: 0.08)
+                : Colors.black.withValues(alpha: 0.05),
+          ),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 10,
+              height: 10,
+              decoration: BoxDecoration(
+                color: _importanceColor(next.importanceLower),
+                shape: BoxShape.circle,
+              ),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    _isHindi ? 'अगला व्रत' : 'Next Vrat',
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w800,
+                      color: isDark ? Colors.white60 : Colors.black45,
+                      letterSpacing: 0.2,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    _getVratName(next),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w800,
+                      color: isDark ? Colors.white : const Color(0xFF1A1A2E),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 10),
+            Text(
+              dateLabel,
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w700,
+                color: isDark ? Colors.white70 : Colors.black54,
+              ),
+            ),
+            const SizedBox(width: 6),
+            Icon(
+              Icons.chevron_right_rounded,
+              size: 18,
+              color: isDark ? Colors.white54 : Colors.black45,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMonthCalendar(PanchangVratSuccess state, bool isDark) {
+    final monthStart = _ensureMonthGridCache();
+    final monthLabel = DateFormat('MMMM y').format(monthStart);
+    final days = _cachedMonthDays;
+    final dayKeys = _cachedMonthDayKeys;
+    final vratCounts = _getVratCounts(state.calendar.items);
+
+    return Container(
+      decoration: BoxDecoration(
+        color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: isDark
+              ? Colors.white.withValues(alpha: 0.08)
+              : Colors.black.withValues(alpha: 0.05),
+        ),
+        boxShadow: isDark
+            ? null
+            : [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.04),
+                  blurRadius: 14,
+                  offset: const Offset(0, 6),
+                ),
+              ],
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(14),
+        child: Column(
+          children: [
+            Row(
+              children: [
+                IconButton(
+                  onPressed: () {
+                    HapticFeedback.selectionClick();
+                    setState(() {
+                      _focusedMonth = DateTime(_focusedMonth.year, _focusedMonth.month - 1, 1);
+                    });
+                  },
+                  icon: Icon(
+                    Icons.chevron_left_rounded,
+                    color: isDark ? Colors.white70 : Colors.black54,
+                  ),
+                ),
+                Expanded(
+                  child: Text(
+                    monthLabel,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w900,
+                      color: isDark ? Colors.white : const Color(0xFF1A1A2E),
+                      letterSpacing: -0.2,
+                    ),
+                  ),
+                ),
+                IconButton(
+                  onPressed: () {
+                    HapticFeedback.selectionClick();
+                    setState(() {
+                      _focusedMonth = DateTime(_focusedMonth.year, _focusedMonth.month + 1, 1);
+                    });
+                  },
+                  icon: Icon(
+                    Icons.chevron_right_rounded,
+                    color: isDark ? Colors.white70 : Colors.black54,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 6),
+            _buildWeekdayRow(isDark),
+            const SizedBox(height: 10),
+            GridView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 7,
+                mainAxisSpacing: 8,
+                crossAxisSpacing: 8,
+              ),
+              itemCount: days.length,
+              itemBuilder: (context, index) {
+                final day = days[index];
+                final inMonth = day.month == monthStart.month;
+                final key = dayKeys[index];
+                final vrats = vratCounts[key] ?? 0;
+                final isToday = _isToday(day);
+                final selectedDate = _selectedDate;
+                final isSelected =
+                    selectedDate != null && _isSameDate(selectedDate, day);
+
+                return InkWell(
+                  onTap: () {
+                    HapticFeedback.selectionClick();
+                    setState(() {
+                      final currentSelected = _selectedDate;
+                      if (currentSelected != null &&
+                          _isSameDate(currentSelected, day)) {
+                        _selectedDate = null;
+                      } else {
+                        _selectedDate = DateTime(day.year, day.month, day.day);
+                      }
+                    });
+                  },
+                  borderRadius: BorderRadius.circular(14),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(14),
+                      gradient: isSelected
+                          ? const LinearGradient(
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                              colors: [_gradientStart, _gradientEnd],
+                            )
+                          : null,
+                      color: !isSelected
+                          ? (isDark
+                              ? Colors.white.withValues(alpha: 0.03)
+                              : const Color(0xFFF8F9FC))
+                          : null,
+                      border: Border.all(
+                        color: isToday
+                            ? (isSelected
+                                ? Colors.white.withValues(alpha: 0.65)
+                                : _gradientStart.withValues(alpha: 0.55))
+                            : (isDark
+                                ? Colors.white.withValues(alpha: 0.06)
+                                : Colors.black.withValues(alpha: 0.04)),
+                        width: isToday ? 1.4 : 1,
+                      ),
+                    ),
+                    child: Opacity(
+                      opacity: inMonth ? 1 : 0.35,
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            '${day.day}',
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w900,
+                              color: isSelected
+                                  ? Colors.white
+                                  : (isDark ? Colors.white70 : const Color(0xFF1A1A2E)),
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              if (vrats > 0)
+                                Container(
+                                  width: 6,
+                                  height: 6,
+                                  decoration: BoxDecoration(
+                                    color: isSelected ? Colors.white : AppColors.warning,
+                                    shape: BoxShape.circle,
+                                  ),
+                                ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                );
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildWeekdayRow(bool isDark) {
+    const labels = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
+    return Row(
+      children: List.generate(7, (i) {
+        return Expanded(
+          child: Center(
+            child: Text(
+              labels[i],
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.w800,
+                color: isDark ? Colors.white54 : Colors.black45,
+              ),
+            ),
+          ),
+        );
+      }),
+    );
+  }
+
+  Widget _buildSelectedDateHeader({
+    required bool isDark,
+    required DateTime date,
+    required int vratCount,
+  }) {
+    final label = DateFormat('EEEE, d MMM y').format(date);
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      decoration: BoxDecoration(
+        color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: isDark
+              ? Colors.white.withValues(alpha: 0.08)
+              : Colors.black.withValues(alpha: 0.05),
+        ),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  _isHindi ? 'चुनी हुई तिथि' : 'Selected date',
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w800,
+                    color: isDark ? Colors.white60 : Colors.black45,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w900,
+                    color: isDark ? Colors.white : const Color(0xFF1A1A2E),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 10),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+            decoration: BoxDecoration(
+              color: AppColors.warning.withValues(alpha: isDark ? 0.15 : 0.10),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Text(
+              _isHindi ? '$vratCount व्रत' : '$vratCount vrats',
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w800,
+                color: isDark ? Colors.white70 : AppColors.warning,
+              ),
+            ),
+          ),
+          const SizedBox(width: 8),
+          InkWell(
+            onTap: () {
+              HapticFeedback.selectionClick();
+              setState(() => _selectedDate = null);
+            },
+            borderRadius: BorderRadius.circular(10),
+            child: Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: isDark ? Colors.white.withValues(alpha: 0.06) : const Color(0xFFF8F9FC),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Icon(
+                Icons.close_rounded,
+                size: 18,
+                color: isDark ? Colors.white60 : Colors.black45,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+
   Widget _buildFilters(PanchangVratSuccess state, bool isDark) {
     return Container(
       margin: const EdgeInsets.fromLTRB(16, 16, 16, 16),
@@ -347,14 +931,14 @@ class _PanchangVratCalendarScreenState extends State<PanchangVratCalendarScreen>
       child: Row(
         children: [
           _buildFilterChip(
-            label: 'All',
+            label: _isHindi ? 'सभी' : 'All',
             icon: Icons.grid_view_rounded,
             selected: state.selectedImportance == null,
             onTap: () => _cubit.filterByImportance(null),
             isDark: isDark,
           ),
           _buildFilterChip(
-            label: 'High',
+            label: _isHindi ? 'उच्च' : 'High',
             icon: Icons.priority_high_rounded,
             selected: state.selectedImportance == 'high',
             onTap: () => _cubit.filterByImportance('high'),
@@ -362,7 +946,7 @@ class _PanchangVratCalendarScreenState extends State<PanchangVratCalendarScreen>
             color: AppColors.error,
           ),
           _buildFilterChip(
-            label: 'Medium',
+            label: _isHindi ? 'मध्यम' : 'Medium',
             icon: Icons.remove_rounded,
             selected: state.selectedImportance == 'medium',
             onTap: () => _cubit.filterByImportance('medium'),
@@ -370,7 +954,7 @@ class _PanchangVratCalendarScreenState extends State<PanchangVratCalendarScreen>
             color: AppColors.warning,
           ),
           _buildFilterChip(
-            label: 'Low',
+            label: _isHindi ? 'निम्न' : 'Low',
             icon: Icons.keyboard_arrow_down_rounded,
             selected: state.selectedImportance == 'low',
             onTap: () => _cubit.filterByImportance('low'),
@@ -436,6 +1020,7 @@ class _PanchangVratCalendarScreenState extends State<PanchangVratCalendarScreen>
   Widget _buildVratCard(VratItem vrat, bool isDark, int index) {
     final importanceColor = _importanceColor(vrat.importanceLower);
     final daysUntil = vrat.dateTime.difference(DateTime.now()).inDays;
+    final details = vrat.details;
 
     return GestureDetector(
       onTap: () {
@@ -502,7 +1087,7 @@ class _PanchangVratCalendarScreenState extends State<PanchangVratCalendarScreen>
                     ),
                     const SizedBox(height: 14),
                     Text(
-                      vrat.name,
+                      _getVratName(vrat),
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.w800,
@@ -510,10 +1095,10 @@ class _PanchangVratCalendarScreenState extends State<PanchangVratCalendarScreen>
                         letterSpacing: -0.3,
                       ),
                     ),
-                    if (vrat.details != null) ...[
+                    if (details != null) ...[
                       const SizedBox(height: 6),
                       Text(
-                        _metaLine(vrat.details!),
+                        _metaLine(details),
                         style: TextStyle(
                           fontSize: 13,
                           color: isDark ? Colors.white54 : Colors.black45,
@@ -521,10 +1106,10 @@ class _PanchangVratCalendarScreenState extends State<PanchangVratCalendarScreen>
                         ),
                       ),
                     ],
-                    if ((vrat.info?.description ?? '').isNotEmpty) ...[
+                    if (_getDescription(vrat.info).isNotEmpty) ...[
                       const SizedBox(height: 10),
                       Text(
-                        vrat.info!.description,
+                        _getDescription(vrat.info),
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
@@ -534,14 +1119,14 @@ class _PanchangVratCalendarScreenState extends State<PanchangVratCalendarScreen>
                         ),
                       ),
                     ],
-                    if (vrat.details != null) ...[
+                    if (details != null) ...[
                       const SizedBox(height: 14),
                       Row(
                         children: [
                           _buildTimingChip(
                             Icons.wb_sunny_rounded,
                             'Sunrise',
-                            _formatTime(vrat.details!.sunrise),
+                            _formatTime(details.sunrise),
                             const Color(0xFFFF9500),
                             isDark,
                           ),
@@ -549,7 +1134,7 @@ class _PanchangVratCalendarScreenState extends State<PanchangVratCalendarScreen>
                           _buildTimingChip(
                             Icons.nightlight_round,
                             'Sunset',
-                            _formatTime(vrat.details!.sunset),
+                            _formatTime(details.sunset),
                             const Color(0xFF5856D6),
                             isDark,
                           ),
@@ -612,9 +1197,9 @@ class _PanchangVratCalendarScreenState extends State<PanchangVratCalendarScreen>
           ),
           Text(
             isToday
-                ? 'TODAY'
+                ? (_isHindi ? 'आज' : 'TODAY')
                 : isTomorrow
-                    ? 'TMRW'
+                    ? (_isHindi ? 'कल' : 'TMRW')
                     : DateFormat('MMM').format(date).toUpperCase(),
             style: TextStyle(
               color: Colors.white.withValues(alpha: 0.9),
@@ -633,16 +1218,16 @@ class _PanchangVratCalendarScreenState extends State<PanchangVratCalendarScreen>
     Color bgColor;
 
     if (daysUntil == 0) {
-      text = '🎯 Today';
+      text = _isHindi ? '🎯 आज' : '🎯 Today';
       bgColor = const Color(0xFF34C759);
     } else if (daysUntil == 1) {
-      text = '⏰ Tomorrow';
+      text = _isHindi ? '⏰ कल' : '⏰ Tomorrow';
       bgColor = const Color(0xFFFF9500);
     } else if (daysUntil <= 7) {
-      text = '📅 $daysUntil days';
+      text = _isHindi ? '📅 $daysUntil दिन' : '📅 $daysUntil days';
       bgColor = const Color(0xFF5856D6);
     } else {
-      text = '$daysUntil days';
+      text = _isHindi ? '$daysUntil दिन' : '$daysUntil days';
       bgColor = isDark ? Colors.white12 : Colors.black12;
     }
 
@@ -734,7 +1319,7 @@ class _PanchangVratCalendarScreenState extends State<PanchangVratCalendarScreen>
           ),
           const SizedBox(height: 20),
           Text(
-            'No Vrats Found',
+            _isHindi ? 'कोई व्रत नहीं मिला' : 'No Vrats Found',
             style: TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.w700,
@@ -743,7 +1328,7 @@ class _PanchangVratCalendarScreenState extends State<PanchangVratCalendarScreen>
           ),
           const SizedBox(height: 8),
           Text(
-            'Try adjusting your filters or date range',
+            _isHindi ? 'फ़िल्टर या तिथि सीमा बदलें' : 'Try adjusting your filters or date range',
             style: TextStyle(
               fontSize: 14,
               color: isDark ? Colors.white54 : AppColors.textSecondary,
@@ -753,7 +1338,7 @@ class _PanchangVratCalendarScreenState extends State<PanchangVratCalendarScreen>
           TextButton.icon(
             onPressed: () => _loadNextDays(90),
             icon: const Icon(Icons.refresh_rounded),
-            label: const Text('Reset Filters'),
+            label: Text(_isHindi ? 'रीसेट करें' : 'Reset Filters'),
             style: TextButton.styleFrom(
               foregroundColor: _gradientStart,
             ),
@@ -776,6 +1361,7 @@ class _PanchangVratCalendarScreenState extends State<PanchangVratCalendarScreen>
     final importanceColor = _importanceColor(vrat.importanceLower);
     final info = vrat.info;
     final observance = info?.observance;
+    final details = vrat.details;
 
     return DraggableScrollableSheet(
       initialChildSize: 0.75,
@@ -831,7 +1417,7 @@ class _PanchangVratCalendarScreenState extends State<PanchangVratCalendarScreen>
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                vrat.name,
+                                _getVratName(vrat),
                                 style: const TextStyle(
                                   color: Colors.white,
                                   fontSize: 20,
@@ -852,15 +1438,15 @@ class _PanchangVratCalendarScreenState extends State<PanchangVratCalendarScreen>
                         ),
                       ],
                     ),
-                    if (vrat.details != null) ...[
+                    if (details != null) ...[
                       const SizedBox(height: 16),
                       Row(
                         children: [
                           _sheetTimingChip(Icons.wb_sunny_rounded, 'Sunrise',
-                              _formatTime(vrat.details!.sunrise)),
+                              _formatTime(details.sunrise)),
                           const SizedBox(width: 10),
                           _sheetTimingChip(Icons.nightlight_round, 'Sunset',
-                              _formatTime(vrat.details!.sunset)),
+                              _formatTime(details.sunset)),
                         ],
                       ),
                     ],
@@ -873,67 +1459,67 @@ class _PanchangVratCalendarScreenState extends State<PanchangVratCalendarScreen>
                   controller: controller,
                   padding: const EdgeInsets.all(20),
                   children: [
-                    if (vrat.details != null) ...[
+                    if (details != null) ...[
                       _buildInfoCard(
                         icon: Icons.calendar_month_rounded,
-                        title: 'Details',
-                        content: _metaLine(vrat.details!),
+                        title: _isHindi ? 'विवरण' : 'Details',
+                        content: _metaLine(details),
                         isDark: isDark,
                       ),
                       const SizedBox(height: 12),
                     ],
-                    if ((vrat.why ?? '').isNotEmpty) ...[
+                    if (_getWhy(vrat).isNotEmpty) ...[
                       _buildInfoCard(
                         icon: Icons.info_outline_rounded,
-                        title: 'Why This Day',
-                        content: vrat.why!,
+                        title: _isHindi ? 'यह दिन क्यों' : 'Why This Day',
+                        content: _getWhy(vrat),
                         isDark: isDark,
                       ),
                       const SizedBox(height: 12),
                     ],
-                    if ((info?.description ?? '').isNotEmpty) ...[
+                    if (_getDescription(info).isNotEmpty) ...[
                       _buildInfoCard(
                         icon: Icons.article_outlined,
-                        title: 'About',
-                        content: info!.description,
+                        title: _isHindi ? 'जानकारी' : 'About',
+                        content: _getDescription(info),
                         isDark: isDark,
                       ),
                       const SizedBox(height: 12),
                     ],
-                    if ((observance?.howToDoEn ?? '').isNotEmpty) ...[
+                    if (_getHowToDo(observance).isNotEmpty) ...[
                       _buildInfoCard(
                         icon: Icons.checklist_rounded,
-                        title: 'How to Observe',
-                        content: observance!.howToDoEn!,
+                        title: _isHindi ? 'कैसे करें' : 'How to Observe',
+                        content: _getHowToDo(observance),
                         isDark: isDark,
                       ),
                       const SizedBox(height: 12),
                     ],
-                    if ((observance?.avoidEn ?? const []).isNotEmpty) ...[
+                    if (_getAvoidList(observance).isNotEmpty) ...[
                       _buildListCard(
                         icon: Icons.do_not_disturb_alt_rounded,
-                        title: 'Things to Avoid',
-                        items: observance!.avoidEn,
+                        title: _isHindi ? 'क्या न करें' : 'Things to Avoid',
+                        items: _getAvoidList(observance),
                         color: AppColors.error,
                         isDark: isDark,
                       ),
                       const SizedBox(height: 12),
                     ],
-                    if ((observance?.allowedEn ?? const []).isNotEmpty) ...[
+                    if (_getAllowedList(observance).isNotEmpty) ...[
                       _buildListCard(
                         icon: Icons.check_circle_outline_rounded,
-                        title: 'What\'s Allowed',
-                        items: observance!.allowedEn,
+                        title: _isHindi ? 'क्या कर सकते हैं' : 'What\'s Allowed',
+                        items: _getAllowedList(observance),
                         color: AppColors.success,
                         isDark: isDark,
                       ),
                       const SizedBox(height: 12),
                     ],
-                    if ((info?.paranRules?.notesEn ?? '').isNotEmpty) ...[
+                    if (_getParanNotes(info?.paranRules).isNotEmpty) ...[
                       _buildInfoCard(
                         icon: Icons.restaurant_rounded,
-                        title: 'Paran Rules',
-                        content: info!.paranRules!.notesEn!,
+                        title: _isHindi ? 'पारण नियम' : 'Paran Rules',
+                        content: _getParanNotes(info?.paranRules),
                         isDark: isDark,
                         accentColor: const Color(0xFFFF9500),
                       ),
@@ -1163,7 +1749,7 @@ class _PanchangVratCalendarScreenState extends State<PanchangVratCalendarScreen>
               surface: isDark ? const Color(0xFF1A1A24) : Colors.white,
             ),
           ),
-          child: child!,
+          child: child ?? const SizedBox.shrink(),
         );
       },
     );
@@ -1178,6 +1764,132 @@ class _PanchangVratCalendarScreenState extends State<PanchangVratCalendarScreen>
     } catch (_) {
       return null;
     }
+  }
+
+  String _formatDateKey(DateTime date) {
+    return _dateKeyFormat.format(date);
+  }
+
+  DateTime _ensureMonthGridCache() {
+    final monthStart = DateTime(_focusedMonth.year, _focusedMonth.month, 1);
+    if (_cachedMonthDays.isNotEmpty && _isSameDate(_cachedMonthStart, monthStart)) {
+      return monthStart;
+    }
+
+    final startWeekday = monthStart.weekday; // Mon=1..Sun=7
+    final gridStart = monthStart.subtract(Duration(days: startWeekday - 1));
+    final days = List<DateTime>.generate(42, (i) => gridStart.add(Duration(days: i)));
+    final keys = List<String>.generate(42, (i) => _formatDateKey(days[i]));
+
+    _cachedMonthStart = monthStart;
+    _cachedMonthDays = days;
+    _cachedMonthDayKeys = keys;
+    return monthStart;
+  }
+
+  Map<String, int> _getVratCounts(List<VratItem> items) {
+    if (identical(_cachedCountsSourceItems, items)) return _cachedVratCounts;
+
+    final counts = <String, int>{};
+    for (final v in items) {
+      counts[v.date] = (counts[v.date] ?? 0) + 1;
+    }
+
+    _cachedCountsSourceItems = items;
+    _cachedVratCounts = counts;
+    return counts;
+  }
+
+  List<VratItem> _getFilteredItems(PanchangVratSuccess state) {
+    final items = state.calendar.items;
+    final importance = state.selectedImportance;
+
+    if (identical(_cachedFilteredSourceItems, items) &&
+        _cachedFilteredImportance == importance) {
+      return _cachedFilteredItems;
+    }
+
+    final List<VratItem> filtered;
+    if (importance == null) {
+      filtered = items;
+    } else {
+      final tmp = <VratItem>[];
+      for (final item in items) {
+        if (item.importanceLower == importance) tmp.add(item);
+      }
+      filtered = tmp;
+    }
+
+    _cachedFilteredSourceItems = items;
+    _cachedFilteredImportance = importance;
+    _cachedFilteredItems = filtered;
+    return filtered;
+  }
+
+  Map<String, List<VratItem>> _getItemsByDate(
+    List<VratItem> filteredItems,
+    String? importance,
+  ) {
+    if (identical(_cachedItemsByDateSourceItems, filteredItems) &&
+        _cachedItemsByDateImportance == importance) {
+      return _cachedItemsByDate;
+    }
+
+    final map = <String, List<VratItem>>{};
+    for (final item in filteredItems) {
+      (map[item.date] ??= <VratItem>[]).add(item);
+    }
+
+    _cachedItemsByDateSourceItems = filteredItems;
+    _cachedItemsByDateImportance = importance;
+    _cachedItemsByDate = map;
+    return map;
+  }
+
+  bool _isSameDate(DateTime a, DateTime b) {
+    return a.year == b.year && a.month == b.month && a.day == b.day;
+  }
+
+  void _ensureSelectedDateInRange(VratCalendarResponse calendar) {
+    if (calendar.items.isEmpty) return;
+
+    if (_selectedDate == null) {
+      final today = DateTime.now();
+      final todayKey = _formatDateKey(today);
+      final hasToday = calendar.items.any((e) => e.date == todayKey);
+      setState(() {
+        final selected = hasToday
+            ? DateTime(today.year, today.month, today.day)
+            : calendar.items.first.dateTime;
+        _selectedDate = selected;
+        final d = selected;
+        _focusedMonth = DateTime(d.year, d.month, 1);
+      });
+      return;
+    }
+
+    final first = calendar.items.first.dateTime;
+    final last = calendar.items.last.dateTime;
+    final d = _selectedDate;
+    if (d == null) return;
+    if (d.isBefore(first) || d.isAfter(last)) {
+      setState(() {
+        _selectedDate = first;
+        _focusedMonth = DateTime(first.year, first.month, 1);
+      });
+    }
+  }
+
+  VratItem? _findNextUpcomingVrat(List<VratItem> items) {
+    if (items.isEmpty) return null;
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    for (final v in items) {
+      final d = v.dateTime;
+      final day = DateTime(d.year, d.month, d.day);
+      if (!day.isBefore(today)) return v;
+    }
+    return items.last;
   }
 
   bool _isToday(DateTime date) {
@@ -1214,9 +1926,92 @@ class _PanchangVratCalendarScreenState extends State<PanchangVratCalendarScreen>
   String _metaLine(VratDetails details) {
     final parts = <String>[];
     if ((details.paksha ?? '').isNotEmpty) parts.add('${details.paksha} Paksha');
-    if ((details.masa ?? '').isNotEmpty) parts.add(details.masa!);
-    if ((details.tithi ?? '').isNotEmpty) parts.add(details.tithi!);
+    if ((details.masa ?? '').isNotEmpty) parts.add(details.masa ?? '');
+    if ((details.tithi ?? '').isNotEmpty) parts.add(details.tithi ?? '');
     return parts.join(' • ');
+  }
+
+  // Language helpers
+  String _getVratName(VratItem vrat) {
+    if (_isHindi && (vrat.nameHi ?? '').isNotEmpty) {
+      return vrat.nameHi ?? vrat.name;
+    }
+    return vrat.name;
+  }
+
+  String _getDescription(VratInfo? info) {
+    if (info == null) return '';
+    if (_isHindi && (info.descriptionHi ?? '').isNotEmpty) {
+      return info.descriptionHi ?? info.description;
+    }
+    if ((info.descriptionEn ?? '').isNotEmpty) return info.descriptionEn ?? '';
+    return info.description;
+  }
+
+  String _getWhy(VratItem vrat) {
+    if (_isHindi && (vrat.whyHi ?? '').isNotEmpty) return vrat.whyHi ?? '';
+    return vrat.why ?? '';
+  }
+
+  String _getHowToDo(VratObservance? observance) {
+    if (observance == null) return '';
+    if (_isHindi && (observance.howToDoHi ?? '').isNotEmpty) {
+      return observance.howToDoHi ?? '';
+    }
+    return observance.howToDoEn ?? '';
+  }
+
+  List<String> _getAvoidList(VratObservance? observance) {
+    if (observance == null) return [];
+    if (_isHindi && observance.avoidHi.isNotEmpty) return observance.avoidHi;
+    return observance.avoidEn;
+  }
+
+  List<String> _getAllowedList(VratObservance? observance) {
+    if (observance == null) return [];
+    if (_isHindi && observance.allowedHi.isNotEmpty) return observance.allowedHi;
+    return observance.allowedEn;
+  }
+
+  String _getParanNotes(VratParanRules? rules) {
+    if (rules == null) return '';
+    if (_isHindi && (rules.notesHi ?? '').isNotEmpty) return rules.notesHi ?? '';
+    return rules.notesEn ?? '';
+  }
+}
+
+class _PinnedHeaderDelegate extends SliverPersistentHeaderDelegate {
+  final double _minExtent;
+  final double _maxExtent;
+  final Widget child;
+
+  _PinnedHeaderDelegate({
+    required double minExtent,
+    required double maxExtent,
+    required this.child,
+  })  : _minExtent = minExtent,
+        _maxExtent = maxExtent;
+
+  @override
+  double get minExtent => _minExtent;
+
+  @override
+  double get maxExtent => _maxExtent;
+
+  @override
+  Widget build(
+    BuildContext context,
+    double shrinkOffset,
+    bool overlapsContent,
+  ) {
+    return child;
+  }
+
+  @override
+  bool shouldRebuild(covariant _PinnedHeaderDelegate oldDelegate) {
+    return _minExtent != oldDelegate._minExtent ||
+        _maxExtent != oldDelegate._maxExtent ||
+        child != oldDelegate.child;
   }
 }
 

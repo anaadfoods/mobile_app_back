@@ -56,6 +56,7 @@ class VratCalendarResponse {
 class VratItem {
 	final String date; // YYYY-MM-DD
 	final String name;
+	final String? nameHi;
 	final String type;
 	final String source;
 	final String code;
@@ -64,11 +65,13 @@ class VratItem {
 	final VratInfo? info;
 	final VratDetails? details;
 	final String? why;
+	final String? whyHi;
 	final Map<String, dynamic>? explain;
 
 	const VratItem({
 		required this.date,
 		required this.name,
+		this.nameHi,
 		required this.type,
 		required this.source,
 		required this.code,
@@ -77,6 +80,7 @@ class VratItem {
 		this.info,
 		this.details,
 		this.why,
+		this.whyHi,
 		this.explain,
 	});
 
@@ -84,6 +88,7 @@ class VratItem {
 		return VratItem(
 			date: (json['date'] ?? '').toString(),
 			name: (json['name'] ?? '').toString(),
+			nameHi: json['name_hi']?.toString(),
 			type: (json['type'] ?? '').toString(),
 			source: (json['source'] ?? '').toString(),
 			code: (json['code'] ?? '').toString(),
@@ -96,6 +101,7 @@ class VratItem {
 					? VratDetails.fromJson(json['details'] as Map<String, dynamic>)
 					: null,
 			why: json['why']?.toString(),
+			whyHi: json['why_hi']?.toString(),
 			explain: json['explain'] is Map<String, dynamic>
 					? (json['explain'] as Map<String, dynamic>)
 					: null,
