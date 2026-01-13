@@ -1,11 +1,7 @@
-import 'package:flutter_dotenv/flutter_dotenv.dart';
-
 class ApiConfig {
   // static const String baseUrl = 'http://34.131.42.218';
   // static const String baseUrl = 'https://bac.anaadfoods.com';
-  static const String baseUrl = "http://192.168.29.209:8000";
-
-
+  static const String baseUrl = "http://192.168.29.208:8000";
 
   static const String paymentUrl = 'http://34.131.42.218:5000';
 
@@ -14,9 +10,7 @@ class ApiConfig {
   ///
   /// Example: 'https://panchang.anaadfoods.com' (no trailing slash)
   static String get panchangBaseUrl {
-    final value = ApiConfig.baseUrl;
-    if (value == null) return baseUrl;
-    final trimmed = value.trim();
+    final trimmed = baseUrl.trim();
     if (trimmed.isEmpty) return baseUrl;
     return trimmed.endsWith('/') ? trimmed.substring(0, trimmed.length - 1) : trimmed;
   }
@@ -29,6 +23,9 @@ class ApiConfig {
   static const String panchangFestivalsEndpoint = '${panchangCalenderBase}festivals/';
   static const String panchangFestivalSearchEndpoint =
     '${panchangCalenderBase}festivals/search/';
+  static const String panchangMuhuratsEndpoint = '${panchangCalenderBase}muhurats/';
+  static const String panchangVratCalendarEndpoint =
+      '${panchangCalenderBase}vrat-calendar/';
   static const String panchangHighlightsEndpoint =
     '${panchangCalenderBase}highlights/';
   static const String panchangBundlesEndpoint = '${panchangCalenderBase}bundles/';
