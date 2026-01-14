@@ -1,7 +1,7 @@
 class ApiConfig {
   // static const String baseUrl = 'http://34.131.42.218';
   // static const String baseUrl = 'https://bac.anaadfoods.com';
-  static const String baseUrl = "http://192.168.29.208:8000";
+  static const String baseUrl = "http://192.168.10.222:8000";
 
   static const String paymentUrl = 'http://34.131.42.218:5000';
 
@@ -29,6 +29,10 @@ class ApiConfig {
   static const String panchangHighlightsEndpoint =
     '${panchangCalenderBase}highlights/';
   static const String panchangBundlesEndpoint = '${panchangCalenderBase}bundles/';
+  static const String panchangGuidanceTodayEndpoint =
+    '${panchangCalenderBase}guidance/today/';
+  static const String panchangGuidanceProfileEndpoint =
+    '${panchangCalenderBase}guidance/profile/';
   static String panchangFestivalDetailEndpoint(String code) =>
     '${panchangCalenderBase}festivals/$code/';
   // Auth endpoints

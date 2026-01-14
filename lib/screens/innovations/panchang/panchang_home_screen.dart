@@ -15,6 +15,7 @@ import 'panchang_month_screen.dart';
 import 'panchang_festivals_screen.dart';
 import 'panchang_advanced_timings_screen.dart';
 import 'panchang_vrat_calendar_screen.dart';
+import 'panchang_guidance_screen.dart';
 
 /// Modern redesigned Panchang Calendar Home Screen
 /// Features:
@@ -633,203 +634,361 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
     final dateText = isToday
         ? 'Today\'s Panchang'
         : 'Panchang - ${DateFormat('d MMM yyyy').format(selectedDate)}';
+
+    // Define unique colors for each panchang element
+    final panchangItems = [
+      _PanchangItemData('Tithi', day.corePanchang.tithi, Icons.brightness_3, const Color(0xFFEC4899), 'तिथि'),
+      _PanchangItemData('Nakshatra', day.corePanchang.nakshatra, Icons.stars_rounded, const Color(0xFF8B5CF6), 'नक्षत्र'),
+      _PanchangItemData('Yoga', day.corePanchang.yoga, Icons.self_improvement_rounded, const Color(0xFF10B981), 'योग'),
+      _PanchangItemData('Karana', day.corePanchang.karana, Icons.change_history_rounded, const Color(0xFFF59E0B), 'करण'),
+      _PanchangItemData('Vara', day.corePanchang.vara, Icons.wb_sunny_rounded, const Color(0xFF3B82F6), 'वार'),
+      _PanchangItemData('Paksha', day.lunar.paksha, Icons.brightness_2_rounded, const Color(0xFF6366F1), 'पक्ष'),
+    ];
     
-    return AnimatedBuilder(
-      animation: _shimmerAnimation,
-      builder: (context, child) {
-        return Container(
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(28),
+        boxShadow: [
+          BoxShadow(
+            color: isDark 
+                ? Colors.black.withOpacity(0.4)
+                : const Color(0xFF9333EA).withOpacity(0.15),
+            blurRadius: 25,
+            offset: const Offset(0, 10),
+          ),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(28),
+        child: Container(
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(24),
-            boxShadow: [
-              BoxShadow(
-                color: const Color(0xFF9333EA).withOpacity(0.5 * _shimmerAnimation.value),
-                blurRadius: 20 + (15 * _shimmerAnimation.value),
-                spreadRadius: 0,
-                offset: const Offset(0, 0),
-              ),
-              BoxShadow(
-                color: const Color(0xFF6B46C1).withOpacity(0.4 * _shimmerAnimation.value),
-                blurRadius: 35 + (20 * _shimmerAnimation.value),
-                spreadRadius: 0,
-                offset: const Offset(0, 0),
-              ),
-            ],
-          ),
-          child: Container(
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              color: isDark
-                  ? const Color(0xFF1A1A2E).withOpacity(0.6)
-                  : Colors.white,
-              borderRadius: BorderRadius.circular(24),
-              border: Border.all(
-                color: const Color(0xFF9333EA).withOpacity(0.5 + (0.3 * _shimmerAnimation.value)),
-                width: 2,
-              ),
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: isDark
+                  ? [const Color(0xFF1E1B4B), const Color(0xFF312E81)]
+                  : [Colors.white, const Color(0xFFFAF5FF)],
             ),
-            child: child,
           ),
-        );
-      },
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
+          child: Stack(
             children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFF9333EA), Color(0xFF6B46C1)],
-                  ),
-                  borderRadius: BorderRadius.circular(12),
-                  boxShadow: [
-                    BoxShadow(
-                      color: const Color(0xFF9333EA).withOpacity(0.5),
-                      blurRadius: 12,
-                      spreadRadius: 2,
+              // Decorative background elements
+              Positioned(
+                top: -30,
+                right: -30,
+                child: Container(
+                  width: 120,
+                  height: 120,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: RadialGradient(
+                      colors: [
+                        const Color(0xFF9333EA).withOpacity(isDark ? 0.2 : 0.1),
+                        Colors.transparent,
+                      ],
                     ),
-                  ],
-                ),
-                child: const Icon(
-                  Icons.auto_awesome,
-                  color: Colors.white,
-                  size: 20,
+                  ),
                 ),
               ),
-              const SizedBox(width: 12),
-              Expanded(
+              Positioned(
+                bottom: -20,
+                left: -20,
+                child: Container(
+                  width: 80,
+                  height: 80,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: RadialGradient(
+                      colors: [
+                        const Color(0xFFEC4899).withOpacity(isDark ? 0.15 : 0.08),
+                        Colors.transparent,
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              // Main content
+              Padding(
+                padding: const EdgeInsets.all(20),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      dateText,
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        color: isDark ? Colors.white : Colors.black87,
-                        shadows: [
-                          Shadow(
-                            color: const Color(0xFF9333EA).withOpacity(0.3),
-                            blurRadius: 10,
+                    // Header
+                    Row(
+                      children: [
+                        AnimatedBuilder(
+                          animation: _shimmerAnimation,
+                          builder: (context, child) {
+                            return Container(
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                gradient: const LinearGradient(
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                  colors: [Color(0xFF9333EA), Color(0xFFEC4899)],
+                                ),
+                                borderRadius: BorderRadius.circular(16),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: const Color(0xFF9333EA).withOpacity(0.4 + (0.2 * _shimmerAnimation.value)),
+                                    blurRadius: 15,
+                                    spreadRadius: 0,
+                                  ),
+                                ],
+                              ),
+                              child: const Text('🕉️', style: TextStyle(fontSize: 24)),
+                            );
+                          },
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                dateText,
+                                style: TextStyle(
+                                  fontSize: 22,
+                                  fontWeight: FontWeight.bold,
+                                  color: isDark ? Colors.white : const Color(0xFF1E1B4B),
+                                  letterSpacing: -0.5,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Row(
+                                children: [
+                                  if (lunar.masa.isNotEmpty) ...[
+                                    GestureDetector(
+                                      onTap: () => _showMasaInfoDialog(context, lunar.masa, isDark),
+                                      child: Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                        decoration: BoxDecoration(
+                                          gradient: LinearGradient(
+                                            colors: [
+                                              const Color(0xFF9333EA).withOpacity(isDark ? 0.3 : 0.15),
+                                              const Color(0xFFEC4899).withOpacity(isDark ? 0.2 : 0.1),
+                                            ],
+                                          ),
+                                          borderRadius: BorderRadius.circular(20),
+                                          border: Border.all(
+                                            color: const Color(0xFF9333EA).withOpacity(0.3),
+                                          ),
+                                        ),
+                                        child: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Text(
+                                              '📅 ${lunar.masa}',
+                                              style: TextStyle(
+                                                fontSize: 12,
+                                                fontWeight: FontWeight.w600,
+                                                color: isDark ? const Color(0xFFD8B4FE) : const Color(0xFF7C3AED),
+                                              ),
+                                            ),
+                                            const SizedBox(width: 4),
+                                            Icon(
+                                              Icons.touch_app_rounded,
+                                              size: 12,
+                                              color: isDark ? const Color(0xFFD8B4FE).withOpacity(0.6) : const Color(0xFF7C3AED).withOpacity(0.6),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 8),
+                                  ],
+                                  if (lunar.paksha.isNotEmpty)
+                                    GestureDetector(
+                                      onTap: () => _showPakshaInfoDialog(context, lunar.paksha, isDark),
+                                      child: Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                        decoration: BoxDecoration(
+                                          color: lunar.paksha.toLowerCase().contains('krishna')
+                                              ? const Color(0xFF6366F1).withOpacity(isDark ? 0.3 : 0.15)
+                                              : const Color(0xFFF59E0B).withOpacity(isDark ? 0.3 : 0.15),
+                                          borderRadius: BorderRadius.circular(20),
+                                          border: Border.all(
+                                            color: lunar.paksha.toLowerCase().contains('krishna')
+                                                ? const Color(0xFF6366F1).withOpacity(0.3)
+                                                : const Color(0xFFF59E0B).withOpacity(0.3),
+                                          ),
+                                        ),
+                                        child: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Text(
+                                              lunar.paksha.toLowerCase().contains('krishna') ? '🌑 ${lunar.paksha}' : '🌕 ${lunar.paksha}',
+                                              style: TextStyle(
+                                                fontSize: 12,
+                                                fontWeight: FontWeight.w600,
+                                                color: lunar.paksha.toLowerCase().contains('krishna')
+                                                    ? (isDark ? const Color(0xFFA5B4FC) : const Color(0xFF4F46E5))
+                                                    : (isDark ? const Color(0xFFFCD34D) : const Color(0xFFD97706)),
+                                              ),
+                                            ),
+                                            const SizedBox(width: 4),
+                                            Icon(
+                                              Icons.touch_app_rounded,
+                                              size: 12,
+                                              color: lunar.paksha.toLowerCase().contains('krishna')
+                                                  ? (isDark ? const Color(0xFFA5B4FC).withOpacity(0.6) : const Color(0xFF4F46E5).withOpacity(0.6))
+                                                  : (isDark ? const Color(0xFFFCD34D).withOpacity(0.6) : const Color(0xFFD97706).withOpacity(0.6)),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                ],
+                              ),
+                            ],
                           ),
-                        ],
-                      ),
+                        ),
+                        GestureDetector(
+                          onTap: () => _showPanchangInfoDialog(context, isDark),
+                          child: Container(
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: isDark 
+                                  ? Colors.white.withOpacity(0.1)
+                                  : const Color(0xFF9333EA).withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(14),
+                              border: Border.all(
+                                color: const Color(0xFF9333EA).withOpacity(0.2),
+                              ),
+                            ),
+                            child: Icon(
+                              Icons.info_outline_rounded,
+                              color: isDark ? const Color(0xFFA78BFA) : const Color(0xFF7C3AED),
+                              size: 22,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
-                    if (lunar.masa.isNotEmpty) ...[
-                      const SizedBox(height: 4),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF9333EA).withOpacity(0.15),
-                          borderRadius: BorderRadius.circular(6),
-                          border: Border.all(
-                            color: const Color(0xFF9333EA).withOpacity(0.3),
-                            width: 1,
-                          ),
-                        ),
-                        child: Text(
-                          lunar.masa,
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                            color: isDark ? const Color(0xFFB794F6) : const Color(0xFF7C3AED),
-                          ),
-                        ),
+                    const SizedBox(height: 24),
+                    // Panchang Grid - 3 columns
+                    GridView.builder(
+                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 3,
+                        mainAxisSpacing: 12,
+                        crossAxisSpacing: 12,
+                        childAspectRatio: 0.85,
                       ),
-                    ],
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      itemCount: panchangItems.length,
+                      itemBuilder: (context, index) {
+                        final item = panchangItems[index];
+                        return _buildPanchangItem(item, isDark, index);
+                      },
+                    ),
                   ],
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 20),
-          GridView.count(
-            crossAxisCount: 2,
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            mainAxisSpacing: 16,
-            crossAxisSpacing: 16,
-            childAspectRatio: 1.8,
-            children: [
-              _buildPanchangItem('Tithi', day.corePanchang.tithi, Icons.brightness_3, isDark, 0),
-              _buildPanchangItem('Nakshatra', day.corePanchang.nakshatra, Icons.stars_rounded, isDark, 1),
-              _buildPanchangItem('Yoga', day.corePanchang.yoga, Icons.self_improvement_rounded, isDark, 2),
-              _buildPanchangItem('Karana', day.corePanchang.karana, Icons.circle_outlined, isDark, 3),
-              _buildPanchangItem('Vara', day.corePanchang.vara, Icons.calendar_today, isDark, 4),
-              _buildPanchangItem('Paksha', day.lunar.paksha, Icons.brightness_2, isDark, 5),
-            ],
-          ),
-        ],
+        ),
       ),
     );
   }
 
-  Widget _buildPanchangItem(String label, String value, IconData icon, bool isDark, int index) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: isDark
-              ? [
-                  const Color(0xFF6B46C1).withOpacity(0.35),
-                  const Color(0xFF9333EA).withOpacity(0.25),
-                ]
-              : [
-                  const Color(0xFFE8D5FF).withOpacity(0.8),
-                  const Color(0xFFF3E8FF).withOpacity(0.6),
-                ],
-        ),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: const Color(0xFF9333EA).withOpacity(0.2),
-          width: 1,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0xFF9333EA).withOpacity(0.15),
-            blurRadius: 8,
-            spreadRadius: 0,
-            offset: const Offset(0, 2),
+  Widget _buildPanchangItem(_PanchangItemData item, bool isDark, int index) {
+    return TweenAnimationBuilder<double>(
+      tween: Tween(begin: 0.0, end: 1.0),
+      duration: Duration(milliseconds: 400 + (index * 80)),
+      curve: Curves.easeOutCubic,
+      builder: (context, value, child) {
+        return Transform.scale(
+          scale: 0.8 + (0.2 * value),
+          child: Opacity(opacity: value, child: child),
+        );
+      },
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: isDark
+                ? [
+                    item.color.withOpacity(0.25),
+                    item.color.withOpacity(0.1),
+                  ]
+                : [
+                    item.color.withOpacity(0.12),
+                    item.color.withOpacity(0.05),
+                  ],
           ),
-        ],
-      ),
-      child: Column(
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(
+            color: item.color.withOpacity(isDark ? 0.4 : 0.25),
+            width: 1.5,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: item.color.withOpacity(isDark ? 0.2 : 0.1),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-          Icon(
-            icon,
-            color: const Color(0xFF9333EA),
-            size: 20,
-          ),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                label,
-                style: TextStyle(
-                  fontSize: 11,
-                  color: (isDark ? Colors.white : Colors.black).withOpacity(0.6),
-                  fontWeight: FontWeight.w500,
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: item.color.withOpacity(isDark ? 0.3 : 0.15),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Icon(
+                    item.icon,
+                    color: isDark ? item.color.withOpacity(0.9) : item.color,
+                    size: 18,
+                  ),
                 ),
-              ),
-              const SizedBox(height: 2),
-              Text(
-                value.isEmpty ? '—' : value,
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.bold,
-                  color: isDark ? Colors.white : Colors.black87,
+                Text(
+                  item.sanskrit,
+                  style: TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w500,
+                    color: isDark ? item.color.withOpacity(0.7) : item.color.withOpacity(0.8),
+                  ),
                 ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ],
-          ),
-        ],
+              ],
+            ),
+            const Spacer(),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  item.label,
+                  style: TextStyle(
+                    fontSize: 11,
+                    color: (isDark ? Colors.white : Colors.black).withOpacity(0.5),
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  item.value.isEmpty ? '—' : item.value,
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.bold,
+                    color: isDark ? Colors.white : const Color(0xFF1E1B4B),
+                    height: 1.2,
+                  ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -1058,7 +1217,20 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
               ),
             ),
             const SizedBox(width: 16),
-            const Expanded(child: SizedBox.shrink()),
+            Expanded(
+              child: _buildActionCard(
+                icon: Icons.auto_awesome,
+                label: 'Today\'s\nGuidance',
+                color: const Color(0xFF3B82F6),
+                isDark: isDark,
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const PanchangGuidanceScreen(),
+                  ),
+                ),
+              ),
+            ),
           ],
         ),
       ],
@@ -1145,8 +1317,9 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
   Widget _buildInauspiciousTimingsCard(PanchangInauspiciousTimings timings, bool isDark) {
     String formatTime(DateTime? time) {
       if (time == null) return '--:--';
-      final hour = time.hour;
-      final minute = time.minute;
+      final localTime = time.toLocal();
+      final hour = localTime.hour;
+      final minute = localTime.minute;
       final period = hour >= 12 ? 'PM' : 'AM';
       final hour12 = hour == 0 ? 12 : (hour > 12 ? hour - 12 : hour);
       return '$hour12:${minute.toString().padLeft(2, '0')} $period';
@@ -1220,11 +1393,26 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                         ),
                       ),
                     ),
+                    GestureDetector(
+                      onTap: () => _showInauspiciousInfoDialog(context, isDark),
+                      child: Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: Colors.red.withOpacity(0.2),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Icon(
+                          Icons.info_outline_rounded,
+                          color: isDark ? Colors.red.shade200 : Colors.red.shade700,
+                          size: 20,
+                        ),
+                      ),
+                    ),
                   ],
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  'Avoid starting new work during these times',
+                  'Tap ℹ️ to learn more • Avoid starting new work',
                   style: TextStyle(
                     fontSize: 12,
                     color: (isDark ? Colors.white : Colors.black).withOpacity(0.6),
@@ -1307,8 +1495,9 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
   Widget _buildRahuKaalCard(PanchangTimeWindow rahuKaal, bool isDark) {
     String formatTime(DateTime? time) {
       if (time == null) return '--:--';
-      final hour = time.hour;
-      final minute = time.minute;
+      final localTime = time.toLocal();
+      final hour = localTime.hour;
+      final minute = localTime.minute;
       final period = hour >= 12 ? 'PM' : 'AM';
       final hour12 = hour == 0 ? 12 : (hour > 12 ? hour - 12 : hour);
       return '$hour12:${minute.toString().padLeft(2, '0')} $period';
@@ -1408,8 +1597,9 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
   Widget _buildMuhuratsCard(PanchangAuspiciousMuhurats muhurats, bool isDark) {
     String formatTime(DateTime? time) {
       if (time == null) return '--:--';
-      final hour = time.hour;
-      final minute = time.minute;
+      final localTime = time.toLocal();
+      final hour = localTime.hour;
+      final minute = localTime.minute;
       final period = hour >= 12 ? 'PM' : 'AM';
       final hour12 = hour == 0 ? 12 : (hour > 12 ? hour - 12 : hour);
       return '$hour12:${minute.toString().padLeft(2, '0')} $period';
@@ -1453,17 +1643,42 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                 ),
               ),
               const SizedBox(width: 12),
-              Text(
-                'Auspicious Times',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: isDark ? Colors.white : Colors.black87,
+              Expanded(
+                child: Text(
+                  'Auspicious Times',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: isDark ? Colors.white : Colors.black87,
+                  ),
+                ),
+              ),
+              GestureDetector(
+                onTap: () => _showAuspiciousInfoDialog(context, isDark),
+                child: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.green.withOpacity(0.2),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Icon(
+                    Icons.info_outline_rounded,
+                    color: isDark ? Colors.green.shade200 : Colors.green.shade700,
+                    size: 20,
+                  ),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 4),
+          Text(
+            'Tap ℹ️ to learn more about auspicious muhurats',
+            style: TextStyle(
+              fontSize: 12,
+              color: (isDark ? Colors.white : Colors.black).withOpacity(0.6),
+            ),
+          ),
+          const SizedBox(height: 12),
           if (muhurats.abhijit != null)
             _buildMuhuratItem(
               'Abhijit Muhurat',
@@ -1555,8 +1770,9 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
   ) {
     String formatTime(DateTime? time) {
       if (time == null) return '--:--';
-      final hour = time.hour;
-      final minute = time.minute;
+      final localTime = time.toLocal();
+      final hour = localTime.hour;
+      final minute = localTime.minute;
       final period = hour >= 12 ? 'PM' : 'AM';
       final hour12 = hour == 0 ? 12 : (hour > 12 ? hour - 12 : hour);
       return '$hour12:${minute.toString().padLeft(2, '0')} $period';
@@ -1581,17 +1797,42 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
             children: [
               const Icon(Icons.nightlight_round, color: Colors.blue, size: 28),
               const SizedBox(width: 12),
-              Text(
-                'Moon & Rashi Details',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: isDark ? Colors.white : Colors.black87,
+              Expanded(
+                child: Text(
+                  'Moon & Rashi Details',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: isDark ? Colors.white : Colors.black87,
+                  ),
+                ),
+              ),
+              GestureDetector(
+                onTap: () => _showMoonRashiInfoDialog(context, isDark),
+                child: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.blue.withOpacity(0.2),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Icon(
+                    Icons.info_outline_rounded,
+                    color: isDark ? Colors.blue.shade200 : Colors.blue.shade700,
+                    size: 20,
+                  ),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 4),
+          Text(
+            'Tap ℹ️ to learn about Moon phases & Rashi',
+            style: TextStyle(
+              fontSize: 12,
+              color: (isDark ? Colors.white : Colors.black).withOpacity(0.5),
+            ),
+          ),
+          const SizedBox(height: 12),
           Row(
             children: [
               Expanded(
@@ -1754,9 +1995,778 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
       ),
     );
   }
+
+  void _showInauspiciousInfoDialog(BuildContext context, bool isDark) {
+    showDialog(
+      context: context,
+      builder: (context) => Dialog(
+        backgroundColor: Colors.transparent,
+        insetPadding: const EdgeInsets.all(20),
+        child: Container(
+          constraints: const BoxConstraints(maxWidth: 400),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: isDark
+                  ? [const Color(0xFF2D1B1B), const Color(0xFF1A1A1A)]
+                  : [Colors.white, const Color(0xFFFFF5F5)],
+            ),
+            borderRadius: BorderRadius.circular(24),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.red.withOpacity(0.3),
+                blurRadius: 30,
+                spreadRadius: 5,
+              ),
+            ],
+            border: Border.all(color: Colors.red.withOpacity(0.3), width: 1),
+          ),
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(24),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(colors: [Colors.red.shade700, Colors.red.shade900]),
+                    borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.2),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: const Icon(Icons.warning_rounded, color: Colors.white, size: 28),
+                      ),
+                      const SizedBox(width: 16),
+                      const Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text('Inauspicious Timings', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white)),
+                            SizedBox(height: 4),
+                            Text('Understanding unfavorable periods', style: TextStyle(fontSize: 13, color: Colors.white70)),
+                          ],
+                        ),
+                      ),
+                      IconButton(onPressed: () => Navigator.pop(context), icon: const Icon(Icons.close, color: Colors.white70)),
+                    ],
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
+                    children: [
+                      _buildInfoSection(icon: Icons.dangerous_rounded, title: 'Rahu Kaal', color: Colors.red.shade600,
+                        description: 'Rahu Kaal is considered the most inauspicious time of the day. According to Vedic astrology, Rahu is a shadow planet that brings obstacles, delays, and negative outcomes. Any new venture started during this period may face unexpected hurdles.',
+                        tips: ['Avoid starting new businesses', 'Not recommended for travel', 'Skip signing important contracts', 'Avoid major purchases'], isDark: isDark),
+                      const SizedBox(height: 16),
+                      _buildInfoSection(icon: Icons.block_rounded, title: 'Gulika Kaal', color: Colors.orange.shade700,
+                        description: 'Gulika (also known as Mandi) is the son of Saturn and represents a highly malefic period. Activities begun during Gulika Kaal may lead to illness, loss, or failure.',
+                        tips: ['Avoid medical treatments', 'Not suitable for finance', 'Skip educational pursuits', 'Avoid initiating relationships'], isDark: isDark),
+                      const SizedBox(height: 16),
+                      _buildInfoSection(icon: Icons.report_problem_rounded, title: 'Yamaganda Kaal', color: Colors.deepOrange.shade700,
+                        description: 'Yamaganda means "danger of Yama" (the god of death). Activities started during this time may lead to accidents or health issues.',
+                        tips: ['Strictly avoid travel', 'No risky activities', 'Avoid important ceremonies', 'Not suitable for construction'], isDark: isDark),
+                      const SizedBox(height: 20),
+                      Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(color: Colors.amber.withOpacity(isDark ? 0.15 : 0.1), borderRadius: BorderRadius.circular(16), border: Border.all(color: Colors.amber.withOpacity(0.3))),
+                        child: Row(
+                          children: [
+                            Icon(Icons.lightbulb_outline, color: Colors.amber.shade600, size: 24),
+                            const SizedBox(width: 12),
+                            Expanded(child: Text('Tip: Routine activities and ongoing work can continue during these periods. Only avoid starting new important tasks.', style: TextStyle(fontSize: 13, color: isDark ? Colors.amber.shade200 : Colors.amber.shade800, height: 1.4))),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showAuspiciousInfoDialog(BuildContext context, bool isDark) {
+    showDialog(
+      context: context,
+      builder: (context) => Dialog(
+        backgroundColor: Colors.transparent,
+        insetPadding: const EdgeInsets.all(20),
+        child: Container(
+          constraints: const BoxConstraints(maxWidth: 400),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight,
+              colors: isDark ? [const Color(0xFF1B2D1B), const Color(0xFF1A1A1A)] : [Colors.white, const Color(0xFFF5FFF5)]),
+            borderRadius: BorderRadius.circular(24),
+            boxShadow: [BoxShadow(color: Colors.green.withOpacity(0.3), blurRadius: 30, spreadRadius: 5)],
+            border: Border.all(color: Colors.green.withOpacity(0.3), width: 1),
+          ),
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(24),
+                  decoration: BoxDecoration(gradient: LinearGradient(colors: [Colors.green.shade600, Colors.green.shade800]), borderRadius: const BorderRadius.vertical(top: Radius.circular(24))),
+                  child: Row(
+                    children: [
+                      Container(padding: const EdgeInsets.all(12), decoration: BoxDecoration(color: Colors.white.withOpacity(0.2), borderRadius: BorderRadius.circular(12)), child: const Icon(Icons.auto_awesome, color: Colors.white, size: 28)),
+                      const SizedBox(width: 16),
+                      const Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text('Auspicious Timings', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white)), SizedBox(height: 4), Text('Sacred windows of opportunity', style: TextStyle(fontSize: 13, color: Colors.white70))])),
+                      IconButton(onPressed: () => Navigator.pop(context), icon: const Icon(Icons.close, color: Colors.white70)),
+                    ],
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
+                    children: [
+                      _buildInfoSection(icon: Icons.wb_twilight_rounded, title: 'Brahma Muhurat', color: Colors.purple.shade600,
+                        description: 'Brahma Muhurat literally means "the creator\'s time" and occurs approximately 1 hour 36 minutes before sunrise. This is the most spiritually powerful time for meditation and prayer.',
+                        tips: ['Ideal for meditation and yoga', 'Best for studying scriptures', 'Perfect for spiritual practices', 'Enhanced clarity for decisions'], isDark: isDark),
+                      const SizedBox(height: 16),
+                      _buildInfoSection(icon: Icons.star_rounded, title: 'Abhijit Muhurat', color: Colors.amber.shade700,
+                        description: 'Abhijit Muhurat is the "victorious moment" occurring around midday. It\'s so auspicious that it nullifies all doshas (defects). Lord Krishna was born during this muhurat.',
+                        tips: ['Perfect for new ventures', 'Excellent for important meetings', 'Ideal for signing contracts', 'Best for beginning journeys'], isDark: isDark),
+                      const SizedBox(height: 16),
+                      _buildInfoSection(icon: Icons.sunny, title: 'Sunrise (Suryodaya)', color: Colors.orange.shade600,
+                        description: 'The moment of sunrise is highly auspicious. The first rays of the sun carry healing energy and divine blessings. Morning prayers at this time are especially powerful.',
+                        tips: ['Offer water to the Sun', 'Practice Surya Namaskar', 'Begin your day with gratitude', 'Set intentions for the day'], isDark: isDark),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showMasaInfoDialog(BuildContext context, String currentMasa, bool isDark) {
+    final masaInfo = {
+      'Chaitra': {'month': 'March-April', 'deity': 'Vishnu', 'significance': 'Start of Hindu New Year (Vikram Samvat). Chaitra Navratri begins.'},
+      'Vaishakha': {'month': 'April-May', 'deity': 'Madhusudana', 'significance': 'Buddha Purnima, Akshaya Tritiya. Best for charity and new beginnings.'},
+      'Jyeshtha': {'month': 'May-June', 'deity': 'Trivikrama', 'significance': 'Ganga Dussehra, Nirjala Ekadashi. Summer heat peaks.'},
+      'Ashadha': {'month': 'June-July', 'deity': 'Vamana', 'significance': 'Guru Purnima, start of Chaturmas. Monsoon begins.'},
+      'Shravana': {'month': 'July-August', 'deity': 'Sridhara', 'significance': 'Shravan Somvar, Raksha Bandhan, Janmashtami. Very auspicious month.'},
+      'Bhadrapada': {'month': 'August-September', 'deity': 'Hrishikesha', 'significance': 'Ganesh Chaturthi, Anant Chaturdashi, Pitru Paksha begins.'},
+      'Ashwin': {'month': 'September-October', 'deity': 'Padmanabha', 'significance': 'Sharad Navratri, Durga Puja, Dussehra. Festival season begins.'},
+      'Kartik': {'month': 'October-November', 'deity': 'Damodara', 'significance': 'Diwali, Govardhan Puja, Tulsi Vivah. Most sacred month for Vaishnavites.'},
+      'Margashirsha': {'month': 'November-December', 'deity': 'Keshava', 'significance': 'Gita Jayanti, Mokshada Ekadashi. Lord Krishna\'s favorite month.'},
+      'Pausha': {'month': 'December-January', 'deity': 'Narayana', 'significance': 'Makar Sankranti, Lohri. Winter solstice period.'},
+      'Magha': {'month': 'January-February', 'deity': 'Madhava', 'significance': 'Vasant Panchami, Maha Shivaratri. Spring begins.'},
+      'Phalguna': {'month': 'February-March', 'deity': 'Govinda', 'significance': 'Holi, Holika Dahan. End of Hindu calendar year.'},
+    };
+
+    final info = masaInfo[currentMasa] ?? {
+      'month': 'Hindu Lunar Month',
+      'deity': 'Vishnu',
+      'significance': 'Each month is associated with specific festivals and rituals.'
+    };
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => Container(
+        constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.7),
+        decoration: BoxDecoration(
+          color: isDark ? const Color(0xFF1E1B4B) : Colors.white,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(25)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Handle bar
+            Container(
+              margin: const EdgeInsets.only(top: 12),
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: Colors.grey.withOpacity(0.3),
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            // Header
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [const Color(0xFF9333EA), const Color(0xFFEC4899)],
+                ),
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(25)),
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.2),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: const Text('📅', style: TextStyle(fontSize: 28)),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          '$currentMasa Masa',
+                          style: const TextStyle(
+                            fontSize: 22,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+                        Text(
+                          'Hindu Lunar Month (मास)',
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: Colors.white.withOpacity(0.8),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  IconButton(
+                    onPressed: () => Navigator.pop(context),
+                    icon: const Icon(Icons.close, color: Colors.white),
+                  ),
+                ],
+              ),
+            ),
+            // Content
+            Flexible(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildInfoRow(Icons.calendar_month, 'Gregorian Period', info['month']!, isDark),
+                    const SizedBox(height: 16),
+                    _buildInfoRow(Icons.temple_hindu, 'Presiding Deity', info['deity']!, isDark),
+                    const SizedBox(height: 16),
+                    _buildInfoRow(Icons.auto_awesome, 'Significance', info['significance']!, isDark),
+                    const SizedBox(height: 24),
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF9333EA).withOpacity(isDark ? 0.2 : 0.1),
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: const Color(0xFF9333EA).withOpacity(0.3)),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            '💡 What is Masa?',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: isDark ? Colors.white : Colors.black87,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            'Masa (मास) is the Hindu lunar month. There are 12 months in a lunar year, each named after the Nakshatra in which the full moon occurs. The Hindu calendar follows either Amanta (month ends on New Moon) or Purnimanta (month ends on Full Moon) system.',
+                            style: TextStyle(
+                              fontSize: 14,
+                              height: 1.5,
+                              color: isDark ? Colors.white70 : Colors.black54,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showPakshaInfoDialog(BuildContext context, String currentPaksha, bool isDark) {
+    final isKrishna = currentPaksha.toLowerCase().contains('krishna');
+    
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => Container(
+        constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.75),
+        decoration: BoxDecoration(
+          color: isDark ? const Color(0xFF1E1B4B) : Colors.white,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(25)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Handle bar
+            Container(
+              margin: const EdgeInsets.only(top: 12),
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: Colors.grey.withOpacity(0.3),
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            // Header
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: isKrishna
+                      ? [const Color(0xFF312E81), const Color(0xFF6366F1)]
+                      : [const Color(0xFFF59E0B), const Color(0xFFFBBF24)],
+                ),
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(25)),
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.2),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Text(isKrishna ? '🌑' : '🌕', style: const TextStyle(fontSize: 28)),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          '$currentPaksha Paksha',
+                          style: TextStyle(
+                            fontSize: 22,
+                            fontWeight: FontWeight.bold,
+                            color: isKrishna ? Colors.white : Colors.black87,
+                          ),
+                        ),
+                        Text(
+                          isKrishna ? 'Dark Fortnight (कृष्ण पक्ष)' : 'Bright Fortnight (शुक्ल पक्ष)',
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: isKrishna ? Colors.white.withOpacity(0.8) : Colors.black54,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  IconButton(
+                    onPressed: () => Navigator.pop(context),
+                    icon: Icon(Icons.close, color: isKrishna ? Colors.white : Colors.black54),
+                  ),
+                ],
+              ),
+            ),
+            // Content
+            Flexible(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Moon Phase Visual
+                    Container(
+                      padding: const EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: isKrishna
+                              ? [const Color(0xFF1E1B4B).withOpacity(0.5), const Color(0xFF312E81).withOpacity(0.3)]
+                              : [const Color(0xFFFEF3C7), const Color(0xFFFDE68A).withOpacity(0.5)],
+                        ),
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: isKrishna
+                            ? [
+                                _buildMoonPhase('🌕', 'Purnima', 'Day 1', isDark),
+                                const Icon(Icons.arrow_forward, color: Colors.grey),
+                                _buildMoonPhase('🌖', 'Waning', 'Day 5', isDark),
+                                const Icon(Icons.arrow_forward, color: Colors.grey),
+                                _buildMoonPhase('🌗', 'Half', 'Day 8', isDark),
+                                const Icon(Icons.arrow_forward, color: Colors.grey),
+                                _buildMoonPhase('🌑', 'Amavasya', 'Day 15', isDark),
+                              ]
+                            : [
+                                _buildMoonPhase('🌑', 'Amavasya', 'Day 1', isDark),
+                                const Icon(Icons.arrow_forward, color: Colors.grey),
+                                _buildMoonPhase('🌒', 'Waxing', 'Day 5', isDark),
+                                const Icon(Icons.arrow_forward, color: Colors.grey),
+                                _buildMoonPhase('🌓', 'Half', 'Day 8', isDark),
+                                const Icon(Icons.arrow_forward, color: Colors.grey),
+                                _buildMoonPhase('🌕', 'Purnima', 'Day 15', isDark),
+                              ],
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    // Details
+                    _buildInfoRow(
+                      Icons.brightness_2,
+                      'Moon Phase',
+                      isKrishna ? 'Waning Moon (decreasing light)' : 'Waxing Moon (increasing light)',
+                      isDark,
+                    ),
+                    const SizedBox(height: 16),
+                    _buildInfoRow(
+                      Icons.calendar_today,
+                      'Duration',
+                      '15 Tithis (lunar days)',
+                      isDark,
+                    ),
+                    const SizedBox(height: 16),
+                    _buildInfoRow(
+                      Icons.star,
+                      'Ends On',
+                      isKrishna ? 'Amavasya (New Moon)' : 'Purnima (Full Moon)',
+                      isDark,
+                    ),
+                    const SizedBox(height: 24),
+                    // Best Activities
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: (isKrishna ? const Color(0xFF6366F1) : const Color(0xFFF59E0B)).withOpacity(isDark ? 0.2 : 0.1),
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                          color: (isKrishna ? const Color(0xFF6366F1) : const Color(0xFFF59E0B)).withOpacity(0.3),
+                        ),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            isKrishna ? '🌙 Krishna Paksha Activities' : '☀️ Shukla Paksha Activities',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: isDark ? Colors.white : Colors.black87,
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          ...( isKrishna
+                              ? [
+                                  '✅ Pitru Tarpan (ancestral offerings)',
+                                  '✅ Tantra Sadhana & occult practices',
+                                  '✅ Completion of ongoing tasks',
+                                  '✅ Introspection & meditation',
+                                  '✅ Shraddha rituals',
+                                  '❌ Avoid starting new ventures',
+                                  '❌ Avoid marriages & griha pravesh',
+                                ]
+                              : [
+                                  '✅ Starting new ventures',
+                                  '✅ Marriages & auspicious ceremonies',
+                                  '✅ Griha Pravesh (house warming)',
+                                  '✅ Religious functions & yagnas',
+                                  '✅ Buying property or vehicles',
+                                  '✅ Starting education or business',
+                                ]
+                          ).map((text) => Padding(
+                            padding: const EdgeInsets.only(bottom: 8),
+                            child: Text(
+                              text,
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: isDark ? Colors.white70 : Colors.black54,
+                              ),
+                            ),
+                          )),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMoonPhase(String emoji, String label, String day, bool isDark) {
+    return Column(
+      children: [
+        Text(emoji, style: const TextStyle(fontSize: 24)),
+        const SizedBox(height: 4),
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 10,
+            fontWeight: FontWeight.w600,
+            color: isDark ? Colors.white70 : Colors.black54,
+          ),
+        ),
+        Text(
+          day,
+          style: TextStyle(
+            fontSize: 9,
+            color: isDark ? Colors.white54 : Colors.black38,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildInfoRow(IconData icon, String label, String value, bool isDark) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          padding: const EdgeInsets.all(10),
+          decoration: BoxDecoration(
+            color: isDark ? Colors.white.withOpacity(0.1) : Colors.grey.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Icon(icon, size: 20, color: isDark ? Colors.white70 : Colors.black54),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 12,
+                  color: isDark ? Colors.white54 : Colors.black45,
+                ),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                value,
+                style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w600,
+                  color: isDark ? Colors.white : Colors.black87,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  void _showPanchangInfoDialog(BuildContext context, bool isDark) {
+    showDialog(
+      context: context,
+      builder: (context) => Dialog(
+        backgroundColor: Colors.transparent,
+        insetPadding: const EdgeInsets.all(20),
+        child: Container(
+          constraints: const BoxConstraints(maxWidth: 400),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight,
+              colors: isDark ? [const Color(0xFF1E1B4B), const Color(0xFF312E81)] : [Colors.white, const Color(0xFFF5F3FF)]),
+            borderRadius: BorderRadius.circular(24),
+            boxShadow: [BoxShadow(color: const Color(0xFF9333EA).withOpacity(0.3), blurRadius: 30, spreadRadius: 5)],
+            border: Border.all(color: const Color(0xFF9333EA).withOpacity(0.3), width: 1),
+          ),
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(24),
+                  decoration: const BoxDecoration(gradient: LinearGradient(colors: [Color(0xFF9333EA), Color(0xFF6366F1)]), borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+                  child: Row(
+                    children: [
+                      Container(padding: const EdgeInsets.all(12), decoration: BoxDecoration(color: Colors.white.withOpacity(0.2), borderRadius: BorderRadius.circular(12)), child: const Icon(Icons.auto_awesome_rounded, color: Colors.white, size: 28)),
+                      const SizedBox(width: 16),
+                      const Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text('Understanding Panchang', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white)), SizedBox(height: 4), Text('The five limbs of Vedic time', style: TextStyle(fontSize: 13, color: Colors.white70))])),
+                      IconButton(onPressed: () => Navigator.pop(context), icon: const Icon(Icons.close, color: Colors.white70)),
+                    ],
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(color: const Color(0xFF9333EA).withOpacity(isDark ? 0.15 : 0.08), borderRadius: BorderRadius.circular(16), border: Border.all(color: const Color(0xFF9333EA).withOpacity(0.2))),
+                        child: Text('Panchang (पञ्चाङ्ग) literally means "five limbs" in Sanskrit. It is the ancient Vedic calendar system that tracks five essential elements of time that determine auspiciousness.', style: TextStyle(fontSize: 14, height: 1.5, color: isDark ? Colors.white70 : Colors.black54)),
+                      ),
+                      const SizedBox(height: 16),
+                      _buildPanchangElementInfo(icon: Icons.brightness_3, title: 'Tithi (तिथि)', subtitle: 'Lunar Day', color: const Color(0xFFEC4899), description: 'Tithi represents the lunar day based on the angle between the Sun and Moon. There are 30 Tithis in a lunar month.', examples: 'Pratipada, Dvitiya, Amavasya, Purnima', isDark: isDark),
+                      const SizedBox(height: 12),
+                      _buildPanchangElementInfo(icon: Icons.stars_rounded, title: 'Nakshatra (नक्षत्र)', subtitle: 'Lunar Mansion', color: const Color(0xFF8B5CF6), description: 'Nakshatra is the lunar constellation where the Moon resides. There are 27 Nakshatras, each spanning 13°20\'.', examples: 'Ashwini, Rohini, Pushya, Revati', isDark: isDark),
+                      const SizedBox(height: 12),
+                      _buildPanchangElementInfo(icon: Icons.self_improvement_rounded, title: 'Yoga (योग)', subtitle: 'Auspicious Combination', color: const Color(0xFF10B981), description: 'Yoga is calculated from the combined longitude of Sun and Moon. There are 27 Yogas, each lasting about one day.', examples: 'Siddhi, Amrita, Shobhana', isDark: isDark),
+                      const SizedBox(height: 12),
+                      _buildPanchangElementInfo(icon: Icons.change_history_rounded, title: 'Karana (करण)', subtitle: 'Half Tithi', color: const Color(0xFFF59E0B), description: 'Karana is half of a Tithi. There are 11 Karanas. Vishti Karana (Bhadra) is considered inauspicious.', examples: 'Bava, Balava, Vishti (inauspicious)', isDark: isDark),
+                      const SizedBox(height: 12),
+                      _buildPanchangElementInfo(icon: Icons.wb_sunny_rounded, title: 'Vara (वार)', subtitle: 'Weekday', color: const Color(0xFF3B82F6), description: 'Vara is the day of the week, ruled by different planets. Each day has specific favorable activities.', examples: 'Ravivara (Sun), Somavara (Mon)', isDark: isDark),
+                      const SizedBox(height: 12),
+                      _buildPanchangElementInfo(icon: Icons.brightness_2_rounded, title: 'Paksha (पक्ष)', subtitle: 'Lunar Fortnight', color: const Color(0xFF6366F1), description: 'Paksha divides the lunar month into two halves. Shukla (bright) for new beginnings, Krishna (dark) for completion.', examples: 'Shukla Paksha, Krishna Paksha', isDark: isDark),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showMoonRashiInfoDialog(BuildContext context, bool isDark) {
+    showDialog(
+      context: context,
+      builder: (context) => Dialog(
+        backgroundColor: Colors.transparent,
+        insetPadding: const EdgeInsets.all(20),
+        child: Container(
+          constraints: const BoxConstraints(maxWidth: 400),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight,
+              colors: isDark ? [const Color(0xFF1E3A5F), const Color(0xFF1A1A2E)] : [Colors.white, const Color(0xFFE3F2FD)]),
+            borderRadius: BorderRadius.circular(24),
+            boxShadow: [BoxShadow(color: Colors.blue.withOpacity(0.3), blurRadius: 30, spreadRadius: 5)],
+            border: Border.all(color: Colors.blue.withOpacity(0.3), width: 1),
+          ),
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(24),
+                  decoration: BoxDecoration(gradient: LinearGradient(colors: [Colors.blue.shade700, Colors.indigo.shade800]), borderRadius: const BorderRadius.vertical(top: Radius.circular(24))),
+                  child: Row(
+                    children: [
+                      Container(padding: const EdgeInsets.all(12), decoration: BoxDecoration(color: Colors.white.withOpacity(0.2), borderRadius: BorderRadius.circular(12)), child: const Icon(Icons.nightlight_round, color: Colors.white, size: 28)),
+                      const SizedBox(width: 16),
+                      const Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text('Moon & Rashi', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white)), SizedBox(height: 4), Text('Lunar influence on daily life', style: TextStyle(fontSize: 13, color: Colors.white70))])),
+                      IconButton(onPressed: () => Navigator.pop(context), icon: const Icon(Icons.close, color: Colors.white70)),
+                    ],
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
+                    children: [
+                      _buildMoonRashiSection(icon: Icons.arrow_upward_rounded, title: 'Moonrise (चन्द्रोदय)', color: Colors.amber.shade600,
+                        description: 'Moonrise marks when the Moon becomes visible above the eastern horizon. The energy after moonrise is favorable for creativity and nurturing.',
+                        significance: ['Ideal for Moon worship', 'Favorable for creative endeavors', 'Important for Karva Chauth'], isDark: isDark),
+                      const SizedBox(height: 16),
+                      _buildMoonRashiSection(icon: Icons.arrow_downward_rounded, title: 'Moonset (चन्द्रास्त)', color: Colors.purple.shade600,
+                        description: 'Moonset is when the Moon descends below the western horizon. Important for calculating lunar day transitions.',
+                        significance: ['Marks end of lunar visibility', 'Relevant for fasting observances', 'Affects meditation practices'], isDark: isDark),
+                      const SizedBox(height: 16),
+                      _buildMoonRashiSection(icon: Icons.wb_sunny_rounded, title: 'Sun Rashi (सूर्य राशि)', color: Colors.orange.shade600,
+                        description: 'Sun Rashi indicates which zodiac sign the Sun is transiting. Determines solar months and Sankranti festivals.',
+                        significance: ['Determines solar months', 'Influences personality', 'Important for timing festivals'], isDark: isDark),
+                      const SizedBox(height: 16),
+                      _buildMoonRashiSection(icon: Icons.nightlight_rounded, title: 'Moon Rashi (चन्द्र राशि)', color: Colors.blue.shade600,
+                        description: 'Moon Rashi shows which zodiac sign the Moon occupies. More important than Sun sign in Vedic astrology for emotions and mental well-being.',
+                        significance: ['Governs emotions', 'Determines Janma Rashi', 'Crucial for Muhurat selection'], isDark: isDark),
+                      const SizedBox(height: 20),
+                      Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(gradient: LinearGradient(colors: [Colors.blue.withOpacity(isDark ? 0.2 : 0.1), Colors.indigo.withOpacity(isDark ? 0.2 : 0.1)]), borderRadius: BorderRadius.circular(16), border: Border.all(color: Colors.blue.withOpacity(0.3))),
+                        child: Column(
+                          children: [
+                            Row(children: [Icon(Icons.lightbulb_outline, color: isDark ? Colors.blue.shade200 : Colors.blue.shade700, size: 24), const SizedBox(width: 12), Expanded(child: Text('The 12 Rashis (Zodiac Signs)', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: isDark ? Colors.blue.shade200 : Colors.blue.shade700)))]),
+                            const SizedBox(height: 12),
+                            Wrap(spacing: 8, runSpacing: 8, children: ['Mesha (Aries)', 'Vrishabha (Taurus)', 'Mithuna (Gemini)', 'Karka (Cancer)', 'Simha (Leo)', 'Kanya (Virgo)', 'Tula (Libra)', 'Vrishchika (Scorpio)', 'Dhanu (Sagittarius)', 'Makara (Capricorn)', 'Kumbha (Aquarius)', 'Meena (Pisces)'].map((rashi) => Container(padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6), decoration: BoxDecoration(color: Colors.blue.withOpacity(isDark ? 0.2 : 0.15), borderRadius: BorderRadius.circular(20)), child: Text(rashi, style: TextStyle(fontSize: 11, fontWeight: FontWeight.w500, color: isDark ? Colors.white70 : Colors.blue.shade800)))).toList()),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildInfoSection({required IconData icon, required String title, required Color color, required String description, required List<String> tips, required bool isDark}) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(color: color.withOpacity(isDark ? 0.1 : 0.05), borderRadius: BorderRadius.circular(16), border: Border.all(color: color.withOpacity(0.2))),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(children: [Container(padding: const EdgeInsets.all(10), decoration: BoxDecoration(color: color.withOpacity(0.2), borderRadius: BorderRadius.circular(10)), child: Icon(icon, color: color, size: 22)), const SizedBox(width: 12), Text(title, style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold, color: isDark ? Colors.white : Colors.black87))]),
+          const SizedBox(height: 12),
+          Text(description, style: TextStyle(fontSize: 13, height: 1.5, color: isDark ? Colors.white70 : Colors.black54)),
+          const SizedBox(height: 12),
+          Wrap(spacing: 8, runSpacing: 8, children: tips.map((tip) => Container(padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6), decoration: BoxDecoration(color: color.withOpacity(isDark ? 0.15 : 0.1), borderRadius: BorderRadius.circular(20)), child: Row(mainAxisSize: MainAxisSize.min, children: [Icon(Icons.check_circle, color: color, size: 14), const SizedBox(width: 6), Flexible(child: Text(tip, style: TextStyle(fontSize: 11, fontWeight: FontWeight.w500, color: isDark ? Colors.white70 : Colors.black54)))]))).toList()),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPanchangElementInfo({required IconData icon, required String title, required String subtitle, required Color color, required String description, required String examples, required bool isDark}) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(color: color.withOpacity(isDark ? 0.1 : 0.05), borderRadius: BorderRadius.circular(16), border: Border.all(color: color.withOpacity(0.2))),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(children: [Container(padding: const EdgeInsets.all(10), decoration: BoxDecoration(color: color.withOpacity(0.2), borderRadius: BorderRadius.circular(10)), child: Icon(icon, color: color, size: 22)), const SizedBox(width: 12), Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(title, style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: isDark ? Colors.white : Colors.black87)), Text(subtitle, style: TextStyle(fontSize: 12, color: color, fontWeight: FontWeight.w600))]))]),
+          const SizedBox(height: 12),
+          Text(description, style: TextStyle(fontSize: 13, height: 1.5, color: isDark ? Colors.white70 : Colors.black54)),
+          const SizedBox(height: 8),
+          Container(padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8), decoration: BoxDecoration(color: color.withOpacity(isDark ? 0.15 : 0.1), borderRadius: BorderRadius.circular(8)), child: Row(children: [Icon(Icons.format_list_bulleted, color: color, size: 16), const SizedBox(width: 8), Expanded(child: Text(examples, style: TextStyle(fontSize: 12, fontStyle: FontStyle.italic, color: isDark ? Colors.white60 : Colors.black45)))])),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMoonRashiSection({required IconData icon, required String title, required Color color, required String description, required List<String> significance, required bool isDark}) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(color: color.withOpacity(isDark ? 0.1 : 0.05), borderRadius: BorderRadius.circular(16), border: Border.all(color: color.withOpacity(0.2))),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(children: [Container(padding: const EdgeInsets.all(10), decoration: BoxDecoration(color: color.withOpacity(0.2), borderRadius: BorderRadius.circular(10)), child: Icon(icon, color: color, size: 22)), const SizedBox(width: 12), Expanded(child: Text(title, style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: isDark ? Colors.white : Colors.black87)))]),
+          const SizedBox(height: 12),
+          Text(description, style: TextStyle(fontSize: 13, height: 1.5, color: isDark ? Colors.white70 : Colors.black54)),
+          const SizedBox(height: 12),
+          ...significance.map((item) => Padding(padding: const EdgeInsets.only(bottom: 6), child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [Icon(Icons.check_circle, color: color, size: 16), const SizedBox(width: 8), Expanded(child: Text(item, style: TextStyle(fontSize: 12, color: isDark ? Colors.white60 : Colors.black45)))]))),
+        ],
+      ),
+    );
+  }
 }
 
 // Custom painter for background pattern
+/// Data class for panchang item display
+class _PanchangItemData {
+  final String label;
+  final String value;
+  final IconData icon;
+  final Color color;
+  final String sanskrit;
+
+  const _PanchangItemData(this.label, this.value, this.icon, this.color, this.sanskrit);
+}
+
 class _BackgroundPatternPainter extends CustomPainter {
   final bool isDark;
 

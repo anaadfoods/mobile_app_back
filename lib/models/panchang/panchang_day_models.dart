@@ -171,6 +171,13 @@ class PanchangHoraSlot {
       planet: (json['planet'] ?? '').toString(),
     );
   }
+
+  /// Dynamically calculate if this hora slot is currently active
+  bool get isCurrent {
+    if (start == null || end == null) return false;
+    final now = DateTime.now();
+    return now.isAfter(start!.toLocal()) && now.isBefore(end!.toLocal());
+  }
 }
 
 class PanchangHora {
@@ -202,6 +209,13 @@ class PanchangTimeWindow {
       end: _tryParseDateTime(json['end']),
     );
   }
+
+  /// Dynamically calculate if this time window is currently active
+  bool get isCurrent {
+    if (start == null || end == null) return false;
+    final now = DateTime.now();
+    return now.isAfter(start!.toLocal()) && now.isBefore(end!.toLocal());
+  }
 }
 
 class PanchangChoghadiyaSlot {
@@ -221,6 +235,13 @@ class PanchangChoghadiyaSlot {
       end: _tryParseDateTime(json['end']),
       name: (json['name'] ?? '').toString(),
     );
+  }
+
+  /// Dynamically calculate if this choghadiya slot is currently active
+  bool get isCurrent {
+    if (start == null || end == null) return false;
+    final now = DateTime.now();
+    return now.isAfter(start!.toLocal()) && now.isBefore(end!.toLocal());
   }
 }
 

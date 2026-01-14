@@ -11,6 +11,7 @@ import '../models/panchang/panchang_festival_models.dart';
 import '../models/panchang/panchang_highlights_models.dart';
 import '../models/panchang/panchang_muhurats_models.dart';
 import '../models/panchang/panchang_vrat_models.dart';
+import '../models/panchang/panchang_guidance_models.dart';
 
 class PanchangService {
   static final PanchangService _instance = PanchangService._internal();
@@ -367,6 +368,133 @@ class PanchangService {
     }
 
     throw ApiException.fromStatusCode(response.statusCode, response.body);
+  }
+
+  /// Get today's guidance recommendations
+  Future<GuidanceTodayResponse> getTodayGuidance({
+    required String token,
+    String? date,
+    String tz = 'Asia/Kolkata',
+    String locale = 'en',
+    String calendarSystem = 'amanta',
+    String profile = 'default',
+    double? lat,
+    double? lon,
+  }) async {
+    final uri = _buildUri(
+      ApiConfig.panchangGuidanceTodayEndpoint,
+      {
+        if (date != null) 'date': date,
+        'tz': tz,
+        'locale': locale,
+        'calendar_system': calendarSystem,
+        'profile': profile,
+        if (lat != null) 'lat': lat.toString(),
+        if (lon != null) 'lon': lon.toString(),
+      },
+    );
+
+    if (kDebugMode) {
+      debugPrint('Panchang Guidance Today requesting: $uri');
+    }
+
+    final response = await http
+        .get(uri, headers: ApiConfig.getAuthHeaders(token))
+        .timeout(const Duration(seconds: 20));
+
+    if (kDebugMode) {
+      debugPrint('Panchang Guidance Today GET $uri -> ${response.statusCode}');
+    }
+
+    if (response.statusCode >= 200 && response.statusCode < 300) {
+      final body = jsonDecode(response.body);
+      if (body is Map<String, dynamic>) {
+        return GuidanceTodayResponse.fromJson(body);
+      }
+      throw ApiException('Unexpected response format', response.statusCode);
+    }
+
+    throw ApiException.fromStatusCode(response.statusCode, response.body);
+  }
+
+  /// Get user's guidance profile/preferences
+  Future<GuidanceProfileResponse> getGuidanceProfile({
+    required String token,
+  }) async {
+    final uri = Uri.parse('${ApiConfig.panchangBaseUrl}${ApiConfig.panchangGuidanceProfileEndpoint}');
+
+    if (kDebugMode) {
+      debugPrint('Panchang Guidance Profile requesting: $uri');
+    }
+
+    final response = await http
+        .get(uri, headers: ApiConfig.getAuthHeaders(token))
+        .timeout(const Duration(seconds: 20));
+
+    if (kDebugMode) {
+      debugPrint('Panchang Guidance Profile GET $uri -> ${response.statusCode}');
+    }
+
+    if (response.statusCode >= 200 && response.statusCode < 300) {
+      final body = jsonDecode(response.body);
+      if (body is Map<String, dynamic>) {
+        return GuidanceProfileResponse.fromJson(body);
+      }
+      throw ApiException('Unexpected response format', response.statusCode);
+    }
+
+    throw ApiException.fromStatusCode(response.statusCode, response.body);
+  }
+
+  /// Save user's guidance profile/preferences
+  Future<GuidanceProfileResponse> saveGuidanceProfile({
+    required String token,
+    required GuidanceProfileRequest request,
+  }) async {
+    final uri = Uri.parse('${ApiConfig.panchangBaseUrl}${ApiConfig.panchangGuidanceProfileEndpoint}');
+
+    if (kDebugMode) {
+      debugPrint('Panchang Guidance Profile saving: $uri');
+      debugPrint('Body: ${jsonEncode(request.toJson())}');
+    }
+
+    final response = await http
+        .post(
+          uri,
+          headers: {
+            ...ApiConfig.getAuthHeaders(token),
+            'Content-Type': 'application/json',
+          },
+          body: jsonEncode(request.toJson()),
+        )
+        .timeout(const Duration(seconds: 20));
+
+    if (kDebugMode) {
+      debugPrint('Panchang Guidance Profile POST $uri -> ${response.statusCode}');
+    }
+
+    if (response.statusCode >= 200 && response.statusCode < 300) {
+      final body = jsonDecode(response.body);
+      if (body is Map<String, dynamic>) {
+        return GuidanceProfileResponse.fromJson(body);
+      }
+      throw ApiException('Unexpected response format', response.statusCode);
+    }
+
+    // Try to extract error message
+    String errorMessage = 'Failed to save preferences';
+    try {
+      final errorBody = jsonDecode(response.body);
+      if (errorBody is Map<String, dynamic>) {
+        if (errorBody.containsKey('detail')) {
+          errorMessage = errorBody['detail'].toString();
+        } else if (errorBody.isNotEmpty) {
+          errorMessage = errorBody.values.map((e) => e.toString()).join(', ');
+        }
+      }
+    } catch (_) {}
+
+    throw ApiException(errorMessage, response.statusCode);
   }
 
   Uri _buildUri(String endpointPath, Map<String, String> queryParams) {

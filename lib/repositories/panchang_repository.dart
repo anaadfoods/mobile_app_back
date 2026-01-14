@@ -6,6 +6,7 @@ import '../models/panchang/panchang_festival_models.dart';
 import '../models/panchang/panchang_highlights_models.dart';
 import '../models/panchang/panchang_muhurats_models.dart';
 import '../models/panchang/panchang_vrat_models.dart';
+import '../models/panchang/panchang_guidance_models.dart';
 import '../services/panchang_service.dart';
 
 class PanchangRepository {
@@ -187,6 +188,47 @@ class PanchangRepository {
         lat: defaultLat,
         lon: defaultLon,
       );
+    });
+  }
+
+  /// Fetch today's guidance recommendations
+  Future<GuidanceTodayResponse> getTodayGuidance({
+    DateTime? date,
+    double? lat,
+    double? lon,
+  }) async {
+    return _makeAuthenticatedRequest(() async {
+      final token = await _getToken();
+      String? dateStr;
+      if (date != null) {
+        dateStr = _formatDate(date);
+      }
+      return _service.getTodayGuidance(
+        token: token,
+        date: dateStr,
+        tz: defaultTz,
+        locale: defaultLocale,
+        calendarSystem: defaultCalendarSystem,
+        profile: defaultProfile,
+        lat: lat ?? defaultLat,
+        lon: lon ?? defaultLon,
+      );
+    });
+  }
+
+  /// Get user's guidance profile/preferences
+  Future<GuidanceProfileResponse> getGuidanceProfile() async {
+    return _makeAuthenticatedRequest(() async {
+      final token = await _getToken();
+      return _service.getGuidanceProfile(token: token);
+    });
+  }
+
+  /// Save user's guidance profile/preferences
+  Future<GuidanceProfileResponse> saveGuidanceProfile(GuidanceProfileRequest request) async {
+    return _makeAuthenticatedRequest(() async {
+      final token = await _getToken();
+      return _service.saveGuidanceProfile(token: token, request: request);
     });
   }
 

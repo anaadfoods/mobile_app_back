@@ -5,8 +5,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 // No separate state class is needed.
 
 class ThemeCubit extends Cubit<ThemeMode> {
-  // Initialize the cubit with the system's theme as the default.
-  ThemeCubit() : super(ThemeMode.system);
+  // Initialize the cubit with light theme as the default.
+  ThemeCubit() : super(ThemeMode.light);
 
   /// Toggles the theme between light and dark mode.
   void toggleTheme(bool isDarkMode) {
