@@ -140,3 +140,4 @@ class _ItemCounterWidgetState extends State<ItemCounterWidget> {
     );
   }
 }
+

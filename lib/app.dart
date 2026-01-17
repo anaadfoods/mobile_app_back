@@ -1,10 +1,43 @@
-import 'package:grocery_app/common_widgets/global_import.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:device_preview/device_preview.dart';
+
+// Cubits
+import 'package:grocery_app/cubits/auth/auth_cubit.dart';
+import 'package:grocery_app/cubits/auth/auth_state.dart';
+import 'package:grocery_app/cubits/cart/cart_cubit.dart';
+import 'package:grocery_app/cubits/product/product_cubit.dart';
+import 'package:grocery_app/cubits/favorites/favorites_cubit.dart';
+import 'package:grocery_app/cubits/order/order_cubit.dart';
+import 'package:grocery_app/cubits/subscription/subscription_cubit.dart';
 import 'package:grocery_app/cubits/chats/chat_cubit.dart';
+import 'package:grocery_app/cubits/notification/notification_cubit.dart';
+import 'package:grocery_app/cubits/notification/notification_state.dart';
+import 'package:grocery_app/cubits/theme/theme_cubit.dart';
+
+// Repositories
+import 'package:grocery_app/repositories/auth_repository.dart';
+import 'package:grocery_app/repositories/cart_repository.dart';
+import 'package:grocery_app/repositories/product_repository.dart';
+import 'package:grocery_app/repositories/favorites_repository.dart';
+import 'package:grocery_app/repositories/order_repository.dart';
+import 'package:grocery_app/repositories/subscription_repository.dart';
 import 'package:grocery_app/repositories/chat_repository.dart';
+import 'package:grocery_app/repositories/notification_repository.dart';
 
+// Screens
+import 'package:grocery_app/screens/dashboard/dashboard_screen.dart';
+import 'package:grocery_app/screens/auth/login_screen.dart';
 import 'package:grocery_app/screens/welcome_screen.dart';
+import 'package:grocery_app/screens/order_accepted_screen.dart';
 
+// Services
+import 'package:grocery_app/services/notification_service.dart';
+import 'package:grocery_app/services/navigation_service.dart';
+import 'package:grocery_app/helpers/double_click_back.dart';
 import 'package:grocery_app/styles/theme.dart';
+
+import 'package:grocery_app/common_widgets/connectivity_wrapper.dart';
 
 class MyApp extends StatelessWidget {
   final bool hasSeenWelcome;
@@ -27,60 +60,87 @@ class MyApp extends StatelessWidget {
         providers: [
           BlocProvider(create: (context) => ThemeCubit()),
           BlocProvider(
-            create: (context) => AuthCubit(
-              authRepository: context.read<AuthRepository>(),
-            )..checkAuthStatus(),
+            create:
+                (context) =>
+                    AuthCubit(authRepository: context.read<AuthRepository>())
+                      ..checkAuthStatus(),
           ),
           BlocProvider(
-            create: (context) => ProductCubit(
-              productRepository: context.read<ProductRepository>(),
-            )..loadHomePageData(),
+            create:
+                (context) => ProductCubit(
+                  productRepository: context.read<ProductRepository>(),
+                )..loadHomePageData(),
+          ),
+          BlocProvider<CartCubit>(
+            create: (context) => CartCubit(context.read<CartRepository>()),
           ),
           BlocProvider(
-            create: (context) => NotificationCubit(
-              notificationRepository: context.read<NotificationRepository>(),
-            ),
+            create:
+                (context) => OrderCubit(
+                  orderRepository: context.read<OrderRepository>(),
+                ),
           ),
-         BlocProvider(
-        create: (context) => ChatCubit(
-          repository: context.read<ChatRepository>(),
-        ),),
-BlocProvider<CartCubit>(
-        create: (context) => CartCubit(context.read<CartRepository>()),
-      ),
-          BlocProvider(create: (context) => OrderCubit(orderRepository: context.read<OrderRepository>())),
-          BlocProvider(create: (context) => SubscriptionCubit(subscriptionRepository: context.read<SubscriptionRepository>())),
-          BlocProvider(create: (context) => FavoritesCubit(favoritesRepository: context.read<FavoritesRepository>())),
+          BlocProvider(
+            create:
+                (context) => SubscriptionCubit(
+                  subscriptionRepository:
+                      context.read<SubscriptionRepository>(),
+                ),
+          ),
+          BlocProvider(
+            create:
+                (context) => FavoritesCubit(
+                  favoritesRepository: context.read<FavoritesRepository>(),
+                ),
+          ),
+          BlocProvider(
+            create:
+                (context) => NotificationCubit(
+                  notificationRepository:
+                      context.read<NotificationRepository>(),
+                ),
+          ),
+          BlocProvider(
+            create:
+                (context) =>
+                    ChatCubit(repository: context.read<ChatRepository>()),
+          ),
         ],
         child: BlocBuilder<ThemeCubit, ThemeMode>(
           builder: (context, themeMode) {
             return MaterialApp(
+              scrollBehavior: const ScrollBehavior().copyWith(
+                physics: const ClampingScrollPhysics(),
+              ),
               navigatorKey: NavigationService().navigatorKey,
               debugShowCheckedModeBanner: false,
+              useInheritedMediaQuery: true,
+              locale: DevicePreview.locale(context),
               theme: AppTheme.lightTheme,
               darkTheme: AppTheme.darkTheme,
               themeMode: themeMode,
               builder: (context, child) {
-                // The DoubleBackToExitApp now correctly wraps the navigator's child
-                return DoubleBackToExitApp(child: child!);
+                final widget = ConnectivityWrapper(
+                  child: DoubleBackToExitApp(child: child!),
+                );
+                return DevicePreview.appBuilder(context, widget);
               },
-              // **FIX 1**: Pass hasSeenWelcome to the AppInitializer
               home: AppInitializer(hasSeenWelcome: hasSeenWelcome),
               onGenerateRoute: (settings) {
                 if (settings.name?.startsWith('flutterpay://') == true) {
                   final uri = Uri.parse(settings.name!);
                   if (uri.path.contains('payment/success')) {
                     return MaterialPageRoute(
-                      builder: (context) => OrderAcceptedScreen(
-                        paymentStatus: null,
-                        isSubscription: false,
-                      ),
+                      builder:
+                          (context) => OrderAcceptedScreen(
+                            paymentStatus: null,
+                            isSubscription: false,
+                          ),
                     );
                   }
                 }
                 return null;
               },
-              
             );
           },
         ),
@@ -90,7 +150,6 @@ BlocProvider<CartCubit>(
 }
 
 class AppInitializer extends StatefulWidget {
-  // **FIX 2**: Accept the hasSeenWelcome flag
   final bool hasSeenWelcome;
   const AppInitializer({super.key, required this.hasSeenWelcome});
 
@@ -102,23 +161,24 @@ class _AppInitializerState extends State<AppInitializer> {
   @override
   void initState() {
     super.initState();
-    // Use a post-frame callback to ensure context is fully available
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
-        NotificationService().initialize(context.read<NotificationCubit>());
+        final notificationService = NotificationService();
+        notificationService.initialize(context.read<NotificationCubit>());
+
+        // Process any pending initial notification now that context/navigator is ready
+        notificationService.processInitialMessage();
       }
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    // **FIX 3**: Pass the hasSeenWelcome flag down to the AuthWrapper
     return AuthWrapper(hasSeenWelcome: widget.hasSeenWelcome);
   }
 }
 
 class AuthWrapper extends StatelessWidget {
-  // **FIX 4**: Accept the hasSeenWelcome flag
   final bool hasSeenWelcome;
   const AuthWrapper({super.key, required this.hasSeenWelcome});
 
@@ -136,7 +196,7 @@ class AuthWrapper extends StatelessWidget {
               context.read<FavoritesCubit>().loadFavorites();
             } else if (state is Unauthenticated) {
               context.read<NotificationCubit>().unregisterDevice();
-context.read<CartCubit>().clearCart();
+              context.read<CartCubit>().clearCart();
               context.read<FavoritesCubit>().clearFavoritesState();
             }
           },
@@ -144,7 +204,7 @@ context.read<CartCubit>().clearCart();
         BlocListener<NotificationCubit, NotificationState>(
           listener: (context, state) {
             if (state is NavigateToRoute) {
-              // Your navigation logic here
+              // Navigation logic
             }
           },
         ),
@@ -152,20 +212,16 @@ context.read<CartCubit>().clearCart();
       child: BlocBuilder<AuthCubit, AuthState>(
         builder: (context, state) {
           if (state is Authenticated) {
-            return const DashboardScreen();
+            return DashboardScreen(key: DashboardScreen.dashboardKey);
           } else if (state is Unauthenticated || state is AuthError) {
-            // **FIX 5**: Use the passed-in flag to make the decision
             if (hasSeenWelcome == false) {
               return const WelcomeScreen();
             } else {
               return const LoginScreen();
             }
           } else {
-            // AuthInitial or AuthLoading
             return const Scaffold(
-              body: Center(
-                child: CircularProgressIndicator(),
-              ),
+              body: Center(child: CircularProgressIndicator()),
             );
           }
         },

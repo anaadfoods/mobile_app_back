@@ -20,7 +20,7 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen>
   late Animation<double> _cardSlide;
   late Animation<double> _floatAnimation;
   late Animation<double> _shimmerAnimation;
-  
+
   late ScrollController _scrollController;
   double _scrollOffset = 0;
 
@@ -33,10 +33,10 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen>
   @override
   void initState() {
     super.initState();
-    _scrollController = ScrollController()
-      ..addListener(() {
-        setState(() => _scrollOffset = _scrollController.offset);
-      });
+    _scrollController =
+        ScrollController()..addListener(() {
+          setState(() => _scrollOffset = _scrollController.offset);
+        });
 
     // Entrance animation
     _entranceController = AnimationController(
@@ -98,9 +98,17 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen>
   List<Color> get _gradientColors {
     final name = widget.community.name.toLowerCase();
     if (name.contains('grinity') || name.contains('green')) {
-      return [const Color(0xFF1B5E20), const Color(0xFF2E7D32), const Color(0xFF43A047)];
+      return [
+        const Color(0xFF1B5E20),
+        const Color(0xFF2E7D32),
+        const Color(0xFF43A047),
+      ];
     }
-    return [const Color(0xFF3E2723), const Color(0xFF5D4037), const Color(0xFF795548)];
+    return [
+      const Color(0xFF3E2723),
+      const Color(0xFF5D4037),
+      const Color(0xFF795548),
+    ];
   }
 
   @override
@@ -116,7 +124,6 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen>
         builder: (context, child) {
           return Stack(
             children: [
-
               // Main content
               CustomScrollView(
                 controller: _scrollController,
@@ -155,136 +162,155 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen>
               fit: StackFit.expand,
               clipBehavior: Clip.hardEdge,
               children: [
-              // Parallax Image
-              Transform.translate(
-                offset: Offset(0, parallaxOffset),
-                child: Image.network(
-                  widget.community.image,
-                  fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) => Container(
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: _gradientColors,
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
-                    ),
-                    child: Icon(
-                      Icons.eco_rounded,
-                      size: 100,
-                      color: Colors.white.withOpacity(0.2),
-                    ),
-                  ),
-                ),
-              ),
-
-              // Gradient overlays
-              Container(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [
-                      _gradientColors[0].withOpacity(0.7),
-                      _gradientColors[1].withOpacity(0.5),
-                      Colors.transparent,
-                    ],
-                    begin: Alignment.centerLeft,
-                    end: Alignment.centerRight,
-                  ),
-                ),
-              ),
-              Container(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [
-                      Colors.transparent,
-                      Colors.black.withOpacity(0.6),
-                    ],
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                  ),
-                ),
-              ),
-
-              // Hero content
-              Positioned(
-                left: 24,
-                right: 24,
-                bottom: 24,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    // Glassmorphism badge
-                    if (widget.community.comingSoon)
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(20),
-                        child: BackdropFilter(
-                          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                              vertical: 8,
-                              horizontal: 14,
+                // Parallax Image
+                Transform.translate(
+                  offset: Offset(0, parallaxOffset),
+                  child: Image.network(
+                    widget.community.image,
+                    fit: BoxFit.cover,
+                    errorBuilder:
+                        (context, error, stackTrace) => Container(
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: _gradientColors,
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
                             ),
-                            decoration: BoxDecoration(
-                              color: Colors.white.withOpacity(0.2),
-                              borderRadius: BorderRadius.circular(20),
-                              border: Border.all(
-                                color: Colors.white.withOpacity(0.3),
+                          ),
+                          child: Icon(
+                            Icons.eco_rounded,
+                            size: 100,
+                            color: Colors.white.withOpacity(0.2),
+                          ),
+                        ),
+                  ),
+                ),
+
+                // Gradient overlays
+                Container(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        _gradientColors[0].withOpacity(0.7),
+                        _gradientColors[1].withOpacity(0.5),
+                        Colors.transparent,
+                      ],
+                      begin: Alignment.centerLeft,
+                      end: Alignment.centerRight,
+                    ),
+                  ),
+                ),
+                Container(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        Colors.transparent,
+                        Colors.black.withOpacity(0.6),
+                      ],
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                    ),
+                  ),
+                ),
+
+                // Hero content
+                Positioned(
+                  left: 24,
+                  right: 24,
+                  bottom: 24,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // Glassmorphism badge
+                      if (widget.community.comingSoon)
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(20),
+                          child: BackdropFilter(
+                            filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                vertical: 8,
+                                horizontal: 14,
                               ),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Container(
-                                  padding: const EdgeInsets.all(4),
-                                  decoration: BoxDecoration(
-                                    color: _accentColor.withOpacity(0.4),
-                                    shape: BoxShape.circle,
-                                  ),
-                                  child: const Icon(
-                                    Icons.auto_awesome,
-                                    size: 12,
-                                    color: Colors.white,
-                                  ),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withOpacity(0.2),
+                                borderRadius: BorderRadius.circular(20),
+                                border: Border.all(
+                                  color: Colors.white.withOpacity(0.3),
                                 ),
-                                const SizedBox(width: 8),
-                                Text(
-                                  "Coming Soon",
-                                  style: textTheme.labelSmall?.copyWith(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.w700,
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.all(4),
+                                    decoration: BoxDecoration(
+                                      color: _accentColor.withOpacity(0.4),
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: const Icon(
+                                      Icons.auto_awesome,
+                                      size: 12,
+                                      color: Colors.white,
+                                    ),
                                   ),
-                                ),
-                              ],
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    "Coming Soon",
+                                    style: textTheme.labelSmall?.copyWith(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
                         ),
-                      ),
-                    const SizedBox(height: 12),
+                      const SizedBox(height: 12),
 
-                    // Community name
-                    Text(
-                      widget.community.name,
-                      style: textTheme.headlineLarge?.copyWith(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w800,
-                        letterSpacing: -0.5,
-                        shadows: [
-                          Shadow(
-                            blurRadius: 20,
-                            color: Colors.black.withOpacity(0.5),
-                            offset: const Offset(0, 4),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
+                      // Community name
+                      _buildCommunityTitle(textTheme),
+                    ],
+                  ),
                 ),
-              ),
               ],
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildCommunityTitle(TextTheme textTheme) {
+    final name = widget.community.name.toLowerCase();
+    if (name.contains('grinity')) {
+      return SvgPicture.asset(
+        'assets/images/3.svg',
+        height: 50,
+        fit: BoxFit.contain,
+      );
+    } else if (name.contains('krinity')) {
+      return SvgPicture.asset(
+        'assets/images/4.svg',
+        height: 50,
+        fit: BoxFit.contain,
+      );
+    }
+    return Text(
+      widget.community.name,
+      style: textTheme.headlineLarge?.copyWith(
+        color: Colors.white,
+        fontWeight: FontWeight.w800,
+        letterSpacing: -0.5,
+        shadows: [
+          Shadow(
+            blurRadius: 20,
+            color: Colors.black.withOpacity(0.5),
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
     );
   }
@@ -315,7 +341,8 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen>
                     widget.community.description,
                     style: textTheme.bodyLarge?.copyWith(
                       height: 1.7,
-                      color: isDark ? Colors.grey.shade300 : Colors.grey.shade700,
+                      color:
+                          isDark ? Colors.grey.shade300 : Colors.grey.shade700,
                     ),
                   ),
                 ),
@@ -330,13 +357,17 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen>
                   iconColor: const Color(0xFFFFD700),
                   title: 'Benefits',
                   child: Column(
-                    children: _buildBenefitsList(context, widget.community.benefits),
+                    children: _buildBenefitsList(
+                      context,
+                      widget.community.benefits,
+                    ),
                   ),
                 ),
                 const SizedBox(height: 32),
 
                 // Premium CTA Button
-                if (widget.community.comingSoon) _buildNotifyButton(context, textTheme),
+                if (widget.community.comingSoon)
+                  _buildNotifyButton(context, textTheme),
                 const SizedBox(height: 40),
               ],
             ),
@@ -528,10 +559,7 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen>
         shape: BoxShape.circle,
         color: _accentColor.withOpacity(0.5),
         boxShadow: [
-          BoxShadow(
-            color: _accentColor.withOpacity(0.3),
-            blurRadius: 6,
-          ),
+          BoxShadow(color: _accentColor.withOpacity(0.3), blurRadius: 6),
         ],
       ),
     );
@@ -557,9 +585,7 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen>
                 decoration: BoxDecoration(
                   color: Colors.black.withOpacity(0.3),
                   borderRadius: BorderRadius.circular(16),
-                  border: Border.all(
-                    color: Colors.white.withOpacity(0.2),
-                  ),
+                  border: Border.all(color: Colors.white.withOpacity(0.2)),
                 ),
                 child: const Icon(
                   Icons.arrow_back_rounded,
@@ -579,11 +605,12 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen>
     final textTheme = theme.textTheme;
     final isDark = theme.brightness == Brightness.dark;
 
-    final items = benefits
-        .split(RegExp(r'\n|•'))
-        .map((e) => e.trim())
-        .where((e) => e.isNotEmpty)
-        .toList();
+    final items =
+        benefits
+            .split(RegExp(r'\n|•'))
+            .map((e) => e.trim())
+            .where((e) => e.isNotEmpty)
+            .toList();
 
     if (items.length <= 1) {
       return [
@@ -639,14 +666,16 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen>
   // Form validation
   String? _validateEmail(String? value) {
     if (value == null || value.isEmpty) return 'Please enter your email';
-    if (!_emailRegex.hasMatch(value)) return 'Please enter a valid email address';
+    if (!_emailRegex.hasMatch(value))
+      return 'Please enter a valid email address';
     return null;
   }
 
   String? _validatePhone(String? value) {
     if (value == null || value.isEmpty) return 'Please enter your phone number';
     String cleanPhone = value.replaceAll(RegExp(r'[^\d]'), '');
-    if (!_phoneRegex.hasMatch(cleanPhone)) return 'Please enter a valid 10-digit phone number';
+    if (!_phoneRegex.hasMatch(cleanPhone))
+      return 'Please enter a valid 10-digit phone number';
     return null;
   }
 
@@ -657,9 +686,7 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen>
     final emailController = TextEditingController();
     final messageController = TextEditingController();
     final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
     final textTheme = theme.textTheme;
-
     final isDark = theme.brightness == Brightness.dark;
 
     await showGeneralDialog(
@@ -668,203 +695,235 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen>
       barrierLabel: 'Dismiss',
       barrierColor: Colors.black.withOpacity(0.6),
       transitionDuration: const Duration(milliseconds: 300),
-      pageBuilder: (context, animation, secondaryAnimation) {
-        return const SizedBox();
-      },
+      pageBuilder: (context, animation, secondaryAnimation) => const SizedBox(),
       transitionBuilder: (context, animation, secondaryAnimation, child) {
-        final curvedAnimation = CurvedAnimation(
-          parent: animation,
-          curve: Curves.easeOutBack,
-        );
         return ScaleTransition(
-          scale: curvedAnimation,
+          scale: Tween<double>(begin: 0.8, end: 1.0).animate(
+            CurvedAnimation(parent: animation, curve: Curves.easeOutBack),
+          ),
           child: FadeTransition(
             opacity: animation,
-            child: Center(
-              child: Material(
-                color: Colors.transparent,
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(32),
-                  child: BackdropFilter(
-                    filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
-                    child: Container(
-                      width: MediaQuery.of(context).size.width * 0.9,
-                      constraints: const BoxConstraints(maxWidth: 400),
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                          colors: [
-                            _gradientColors[0].withOpacity(0.95),
-                            _gradientColors[1].withOpacity(0.9),
-                          ],
-                        ),
-                        borderRadius: BorderRadius.circular(24),
-                        border: Border.all(
-                          color: Colors.white.withOpacity(0.2),
-                          width: 1.5,
-                        ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: _gradientColors[0].withOpacity(0.4),
-                            blurRadius: 30,
-                            offset: const Offset(0, 15),
-                          ),
-                        ],
-                      ),
-                      child: SingleChildScrollView(
-                        child: Padding(
-                          padding: const EdgeInsets.all(20),
-                          child: Form(
-                            key: formKey,
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                // Header with icon
-                                Container(
-                                  padding: const EdgeInsets.all(12),
-                                  decoration: BoxDecoration(
-                                    color: _accentColor.withOpacity(0.2),
-                                    shape: BoxShape.circle,
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: _accentColor.withOpacity(0.3),
-                                        blurRadius: 20,
-                                      ),
-                                    ],
-                                  ),
-                                  child: const Icon(
-                                    Icons.notifications_active_rounded,
-                                    color: Colors.white,
-                                    size: 24,
-                                  ),
+            child: StatefulBuilder(
+              builder: (context, setDialogState) {
+                return Center(
+                  child: Container(
+                    margin: const EdgeInsets.symmetric(horizontal: 24),
+                    constraints: const BoxConstraints(maxWidth: 400),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(24),
+                      child: BackdropFilter(
+                        filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
+                        child: Material(
+                          color: Colors.transparent,
+                          child: Container(
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                                colors:
+                                    isDark
+                                        ? [
+                                          _gradientColors[0].withOpacity(0.95),
+                                          _gradientColors[1].withOpacity(0.9),
+                                        ]
+                                        : [
+                                          Colors.white,
+                                          _gradientColors[0].withOpacity(0.1),
+                                        ],
+                              ),
+                              borderRadius: BorderRadius.circular(24),
+                              border: Border.all(
+                                color: Colors.white.withOpacity(0.2),
+                                width: 1,
+                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: _gradientColors[0].withOpacity(0.2),
+                                  blurRadius: 30,
+                                  offset: const Offset(0, 10),
                                 ),
-                                const SizedBox(height: 14),
-                                Text(
-                                  'Stay Updated',
-                                  style: textTheme.headlineSmall?.copyWith(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  'Be the first to know when we launch!',
-                                  style: textTheme.bodyMedium?.copyWith(
-                                    color: Colors.white.withOpacity(0.8),
-                                  ),
-                                ),
-                                const SizedBox(height: 18),
-                                // Glass inputs
-                                _buildGlassInput(
-                                  controller: nameController,
-                                  hint: 'Your Name',
-                                  icon: Icons.person_outline_rounded,
-                                  validator: (value) =>
-                                      value == null || value.isEmpty ? 'Please enter your name' : null,
-                                ),
-                                const SizedBox(height: 12),
-                                _buildGlassInput(
-                                  controller: emailController,
-                                  hint: 'Email Address',
-                                  icon: Icons.email_outlined,
-                                  keyboardType: TextInputType.emailAddress,
-                                  validator: _validateEmail,
-                                ),
-                                const SizedBox(height: 12),
-                                _buildGlassInput(
-                                  controller: phoneController,
-                                  hint: 'Phone Number',
-                                  icon: Icons.phone_outlined,
-                                  keyboardType: TextInputType.phone,
-                                  validator: _validatePhone,
-                                ),
-                                const SizedBox(height: 12),
-                                _buildGlassInput(
-                                  controller: messageController,
-                                  hint: 'Message (optional)',
-                                  icon: Icons.message_outlined,
-                                  validator: (v) => v!.isEmpty ? 'Enter a message' : null,
-                                ),
-                                const SizedBox(height: 20),
-                                // Submit button
-                                GestureDetector(
-                                  onTap: () async {
-                                    if (formKey.currentState!.validate()) {
-                                      HapticFeedback.mediumImpact();
-                                      formKey.currentState!.save();
-                                      try {
-                                        final response = await http.post(
-                                          Uri.parse(
-                                            '${ApiConfig.baseUrl}/api/core/communities/${widget.community.name}/subscribe/',
+                              ],
+                            ),
+                            child: SingleChildScrollView(
+                              child: Padding(
+                                padding: const EdgeInsets.all(24),
+                                child: Form(
+                                  key: formKey,
+                                  child: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      // Header with icon
+                                      Container(
+                                        padding: const EdgeInsets.all(16),
+                                        decoration: BoxDecoration(
+                                          gradient: LinearGradient(
+                                            colors: [
+                                              _accentColor,
+                                              _accentColor.withOpacity(0.8),
+                                            ],
                                           ),
-                                          headers: {'Content-Type': 'application/json'},
-                                          body: jsonEncode({
-                                            'name': nameController.text,
-                                            'email': emailController.text,
-                                            'phone': phoneController.text,
-                                            'message': messageController.text,
-                                          }),
-                                        );
-                                        if (!context.mounted) return;
-                                        if (response.statusCode == 200 || response.statusCode == 201) {
-                                          Navigator.pop(context);
-                                          SnackBarHelper.showSuccess(context, 'Thank you! We\'ll keep you updated.');
-                                        } else {
-                                          throw Exception('Failed to submit form');
-                                        }
-                                      } catch (e) {
-                                        if (!context.mounted) return;
-                                        Navigator.pop(context);
-                                        SnackBarHelper.showError(context, 'Failed to submit. Please try again later.');
-                                      }
-                                    }
-                                  },
-                                  child: Container(
-                                    width: double.infinity,
-                                    padding: const EdgeInsets.symmetric(vertical: 16),
-                                    decoration: BoxDecoration(
-                                      color: Colors.white,
-                                      borderRadius: BorderRadius.circular(16),
-                                      boxShadow: [
-                                        BoxShadow(
-                                          color: Colors.black.withOpacity(0.2),
-                                          blurRadius: 10,
-                                          offset: const Offset(0, 4),
+                                          borderRadius: BorderRadius.circular(
+                                            16,
+                                          ),
                                         ),
-                                      ],
-                                    ),
-                                    child: Center(
-                                      child: Text(
-                                        'Notify Me',
-                                        style: textTheme.titleMedium?.copyWith(
-                                          color: _gradientColors[0],
+                                        child: const Icon(
+                                          Icons.notifications_active_rounded,
+                                          color: Colors.white,
+                                          size: 32,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 16),
+                                      Text(
+                                        'Stay Updated',
+                                        style: textTheme.titleLarge?.copyWith(
                                           fontWeight: FontWeight.bold,
                                         ),
                                       ),
-                                    ),
+                                      const SizedBox(height: 8),
+                                      Text(
+                                        'Be the first to know when we launch!',
+                                        style: textTheme.bodyMedium?.copyWith(
+                                          color: Colors.grey[600],
+                                        ),
+                                      ),
+                                      const SizedBox(height: 24),
+                                      _buildFormField(
+                                        nameController,
+                                        'Full Name *',
+                                        Icons.person_outline_rounded,
+                                      ),
+                                      const SizedBox(height: 12),
+                                      _buildFormField(
+                                        emailController,
+                                        'Email Address',
+                                        Icons.email_outlined,
+                                        keyboardType:
+                                            TextInputType.emailAddress,
+                                        validator: _validateEmail,
+                                      ),
+                                      const SizedBox(height: 12),
+                                      _buildFormField(
+                                        phoneController,
+                                        'Phone Number',
+                                        Icons.phone_outlined,
+                                        keyboardType: TextInputType.phone,
+                                        validator: _validatePhone,
+                                      ),
+                                      const SizedBox(height: 12),
+                                      _buildFormField(
+                                        messageController,
+                                        'Message (optional)',
+                                        Icons.message_outlined,
+                                        validator:
+                                            (v) =>
+                                                v!.isEmpty
+                                                    ? 'Enter a message'
+                                                    : null,
+                                      ),
+                                      const SizedBox(height: 20),
+                                      // Submit button
+                                      GestureDetector(
+                                        onTap: () async {
+                                          if (formKey.currentState!
+                                              .validate()) {
+                                            HapticFeedback.mediumImpact();
+                                            formKey.currentState!.save();
+                                            try {
+                                              final response = await http.post(
+                                                Uri.parse(
+                                                  '${ApiConfig.baseUrl}/api/core/communities/${widget.community.name}/subscribe/',
+                                                ),
+                                                headers: {
+                                                  'Content-Type':
+                                                      'application/json',
+                                                },
+                                                body: jsonEncode({
+                                                  'name': nameController.text,
+                                                  'email': emailController.text,
+                                                  'phone': phoneController.text,
+                                                  'message':
+                                                      messageController.text,
+                                                }),
+                                              );
+                                              if (!context.mounted) return;
+                                              if (response.statusCode == 200 ||
+                                                  response.statusCode == 201) {
+                                                Navigator.pop(context);
+                                                SnackBarHelper.showSuccess(
+                                                  context,
+                                                  'Thank you! We\'ll keep you updated.',
+                                                );
+                                              } else {
+                                                throw Exception(
+                                                  'Failed to submit form',
+                                                );
+                                              }
+                                            } catch (e) {
+                                              if (!context.mounted) return;
+                                              Navigator.pop(context);
+                                              SnackBarHelper.showError(
+                                                context,
+                                                'Failed to submit. Please try again later.',
+                                              );
+                                            }
+                                          }
+                                        },
+                                        child: Container(
+                                          width: double.infinity,
+                                          padding: const EdgeInsets.symmetric(
+                                            vertical: 16,
+                                          ),
+                                          decoration: BoxDecoration(
+                                            gradient: LinearGradient(
+                                              colors: _gradientColors,
+                                            ),
+                                            borderRadius: BorderRadius.circular(
+                                              16,
+                                            ),
+                                            boxShadow: [
+                                              BoxShadow(
+                                                color: _gradientColors[0]
+                                                    .withOpacity(0.4),
+                                                blurRadius: 10,
+                                                offset: const Offset(0, 4),
+                                              ),
+                                            ],
+                                          ),
+                                          child: Center(
+                                            child: Text(
+                                              'Notify Me',
+                                              style: textTheme.titleMedium
+                                                  ?.copyWith(
+                                                    color: Colors.white,
+                                                    fontWeight: FontWeight.bold,
+                                                  ),
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                      const SizedBox(height: 16),
+                                      // Cancel button
+                                      TextButton(
+                                        onPressed: () => Navigator.pop(context),
+                                        child: Text(
+                                          'Maybe Later',
+                                          style: textTheme.bodyMedium?.copyWith(
+                                            color: Colors.grey[600],
+                                          ),
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ),
-                                const SizedBox(height: 16),
-                                // Cancel button
-                                TextButton(
-                                  onPressed: () => Navigator.pop(context),
-                                  child: Text(
-                                    'Maybe Later',
-                                    style: textTheme.bodyMedium?.copyWith(
-                                      color: Colors.white.withOpacity(0.7),
-                                    ),
-                                  ),
-                                ),
-                              ],
+                              ),
                             ),
                           ),
                         ),
                       ),
                     ),
                   ),
-                ),
-              ),
+                );
+              },
             ),
           ),
         );
@@ -872,42 +931,32 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen>
     );
   }
 
-  Widget _buildGlassInput({
-    required TextEditingController controller,
-    required String hint,
-    required IconData icon,
+  Widget _buildFormField(
+    TextEditingController controller,
+    String hint,
+    IconData icon, {
     TextInputType? keyboardType,
     String? Function(String?)? validator,
   }) {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(16),
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
-        child: Container(
-          decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.15),
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(
-              color: Colors.white.withOpacity(0.2),
-            ),
-          ),
-          child: TextFormField(
-            controller: controller,
-            keyboardType: keyboardType,
-            style: const TextStyle(color: Colors.white),
-            validator: validator,
-            decoration: InputDecoration(
-              hintText: hint,
-              hintStyle: TextStyle(color: Colors.white.withOpacity(0.6)),
-              prefixIcon: Icon(icon, color: Colors.white.withOpacity(0.7)),
-              border: InputBorder.none,
-              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-              errorStyle: TextStyle(color: _accentColor),
-            ),
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.grey.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: TextFormField(
+        controller: controller,
+        keyboardType: keyboardType,
+        validator: validator,
+        decoration: InputDecoration(
+          hintText: hint,
+          prefixIcon: Icon(icon, color: Colors.grey),
+          border: InputBorder.none,
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 16,
+            vertical: 14,
           ),
         ),
       ),
     );
   }
 }
-

@@ -59,5 +59,8 @@
 		</array>
 		<key>UIStatusBarHidden</key>
 		<false/>
+		<!-- Flutter Deep Linking -->
+		<key>FlutterDeepLinkingEnabled</key>
+		<true/>
 	</dict>
 </plist>

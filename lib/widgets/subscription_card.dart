@@ -1,5 +1,6 @@
 import 'package:grocery_app/common_widgets/global_import.dart';
 import 'package:grocery_app/cubits/subscription/subscription_state.dart';
+import 'package:grocery_app/widgets/pause_date_picker_sheet.dart';
 
 class SubscriptionCarousel extends StatefulWidget {
   const SubscriptionCarousel({super.key});
@@ -111,23 +112,31 @@ class _SubscriptionCarouselState extends State<SubscriptionCarousel>
           ),
         ),
         SizedBox(height: responsive.S),
-        SizedBox(
-          height: responsive.value(mobile: 390, tablet: 420),
-          child: PageView.builder(
-            controller: _pageController,
-            itemCount: subscriptions.length,
-            itemBuilder: (context, index) {
-              final subscription = subscriptions[index];
-              return SubscriptionCard(
-                subscription: subscription,
-                responsive: responsive,
-                onTogglePause: () => _showToggleConfirmation(subscription),
-                onRepayment: () {
-                  final handler = SubscriptionHandler(context);
-                  handler.processUPIRepayment(subscription.id);
-                },
-              );
-            },
+        SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          physics: const BouncingScrollPhysics(),
+          padding: EdgeInsets.symmetric(horizontal: responsive.screenPadding),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children:
+                subscriptions.map((subscription) {
+                  return Container(
+                    width:
+                        MediaQuery.of(context).size.width -
+                        (responsive.screenPadding * 2),
+                    padding: const EdgeInsets.only(right: 12),
+                    child: SubscriptionCard(
+                      subscription: subscription,
+                      responsive: responsive,
+                      onTogglePause:
+                          () => _showToggleConfirmation(subscription),
+                      onRepayment: () {
+                        final handler = SubscriptionHandler(context);
+                        handler.processUPIRepayment(subscription.id);
+                      },
+                    ),
+                  );
+                }).toList(),
           ),
         ),
       ],
@@ -152,12 +161,9 @@ class _SubscriptionCarouselState extends State<SubscriptionCarousel>
           ),
         ),
         SizedBox(height: responsive.S),
-        SizedBox(
-          height: responsive.value(mobile: 390, tablet: 420),
-          child: PageView(
-            physics: const NeverScrollableScrollPhysics(),
-            children: [SubscriptionCardSkeleton(responsive: responsive)],
-          ),
+        Padding(
+          padding: EdgeInsets.symmetric(horizontal: responsive.screenPadding),
+          child: SubscriptionCardSkeleton(responsive: responsive),
         ),
       ],
     );
@@ -170,206 +176,38 @@ class _SubscriptionCarouselState extends State<SubscriptionCarousel>
     DateTime? selectedEndDate;
 
     if (isCurrentlyPaused) {
-      showDialog(
+      showModalBottomSheet(
         context: context,
+        backgroundColor: Colors.transparent,
         builder:
-            (dialogContext) => AlertDialog(
-              title: const Text('Resume Subscription?'),
-              content: const Text(
-                'Are you sure you want to resume this subscription?',
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.pop(dialogContext),
-                  child: const Text('Cancel'),
-                ),
-                TextButton(
-                  onPressed: () {
-                    Navigator.pop(dialogContext);
-                    context.read<SubscriptionCubit>().togglePauseSubscription(
-                      subscription.id,
-                      null,
-                      null,
-                    );
-                  },
-                  child: const Text('Confirm'),
-                ),
-              ],
+            (context) => ResumeSubscriptionSheet(
+              onConfirm: () {
+                context.read<SubscriptionCubit>().togglePauseSubscription(
+                  subscription.id,
+                  null,
+                  null,
+                );
+              },
             ),
       );
       return;
     }
 
-    showDialog(
+    showModalBottomSheet(
       context: context,
-      builder: (BuildContext dialogContext) {
-        return StatefulBuilder(
-          builder: (context, setState) {
-            return Dialog(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(20.0),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          'Pause From',
-                          style: Theme.of(context).textTheme.displaySmall,
-                        ),
-                        IconButton(
-                          onPressed: () => Navigator.pop(dialogContext),
-                          icon: const Icon(Icons.close),
-                          splashRadius: 20,
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 20),
-                    Row(
-                      children: [
-                        _buildDatePickerField(
-                          context: context,
-                          hintText: 'From',
-                          selectedDate: selectedStartDate,
-                          onTap: () async {
-                            final date = await showDatePicker(
-                              context: context,
-                              initialDate: DateTime.now(),
-                              firstDate: DateTime.now(),
-                              lastDate: DateTime.now().add(
-                                const Duration(days: 365),
-                              ),
-                            );
-                            if (date != null) {
-                              setState(() => selectedStartDate = date);
-                            }
-                          },
-                        ),
-                        const Padding(
-                          padding: EdgeInsets.symmetric(horizontal: 8.0),
-                          child: Text('To'),
-                        ),
-                        _buildDatePickerField(
-                          context: context,
-                          hintText: 'To',
-                          selectedDate: selectedEndDate,
-                          onTap: () async {
-                            final date = await showDatePicker(
-                              context: context,
-                              initialDate: selectedStartDate ?? DateTime.now(),
-                              firstDate: selectedStartDate ?? DateTime.now(),
-                              lastDate: DateTime.now().add(
-                                const Duration(days: 365),
-                              ),
-                            );
-                            if (date != null) {
-                              setState(() => selectedEndDate = date);
-                            }
-                          },
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 32),
-                    SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton(
-                        onPressed: () {
-                          if (maxPausesLeft <= 0) {
-                            SnackBarHelper.showError(
-                              context,
-                              'No pauses remaining.',
-                            );
-                            return;
-                          }
-                          if (selectedStartDate == null ||
-                              selectedEndDate == null) {
-                            SnackBarHelper.showError(
-                              context,
-                              'Please select both start and end dates.',
-                            );
-                            return;
-                          }
-                          if (selectedEndDate!.isBefore(selectedStartDate!)) {
-                            SnackBarHelper.showError(
-                              context,
-                              'End date must be after start date.',
-                            );
-                            return;
-                          }
-                          Navigator.pop(dialogContext);
-                          context
-                              .read<SubscriptionCubit>()
-                              .togglePauseSubscription(
-                                subscription.id,
-                                selectedStartDate,
-                                selectedEndDate,
-                              );
-                        },
-                        child: const Text('Save Changes'),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            );
-          },
-        );
-      },
-    );
-  }
-
-  Widget _buildDatePickerField({
-    required BuildContext context,
-    required String hintText,
-    required DateTime? selectedDate,
-    required Function() onTap,
-  }) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-    return Expanded(
-      child: GestureDetector(
-        onTap: onTap,
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 8),
-          decoration: BoxDecoration(
-            color:
-                hintText == 'From'
-                    ? Colors.transparent
-                    : theme.inputDecorationTheme.fillColor,
-            border: Border.all(
-              color:
-                  hintText == 'From' ? colorScheme.primary : Colors.transparent,
-            ),
-            borderRadius: BorderRadius.circular(8),
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder:
+          (context) => PauseDatePickerSheet(
+            maxPausesLeft: subscription.remainingPauseTimes,
+            onConfirm: (start, end) {
+              context.read<SubscriptionCubit>().togglePauseSubscription(
+                subscription.id,
+                start,
+                end,
+              );
+            },
           ),
-          child: Row(
-            children: [
-              Icon(
-                Icons.calendar_today_outlined,
-                color: colorScheme.primary,
-                size: 12,
-              ),
-              const SizedBox(width: 8),
-              Text(
-                selectedDate != null
-                    ? DateFormat('MMM dd, yyyy').format(selectedDate)
-                    : hintText,
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color:
-                      selectedDate != null
-                          ? theme.textTheme.bodyLarge?.color
-                          : theme.hintColor,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
     );
   }
 }
@@ -413,13 +251,17 @@ class _SubscriptionCardState extends State<SubscriptionCard> {
     final subscription = widget.subscription;
     final item = subscription.items.first;
     final bool isPaused = subscription.status == 'PAUSED';
-    final deliveriesLeft = subscription.totalDeliveries - subscription.completedDeliveries;
-    final progress = subscription.totalDeliveries > 0
-        ? (subscription.completedDeliveries / subscription.totalDeliveries).clamp(0.0, 1.0)
-        : 0.0;
-    final double discountPercent = item.price > 0
-        ? ((item.price - item.discountedPrice) / item.price) * 100
-        : 0;
+    final deliveriesLeft =
+        subscription.totalDeliveries - subscription.completedDeliveries;
+    final progress =
+        subscription.totalDeliveries > 0
+            ? (subscription.completedDeliveries / subscription.totalDeliveries)
+                .clamp(0.0, 1.0)
+            : 0.0;
+    final double discountPercent =
+        item.price > 0
+            ? ((item.price - item.discountedPrice) / item.price) * 100
+            : 0;
 
     return GestureDetector(
       onTapDown: (_) => setState(() => _isPressed = true),
@@ -437,17 +279,19 @@ class _SubscriptionCardState extends State<SubscriptionCard> {
           ),
           decoration: BoxDecoration(
             gradient: LinearGradient(
-              colors: isDark
-                  ? [const Color(0xFF1A1A2E), const Color(0xFF16213E)]
-                  : [Colors.white, const Color(0xFFFAFBFC)],
+              colors:
+                  isDark
+                      ? [const Color(0xFF1A1A2E), const Color(0xFF16213E)]
+                      : [Colors.white, const Color(0xFFFAFBFC)],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
             borderRadius: BorderRadius.circular(24),
             border: Border.all(
-              color: isDark
-                  ? Colors.white.withOpacity(0.08)
-                  : AppColors.primaryColor.withOpacity(0.15),
+              color:
+                  isDark
+                      ? Colors.white.withOpacity(0.08)
+                      : AppColors.primaryColor.withOpacity(0.15),
               width: 1.5,
             ),
             boxShadow: [
@@ -505,7 +349,9 @@ class _SubscriptionCardState extends State<SubscriptionCard> {
                 ),
                 // Content
                 Padding(
-                  padding: EdgeInsets.all(widget.responsive.value(mobile: 16, tablet: 20)),
+                  padding: EdgeInsets.all(
+                    widget.responsive.value(mobile: 16, tablet: 20),
+                  ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -515,17 +361,29 @@ class _SubscriptionCardState extends State<SubscriptionCard> {
                         children: [
                           // Status Badge
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 14,
+                              vertical: 8,
+                            ),
                             decoration: BoxDecoration(
                               gradient: LinearGradient(
-                                colors: isPaused
-                                    ? [AppColors.warning, AppColors.warning.withOpacity(0.8)]
-                                    : [AppColors.primaryColor, AppColors.primaryDark],
+                                colors:
+                                    isPaused
+                                        ? [
+                                          AppColors.warning,
+                                          AppColors.warning.withOpacity(0.8),
+                                        ]
+                                        : [
+                                          AppColors.primaryColor,
+                                          AppColors.primaryDark,
+                                        ],
                               ),
                               borderRadius: BorderRadius.circular(30),
                               boxShadow: [
                                 BoxShadow(
-                                  color: (isPaused ? AppColors.warning : AppColors.primaryColor)
+                                  color: (isPaused
+                                          ? AppColors.warning
+                                          : AppColors.primaryColor)
                                       .withOpacity(0.4),
                                   blurRadius: 8,
                                   offset: const Offset(0, 3),
@@ -536,7 +394,9 @@ class _SubscriptionCardState extends State<SubscriptionCard> {
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 Icon(
-                                  isPaused ? Icons.pause_circle_rounded : Icons.autorenew_rounded,
+                                  isPaused
+                                      ? Icons.pause_circle_rounded
+                                      : Icons.autorenew_rounded,
                                   color: Colors.white,
                                   size: 16,
                                 ),
@@ -553,11 +413,17 @@ class _SubscriptionCardState extends State<SubscriptionCard> {
                           ),
                           // Delivery Badge
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 6,
+                            ),
                             decoration: BoxDecoration(
-                              color: isDark
-                                  ? Colors.white.withOpacity(0.1)
-                                  : AppColors.primaryColor.withOpacity(0.08),
+                              color:
+                                  isDark
+                                      ? Colors.white.withOpacity(0.1)
+                                      : AppColors.primaryColor.withOpacity(
+                                        0.08,
+                                      ),
                               borderRadius: BorderRadius.circular(12),
                               border: Border.all(
                                 color: AppColors.primaryColor.withOpacity(0.2),
@@ -591,13 +457,21 @@ class _SubscriptionCardState extends State<SubscriptionCard> {
                         children: [
                           // Product Image with modern styling
                           Container(
-                            width: widget.responsive.value(mobile: 85, tablet: 100),
-                            height: widget.responsive.value(mobile: 85, tablet: 100),
+                            width: widget.responsive.value(
+                              mobile: 85,
+                              tablet: 100,
+                            ),
+                            height: widget.responsive.value(
+                              mobile: 85,
+                              tablet: 100,
+                            ),
                             decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(18),
                               boxShadow: [
                                 BoxShadow(
-                                  color: Colors.black.withOpacity(isDark ? 0.4 : 0.12),
+                                  color: Colors.black.withOpacity(
+                                    isDark ? 0.4 : 0.12,
+                                  ),
                                   blurRadius: 15,
                                   offset: const Offset(0, 6),
                                 ),
@@ -612,23 +486,32 @@ class _SubscriptionCardState extends State<SubscriptionCard> {
                                     height: double.infinity,
                                     width: double.infinity,
                                     fit: BoxFit.cover,
-                                    placeholder: (context, url) => Container(
-                                      color: isDark ? Colors.grey[850] : Colors.grey[100],
-                                      child: Center(
-                                        child: CircularProgressIndicator(
-                                          strokeWidth: 2,
-                                          color: AppColors.primaryColor.withOpacity(0.5),
+                                    placeholder:
+                                        (context, url) => Container(
+                                          color:
+                                              isDark
+                                                  ? Colors.grey[850]
+                                                  : Colors.grey[100],
+                                          child: Center(
+                                            child: CircularProgressIndicator(
+                                              strokeWidth: 2,
+                                              color: AppColors.primaryColor
+                                                  .withOpacity(0.5),
+                                            ),
+                                          ),
                                         ),
-                                      ),
-                                    ),
-                                    errorWidget: (context, url, error) => Container(
-                                      color: isDark ? Colors.grey[850] : Colors.grey[100],
-                                      child: Icon(
-                                        Icons.image_rounded,
-                                        color: theme.hintColor,
-                                        size: 32,
-                                      ),
-                                    ),
+                                    errorWidget:
+                                        (context, url, error) => Container(
+                                          color:
+                                              isDark
+                                                  ? Colors.grey[850]
+                                                  : Colors.grey[100],
+                                          child: Icon(
+                                            Icons.image_rounded,
+                                            color: theme.hintColor,
+                                            size: 32,
+                                          ),
+                                        ),
                                   ),
                                   // Discount Badge
                                   if (discountPercent > 0)
@@ -636,12 +519,22 @@ class _SubscriptionCardState extends State<SubscriptionCard> {
                                       top: 6,
                                       left: 6,
                                       child: Container(
-                                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 6,
+                                          vertical: 3,
+                                        ),
                                         decoration: BoxDecoration(
                                           gradient: LinearGradient(
-                                            colors: [AppColors.success, AppColors.success.withOpacity(0.85)],
+                                            colors: [
+                                              AppColors.success,
+                                              AppColors.success.withOpacity(
+                                                0.85,
+                                              ),
+                                            ],
                                           ),
-                                          borderRadius: BorderRadius.circular(8),
+                                          borderRadius: BorderRadius.circular(
+                                            8,
+                                          ),
                                         ),
                                         child: Text(
                                           '${discountPercent.toStringAsFixed(0)}%',
@@ -684,18 +577,21 @@ class _SubscriptionCardState extends State<SubscriptionCard> {
                                   children: [
                                     Text(
                                       '₹${item.discountedPrice.toStringAsFixed(0)}',
-                                      style: theme.textTheme.titleLarge?.copyWith(
-                                        fontWeight: FontWeight.bold,
-                                        color: AppColors.primaryColor,
-                                      ),
+                                      style: theme.textTheme.titleLarge
+                                          ?.copyWith(
+                                            fontWeight: FontWeight.bold,
+                                            color: AppColors.primaryColor,
+                                          ),
                                     ),
                                     const SizedBox(width: 8),
                                     Text(
                                       '₹${item.price.toStringAsFixed(0)}',
-                                      style: theme.textTheme.bodyMedium?.copyWith(
-                                        decoration: TextDecoration.lineThrough,
-                                        color: theme.hintColor,
-                                      ),
+                                      style: theme.textTheme.bodyMedium
+                                          ?.copyWith(
+                                            decoration:
+                                                TextDecoration.lineThrough,
+                                            color: theme.hintColor,
+                                          ),
                                     ),
                                   ],
                                 ),
@@ -709,9 +605,10 @@ class _SubscriptionCardState extends State<SubscriptionCard> {
                       Container(
                         padding: const EdgeInsets.all(14),
                         decoration: BoxDecoration(
-                          color: isDark
-                              ? Colors.white.withOpacity(0.05)
-                              : AppColors.primaryColor.withOpacity(0.04),
+                          color:
+                              isDark
+                                  ? Colors.white.withOpacity(0.05)
+                                  : AppColors.primaryColor.withOpacity(0.04),
                           borderRadius: BorderRadius.circular(16),
                           border: Border.all(
                             color: AppColors.primaryColor.withOpacity(0.1),
@@ -729,8 +626,13 @@ class _SubscriptionCardState extends State<SubscriptionCard> {
                                   child: CircularProgressIndicator(
                                     value: progress,
                                     strokeWidth: 4,
-                                    backgroundColor: isDark ? Colors.grey[800] : Colors.grey[200],
-                                    valueColor: AlwaysStoppedAnimation<Color>(AppColors.primaryColor),
+                                    backgroundColor:
+                                        isDark
+                                            ? Colors.grey[800]
+                                            : Colors.grey[200],
+                                    valueColor: AlwaysStoppedAnimation<Color>(
+                                      AppColors.primaryColor,
+                                    ),
                                   ),
                                 ),
                                 Text(
@@ -776,7 +678,10 @@ class _SubscriptionCardState extends State<SubscriptionCard> {
                               decoration: BoxDecoration(
                                 borderRadius: BorderRadius.circular(14),
                                 border: Border.all(
-                                  color: isPaused ? AppColors.success : AppColors.warning,
+                                  color:
+                                      isPaused
+                                          ? AppColors.success
+                                          : AppColors.warning,
                                   width: 1.5,
                                 ),
                               ),
@@ -786,42 +691,75 @@ class _SubscriptionCardState extends State<SubscriptionCard> {
                                   onTap: widget.onTogglePause,
                                   borderRadius: BorderRadius.circular(14),
                                   child: Padding(
-                                    padding: const EdgeInsets.symmetric(vertical: 12),
-                                    child: Row(
-                                      mainAxisAlignment: MainAxisAlignment.center,
-                                      children: [
-                                        Icon(
-                                          isPaused ? Icons.play_circle_rounded : Icons.pause_circle_rounded,
-                                          color: isPaused ? AppColors.success : AppColors.warning,
-                                          size: 20,
-                                        ),
-                                        const SizedBox(width: 8),
-                                        Text(
-                                          isPaused ? 'Resume' : 'Pause',
-                                          style: theme.textTheme.labelLarge?.copyWith(
-                                            color: isPaused ? AppColors.success : AppColors.warning,
-                                            fontWeight: FontWeight.bold,
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 12,
+                                    ),
+                                    child: FittedBox(
+                                      fit: BoxFit.scaleDown,
+                                      child: Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          Icon(
+                                            isPaused
+                                                ? Icons.play_circle_rounded
+                                                : Icons.pause_circle_rounded,
+                                            color:
+                                                isPaused
+                                                    ? AppColors.success
+                                                    : AppColors.warning,
+                                            size: 20,
                                           ),
-                                        ),
-                                      ],
+                                          const SizedBox(width: 8),
+                                          Text(
+                                            isPaused ? 'Resume' : 'Pause',
+                                            style: theme.textTheme.labelLarge
+                                                ?.copyWith(
+                                                  color:
+                                                      isPaused
+                                                          ? AppColors.success
+                                                          : AppColors.warning,
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                          ),
+                                        ],
+                                      ),
                                     ),
                                   ),
                                 ),
                               ),
                             ),
                           ),
+                          // Repayment Button
+                          if ((subscription
+                                          .installmentInfo
+                                          ?.installmentPaymentStatus ??
+                                      '')
+                                  .toUpperCase() ==
+                              'PENDING') ...[
+                            const SizedBox(width: 12),
+                            SubscriptionRepaymentButton(
+                              subscription: subscription,
+                              isExpanded: true,
+                            ),
+                          ],
                           const SizedBox(width: 12),
                           // View Details Button
                           Expanded(
                             child: Container(
                               decoration: BoxDecoration(
                                 gradient: LinearGradient(
-                                  colors: [AppColors.primaryColor, AppColors.primaryDark],
+                                  colors: [
+                                    AppColors.primaryColor,
+                                    AppColors.primaryDark,
+                                  ],
                                 ),
                                 borderRadius: BorderRadius.circular(14),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: AppColors.primaryColor.withOpacity(0.35),
+                                    color: AppColors.primaryColor.withOpacity(
+                                      0.35,
+                                    ),
                                     blurRadius: 10,
                                     offset: const Offset(0, 4),
                                   ),
@@ -830,27 +768,38 @@ class _SubscriptionCardState extends State<SubscriptionCard> {
                               child: Material(
                                 color: Colors.transparent,
                                 child: InkWell(
-                                  onTap: () => _navigateToDetails(context, subscription),
+                                  onTap:
+                                      () => _navigateToDetails(
+                                        context,
+                                        subscription,
+                                      ),
                                   borderRadius: BorderRadius.circular(14),
                                   child: Padding(
-                                    padding: const EdgeInsets.symmetric(vertical: 12),
-                                    child: Row(
-                                      mainAxisAlignment: MainAxisAlignment.center,
-                                      children: [
-                                        const Icon(
-                                          Icons.visibility_rounded,
-                                          color: Colors.white,
-                                          size: 20,
-                                        ),
-                                        const SizedBox(width: 8),
-                                        Text(
-                                          'Details',
-                                          style: theme.textTheme.labelLarge?.copyWith(
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 12,
+                                    ),
+                                    child: FittedBox(
+                                      fit: BoxFit.scaleDown,
+                                      child: Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          const Icon(
+                                            Icons.visibility_rounded,
                                             color: Colors.white,
-                                            fontWeight: FontWeight.bold,
+                                            size: 20,
                                           ),
-                                        ),
-                                      ],
+                                          const SizedBox(width: 8),
+                                          Text(
+                                            'Details',
+                                            style: theme.textTheme.labelLarge
+                                                ?.copyWith(
+                                                  color: Colors.white,
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                          ),
+                                        ],
+                                      ),
                                     ),
                                   ),
                                 ),
@@ -859,59 +808,8 @@ class _SubscriptionCardState extends State<SubscriptionCard> {
                           ),
                         ],
                       ),
-                      // Payment Warning (if pending)
-                      if (subscription.canPayNextInstallment &&
-                          subscription.installmentInfo?.installmentPaymentStatus == "PENDING" &&
-                          subscription.installmentInfo!.currentInstallment > 1)
-                        Padding(
-                          padding: const EdgeInsets.only(top: 12),
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                            decoration: BoxDecoration(
-                              gradient: LinearGradient(
-                                colors: [
-                                  AppColors.error.withOpacity(0.1),
-                                  AppColors.error.withOpacity(0.05),
-                                ],
-                              ),
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(color: AppColors.error.withOpacity(0.3)),
-                            ),
-                            child: Row(
-                              children: [
-                                Icon(Icons.warning_rounded, color: AppColors.error, size: 20),
-                                const SizedBox(width: 10),
-                                Expanded(
-                                  child: Text(
-                                    'Payment pending for installment',
-                                    style: theme.textTheme.bodySmall?.copyWith(
-                                      color: AppColors.error,
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                  ),
-                                ),
-                                TextButton(
-                                  onPressed: widget.onRepayment,
-                                  style: TextButton.styleFrom(
-                                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                                    backgroundColor: AppColors.error,
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(8),
-                                    ),
-                                  ),
-                                  child: const Text(
-                                    'Pay Now',
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 12,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
+
+                      // Payment Warning removed as per new design
                     ],
                   ),
                 ),
@@ -1001,34 +899,6 @@ class SubscriptionCardSkeleton extends StatelessWidget {
           ],
         ),
       ),
-    );
-  }
-}
-
-class ShimmerLoading extends StatelessWidget {
-  const ShimmerLoading({
-    super.key,
-    required this.isLoading,
-    required this.child,
-  });
-
-  final bool isLoading;
-  final Widget child;
-
-  @override
-  Widget build(BuildContext context) {
-    if (!isLoading) {
-      return child;
-    }
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-    final baseColor = isDark ? Colors.grey[850]! : Colors.grey[300]!;
-    final highlightColor = isDark ? Colors.grey[700]! : Colors.grey[100]!;
-
-    return Shimmer.fromColors(
-      baseColor: baseColor,
-      highlightColor: highlightColor,
-      child: child,
     );
   }
 }

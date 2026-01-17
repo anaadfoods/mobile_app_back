@@ -96,7 +96,9 @@ class CartCubit extends Cubit<CartState> {
       quantityChange: quantityChange,
       newQuantity: newQuantity,
     );
-    emit(CartSuccess(optimisticCart, message: '', error: '')); // Emit the optimistic state to the UI
+    emit(
+      CartSuccess(optimisticCart, message: '', error: ''),
+    ); // Emit the optimistic state to the UI
 
     // 2. Perform the actual network call
     try {
@@ -118,33 +120,43 @@ class CartCubit extends Cubit<CartState> {
     int? newQuantity,
   }) {
     final items = List<CartItem>.from(currentCart.items);
-    final index = items.indexWhere((item) => item.productVariant.id == variantId);
+    final index = items.indexWhere(
+      (item) => item.productVariant.id == variantId,
+    );
 
     if (index != -1) {
       // Item exists, update or remove it
       final existingItem = items[index];
-      final calculatedQuantity = newQuantity ?? (existingItem.quantity + (quantityChange ?? 0));
+      final calculatedQuantity =
+          newQuantity ?? (existingItem.quantity + (quantityChange ?? 0));
 
       if (calculatedQuantity > 0) {
         items[index] = existingItem.copyWith(quantity: calculatedQuantity);
       } else {
         items.removeAt(index); // Remove if quantity is 0 or less
       }
-    } else if (product != null && quantityChange != null && quantityChange > 0) {
+    } else if (product != null &&
+        quantityChange != null &&
+        quantityChange > 0) {
       // Item does not exist, ADD IT using the correct product data
       // This creates a temporary CartItem. The ID will be replaced by the server's response.
-      items.add(CartItem(
-        id: DateTime.now().millisecondsSinceEpoch, // Temporary local ID
-        productVariant: product, // ✅ CORRECT: Use the real product data
-        quantity: quantityChange,
-        totalPrice: (product.finalPrice * quantityChange).toString(),
-        createdAt: DateTime.now(),
-        updatedAt: DateTime.now(),
-      ));
+      items.add(
+        CartItem(
+          id: DateTime.now().millisecondsSinceEpoch, // Temporary local ID
+          productVariant: product, // ✅ CORRECT: Use the real product data
+          quantity: quantityChange,
+          totalPrice: (product.finalPrice * quantityChange).toString(),
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
+        ),
+      );
     }
-    
+
     // Recalculate totals locally for the optimistic view
-    final double newTotalPrice = items.fold(0.0, (sum, item) => sum + (item.productVariant.finalPrice * item.quantity));
+    final double newTotalPrice = items.fold(
+      0.0,
+      (sum, item) => sum + (item.productVariant.finalPrice * item.quantity),
+    );
     final int newTotalItems = items.fold(0, (sum, item) => sum + item.quantity);
 
     return currentCart.copyWith(

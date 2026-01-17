@@ -20,8 +20,9 @@ class ProductRepository {
     try {
       return await CategoryService.fetchCategories();
     } catch (e) {
-      // Re-throw with a custom, user-friendly exception type
-      throw ProductException('Could not fetch product categories. Please check your connection.');
+      throw ProductException(
+        _getErrorMessage(e, 'Could not fetch product categories.'),
+      );
     }
   }
 
@@ -29,7 +30,9 @@ class ProductRepository {
     try {
       return await CategoryService.fetchFeaturedProducts();
     } catch (e) {
-      throw ProductException('Could not fetch featured products.');
+      throw ProductException(
+        _getErrorMessage(e, 'Could not fetch featured products.'),
+      );
     }
   }
 
@@ -37,7 +40,9 @@ class ProductRepository {
     try {
       return await CategoryService.fetchBestsellerProducts();
     } catch (e) {
-      throw ProductException('Could not fetch bestseller products.');
+      throw ProductException(
+        _getErrorMessage(e, 'Could not fetch bestseller products.'),
+      );
     }
   }
 
@@ -45,7 +50,9 @@ class ProductRepository {
     try {
       return await CategoryService.fetchProductsByCategory(categoryName);
     } catch (e) {
-      throw ProductException('Could not fetch products for "$categoryName".');
+      throw ProductException(
+        _getErrorMessage(e, 'Could not fetch products for "$categoryName".'),
+      );
     }
   }
 
@@ -53,7 +60,22 @@ class ProductRepository {
     try {
       return await CategoryService.fetchProductById(id);
     } catch (e) {
-      throw ProductException('Could not fetch product details.');
+      throw ProductException(
+        _getErrorMessage(e, 'Could not fetch product details.'),
+      );
     }
+  }
+
+  String _getErrorMessage(dynamic e, String defaultMsg) {
+    final s = e.toString().toLowerCase();
+    if (s.contains('socketexception') ||
+        s.contains('connection refused') ||
+        s.contains('network is unreachable') ||
+        s.contains('timed out') ||
+        s.contains('clientexception')) {
+      return '$defaultMsg Please check your connection.';
+    }
+    // If it's a server error or other exception, return the actual message or a cleaner version
+    return '$defaultMsg ${e.toString().replaceAll("Exception: ", "").replaceAll("Error loading categories: ", "")}';
   }
 }

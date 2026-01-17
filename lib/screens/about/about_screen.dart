@@ -102,7 +102,6 @@ class _AboutScreenState extends State<AboutScreen>
         backgroundColor: theme.scaffoldBackgroundColor,
         extendBodyBehindAppBar: true,
         body: SingleChildScrollView(
-          physics: const BouncingScrollPhysics(),
           child: Column(
             children: [
               // Animated Header
@@ -121,10 +120,10 @@ class _AboutScreenState extends State<AboutScreen>
                         _buildMissionCard(theme, colorScheme),
                         const SizedBox(height: 24),
                         _buildSectionTitle(theme, 'Our Values'),
-                        const SizedBox(height: 16),
+                        const SizedBox(height: 12),
                         _buildValuesGrid(theme, colorScheme),
-                        const SizedBox(height: 32),
-                        _buildSectionTitle(theme, 'Why Choose Us'),
+                        const SizedBox(height: 16),
+                        _buildSectionTitle(theme, 'The Anaad Promise'),
                         const SizedBox(height: 16),
                         _buildBenefitsCard(theme, colorScheme),
                         const SizedBox(height: 32),
@@ -155,7 +154,7 @@ class _AboutScreenState extends State<AboutScreen>
         children: [
           // Background with gradient and image
           Container(
-            height: size.height * 0.35 + statusBarHeight,
+            height: size.height * 0.40 + statusBarHeight, // Increased height
             width: double.infinity,
             child: Stack(
               fit: StackFit.expand,
@@ -220,7 +219,7 @@ class _AboutScreenState extends State<AboutScreen>
                 ),
                 // Logo and title
                 Positioned(
-                  top: statusBarHeight + 60,
+                  top: statusBarHeight + 10, // Reduced top spacing
                   left: 0,
                   right: 0,
                   child: Column(
@@ -231,7 +230,9 @@ class _AboutScreenState extends State<AboutScreen>
                         builder: (context, child) {
                           final scale =
                               1.0 +
-                              math.sin(_particleController.value * math.pi * 2) *
+                              math.sin(
+                                    _particleController.value * math.pi * 2,
+                                  ) *
                                   0.03;
                           return Transform.scale(
                             scale: scale,
@@ -275,7 +276,7 @@ class _AboutScreenState extends State<AboutScreen>
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        'Farm Fresh • Naturally Grown',
+                        ' Not a Brand. A Commitment',
                         style: TextStyle(
                           color: Colors.white.withAlpha(200),
                           fontSize: 14,
@@ -411,7 +412,7 @@ class _AboutScreenState extends State<AboutScreen>
           ),
           const SizedBox(height: 16),
           Text(
-            'At Anaad Foods, we believe in bringing nature\'s goodness directly to your table. Our mission is to provide fresh, naturally grown, and sustainable food products that nourish both body and soul.',
+            'It began with a disturbing question: Why is a generation obsessed with "healthy eating" still suffering from Modern Lifestyle Diseases?',
             style: theme.textTheme.bodyMedium?.copyWith(
               height: 1.6,
               color: theme.textTheme.bodyMedium?.color?.withAlpha(200),
@@ -419,7 +420,14 @@ class _AboutScreenState extends State<AboutScreen>
           ),
           const SizedBox(height: 12),
           Text(
-            'We work directly with farmers who share our passion for organic farming, ensuring that every product meets our high standards of quality and sustainability.',
+            "We looked at our own dinner tables and realized the disconnect. The produce looked fresh, but the soil it came from was stripped of life due to synthetic inputs. We realized we were eating chemistry, not nutrients. We couldn't find a source we trusted, so we built the farm we needed. We returned to Toxin-Free ICBN (Indigenous Cow Based Natural) practices not to build a business, but to secure our own survival. To heal the human, we must heal the source. Our mission is to restore Environmental Health to the soil and provide economic security and dignity back to the Farmers at the grassroots. When the land breathes and the farmer thrives, your health is the inevitable harvest.",
+            style: theme.textTheme.bodyMedium?.copyWith(
+              height: 1.6,
+              color: theme.textTheme.bodyMedium?.color?.withAlpha(200),
+            ),
+          ),
+          Text(
+            'ANAAD is simply us sharing that lifeline with you',
             style: theme.textTheme.bodyMedium?.copyWith(
               height: 1.6,
               color: theme.textTheme.bodyMedium?.color?.withAlpha(200),
@@ -434,14 +442,14 @@ class _AboutScreenState extends State<AboutScreen>
     final values = [
       {
         'icon': Icons.eco_rounded,
-        'title': 'Organic',
-        'subtitle': '100% Natural',
+        'title': 'Radical Purity',
+        'subtitle': "If nature didn't make it, we don't sell it",
         'color': Colors.green,
       },
       {
         'icon': Icons.agriculture_rounded,
-        'title': 'Farm Fresh',
-        'subtitle': 'Direct sourcing',
+        'title': 'Zero Distance',
+        'subtitle': 'From the harvest directly to your hands',
         'color': Colors.orange,
       },
       {
@@ -465,7 +473,7 @@ class _AboutScreenState extends State<AboutScreen>
         crossAxisCount: 2,
         crossAxisSpacing: 14,
         mainAxisSpacing: 14,
-        childAspectRatio: 1.4,
+        childAspectRatio: 1.1,
       ),
       itemCount: values.length,
       itemBuilder: (context, index) {
@@ -495,10 +503,7 @@ class _AboutScreenState extends State<AboutScreen>
       duration: Duration(milliseconds: 400 + (delay * 100)),
       curve: Curves.easeOutBack,
       builder: (context, value, child) {
-        return Transform.scale(
-          scale: value,
-          child: child,
-        );
+        return Transform.scale(scale: value, child: child);
       },
       child: Container(
         padding: const EdgeInsets.all(16),
@@ -547,12 +552,11 @@ class _AboutScreenState extends State<AboutScreen>
 
   Widget _buildBenefitsCard(ThemeData theme, ColorScheme colorScheme) {
     final benefits = [
-      'Farm-fresh products delivered to your doorstep',
-      'No harmful chemicals or pesticides',
-      'Supporting local farmers and communities',
-      'Sustainable and eco-friendly packaging',
-      'Quality assurance at every step',
-      'Competitive prices for premium products',
+      ' Harvested, Not Stored. (Food that breathes, delivered fresh).',
+      'Zero Tolerance for Toxins. (Strictly chemical-free, certified).',
+      ' Profit for the Planter. (Fair profit margins for the hands that feed us.',
+      'Earth to Earth. (Packaging that leaves minimum trace.)'
+          ' The Truth Test. (Every grain checked for absolute purity.)',
     ];
 
     return Container(
@@ -569,15 +573,16 @@ class _AboutScreenState extends State<AboutScreen>
         ],
       ),
       child: Column(
-        children: benefits.asMap().entries.map((entry) {
-          final index = entry.key;
-          final benefit = entry.value;
-          return _BenefitItem(
-            text: benefit,
-            isLast: index == benefits.length - 1,
-            delay: index,
-          );
-        }).toList(),
+        children:
+            benefits.asMap().entries.map((entry) {
+              final index = entry.key;
+              final benefit = entry.value;
+              return _BenefitItem(
+                text: benefit,
+                isLast: index == benefits.length - 1,
+                delay: index,
+              );
+            }).toList(),
       ),
     );
   }
@@ -590,17 +595,14 @@ class _AboutScreenState extends State<AboutScreen>
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [
-            colorScheme.primary,
-            colorScheme.primary.withAlpha(220),
-          ],
+          colors: [colorScheme.primary, colorScheme.primary.withAlpha(220)],
         ),
         borderRadius: BorderRadius.circular(24),
       ),
       child: Column(
         children: [
           const Text(
-            'Connect With Us',
+            'Join the Conversation',
             style: TextStyle(
               color: Colors.white,
               fontSize: 20,
@@ -609,11 +611,8 @@ class _AboutScreenState extends State<AboutScreen>
           ),
           const SizedBox(height: 8),
           Text(
-            'Follow us on social media for updates',
-            style: TextStyle(
-              color: Colors.white.withAlpha(180),
-              fontSize: 14,
-            ),
+            "We don't hide behind logos. Talk to us.",
+            style: TextStyle(color: Colors.white.withAlpha(180), fontSize: 14),
           ),
           const SizedBox(height: 20),
           // Social icons
@@ -632,9 +631,10 @@ class _AboutScreenState extends State<AboutScreen>
               const SizedBox(width: 16),
               _buildSocialButton(
                 icon: FontAwesomeIcons.linkedinIn,
-                onTap: () => _launchURL(
-                  'https://www.linkedin.com/company/anaad-anhad-naad-foods/',
-                ),
+                onTap:
+                    () => _launchURL(
+                      'https://www.linkedin.com/company/anaad-anhad-naad-foods/',
+                    ),
               ),
               const SizedBox(width: 16),
               _buildSocialButton(
@@ -658,10 +658,7 @@ class _AboutScreenState extends State<AboutScreen>
                   'connect@anaadfoods.com',
                 ),
                 const SizedBox(height: 12),
-                _buildContactRow(
-                  Icons.phone_outlined,
-                  '+91 9996166186',
-                ),
+                _buildContactRow(Icons.phone_outlined, '+91 9996166186'),
                 const SizedBox(height: 12),
                 _buildContactRow(
                   Icons.location_on_outlined,
@@ -673,10 +670,7 @@ class _AboutScreenState extends State<AboutScreen>
           const SizedBox(height: 20),
           Text(
             '© 2025 Anaad Foods. All rights reserved.',
-            style: TextStyle(
-              color: Colors.white.withAlpha(150),
-              fontSize: 12,
-            ),
+            style: TextStyle(color: Colors.white.withAlpha(150), fontSize: 12),
           ),
         ],
       ),
@@ -695,11 +689,7 @@ class _AboutScreenState extends State<AboutScreen>
           color: Colors.white.withAlpha(30),
           shape: BoxShape.circle,
         ),
-        child: Icon(
-          icon,
-          color: Colors.white,
-          size: 18,
-        ),
+        child: Icon(icon, color: Colors.white, size: 18),
       ),
     );
   }
@@ -776,9 +766,7 @@ class _BenefitItem extends StatelessWidget {
             Expanded(
               child: Text(
                 text,
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  height: 1.4,
-                ),
+                style: theme.textTheme.bodyMedium?.copyWith(height: 1.4),
               ),
             ),
           ],

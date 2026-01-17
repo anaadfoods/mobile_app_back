@@ -1,3 +1,4 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:grocery_app/common_widgets/global_import.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -59,7 +60,14 @@ class NotificationService {
   // Get device id
   static Future<String> deviceId = getDeviceId();
 
+  // Store initial message if app was launched from terminated state
+  RemoteMessage? _pendingInitialMessage;
+  bool _isInitialized = false;
+
   Future<void> initialize(NotificationCubit read) async {
+    if (_isInitialized) return;
+    _isInitialized = true;
+
     try {
       // Initialize Firebase Messaging
       await _initializeFirebaseMessaging();
@@ -95,8 +103,19 @@ class NotificationService {
     // Handle initial message when app is opened from terminated state
     RemoteMessage? initialMessage =
         await FirebaseMessaging.instance.getInitialMessage();
+
     if (initialMessage != null) {
-      _handleMessageOpenedApp(initialMessage);
+      debugPrint('Initial message receiving: ${initialMessage.data}');
+      _pendingInitialMessage = initialMessage;
+    }
+  }
+
+  // Called from AppInitializer when navigator is ready
+  void processInitialMessage() {
+    if (_pendingInitialMessage != null) {
+      debugPrint('Processing pending initial notification message');
+      _handleMessageOpenedApp(_pendingInitialMessage!);
+      _pendingInitialMessage = null;
     }
   }
 
@@ -498,16 +517,27 @@ class NotificationService {
   /// Handles deep linking redirection from FCM notification payloads.
   /// Supports Django backend payload format with 'screen', 'product_id', 'order_id' keys.
   /// Falls back to existing type-based routing for other notification types.
+  ///
+  /// Screen-based routing (primary):
+  ///   - order_tracking: requires order_id
+  ///   - product_detail: requires product_id
+  ///   - subscription_detail: requires subscription_id
+  ///   - cart, profile, home, notifications: no ID required
+  ///
+  /// Type-based fallback (when screen is missing):
+  ///   - Uses 'type' and 'id' fields for routing
   void handleRedirection(Map<String, dynamic> data) {
+    debugPrint('handleRedirection called with data: $data');
     final String? screen = data['screen'];
 
     // Handle new screen-based routing from Django backend
-    if (screen != null) {
+    if (screen != null && screen.isNotEmpty) {
       debugPrint('Handling screen-based redirection: $screen');
       switch (screen) {
         case 'product_detail':
           final productId = data['product_id'];
           if (productId != null) {
+            debugPrint('Navigating to product_detail with id: $productId');
             NavigationService.navigateToProductDetails(productId.toString());
           } else {
             debugPrint('product_id missing for product_detail screen');
@@ -517,6 +547,7 @@ class NotificationService {
         case 'order_tracking':
           final orderId = data['order_id'];
           if (orderId != null) {
+            debugPrint('Navigating to order_tracking with id: $orderId');
             NavigationService.navigateToOrderDetails(orderId.toString());
           } else {
             debugPrint('order_id missing for order_tracking screen');
@@ -526,21 +557,33 @@ class NotificationService {
         case 'subscription_detail':
           final subscriptionId = data['subscription_id'];
           if (subscriptionId != null) {
+            debugPrint(
+              'Navigating to subscription_detail with id: $subscriptionId',
+            );
             NavigationService.navigateToSubscriptionDetails(
               subscriptionId.toString(),
             );
+          } else {
+            debugPrint(
+              'subscription_id missing for subscription_detail screen',
+            );
+            _navigateToNotifications();
           }
           return;
         case 'cart':
+          debugPrint('Navigating to cart');
           NavigationService.navigateToCart();
           return;
         case 'profile':
+          debugPrint('Navigating to profile');
           NavigationService.navigateToAccount();
           return;
         case 'home':
+          debugPrint('Navigating to home');
           NavigationService.navigateToHome();
           return;
         case 'notifications':
+          debugPrint('Navigating to notifications');
           NavigationService.navigateToNotifications();
           return;
         default:
@@ -551,6 +594,8 @@ class NotificationService {
     }
 
     // Fall back to existing type-based routing for backwards compatibility
+    // Uses 'type' and 'id' from data payload
+    debugPrint('Falling back to type-based routing');
     _handleNotificationAction(data);
   }
 
@@ -687,7 +732,7 @@ class NotificationService {
     String deviceID = await getDeviceId();
 
     final url = Uri.parse(
-      'https://app.anaadfoods.com/api/notifications/register-token/',
+      '${ApiConfig.baseUrl}/api/notifications/register-token/',
     );
     try {
       final response = await http.post(
@@ -718,7 +763,7 @@ class NotificationService {
     String bearerToken,
   ) async {
     final url = Uri.parse(
-      'https://app.anaadfoods.com/api/notifications/logout-device/',
+      '${ApiConfig.baseUrl}/api/notifications/logout-device/',
     );
     try {
       String deviceID = await getDeviceId();
@@ -745,9 +790,19 @@ class NotificationService {
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   // Ensure Firebase is initialized
-  // await Firebase.initializeApp();
+  await Firebase.initializeApp();
 
   debugPrint('Handling a background message: ${message.messageId}');
   debugPrint('Message data: ${message.data}');
   debugPrint('Message notification: ${message.notification?.title}');
+
+  // Parse and save notification
+  try {
+    Map<String, dynamic> notificationData = MessageUtility.parseMessageData(
+      message,
+    );
+    await NotificationHelper.saveNotification(notificationData);
+  } catch (e) {
+    debugPrint('Error saving background notification: $e');
+  }
 }

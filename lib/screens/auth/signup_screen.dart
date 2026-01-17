@@ -25,10 +25,10 @@ class _SignupScreenState extends State<SignupScreen>
   final _referralCodeController = TextEditingController();
 
   bool _isFormValid = false;
-  final bool _showPassword = false;
-  final bool _showConfirmPassword = false;
+  // final bool _showPassword = false; // Unused - commented out
+  // final bool _showConfirmPassword = false; // Unused - commented out
   bool _isEmailVerified = false;
-  bool _isPhoneVerified = false;
+  // bool _isPhoneVerified = false; // Unused - commented out
   String? _selectedGender;
 
   // Legal documents
@@ -245,17 +245,17 @@ class _SignupScreenState extends State<SignupScreen>
                         end: Alignment.bottomRight,
                         colors: [
                           colorScheme.primary,
-                          colorScheme.primary.withOpacity(0.9),
+                          colorScheme.primary.withValues(alpha: 0.9),
                         ],
                       ),
                       borderRadius: BorderRadius.circular(24),
                       border: Border.all(
-                        color: Colors.white.withOpacity(0.2),
+                        color: Colors.white.withValues(alpha: 0.2),
                         width: 1.5,
                       ),
                       boxShadow: [
                         BoxShadow(
-                          color: colorScheme.primary.withOpacity(0.4),
+                          color: colorScheme.primary.withValues(alpha: 0.4),
                           blurRadius: 30,
                           offset: const Offset(0, 10),
                         ),
@@ -268,13 +268,14 @@ class _SignupScreenState extends State<SignupScreen>
                         Container(
                           padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(
-                            color: AppColors.buttonBackgroundColor.withOpacity(
-                              0.2,
+                            color: AppColors.buttonBackgroundColor.withValues(
+                              alpha: 0.2,
                             ),
                             shape: BoxShape.circle,
                             border: Border.all(
-                              color: AppColors.buttonBackgroundColor
-                                  .withOpacity(0.4),
+                              color: AppColors.buttonBackgroundColor.withValues(
+                                alpha: 0.4,
+                              ),
                               width: 2,
                             ),
                           ),
@@ -299,7 +300,7 @@ class _SignupScreenState extends State<SignupScreen>
                           "We've sent a 6-digit OTP to your $type",
                           textAlign: TextAlign.center,
                           style: textTheme.bodyMedium?.copyWith(
-                            color: colorScheme.onPrimary.withOpacity(0.8),
+                            color: colorScheme.onPrimary.withValues(alpha: 0.8),
                             height: 1.5,
                           ),
                         ),
@@ -336,8 +337,8 @@ class _SignupScreenState extends State<SignupScreen>
                                 child: Text(
                                   "Cancel",
                                   style: textTheme.labelLarge?.copyWith(
-                                    color: colorScheme.onPrimary.withOpacity(
-                                      0.8,
+                                    color: colorScheme.onPrimary.withValues(
+                                      alpha: 0.8,
                                     ),
                                   ),
                                 ),
@@ -360,7 +361,7 @@ class _SignupScreenState extends State<SignupScreen>
                                   boxShadow: [
                                     BoxShadow(
                                       color: AppColors.buttonBackgroundColor
-                                          .withOpacity(0.4),
+                                          .withValues(alpha: 0.4),
                                       blurRadius: 12,
                                       offset: const Offset(0, 4),
                                     ),
@@ -520,7 +521,7 @@ class _SignupScreenState extends State<SignupScreen>
                         // Base background image
                         Positioned.fill(
                           child: Image.asset(
-                            "assets/images/OnBoarding/background_login_sign.png",
+                            "assets/images/OnBoarding/background_home.png",
                             fit: BoxFit.cover,
                           ),
                         ),
@@ -532,9 +533,9 @@ class _SignupScreenState extends State<SignupScreen>
                                 begin: Alignment.topCenter,
                                 end: Alignment.bottomCenter,
                                 colors: [
-                                  colorScheme.primary.withOpacity(0.1),
+                                  colorScheme.primary.withValues(alpha: 0.1),
                                   Colors.transparent,
-                                  colorScheme.primary.withOpacity(0.05),
+                                  colorScheme.primary.withValues(alpha: 0.05),
                                 ],
                               ),
                             ),
@@ -548,7 +549,7 @@ class _SignupScreenState extends State<SignupScreen>
                           right: -40,
                           child: _buildFloatingCircle(
                             90,
-                            colorScheme.primary.withOpacity(0.1),
+                            colorScheme.primary.withValues(alpha: 0.1),
                           ),
                         ),
                         Positioned(
@@ -558,7 +559,9 @@ class _SignupScreenState extends State<SignupScreen>
                           left: -25,
                           child: _buildFloatingCircle(
                             70,
-                            AppColors.buttonBackgroundColor.withOpacity(0.08),
+                            AppColors.buttonBackgroundColor.withValues(
+                              alpha: 0.08,
+                            ),
                           ),
                         ),
                       ],
@@ -577,7 +580,7 @@ class _SignupScreenState extends State<SignupScreen>
                   ),
                   child: Column(
                     children: [
-                      // Animated Logo with subtle breathing
+                      // Animated Logo with subtle breathing (No background circle)
                       AnimatedBuilder(
                         animation: Listenable.merge([
                           _cardController,
@@ -588,26 +591,11 @@ class _SignupScreenState extends State<SignupScreen>
                             scale: _logoScale.value * _logoBreathing.value,
                             child: Opacity(
                               opacity: _cardFade.value,
-                              child: Container(
-                                padding: const EdgeInsets.all(14),
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  color: Colors.white,
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: colorScheme.primary.withOpacity(
-                                        0.15 + (_logoBreathing.value - 1.0) * 2,
-                                      ),
-                                      blurRadius:
-                                          22 +
-                                          (_logoBreathing.value - 1.0) * 80,
-                                      spreadRadius: 3,
-                                    ),
-                                  ],
-                                ),
+                              child: Align(
+                                alignment: Alignment.center,
                                 child: Image.asset(
                                   "assets/images/OnBoarding/logo.png",
-                                  height: 55,
+                                  height: 70, // Slightly larger
                                 ),
                               ),
                             ),
@@ -642,7 +630,7 @@ class _SignupScreenState extends State<SignupScreen>
                                 gradient: LinearGradient(
                                   colors: [
                                     colorScheme.primary,
-                                    colorScheme.primary.withOpacity(0.85),
+                                    colorScheme.primary.withValues(alpha: 0.85),
                                   ],
                                   begin: Alignment.topLeft,
                                   end: Alignment.bottomRight,
@@ -651,12 +639,14 @@ class _SignupScreenState extends State<SignupScreen>
                                   AppColors.radiusXL,
                                 ),
                                 border: Border.all(
-                                  color: Colors.white.withOpacity(0.2),
+                                  color: Colors.white.withValues(alpha: 0.2),
                                   width: 1.5,
                                 ),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: colorScheme.primary.withOpacity(0.4),
+                                    color: colorScheme.primary.withValues(
+                                      alpha: 0.4,
+                                    ),
                                     blurRadius: 30,
                                     offset: const Offset(0, 15),
                                   ),
@@ -670,7 +660,9 @@ class _SignupScreenState extends State<SignupScreen>
                                     _buildStaggeredWidget(
                                       delay: 0.0,
                                       child: Text(
-                                        "Create Account",
+                                        " Let’s grow and heal the world together",
+                                        textAlign:
+                                            TextAlign.center, // Center align
                                         style: textTheme.headlineSmall
                                             ?.copyWith(
                                               color: colorScheme.onPrimary,
@@ -683,10 +675,12 @@ class _SignupScreenState extends State<SignupScreen>
                                     _buildStaggeredWidget(
                                       delay: 0.05,
                                       child: Text(
-                                        "Join us for fresh groceries",
+                                        "Join the ICBN Family for nourishment, not just groceries.",
+                                        textAlign:
+                                            TextAlign.center, // Center align
                                         style: textTheme.bodyMedium?.copyWith(
                                           color: colorScheme.onPrimary
-                                              .withOpacity(0.85),
+                                              .withValues(alpha: 0.85),
                                         ),
                                       ),
                                     ),
@@ -977,7 +971,7 @@ class _SignupScreenState extends State<SignupScreen>
                                             style: textTheme.bodySmall
                                                 ?.copyWith(
                                                   color: colorScheme.onPrimary
-                                                      .withOpacity(0.8),
+                                                      .withValues(alpha: 0.8),
                                                 ),
                                           ),
                                           TextButton(
@@ -1109,7 +1103,7 @@ class _SignupScreenState extends State<SignupScreen>
         color: color,
         boxShadow: [
           BoxShadow(
-            color: color.withOpacity(0.5),
+            color: color.withValues(alpha: 0.5),
             blurRadius: 25,
             spreadRadius: 8,
           ),
@@ -1168,8 +1162,8 @@ class _SignupScreenState extends State<SignupScreen>
                   isEnabled
                       ? [
                         BoxShadow(
-                          color: AppColors.buttonBackgroundColor.withOpacity(
-                            0.4,
+                          color: AppColors.buttonBackgroundColor.withValues(
+                            alpha: 0.4,
                           ),
                           blurRadius: 15,
                           offset: const Offset(0, 6),
@@ -1182,8 +1176,8 @@ class _SignupScreenState extends State<SignupScreen>
               child: InkWell(
                 borderRadius: BorderRadius.circular(AppColors.radiusRound),
                 onTap: isLoading || !isEnabled ? null : onPressed,
-                splashColor: Colors.white.withOpacity(0.2),
-                highlightColor: Colors.white.withOpacity(0.1),
+                splashColor: Colors.white.withValues(alpha: 0.2),
+                highlightColor: Colors.white.withValues(alpha: 0.1),
                 child: Padding(
                   padding: const EdgeInsets.symmetric(
                     vertical: AppColors.spacingL,
@@ -1368,10 +1362,10 @@ class _SignupScreenState extends State<SignupScreen>
               if (states.contains(WidgetState.selected)) {
                 return AppColors.buttonBackgroundColor;
               }
-              return Colors.white.withOpacity(0.2);
+              return Colors.white.withValues(alpha: 0.2);
             }),
             checkColor: Colors.white,
-            side: BorderSide(color: Colors.white.withOpacity(0.5)),
+            side: BorderSide(color: Colors.white.withValues(alpha: 0.5)),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(4),
             ),
@@ -1384,7 +1378,7 @@ class _SignupScreenState extends State<SignupScreen>
             child: RichText(
               text: TextSpan(
                 style: textTheme.bodySmall?.copyWith(
-                  color: colorScheme.onPrimary.withOpacity(0.9),
+                  color: colorScheme.onPrimary.withValues(alpha: 0.9),
                 ),
                 children: [
                   TextSpan(text: label),
@@ -1612,3 +1606,4 @@ class _GoogleLogoPainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
+

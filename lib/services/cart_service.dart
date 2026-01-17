@@ -7,8 +7,10 @@ class CartService {
   static const String cartEndpoint = '/api/cart/';
   static const String addCartItemEndpoint = '/api/cart/items/add/';
   static const String updateCartItemEndpoint = '/api/cart/items/update/';
-  static const String removeItemEndpoint = 'items/remove/'; // Relative to cartEndpoint
-  static const String clearCartItemEndpoint = 'clear/'; // Relative to cartEndpoint
+  static const String removeItemEndpoint =
+      'items/remove/'; // Relative to cartEndpoint
+  static const String clearCartItemEndpoint =
+      'clear/'; // Relative to cartEndpoint
   static const int timeoutSeconds = 60;
 
   final AuthService _authService = AuthService();
@@ -43,13 +45,16 @@ class CartService {
       }
 
       final response = await http
-          .get(Uri.parse('$baseUrl$getcartEndpoint'), headers: await _getHeaders())
+          .get(
+            Uri.parse('$baseUrl$getcartEndpoint'),
+            headers: await _getHeaders(),
+          )
           .timeout(const Duration(seconds: timeoutSeconds));
 
       if (response.statusCode == 200) {
         final responseData = jsonDecode(response.body);
         final cart = CartModel.fromJson(responseData);
-        
+
         // --- KEY ---
         // ALWAYS update both the stream and the cache here.
         _cartStateController.add(cart);
@@ -74,11 +79,16 @@ class CartService {
   /// Adds an item to the cart and then fetches the updated cart state.
   Future<CartModel> addToCart(int productId, int quantity) async {
     try {
-      final response = await http.post(
-        Uri.parse('$baseUrl$addCartItemEndpoint'),
-        headers: await _getHeaders(),
-        body: jsonEncode({'product_variant_id': productId, 'quantity': quantity}),
-      ).timeout(const Duration(seconds: timeoutSeconds));
+      final response = await http
+          .post(
+            Uri.parse('$baseUrl$addCartItemEndpoint'),
+            headers: await _getHeaders(),
+            body: jsonEncode({
+              'product_variant_id': productId,
+              'quantity': quantity,
+            }),
+          )
+          .timeout(const Duration(seconds: timeoutSeconds));
 
       // On ANY success (200 or 201), fetch the latest cart state.
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -89,11 +99,18 @@ class CartService {
         } else {
           throw Exception('Authentication failed');
         }
-      }
-      else if(response.statusCode == 400){
-        throw Exception('Invalid request');
-      }
-      else {
+      } else if (response.statusCode == 400) {
+        try {
+          final errorData = jsonDecode(response.body);
+          final message =
+              errorData['message'] ??
+              errorData['error'] ??
+              'Item cannot be added. Check stock limits.';
+          throw Exception(message);
+        } catch (_) {
+          throw Exception('Item cannot be added. Check stock limits.');
+        }
+      } else {
         throw Exception('Failed to add item. Status: ${response.statusCode}');
       }
     } catch (e) {
@@ -105,11 +122,16 @@ class CartService {
   /// Updates an item's quantity and then fetches the updated cart state.
   Future<CartModel> updateCartItem(int productId, int quantity) async {
     try {
-      final response = await http.post(
-        Uri.parse('$baseUrl$updateCartItemEndpoint'),
-        headers: await _getHeaders(),
-        body: jsonEncode({'product_variant_id': productId, 'quantity': quantity}),
-      ).timeout(const Duration(seconds: timeoutSeconds));
+      final response = await http
+          .post(
+            Uri.parse('$baseUrl$updateCartItemEndpoint'),
+            headers: await _getHeaders(),
+            body: jsonEncode({
+              'product_variant_id': productId,
+              'quantity': quantity,
+            }),
+          )
+          .timeout(const Duration(seconds: timeoutSeconds));
 
       if (response.statusCode == 200) {
         return await getCart(); // CORRECT: Guarantees state is updated
@@ -119,8 +141,22 @@ class CartService {
         } else {
           throw Exception('Authentication failed');
         }
+      } else if (response.statusCode == 400) {
+        // Try to parse specific error message from server
+        try {
+          final errorData = jsonDecode(response.body);
+          final message =
+              errorData['message'] ??
+              errorData['error'] ??
+              'Only limited items left in stock';
+          throw Exception(message);
+        } catch (_) {
+          throw Exception('Only limited items left in stock');
+        }
       } else {
-        throw Exception('Failed to update item. Status: ${response.statusCode}');
+        throw Exception(
+          'Failed to update item. Status: ${response.statusCode}',
+        );
       }
     } catch (e) {
       log('Error updating cart item: $e');
@@ -131,12 +167,14 @@ class CartService {
   /// Removes an item from the cart and then fetches the updated cart state.
   Future<CartModel> removeFromCart(int productId) async {
     try {
-      final response = await http.post(
-        Uri.parse('$baseUrl$cartEndpoint$removeItemEndpoint'),
-        headers: await _getHeaders(),
-        body: jsonEncode({'product_variant_id': productId}),
-      ).timeout(const Duration(seconds: timeoutSeconds));
-      
+      final response = await http
+          .post(
+            Uri.parse('$baseUrl$cartEndpoint$removeItemEndpoint'),
+            headers: await _getHeaders(),
+            body: jsonEncode({'product_variant_id': productId}),
+          )
+          .timeout(const Duration(seconds: timeoutSeconds));
+
       // On ANY success (200 or 204 No Content), fetch the latest cart state.
       if (response.statusCode == 200 || response.statusCode == 204) {
         return await getCart(); // CORRECT: Guarantees state is updated
@@ -147,7 +185,9 @@ class CartService {
           throw Exception('Authentication failed');
         }
       } else {
-        throw Exception('Failed to remove item. Status: ${response.statusCode}');
+        throw Exception(
+          'Failed to remove item. Status: ${response.statusCode}',
+        );
       }
     } catch (e) {
       log('Error removing item from cart: $e');
@@ -159,7 +199,10 @@ class CartService {
   Future<CartModel> clearCart() async {
     try {
       final response = await http
-          .post(Uri.parse('$baseUrl$cartEndpoint$clearCartItemEndpoint'), headers: await _getHeaders())
+          .post(
+            Uri.parse('$baseUrl$cartEndpoint$clearCartItemEndpoint'),
+            headers: await _getHeaders(),
+          )
           .timeout(const Duration(seconds: timeoutSeconds));
 
       if (response.statusCode == 200 || response.statusCode == 204) {

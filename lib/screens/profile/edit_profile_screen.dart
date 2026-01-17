@@ -1,9 +1,7 @@
-import 'dart:async';
 import 'dart:math' as math;
 import 'package:flutter/services.dart';
 import 'package:grocery_app/common_widgets/global_import.dart';
 import 'package:grocery_app/common_widgets/select_state.dart';
-import 'package:grocery_app/screens/innovations/anaad_innovations_screen.dart';
 
 class EditProfileScreen extends StatefulWidget {
   final UserModel userProfile;
@@ -186,7 +184,7 @@ class _EditProfileScreenState extends State<EditProfileScreen>
                   width: 40,
                   height: 4,
                   decoration: BoxDecoration(
-                    color: theme.hintColor.withOpacity(0.3),
+                    color: theme.hintColor.withValues(alpha: 0.3),
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
@@ -262,10 +260,16 @@ class _EditProfileScreenState extends State<EditProfileScreen>
               gradient: LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
-                colors: [color.withOpacity(0.15), color.withOpacity(0.08)],
+                colors: [
+                  color.withValues(alpha: 0.15),
+                  color.withValues(alpha: 0.08),
+                ],
               ),
               borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: color.withOpacity(0.3), width: 1.5),
+              border: Border.all(
+                color: color.withValues(alpha: 0.3),
+                width: 1.5,
+              ),
             ),
             child: Icon(icon, size: 36, color: color),
           ),
@@ -370,7 +374,6 @@ class _EditProfileScreenState extends State<EditProfileScreen>
           extendBodyBehindAppBar: true,
           extendBody: true,
           body: SingleChildScrollView(
-            physics: const BouncingScrollPhysics(),
             child: Column(
               children: [
                 // Animated Header with Avatar
@@ -1058,28 +1061,34 @@ class _EditProfileScreenState extends State<EditProfileScreen>
                     ),
                     const SizedBox(height: 10),
                     // Progress badges
-                    Wrap(
+                    Row(
                       children: [
-                        _buildMiniProgressBadge(
-                          'Personal',
-                          _firstNameController.text.isNotEmpty &&
-                              _lastNameController.text.isNotEmpty &&
-                              _usernameController.text.isNotEmpty,
-                          colorScheme.primary,
+                        Expanded(
+                          child: _buildMiniProgressBadge(
+                            'Personal',
+                            _firstNameController.text.isNotEmpty &&
+                                _lastNameController.text.isNotEmpty &&
+                                _usernameController.text.isNotEmpty,
+                            colorScheme.primary,
+                          ),
                         ),
-                        const SizedBox(width: 8),
-                        _buildMiniProgressBadge(
-                          'Contact',
-                          _emailController.text.isNotEmpty &&
-                              _phoneController.text.isNotEmpty,
-                          colorScheme.primary,
+                        const SizedBox(width: 6),
+                        Expanded(
+                          child: _buildMiniProgressBadge(
+                            'Contact',
+                            _emailController.text.isNotEmpty &&
+                                _phoneController.text.isNotEmpty,
+                            colorScheme.primary,
+                          ),
                         ),
-                        const SizedBox(width: 8),
-                        _buildMiniProgressBadge(
-                          'Address',
-                          _addressController.text.isNotEmpty &&
-                              _cityController.text.isNotEmpty,
-                          colorScheme.primary,
+                        const SizedBox(width: 6),
+                        Expanded(
+                          child: _buildMiniProgressBadge(
+                            'Address',
+                            _addressController.text.isNotEmpty &&
+                                _cityController.text.isNotEmpty,
+                            colorScheme.primary,
+                          ),
                         ),
                       ],
                     ),
@@ -1095,7 +1104,10 @@ class _EditProfileScreenState extends State<EditProfileScreen>
 
   Widget _buildMiniProgressBadge(String label, bool isComplete, Color color) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      padding: const EdgeInsets.symmetric(
+        horizontal: 6,
+        vertical: 4,
+      ), // Reduced padding
       decoration: BoxDecoration(
         color: isComplete ? color.withAlpha(40) : Colors.grey.withAlpha(30),
         borderRadius: BorderRadius.circular(8),
@@ -1105,6 +1117,7 @@ class _EditProfileScreenState extends State<EditProfileScreen>
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.center, // Center content
         children: [
           Icon(
             isComplete
@@ -1114,12 +1127,17 @@ class _EditProfileScreenState extends State<EditProfileScreen>
             color: isComplete ? color : Colors.grey,
           ),
           const SizedBox(width: 4),
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 10,
-              fontWeight: FontWeight.w600,
-              color: isComplete ? color : Colors.grey,
+          Flexible(
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text(
+                label,
+                style: TextStyle(
+                  fontSize: 10,
+                  fontWeight: FontWeight.w600,
+                  color: isComplete ? color : Colors.grey,
+                ),
+              ),
             ),
           ),
         ],

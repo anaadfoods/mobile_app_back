@@ -11,6 +11,10 @@ class SnackBarHelper {
   }) {
     final overlay = Overlay.of(context);
     late final OverlayEntry overlayEntry;
+
+    // Create glowing shadow color based on background
+    final shadowColor = backgroundColor.withValues(alpha: 0.5);
+
     overlayEntry = OverlayEntry(
       builder:
           (context) => Positioned(
@@ -18,51 +22,105 @@ class SnackBarHelper {
             left: 16,
             right: 16,
             child: Material(
-              elevation: 8,
-              borderRadius: BorderRadius.circular(8),
               color: Colors.transparent,
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 12,
-                ),
-                decoration: BoxDecoration(
-                  color: backgroundColor,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    if (showProgressIndicator)
-                      SizedBox(
-                        height: 20,
-                        width: 20,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          valueColor: AlwaysStoppedAnimation<Color>(
-                            Colors.white,
+              child: TweenAnimationBuilder<double>(
+                tween: Tween(begin: 0.0, end: 1.0),
+                duration: const Duration(milliseconds: 300),
+                curve: Curves.easeOutBack,
+                builder: (context, value, child) {
+                  return Transform.translate(
+                    offset: Offset(0, -20 * (1 - value)),
+                    child: Opacity(
+                      opacity: value.clamp(0.0, 1.0),
+                      child: child,
+                    ),
+                  );
+                },
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 14,
+                  ),
+                  decoration: BoxDecoration(
+                    color: backgroundColor,
+                    borderRadius: BorderRadius.circular(20),
+                    boxShadow: [
+                      // Glowing shadow effect
+                      BoxShadow(
+                        color: shadowColor,
+                        blurRadius: 20,
+                        spreadRadius: 2,
+                        offset: const Offset(0, 8),
+                      ),
+                      // Subtle depth shadow
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.2),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                    border: Border.all(
+                      color: Colors.white.withValues(alpha: 0.1),
+                      width: 1.0,
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (showProgressIndicator) ...[
+                        SizedBox(
+                          height: 20,
+                          width: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                              Colors.white,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                      ],
+                      Expanded(
+                        child: Text(
+                          message,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w600,
+                            fontSize: 14,
+                            letterSpacing: 0.2,
                           ),
                         ),
                       ),
-                    if (showProgressIndicator) SizedBox(width: 12),
-                    Expanded(
-                      child: Text(
-                        message,
-                        style: TextStyle(color: Colors.white),
-                      ),
-                    ),
-                    if (action != null)
-                      TextButton(
-                        onPressed: () {
-                          overlayEntry.remove();
-                          action.onPressed();
-                        },
-                        child: Text(
-                          action.label,
-                          style: TextStyle(color: Colors.white),
+                      if (action != null)
+                        TextButton(
+                          onPressed: () {
+                            overlayEntry.remove();
+                            action.onPressed();
+                          },
+                          style: TextButton.styleFrom(
+                            backgroundColor: Colors.white.withValues(
+                              alpha: 0.2,
+                            ),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 8,
+                            ),
+                            minimumSize: Size.zero,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                          ),
+                          child: Text(
+                            action.label,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 12,
+                            ),
+                          ),
                         ),
-                      ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ),

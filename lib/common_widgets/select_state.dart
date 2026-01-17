@@ -478,3 +478,4 @@ class _SearchableDialogState<T> extends State<_SearchableDialog<T>> {
     );
   }
 }
+

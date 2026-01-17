@@ -2,6 +2,10 @@ import 'package:grocery_app/common_widgets/global_import.dart';
 
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
+import 'package:permission_handler/permission_handler.dart';
+import 'package:open_filex/open_filex.dart';
+import 'package:path_provider/path_provider.dart';
+import 'dart:io';
 
 // Top-level function for background JSON parsing
 Map<String, dynamic> _parseJson(String jsonString) {
@@ -637,4 +641,82 @@ class SubscriptionService {
   }
 
   // File I/O should be handled carefully. It can still block the main thread.
+  Future<String> downloadInvoice(String s3Url, String displayName) async {
+    try {
+      // Check if the URL is internal (starts with our API base URL)
+      // If it is, we need to attach the auth token.
+      final isInternalUrl = s3Url.startsWith(ApiConfig.baseUrl);
+      Map<String, String>? headers;
+
+      if (isInternalUrl) {
+        final token = await _authService.getAccessToken();
+        if (token != null) {
+          headers = ApiConfig.getAuthHeaders(token);
+        }
+      }
+
+      print('Downloading invoice from: $s3Url');
+      print('Is internal URL: $isInternalUrl');
+
+      // Download the PDF
+      final pdfResponse = await http.get(Uri.parse(s3Url), headers: headers);
+
+      if (pdfResponse.statusCode == 200) {
+        String? savedPath;
+        bool savedToDownloads = false;
+
+        // Try to save to Downloads first (Android < 10 or with permissions)
+        if (Platform.isAndroid) {
+          try {
+            // Request storage permission
+            // ignore: unused_local_variable
+            var status = await Permission.storage.request();
+
+            final downloadsPath = '/storage/emulated/0/Download';
+            final directory = Directory(downloadsPath);
+
+            if (await directory.exists()) {
+              final sanitizedDisplayName = displayName.replaceAll(
+                RegExp(r'[\\/:*?"<>|]'),
+                '_',
+              );
+              final filePath = '$downloadsPath/$sanitizedDisplayName.pdf';
+              final file = File(filePath);
+
+              await file.writeAsBytes(pdfResponse.bodyBytes);
+              savedPath = filePath;
+              savedToDownloads = true;
+            }
+          } catch (e) {
+            print('Could not save to Downloads: $e');
+            // Continue to fallback
+          }
+        }
+
+        // Fallback to Application Documents or Temp directory
+        if (savedPath == null) {
+          final dir = await getTemporaryDirectory();
+          final sanitizedDisplayName = displayName.replaceAll(
+            RegExp(r'[\\/:*?"<>|]'),
+            '_',
+          );
+          final filePath = '${dir.path}/$sanitizedDisplayName.pdf';
+          final file = File(filePath);
+          await file.writeAsBytes(pdfResponse.bodyBytes);
+          savedPath = filePath;
+        }
+
+        print('Invoice downloaded successfully to: $savedPath');
+        await OpenFilex.open(savedPath);
+        return savedPath;
+      } else {
+        throw Exception(
+          'Failed to download PDF: ${pdfResponse.statusCode} ${pdfResponse.reasonPhrase}',
+        );
+      }
+    } catch (e) {
+      print('Error downloading invoice: $e');
+      throw Exception('Failed to download invoice: $e');
+    }
+  }
 }

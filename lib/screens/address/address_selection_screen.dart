@@ -161,22 +161,27 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen>
     });
 
     try {
-      final int? variantId =
-          widget.singleProduct?.id ??
-          widget.cart?.items.first.productVariant.id;
+      // Build items list - either single product or all cart items
+      final List<Map<String, dynamic>> items;
 
-      if (variantId == null) {
+      if (widget.singleProduct != null) {
+        // Single product purchase
+        items = [
+          {'product_variant_id': widget.singleProduct!.id},
+        ];
+      } else if (widget.cart != null && widget.cart!.items.isNotEmpty) {
+        // Cart with multiple products - map all items
+        items =
+            widget.cart!.items
+                .map((item) => {'product_variant_id': item.productVariant.id})
+                .toList();
+      } else {
         throw Exception(
           'No product variant found to calculate delivery charges.',
         );
       }
 
-      final body = jsonEncode({
-        'delivery_pincode': pincode,
-        'items': [
-          {'product_variant_id': variantId},
-        ],
-      });
+      final body = jsonEncode({'delivery_pincode': pincode, 'items': items});
 
       final response = await http.post(
         Uri.parse('${ApiConfig.baseUrl}/api/core/delivery/calculate-charges/'),
@@ -335,7 +340,6 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen>
       body: Stack(
         children: [
           CustomScrollView(
-            physics: const BouncingScrollPhysics(),
             slivers: [
               // Animated Header
               _buildAnimatedHeader(theme, isDark),
