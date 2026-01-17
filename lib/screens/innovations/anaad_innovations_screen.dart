@@ -265,7 +265,7 @@ class _AnaadInnovationsScreenState extends State<AnaadInnovationsScreen>
                 title: 'Anaad Games',
                 subtitle: 'Learn sustainable farming through play',
                 gradient: [const Color(0xFF3B82F6), const Color(0xFF1D4ED8)],
-                isComingSoon: true,
+                isComingSoon: false,
                 delay: 2,
                 onTap: () => _navigateTo(context, const AnaadGamesScreen()),
               ),

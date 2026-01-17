@@ -1,7 +1,7 @@
 class ApiConfig {
   // static const String baseUrl = 'http://34.131.42.218';
   // static const String baseUrl = 'https://bac.anaadfoods.com';
-  static const String baseUrl = "http://192.168.10.222:8000";
+  static const String baseUrl = "http://192.168.29.209:8000";
 
   static const String paymentUrl = 'http://34.131.42.218:5000';
 

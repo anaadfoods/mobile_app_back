@@ -634,7 +634,7 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
     final dateText = isToday
         ? 'Today\'s Panchang'
         : 'Panchang - ${DateFormat('d MMM yyyy').format(selectedDate)}';
-
+    
     // Define unique colors for each panchang element
     final panchangItems = [
       _PanchangItemData('Tithi', day.corePanchang.tithi, Icons.brightness_3, const Color(0xFFEC4899), 'तिथि'),
@@ -645,17 +645,17 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
       _PanchangItemData('Paksha', day.lunar.paksha, Icons.brightness_2_rounded, const Color(0xFF6366F1), 'पक्ष'),
     ];
     
-    return Container(
-      decoration: BoxDecoration(
+        return Container(
+          decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(28),
-        boxShadow: [
-          BoxShadow(
+            boxShadow: [
+              BoxShadow(
             color: isDark 
                 ? Colors.black.withOpacity(0.4)
                 : const Color(0xFF9333EA).withOpacity(0.15),
             blurRadius: 25,
             offset: const Offset(0, 10),
-          ),
+              ),
         ],
       ),
       child: ClipRRect(
@@ -685,71 +685,71 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                       colors: [
                         const Color(0xFF9333EA).withOpacity(isDark ? 0.2 : 0.1),
                         Colors.transparent,
-                      ],
-                    ),
+            ],
+          ),
                   ),
                 ),
               ),
               Positioned(
                 bottom: -20,
                 left: -20,
-                child: Container(
+          child: Container(
                   width: 80,
                   height: 80,
-                  decoration: BoxDecoration(
+            decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     gradient: RadialGradient(
                       colors: [
                         const Color(0xFFEC4899).withOpacity(isDark ? 0.15 : 0.08),
                         Colors.transparent,
                       ],
-                    ),
-                  ),
-                ),
               ),
+            ),
+                ),
+          ),
               // Main content
               Padding(
                 padding: const EdgeInsets.all(20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
                     // Header
-                    Row(
-                      children: [
+          Row(
+            children: [
                         AnimatedBuilder(
                           animation: _shimmerAnimation,
                           builder: (context, child) {
                             return Container(
                               padding: const EdgeInsets.all(12),
-                              decoration: BoxDecoration(
-                                gradient: const LinearGradient(
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
                                   begin: Alignment.topLeft,
                                   end: Alignment.bottomRight,
                                   colors: [Color(0xFF9333EA), Color(0xFFEC4899)],
-                                ),
+                  ),
                                 borderRadius: BorderRadius.circular(16),
-                                boxShadow: [
-                                  BoxShadow(
+                  boxShadow: [
+                    BoxShadow(
                                     color: const Color(0xFF9333EA).withOpacity(0.4 + (0.2 * _shimmerAnimation.value)),
                                     blurRadius: 15,
                                     spreadRadius: 0,
-                                  ),
-                                ],
-                              ),
+                    ),
+                  ],
+                ),
                               child: const Text('🕉️', style: TextStyle(fontSize: 24)),
                             );
                           },
-                        ),
+              ),
                         const SizedBox(width: 16),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                dateText,
-                                style: TextStyle(
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      dateText,
+                      style: TextStyle(
                                   fontSize: 22,
-                                  fontWeight: FontWeight.bold,
+                        fontWeight: FontWeight.bold,
                                   color: isDark ? Colors.white : const Color(0xFF1E1B4B),
                                   letterSpacing: -0.5,
                                 ),
@@ -771,7 +771,7 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                                           ),
                                           borderRadius: BorderRadius.circular(20),
                                           border: Border.all(
-                                            color: const Color(0xFF9333EA).withOpacity(0.3),
+                            color: const Color(0xFF9333EA).withOpacity(0.3),
                                           ),
                                         ),
                                         child: Row(
@@ -790,10 +790,10 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                                               Icons.touch_app_rounded,
                                               size: 12,
                                               color: isDark ? const Color(0xFFD8B4FE).withOpacity(0.6) : const Color(0xFF7C3AED).withOpacity(0.6),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
+                          ),
+                        ],
+                      ),
+                    ),
                                     ),
                                     const SizedBox(width: 8),
                                   ],
@@ -802,25 +802,25 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                                       onTap: () => _showPakshaInfoDialog(context, lunar.paksha, isDark),
                                       child: Container(
                                         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                                        decoration: BoxDecoration(
+                        decoration: BoxDecoration(
                                           color: lunar.paksha.toLowerCase().contains('krishna')
                                               ? const Color(0xFF6366F1).withOpacity(isDark ? 0.3 : 0.15)
                                               : const Color(0xFFF59E0B).withOpacity(isDark ? 0.3 : 0.15),
                                           borderRadius: BorderRadius.circular(20),
-                                          border: Border.all(
+                          border: Border.all(
                                             color: lunar.paksha.toLowerCase().contains('krishna')
                                                 ? const Color(0xFF6366F1).withOpacity(0.3)
                                                 : const Color(0xFFF59E0B).withOpacity(0.3),
-                                          ),
-                                        ),
+                          ),
+                        ),
                                         child: Row(
                                           mainAxisSize: MainAxisSize.min,
                                           children: [
                                             Text(
                                               lunar.paksha.toLowerCase().contains('krishna') ? '🌑 ${lunar.paksha}' : '🌕 ${lunar.paksha}',
-                                              style: TextStyle(
-                                                fontSize: 12,
-                                                fontWeight: FontWeight.w600,
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
                                                 color: lunar.paksha.toLowerCase().contains('krishna')
                                                     ? (isDark ? const Color(0xFFA5B4FC) : const Color(0xFF4F46E5))
                                                     : (isDark ? const Color(0xFFFCD34D) : const Color(0xFFD97706)),
@@ -835,12 +835,12 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                                                   : (isDark ? const Color(0xFFFCD34D).withOpacity(0.6) : const Color(0xFFD97706).withOpacity(0.6)),
                                             ),
                                           ],
-                                        ),
-                                      ),
-                                    ),
-                                ],
+                          ),
+                        ),
+                      ),
+                    ],
                               ),
-                            ],
+                  ],
                           ),
                         ),
                         GestureDetector(
@@ -861,10 +861,10 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                               color: isDark ? const Color(0xFFA78BFA) : const Color(0xFF7C3AED),
                               size: 22,
                             ),
-                          ),
-                        ),
-                      ],
-                    ),
+                ),
+              ),
+            ],
+          ),
                     const SizedBox(height: 24),
                     // Panchang Grid - 3 columns
                     GridView.builder(
@@ -874,8 +874,8 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                         crossAxisSpacing: 12,
                         childAspectRatio: 0.85,
                       ),
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
                       itemCount: panchangItems.length,
                       itemBuilder: (context, index) {
                         final item = panchangItems[index];
@@ -904,35 +904,35 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
         );
       },
       child: Container(
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: isDark
-                ? [
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: isDark
+              ? [
                     item.color.withOpacity(0.25),
                     item.color.withOpacity(0.1),
-                  ]
-                : [
+                ]
+              : [
                     item.color.withOpacity(0.12),
                     item.color.withOpacity(0.05),
-                  ],
-          ),
+                ],
+        ),
           borderRadius: BorderRadius.circular(18),
-          border: Border.all(
+        border: Border.all(
             color: item.color.withOpacity(isDark ? 0.4 : 0.25),
             width: 1.5,
-          ),
-          boxShadow: [
-            BoxShadow(
+        ),
+        boxShadow: [
+          BoxShadow(
               color: item.color.withOpacity(isDark ? 0.2 : 0.1),
               blurRadius: 10,
               offset: const Offset(0, 4),
-            ),
-          ],
-        ),
-        child: Column(
+          ),
+        ],
+      ),
+      child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
@@ -962,32 +962,32 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
               ],
             ),
             const Spacer(),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
                   item.label,
-                  style: TextStyle(
-                    fontSize: 11,
+                style: TextStyle(
+                  fontSize: 11,
                     color: (isDark ? Colors.white : Colors.black).withOpacity(0.5),
-                    fontWeight: FontWeight.w500,
-                  ),
+                  fontWeight: FontWeight.w500,
                 ),
-                const SizedBox(height: 2),
-                Text(
+              ),
+              const SizedBox(height: 2),
+              Text(
                   item.value.isEmpty ? '—' : item.value,
-                  style: TextStyle(
+                style: TextStyle(
                     fontSize: 13,
-                    fontWeight: FontWeight.bold,
+                  fontWeight: FontWeight.bold,
                     color: isDark ? Colors.white : const Color(0xFF1E1B4B),
                     height: 1.2,
-                  ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
                 ),
-              ],
-            ),
-          ],
+                  maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
+          ),
+        ],
         ),
       ),
     );
@@ -1645,11 +1645,11 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
               const SizedBox(width: 12),
               Expanded(
                 child: Text(
-                  'Auspicious Times',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: isDark ? Colors.white : Colors.black87,
+                'Auspicious Times',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: isDark ? Colors.white : Colors.black87,
                   ),
                 ),
               ),
@@ -1799,11 +1799,11 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
               const SizedBox(width: 12),
               Expanded(
                 child: Text(
-                  'Moon & Rashi Details',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: isDark ? Colors.white : Colors.black87,
+                'Moon & Rashi Details',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: isDark ? Colors.white : Colors.black87,
                   ),
                 ),
               ),
