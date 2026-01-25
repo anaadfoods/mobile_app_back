@@ -122,18 +122,18 @@ class _AccountScreenState extends State<AccountScreen>
                                   ),
                                 ),
                           ),
-                          _MenuItem(
-                            icon: Icons.location_on_outlined,
-                            title: 'Manage Addresses',
-                            subtitle: 'Add or edit delivery addresses',
-                            onTap:
-                                () => Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => const AddressScreen(),
-                                  ),
-                                ),
-                          ),
+                          // _MenuItem(
+                          //   icon: Icons.location_on_outlined,
+                          //   title: 'Manage Addresses',
+                          //   subtitle: 'Add or edit delivery addresses',
+                          //   onTap:
+                          //       () => Navigator.push(
+                          //         context,
+                          //         MaterialPageRoute(
+                          //           builder: (context) => const AddressScreen(),
+                          //         ),
+                          //       ),
+                          // ),
                         ],
                       ),
                       const SizedBox(height: 20),
