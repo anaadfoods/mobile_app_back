@@ -53,11 +53,37 @@ class CartRepository {
     }
   }
 
-  /// Parses a cleaner error message from the exception string.
+  /// Returns user-friendly error message - no technical jargon!
   String _parseError(dynamic e) {
-    final text = e.toString();
-    // This regex is good for extracting messages from your specific API errors
-    final match = RegExp(r'"message"\s*:\s*"([^"]+)"').firstMatch(text);
-    return match?.group(1) ?? text.replaceAll('Exception: ', '');
+    final text = e.toString().toLowerCase();
+    
+    // Network/timeout issues - most common
+    if (text.contains('timeout') ||
+        text.contains('timed out') ||
+        text.contains('socketexception') ||
+        text.contains('connection refused') ||
+        text.contains('network is unreachable') ||
+        text.contains('clientexception')) {
+      return "Couldn't connect right now. Check your internet! 📶\n\n🌿 Did you know? Desi cow dung has 300+ beneficial microbes that enrich soil naturally!";
+    }
+    
+    // Server errors
+    if (text.contains('500') || text.contains('server error') || text.contains('internal')) {
+      return "Our servers need a moment. Try again shortly! ☕\n\n🐄 Fun fact: One desi cow can help fertilize up to 30 acres of farmland per year!";
+    }
+    
+    // Auth issues
+    if (text.contains('401') || text.contains('unauthorized') || text.contains('session')) {
+      return "Please log in again to continue 🔐\n\n🌾 Natural farming uses zero chemicals - just cow-based inputs and love!";
+    }
+    
+    // Try to extract API message if available
+    final match = RegExp(r'"message"\s*:\s*"([^"]+)"').firstMatch(e.toString());
+    if (match != null) {
+      return match.group(1)!;
+    }
+    
+    // Generic friendly fallback
+    return "Something went sideways. Let's try again! 🔄\n\n🌱 Jeevamrutham, made from desi cow dung, boosts soil fertility within 48 hours!";
   }
 }

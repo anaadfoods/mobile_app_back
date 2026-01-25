@@ -515,12 +515,7 @@ class _CheckoutScreenState extends State<CheckoutScreen>
                 }),
               );
 
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Payment failed or cancelled'),
-                  backgroundColor: Colors.red,
-                ),
-              );
+              SnackBarHelper.showPaymentIssue(context);
             },
           ),
         ),

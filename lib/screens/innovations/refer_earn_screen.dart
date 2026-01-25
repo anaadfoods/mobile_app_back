@@ -63,14 +63,7 @@ class _ReferEarnScreenState extends State<ReferEarnScreen>
   void _copyCode() {
     Clipboard.setData(ClipboardData(text: _referralCode));
     HapticFeedback.mediumImpact();
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: const Text('Referral code copied!'),
-        backgroundColor: const Color(0xFFF59E0B),
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      ),
-    );
+    SnackBarHelper.showCopied(context, what: 'Referral code');
   }
 
   void _share() {

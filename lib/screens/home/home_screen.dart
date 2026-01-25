@@ -748,9 +748,41 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           return Center(
             child: Padding(
               padding: const EdgeInsets.all(16.0),
-              child: Text(
-                "Error: ${state.message}",
-                style: TextStyle(color: Theme.of(context).colorScheme.error),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Icons.cloud_off_outlined,
+                    size: 40,
+                    color: const Color(0xFF8B7355), // Warm mocha
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    "Couldn't load products right now",
+                    style: TextStyle(
+                      color: const Color(0xFF8B7355),
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    "Check your connection and try again 🔄",
+                    style: TextStyle(
+                      color: Colors.grey.shade600,
+                      fontSize: 12,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    "🌿 Crops grown with cow-based manure have 40% more nutrients!",
+                    style: TextStyle(
+                      color: Colors.green.shade700,
+                      fontSize: 11,
+                      fontStyle: FontStyle.italic,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
               ),
             ),
           );
@@ -1480,9 +1512,33 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           return Padding(
             padding: const EdgeInsets.all(AppColors.spacingL),
             child: Center(
-              child: Text(
-                "Error loading communities",
-                style: TextStyle(color: Theme.of(context).colorScheme.error),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Icons.people_outline_rounded,
+                    size: 32,
+                    color: const Color(0xFF6B7B8A), // Cool slate
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    "Communities taking a break ☕",
+                    style: TextStyle(
+                      color: const Color(0xFF6B7B8A),
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    "🐄 Indian farmers have practiced cow-based farming for 5000+ years!",
+                    style: TextStyle(
+                      color: Colors.green.shade700,
+                      fontSize: 11,
+                      fontStyle: FontStyle.italic,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
               ),
             ),
           );

@@ -13,33 +13,46 @@ class NoInternetWidget extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // Using a large icon or you could use an asset image here
+            // Friendly wifi icon with warm color
             Icon(
               Icons.wifi_off_rounded,
               size: 80,
-              color: Theme.of(context).colorScheme.error,
+              color: const Color(0xFF6B7B8A), // Cool slate grey - friendly
             ),
             const SizedBox(height: 24),
             Text(
-              'No Internet Connection',
+              "Oops! You're Offline 📶",
               style: Theme.of(
                 context,
-              ).textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.bold),
+              ).textTheme.headlineMedium?.copyWith(
+                fontWeight: FontWeight.bold,
+                color: const Color(0xFF6B7B8A),
+              ),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 12),
             Text(
-              'Please check your internet settings and try again.',
+              'Your internet took a coffee break ☕\nCheck your connection and try again.',
               style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                 color: Theme.of(context).hintColor,
               ),
               textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 32),
+            const SizedBox(height: 16),
+            Text(
+              "🐄 A single desi cow can support an entire family's farming needs sustainably!",
+              style: TextStyle(
+                color: Colors.green.shade700,
+                fontSize: 12,
+                fontStyle: FontStyle.italic,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 24),
             FilledButton.icon(
               onPressed: onRetry,
               icon: const Icon(Icons.refresh_rounded),
-              label: const Text('Retry Connection'),
+              label: const Text('Try Again'),
               style: FilledButton.styleFrom(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 32,

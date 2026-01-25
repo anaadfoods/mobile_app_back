@@ -679,15 +679,41 @@ class _ExploreScreenState extends State<ExploreScreen>
         child: Column(
           children: [
             Icon(
-              Icons.error_outline_rounded,
+              Icons.explore_off_outlined,
               size: 64,
-              color: theme.colorScheme.error.withOpacity(0.7),
+              color: const Color(0xFF8B7355), // Warm mocha - friendly
             ),
             const SizedBox(height: 16),
             Text(
-              _error!,
-              style: TextStyle(color: theme.colorScheme.error),
+              "Couldn't load categories right now",
+              style: TextStyle(
+                color: const Color(0xFF8B7355),
+                fontWeight: FontWeight.w600,
+                fontSize: 16,
+              ),
               textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              "Check your connection and try again 📶",
+              style: TextStyle(
+                color: Colors.grey.shade600,
+                fontSize: 13,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 12),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Text(
+                "🌱 Agniastra, made from neem and cow urine, protects crops from 200+ pests naturally!",
+                style: TextStyle(
+                  color: Colors.green.shade700,
+                  fontSize: 12,
+                  fontStyle: FontStyle.italic,
+                ),
+                textAlign: TextAlign.center,
+              ),
             ),
             const SizedBox(height: 24),
             ElevatedButton.icon(

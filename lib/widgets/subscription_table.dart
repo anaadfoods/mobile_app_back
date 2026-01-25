@@ -283,12 +283,41 @@ class _SubscriptionTableState extends State<SubscriptionTable>
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.error_outline, size: 40, color: theme.colorScheme.error),
+          Icon(
+            Icons.calendar_today_outlined,
+            size: 40,
+            color: const Color(0xFF8B7355), // Warm mocha - friendly
+          ),
           const SizedBox(height: 12),
           Text(
-            _error ?? 'Failed to load',
-            style: TextStyle(color: theme.colorScheme.error),
+            "Couldn't load subscription plans",
+            style: TextStyle(
+              color: const Color(0xFF8B7355),
+              fontWeight: FontWeight.w600,
+            ),
             textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 4),
+          Text(
+            "Check your connection and try again 📶",
+            style: TextStyle(
+              color: Colors.grey.shade600,
+              fontSize: 12,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 8),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24),
+            child: Text(
+              "🌾 Beejamrutham (cow-based seed treatment) improves germination by 20%!",
+              style: TextStyle(
+                color: Colors.green.shade700,
+                fontSize: 11,
+                fontStyle: FontStyle.italic,
+              ),
+              textAlign: TextAlign.center,
+            ),
           ),
           const SizedBox(height: 12),
           TextButton.icon(
