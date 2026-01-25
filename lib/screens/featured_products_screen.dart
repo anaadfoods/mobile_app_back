@@ -4,10 +4,7 @@ import 'package:grocery_app/common_widgets/global_import.dart';
 class FeaturedProductsScreen extends StatefulWidget {
   final List<Product> products;
 
-  const FeaturedProductsScreen({
-    super.key,
-    required this.products,
-  });
+  const FeaturedProductsScreen({super.key, required this.products});
 
   @override
   State<FeaturedProductsScreen> createState() => _FeaturedProductsScreenState();
@@ -16,7 +13,7 @@ class FeaturedProductsScreen extends StatefulWidget {
 class _FeaturedProductsScreenState extends State<FeaturedProductsScreen> {
   late List<Product> _products;
   String _sortBy = 'featured';
-  bool _isGridView = true;
+  bool _isGridView = false;
 
   @override
   void initState() {
@@ -35,7 +32,9 @@ class _FeaturedProductsScreenState extends State<FeaturedProductsScreen> {
           _products.sort((a, b) => b.finalPrice.compareTo(a.finalPrice));
           break;
         case 'discount':
-          _products.sort((a, b) => b.discountPercentage.compareTo(a.discountPercentage));
+          _products.sort(
+            (a, b) => b.discountPercentage.compareTo(a.discountPercentage),
+          );
           break;
         default:
           _products = List.from(widget.products);
@@ -49,7 +48,8 @@ class _FeaturedProductsScreenState extends State<FeaturedProductsScreen> {
     final isDark = theme.brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: isDark ? const Color(0xFF121212) : const Color(0xFFF5F5F5),
+      backgroundColor:
+          isDark ? const Color(0xFF121212) : const Color(0xFFF5F5F5),
       body: CustomScrollView(
         slivers: [
           // App Bar
@@ -57,16 +57,21 @@ class _FeaturedProductsScreenState extends State<FeaturedProductsScreen> {
             expandedHeight: 140,
             floating: false,
             pinned: true,
-            backgroundColor: isDark ? const Color(0xFF1A1A1A) : AppColors.primaryColor,
+            backgroundColor:
+                isDark ? const Color(0xFF1A1A1A) : AppColors.primaryColor,
             flexibleSpace: FlexibleSpaceBar(
               background: Container(
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
-                    colors: isDark
-                        ? [const Color(0xFF2D2D2D), const Color(0xFF1A1A1A)]
-                        : [AppColors.primaryColor, AppColors.primaryColor.withOpacity(0.8)],
+                    colors:
+                        isDark
+                            ? [const Color(0xFF2D2D2D), const Color(0xFF1A1A1A)]
+                            : [
+                              AppColors.primaryColor,
+                              AppColors.primaryColor.withOpacity(0.8),
+                            ],
                   ),
                 ),
                 child: SafeArea(
@@ -118,7 +123,9 @@ class _FeaturedProductsScreenState extends State<FeaturedProductsScreen> {
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Icon(
-                    _isGridView ? Icons.view_list_rounded : Icons.grid_view_rounded,
+                    _isGridView
+                        ? Icons.view_list_rounded
+                        : Icons.grid_view_rounded,
                     size: 20,
                   ),
                 ),
@@ -137,10 +144,30 @@ class _FeaturedProductsScreenState extends State<FeaturedProductsScreen> {
                 scrollDirection: Axis.horizontal,
                 child: Row(
                   children: [
-                    _buildSortChip('Featured', 'featured', Icons.star_rounded, isDark),
-                    _buildSortChip('Price: Low', 'price_low', Icons.arrow_downward, isDark),
-                    _buildSortChip('Price: High', 'price_high', Icons.arrow_upward, isDark),
-                    _buildSortChip('Best Deals', 'discount', Icons.local_offer_rounded, isDark),
+                    _buildSortChip(
+                      'Featured',
+                      'featured',
+                      Icons.star_rounded,
+                      isDark,
+                    ),
+                    _buildSortChip(
+                      'Price: Low',
+                      'price_low',
+                      Icons.arrow_downward,
+                      isDark,
+                    ),
+                    _buildSortChip(
+                      'Price: High',
+                      'price_high',
+                      Icons.arrow_upward,
+                      isDark,
+                    ),
+                    _buildSortChip(
+                      'Best Deals',
+                      'discount',
+                      Icons.local_offer_rounded,
+                      isDark,
+                    ),
                   ],
                 ),
               ),
@@ -148,7 +175,9 @@ class _FeaturedProductsScreenState extends State<FeaturedProductsScreen> {
           ),
 
           // Products grid/list
-          _isGridView ? _buildGridView(theme, isDark) : _buildListView(theme, isDark),
+          _isGridView
+              ? _buildGridView(theme, isDark)
+              : _buildListView(theme, isDark),
 
           const SliverToBoxAdapter(child: SizedBox(height: 100)),
         ],
@@ -156,7 +185,12 @@ class _FeaturedProductsScreenState extends State<FeaturedProductsScreen> {
     );
   }
 
-  Widget _buildSortChip(String label, String value, IconData icon, bool isDark) {
+  Widget _buildSortChip(
+    String label,
+    String value,
+    IconData icon,
+    bool isDark,
+  ) {
     final isSelected = _sortBy == value;
     return Padding(
       padding: const EdgeInsets.only(right: 8),
@@ -166,22 +200,24 @@ class _FeaturedProductsScreenState extends State<FeaturedProductsScreen> {
           duration: const Duration(milliseconds: 200),
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
           decoration: BoxDecoration(
-            color: isSelected
-                ? AppColors.primaryColor
-                : (isDark ? Colors.grey[850] : Colors.white),
+            color:
+                isSelected
+                    ? AppColors.primaryColor
+                    : (isDark ? Colors.grey[850] : Colors.white),
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
               color: isSelected ? AppColors.primaryColor : Colors.transparent,
             ),
-            boxShadow: isSelected
-                ? null
-                : [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.05),
-                      blurRadius: 4,
-                      offset: const Offset(0, 2),
-                    ),
-                  ],
+            boxShadow:
+                isSelected
+                    ? null
+                    : [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.05),
+                        blurRadius: 4,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
@@ -189,7 +225,10 @@ class _FeaturedProductsScreenState extends State<FeaturedProductsScreen> {
               Icon(
                 icon,
                 size: 16,
-                color: isSelected ? Colors.white : (isDark ? Colors.white70 : Colors.black54),
+                color:
+                    isSelected
+                        ? Colors.white
+                        : (isDark ? Colors.white70 : Colors.black54),
               ),
               const SizedBox(width: 6),
               Text(
@@ -197,7 +236,10 @@ class _FeaturedProductsScreenState extends State<FeaturedProductsScreen> {
                 style: TextStyle(
                   fontSize: 13,
                   fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-                  color: isSelected ? Colors.white : (isDark ? Colors.white70 : Colors.black87),
+                  color:
+                      isSelected
+                          ? Colors.white
+                          : (isDark ? Colors.white70 : Colors.black87),
                 ),
               ),
             ],
@@ -236,9 +278,9 @@ class _FeaturedProductsScreenState extends State<FeaturedProductsScreen> {
         delegate: SliverChildBuilderDelegate(
           (context, index) => Padding(
             padding: const EdgeInsets.only(bottom: 12),
-            child: _FeaturedProductListCard(
-              product: _products[index],
-              index: index,
+            child: GroceryItemCardWidget(
+              item: _products[index],
+              heroSuffix: 'featured_list_$index',
               onTap: () => _onProductTap(_products[index]),
             ),
           ),
@@ -303,11 +345,15 @@ class _FeaturedProductCard extends StatelessWidget {
                     Container(
                       width: double.infinity,
                       decoration: BoxDecoration(
-                        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+                        borderRadius: const BorderRadius.vertical(
+                          top: Radius.circular(20),
+                        ),
                         gradient: _getDummyGradient(index),
                       ),
                       child: ClipRRect(
-                        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+                        borderRadius: const BorderRadius.vertical(
+                          top: Radius.circular(20),
+                        ),
                         child: _buildProductImage(product, index),
                       ),
                     ),
@@ -317,7 +363,10 @@ class _FeaturedProductCard extends StatelessWidget {
                         top: 10,
                         left: 10,
                         child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 4,
+                          ),
                           decoration: BoxDecoration(
                             color: AppColors.error,
                             borderRadius: BorderRadius.circular(8),
@@ -354,54 +403,60 @@ class _FeaturedProductCard extends StatelessWidget {
               ),
 
               // Details section
-              Expanded(
-                flex: 2,
-                child: Padding(
-                  padding: const EdgeInsets.all(12),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        product.productName,
-                        style: theme.textTheme.titleSmall?.copyWith(
-                          fontWeight: FontWeight.w600,
-                        ),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
+              Padding(
+                padding: const EdgeInsets.all(12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      product.productName,
+                      style: theme.textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.w600,
                       ),
-                      const SizedBox(height: 4),
-                      Text(
-                        '${product.weight} ${product.weightUnit}',
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: theme.hintColor,
-                        ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      '${product.weight} ${product.weightUnit}',
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.hintColor,
                       ),
-                      const Spacer(),
-                      Row(
-                        children: [
-                          Text(
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        Flexible(
+                          child: Text(
                             '₹${product.finalPrice.toStringAsFixed(0)}',
                             style: theme.textTheme.titleMedium?.copyWith(
                               fontWeight: FontWeight.bold,
                               color: AppColors.primaryColor,
                             ),
+                            overflow: TextOverflow.ellipsis,
                           ),
-                          if (hasDiscount) ...[
-                            const SizedBox(width: 6),
-                            Text(
+                        ),
+                        if (hasDiscount) ...[
+                          const SizedBox(width: 6),
+                          Flexible(
+                            child: Text(
                               '₹${product.price.toStringAsFixed(0)}',
                               style: theme.textTheme.bodySmall?.copyWith(
                                 decoration: TextDecoration.lineThrough,
                                 color: theme.hintColor,
                               ),
+                              overflow: TextOverflow.ellipsis,
                             ),
-                          ],
-                          const Spacer(),
-                          _AddToCartButton(product: product),
+                          ),
                         ],
-                      ),
-                    ],
-                  ),
+                        const SizedBox(width: 8),
+                        _AddToCartButton(product: product),
+                      ],
+                    ),
+                  ],
                 ),
               ),
             ],
@@ -461,198 +516,6 @@ class _FeaturedProductCard extends StatelessWidget {
       child: Icon(
         icons[index % icons.length],
         size: 56,
-        color: colors[index % colors.length].withOpacity(0.6),
-      ),
-    );
-  }
-}
-
-// List card for products
-class _FeaturedProductListCard extends StatelessWidget {
-  final Product product;
-  final int index;
-  final VoidCallback onTap;
-
-  const _FeaturedProductListCard({
-    required this.product,
-    required this.index,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-    final hasDiscount = product.discountPercentage > 0;
-
-    return GestureDetector(
-      onTap: product.isInStock ? onTap : null,
-      child: Opacity(
-        opacity: product.isInStock ? 1.0 : 0.5,
-        child: Container(
-          height: 120,
-          decoration: BoxDecoration(
-            color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
-            borderRadius: BorderRadius.circular(16),
-            boxShadow: [
-              BoxShadow(
-                color: isDark ? Colors.black26 : Colors.black.withOpacity(0.06),
-                blurRadius: 12,
-                offset: const Offset(0, 4),
-              ),
-            ],
-          ),
-          child: Row(
-            children: [
-              // Image
-              Container(
-                width: 110,
-                decoration: BoxDecoration(
-                  borderRadius: const BorderRadius.horizontal(left: Radius.circular(16)),
-                  gradient: _getDummyGradient(index),
-                ),
-                child: Stack(
-                  children: [
-                    ClipRRect(
-                      borderRadius: const BorderRadius.horizontal(left: Radius.circular(16)),
-                      child: _buildProductImage(product, index),
-                    ),
-                    if (hasDiscount)
-                      Positioned(
-                        top: 8,
-                        left: 8,
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
-                          decoration: BoxDecoration(
-                            color: AppColors.error,
-                            borderRadius: BorderRadius.circular(6),
-                          ),
-                          child: Text(
-                            '${product.discountPercentage.toInt()}%',
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 10,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                      ),
-                  ],
-                ),
-              ),
-
-              // Details
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.all(14),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        product.productName,
-                        style: theme.textTheme.titleSmall?.copyWith(
-                          fontWeight: FontWeight.w600,
-                        ),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        '${product.weight} ${product.weightUnit} • ${product.productCategory}',
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: theme.hintColor,
-                        ),
-                      ),
-                      const Spacer(),
-                      Row(
-                        children: [
-                          Text(
-                            '₹${product.finalPrice.toStringAsFixed(0)}',
-                            style: theme.textTheme.titleMedium?.copyWith(
-                              fontWeight: FontWeight.bold,
-                              color: AppColors.primaryColor,
-                            ),
-                          ),
-                          if (hasDiscount) ...[
-                            const SizedBox(width: 6),
-                            Text(
-                              '₹${product.price.toStringAsFixed(0)}',
-                              style: theme.textTheme.bodySmall?.copyWith(
-                                decoration: TextDecoration.lineThrough,
-                                color: theme.hintColor,
-                              ),
-                            ),
-                          ],
-                          const Spacer(),
-                          _AddToCartButton(product: product),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  LinearGradient _getDummyGradient(int index) {
-    final gradients = [
-      [const Color(0xFFFFF3E0), const Color(0xFFFFE0B2)],
-      [const Color(0xFFE8F5E9), const Color(0xFFC8E6C9)],
-      [const Color(0xFFFCE4EC), const Color(0xFFF8BBD0)],
-      [const Color(0xFFE3F2FD), const Color(0xFFBBDEFB)],
-      [const Color(0xFFF3E5F5), const Color(0xFFE1BEE7)],
-      [const Color(0xFFFFFDE7), const Color(0xFFFFF9C4)],
-    ];
-    final colors = gradients[index % gradients.length];
-    return LinearGradient(
-      begin: Alignment.topLeft,
-      end: Alignment.bottomRight,
-      colors: colors,
-    );
-  }
-
-  Widget _buildProductImage(Product product, int index) {
-    if (product.productImages.isNotEmpty) {
-      return SizedBox(
-        width: double.infinity,
-        height: double.infinity,
-        child: CachedNetworkImage(
-          imageUrl: product.productImages[0].image,
-          fit: BoxFit.cover,
-          placeholder: (_, __) => _buildDummyFoodImage(index),
-          errorWidget: (_, __, ___) => _buildDummyFoodImage(index),
-        ),
-      );
-    }
-    return _buildDummyFoodImage(index);
-  }
-
-  Widget _buildDummyFoodImage(int index) {
-    final icons = [
-      Icons.bakery_dining_rounded,
-      Icons.rice_bowl_rounded,
-      Icons.local_pizza_rounded,
-      Icons.icecream_rounded,
-      Icons.egg_alt_rounded,
-      Icons.breakfast_dining_rounded,
-    ];
-    final colors = [
-      const Color(0xFFE65100),
-      const Color(0xFF2E7D32),
-      const Color(0xFFD32F2F),
-      const Color(0xFF7B1FA2),
-      const Color(0xFFF9A825),
-      const Color(0xFF795548),
-    ];
-    return Center(
-      child: Icon(
-        icons[index % icons.length],
-        size: 40,
         color: colors[index % colors.length].withOpacity(0.6),
       ),
     );
@@ -737,18 +600,10 @@ class _AddToCartButton extends StatelessWidget {
               color: AppColors.primaryColor,
               borderRadius: BorderRadius.circular(10),
             ),
-            child: const Icon(
-              Icons.add,
-              size: 18,
-              color: Colors.white,
-            ),
+            child: const Icon(Icons.add, size: 18, color: Colors.white),
           ),
         );
       },
     );
   }
 }
-
-
-
-

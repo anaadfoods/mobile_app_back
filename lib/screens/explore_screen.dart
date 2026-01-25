@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 import 'package:flutter/services.dart';
 import 'package:grocery_app/common_widgets/global_import.dart';
+import 'package:grocery_app/screens/RFP/contract_farming_screen.dart';
 
 class ExploreScreen extends StatefulWidget {
   const ExploreScreen({super.key});
@@ -185,9 +186,7 @@ class _ExploreScreenState extends State<ExploreScreen>
         onRefresh: _handleRefresh,
         color: theme.colorScheme.primary,
         child: CustomScrollView(
-          physics: const AlwaysScrollableScrollPhysics(
-            parent: BouncingScrollPhysics(),
-          ),
+          physics: const AlwaysScrollableScrollPhysics(),
           slivers: [
             // Animated Header with Gradient
             _buildAnimatedHeader(theme, isDark),
@@ -228,6 +227,16 @@ class _ExploreScreenState extends State<ExploreScreen>
   }
 
   Widget _buildAnimatedHeader(ThemeData theme, bool isDark) {
+    final mediaQuery = MediaQuery.of(context);
+    final statusBarHeight = mediaQuery.padding.top;
+    final screenHeight = mediaQuery.size.height;
+
+    // Dynamic header height based on status bar and content
+    final headerHeight = (statusBarHeight + 180).clamp(
+      200.0,
+      math.max(200.0, screenHeight * 0.30).toDouble(),
+    );
+
     return SliverToBoxAdapter(
       child: AnimatedBuilder(
         animation: _headerController,
@@ -238,7 +247,7 @@ class _ExploreScreenState extends State<ExploreScreen>
           );
         },
         child: Container(
-          height: 220,
+          constraints: BoxConstraints(minHeight: headerHeight),
           decoration: BoxDecoration(
             gradient: LinearGradient(
               begin: Alignment.topLeft,
@@ -305,10 +314,12 @@ class _ExploreScreenState extends State<ExploreScreen>
 
               // Header Content
               SafeArea(
+                bottom: false,
                 child: Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
+                  padding: const EdgeInsets.fromLTRB(20, 16, 20, 16),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
                     children: [
                       // Top Row with Back Button and Refresh
                       Row(
@@ -330,7 +341,7 @@ class _ExploreScreenState extends State<ExploreScreen>
                           ),
                         ],
                       ),
-                      const Spacer(),
+                      const SizedBox(height: 16),
                       // Title
                       Row(
                         children: [
@@ -340,38 +351,44 @@ class _ExploreScreenState extends State<ExploreScreen>
                             size: 32,
                           ),
                           const SizedBox(width: 12),
-                          Text(
-                            "Categories",
-                            style: theme.textTheme.headlineMedium?.copyWith(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
+                          Expanded(
+                            child: Text(
+                              "The Earth’s Catalog",
+                              style: theme.textTheme.headlineMedium?.copyWith(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                              ),
+                              overflow: TextOverflow.ellipsis,
                             ),
                           ),
                         ],
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        "Explore fresh produce from our farms",
+                        "Seasonally curated. Harvested at the perfect moment. Processed to retain nutrition",
                         style: theme.textTheme.bodyMedium?.copyWith(
                           color: Colors.white.withOpacity(0.9),
                         ),
                       ),
                       const SizedBox(height: 8),
-                      // Stats Row
-                      Row(
-                        children: [
-                          _buildStatChip(
-                            Icons.category_rounded,
-                            '${_categories.length}',
-                            'Categories',
-                          ),
-                          const SizedBox(width: 16),
-                          _buildStatChip(
-                            Icons.local_fire_department_rounded,
-                            '${_bestsellers.length}',
-                            'Trending',
-                          ),
-                        ],
+                      // Stats Row - scrollable to prevent overflow
+                      SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: Row(
+                          children: [
+                            _buildStatChip(
+                              Icons.category_rounded,
+                              '${_categories.length}',
+                              'Categories',
+                            ),
+                            const SizedBox(width: 16),
+                            _buildStatChip(
+                              Icons.local_fire_department_rounded,
+                              '${_bestsellers.length}',
+                              'Trending',
+                            ),
+                          ],
+                        ),
                       ),
                     ],
                   ),
@@ -662,15 +679,41 @@ class _ExploreScreenState extends State<ExploreScreen>
         child: Column(
           children: [
             Icon(
-              Icons.error_outline_rounded,
+              Icons.explore_off_outlined,
               size: 64,
-              color: theme.colorScheme.error.withOpacity(0.7),
+              color: const Color(0xFF8B7355), // Warm mocha - friendly
             ),
             const SizedBox(height: 16),
             Text(
-              _error!,
-              style: TextStyle(color: theme.colorScheme.error),
+              "Couldn't load categories right now",
+              style: TextStyle(
+                color: const Color(0xFF8B7355),
+                fontWeight: FontWeight.w600,
+                fontSize: 16,
+              ),
               textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              "Check your connection and try again 📶",
+              style: TextStyle(
+                color: Colors.grey.shade600,
+                fontSize: 13,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 12),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Text(
+                "🌱 Agniastra, made from neem and cow urine, protects crops from 200+ pests naturally!",
+                style: TextStyle(
+                  color: Colors.green.shade700,
+                  fontSize: 12,
+                  fontStyle: FontStyle.italic,
+                ),
+                textAlign: TextAlign.center,
+              ),
             ),
             const SizedBox(height: 24),
             ElevatedButton.icon(
@@ -700,11 +743,17 @@ class _ExploreScreenState extends State<ExploreScreen>
       category.name,
     );
     if (!mounted) return;
-    Navigator.of(context).push(
-      AnimatedTransitions.slideFromRight(
-        CategoryItemsScreen(name: category.name, allProducts: products),
-      ),
-    );
+    if (category.name == "vegetables") {
+      Navigator.of(
+        context,
+      ).push(AnimatedTransitions.slideFromRight(const CombinedScreen()));
+    } else {
+      Navigator.of(context).push(
+        AnimatedTransitions.slideFromRight(
+          CategoryItemsScreen(name: category.name, allProducts: products),
+        ),
+      );
+    }
   }
 
   Widget _buildSkeletonLoader(ThemeData theme) {

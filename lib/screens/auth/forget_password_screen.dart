@@ -326,17 +326,19 @@ class _ForgetPasswordScreenState extends State<ForgetPasswordScreen>
                         end: Alignment.bottomRight,
                         colors: [
                           theme.colorScheme.primary,
-                          theme.colorScheme.primary.withOpacity(0.9),
+                          theme.colorScheme.primary.withValues(alpha: 0.9),
                         ],
                       ),
                       borderRadius: BorderRadius.circular(24),
                       border: Border.all(
-                        color: Colors.white.withOpacity(0.2),
+                        color: Colors.white.withValues(alpha: 0.2),
                         width: 1.5,
                       ),
                       boxShadow: [
                         BoxShadow(
-                          color: theme.colorScheme.primary.withOpacity(0.4),
+                          color: theme.colorScheme.primary.withValues(
+                            alpha: 0.4,
+                          ),
                           blurRadius: 30,
                           offset: const Offset(0, 10),
                         ),
@@ -349,13 +351,14 @@ class _ForgetPasswordScreenState extends State<ForgetPasswordScreen>
                         Container(
                           padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(
-                            color: AppColors.buttonBackgroundColor.withOpacity(
-                              0.2,
+                            color: AppColors.buttonBackgroundColor.withValues(
+                              alpha: 0.2,
                             ),
                             shape: BoxShape.circle,
                             border: Border.all(
-                              color: AppColors.buttonBackgroundColor
-                                  .withOpacity(0.4),
+                              color: AppColors.buttonBackgroundColor.withValues(
+                                alpha: 0.4,
+                              ),
                               width: 2,
                             ),
                           ),
@@ -378,7 +381,9 @@ class _ForgetPasswordScreenState extends State<ForgetPasswordScreen>
                           "Enter the 6-digit code sent to\n${_identifierController.text}",
                           textAlign: TextAlign.center,
                           style: theme.textTheme.bodyMedium?.copyWith(
-                            color: theme.colorScheme.onPrimary.withOpacity(0.8),
+                            color: theme.colorScheme.onPrimary.withValues(
+                              alpha: 0.8,
+                            ),
                             height: 1.5,
                           ),
                         ),
@@ -418,7 +423,7 @@ class _ForgetPasswordScreenState extends State<ForgetPasswordScreen>
                                   'Resend',
                                   style: theme.textTheme.labelLarge?.copyWith(
                                     color: theme.colorScheme.onPrimary
-                                        .withOpacity(0.8),
+                                        .withValues(alpha: 0.8),
                                   ),
                                 ),
                               ),
@@ -440,7 +445,7 @@ class _ForgetPasswordScreenState extends State<ForgetPasswordScreen>
                                   boxShadow: [
                                     BoxShadow(
                                       color: AppColors.buttonBackgroundColor
-                                          .withOpacity(0.4),
+                                          .withValues(alpha: 0.4),
                                       blurRadius: 12,
                                       offset: const Offset(0, 4),
                                     ),
@@ -517,7 +522,7 @@ class _ForgetPasswordScreenState extends State<ForgetPasswordScreen>
                     // Base background image
                     Positioned.fill(
                       child: Image.asset(
-                        "assets/images/OnBoarding/background_login_sign.png",
+                        "assets/images/OnBoarding/background_home.png",
                         fit: BoxFit.cover,
                       ),
                     ),
@@ -529,9 +534,9 @@ class _ForgetPasswordScreenState extends State<ForgetPasswordScreen>
                             begin: Alignment.topCenter,
                             end: Alignment.bottomCenter,
                             colors: [
-                              colorScheme.primary.withOpacity(0.1),
+                              colorScheme.primary.withValues(alpha: 0.1),
                               Colors.transparent,
-                              colorScheme.primary.withOpacity(0.05),
+                              colorScheme.primary.withValues(alpha: 0.05),
                             ],
                           ),
                         ),
@@ -545,7 +550,7 @@ class _ForgetPasswordScreenState extends State<ForgetPasswordScreen>
                       right: -35,
                       child: _buildFloatingCircle(
                         80,
-                        colorScheme.primary.withOpacity(0.1),
+                        colorScheme.primary.withValues(alpha: 0.1),
                       ),
                     ),
                     Positioned(
@@ -555,7 +560,7 @@ class _ForgetPasswordScreenState extends State<ForgetPasswordScreen>
                       left: -25,
                       child: _buildFloatingCircle(
                         65,
-                        AppColors.buttonBackgroundColor.withOpacity(0.08),
+                        AppColors.buttonBackgroundColor.withValues(alpha: 0.08),
                       ),
                     ),
                   ],
@@ -595,8 +600,10 @@ class _ForgetPasswordScreenState extends State<ForgetPasswordScreen>
                                 color: Colors.white,
                                 boxShadow: [
                                   BoxShadow(
-                                    color: colorScheme.primary.withOpacity(
-                                      0.15 + (_logoBreathing.value - 1.0) * 2,
+                                    color: colorScheme.primary.withValues(
+                                      alpha:
+                                          0.15 +
+                                          (_logoBreathing.value - 1.0) * 2,
                                     ),
                                     blurRadius:
                                         22 + (_logoBreathing.value - 1.0) * 80,
@@ -639,19 +646,21 @@ class _ForgetPasswordScreenState extends State<ForgetPasswordScreen>
                                 end: Alignment.bottomRight,
                                 colors: [
                                   colorScheme.primary,
-                                  colorScheme.primary.withOpacity(0.85),
+                                  colorScheme.primary.withValues(alpha: 0.85),
                                 ],
                               ),
                               borderRadius: BorderRadius.circular(
                                 AppColors.radiusXL,
                               ),
                               border: Border.all(
-                                color: Colors.white.withOpacity(0.2),
+                                color: Colors.white.withValues(alpha: 0.2),
                                 width: 1.5,
                               ),
                               boxShadow: [
                                 BoxShadow(
-                                  color: colorScheme.primary.withOpacity(0.4),
+                                  color: colorScheme.primary.withValues(
+                                    alpha: 0.4,
+                                  ),
                                   blurRadius: 30,
                                   offset: const Offset(0, 15),
                                 ),
@@ -668,11 +677,11 @@ class _ForgetPasswordScreenState extends State<ForgetPasswordScreen>
                                       padding: const EdgeInsets.all(14),
                                       decoration: BoxDecoration(
                                         color: AppColors.buttonBackgroundColor
-                                            .withOpacity(0.15),
+                                            .withValues(alpha: 0.15),
                                         shape: BoxShape.circle,
                                         border: Border.all(
                                           color: AppColors.buttonBackgroundColor
-                                              .withOpacity(0.3),
+                                              .withValues(alpha: 0.3),
                                           width: 2,
                                         ),
                                       ),
@@ -714,7 +723,7 @@ class _ForgetPasswordScreenState extends State<ForgetPasswordScreen>
                                       style: theme.textTheme.bodyMedium
                                           ?.copyWith(
                                             color: colorScheme.onPrimary
-                                                .withOpacity(0.8),
+                                                .withValues(alpha: 0.8),
                                           ),
                                       textAlign: TextAlign.center,
                                     ),
@@ -773,12 +782,12 @@ class _ForgetPasswordScreenState extends State<ForgetPasswordScreen>
                         icon: Icon(
                           Icons.arrow_back_rounded,
                           size: 18,
-                          color: colorScheme.onPrimary.withOpacity(0.8),
+                          color: colorScheme.onPrimary.withValues(alpha: 0.8),
                         ),
                         label: Text(
                           "Back to Login",
                           style: theme.textTheme.bodyMedium?.copyWith(
-                            color: colorScheme.onPrimary.withOpacity(0.8),
+                            color: colorScheme.onPrimary.withValues(alpha: 0.8),
                           ),
                         ),
                       ),
@@ -802,7 +811,7 @@ class _ForgetPasswordScreenState extends State<ForgetPasswordScreen>
         color: color,
         boxShadow: [
           BoxShadow(
-            color: color.withOpacity(0.5),
+            color: color.withValues(alpha: 0.5),
             blurRadius: 25,
             spreadRadius: 8,
           ),
@@ -847,7 +856,7 @@ class _ForgetPasswordScreenState extends State<ForgetPasswordScreen>
             validator: _validateInput,
             prefixIcon: Icon(
               Icons.person_outline_rounded,
-              color: theme.colorScheme.onPrimary.withOpacity(0.7),
+              color: theme.colorScheme.onPrimary.withValues(alpha: 0.7),
             ),
           ),
         ),
@@ -858,10 +867,10 @@ class _ForgetPasswordScreenState extends State<ForgetPasswordScreen>
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               decoration: BoxDecoration(
-                color: theme.colorScheme.error.withOpacity(0.1),
+                color: theme.colorScheme.error.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(8),
                 border: Border.all(
-                  color: theme.colorScheme.error.withOpacity(0.3),
+                  color: theme.colorScheme.error.withValues(alpha: 0.3),
                 ),
               ),
               child: Row(
@@ -1119,20 +1128,23 @@ class _ForgetPasswordScreenState extends State<ForgetPasswordScreen>
     );
   }
 
-  Widget _loader() {
-    return const SizedBox(
-      height: 20,
-      width: 20,
-      child: CircularProgressIndicator(strokeWidth: 2),
-    );
-  }
+  // Unused method - commented out to suppress warning
+  // Widget _loader() {
+  //   return const SizedBox(
+  //     height: 20,
+  //     width: 20,
+  //     child: CircularProgressIndicator(strokeWidth: 2),
+  //   );
+  // }
 
-  Widget _visibilityIcon(bool obscure, VoidCallback onPressed) {
-    return IconButton(
-      icon: Icon(
-        obscure ? Icons.visibility_off_outlined : Icons.visibility_outlined,
-      ),
-      onPressed: onPressed,
-    );
-  }
+  // Unused method - commented out to suppress warning
+  // Widget _visibilityIcon(bool obscure, VoidCallback onPressed) {
+  //   return IconButton(
+  //     icon: Icon(
+  //       obscure ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+  //     ),
+  //     onPressed: onPressed,
+  //   );
+  // }
 }
+

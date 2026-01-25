@@ -6,12 +6,14 @@ import 'dart:math' as math;
 class CarouselItem {
   final String imageUrl;
   final String title;
+  final String subtitle;
   final String buttonText;
   final VoidCallback onTap;
 
   const CarouselItem({
     required this.imageUrl,
     required this.title,
+    required this.subtitle,
     required this.buttonText,
     required this.onTap,
   });
@@ -64,19 +66,10 @@ class _TopCuroselState extends State<TopCurosel>
       CarouselItem(
         imageUrl:
             'https://res.cloudinary.com/dcuwcjq1f/image/upload/v1759836582/atta_chaki_carousel_zowh5e.jpg',
-        title: 'Freshly Ground Flours',
-        buttonText: 'Know our mission',
-        onTap:
-            () => Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => AboutScreen()),
-            ),
-      ),
-      CarouselItem(
-        imageUrl:
-            'https://res.cloudinary.com/dcuwcjq1f/image/upload/v1759836622/atta_crousel_image_dpennd.jpg',
-        title: 'Our Mission & Story',
-        buttonText: 'Checkout Products',
+        title: ' Ground slowly',
+        subtitle:
+            "Low RPM Natural Stone Milling of the flour preserves every bit of nutrition",
+        buttonText: 'See the Product',
         onTap: () {
           final dashboardState =
               context.findAncestorStateOfType<DashboardScreenState>();
@@ -85,9 +78,23 @@ class _TopCuroselState extends State<TopCurosel>
       ),
       CarouselItem(
         imageUrl:
+            'https://res.cloudinary.com/dcuwcjq1f/image/upload/v1759836622/atta_crousel_image_dpennd.jpg',
+        title: 'We don’t manufacture. We grow',
+        subtitle: 'A return to Truly Nutritional Food',
+        buttonText: 'Read Our Roots',
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => AboutScreen()),
+          );
+        },
+      ),
+      CarouselItem(
+        imageUrl:
             'https://res.cloudinary.com/dcuwcjq1f/image/upload/v1759836642/farm_carousel_lcnpp8.jpg',
-        title: 'Convenient Products',
-        buttonText: 'View Product',
+        title: 'Picked before the sun rose',
+        subtitle: "Harvested only when you order. Not a moment sooner",
+        buttonText: 'Visit our Plot',
         onTap: () async {
           final produt = await CategoryService.fetchProductById(2);
           if (!mounted) return;
@@ -102,8 +109,9 @@ class _TopCuroselState extends State<TopCurosel>
       CarouselItem(
         imageUrl:
             'https://res.cloudinary.com/dcuwcjq1f/image/upload/v1759836653/farmer_consultancy_aaosxa.jpg',
-        title: 'Remote Farming',
-        buttonText: 'RFP Plan',
+        title: ' Remote Farming Program',
+        subtitle: " You can’t be at the farm. So we bring the farm to you.",
+        buttonText: 'Visit our Plot',
         onTap: () {
           Navigator.push(
             context,
@@ -260,14 +268,16 @@ class _TopCuroselState extends State<TopCurosel>
                                 ),
                               ),
                               Positioned(
-                                bottom: 20,
-                                left: 20,
+                                bottom: 12,
+                                left: 16,
+                                right: 16,
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
+                                  mainAxisSize: MainAxisSize.min,
                                   children: [
                                     Text(
                                       item.title,
-                                      style: textTheme.bodyLarge?.copyWith(
+                                      style: textTheme.bodyMedium?.copyWith(
                                         color: Colors.white,
                                         fontWeight: FontWeight.bold,
                                         shadows: [
@@ -277,28 +287,51 @@ class _TopCuroselState extends State<TopCurosel>
                                           ),
                                         ],
                                       ),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
                                     ),
-                                    const SizedBox(height: 5),
-                                    TextButton(
-                                      onPressed: item.onTap,
-                                      style: TextButton.styleFrom(
-                                        backgroundColor: colorScheme.primary
-                                            .withOpacity(0.9),
-                                        padding: const EdgeInsets.symmetric(
-                                          horizontal: 20,
-                                          vertical: 5,
-                                        ),
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(
-                                            12,
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      item.subtitle,
+                                      style: textTheme.labelSmall?.copyWith(
+                                        color: Colors.white.withOpacity(0.95),
+                                        fontWeight: FontWeight.w500,
+                                        shadows: [
+                                          const Shadow(
+                                            blurRadius: 2,
+                                            color: Colors.black54,
                                           ),
-                                        ),
+                                        ],
                                       ),
-                                      child: Text(
-                                        item.buttonText,
-                                        style: textTheme.labelLarge?.copyWith(
-                                          fontSize: 12,
-                                          color: colorScheme.onPrimary,
+                                      maxLines: 3,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                    const SizedBox(height: 6),
+                                    Align(
+                                      alignment: Alignment.centerLeft,
+                                      child: SizedBox(
+                                        height: 28,
+                                        child: TextButton(
+                                          onPressed: item.onTap,
+                                          style: TextButton.styleFrom(
+                                            backgroundColor: colorScheme.primary
+                                                .withOpacity(0.9),
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: 12,
+                                            ),
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(8),
+                                            ),
+                                          ),
+                                          child: Text(
+                                            item.buttonText,
+                                            style: textTheme.labelMedium
+                                                ?.copyWith(
+                                                  fontSize: 10,
+                                                  color: colorScheme.onPrimary,
+                                                ),
+                                          ),
                                         ),
                                       ),
                                     ),
@@ -358,3 +391,4 @@ extension on CarouselController {
     required Cubic curve,
   }) {}
 }
+

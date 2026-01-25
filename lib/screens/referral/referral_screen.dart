@@ -608,3 +608,4 @@ class _ReferAndEarnScreenState extends State<ReferAndEarnScreen> {
     }
   }
 }
+

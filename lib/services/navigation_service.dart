@@ -1,7 +1,5 @@
 import 'package:grocery_app/common_widgets/global_import.dart';
 
-
-
 class NavigationService {
   static final NavigationService _instance = NavigationService._internal();
   factory NavigationService() => _instance;
@@ -24,42 +22,48 @@ class NavigationService {
 
   /// Navigate to order details
   static Future<void> navigateToOrderDetails(String? orderId) async {
-    final context = _instance.navigatorKey.currentContext;
-    if (context != null && orderId != null) {
-      final Order order = await OrderService().getOrderById(
-        orderId as int,
-      );
-      // For now, navigate to notifications screen as order details require Order object
-      await Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => OrderDetailScreen(order: order),
-        ),
-      );
+    final context = _instance.navigatorKey.currentState?.context;
+    if (context == null) {
+      debugPrint('Navigation context is null for order details');
+      return;
     }
+    if (orderId == null || orderId.isEmpty) {
+      debugPrint('orderId is null or empty, falling back to notifications');
+      await navigateToNotifications();
+      return;
+    }
+
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => OrderDetailScreen(orderId: orderId),
+      ),
+    );
   }
 
-  /// Navigate to product details
+  /// Navigate to subscription details
   static Future<void> navigateToSubscriptionDetails(
     String? subscriptionId,
   ) async {
-    final context = _instance.navigatorKey.currentContext;
-    if (context != null && subscriptionId != null) {
-      final result = await SubscriptionService().getSubscriptionDetails(
-        int.parse(subscriptionId),
-      );
-      if (result['success'] == true && result['data'] != null) {
-        final subscription = result['data'] as Subscription;
-        await Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder:
-                (context) =>
-                    SubscriptionPlanDetailScreen(subscription: subscription),
-          ),
-        );
-      }
+    final context = _instance.navigatorKey.currentState?.context;
+    if (context == null) {
+      debugPrint('Navigation context is null for subscription details');
+      return;
     }
+    if (subscriptionId == null || subscriptionId.isEmpty) {
+      debugPrint('subscriptionId is null or empty, falling back to notifications');
+      await navigateToNotifications();
+      return;
+    }
+
+    debugPrint('Navigating to subscription details for id: $subscriptionId');
+
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder:
+            (context) =>
+                SubscriptionPlanDetailScreen(subscriptionId: subscriptionId),
+      ),
+    );
   }
 
   /// Navigate to cart
@@ -94,18 +98,48 @@ class NavigationService {
   }
 
   static Future<void> navigateToProductDetails(String? productId) async {
-    final context = _instance.navigatorKey.currentContext;
-    if (context != null && productId != null) {
-      final result = await CategoryService.fetchProductById(
-        int.parse(productId),
+    final context = _instance.navigatorKey.currentState?.context;
+    if (context == null) {
+      debugPrint('Navigation context is null for product details');
+      return;
+    }
+    if (productId == null || productId.isEmpty) {
+      debugPrint('productId is null or empty, falling back to notifications');
+      await navigateToNotifications();
+      return;
+    }
+
+    debugPrint('Navigating to product details for: $productId');
+
+    try {
+      // Parse productId from String to int
+      final int parsedProductId = int.parse(productId);
+      
+      // Show loading
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => const Center(child: CircularProgressIndicator()),
       );
-      final product = result;
-      await Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => ProductDetailsScreen(product: product),
-        ),
-      );
+
+      final product = await CategoryService.fetchProductById(parsedProductId);
+
+      // Hide loading
+      if (context.mounted) Navigator.pop(context);
+
+      if (context.mounted) {
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (context) => ProductDetailsScreen(product: product),
+          ),
+        );
+      }
+    } catch (e) {
+      debugPrint('Error navigating to product: $e');
+      if (context.mounted) {
+        Navigator.pop(context); // Hide loading dialog
+        await navigateToNotifications(); // Fallback to notifications
+      }
     }
   }
 

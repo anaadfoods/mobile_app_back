@@ -204,3 +204,4 @@ class LegalContentScreen extends StatelessWidget {
     return formatted;
   }
 }
+

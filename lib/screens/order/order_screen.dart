@@ -1,6 +1,5 @@
-import 'dart:ui';
-import 'package:flutter/services.dart';
 import 'package:grocery_app/common_widgets/global_import.dart';
+import 'dart:math' as math;
 
 class OrderScreen extends StatefulWidget {
   const OrderScreen({super.key});
@@ -56,13 +55,14 @@ class _OrderScreenState extends State<OrderScreen>
     }
   }
 
-  String _formatDate(DateTime date) {
-    return DateFormat('MMM d, yyyy').format(date);
-  }
+  // Unused methods - commented out to suppress warning
+  // String _formatDate(DateTime date) {
+  //   return DateFormat('MMM d, yyyy').format(date);
+  // }
 
-  String _formatShortDate(DateTime date) {
-    return DateFormat('MMM d').format(date);
-  }
+  // String _formatShortDate(DateTime date) {
+  //   return DateFormat('MMM d').format(date);
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -71,43 +71,47 @@ class _OrderScreenState extends State<OrderScreen>
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
-      body: CustomScrollView(
-        physics: const BouncingScrollPhysics(),
-        slivers: [
-          // Premium Header
-          _buildAnimatedHeader(theme, isDark),
-          // Content
-          if (isLoading)
-            const SliverFillRemaining(child: _LoadingState())
-          else if (error != null)
-            SliverFillRemaining(
-              child: _ErrorState(error: error!, onRetry: _fetchOrders),
-            )
-          else if (orders.isEmpty)
-            const SliverFillRemaining(child: _EmptyState())
-          else
-            SliverPadding(
-              padding: const EdgeInsets.fromLTRB(16, 8, 16, 100),
-              sliver: SliverList(
-                delegate: SliverChildBuilderDelegate((context, index) {
-                  if (index == orders.length) {
-                    return Padding(
-                      padding: const EdgeInsets.only(top: 8),
-                      child: _buildHelpCard(theme, isDark),
+      body: RefreshIndicator(
+        onRefresh: _fetchOrders,
+        color: theme.colorScheme.primary,
+        child: CustomScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          slivers: [
+            // Premium Header
+            _buildAnimatedHeader(theme, isDark),
+            // Content
+            if (isLoading)
+              const SliverFillRemaining(child: _LoadingState())
+            else if (error != null)
+              SliverFillRemaining(
+                child: _ErrorState(error: error!, onRetry: _fetchOrders),
+              )
+            else if (orders.isEmpty)
+              const SliverFillRemaining(child: _EmptyState())
+            else
+              SliverPadding(
+                padding: const EdgeInsets.fromLTRB(16, 8, 16, 100),
+                sliver: SliverList(
+                  delegate: SliverChildBuilderDelegate((context, index) {
+                    if (index == orders.length) {
+                      return Padding(
+                        padding: const EdgeInsets.only(top: 8),
+                        child: _buildHelpCard(theme, isDark),
+                      );
+                    }
+                    final order = orders[index];
+                    return _AnimatedOrderCard(
+                      order: order,
+                      index: index,
+                      staggerController: _staggerController,
+                      totalItems: orders.length,
+                      onTap: () => _navigateToDetails(order),
                     );
-                  }
-                  final order = orders[index];
-                  return _AnimatedOrderCard(
-                    order: order,
-                    index: index,
-                    staggerController: _staggerController,
-                    totalItems: orders.length,
-                    onTap: () => _navigateToDetails(order),
-                  );
-                }, childCount: orders.length + 1),
+                  }, childCount: orders.length + 1),
+                ),
               ),
-            ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -118,10 +122,23 @@ class _OrderScreenState extends State<OrderScreen>
             .where((o) => o.status != 'DELIVERED' && o.status != 'CANCELLED')
             .length;
     final completedOrders = orders.where((o) => o.status == 'DELIVERED').length;
+    final mediaQuery = MediaQuery.of(context);
+    final statusBarHeight = mediaQuery.padding.top;
+
+    // Calculate dynamic header height based on screen size and content
+    final screenHeight = mediaQuery.size.height;
+    final hasStats = !isLoading && orders.isNotEmpty;
+    // Base height accounts for: status bar + back button + title + subtitle + padding
+    final baseHeight = statusBarHeight + 140;
+    final statsHeight = hasStats ? 44.0 : 0.0;
+    final headerHeight = (baseHeight + statsHeight).clamp(
+      180.0,
+      math.max(180.0, screenHeight * 0.28).toDouble(),
+    );
 
     return SliverToBoxAdapter(
       child: Container(
-        height: 200,
+        constraints: BoxConstraints(minHeight: headerHeight),
         decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topLeft,
@@ -131,7 +148,7 @@ class _OrderScreenState extends State<OrderScreen>
                     ? [const Color(0xFF2D2D2D), const Color(0xFF1A1A1A)]
                     : [
                       AppColors.primaryColor,
-                      AppColors.primaryColor.withOpacity(0.8),
+                      AppColors.primaryColor.withValues(alpha: 0.8),
                     ],
           ),
           borderRadius: const BorderRadius.only(
@@ -140,7 +157,7 @@ class _OrderScreenState extends State<OrderScreen>
           ),
           boxShadow: [
             BoxShadow(
-              color: AppColors.primaryColor.withOpacity(0.3),
+              color: AppColors.primaryColor.withValues(alpha: 0.3),
               blurRadius: 20,
               offset: const Offset(0, 10),
             ),
@@ -157,7 +174,7 @@ class _OrderScreenState extends State<OrderScreen>
                 height: 120,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: Colors.white.withOpacity(0.1),
+                  color: Colors.white.withValues(alpha: 0.1),
                 ),
               ),
             ),
@@ -169,81 +186,65 @@ class _OrderScreenState extends State<OrderScreen>
                 height: 80,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: Colors.white.withOpacity(0.08),
+                  color: Colors.white.withValues(alpha: 0.08),
                 ),
               ),
             ),
 
-            // Animated Icon
+            // Animated Icon - position dynamically
             Positioned(
-              top: 60,
-              right: 30,
+              top: statusBarHeight + 16,
+              right: 20,
               child: Container(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.2),
+                  color: Colors.white.withValues(alpha: 0.2),
                   shape: BoxShape.circle,
                 ),
                 child: const Icon(
                   Icons.shopping_bag_rounded,
                   color: Colors.white,
-                  size: 36,
+                  size: 28,
                 ),
               ),
             ),
 
             // Header Content
             SafeArea(
+              bottom: false,
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(20, 8, 20, 20),
+                padding: const EdgeInsets.fromLTRB(20, 8, 20, 16),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    // Top Row with Back Button and Refresh
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        GestureDetector(
-                          onTap: () => Navigator.pop(context),
-                          child: Container(
-                            padding: const EdgeInsets.all(10),
-                            decoration: BoxDecoration(
-                              color: Colors.white.withOpacity(0.2),
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: const Icon(
-                              Icons.arrow_back_ios_new_rounded,
-                              color: Colors.white,
-                              size: 20,
-                            ),
-                          ),
+                    // Top Row with Back Button
+                    GestureDetector(
+                      onTap: () => Navigator.pop(context),
+                      child: Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.2),
+                          borderRadius: BorderRadius.circular(12),
                         ),
-                        // ,
-                        // if (!isLoading)
-                        //   GestureDetector(
-                        //     onTap: _fetchOrders,
-                        //     child: Container(
-                        //       padding: const EdgeInsets.all(10),
-                        //       decoration: BoxDecoration(
-                        //         color: Colors.white.withOpacity(0.2),
-                        //         borderRadius: BorderRadius.circular(12),
-                        //       ),
-                        //       child: const Icon(
-                        //         Icons.refresh_rounded,
-                        //         color: Colors.white,
-                        //         size: 20,
-                        //       ),
-                        //     ),
-                        //   ),
-                      ],
+                        child: const Icon(
+                          Icons.arrow_back_ios_new_rounded,
+                          color: Colors.white,
+                          size: 20,
+                        ),
+                      ),
                     ),
-                    const Spacer(),
+                    const SizedBox(height: 16),
                     // Title
-                    Text(
-                      "My Orders",
-                      style: theme.textTheme.headlineMedium?.copyWith(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
+                    FittedBox(
+                      fit: BoxFit.scaleDown,
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        "My Orders",
+                        style: theme.textTheme.headlineMedium?.copyWith(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ),
                     const SizedBox(height: 4),
@@ -252,28 +253,31 @@ class _OrderScreenState extends State<OrderScreen>
                           ? "Your orders will appear here"
                           : "${orders.length} order${orders.length != 1 ? 's' : ''} total",
                       style: theme.textTheme.bodyMedium?.copyWith(
-                        color: Colors.white.withOpacity(0.9),
+                        color: Colors.white.withValues(alpha: 0.9),
                       ),
                     ),
-                    // Stats Row
-                    if (!isLoading && orders.isNotEmpty) ...[
+                    // Stats Row - scrollable to prevent overflow
+                    if (hasStats) ...[
                       const SizedBox(height: 12),
-                      Row(
-                        children: [
-                          _buildStatChip(
-                            icon: Icons.local_shipping_outlined,
-                            label: 'Active',
-                            count: activeOrders,
-                            color: AppColors.warning,
-                          ),
-                          const SizedBox(width: 8),
-                          _buildStatChip(
-                            icon: Icons.check_circle_outline,
-                            label: 'Completed',
-                            count: completedOrders,
-                            color: AppColors.success,
-                          ),
-                        ],
+                      SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: Row(
+                          children: [
+                            _buildStatChip(
+                              icon: Icons.local_shipping_outlined,
+                              label: 'Active',
+                              count: activeOrders,
+                              color: AppColors.warning,
+                            ),
+                            const SizedBox(width: 8),
+                            _buildStatChip(
+                              icon: Icons.check_circle_outline,
+                              label: 'Completed',
+                              count: completedOrders,
+                              color: AppColors.success,
+                            ),
+                          ],
+                        ),
                       ),
                     ],
                   ],
@@ -295,9 +299,9 @@ class _OrderScreenState extends State<OrderScreen>
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.15),
+        color: Colors.white.withValues(alpha: 0.15),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white.withOpacity(0.2)),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -327,23 +331,25 @@ class _OrderScreenState extends State<OrderScreen>
           colors:
               isDark
                   ? [
-                    AppColors.primaryColor.withOpacity(0.2),
-                    AppColors.primaryColor.withOpacity(0.1),
+                    AppColors.primaryColor.withValues(alpha: 0.2),
+                    AppColors.primaryColor.withValues(alpha: 0.1),
                   ]
                   : [
-                    AppColors.primaryColor.withOpacity(0.08),
-                    AppColors.primaryColor.withOpacity(0.04),
+                    AppColors.primaryColor.withValues(alpha: 0.08),
+                    AppColors.primaryColor.withValues(alpha: 0.04),
                   ],
         ),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.primaryColor.withOpacity(0.2)),
+        border: Border.all(
+          color: AppColors.primaryColor.withValues(alpha: 0.2),
+        ),
       ),
       child: Row(
         children: [
           Container(
             padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
-              color: AppColors.primaryColor.withOpacity(0.15),
+              color: AppColors.primaryColor.withValues(alpha: 0.15),
               borderRadius: BorderRadius.circular(14),
             ),
             child: Icon(
@@ -460,7 +466,20 @@ class _AnimatedOrderCard extends StatelessWidget {
       },
       child: Padding(
         padding: const EdgeInsets.only(bottom: 16),
-        child: _ModernOrderCard(order: order, onTap: onTap),
+        child: Column(
+          children: [
+            _ModernOrderCard(order: order, onTap: onTap),
+            if (index < totalItems - 1) ...[
+              const SizedBox(height: 16),
+              Divider(
+                color: Theme.of(context).dividerColor.withValues(alpha: 0.1),
+                thickness: 1,
+                indent: 16,
+                endIndent: 16,
+              ),
+            ],
+          ],
+        ),
       ),
     );
   }
@@ -489,8 +508,8 @@ class _ModernOrderCard extends StatelessWidget {
             BoxShadow(
               color:
                   isDark
-                      ? Colors.black.withOpacity(0.3)
-                      : AppColors.primaryColor.withOpacity(0.08),
+                      ? Colors.black.withValues(alpha: 0.3)
+                      : AppColors.primaryColor.withValues(alpha: 0.08),
               blurRadius: 20,
               offset: const Offset(0, 8),
               spreadRadius: -4,
@@ -503,7 +522,7 @@ class _ModernOrderCard extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: status.color.withOpacity(0.08),
+                color: status.color.withValues(alpha: 0.08),
                 borderRadius: const BorderRadius.vertical(
                   top: Radius.circular(20),
                 ),
@@ -514,7 +533,7 @@ class _ModernOrderCard extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.all(10),
                     decoration: BoxDecoration(
-                      color: status.color.withOpacity(0.15),
+                      color: status.color.withValues(alpha: 0.15),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Icon(status.icon, color: status.color, size: 20),
@@ -592,7 +611,7 @@ class _ModernOrderCard extends StatelessWidget {
                           vertical: 8,
                         ),
                         decoration: BoxDecoration(
-                          color: AppColors.primaryColor.withOpacity(0.1),
+                          color: AppColors.primaryColor.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(20),
                         ),
                         child: Row(
@@ -656,7 +675,7 @@ class _ModernOrderCard extends StatelessWidget {
                     ),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.1),
+                        color: Colors.black.withValues(alpha: 0.1),
                         blurRadius: 8,
                         offset: const Offset(0, 2),
                       ),
@@ -824,55 +843,67 @@ class _EmptyState extends StatelessWidget {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(32),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              padding: const EdgeInsets.all(32),
-              decoration: BoxDecoration(
-                color: AppColors.primaryColor.withOpacity(0.1),
-                shape: BoxShape.circle,
-              ),
-              child: Icon(
-                Icons.shopping_bag_outlined,
-                size: 64,
-                color: AppColors.primaryColor.withOpacity(0.6),
-              ),
-            ),
-            const SizedBox(height: 32),
-            Text(
-              'No Orders Yet',
-              style: theme.textTheme.headlineSmall?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 12),
-            Text(
-              'Your order history will appear here\nonce you make your first purchase',
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: theme.hintColor,
-                height: 1.5,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 32),
-            ElevatedButton.icon(
-              onPressed: () => Navigator.pop(context),
-              icon: const Icon(Icons.shopping_cart_outlined),
-              label: const Text('Start Shopping'),
-              style: ElevatedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 32,
-                  vertical: 16,
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isSmallScreen = constraints.maxHeight < 600;
+        final iconSize = isSmallScreen ? 48.0 : 64.0;
+        final paddingContainer = isSmallScreen ? 20.0 : 32.0;
+        final paddingScreen = isSmallScreen ? 24.0 : 32.0;
+
+        return Center(
+          child: SingleChildScrollView(
+            padding: EdgeInsets.all(paddingScreen),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Container(
+                  padding: EdgeInsets.all(paddingContainer),
+                  decoration: BoxDecoration(
+                    color: AppColors.primaryColor.withValues(alpha: 0.1),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    Icons.shopping_bag_outlined,
+                    size: iconSize,
+                    color: AppColors.primaryColor.withValues(alpha: 0.6),
+                  ),
                 ),
-              ),
+                SizedBox(height: paddingScreen),
+                Text(
+                  'The Kitchen is Empty',
+                  style: theme.textTheme.headlineSmall?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    fontSize: isSmallScreen ? 20 : 24,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  'Your journey to toxin-free living begins with ICBN Food.',
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: theme.hintColor,
+                    height: 1.5,
+                    fontSize: isSmallScreen ? 13 : 14,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                SizedBox(height: isSmallScreen ? 24 : 32),
+                ElevatedButton.icon(
+                  onPressed: () => Navigator.pop(context),
+                  icon: const Icon(Icons.shopping_cart_outlined),
+                  label: const Text('Start Your Journey'),
+                  style: ElevatedButton.styleFrom(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: 32,
+                      vertical: isSmallScreen ? 12 : 16,
+                    ),
+                  ),
+                ),
+              ],
             ),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 }

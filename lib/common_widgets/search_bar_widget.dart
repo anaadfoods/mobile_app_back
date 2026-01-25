@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:grocery_app/services/api_config.dart';
 import 'package:http/http.dart' as http;
 
 class ProductSearchBar extends StatefulWidget {
@@ -30,8 +31,9 @@ class _ProductSearchBarState extends State<ProductSearchBar> {
       _errorMessage = '';
     });
 
-    final url =
-        Uri.parse('https://app.anaadfoods.com/api/products/variants/search/?q=$query');
+    final url = Uri.parse(
+      '${ApiConfig.baseUrl}/api/products/variants/search/?q=$query',
+    );
 
     try {
       final response = await http.get(url);
@@ -66,9 +68,12 @@ class _ProductSearchBarState extends State<ProductSearchBar> {
             style: theme.textTheme.bodyLarge,
             decoration: InputDecoration(
               hintText: "Search products...",
-              prefixIcon: Icon(Icons.search,
-                  color: theme.inputDecorationTheme.prefixIconColor ??
-                      theme.iconTheme.color),
+              prefixIcon: Icon(
+                Icons.search,
+                color:
+                    theme.inputDecorationTheme.prefixIconColor ??
+                    theme.iconTheme.color,
+              ),
             ).applyDefaults(theme.inputDecorationTheme),
             onChanged: (query) {
               _searchProducts(query);
@@ -80,17 +85,20 @@ class _ProductSearchBarState extends State<ProductSearchBar> {
         ),
 
         // ⏳ Loading
-        if (_isLoading) const Padding(
-          padding: EdgeInsets.all(16),
-          child: CircularProgressIndicator(),
-        ),
+        if (_isLoading)
+          const Padding(
+            padding: EdgeInsets.all(16),
+            child: CircularProgressIndicator(),
+          ),
 
         // ⚠️ Error message
         if (_errorMessage.isNotEmpty)
           Padding(
             padding: const EdgeInsets.all(8.0),
-            child: Text(_errorMessage,
-                style: const TextStyle(color: Colors.red, fontSize: 14)),
+            child: Text(
+              _errorMessage,
+              style: const TextStyle(color: Colors.red, fontSize: 14),
+            ),
           ),
 
         // 📦 Results List

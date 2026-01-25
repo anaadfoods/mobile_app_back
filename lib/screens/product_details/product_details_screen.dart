@@ -1,5 +1,4 @@
 import 'dart:ui';
-import 'dart:math' as math;
 import 'package:collection/collection.dart';
 import 'package:flutter/services.dart';
 import 'package:grocery_app/common_widgets/global_import.dart';
@@ -204,8 +203,8 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
                         begin: Alignment.topCenter,
                         end: Alignment.bottomCenter,
                         colors: [
-                          Colors.black.withOpacity(0.5),
-                          Colors.black.withOpacity(0.7),
+                          Colors.black.withValues(alpha: 0.5),
+                          Colors.black.withValues(alpha: 0.7),
                         ],
                       ),
                     ),
@@ -217,7 +216,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
                           end: Alignment.bottomRight,
                           colors: [
                             Colors.transparent,
-                            Colors.white.withOpacity(0.03),
+                            Colors.white.withValues(alpha: 0.03),
                             Colors.transparent,
                           ],
                           stops: [
@@ -256,8 +255,8 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
                         children: [
                           Padding(
                             padding: const EdgeInsets.symmetric(
-                              vertical: 10,
-                              horizontal: 10,
+                              vertical: 16,
+                              horizontal: 20,
                             ),
 
                             child: Column(
@@ -266,19 +265,19 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
                               children: [
                                 _buildBestsellerTag(),
 
-                                const SizedBox(height: 12),
+                                const SizedBox(height: 16),
 
                                 _buildProductTitle(),
 
-                                const SizedBox(height: 8),
+                                const SizedBox(height: 12),
 
                                 _buildRatingAndOrders(),
 
-                                const SizedBox(height: 20),
+                                const SizedBox(height: 24),
 
                                 _buildPriceAndSubscribe(),
 
-                                const SizedBox(height: 20),
+                                const SizedBox(height: 24),
 
                                 ExpandableDescription(
                                   text: widget.product.productDescription,
@@ -288,32 +287,47 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
                           ),
 
                           _buildImageCarousel(),
-                          SizedBox(height: 10),
+                          const SizedBox(height: 16),
 
                           if (widget.product.productImages.length > 1)
                             _buildCarouselIndicators(),
 
-                          const SizedBox(height: 24),
+                          const SizedBox(height: 32),
 
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 20),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 20,
+                              vertical: 24,
+                            ),
 
                             width: double.infinity,
 
-                            color:
-                                isDark ? const Color(0xFF1A1A2E) : Colors.white,
+                            decoration: BoxDecoration(
+                              color:
+                                  isDark
+                                      ? const Color(0xFF1A1A2E)
+                                      : Colors.white,
+                              borderRadius: const BorderRadius.vertical(
+                                top: Radius.circular(32),
+                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.05),
+                                  blurRadius: 20,
+                                  offset: const Offset(0, -5),
+                                ),
+                              ],
+                            ),
 
                             child: Column(
                               children: [
-                                const SizedBox(height: 8),
-
                                 _buildSubscriptionPlansSection(isDark),
 
-                                const SizedBox(height: 4),
+                                const SizedBox(height: 24),
 
                                 _buildSimilarProductsSection(isDark),
 
-                                const SizedBox(height: 8),
+                                const SizedBox(height: 24),
                               ],
                             ),
                           ),
@@ -371,8 +385,10 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
       height: size,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        color: color.withOpacity(0.4),
-        boxShadow: [BoxShadow(color: color.withOpacity(0.3), blurRadius: 8)],
+        color: color.withValues(alpha: 0.4),
+        boxShadow: [
+          BoxShadow(color: color.withValues(alpha: 0.3), blurRadius: 8),
+        ],
       ),
     );
   }
@@ -396,10 +412,10 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
                 child: Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.15),
+                    color: Colors.white.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(14),
                     border: Border.all(
-                      color: Colors.white.withOpacity(0.2),
+                      color: Colors.white.withValues(alpha: 0.2),
                       width: 1,
                     ),
                   ),
@@ -423,13 +439,12 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
                   child: GestureDetector(
                     onTap: () => _triggerHaptic(),
                     child: Container(
-                      
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.15),
+                        color: Colors.white.withValues(alpha: 0.15),
                         borderRadius: BorderRadius.circular(14),
                         border: Border.all(
-                          color: Colors.white.withOpacity(0.2),
+                          color: Colors.white.withValues(alpha: 0.2),
                           width: 1,
                         ),
                       ),
@@ -451,10 +466,10 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
                   child: Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.15),
+                      color: Colors.white.withValues(alpha: 0.15),
                       borderRadius: BorderRadius.circular(14),
                       border: Border.all(
-                        color: Colors.white.withOpacity(0.2),
+                        color: Colors.white.withValues(alpha: 0.2),
                         width: 1,
                       ),
                     ),
@@ -551,7 +566,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
               borderRadius: BorderRadius.circular(20),
               boxShadow: [
                 BoxShadow(
-                  color: const Color(0xFFB9A06D).withOpacity(0.4),
+                  color: const Color(0xFFB9A06D).withValues(alpha: 0.4),
                   blurRadius: 10,
                   offset: const Offset(0, 3),
                 ),
@@ -625,7 +640,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
                   vertical: 6,
                 ),
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.15),
+                  color: Colors.white.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Row(
@@ -693,10 +708,10 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
               child: Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.1),
+                  color: Colors.white.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(20),
                   border: Border.all(
-                    color: Colors.white.withOpacity(0.2),
+                    color: Colors.white.withValues(alpha: 0.2),
                     width: 1,
                   ),
                 ),
@@ -774,7 +789,9 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
                             borderRadius: BorderRadius.circular(12),
                             boxShadow: [
                               BoxShadow(
-                                color: const Color(0xFF4CAF50).withOpacity(0.4),
+                                color: const Color(
+                                  0xFF4CAF50,
+                                ).withValues(alpha: 0.4),
                                 blurRadius: 10,
                                 offset: const Offset(0, 3),
                               ),
@@ -807,7 +824,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
         height: 280,
         margin: const EdgeInsets.symmetric(horizontal: 20),
         decoration: BoxDecoration(
-          color: Colors.grey.withOpacity(0.2),
+          color: Colors.grey.withValues(alpha: 0.2),
           borderRadius: BorderRadius.circular(24),
         ),
         child: Center(
@@ -850,7 +867,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
                       borderRadius: BorderRadius.circular(24),
                       boxShadow: [
                         BoxShadow(
-                          color: const Color(0xFFB9A06D).withOpacity(0.3),
+                          color: const Color(0xFFB9A06D).withValues(alpha: 0.3),
                           blurRadius: 20,
                           offset: const Offset(0, 10),
                         ),
@@ -862,18 +879,18 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
                         imageUrl: productImages[index].image,
                         fit: BoxFit.cover,
                         placeholder:
-                            (context, url) => Container(
-                              color: Colors.grey.withOpacity(0.2),
-                              child: const Center(
-                                child: CircularProgressIndicator(
-                                  color: Color(0xFFB9A06D),
-                                  strokeWidth: 2,
+                            (context, url) => ShimmerLoading(
+                              isLoading: true,
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  color: Colors.grey.withValues(alpha: 0.2),
+                                  borderRadius: BorderRadius.circular(24),
                                 ),
                               ),
                             ),
                         errorWidget:
                             (context, url, error) => Container(
-                              color: Colors.grey.withOpacity(0.2),
+                              color: Colors.grey.withValues(alpha: 0.2),
                               child: const Icon(
                                 Icons.error_outline,
                                 color: Colors.grey,
@@ -924,7 +941,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
                   isActive
                       ? [
                         BoxShadow(
-                          color: const Color(0xFFB9A06D).withOpacity(0.5),
+                          color: const Color(0xFFB9A06D).withValues(alpha: 0.5),
                           blurRadius: 6,
                           offset: const Offset(0, 2),
                         ),
@@ -1001,28 +1018,42 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
                             );
                           }
                           : null,
-                  child: Opacity(
-                    opacity: isEnabled ? 1.0 : 0.4,
-                    child: Container(
-                      margin: const EdgeInsets.symmetric(horizontal: 4),
-                      padding: const EdgeInsets.symmetric(
-                        vertical: 10,
-                        horizontal: 15,
-                      ),
-                      decoration: BoxDecoration(
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 250),
+                    curve: Curves.easeOutCubic,
+                    margin: const EdgeInsets.symmetric(horizontal: 6),
+                    padding: const EdgeInsets.symmetric(
+                      vertical: 14,
+                      horizontal: 18,
+                    ),
+                    decoration: BoxDecoration(
+                      gradient:
+                          isSelected
+                              ? const LinearGradient(
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                                colors: [Color(0xFFB9A06D), Color(0xFFD4B98E)],
+                              )
+                              : null,
+                      color:
+                          isSelected
+                              ? null
+                              : (isDark
+                                  ? Colors.grey.shade900
+                                  : Colors.grey.shade50),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
                         color:
                             isSelected
-                                ? AppColors.buttonBackgroundColor
-                                : Colors.white.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(10),
-                        border: Border.all(
-                          color:
-                              isSelected
-                                  ? Colors.grey.withOpacity(0.5)
-                                  : Colors.grey.withOpacity(0.5),
-                          width: 1.5,
-                        ),
+                                ? const Color(0xFFB9A06D)
+                                : (isDark
+                                    ? Colors.grey.shade700
+                                    : Colors.grey.shade300),
+                        width: isSelected ? 2 : 1,
                       ),
+                    ),
+                    child: Opacity(
+                      opacity: isEnabled ? 1.0 : 0.4,
                       child: Column(
                         children: [
                           Text(
@@ -1060,8 +1091,8 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
                                 decoration: BoxDecoration(
                                   color:
                                       isSelected
-                                          ? Colors.grey.withOpacity(0.5)
-                                          : Colors.grey.withOpacity(0.7),
+                                          ? Colors.grey.withValues(alpha: 0.5)
+                                          : Colors.grey.withValues(alpha: 0.7),
                                   borderRadius: BorderRadius.circular(10),
                                 ),
                                 child: Text(
@@ -1140,11 +1171,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
                 children: [
                   Text("See All", style: TextStyle(color: Color(0xFFB9A06D))),
                   SizedBox(width: 4),
-                  Icon(
-                    Icons.arrow_forward,
-                    color: Color(0xFFB9A06D),
-                    size: 16,
-                  ),
+                  Icon(Icons.arrow_forward, color: Color(0xFFB9A06D), size: 16),
                 ],
               ),
             ),
@@ -1226,7 +1253,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
         borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: Colors.black.withValues(alpha: 0.1),
             blurRadius: 10,
             offset: const Offset(0, -5),
           ),
@@ -1246,9 +1273,32 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
 
             // Show a loader if the cart is initially loading or being cleared.
             if (state is CartLoading || state is CartInitial) {
-              return const Center(
-                child: CircularProgressIndicator(
-                  color: AppColors.buttonBackgroundColor,
+              return Center(
+                child: ShimmerLoading(
+                  isLoading: true,
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Container(
+                          height: 50,
+                          decoration: BoxDecoration(
+                            color: Colors.grey.withValues(alpha: 0.2),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Container(
+                          height: 50,
+                          decoration: BoxDecoration(
+                            color: Colors.grey.withValues(alpha: 0.2),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               );
             }
@@ -1339,23 +1389,31 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
   }
 
   Widget _buildQuantitySelectorBar({required Key key, required int quantity}) {
+    final theme = Theme.of(context);
     return Row(
       key: key,
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Expanded(
+          flex: 2,
           child: OutlinedButton.icon(
-            onPressed:
-                () => Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const CartScreen()),
-                ),
+            onPressed: () {
+              Navigator.of(context).popUntil((route) => route.isFirst);
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                DashboardScreen.dashboardKey.currentState?.switchToTab(2);
+              });
+            },
+
             icon: const Icon(Icons.shopping_cart_checkout, size: 20),
-            label: const Text(
-              "View Cart",
-              style: TextStyle(fontWeight: FontWeight.bold),
+            label: const FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text(
+                "View Cart",
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
             ),
             style: OutlinedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(vertical: 16),
+              padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
               side: BorderSide(color: AppColors.buttonBackgroundColor),
               foregroundColor: AppColors.buttonBackgroundColor,
               shape: RoundedRectangleBorder(
@@ -1364,13 +1422,30 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
             ),
           ),
         ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: ItemCounterWidget(
-            amount: quantity,
-            onAmountChanged: (newAmount) => _handleQuantityChanged(newAmount),
-            scale: 1.4,
+        const SizedBox(width: 8),
+        // Delete Button
+        Material(
+          color: theme.colorScheme.error.withOpacity(0.1),
+          borderRadius: BorderRadius.circular(12),
+          child: InkWell(
+            onTap: () => _handleQuantityChanged(0),
+            borderRadius: BorderRadius.circular(12),
+            child: Padding(
+              padding: const EdgeInsets.all(12),
+              child: Icon(
+                Icons.delete_outline_rounded,
+                color: theme.colorScheme.error,
+                size: 24,
+              ),
+            ),
           ),
+        ),
+        const SizedBox(width: 8),
+        // Quantity Selector - no Expanded, uses intrinsic width
+        ModernQuantitySelector(
+          quantity: quantity,
+          onChanged: (newAmount) => _handleQuantityChanged(newAmount),
+          minQuantity: 0,
         ),
       ],
     );
@@ -1548,7 +1623,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      barrierColor: Colors.black.withOpacity(0.5),
+      barrierColor: Colors.black.withValues(alpha: 0.5),
       builder: (context) {
         return StatefulBuilder(
           builder: (BuildContext context, StateSetter setModalState) {
@@ -1617,7 +1692,9 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
                       ? Icons.check_box_rounded
                       : Icons.check_box_outline_blank_rounded,
                   color:
-                      isSelected ? Colors.white : Colors.grey.withOpacity(0.9),
+                      isSelected
+                          ? Colors.white
+                          : Colors.grey.withValues(alpha: 0.9),
                   size: 24,
                 ),
                 const SizedBox(width: 12),
@@ -1755,7 +1832,9 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
         padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 6),
         decoration: BoxDecoration(
           color:
-              isSelected ? Colors.white.withOpacity(0.2) : Colors.transparent,
+              isSelected
+                  ? Colors.white.withValues(alpha: 0.2)
+                  : Colors.transparent,
           borderRadius: BorderRadius.circular(8),
         ),
         child: Row(
@@ -1938,7 +2017,7 @@ class _ModernSubscriptionSheetState extends State<_ModernSubscriptionSheet>
             borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
             boxShadow: [
               BoxShadow(
-                color: accentColor.withOpacity(0.15),
+                color: accentColor.withValues(alpha: 0.15),
                 blurRadius: 30,
                 offset: const Offset(0, -10),
               ),
@@ -1963,11 +2042,11 @@ class _ModernSubscriptionSheetState extends State<_ModernSubscriptionSheet>
                             begin: Alignment.topCenter,
                             end: Alignment.bottomCenter,
                             colors: [
-                              accentColor.withOpacity(
-                                _glowAnimation.value * 0.3,
+                              accentColor.withValues(
+                                alpha: _glowAnimation.value * 0.3,
                               ),
-                              accentColor.withOpacity(
-                                _glowAnimation.value * 0.1,
+                              accentColor.withValues(
+                                alpha: _glowAnimation.value * 0.1,
                               ),
                               Colors.transparent,
                             ],
@@ -1996,16 +2075,16 @@ class _ModernSubscriptionSheetState extends State<_ModernSubscriptionSheet>
                               decoration: BoxDecoration(
                                 gradient: LinearGradient(
                                   colors: [
-                                    accentColor.withOpacity(0.3),
-                                    accentColor.withOpacity(0.6),
-                                    accentColor.withOpacity(0.3),
+                                    accentColor.withValues(alpha: 0.3),
+                                    accentColor.withValues(alpha: 0.6),
+                                    accentColor.withValues(alpha: 0.3),
                                   ],
                                 ),
                                 borderRadius: BorderRadius.circular(3),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: accentColor.withOpacity(
-                                      _glowAnimation.value * 0.5,
+                                    color: accentColor.withValues(
+                                      alpha: _glowAnimation.value * 0.5,
                                     ),
                                     blurRadius: 8,
                                     spreadRadius: 1,
@@ -2026,8 +2105,8 @@ class _ModernSubscriptionSheetState extends State<_ModernSubscriptionSheet>
                             decoration: BoxDecoration(
                               gradient: LinearGradient(
                                 colors: [
-                                  accentColor.withOpacity(0.2),
-                                  accentColor.withOpacity(0.1),
+                                  accentColor.withValues(alpha: 0.2),
+                                  accentColor.withValues(alpha: 0.1),
                                 ],
                               ),
                               borderRadius: BorderRadius.circular(14),
@@ -2199,7 +2278,7 @@ class _ModernSubscriptionSheetState extends State<_ModernSubscriptionSheet>
                   ? LinearGradient(
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
-                    colors: [accentColor, accentColor.withOpacity(0.85)],
+                    colors: [accentColor, accentColor.withValues(alpha: 0.85)],
                   )
                   : null,
           color:
@@ -2210,7 +2289,7 @@ class _ModernSubscriptionSheetState extends State<_ModernSubscriptionSheet>
           border: Border.all(
             color:
                 isSelected
-                    ? accentColor.withOpacity(0.5)
+                    ? accentColor.withValues(alpha: 0.5)
                     : (isDark ? Colors.grey.shade800 : Colors.grey.shade200),
             width: isSelected ? 2 : 1,
           ),
@@ -2218,7 +2297,7 @@ class _ModernSubscriptionSheetState extends State<_ModernSubscriptionSheet>
               isSelected
                   ? [
                     BoxShadow(
-                      color: accentColor.withOpacity(0.3),
+                      color: accentColor.withValues(alpha: 0.3),
                       blurRadius: 16,
                       offset: const Offset(0, 6),
                     ),
@@ -2241,7 +2320,7 @@ class _ModernSubscriptionSheetState extends State<_ModernSubscriptionSheet>
                       shape: BoxShape.circle,
                       color:
                           isSelected
-                              ? Colors.white.withOpacity(0.2)
+                              ? Colors.white.withValues(alpha: 0.2)
                               : Colors.transparent,
                       border: Border.all(
                         color:
@@ -2282,7 +2361,7 @@ class _ModernSubscriptionSheetState extends State<_ModernSubscriptionSheet>
                           style: theme.textTheme.bodySmall?.copyWith(
                             color:
                                 isSelected
-                                    ? Colors.white.withOpacity(0.8)
+                                    ? Colors.white.withValues(alpha: 0.8)
                                     : theme.hintColor,
                           ),
                         ),
@@ -2306,7 +2385,7 @@ class _ModernSubscriptionSheetState extends State<_ModernSubscriptionSheet>
                         style: theme.textTheme.bodySmall?.copyWith(
                           color:
                               isSelected
-                                  ? Colors.white.withOpacity(0.7)
+                                  ? Colors.white.withValues(alpha: 0.7)
                                   : theme.hintColor,
                         ),
                       ),
@@ -2321,35 +2400,50 @@ class _ModernSubscriptionSheetState extends State<_ModernSubscriptionSheet>
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.15),
+                    color: Colors.white.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _buildPriceRow(
-                        'Total for ${plan.durationMonths} months',
-                        '₹${(planData.discountedPrice * plan.durationMonths).toStringAsFixed(0)}',
+                      _buildPriceRowWithQuantity(
+                        'Total (${plan.durationMonths}mo × ${widget.quantity})',
+                        planData.discountedPrice *
+                            plan.durationMonths *
+                            widget.quantity,
                       ),
                       const SizedBox(height: 8),
-                      _buildPriceRow(
-                        'Monthly payment',
-                        '₹${planData.discountedPrice.toStringAsFixed(0)}',
-                      ),
+                      if (widget.paymentOption == 0)
+                        _buildPriceRowWithQuantity(
+                          'Pay Now',
+                          planData.discountedPrice *
+                              plan.durationMonths *
+                              widget.quantity,
+                        )
+                      else
+                        _buildPriceRowWithQuantity(
+                          'Installment (${plan.installmentFrequencyMonths}mo)',
+                          planData.discountedPrice *
+                              plan.installmentFrequencyMonths *
+                              widget.quantity,
+                        ),
                     ],
                   ),
                 ),
                 const SizedBox(height: 12),
 
                 // Payment options
-                Row(
+                // Payment options
+                Wrap(
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  spacing: 8,
+                  runSpacing: 8,
                   children: [
                     const Text(
                       'Payment:',
                       style: TextStyle(color: Colors.white70, fontSize: 13),
                     ),
-                    const SizedBox(width: 12),
                     _buildPaymentChip('One Time', 0),
-                    const SizedBox(width: 8),
                     if (plan.allowsInstallments)
                       _buildPaymentChip('Installments', 1),
                   ],
@@ -2366,12 +2460,40 @@ class _ModernSubscriptionSheetState extends State<_ModernSubscriptionSheet>
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(
-          label,
-          style: const TextStyle(color: Colors.white70, fontSize: 13),
+        Flexible(
+          child: Text(
+            label,
+            style: const TextStyle(color: Colors.white70, fontSize: 13),
+            overflow: TextOverflow.ellipsis,
+          ),
         ),
+        const SizedBox(width: 8),
         Text(
           value,
+          style: const TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+            fontSize: 14,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildPriceRowWithQuantity(String label, double amount) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Flexible(
+          child: Text(
+            label,
+            style: const TextStyle(color: Colors.white70, fontSize: 12),
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+        const SizedBox(width: 8),
+        Text(
+          '₹${amount.toStringAsFixed(0)}',
           style: const TextStyle(
             color: Colors.white,
             fontWeight: FontWeight.bold,
@@ -2395,10 +2517,12 @@ class _ModernSubscriptionSheetState extends State<_ModernSubscriptionSheet>
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
         decoration: BoxDecoration(
           color:
-              isSelected ? Colors.white.withOpacity(0.25) : Colors.transparent,
+              isSelected
+                  ? Colors.white.withValues(alpha: 0.25)
+                  : Colors.transparent,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color: Colors.white.withOpacity(isSelected ? 0.5 : 0.3),
+            color: Colors.white.withValues(alpha: isSelected ? 0.5 : 0.3),
           ),
         ),
         child: Row(

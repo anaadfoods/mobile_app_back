@@ -20,8 +20,9 @@ class ProductRepository {
     try {
       return await CategoryService.fetchCategories();
     } catch (e) {
-      // Re-throw with a custom, user-friendly exception type
-      throw ProductException('Could not fetch product categories. Please check your connection.');
+      throw ProductException(
+        _getErrorMessage(e, 'Could not fetch product categories.'),
+      );
     }
   }
 
@@ -29,7 +30,9 @@ class ProductRepository {
     try {
       return await CategoryService.fetchFeaturedProducts();
     } catch (e) {
-      throw ProductException('Could not fetch featured products.');
+      throw ProductException(
+        _getErrorMessage(e, 'Could not fetch featured products.'),
+      );
     }
   }
 
@@ -37,7 +40,9 @@ class ProductRepository {
     try {
       return await CategoryService.fetchBestsellerProducts();
     } catch (e) {
-      throw ProductException('Could not fetch bestseller products.');
+      throw ProductException(
+        _getErrorMessage(e, 'Could not fetch bestseller products.'),
+      );
     }
   }
 
@@ -45,7 +50,9 @@ class ProductRepository {
     try {
       return await CategoryService.fetchProductsByCategory(categoryName);
     } catch (e) {
-      throw ProductException('Could not fetch products for "$categoryName".');
+      throw ProductException(
+        _getErrorMessage(e, 'Could not fetch products for "$categoryName".'),
+      );
     }
   }
 
@@ -53,7 +60,31 @@ class ProductRepository {
     try {
       return await CategoryService.fetchProductById(id);
     } catch (e) {
-      throw ProductException('Could not fetch product details.');
+      throw ProductException(
+        _getErrorMessage(e, 'Could not fetch product details.'),
+      );
     }
+  }
+
+  /// Returns user-friendly error message - no technical jargon!
+  String _getErrorMessage(dynamic e, String defaultMsg) {
+    final s = e.toString().toLowerCase();
+    if (s.contains('socketexception') ||
+        s.contains('connection refused') ||
+        s.contains('network is unreachable') ||
+        s.contains('timed out') ||
+        s.contains('timeout') ||
+        s.contains('clientexception')) {
+      // Network issues - friendly message
+      return "Couldn't connect right now. Check your internet! 📶\n\n🐄 Did you know? Indian Gir cows produce A2 milk, which is easier to digest!";
+    }
+    if (s.contains('500') || s.contains('server error') || s.contains('internal')) {
+      return "Our servers need a moment. Try again shortly! ☕\n\n🌿 Panchagavya made from 5 cow products can replace chemical fertilizers entirely!";
+    }
+    if (s.contains('404') || s.contains('not found')) {
+      return "Couldn't find what you're looking for 🔍\n\n🌾 Natural farming increases earthworm population by 10x in just one season!";
+    }
+    // Generic friendly message - hide technical details
+    return "Something went sideways. Let's try again! 🔄\n\n🐄 Desi cow urine (Gomutra) is a powerful natural pesticide used for centuries!";
   }
 }

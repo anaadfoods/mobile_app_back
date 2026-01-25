@@ -122,18 +122,19 @@ class _AccountScreenState extends State<AccountScreen>
                                   ),
                                 ),
                           ),
-                          // _MenuItem(
-                          //   icon: Icons.location_on_outlined,
-                          //   title: 'Manage Addresses',
-                          //   subtitle: 'Add or edit delivery addresses',
-                          //   onTap:
-                          //       () => Navigator.push(
-                          //         context,
-                          //         MaterialPageRoute(
-                          //           builder: (context) => const AddressScreen(),
-                          //         ),
-                          //       ),
-                          // ),
+                          _MenuItem(
+                            icon: Icons.location_on_outlined,
+                            title: 'Manage Addresses',
+                            subtitle: 'Add or edit delivery addresses',
+                            onTap:
+                                () => Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder:
+                                        (context) => AddressSelectionScreen(),
+                                  ),
+                                ),
+                          ),
                         ],
                       ),
                       const SizedBox(height: 20),
@@ -669,7 +670,7 @@ class _AccountScreenState extends State<AccountScreen>
   }
 
   Widget _buildPreferencesSection(ThemeData theme) {
-    final colorScheme = theme.colorScheme;
+    // final colorScheme = theme.colorScheme; // Unused - commented out
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -934,3 +935,4 @@ class _MenuItem {
     required this.onTap,
   });
 }
+

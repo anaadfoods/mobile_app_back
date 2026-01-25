@@ -63,14 +63,7 @@ class _ReferEarnScreenState extends State<ReferEarnScreen>
   void _copyCode() {
     Clipboard.setData(ClipboardData(text: _referralCode));
     HapticFeedback.mediumImpact();
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: const Text('Referral code copied!'),
-        backgroundColor: const Color(0xFFF59E0B),
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      ),
-    );
+    SnackBarHelper.showCopied(context, what: 'Referral code');
   }
 
   void _share() {
@@ -185,7 +178,7 @@ class _ReferEarnScreenState extends State<ReferEarnScreen>
         ),
         const SizedBox(height: 20),
         Text(
-          'Share & Earn Rewards',
+          'Sow the Seeds of Health.',
           style: theme.textTheme.headlineSmall?.copyWith(
             fontWeight: FontWeight.bold,
             color: isDark ? Colors.white : Colors.black87,
@@ -193,7 +186,7 @@ class _ReferEarnScreenState extends State<ReferEarnScreen>
         ),
         const SizedBox(height: 8),
         Text(
-          'Invite friends and earn Anaad Gifts\nfor each successful referral!',
+          ' Invite your loved ones to the table. You both earn 50 ANAAD points when they join.',
           style: theme.textTheme.bodyMedium?.copyWith(
             color: isDark ? Colors.grey[400] : Colors.grey[600],
           ),
@@ -271,12 +264,17 @@ class _ReferEarnScreenState extends State<ReferEarnScreen>
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Text(
-                          _referralCode,
-                          style: theme.textTheme.headlineMedium?.copyWith(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                            letterSpacing: 1,
+                        Flexible(
+                          child: FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: Text(
+                              _referralCode,
+                              style: theme.textTheme.headlineMedium?.copyWith(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                                letterSpacing: 1,
+                              ),
+                            ),
                           ),
                         ),
                         const SizedBox(width: 16),
@@ -686,29 +684,29 @@ class _ReferEarnScreenState extends State<ReferEarnScreen>
       {
         'icon': Icons.share_rounded,
         'title': 'Share',
-        'desc': 'Share your code with friends',
+        'desc': 'Share your code with friends & family',
       },
       {
         'icon': Icons.person_add_rounded,
-        'title': 'Sign Up',
-        'desc': 'Friend signs up with code',
+        'title': 'Join',
+        'desc': 'They sign up and join the ICBN Family',
       },
       {
         'icon': Icons.shopping_cart_rounded,
         'title': 'Order',
-        'desc': 'Friend places first order',
+        'desc': 'They taste their first harvest',
       },
       {
         'icon': Icons.celebration_rounded,
         'title': 'Earn',
-        'desc': 'You both get Anaad gifts!',
+        'desc': 'You both get 50 ANAAD points!',
       },
     ];
 
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1E1E2E) : Colors.white,
+        color: isDark ? const Color.fromARGB(255, 2, 2, 34) : Colors.white,
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: const Color(0xFFF59E0B).withOpacity(0.2)),
       ),
@@ -799,3 +797,5 @@ class _ReferEarnScreenState extends State<ReferEarnScreen>
     );
   }
 }
+
+

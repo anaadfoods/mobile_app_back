@@ -1,6 +1,6 @@
-import 'dart:async';
 import 'dart:math' as math;
-import 'package:flutter/services.dart';
+import 'package:collection/collection.dart';
+import 'package:grocery_app/models/product_image_model.dart';
 import 'package:grocery_app/common_widgets/global_import.dart';
 
 class FavouriteScreen extends StatefulWidget {
@@ -14,10 +14,8 @@ class _FavouriteScreenState extends State<FavouriteScreen>
     with TickerProviderStateMixin {
   final AuthService _authService = AuthService();
   final FavoriteStateService _favoriteStateService = FavoriteStateService();
-  final CartService _cartService = CartService();
 
   List<FavoriteModel> _favorites = [];
-  Map<int, int> _cartQuantities = {};
   final Set<int> _processingItems = {};
   bool _isLoading = true;
   String? _error;
@@ -133,14 +131,10 @@ class _FavouriteScreenState extends State<FavouriteScreen>
         return;
       }
 
-      final results = await Future.wait([
-        _authService.getFavorites(),
-        _cartService.getCart(),
-      ]);
+      final favResult = await _authService.getFavorites();
 
       if (!mounted) return;
 
-      final favResult = results[0] as Map<String, dynamic>;
       if (favResult['success']) {
         final favoriteList = favResult['data'] as List<FavoriteModel>;
         setState(() {
@@ -157,14 +151,8 @@ class _FavouriteScreenState extends State<FavouriteScreen>
         });
       }
 
-      final cart = results[1] as CartModel?;
-      if (cart != null) {
-        setState(() {
-          _cartQuantities = {
-            for (var i in cart.items) i.productVariant.id: i.quantity,
-          };
-        });
-      }
+      // Ensure cart is loaded in Cubit
+      context.read<CartCubit>().loadCart();
     } catch (e) {
       if (mounted) setState(() => _error = 'Error loading data: $e');
     } finally {
@@ -173,8 +161,8 @@ class _FavouriteScreenState extends State<FavouriteScreen>
   }
 
   Future<void> _removeFromFavorites(FavoriteModel favorite, int index) async {
+    // Current removal logic is fine, keeping it.
     if (_processingItems.contains(favorite.productId)) return;
-
     HapticFeedback.mediumImpact();
 
     final originalIndex = _favorites.indexWhere((f) => f.id == favorite.id);
@@ -225,51 +213,53 @@ class _FavouriteScreenState extends State<FavouriteScreen>
     }
   }
 
-  Future<void> _handleQuantityChanged(
-    FavoriteModel favorite,
-    int newQuantity,
-  ) async {
-    if (_processingItems.contains(favorite.productId)) return;
+  // Helper to convert FavoriteModel to Product for CartCubit
+  Product _createProductFromFavorite(FavoriteModel favorite) {
+    return Product(
+      id: favorite.productId,
+      sku: '',
+      weight: favorite.weight,
+      weightUnit: '',
+      price: double.tryParse(favorite.price) ?? 0.0,
+      discountPercentage: 0.0,
+      finalPrice: double.tryParse(favorite.price) ?? 0.0,
+      isInStock: true,
+      isActive: true,
+      productName: favorite.name,
+      productDescription: '',
+      productCategory: '',
+      productImages: [
+        ProductImage(image: favorite.image, altText: favorite.name),
+      ],
+    );
+  }
 
+  void _handleQuantityChanged(FavoriteModel favorite, int newQuantity) {
     HapticFeedback.selectionClick();
-    setState(() => _processingItems.add(favorite.productId));
+    final cubit = context.read<CartCubit>();
+    final currentQty = _getQuantity(favorite.productId);
 
-    final oldQuantity = _cartQuantities[favorite.productId] ?? 0;
-    setState(() => _cartQuantities[favorite.productId] = newQuantity);
-
-    try {
-      if (newQuantity > 0 && oldQuantity == 0) {
-        await _cartService.addToCart(favorite.productId, newQuantity);
-        if (mounted) {
-          SnackBarHelper.showSuccess(context, '${favorite.name} added to cart');
-        }
-      } else if (newQuantity == 0 && oldQuantity > 0) {
-        await _cartService.removeFromCart(favorite.productId);
-        if (mounted) {
-          SnackBarHelper.showInfo(
-            context,
-            '${favorite.name} removed from cart',
-          );
-        }
-      } else if (newQuantity > 0) {
-        await _cartService.addToCart(favorite.productId, newQuantity);
-      }
-    } catch (e) {
-      setState(() => _cartQuantities[favorite.productId] = oldQuantity);
-
-      final errorMessage = e.toString();
-      final backendMessageMatch = RegExp(
-        r'"message"\s*:\s*"([^"]+)"',
-      ).firstMatch(errorMessage);
-      final displayMessage =
-          backendMessageMatch != null
-              ? backendMessageMatch.group(1)
-              : 'Failed to update cart. Please try again.';
-
-      SnackBarHelper.showError(context, displayMessage!);
-    } finally {
-      if (mounted) setState(() => _processingItems.remove(favorite.productId));
+    if (newQuantity > 0 && currentQty == 0) {
+      // Add new item
+      cubit.addItem(_createProductFromFavorite(favorite), newQuantity);
+    } else if (newQuantity == 0) {
+      // Remove item
+      cubit.removeItem(favorite.productId);
+    } else {
+      // Update quantity
+      cubit.updateItem(favorite.productId, newQuantity);
     }
+  }
+
+  int _getQuantity(int productId) {
+    final state = context.read<CartCubit>().state;
+    if (state is CartSuccess) {
+      final item = state.cart.items.firstWhereOrNull(
+        (item) => item.productVariant.id == productId,
+      );
+      return item?.quantity ?? 0;
+    }
+    return 0;
   }
 
   @override
@@ -279,68 +269,82 @@ class _FavouriteScreenState extends State<FavouriteScreen>
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
-      body: CustomScrollView(
-        physics: const BouncingScrollPhysics(),
-        slivers: [
-          // Animated Header
-          _buildAnimatedHeader(theme, isDark),
+      body: BlocBuilder<CartCubit, CartState>(
+        builder: (context, cartState) {
+          CartModel? cart;
+          if (cartState is CartSuccess) {
+            cart = cartState.cart;
+          }
 
-          // Content
-          if (_isLoading)
-            SliverFillRemaining(child: _buildLoadingState(theme, isDark))
-          else if (_error != null)
-            SliverFillRemaining(child: _buildErrorState(theme))
-          else if (_favorites.isEmpty)
-            SliverFillRemaining(child: _buildEmptyState(theme, isDark))
-          else
-            SliverToBoxAdapter(
-              child: AnimatedBuilder(
-                animation: _contentController,
-                builder: (context, child) {
-                  return Transform.translate(
-                    offset: Offset(0, 30 * (1 - _contentFade.value)),
-                    child: Opacity(opacity: _contentFade.value, child: child),
-                  );
-                },
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Stats Row
-                      _buildStatsRow(theme, isDark),
-                      const SizedBox(height: 20),
+          return CustomScrollView(
+            slivers: [
+              // Animated Header
+              _buildAnimatedHeader(theme, isDark),
 
-                      // Favorites List
-                      ...List.generate(_favorites.length, (index) {
-                        return TweenAnimationBuilder<double>(
-                          tween: Tween(begin: 0, end: 1),
-                          duration: Duration(milliseconds: 400 + (index * 80)),
-                          curve: Curves.easeOutCubic,
-                          builder: (context, value, child) {
-                            return Transform.translate(
-                              offset: Offset(0, 30 * (1 - value)),
-                              child: Opacity(opacity: value, child: child),
+              // Content
+              if (_isLoading)
+                SliverFillRemaining(child: _buildLoadingState(theme, isDark))
+              else if (_error != null)
+                SliverFillRemaining(child: _buildErrorState(theme))
+              else if (_favorites.isEmpty)
+                SliverFillRemaining(child: _buildEmptyState(theme, isDark))
+              else
+                SliverToBoxAdapter(
+                  child: AnimatedBuilder(
+                    animation: _contentController,
+                    builder: (context, child) {
+                      return Transform.translate(
+                        offset: Offset(0, 30 * (1 - _contentFade.value)),
+                        child: Opacity(
+                          opacity: _contentFade.value,
+                          child: child,
+                        ),
+                      );
+                    },
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Stats Row
+                          _buildStatsRow(theme, isDark, cart),
+                          const SizedBox(height: 20),
+
+                          // Favorites List
+                          ...List.generate(_favorites.length, (index) {
+                            return TweenAnimationBuilder<double>(
+                              tween: Tween(begin: 0, end: 1),
+                              duration: Duration(
+                                milliseconds: 400 + (index * 80),
+                              ),
+                              curve: Curves.easeOutCubic,
+                              builder: (context, value, child) {
+                                return Transform.translate(
+                                  offset: Offset(0, 30 * (1 - value)),
+                                  child: Opacity(opacity: value, child: child),
+                                );
+                              },
+                              child: Padding(
+                                padding: const EdgeInsets.only(bottom: 16),
+                                child: _buildFavoriteCard(
+                                  _favorites[index],
+                                  index,
+                                  theme,
+                                  isDark,
+                                  cart,
+                                ),
+                              ),
                             );
-                          },
-                          child: Padding(
-                            padding: const EdgeInsets.only(bottom: 16),
-                            child: _buildFavoriteCard(
-                              _favorites[index],
-                              index,
-                              theme,
-                              isDark,
-                            ),
-                          ),
-                        );
-                      }),
-                      const SizedBox(height: 24),
-                    ],
+                          }),
+                          const SizedBox(height: 24),
+                        ],
+                      ),
+                    ),
                   ),
                 ),
-              ),
-            ),
-        ],
+            ],
+          );
+        },
       ),
     );
   }
@@ -373,7 +377,7 @@ class _FavouriteScreenState extends State<FavouriteScreen>
             ),
             boxShadow: [
               BoxShadow(
-                color: Colors.pink.withOpacity(0.3),
+                color: Colors.pink.withValues(alpha: 0.3),
                 blurRadius: 20,
                 offset: const Offset(0, 10),
               ),
@@ -393,7 +397,7 @@ class _FavouriteScreenState extends State<FavouriteScreen>
                   height: 120,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: Colors.white.withOpacity(0.1),
+                    color: Colors.white.withValues(alpha: 0.1),
                   ),
                 ),
               ),
@@ -405,7 +409,7 @@ class _FavouriteScreenState extends State<FavouriteScreen>
                   height: 80,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: Colors.white.withOpacity(0.08),
+                    color: Colors.white.withValues(alpha: 0.08),
                   ),
                 ),
               ),
@@ -425,7 +429,7 @@ class _FavouriteScreenState extends State<FavouriteScreen>
                   child: Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.2),
+                      color: Colors.white.withValues(alpha: 0.2),
                       shape: BoxShape.circle,
                     ),
                     child: const Icon(
@@ -467,7 +471,7 @@ class _FavouriteScreenState extends State<FavouriteScreen>
                             ? "Start adding your favorites!"
                             : "${_favorites.length} item${_favorites.length != 1 ? 's' : ''} saved",
                         style: theme.textTheme.bodyMedium?.copyWith(
-                          color: Colors.white.withOpacity(0.9),
+                          color: Colors.white.withValues(alpha: 0.9),
                         ),
                       ),
                     ],
@@ -504,7 +508,7 @@ class _FavouriteScreenState extends State<FavouriteScreen>
             height: size,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: Colors.white.withOpacity(opacity.clamp(0.05, 0.3)),
+              color: Colors.white.withValues(alpha: opacity.clamp(0.05, 0.3)),
             ),
           ),
         );
@@ -512,24 +516,33 @@ class _FavouriteScreenState extends State<FavouriteScreen>
     );
   }
 
-  Widget _buildIconButton(IconData icon, VoidCallback onTap) {
-    return Material(
-      color: Colors.white.withOpacity(0.2),
-      borderRadius: BorderRadius.circular(12),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
-        child: Padding(
-          padding: const EdgeInsets.all(10),
-          child: Icon(icon, color: Colors.white, size: 22),
-        ),
-      ),
-    );
-  }
+  // Unused method - commented out to suppress warning
+  // Widget _buildIconButton(IconData icon, VoidCallback onTap) {
+  //   return Material(
+  //     color: Colors.white.withOpacity(0.2),
+  //     borderRadius: BorderRadius.circular(12),
+  //     child: InkWell(
+  //       onTap: onTap,
+  //       borderRadius: BorderRadius.circular(12),
+  //       child: Padding(
+  //         padding: const EdgeInsets.all(10),
+  //         child: Icon(icon, color: Colors.white, size: 22),
+  //       ),
+  //     ),
+  //   );
+  // }
 
-  Widget _buildStatsRow(ThemeData theme, bool isDark) {
+  Widget _buildStatsRow(ThemeData theme, bool isDark, CartModel? cart) {
     final inCart =
-        _favorites.where((f) => (_cartQuantities[f.productId] ?? 0) > 0).length;
+        _favorites.where((f) {
+          if (cart == null) return false;
+          final item = cart.items.firstWhereOrNull(
+            (i) => i.productVariant.id == f.productId,
+          );
+          // Assuming itemId is productVariant.id or similar mapping.
+          // Actually checking equality with productId
+          return (item?.quantity ?? 0) > 0;
+        }).length;
 
     return Row(
       children: [
@@ -573,7 +586,7 @@ class _FavouriteScreenState extends State<FavouriteScreen>
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: theme.shadowColor.withOpacity(0.08),
+            color: theme.shadowColor.withValues(alpha: 0.08),
             blurRadius: 20,
             offset: const Offset(0, 4),
           ),
@@ -584,7 +597,7 @@ class _FavouriteScreenState extends State<FavouriteScreen>
           Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: color.withOpacity(0.15),
+              color: color.withValues(alpha: 0.15),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Icon(icon, color: color, size: 22),
@@ -617,11 +630,19 @@ class _FavouriteScreenState extends State<FavouriteScreen>
     int index,
     ThemeData theme,
     bool isDark,
+    CartModel? cart,
   ) {
-    final quantity = _cartQuantities[favorite.productId] ?? 0;
+    int quantity = 0;
+    if (cart != null) {
+      final item = cart.items.firstWhereOrNull(
+        (i) => i.productVariant.id == favorite.productId,
+      );
+      quantity = item?.quantity ?? 0;
+    }
+
     final isProcessing = _processingItems.contains(favorite.productId);
     final isBeingRemoved =
-        isProcessing && !_cartQuantities.containsKey(favorite.productId);
+        isProcessing && quantity == 0; // Simplified check for now
 
     return Dismissible(
       key: Key('favorite_${favorite.id}'),
@@ -657,7 +678,7 @@ class _FavouriteScreenState extends State<FavouriteScreen>
             borderRadius: BorderRadius.circular(20),
             boxShadow: [
               BoxShadow(
-                color: theme.shadowColor.withOpacity(0.08),
+                color: theme.shadowColor.withValues(alpha: 0.08),
                 blurRadius: 20,
                 offset: const Offset(0, 4),
               ),
@@ -715,7 +736,7 @@ class _FavouriteScreenState extends State<FavouriteScreen>
                           shape: BoxShape.circle,
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.red.withOpacity(0.3),
+                              color: Colors.red.withValues(alpha: 0.3),
                               blurRadius: 8,
                               offset: const Offset(0, 2),
                             ),
@@ -982,81 +1003,91 @@ class _FavouriteScreenState extends State<FavouriteScreen>
   }
 
   Widget _buildEmptyState(ThemeData theme, bool isDark) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(32),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            // Animated heart container
-            AnimatedBuilder(
-              animation: _pulseController,
-              builder: (context, child) {
-                return Transform.scale(
-                  scale: 0.9 + (_pulseAnimation.value - 1) * 0.5,
-                  child: child,
-                );
-              },
-              child: Container(
-                padding: const EdgeInsets.all(32),
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [
-                      Colors.pink.withOpacity(0.15),
-                      Colors.red.withOpacity(0.1),
-                    ],
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isSmallScreen = constraints.maxHeight < 600;
+        final iconSize = isSmallScreen ? 60.0 : 80.0;
+        final padding = isSmallScreen ? 24.0 : 32.0;
+
+        return Center(
+          child: SingleChildScrollView(
+            padding: EdgeInsets.all(padding),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                // Animated heart container
+                AnimatedBuilder(
+                  animation: _pulseController,
+                  builder: (context, child) {
+                    return Transform.scale(
+                      scale: 0.9 + (_pulseAnimation.value - 1) * 0.5,
+                      child: child,
+                    );
+                  },
+                  child: Container(
+                    padding: EdgeInsets.all(isSmallScreen ? 20 : 32),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [
+                          Colors.pink.withOpacity(0.15),
+                          Colors.red.withOpacity(0.1),
+                        ],
+                      ),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(
+                      Icons.favorite_border_rounded,
+                      size: iconSize,
+                      color: Colors.pink.shade300,
+                    ),
                   ),
-                  shape: BoxShape.circle,
                 ),
-                child: Icon(
-                  Icons.favorite_border_rounded,
-                  size: 80,
-                  color: Colors.pink.shade300,
+                SizedBox(height: padding),
+                Text(
+                  "Your Wishlist is Empty",
+                  style: theme.textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    fontSize: isSmallScreen ? 20 : 24,
+                  ),
                 ),
-              ),
-            ),
-            const SizedBox(height: 32),
-            Text(
-              "Your Wishlist is Empty",
-              style: theme.textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 12),
-            Text(
-              "Browse products and tap the heart icon\nto save your favorites here!",
-              textAlign: TextAlign.center,
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: theme.hintColor,
-                height: 1.5,
-              ),
-            ),
-            const SizedBox(height: 32),
-            ElevatedButton.icon(
-              onPressed: () {
-                HapticFeedback.lightImpact();
-                // Switch to Categories tab (index 3)
-                final dashboardState =
-                    context.findAncestorStateOfType<DashboardScreenState>();
-                dashboardState?.switchToTab(3);
-              },
-              icon: const Icon(Icons.explore_rounded),
-              label: const Text('Explore Products'),
-              style: ElevatedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 32,
-                  vertical: 16,
+                const SizedBox(height: 12),
+                Text(
+                  "Browse products and tap the heart icon\nto save your favorites here!",
+                  textAlign: TextAlign.center,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: theme.hintColor,
+                    height: 1.5,
+                    fontSize: isSmallScreen ? 13 : 14,
+                  ),
                 ),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
+                SizedBox(height: isSmallScreen ? 24 : 32),
+                ElevatedButton.icon(
+                  onPressed: () {
+                    HapticFeedback.lightImpact();
+                    // Switch to Categories tab (index 3)
+                    final dashboardState =
+                        context.findAncestorStateOfType<DashboardScreenState>();
+                    dashboardState?.switchToTab(3);
+                  },
+                  icon: const Icon(Icons.explore_rounded),
+                  label: const Text('Explore Products'),
+                  style: ElevatedButton.styleFrom(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: 32,
+                      vertical: isSmallScreen ? 12 : 16,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                  ),
                 ),
-              ),
+              ],
             ),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 }

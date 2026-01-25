@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 
 /// A reusable error state widget for showing when something goes wrong.
-/// 
+///
 /// Consolidates the various error state implementations across the app.
-/// 
+///
 /// Usage:
 /// ```dart
 /// ErrorStateWidget(
@@ -15,31 +15,31 @@ import 'package:flutter/material.dart';
 class ErrorStateWidget extends StatelessWidget {
   /// The title text (default: 'Oops! Something went wrong')
   final String title;
-  
+
   /// The subtitle/description text
   final String? subtitle;
-  
+
   /// Retry button text (default: 'Try Again')
   final String retryText;
-  
+
   /// Callback when retry is pressed
   final VoidCallback? onRetry;
-  
+
   /// The icon to display (default: error_outline)
   final IconData icon;
-  
+
   /// Icon color (defaults to error color)
   final Color? iconColor;
-  
+
   /// Icon background color
   final Color? iconBackgroundColor;
-  
+
   /// Whether to animate the entrance
   final bool animated;
-  
+
   /// Icon size (default: 64)
   final double iconSize;
-  
+
   /// Error type for preset styling
   final ErrorType errorType;
 
@@ -61,9 +61,9 @@ class ErrorStateWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    
+
     final errorColor = _getErrorColor(colorScheme);
-    
+
     final content = Center(
       child: Padding(
         padding: const EdgeInsets.all(32),
@@ -93,7 +93,7 @@ class ErrorStateWidget extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 24),
-            
+
             // Title
             Text(
               title,
@@ -102,7 +102,7 @@ class ErrorStateWidget extends StatelessWidget {
               ),
               textAlign: TextAlign.center,
             ),
-            
+
             // Subtitle
             if (subtitle != null) ...[
               const SizedBox(height: 8),
@@ -114,7 +114,7 @@ class ErrorStateWidget extends StatelessWidget {
                 textAlign: TextAlign.center,
               ),
             ],
-            
+
             // Retry Button
             if (onRetry != null) ...[
               const SizedBox(height: 24),
@@ -139,7 +139,7 @@ class ErrorStateWidget extends StatelessWidget {
         ),
       ),
     );
-    
+
     if (animated) {
       return TweenAnimationBuilder<double>(
         tween: Tween(begin: 0.0, end: 1.0),
@@ -148,37 +148,34 @@ class ErrorStateWidget extends StatelessWidget {
         builder: (context, value, child) {
           return Opacity(
             opacity: value.clamp(0.0, 1.0),
-            child: Transform.scale(
-              scale: 0.8 + (0.2 * value),
-              child: child,
-            ),
+            child: Transform.scale(scale: 0.8 + (0.2 * value), child: child),
           );
         },
         child: content,
       );
     }
-    
+
     return content;
   }
-  
+
   Color _getErrorColor(ColorScheme colorScheme) {
     switch (errorType) {
       case ErrorType.general:
-        return colorScheme.error;
+        return const Color(0xFF8B7355); // Warm mocha - friendly
       case ErrorType.network:
-        return Colors.orange;
+        return const Color(0xFF6B7B8A); // Cool slate grey
       case ErrorType.server:
-        return Colors.red.shade600;
+        return const Color(0xFF8B7355); // Warm mocha
       case ErrorType.notFound:
-        return Colors.grey;
+        return const Color(0xFF5B8A9A); // Soft teal
       case ErrorType.permission:
-        return Colors.amber.shade700;
+        return const Color(0xFFB8860B); // Dark golden
     }
   }
-  
+
   IconData _getIcon() {
     if (icon != Icons.error_outline_rounded) return icon;
-    
+
     switch (errorType) {
       case ErrorType.general:
         return Icons.error_outline_rounded;
@@ -195,61 +192,55 @@ class ErrorStateWidget extends StatelessWidget {
 }
 
 /// Types of errors for preset styling
-enum ErrorType {
-  general,
-  network,
-  server,
-  notFound,
-  permission,
-}
+enum ErrorType { general, network, server, notFound, permission }
 
-/// Preset error states for common use cases
+/// Preset error states for common use cases - Friendly messages!
 class ErrorStatePresets {
-  /// Network error
+  /// Network error - cool slate grey
   static ErrorStateWidget network({VoidCallback? onRetry}) {
     return ErrorStateWidget(
-      title: 'No Internet Connection',
-      subtitle: 'Please check your connection and try again.',
+      title: 'Oops! You\'re Offline 📶',
+      subtitle: 'Your internet took a coffee break.\nCheck your connection and try again.',
       errorType: ErrorType.network,
       onRetry: onRetry,
     );
   }
-  
-  /// Server error
+
+  /// Server error - warm mocha
   static ErrorStateWidget server({VoidCallback? onRetry}) {
     return ErrorStateWidget(
-      title: 'Server Error',
-      subtitle: 'We\'re having trouble connecting. Please try again later.',
+      title: 'Our Servers Need a Moment ☕',
+      subtitle: 'We\'re working on it! Please try again shortly.',
       errorType: ErrorType.server,
       onRetry: onRetry,
     );
   }
-  
-  /// Not found error
+
+  /// Not found error - soft teal
   static ErrorStateWidget notFound({String? item}) {
     return ErrorStateWidget(
-      title: '${item ?? 'Item'} Not Found',
-      subtitle: 'The ${item?.toLowerCase() ?? 'item'} you\'re looking for doesn\'t exist.',
+      title: '${item ?? 'Item'} Not Found 🔍',
+      subtitle: 'Hmm, we couldn\'t find that.\nIt might have moved or been removed.',
       errorType: ErrorType.notFound,
     );
   }
-  
-  /// Permission denied
+
+  /// Permission denied - golden amber
   static ErrorStateWidget permission({VoidCallback? onSettings}) {
     return ErrorStateWidget(
-      title: 'Permission Required',
-      subtitle: 'Please grant the necessary permissions to continue.',
+      title: 'Permission Needed 🔐',
+      subtitle: 'Please grant the required permission to continue.',
       errorType: ErrorType.permission,
       retryText: 'Open Settings',
       onRetry: onSettings,
     );
   }
-  
-  /// Generic load failed
+
+  /// Generic load failed - warm mocha
   static ErrorStateWidget loadFailed({VoidCallback? onRetry}) {
     return ErrorStateWidget(
-      title: 'Failed to Load',
-      subtitle: 'Something went wrong while loading the data.',
+      title: 'Hmm, That Didn\'t Load 🔄',
+      subtitle: 'Something went sideways. Let\'s try again!',
       onRetry: onRetry,
     );
   }
