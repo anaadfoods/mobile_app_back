@@ -304,6 +304,32 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen>
     _navigateToCheckout(shippingDetails);
   }
 
+  String _getDefaultDeliveryDate() {
+    final defaultDate = DateTime.now().add(const Duration(days: 3));
+    return '${defaultDate.year}-${defaultDate.month.toString().padLeft(2, '0')}-${defaultDate.day.toString().padLeft(2, '0')}';
+  }
+
+  String _formatDeliveryDate(String? date) {
+    if (date == null || date.isEmpty) {
+      return _getDefaultDeliveryDate();
+    }
+    
+    // Convert DD-MM-YYYY to YYYY-MM-DD format
+    try {
+      final parts = date.split('-');
+      if (parts.length == 3) {
+        final day = parts[0].padLeft(2, '0');
+        final month = parts[1].padLeft(2, '0');
+        final year = parts[2];
+        return '$year-$month-$day';
+      }
+    } catch (e) {
+      // If parsing fails, return default date
+    }
+    
+    return _getDefaultDeliveryDate();
+  }
+
   void _navigateToCheckout(Map<String, String> shippingDetails) {
     Navigator.push(
       context,
@@ -323,7 +349,7 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen>
                   ) ??
                   0.0,
               expectedDeliveryDate:
-                  _deliveryDetails?['expected_delivery_date'] ?? '',
+                  _formatDeliveryDate(_deliveryDetails?['expected_delivery_date']),
               paymentType: widget.paymentType,
             ),
       ),

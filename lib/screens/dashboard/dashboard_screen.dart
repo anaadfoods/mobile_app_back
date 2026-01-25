@@ -116,12 +116,7 @@ class DashboardScreenState extends State<DashboardScreen>
 
         if (isWarning) {
           lastTimeBackPressed = now;
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Press back again to exit'),
-              duration: Duration(seconds: 2),
-            ),
-          );
+          SnackBarHelper.showInfo(context, "Tap back again to exit 👋");
         } else {
           Navigator.of(context).pop();
         }

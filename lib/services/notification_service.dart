@@ -476,44 +476,6 @@ class NotificationService {
     }
   }
 
-  void _handleNotificationAction(Map<String, dynamic> data) {
-    String? action = data['type'];
-    String? id = data['id'];
-
-    switch (action) {
-      case "order":
-        // Redirect to order screen
-        _navigateToOrder(id);
-        break;
-      case "subscription":
-        _navigateToSubscription(id);
-        break;
-      case "payment_subscription":
-        // Redirect to subscription detail screen
-        _navigateToSubscription(id);
-        break;
-      case "payment_order":
-        // Redirect to order screen
-        _navigateToOrder(id);
-        break;
-      case "product":
-        _navigateToProduct(id);
-        break;
-      case "promotional":
-        // Redirect to home screen
-        _navigateToHome();
-        break;
-      case "system":
-        // Stay on notifications screen for system updates
-        _navigateToNotifications();
-        break;
-      default:
-        debugPrint('Unknown notification action: $action');
-        // Default to notifications screen
-        _navigateToNotifications();
-    }
-  }
-
   /// Handles deep linking redirection from FCM notification payloads.
   /// Supports Django backend payload format with 'screen', 'product_id', 'order_id' keys.
   /// Falls back to existing type-based routing for other notification types.
@@ -528,41 +490,40 @@ class NotificationService {
   ///   - Uses 'type' and 'id' fields for routing
   void handleRedirection(Map<String, dynamic> data) {
     debugPrint('handleRedirection called with data: $data');
-    final String? screen = data['screen'];
+    final String? screen = data['screen'] as String?;
+    final String? genericId = data['id'] as String?; // Fallback ID field
 
-    // Handle new screen-based routing from Django backend
+    // Handle screen-based routing (primary method from backend)
     if (screen != null && screen.isNotEmpty) {
       debugPrint('Handling screen-based redirection: $screen');
       switch (screen) {
         case 'product_detail':
-          final productId = data['product_id'];
-          if (productId != null) {
+          final productId = (data['product_id'] ?? genericId) as String?;
+          if (productId != null && productId.isNotEmpty) {
             debugPrint('Navigating to product_detail with id: $productId');
-            NavigationService.navigateToProductDetails(productId.toString());
+            NavigationService.navigateToProductDetails(productId);
           } else {
             debugPrint('product_id missing for product_detail screen');
-            _navigateToHome();
+            _navigateToNotifications();
           }
           return;
         case 'order_tracking':
-          final orderId = data['order_id'];
-          if (orderId != null) {
+          final orderId = (data['order_id'] ?? genericId) as String?;
+          if (orderId != null && orderId.isNotEmpty) {
             debugPrint('Navigating to order_tracking with id: $orderId');
-            NavigationService.navigateToOrderDetails(orderId.toString());
+            NavigationService.navigateToOrderDetails(orderId);
           } else {
             debugPrint('order_id missing for order_tracking screen');
             _navigateToNotifications();
           }
           return;
         case 'subscription_detail':
-          final subscriptionId = data['subscription_id'];
-          if (subscriptionId != null) {
+          final subscriptionId = (data['subscription_id'] ?? genericId) as String?;
+          if (subscriptionId != null && subscriptionId.isNotEmpty) {
             debugPrint(
               'Navigating to subscription_detail with id: $subscriptionId',
             );
-            NavigationService.navigateToSubscriptionDetails(
-              subscriptionId.toString(),
-            );
+            NavigationService.navigateToSubscriptionDetails(subscriptionId);
           } else {
             debugPrint(
               'subscription_id missing for subscription_detail screen',
@@ -593,51 +554,39 @@ class NotificationService {
       }
     }
 
-    // Fall back to existing type-based routing for backwards compatibility
-    // Uses 'type' and 'id' from data payload
+    // Fall back to type-based routing when screen is missing
     debugPrint('Falling back to type-based routing');
-    _handleNotificationAction(data);
+    _handleTypeBasedRouting(data, genericId);
   }
 
-  // Navigation methods - these will be implemented by the app
-  void _navigateToOrder(String? orderId) {
-    debugPrint('Navigate to order: $orderId');
-    NavigationService.navigateToOrderDetails(orderId);
-  }
-
-  void _navigateToSubscription(String? subscriptionId) {
-    debugPrint('Navigate to subscription: $subscriptionId');
-    NavigationService.navigateToSubscriptionDetails(subscriptionId);
-  }
-
-  // void _navigateToPaymentReminder(String? subscriptionId) {
-  //   debugPrint('Navigate to payment reminder: $subscriptionId');
-  //   NavigationService.navigateToSubscriptionDetails(subscriptionId);
-  // }
-
-  // void _navigateToCart() {
-  //   debugPrint('Navigate to cart');
-  //   NavigationService.navigateToCart();
-  // }
-
-  void _navigateToProfile() {
-    debugPrint('Navigate to profile');
-    NavigationService.navigateToAccount();
-  }
-
-  void _navigateToPromo(String? promoId) {
-    debugPrint('Navigate to promo: $promoId');
-    NavigationService.navigateToPromoDetails(promoId);
-  }
-
-  void _navigateToProduct(String? productId) {
-    debugPrint('Navigate to product: $productId');
-    NavigationService.navigateToProductDetails(productId);
-  }
-
-  void _navigateToHome() {
-    debugPrint('Navigate to home');
-    NavigationService.navigateToHome();
+  /// Type-based routing fallback when 'screen' field is missing
+  void _handleTypeBasedRouting(Map<String, dynamic> data, String? genericId) {
+    final String? type = data['type'] as String?;
+    
+    switch (type) {
+      case 'subscription':
+      case 'payment_subscription':
+        final subscriptionId = (data['subscription_id'] ?? genericId) as String?;
+        NavigationService.navigateToSubscriptionDetails(subscriptionId);
+        break;
+      case 'order':
+        final orderId = (data['order_id'] ?? genericId) as String?;
+        NavigationService.navigateToOrderDetails(orderId);
+        break;
+      case 'product':
+        final productId = (data['product_id'] ?? genericId) as String?;
+        NavigationService.navigateToProductDetails(productId);
+        break;
+      case 'payment_order':
+        final orderId = (data['order_id'] ?? genericId) as String?;
+        NavigationService.navigateToOrderDetails(orderId);
+        break;
+      case 'promotional':
+      case 'system':
+      default:
+        _navigateToNotifications();
+        break;
+    }
   }
 
   void _navigateToNotifications() {

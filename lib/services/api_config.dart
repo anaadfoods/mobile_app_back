@@ -1,6 +1,11 @@
-class ApiConfig {
+  class ApiConfig {
   // static const String baseUrl = 'http://34.131.42.218';
-  static const String baseUrl = 'https://bck-dev.anaadfoods.com';
+  static const String baseUrl = 'https://bck.anaadfoods.com';
+
+  
+  //static const String baseUrl = 'http://192.168.29.209:8000';
+
+
   static const String paymentUrl = 'http://34.131.124.103:5000';
   // Auth endpoints
   static const String registerEndpoint = '/api/auth/register/';

@@ -100,9 +100,7 @@ class _AccountScreenState extends State<AccountScreen>
       await launchUrl(url, mode: LaunchMode.externalApplication);
     } else {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Could not open WhatsApp.')),
-        );
+        SnackBarHelper.showError(context, "Couldn't open WhatsApp. Is it installed? 💬");
       }
     }
   }

@@ -274,47 +274,47 @@ class ErrorDialog extends StatelessWidget {
 class ErrorDialogPresets {
   ErrorDialogPresets._();
 
-  /// Network connection error dialog
+  /// Network connection error dialog - friendly warm grey
   static ErrorDialog networkError({VoidCallback? onRetry}) {
     return ErrorDialog(
-      title: 'No Internet Connection',
-      message: 'Please check your connection and try again.',
+      title: 'Oops! You\'re Offline',
+      message: 'Looks like your internet took a coffee break ☕\nCheck your connection and try again.',
       icon: Icons.wifi_off_rounded,
-      iconColor: Colors.orange,
+      iconColor: const Color(0xFF6B7B8A), // Cool slate grey
       onRetry: onRetry,
     );
   }
 
-  /// Server error dialog
+  /// Server error dialog - warm mocha
   static ErrorDialog serverError({VoidCallback? onRetry}) {
     return ErrorDialog(
-      title: 'Server Error',
-      message:
-          'We\'re experiencing technical difficulties. Please try again later.',
-      icon: Icons.cloud_off_rounded,
-      iconColor: Colors.red.shade600,
+      title: 'Our Servers Need a Moment',
+      message: 'We\'re working on it! Please try again shortly.',
+      icon: Icons.cloud_outlined,
+      iconColor: const Color(0xFF8B7355), // Warm mocha
       onRetry: onRetry,
     );
   }
 
-  /// Session expired dialog
+  /// Session expired dialog - golden amber
   static ErrorDialog sessionExpired({VoidCallback? onLogin}) {
     return ErrorDialog(
-      title: 'Session Expired',
-      message: 'Your session has expired. Please log in again.',
-      icon: Icons.lock_outline_rounded,
-      iconColor: Colors.amber.shade700,
+      title: 'Session Took a Nap 💤',
+      message: 'Your session has ended. Please log in again to continue.',
+      icon: Icons.access_time_rounded,
+      iconColor: const Color(0xFFB8860B), // Dark golden
       primaryButtonText: 'Log In',
       onRetry: onLogin,
       showCloseButton: false,
     );
   }
 
-  /// Generic error dialog
+  /// Generic error dialog - warm mocha
   static ErrorDialog generic({String? message, VoidCallback? onRetry}) {
     return ErrorDialog(
-      title: 'Something Went Wrong',
-      message: message ?? 'An unexpected error occurred. Please try again.',
+      title: 'Hmm, That Didn\'t Work',
+      message: message ?? 'Something went sideways. Let\'s try again! 🔄',
+      iconColor: const Color(0xFF8B7355), // Warm mocha
       onRetry: onRetry,
     );
   }

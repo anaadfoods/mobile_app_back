@@ -333,9 +333,7 @@ class _AnaadRedemptionsScreenState extends State<AnaadRedemptionsScreen>
                     onTap: canRedeem
                         ? () {
                             HapticFeedback.mediumImpact();
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text('Redeemed ${reward['name']}!')),
-                            );
+                            SnackBarHelper.showSuccess(context, "Woohoo! ${reward['name']} redeemed! 🎁");
                           }
                         : null,
                     child: Container(

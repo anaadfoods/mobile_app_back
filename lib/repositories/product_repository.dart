@@ -66,16 +66,25 @@ class ProductRepository {
     }
   }
 
+  /// Returns user-friendly error message - no technical jargon!
   String _getErrorMessage(dynamic e, String defaultMsg) {
     final s = e.toString().toLowerCase();
     if (s.contains('socketexception') ||
         s.contains('connection refused') ||
         s.contains('network is unreachable') ||
         s.contains('timed out') ||
+        s.contains('timeout') ||
         s.contains('clientexception')) {
-      return '$defaultMsg Please check your connection.';
+      // Network issues - friendly message
+      return "Couldn't connect right now. Check your internet! 📶\n\n🐄 Did you know? Indian Gir cows produce A2 milk, which is easier to digest!";
     }
-    // If it's a server error or other exception, return the actual message or a cleaner version
-    return '$defaultMsg ${e.toString().replaceAll("Exception: ", "").replaceAll("Error loading categories: ", "")}';
+    if (s.contains('500') || s.contains('server error') || s.contains('internal')) {
+      return "Our servers need a moment. Try again shortly! ☕\n\n🌿 Panchagavya made from 5 cow products can replace chemical fertilizers entirely!";
+    }
+    if (s.contains('404') || s.contains('not found')) {
+      return "Couldn't find what you're looking for 🔍\n\n🌾 Natural farming increases earthworm population by 10x in just one season!";
+    }
+    // Generic friendly message - hide technical details
+    return "Something went sideways. Let's try again! 🔄\n\n🐄 Desi cow urine (Gomutra) is a powerful natural pesticide used for centuries!";
   }
 }
