@@ -1,12 +1,45 @@
   class ApiConfig {
   // static const String baseUrl = 'http://34.131.42.218';
   static const String baseUrl = 'https://bck.anaadfoods.com';
+  // static const String baseUrl = "http://192.168.29.209:8000";
 
-  
-  //static const String baseUrl = 'http://192.168.29.209:8000';
+  static const String paymentUrl = 'http://34.131.42.218:5000';
 
+  /// Panchang may be hosted on a different backend than the main app APIs.
+  /// Set this to the correct Panchang host when available.
+  ///
+  /// Example: 'https://panchang.anaadfoods.com' (no trailing slash)
+  static String get panchangBaseUrl {
+    final trimmed = baseUrl.trim();
+    if (trimmed.isEmpty) return baseUrl;
+    return trimmed.endsWith('/')
+        ? trimmed.substring(0, trimmed.length - 1)
+        : trimmed;
+  }
 
-  static const String paymentUrl = 'http://34.131.124.103:5000';
+  // Panchang Calendar endpoints
+  static const String panchangCalenderBase = '/api/panchang-calender/';
+  static const String panchangDayEndpoint = '${panchangCalenderBase}day/';
+  static const String panchangRangeEndpoint = '${panchangCalenderBase}range/';
+  static const String panchangMonthEndpoint = '${panchangCalenderBase}month/';
+  static const String panchangFestivalsEndpoint =
+      '${panchangCalenderBase}festivals/';
+  static const String panchangFestivalSearchEndpoint =
+      '${panchangCalenderBase}festivals/search/';
+  static const String panchangMuhuratsEndpoint =
+      '${panchangCalenderBase}muhurats/';
+  static const String panchangVratCalendarEndpoint =
+      '${panchangCalenderBase}vrat-calendar/';
+  static const String panchangHighlightsEndpoint =
+      '${panchangCalenderBase}highlights/';
+  static const String panchangBundlesEndpoint =
+      '${panchangCalenderBase}bundles/';
+  static const String panchangGuidanceTodayEndpoint =
+      '${panchangCalenderBase}guidance/today/';
+  static const String panchangGuidanceProfileEndpoint =
+      '${panchangCalenderBase}guidance/profile/';
+  static String panchangFestivalDetailEndpoint(String code) =>
+      '${panchangCalenderBase}festivals/$code/';
   // Auth endpoints
   static const String registerEndpoint = '/api/auth/register/';
   static const String loginEndpoint = '/api/auth/token/';

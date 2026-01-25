@@ -11,6 +11,8 @@ Future<void> main() async {
   await dotenv.load(fileName: ".env");
 
   WidgetsFlutterBinding.ensureInitialized();
+  await dotenv.load(fileName: ".env");
+  debugPrint('Loaded PANCHANG_BASE_URL=${dotenv.env["PANCHANG_BASE_URL"]}');
   // Get an instance of SharedPreferences
   final SharedPreferences prefs = await SharedPreferences.getInstance();
 

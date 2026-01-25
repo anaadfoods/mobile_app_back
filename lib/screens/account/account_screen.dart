@@ -13,13 +13,10 @@ class AccountScreen extends StatefulWidget {
 class _AccountScreenState extends State<AccountScreen>
     with TickerProviderStateMixin {
   // Animation controllers
-  late AnimationController _animationController;
   late AnimationController _pulseController;
   late AnimationController _shimmerController;
 
   // Animations
-  late Animation<double> _fadeAnimation;
-  late Animation<Offset> _slideAnimation;
   late Animation<double> _pulseAnimation;
 
   // Settings state
@@ -32,20 +29,20 @@ class _AccountScreenState extends State<AccountScreen>
   }
 
   void _initAnimations() {
-    // Main entrance animation
-    _animationController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 800),
-    );
-    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _animationController, curve: Curves.easeOut),
-    );
-    _slideAnimation = Tween<Offset>(
-      begin: const Offset(0, 0.2),
-      end: Offset.zero,
-    ).animate(
-      CurvedAnimation(parent: _animationController, curve: Curves.easeOutCubic),
-    );
+    // // Main entrance animation
+    // _animationController = AnimationController(
+    //   vsync: this,
+    //   duration: const Duration(milliseconds: 800),
+    // );
+    // _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+    //   CurvedAnimation(parent: _animationController, curve: Curves.easeOut),
+    // );
+    // _slideAnimation = Tween<Offset>(
+    //   begin: const Offset(0, 0.2),
+    //   end: Offset.zero,
+    // ).animate(
+    //   CurvedAnimation(parent: _animationController, curve: Curves.easeOutCubic),
+    // );
 
     // Pulse animation for profile card
     _pulseController = AnimationController(
@@ -63,13 +60,10 @@ class _AccountScreenState extends State<AccountScreen>
       duration: const Duration(milliseconds: 2500),
     );
     _shimmerController.repeat();
-
-    _animationController.forward();
   }
 
   @override
   void dispose() {
-    _animationController.dispose();
     _pulseController.dispose();
     _shimmerController.dispose();
     super.dispose();
@@ -157,15 +151,11 @@ class _AccountScreenState extends State<AccountScreen>
           children: [
             _buildAnimatedHeader(theme, size, user, userName),
             const SizedBox(height: 70),
-            FadeTransition(
-              opacity: _fadeAnimation,
-              child: SlideTransition(
-                position: _slideAnimation,
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  child: Column(
-                    children: [
-                      _buildAnimatedStatsRow(theme),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Column(
+                children: [
+                  _buildAnimatedStatsRow(theme),
                       const SizedBox(height: 24),
 
                       // Anaad Innovations Section
@@ -284,9 +274,7 @@ class _AccountScreenState extends State<AccountScreen>
                       const SizedBox(height: 32),
                       _buildAppVersion(theme),
                       const SizedBox(height: 24),
-                    ],
-                  ),
-                ),
+                ],
               ),
             ),
           ],
@@ -314,38 +302,57 @@ class _AccountScreenState extends State<AccountScreen>
           animation: _shimmerController,
           builder: (context, child) {
             return Container(
-              height: size.height * 0.26 + statusBarHeight,
+              height: size.height * 0.28 + statusBarHeight,
               width: double.infinity,
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                   colors: [
-                    colorScheme.primary.withAlpha(255),
                     colorScheme.primary,
-                    colorScheme.primary.withAlpha(204),
+                    Color.lerp(colorScheme.primary, Colors.purple, 0.3)!,
+                    colorScheme.primary.withAlpha(230),
                   ],
+                  stops: const [0.0, 0.5, 1.0],
                 ),
               ),
               child: Stack(
                 children: [
+                  // Wave pattern overlay
+                  Positioned.fill(
+                    child: CustomPaint(
+                      painter: _WavePainter(
+                        animation: _shimmerController.value,
+                        color: Colors.white.withAlpha(15),
+                      ),
+                    ),
+                  ),
                   // Shimmer effect overlay
                   Positioned.fill(child: _buildShimmerOverlay()),
                   // Floating animated circles
                   ..._buildFloatingCircles(),
-                  // Title
+                  // Sparkle particles
+                  ..._buildSparkleParticles(),
+                  // Title with shadow
                   Positioned(
-                    top: statusBarHeight + 12,
+                    top: statusBarHeight + 16,
                     left: 0,
                     right: 0,
-                    child: const Center(
+                    child: Center(
                       child: Text(
                         'My Profile',
                         style: TextStyle(
                           color: Colors.white,
-                          fontSize: 20,
-                          fontWeight: FontWeight.w600,
-                          letterSpacing: 0.5,
+                          fontSize: 22,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: 0.8,
+                          shadows: [
+                            Shadow(
+                              color: Colors.black.withAlpha(40),
+                              blurRadius: 8,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
                         ),
                       ),
                     ),
@@ -456,6 +463,7 @@ class _AccountScreenState extends State<AccountScreen>
   // ==================== PROFILE CARD ====================
   Widget _buildProfileCard(ThemeData theme, UserModel user, String userName) {
     final colorScheme = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
 
     return GestureDetector(
       onTap: () {
@@ -468,7 +476,7 @@ class _AccountScreenState extends State<AccountScreen>
         );
       },
       child: Container(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(2),
         decoration: BoxDecoration(
           color: theme.cardColor,
           borderRadius: BorderRadius.circular(20),
@@ -640,6 +648,9 @@ class _AccountScreenState extends State<AccountScreen>
 
   // ==================== STATS ROW ====================
   Widget _buildAnimatedStatsRow(ThemeData theme) {
+    final colorScheme = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
+    
     return TweenAnimationBuilder<double>(
       tween: Tween(begin: 0.0, end: 1.0),
       duration: const Duration(milliseconds: 600),
@@ -648,7 +659,7 @@ class _AccountScreenState extends State<AccountScreen>
         return Transform.scale(
           scale: value,
           child: Container(
-            padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 12),
+            padding: const EdgeInsets.all(2),
             decoration: BoxDecoration(
               color: theme.cardColor,
               borderRadius: BorderRadius.circular(16),
@@ -807,7 +818,7 @@ class _AccountScreenState extends State<AccountScreen>
         return Transform.scale(
           scale: 0.9 + (0.1 * value),
           child: Opacity(
-            opacity: value,
+            opacity: value.clamp(0.0, 1.0),
             child: GestureDetector(
               onTap: () {
                 _triggerMediumHaptic();
@@ -830,7 +841,7 @@ class _AccountScreenState extends State<AccountScreen>
                   borderRadius: BorderRadius.circular(20),
                   boxShadow: [
                     BoxShadow(
-                      color: const Color(0xFF6B21A8).withOpacity(0.4),
+                      color: const Color(0xFF6B21A8).withAlpha(100),
                       blurRadius: 20,
                       offset: const Offset(0, 8),
                     ),
@@ -841,7 +852,7 @@ class _AccountScreenState extends State<AccountScreen>
                     Container(
                       padding: const EdgeInsets.all(14),
                       decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.2),
+                        color: Colors.white.withAlpha(50),
                         borderRadius: BorderRadius.circular(16),
                       ),
                       child: const Icon(
@@ -875,7 +886,7 @@ class _AccountScreenState extends State<AccountScreen>
                     Container(
                       padding: const EdgeInsets.all(10),
                       decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.2),
+                        color: Colors.white.withAlpha(40),
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Row(
@@ -974,7 +985,7 @@ class _AccountScreenState extends State<AccountScreen>
         return Transform.translate(
           offset: Offset(20 * (1 - value), 0),
           child: Opacity(
-            opacity: value,
+            opacity: value.clamp(0.0, 1.0),
             child: Material(
               color: Colors.transparent,
               child: InkWell(
@@ -1535,6 +1546,93 @@ class _AccountScreenState extends State<AccountScreen>
         );
       },
     );
+  }
+
+  List<Widget> _buildSparkleParticles() {
+    final sparkles = <Map<String, dynamic>>[
+      {'top': 40.0, 'left': 30.0, 'size': 4.0, 'delay': 0.0},
+      {'top': 80.0, 'right': 50.0, 'size': 3.0, 'delay': 0.3},
+      {'top': 120.0, 'left': 80.0, 'size': 5.0, 'delay': 0.6},
+      {'top': 60.0, 'right': 90.0, 'size': 3.5, 'delay': 0.2},
+      {'bottom': 80.0, 'left': 120.0, 'size': 4.0, 'delay': 0.5},
+      {'bottom': 100.0, 'right': 70.0, 'size': 3.0, 'delay': 0.8},
+    ];
+
+    return sparkles.map((sparkle) {
+      return AnimatedBuilder(
+        animation: _shimmerController,
+        builder: (context, child) {
+          final delay = sparkle['delay'] as double;
+          final progress = ((_shimmerController.value + delay) % 1.0);
+          final opacity = math.sin(progress * math.pi).clamp(0.0, 1.0);
+          final scale = 0.5 + (opacity * 0.5);
+
+          return Positioned(
+            top: sparkle['top'] as double?,
+            bottom: sparkle['bottom'] as double?,
+            left: sparkle['left'] as double?,
+            right: sparkle['right'] as double?,
+            child: Transform.scale(
+              scale: scale,
+              child: Container(
+                width: sparkle['size'] as double,
+                height: sparkle['size'] as double,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Colors.white.withAlpha((opacity * 200).toInt()),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.white.withAlpha((opacity * 100).toInt()),
+                      blurRadius: 6,
+                      spreadRadius: 1,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          );
+        },
+      );
+    }).toList();
+  }
+}
+
+// ==================== WAVE PAINTER ====================
+class _WavePainter extends CustomPainter {
+  final double animation;
+  final Color color;
+
+  _WavePainter({required this.animation, required this.color});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = color
+      ..style = PaintingStyle.fill;
+
+    final path = Path();
+    final waveHeight = 20.0;
+    final waveCount = 3;
+
+    path.moveTo(0, size.height);
+
+    for (double x = 0; x <= size.width; x++) {
+      final y = size.height -
+          waveHeight *
+              math.sin((x / size.width * waveCount * math.pi * 2) +
+                  (animation * math.pi * 2));
+      path.lineTo(x, y);
+    }
+
+    path.lineTo(size.width, size.height);
+    path.close();
+
+    canvas.drawPath(path, paint);
+  }
+
+  @override
+  bool shouldRepaint(covariant _WavePainter oldDelegate) {
+    return oldDelegate.animation != animation;
   }
 }
 
