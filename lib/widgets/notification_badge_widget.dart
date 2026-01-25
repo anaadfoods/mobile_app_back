@@ -458,3 +458,4 @@ class _NotificationSettingsWidgetState extends State<NotificationSettingsWidget>
     );
   }
 }
+

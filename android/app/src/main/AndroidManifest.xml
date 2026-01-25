@@ -59,11 +59,39 @@
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data android:scheme="flutterpay" />
             </intent-filter>
+
+            <!-- Deep Links / App Links for app.anaadfoods.com -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="https" android:host="app.anaadfoods.com" />
+            </intent-filter>
+
+            <!-- Flutter Deep Linking -->
+            <meta-data
+                android:name="flutter_deeplinking_enabled"
+                android:value="true" />
         </activity>
 
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
+
+        <!-- FCM Default Notification Channel for Android 12/13 -->
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_channel_id"
+            android:value="orders" />
+
+        <!-- FCM Default Notification Icon -->
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_icon"
+            android:resource="@mipmap/ic_launcher" />
+
+        <!-- FCM Default Notification Color -->
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_color"
+            android:resource="@color/notification_color" />
     </application>
 
     <queries>

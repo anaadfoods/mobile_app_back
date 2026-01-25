@@ -286,3 +286,4 @@ class _FCMTokenScreenState extends State<FCMTokenScreen> {
     );
   }
 }
+

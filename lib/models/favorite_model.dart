@@ -1,16 +1,18 @@
 // lib/models/favorite_model.dart
 
+import 'package:grocery_app/models/order_model.dart' show parseFlexibleDate;
+
 class FavoriteModel {
   /// The unique ID of the favorite entry itself.
   final int id;
-  
+
   /// The unique ID of the associated product.
   final int productId;
   final String price;
   final String name;
   final String weight;
   final DateTime createdAt;
-  
+
   /// The product image URL. Non-nullable, defaults to an empty string if not provided.
   final String image;
 
@@ -35,9 +37,10 @@ class FavoriteModel {
       // Check if the 'image' field inside 'product' is not null before accessing it.
       if (product['image'] != null) {
         // Your code implies the URL is nested one level deeper (e.g., image: {image: "url"})
-        if (product['image'] is Map<String, dynamic> && product['image']['image'] is String) {
+        if (product['image'] is Map<String, dynamic> &&
+            product['image']['image'] is String) {
           imageUrl = product['image']['image'];
-        } 
+        }
         // Add a fallback in case the API sometimes just sends a direct string.
         else if (product['image'] is String) {
           imageUrl = product['image'];
@@ -48,7 +51,7 @@ class FavoriteModel {
         // **FIX 2: USE THE CORRECT ID**
         // The favorite's ID comes from the top-level 'id' key.
         id: json['id'] ?? 0,
-        
+
         // Store the product's ID separately.
         productId: product['id'] ?? 0,
         price: product['price'] ?? "",
@@ -57,7 +60,7 @@ class FavoriteModel {
         name: product['name'] ?? 'Unknown Product',
         weight: product['weight'] ?? '',
         image: imageUrl, // Use the safely parsed image URL.
-        createdAt: DateTime.parse(json['created_at'] as String),
+        createdAt: parseFlexibleDate(json['created_at']?.toString()),
       );
     } catch (e, stack) {
       print('--- Error parsing FavoriteModel ---');
@@ -73,7 +76,13 @@ class FavoriteModel {
   Map<String, dynamic> toJson() {
     return {
       'id': id,
-      'product': {'id': productId, 'name': name, 'weight': weight, 'image': image , 'price':price},
+      'product': {
+        'id': productId,
+        'name': name,
+        'weight': weight,
+        'image': image,
+        'price': price,
+      },
       'created_at': createdAt.toIso8601String(),
     };
   }

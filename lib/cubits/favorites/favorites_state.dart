@@ -17,7 +17,7 @@ class FavoritesSuccess extends FavoritesState {
   final Set<int> favoriteProductIds;
 
   FavoritesSuccess(this.favorites)
-      : favoriteProductIds = favorites.map((fav) => fav.productId).toSet();
+    : favoriteProductIds = favorites.map((fav) => fav.productId).toSet();
 
   @override
   List<Object> get props => [favorites, favoriteProductIds];

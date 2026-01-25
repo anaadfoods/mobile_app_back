@@ -1,7 +1,6 @@
+import 'dart:math' as math;
+import 'package:flutter/services.dart';
 import 'package:grocery_app/common_widgets/global_import.dart';
-
-
-
 
 class NotificationsScreen extends StatefulWidget {
   const NotificationsScreen({super.key});
@@ -38,6 +37,12 @@ class _NotificationsScreenState extends State<NotificationsScreen>
     _loadNotifications();
     _loadPromotionalNotifications();
     _listenToNewNotifications();
+    _resetNotificationBadgeCount(); // Reset badge when viewing notifications
+  }
+
+  Future<void> _resetNotificationBadgeCount() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.setInt('notification_count', 0);
   }
 
   @override
@@ -443,104 +448,692 @@ class _NotificationsScreenState extends State<NotificationsScreen>
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Notifications'),
-        actions: [
-          if (_notifications.isNotEmpty)
-            IconButton(
-              icon: const Icon(Icons.clear_all),
-              onPressed: _clearAllNotifications,
-              tooltip: 'Clear all notifications',
-            ),
-        ],
-        bottom: TabBar(
-          controller: _tabController,
-          isScrollable: true,
-          tabs:
-              _filterOptions.map((filter) {
-                String title = filter[0].toUpperCase() + filter.substring(1);
-                int count;
-                if (filter == 'all') {
-                  count = _notifications.length;
-                } else if (filter == 'promotional') {
-                  count = _promotionalNotifications.length;
-                } else {
-                  count =
-                      _notifications
-                          .where(
-                            (notification) => notification['type'] == filter,
-                          )
-                          .length;
-                }
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
 
-                return Tab(
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(title),
-                      if (count > 0) ...[
-                        const SizedBox(width: 4),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 6,
-                            vertical: 2,
-                          ),
-                          decoration: BoxDecoration(
-                            color: Colors.red,
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          child: Text(
-                            count.toString(),
-                            style: const TextStyle(
+    return Scaffold(
+      backgroundColor:
+          isDark ? theme.scaffoldBackgroundColor : Colors.grey.shade50,
+      body: CustomScrollView(
+        slivers: [
+          // Modern U-Shape Header
+          _buildAnimatedHeader(context, theme, colorScheme, isDark),
+
+          // Filter Chips Section
+          SliverToBoxAdapter(
+            child: _buildModernFilterChips(theme, colorScheme, isDark),
+          ),
+
+          // Notifications Content
+          _isLoading
+              ? SliverFillRemaining(child: _buildLoadingState(theme))
+              : _buildNotificationsContent(theme, colorScheme, isDark),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAnimatedHeader(
+    BuildContext context,
+    ThemeData theme,
+    ColorScheme colorScheme,
+    bool isDark,
+  ) {
+    final unreadCount = _notifications.where((n) => n['read'] != true).length;
+
+    return SliverToBoxAdapter(
+      child: Container(
+        height: 200,
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [colorScheme.primary, colorScheme.primary.withOpacity(0.8)],
+          ),
+          borderRadius: const BorderRadius.only(
+            bottomLeft: Radius.circular(32),
+            bottomRight: Radius.circular(32),
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: colorScheme.primary.withOpacity(0.3),
+              blurRadius: 20,
+              offset: const Offset(0, 10),
+            ),
+          ],
+        ),
+        child: Stack(
+          children: [
+            // Decorative circles
+            Positioned(
+              top: -40,
+              right: -40,
+              child: Container(
+                width: 120,
+                height: 120,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Colors.white.withOpacity(0.1),
+                ),
+              ),
+            ),
+            Positioned(
+              bottom: 20,
+              left: -30,
+              child: Container(
+                width: 80,
+                height: 80,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Colors.white.withOpacity(0.08),
+                ),
+              ),
+            ),
+
+            // Animated Bell Icon
+            Positioned(
+              top: 60,
+              right: 30,
+              child: TweenAnimationBuilder<double>(
+                tween: Tween(begin: 0.0, end: 1.0),
+                duration: const Duration(milliseconds: 800),
+                builder: (context, value, child) {
+                  return Transform.rotate(
+                    angle: math.sin(value * math.pi * 4) * 0.15 * (1 - value),
+                    child: Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.2),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.notifications_rounded,
+                        color: Colors.white,
+                        size: 36,
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+
+            // Header Content
+            SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(20, 8, 20, 20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Top Row with Back Button and Clear Button
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        GestureDetector(
+                          onTap: () => Navigator.pop(context),
+                          child: Container(
+                            padding: const EdgeInsets.all(10),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.2),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: const Icon(
+                              Icons.arrow_back_ios_new_rounded,
                               color: Colors.white,
-                              fontSize: 10,
-                              fontWeight: FontWeight.bold,
+                              size: 20,
                             ),
                           ),
                         ),
+                        if (_notifications.isNotEmpty)
+                          GestureDetector(
+                            onTap: _clearAllNotifications,
+                            child: Container(
+                              padding: const EdgeInsets.all(10),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withOpacity(0.2),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: const Icon(
+                                Icons.delete_sweep_rounded,
+                                color: Colors.white,
+                                size: 20,
+                              ),
+                            ),
+                          ),
                       ],
-                    ],
+                    ),
+                    const Spacer(),
+                    // Title
+                    Text(
+                      "Notifications",
+                      style: theme.textTheme.headlineMedium?.copyWith(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      unreadCount > 0
+                          ? '$unreadCount unread notification${unreadCount > 1 ? 's' : ''}'
+                          : 'All caught up!',
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: Colors.white.withOpacity(0.9),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildModernFilterChips(
+    ThemeData theme,
+    ColorScheme colorScheme,
+    bool isDark,
+  ) {
+    final filterIcons = {
+      'all': Icons.inbox_rounded,
+      'payment': Icons.payment_rounded,
+      'subscription': Icons.card_membership_rounded,
+      'order': Icons.shopping_bag_rounded,
+      'product': Icons.inventory_2_rounded,
+      'promotional': Icons.local_offer_rounded,
+      'system': Icons.settings_rounded,
+    };
+
+    final filterColors = {
+      'all': colorScheme.primary,
+      'payment': Colors.green,
+      'subscription': Colors.purple,
+      'order': Colors.blue,
+      'product': Colors.orange,
+      'promotional': Colors.pink,
+      'system': Colors.grey,
+    };
+
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 16),
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        child: Row(
+          children:
+              _filterOptions.map((filter) {
+                final isSelected = _selectedFilter == filter;
+                final icon = filterIcons[filter] ?? Icons.notifications;
+                final color = filterColors[filter] ?? colorScheme.primary;
+                final count = _getFilterCount(filter);
+
+                return Padding(
+                  padding: const EdgeInsets.only(right: 10),
+                  child: GestureDetector(
+                    onTap: () {
+                      HapticFeedback.selectionClick();
+                      setState(() {
+                        _selectedFilter = filter;
+                        _tabController.animateTo(
+                          _filterOptions.indexOf(filter),
+                        );
+                      });
+                      _filterNotifications();
+                    },
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 200),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 10,
+                      ),
+                      decoration: BoxDecoration(
+                        color:
+                            isSelected
+                                ? color
+                                : (isDark
+                                    ? Colors.grey.shade800
+                                    : Colors.white),
+                        borderRadius: BorderRadius.circular(25),
+                        border: Border.all(
+                          color:
+                              isSelected
+                                  ? color
+                                  : (isDark
+                                      ? Colors.grey.shade700
+                                      : Colors.grey.shade200),
+                          width: 1.5,
+                        ),
+                        boxShadow:
+                            isSelected
+                                ? [
+                                  BoxShadow(
+                                    color: color.withOpacity(0.4),
+                                    blurRadius: 8,
+                                    offset: const Offset(0, 3),
+                                  ),
+                                ]
+                                : null,
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            icon,
+                            size: 18,
+                            color: isSelected ? Colors.white : color,
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            filter[0].toUpperCase() + filter.substring(1),
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              color:
+                                  isSelected
+                                      ? Colors.white
+                                      : (isDark
+                                          ? Colors.white70
+                                          : Colors.grey.shade700),
+                              fontWeight:
+                                  isSelected
+                                      ? FontWeight.w600
+                                      : FontWeight.w500,
+                            ),
+                          ),
+                          if (count > 0) ...[
+                            const SizedBox(width: 8),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 2,
+                              ),
+                              decoration: BoxDecoration(
+                                color:
+                                    isSelected
+                                        ? Colors.white.withOpacity(0.3)
+                                        : color.withOpacity(0.15),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Text(
+                                count.toString(),
+                                style: theme.textTheme.labelSmall?.copyWith(
+                                  color: isSelected ? Colors.white : color,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
                   ),
                 );
               }).toList(),
-          onTap: (index) {
-            setState(() {
-              _selectedFilter = _filterOptions[index];
-            });
-            _filterNotifications();
-          },
         ),
       ),
-      body:
-          _isLoading
-              ? const Center(child: CircularProgressIndicator())
-              : TabBarView(
-                controller: _tabController,
-                children:
-                    _filterOptions.map((filter) {
-                      List<Map<String, dynamic>> filteredList;
-                      if (filter == 'all') {
-                        filteredList = _notifications;
-                      } else if (filter == 'promotional') {
-                        filteredList = _promotionalNotifications;
-                      } else {
-                        filteredList =
-                            _notifications
-                                .where(
-                                  (notification) =>
-                                      notification['type'] == filter,
-                                )
-                                .toList();
-                      }
+    );
+  }
 
-                      return NotificationListWidget(
-                        notifications: filteredList,
-                        onNotificationTap: _onNotificationTap,
-                        onNotificationDismiss: _onNotificationDismiss,
-                      );
-                    }).toList(),
+  int _getFilterCount(String filter) {
+    if (filter == 'all') return _notifications.length;
+    if (filter == 'promotional') return _promotionalNotifications.length;
+    return _notifications.where((n) => n['type'] == filter).length;
+  }
+
+  Widget _buildLoadingState(ThemeData theme) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          TweenAnimationBuilder<double>(
+            tween: Tween(begin: 0.0, end: 1.0),
+            duration: const Duration(milliseconds: 1500),
+            builder: (context, value, child) {
+              return Transform.rotate(
+                angle: value * math.pi * 2,
+                child: Container(
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: LinearGradient(
+                      colors: [
+                        theme.colorScheme.primary,
+                        theme.colorScheme.secondary,
+                      ],
+                    ),
+                  ),
+                  child: const Icon(
+                    Icons.notifications_rounded,
+                    color: Colors.white,
+                    size: 32,
+                  ),
+                ),
+              );
+            },
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'Loading notifications...',
+            style: theme.textTheme.bodyMedium?.copyWith(color: theme.hintColor),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildNotificationsContent(
+    ThemeData theme,
+    ColorScheme colorScheme,
+    bool isDark,
+  ) {
+    List<Map<String, dynamic>> displayList;
+    if (_selectedFilter == 'all') {
+      displayList = _notifications;
+    } else if (_selectedFilter == 'promotional') {
+      displayList = _promotionalNotifications;
+    } else {
+      displayList =
+          _notifications.where((n) => n['type'] == _selectedFilter).toList();
+    }
+
+    if (displayList.isEmpty) {
+      return SliverFillRemaining(child: _buildEmptyState(theme, colorScheme));
+    }
+
+    return SliverPadding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      sliver: SliverList(
+        delegate: SliverChildBuilderDelegate((context, index) {
+          final notification = displayList[index];
+          return TweenAnimationBuilder<double>(
+            tween: Tween(begin: 0.0, end: 1.0),
+            duration: Duration(milliseconds: 300 + (index * 50)),
+            builder: (context, value, child) {
+              return Transform.translate(
+                offset: Offset(0, 20 * (1 - value)),
+                child: Opacity(opacity: value, child: child),
+              );
+            },
+            child: _buildModernNotificationCard(
+              context,
+              notification,
+              theme,
+              colorScheme,
+              isDark,
+              index,
+            ),
+          );
+        }, childCount: displayList.length),
+      ),
+    );
+  }
+
+  Widget _buildEmptyState(ThemeData theme, ColorScheme colorScheme) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: colorScheme.primary.withOpacity(0.1),
+            ),
+            child: Icon(
+              Icons.notifications_off_rounded,
+              size: 64,
+              color: colorScheme.primary.withOpacity(0.5),
+            ),
+          ),
+          const SizedBox(height: 24),
+          Text(
+            'No notifications',
+            style: theme.textTheme.titleLarge?.copyWith(
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'You\'re all caught up! Check back later.',
+            style: theme.textTheme.bodyMedium?.copyWith(color: theme.hintColor),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildModernNotificationCard(
+    BuildContext context,
+    Map<String, dynamic> notification,
+    ThemeData theme,
+    ColorScheme colorScheme,
+    bool isDark,
+    int index,
+  ) {
+    final messageType = MessageUtility.getMessageType(notification);
+    final icon = MessageUtility.getMessageIcon(messageType);
+    final color = MessageUtility.getMessageColor(messageType);
+    final timestamp = notification['timestamp'] as int? ?? 0;
+    final title = notification['title'] as String? ?? '';
+    final body = notification['body'] as String? ?? '';
+    final isHighPriority = MessageUtility.isHighPriority(notification);
+    final isRead = notification['read'] == true;
+
+    return Dismissible(
+      key: Key(notification['id']?.toString() ?? '$timestamp$index'),
+      direction: DismissDirection.endToStart,
+      onDismissed: (_) => _onNotificationDismiss(notification),
+      background: Container(
+        margin: const EdgeInsets.only(bottom: 12),
+        decoration: BoxDecoration(
+          color: colorScheme.error,
+          borderRadius: BorderRadius.circular(16),
+        ),
+        alignment: Alignment.centerRight,
+        padding: const EdgeInsets.only(right: 24),
+        child: const Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.delete_rounded, color: Colors.white, size: 28),
+            SizedBox(height: 4),
+            Text(
+              'Delete',
+              style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.w600,
               ),
+            ),
+          ],
+        ),
+      ),
+      child: GestureDetector(
+        onTap: () {
+          HapticFeedback.lightImpact();
+          _onNotificationTap(notification);
+        },
+        child: Container(
+          margin: const EdgeInsets.only(bottom: 12),
+          decoration: BoxDecoration(
+            color: isDark ? Colors.grey.shade900 : Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color:
+                  isHighPriority
+                      ? color.withOpacity(0.5)
+                      : (isDark ? Colors.grey.shade800 : Colors.grey.shade100),
+              width: isHighPriority ? 2 : 1,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: (isHighPriority ? color : theme.shadowColor).withOpacity(
+                  0.08,
+                ),
+                blurRadius: 12,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Icon Container
+                Container(
+                  width: 52,
+                  height: 52,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [color.withOpacity(0.2), color.withOpacity(0.1)],
+                    ),
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  child: Icon(icon, color: color, size: 26),
+                ),
+                const SizedBox(width: 14),
+                // Content
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              title,
+                              style: theme.textTheme.titleSmall?.copyWith(
+                                fontWeight: FontWeight.bold,
+                                color: isRead ? theme.hintColor : null,
+                              ),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          if (isHighPriority)
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 4,
+                              ),
+                              decoration: BoxDecoration(
+                                color: color,
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Text(
+                                'URGENT',
+                                style: theme.textTheme.labelSmall?.copyWith(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 10,
+                                ),
+                              ),
+                            ),
+                        ],
+                      ),
+                      if (body.isNotEmpty) ...[
+                        const SizedBox(height: 6),
+                        Text(
+                          body,
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            color:
+                                isRead
+                                    ? theme.hintColor.withOpacity(0.7)
+                                    : theme.hintColor,
+                            height: 1.4,
+                          ),
+                          maxLines: 3,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                      // Display image if available
+                      if (notification['image'] != null ||
+                          notification['image_url'] != null) ...[
+                        const SizedBox(height: 10),
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(12),
+                          child: Image.network(
+                            notification['image'] ?? notification['image_url'],
+                            height: 120,
+                            width: double.infinity,
+                            fit: BoxFit.cover,
+                            loadingBuilder: (context, child, loadingProgress) {
+                              if (loadingProgress == null) return child;
+                              return Container(
+                                height: 120,
+                                decoration: BoxDecoration(
+                                  color:
+                                      isDark
+                                          ? Colors.grey.shade800
+                                          : Colors.grey.shade200,
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Center(
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    value:
+                                        loadingProgress.expectedTotalBytes !=
+                                                null
+                                            ? loadingProgress
+                                                    .cumulativeBytesLoaded /
+                                                loadingProgress
+                                                    .expectedTotalBytes!
+                                            : null,
+                                  ),
+                                ),
+                              );
+                            },
+                            errorBuilder: (context, error, stackTrace) {
+                              debugPrint(
+                                'Error loading notification image: $error',
+                              );
+                              return const SizedBox.shrink();
+                            },
+                          ),
+                        ),
+                      ],
+                      const SizedBox(height: 10),
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.access_time_rounded,
+                            size: 14,
+                            color: theme.hintColor,
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            MessageUtility.formatTimestamp(timestamp),
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: theme.hintColor,
+                            ),
+                          ),
+                          const Spacer(),
+                          if (!isRead)
+                            Container(
+                              width: 8,
+                              height: 8,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: colorScheme.primary,
+                              ),
+                            ),
+                          const SizedBox(width: 8),
+                          Icon(
+                            Icons.chevron_right_rounded,
+                            size: 20,
+                            color: theme.hintColor,
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
     );
   }
 }
+

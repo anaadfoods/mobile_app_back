@@ -1,10 +1,9 @@
-// ignore_for_file: unused_element // Disables warnings for unused private methods
+// ignore_for_file: unused_element
 
+import 'dart:math' as math;
+import 'package:flutter/services.dart';
 import 'package:grocery_app/common_widgets/global_import.dart';
-// Add any other necessary imports
-// import 'package:grocery_app/models/cart_model.dart';
-// import 'package:grocery_app/models/product_model.dart';
-// ... etc.
+import 'package:grocery_app/services/referral_reward_service.dart';
 
 class CheckoutScreen extends StatefulWidget {
   final CartModel? cart;
@@ -28,18 +27,21 @@ class CheckoutScreen extends StatefulWidget {
     this.selectedPlan,
     this.shippingDetails,
     required this.deliveryCharges,
-    required this.expectedDeliveryDate, this.paymentType,
+    required this.expectedDeliveryDate,
+    this.paymentType,
   }) : assert(cart != null || (singleProduct != null && quantity != null));
 
   @override
   _CheckoutScreenState createState() => _CheckoutScreenState();
 }
 
-class _CheckoutScreenState extends State<CheckoutScreen> {
+class _CheckoutScreenState extends State<CheckoutScreen>
+    with TickerProviderStateMixin {
   final OrderService _orderService = OrderService();
-  final CartService _cartService = CartService();
-  final AuthService _authService = AuthService();
+  // final CartService _cartService = CartService(); // Unused - commented out
+  // final AuthService _authService = AuthService(); // Unused - commented out
   final SubscriptionService _subscriptionService = SubscriptionService();
+  final ReferralRewardService _rewardService = ReferralRewardService();
 
   ShippingDetails? _shippingDetails;
   SubscriptionPlan? subscription;
@@ -50,29 +52,37 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   String _selectedPaymentMethod = 'UPI';
   bool _useExistingAddress = true;
   late String _selectedPaymentType;
+  int _pendingRewardsCount = 0;
 
-  // Calculate total items and price
+  // Animation Controllers
+  late AnimationController _headerController;
+  late AnimationController _contentController;
+  late AnimationController _particleController;
+  late AnimationController _bottomBarController;
+
+  late Animation<double> _headerSlide;
+  late Animation<double> _headerFade;
+  late Animation<double> _contentFade;
+  late Animation<double> _bottomBarSlide;
+
   int get totalItems => widget.cart?.totalItems ?? widget.quantity!;
   String get totalPrice {
     double basePrice;
     if (widget.isSubscription) {
-      // --- BUG FIX HERE ---
-      // Original was: widget.price ?? 0.0 * widget.quantity!
-      // Which evaluates to: widget.price ?? (0.0 * widget.quantity!)
-      // Corrected version:
       basePrice = (widget.price ?? 0.0) * (widget.quantity ?? 1);
     } else {
-      basePrice = widget.cart?.totalPrice != null
-          ? double.parse(widget.cart!.totalPrice)
-          : (widget.singleProduct!.finalPrice * widget.quantity!);
+      basePrice =
+          widget.cart?.totalPrice != null
+              ? double.parse(widget.cart!.totalPrice)
+              : (widget.singleProduct!.finalPrice * widget.quantity!);
     }
-
     return (basePrice + widget.deliveryCharges).toString();
   }
 
   @override
   void initState() {
     super.initState();
+    _initAnimations();
 
     if (widget.isSubscription) {
       _selectedPaymentType = widget.paymentType ?? 'PAID_FULL';
@@ -83,26 +93,89 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     _initializeCheckout();
   }
 
-  // --- ALL LOGIC METHODS (UNCHANGED AS REQUESTED) ---
+  void _initAnimations() {
+    _headerController = AnimationController(
+      duration: const Duration(milliseconds: 800),
+      vsync: this,
+    );
+
+    _contentController = AnimationController(
+      duration: const Duration(milliseconds: 600),
+      vsync: this,
+    );
+
+    _particleController = AnimationController(
+      duration: const Duration(seconds: 20),
+      vsync: this,
+    )..repeat();
+
+    _bottomBarController = AnimationController(
+      duration: const Duration(milliseconds: 500),
+      vsync: this,
+    );
+
+    _headerSlide = Tween<double>(begin: -30, end: 0).animate(
+      CurvedAnimation(parent: _headerController, curve: Curves.easeOutCubic),
+    );
+
+    _headerFade = Tween<double>(begin: 0, end: 1).animate(
+      CurvedAnimation(parent: _headerController, curve: Curves.easeOut),
+    );
+
+    _contentFade = Tween<double>(begin: 0, end: 1).animate(
+      CurvedAnimation(parent: _contentController, curve: Curves.easeOut),
+    );
+
+    _bottomBarSlide = Tween<double>(begin: 100, end: 0).animate(
+      CurvedAnimation(parent: _bottomBarController, curve: Curves.easeOutCubic),
+    );
+
+    Future.delayed(const Duration(milliseconds: 100), () {
+      if (mounted) _headerController.forward();
+    });
+    Future.delayed(const Duration(milliseconds: 300), () {
+      if (mounted) _contentController.forward();
+    });
+  }
+
+  @override
+  void dispose() {
+    _headerController.dispose();
+    _contentController.dispose();
+    _particleController.dispose();
+    _bottomBarController.dispose();
+    super.dispose();
+  }
+
+  // --- ALL LOGIC METHODS (PRESERVED) ---
 
   Future<void> _initializeCheckout() async {
-    // This check is important. If shippingDetails are passed, they are *new*
     if (widget.shippingDetails != null) {
       await _prepareShippingDetails();
     } else {
-      // Otherwise, we load the user's *existing* details
       await _loadShippingDetails();
     }
 
     if (widget.isSubscription) {
       await _fetchPlansAndAssign();
     }
-    
-    // Final loading state update
+
+    // Fetch pending rewards count
+    await _fetchPendingRewards();
+
     _setLoadingState(false);
+    Future.delayed(const Duration(milliseconds: 100), () {
+      if (mounted) _bottomBarController.forward();
+    });
   }
 
-  // Step 1: Prepare Shipping Details
+  Future<void> _fetchPendingRewards() async {
+    final count = await _rewardService.getPendingRewardsCount();
+    if (mounted) {
+      setState(() => _pendingRewardsCount = count);
+    }
+  }
+
   Future<void> _prepareShippingDetails() async {
     if (widget.shippingDetails != null) {
       _shippingDetails = ShippingDetails(
@@ -117,7 +190,6 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     }
   }
 
-  // Step 2: Validate Shipping
   bool _validateShipping() {
     if (_shippingDetails == null) {
       SnackBarHelper.showError(context, 'Please fill in shipping details');
@@ -132,7 +204,6 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     return true;
   }
 
-  // Step 3: Set Loading State
   void _setLoadingState(bool loading) {
     if (mounted) {
       setState(() {
@@ -142,16 +213,13 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     }
   }
 
-  // Main Checkout Flow
   Future<void> _createOrder() async {
-    // Step 1: Validate Shipping (Details are already prepared in initState)
+    HapticFeedback.mediumImpact();
     if (!_validateShipping()) return;
 
-    // Step 2: Set Loading State
     _setLoadingState(true);
 
     try {
-      // Step 3: Check Payment Method
       if (_selectedPaymentMethod == 'UPI') {
         await _handleUPIPayment();
       } else {
@@ -160,12 +228,10 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     } catch (e) {
       _handleError(e);
     } finally {
-      // Step 4: Set Loading False (if mounted)
       _setLoadingState(false);
     }
   }
 
-  // Handle UPI Payment Flow
   Future<void> _handleUPIPayment() async {
     if (widget.isSubscription) {
       await _handleUPISubscription();
@@ -174,7 +240,6 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     }
   }
 
-  // Handle UPI Subscription
   Future<void> _handleUPISubscription() async {
     final result = await _createSubscription();
 
@@ -195,7 +260,6 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     }
   }
 
-  // Handle Non-UPI Subscription
   Future<void> _handleNonUPISubscription() async {
     final result = await _createSubscription();
 
@@ -207,14 +271,20 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       NotificationHelper.showNotification(
         title: 'Subscription Created!',
         body:
-            'Subscription ID: ${result['subscription_id']}\nPayment Mode: Cash on Delivery\nStatus: Pending Payment',
+            'Subscription ID: ${result['subscription_id']}\n'
+            'Payment Mode: Cash on Delivery\n'
+            'Status: Pending Payment',
+        payload: json.encode({
+          'screen': 'subscription_detail',
+          'subscription_id': result['subscription_id'],
+          'type': 'subscription',
+        }),
       );
     } else {
       _showSubscriptionFailedDialog(result);
     }
   }
 
-  // Handle successful subscription creation
   Future<void> _handleSuccessfulSubscription(
     Map<String, dynamic> result,
   ) async {
@@ -249,19 +319,25 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   void _showSubscriptionSuccessMessage(Map<String, dynamic> result) {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text('Subscription Created'),
-        content: Text('Your subscription has been created successfully!'),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-              Navigator.of(context).pop();
-            },
-            child: Text('OK'),
+      builder:
+          (context) => AlertDialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
+            ),
+            title: const Text('Subscription Created'),
+            content: const Text(
+              'Your subscription has been created successfully!',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                  Navigator.of(context).pop();
+                },
+                child: const Text('OK'),
+              ),
+            ],
           ),
-        ],
-      ),
     );
   }
 
@@ -281,7 +357,14 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       NotificationHelper.showNotification(
         title: 'Order Created!',
         body:
-            'Order ID: ${response.orderNumber}\nPayment Mode: Cash on Delivery\nStatus: Pending Payment',
+            'Order ID: ${response.orderNumber}\n'
+            'Payment Mode: Cash on Delivery\n'
+            'Status: Pending Payment',
+        payload: json.encode({
+          'screen': 'order_tracking',
+          'order_id': response.id,
+          'type': 'order',
+        }),
       );
     } else {
       _showOrderFailedDialog(_parseServerError(response));
@@ -299,7 +382,14 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     NotificationHelper.showNotification(
       title: 'Order Created!',
       body:
-          'Order ID: ${createdOrder.orderNumber}\nPayment Mode: Cash on Delivery\nStatus: Pending Payment',
+          'Order ID: ${createdOrder.orderNumber}\n'
+          'Payment Mode: Cash on Delivery\n'
+          'Status: Pending Payment',
+      payload: json.encode({
+        'screen': 'order_tracking',
+        'order_id': createdOrder.id,
+        'type': 'order',
+      }),
     );
   }
 
@@ -312,7 +402,6 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   }
 
   Future<Map<String, dynamic>> _createSubscription() async {
-    print("delivery charges are  + ${widget.deliveryCharges}");
     final request = SubscriptionCreateRequest(
       plan: widget.selectedPlan,
       deliveryAddress: _shippingDetails!.address ?? "",
@@ -331,7 +420,6 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         ),
       ],
     );
-    print('${request.paymentMethod}  ${request.items[0]}');
 
     return await _subscriptionService.createSubscription(request);
   }
@@ -383,7 +471,14 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                   NotificationHelper.showNotification(
                     title: 'Payment Successful!',
                     body:
-                        'Subscription ID: $parsedSubscriptionId\nPayment Mode: UPI\nStatus: Paid',
+                        'Subscription ID: $parsedSubscriptionId\n'
+                        'Payment Mode: UPI\n'
+                        'Status: Paid',
+                    payload: json.encode({
+                      'screen': 'subscription_detail',
+                      'subscription_id': parsedSubscriptionId,
+                      'type': 'subscription',
+                    }),
                   );
 
                   Navigator.pushAndRemoveUntil(
@@ -410,15 +505,17 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               NotificationHelper.showNotification(
                 title: 'Payment Failed!',
                 body:
-                    'Subscription ID: $parsedSubscriptionId\nPayment Mode: UPI\nStatus: Failed',
+                    'Subscription ID: $parsedSubscriptionId\n'
+                    'Payment Mode: UPI\n'
+                    'Status: Failed',
+                payload: json.encode({
+                  'screen': 'subscription_detail',
+                  'subscription_id': parsedSubscriptionId,
+                  'type': 'subscription',
+                }),
               );
 
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text('Payment failed or cancelled'),
-                  backgroundColor: Colors.red,
-                ),
-              );
+              SnackBarHelper.showPaymentIssue(context);
             },
           ),
         ),
@@ -446,7 +543,14 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             NotificationHelper.showNotification(
               title: 'Payment Failed!',
               body:
-                  'Order ID: ${response.orderId}\nPayment Mode: UPI\nStatus: Failed',
+                  'Order ID: ${response.orderId}\n'
+                  'Payment Mode: UPI\n'
+                  'Status: Failed',
+              payload: json.encode({
+                'screen': 'order_tracking',
+                'order_id': response.orderId,
+                'type': 'order',
+              }),
             );
             SnackBarHelper.showError(context, 'Payment failed or cancelled');
           },
@@ -470,7 +574,14 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         NotificationHelper.showNotification(
           title: 'Payment Successful!',
           body:
-              'Order ID: ${response.orderId}\nPayment Mode: UPI\nStatus: Paid',
+              'Order ID: ${response.orderId}\n'
+              'Payment Mode: UPI\n'
+              'Status: Paid',
+          payload: json.encode({
+            'screen': 'order_tracking',
+            'order_id': response.orderId,
+            'type': 'order',
+          }),
         );
 
         Navigator.pushReplacement(
@@ -500,11 +611,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   void _navigateToOrderAccepted(Order order) {
     Navigator.pushReplacement(
       context,
-      AnimatedTransitions.fadeScale(
-        OrderDetailScreen(
-          order: order,
-        ),
-      ),
+      AnimatedTransitions.fadeScale(OrderDetailScreen(order: order)),
     );
   }
 
@@ -514,16 +621,20 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     );
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text('Subscription Failed'),
-        content: Text(errorMessage),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: Text('Go Back'),
+      builder:
+          (context) => AlertDialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
+            ),
+            title: const Text('Subscription Failed'),
+            content: Text(errorMessage),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: const Text('Go Back'),
+              ),
+            ],
           ),
-        ],
-      ),
     );
   }
 
@@ -563,39 +674,21 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               planDescriptions.where((p) => p.id == widget.selectedPlan).first;
         }
       });
-    } else {
-      print('Failed to fetch plans: ${result['message']}');
-    }
-  }
-
-  Future<void> _fetchSubscriptionDetails(int subscriptionId) async {
-    final result = await _subscriptionService.getSubscriptionDetails(
-      subscriptionId,
-    );
-    if (result['success'] == true && mounted) {
-      setState(() {
-        subscription = result['data'];
-      });
-    } else {
-      print('Failed to fetch subscription details: ${result['message']}');
     }
   }
 
   Future<void> _loadShippingDetails() async {
-    // Already in a loading state from _initializeCheckout
     try {
       final details = await _orderService.getUserShippingDetails();
       if (mounted) {
         setState(() {
           _shippingDetails = details;
-          // Don't set loading to false here, _initializeCheckout will
         });
       }
     } catch (e) {
       if (mounted) {
         setState(() {
           _error = e.toString();
-          // Don't set loading to false here, _initializeCheckout will
         });
       }
     }
@@ -670,165 +763,551 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     return error.toString();
   }
 
-  // --- REFACTORED BUILD AND UI WIDGETS ---
+  // --- MODERN UI BUILD METHODS ---
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
 
     return Scaffold(
-      appBar: AppBar(
-        centerTitle: false,
-        title: Text(widget.isSubscription ? 'Subscription Checkout' : 'Checkout'),
-      ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : SingleChildScrollView(
-              padding: const EdgeInsets.all(12),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  _buildDeliveryTime(theme),
-                  const SizedBox(height: 16),
-                  
-                  // This widget now correctly checks for _shippingDetails
-                  if (_shippingDetails != null)
-                    _buildShippingAddress(theme),
-                  
-                  const SizedBox(height: 16),
-                  
-                  // This widget now checks for null `subscription`
-                  if (widget.isSubscription && subscription != null)
-                    _buildCongratulation(theme, subscription!),
+      backgroundColor: theme.scaffoldBackgroundColor,
+      body: Stack(
+        children: [
+          CustomScrollView(
+            slivers: [
+              // Animated Header
+              _buildAnimatedHeader(theme, isDark),
 
-                  const SizedBox(height: 16),
-                  // _buildPaymentTypeSelector(theme),
-                  const SizedBox(height: 16),
-                  _buildOrderSummary(theme),
-                  const SizedBox(height: 16),
-                  _buildPaymentMethodSelector(theme),
-                  const SizedBox(height: 24), // Extra space at the bottom
-                ],
-              ),
+              // Content
+              if (_isLoading)
+                const SliverFillRemaining(
+                  child: Center(child: CircularProgressIndicator()),
+                )
+              else
+                SliverToBoxAdapter(
+                  child: AnimatedBuilder(
+                    animation: _contentController,
+                    builder: (context, child) {
+                      return Transform.translate(
+                        offset: Offset(0, 20 * (1 - _contentFade.value)),
+                        child: Opacity(
+                          opacity: _contentFade.value,
+                          child: child,
+                        ),
+                      );
+                    },
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          _buildDeliveryTimeCard(theme, isDark),
+                          const SizedBox(height: 16),
+                          if (_shippingDetails != null)
+                            _buildShippingAddressCard(theme, isDark),
+                          const SizedBox(height: 16),
+                          if (widget.isSubscription && subscription != null)
+                            _buildCongratulationCard(theme, subscription!),
+                          const SizedBox(height: 16),
+                          _buildOrderSummaryCard(theme, isDark),
+                          const SizedBox(height: 16),
+                          if (_pendingRewardsCount > 0)
+                            _buildRewardNotificationCard(theme, isDark),
+                          const SizedBox(height: 16),
+                          _buildPaymentMethodCard(theme, isDark),
+                          const SizedBox(height: 180),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+            ],
+          ),
+
+          // Bottom Bar
+          if (!_isLoading) _buildBottomBar(theme, isDark),
+
+          // Loading Overlay
+          if (_isLoading) _buildLoadingOverlay(theme),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAnimatedHeader(ThemeData theme, bool isDark) {
+    return SliverToBoxAdapter(
+      child: AnimatedBuilder(
+        animation: _headerController,
+        builder: (context, child) {
+          return Transform.translate(
+            offset: Offset(0, _headerSlide.value),
+            child: Opacity(opacity: _headerFade.value, child: child),
+          );
+        },
+        child: Container(
+          height: 180,
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                theme.colorScheme.primary,
+                theme.colorScheme.primary.withValues(alpha: 0.85),
+                isDark
+                    ? theme.colorScheme.primary.withValues(alpha: 0.7)
+                    : Colors.green.shade400,
+              ],
             ),
-      bottomNavigationBar: _isLoading ? null : _buildBottomBar(theme),
+            borderRadius: const BorderRadius.only(
+              bottomLeft: Radius.circular(32),
+              bottomRight: Radius.circular(32),
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: theme.colorScheme.primary.withValues(alpha: 0.3),
+                blurRadius: 20,
+                offset: const Offset(0, 10),
+              ),
+            ],
+          ),
+          child: Stack(
+            children: [
+              // Floating Particles
+              ...List.generate(8, (index) => _buildFloatingParticle(index)),
+
+              // Decorative circles
+              Positioned(
+                top: -30,
+                right: -30,
+                child: Container(
+                  width: 100,
+                  height: 100,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Colors.white.withValues(alpha: 0.1),
+                  ),
+                ),
+              ),
+              Positioned(
+                bottom: 10,
+                left: -30,
+                child: Container(
+                  width: 80,
+                  height: 80,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Colors.white.withValues(alpha: 0.08),
+                  ),
+                ),
+              ),
+
+              // Header Content
+              SafeArea(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 8, 20, 20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Back Button
+                      _buildIconButton(Icons.arrow_back_ios_new_rounded, () {
+                        HapticFeedback.lightImpact();
+                        Navigator.pop(context);
+                      }),
+                      const Spacer(),
+                      // Title Row
+                      Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withValues(alpha: 0.2),
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                            child: Icon(
+                              widget.isSubscription
+                                  ? Icons.card_membership_rounded
+                                  : Icons.shopping_bag_rounded,
+                              color: Colors.white,
+                              size: 28,
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  widget.isSubscription
+                                      ? "Subscription"
+                                      : "Checkout",
+                                  style: theme.textTheme.headlineMedium
+                                      ?.copyWith(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  "$totalItems item${totalItems > 1 ? 's' : ''} ready to order",
+                                  style: theme.textTheme.bodyMedium?.copyWith(
+                                    color: Colors.white.withValues(alpha: 0.9),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 
-  /// Builds the correct bottom bar based on order type
-  Widget _buildBottomBar(ThemeData theme) {
-    if (widget.isSubscription && subscription != null) {
-      return _buildSubscriptionBottomBar(theme, subscription!);
-    } else {
-      return _buildStandardBottomBar(theme);
-    }
+  Widget _buildFloatingParticle(int index) {
+    final random = math.Random(index);
+    final size = 4.0 + random.nextDouble() * 6;
+    final startX = random.nextDouble() * 400;
+    final startY = random.nextDouble() * 180;
+    final duration = 10 + random.nextInt(10);
+
+    return AnimatedBuilder(
+      animation: _particleController,
+      builder: (context, child) {
+        final progress = (_particleController.value * duration) % 1.0;
+        final x = startX + math.sin(progress * math.pi * 2 + index) * 20;
+        final y = startY + math.cos(progress * math.pi * 2 + index) * 12;
+        final opacity = 0.1 + (math.sin(progress * math.pi * 2) * 0.15);
+
+        return Positioned(
+          left: x,
+          top: y,
+          child: Container(
+            width: size,
+            height: size,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: Colors.white.withValues(alpha: opacity.clamp(0.05, 0.25)),
+            ),
+          ),
+        );
+      },
+    );
   }
 
-  /// Bottom bar for regular "Place Order"
-  Widget _buildStandardBottomBar(ThemeData theme) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: theme.scaffoldBackgroundColor,
-        border: Border(top: BorderSide(color: theme.dividerColor)),
-      ),
-      child: ElevatedButton(
-        onPressed: _createOrder,
-        child: Text('Place Order'),
+  Widget _buildIconButton(IconData icon, VoidCallback onTap) {
+    return Material(
+      color: Colors.white.withValues(alpha: 0.2),
+      borderRadius: BorderRadius.circular(12),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(12),
+        child: Padding(
+          padding: const EdgeInsets.all(10),
+          child: Icon(icon, color: Colors.white, size: 22),
+        ),
       ),
     );
   }
 
-  /// Styled bottom bar for Subscription summary and payment
-  Widget _buildSubscriptionBottomBar(ThemeData theme, SubscriptionPlan subscription) {
-    final totalMonthlyPrice = double.tryParse(totalPrice) ?? 0.0;
-    final fullSubscriptionPrice = totalMonthlyPrice * subscription.durationMonths;
-
+  Widget _buildRewardNotificationCard(ThemeData theme, bool isDark) {
     return Container(
-      padding: const EdgeInsets.all(16.0),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: theme.cardColor,
-        border: Border(top: BorderSide(color: theme.dividerColor)),
+        gradient: LinearGradient(
+          colors: [
+            const Color(0xFFFF9800).withValues(alpha: 0.9),
+            const Color(0xFFFFB74D).withValues(alpha: 0.85),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, -5),
+            color: const Color(0xFFFF9800).withValues(alpha: 0.3),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Text(
-            " Your ${subscription.durationMonths}-Month Journey",
-            textAlign: TextAlign.center,
-            style: theme.textTheme.titleSmall?.copyWith(
-              color: theme.textTheme.bodySmall?.color,
-            ),
-          ),
-          const SizedBox(height: 8),
-      if (widget.paymentType == 'PAID_FULL')
-            Text(
-              "₹${fullSubscriptionPrice.toStringAsFixed(2)} upfront (One-time payment for the entire ${subscription.durationMonths}-month plan)",
-              textAlign: TextAlign.center,
-              style: theme.textTheme.displaySmall?.copyWith(
-                color: theme.textTheme.bodySmall?.color,
-              ),
-            )
-          else
-          Text(
-            "₹${(fullSubscriptionPrice) / (subscription.durationMonths/(subscription.installmentFrequencyMonths) )  } per  installments (Billed ₹${fullSubscriptionPrice.toStringAsFixed(2)} upfront)",
-            textAlign: TextAlign.center,
-            style: theme.textTheme.displaySmall?.copyWith(
-              color: theme.colorScheme.primary,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(height: 16),
-          ElevatedButton(
-            onPressed: _createOrder,
-            child: Text('Subscribe Now'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  /// Styled congratulation message for subscriptions
-  Widget _buildCongratulation(ThemeData theme, SubscriptionPlan subscription) {
-    return Container(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(10),
-        color: theme.colorScheme.primary, // Using theme color
-      ),
-      padding: const EdgeInsets.all(16),
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(
-            Icons.celebration_outlined,
-            color: theme.colorScheme.onPrimary,
-            size: 28,
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.25),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(
+              Icons.card_giftcard_rounded,
+              color: Colors.white,
+              size: 28,
+            ),
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: 16),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  "A wonderful commitment to your well-being.",
-                  style: theme.textTheme.titleLarge?.copyWith(
-                    color: theme.colorScheme.onPrimary,
+                  '🎁 Rewards Waiting!',
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    color: Colors.white,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  "This ${subscription.durationMonths}-month journey is the first step toward a life of harmony and pure nourishment.",
+                  _pendingRewardsCount == 1
+                      ? 'You have 1 referral reward waiting in your orders!'
+                      : 'You have $_pendingRewardsCount referral rewards waiting in your orders!',
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: Colors.white.withValues(alpha: 0.9),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Icon(
+            Icons.arrow_forward_ios_rounded,
+            color: Colors.white.withValues(alpha: 0.7),
+            size: 18,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDeliveryTimeCard(ThemeData theme, bool isDark) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            Colors.green.withValues(alpha: 0.15),
+            Colors.green.withValues(alpha: 0.05),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Colors.green.withValues(alpha: 0.3)),
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: Colors.green.withValues(alpha: 0.2),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: const Icon(
+              Icons.local_shipping_rounded,
+              color: Colors.green,
+              size: 24,
+            ),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Estimated Delivery',
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.hintColor,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  widget.expectedDeliveryDate,
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: Colors.green.shade700,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          if (widget.deliveryCharges == 0)
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+              decoration: BoxDecoration(
+                color: Colors.green,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: const Text(
+                'FREE',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 12,
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildShippingAddressCard(ThemeData theme, bool isDark) {
+    if (_shippingDetails == null) {
+      return const SizedBox.shrink();
+    }
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: theme.cardColor,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: theme.shadowColor.withValues(alpha: 0.08),
+            blurRadius: 20,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.primary.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(
+                  Icons.location_on_rounded,
+                  color: theme.colorScheme.primary,
+                  size: 22,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Text(
+                'Delivery Address',
+                style: theme.textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const Spacer(),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: Colors.green.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.check_circle,
+                      size: 14,
+                      color: Colors.green.shade700,
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      'Verified',
+                      style: TextStyle(
+                        color: Colors.green.shade700,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Text(_shippingDetails!.address, style: theme.textTheme.bodyLarge),
+          const SizedBox(height: 8),
+          Text(
+            '${_shippingDetails!.city}, ${_shippingDetails!.state} - ${_shippingDetails!.pincode}',
+            style: theme.textTheme.bodyMedium?.copyWith(color: theme.hintColor),
+          ),
+          const SizedBox(height: 4),
+          Row(
+            children: [
+              Icon(Icons.phone_rounded, size: 16, color: theme.hintColor),
+              const SizedBox(width: 6),
+              Text(
+                _shippingDetails!.phone,
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: theme.hintColor,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCongratulationCard(
+    ThemeData theme,
+    SubscriptionPlan subscription,
+  ) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            theme.colorScheme.primary,
+            theme.colorScheme.primary.withValues(alpha: 0.8),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: theme.colorScheme.primary.withValues(alpha: 0.3),
+            blurRadius: 15,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.2),
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: const Icon(
+              Icons.celebration_rounded,
+              color: Colors.white,
+              size: 32,
+            ),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  "Great Choice!",
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  "Your ${subscription.durationMonths}-month journey to wellness begins here.",
                   style: theme.textTheme.bodyMedium?.copyWith(
-                    color: theme.colorScheme.onPrimary.withOpacity(0.9),
+                    color: Colors.white.withValues(alpha: 0.9),
                   ),
                 ),
               ],
@@ -839,556 +1318,840 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     );
   }
 
-  Widget _buildDeliveryTime(ThemeData theme) {
+  Widget _buildOrderSummaryCard(ThemeData theme, bool isDark) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: theme.colorScheme.primary.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(12.0),
-      ),
-      child: Row(
-        children: [
-          const Text('🚚', style: TextStyle(fontSize: 20)),
-          const SizedBox(width: 12),
-          Text(
-            "Estimated Delivery by ${widget.expectedDeliveryDate}",
-            style: theme.textTheme.bodyMedium?.copyWith(
-              fontWeight: FontWeight.w500,
-              color: theme.colorScheme.onSurface,
-            ),
+        color: theme.cardColor,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: theme.shadowColor.withValues(alpha: 0.08),
+            blurRadius: 20,
+            offset: const Offset(0, 4),
           ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                Icons.receipt_long_rounded,
+                color: theme.colorScheme.primary,
+                size: 24,
+              ),
+              const SizedBox(width: 12),
+              Text(
+                widget.isSubscription
+                    ? 'Subscription Summary'
+                    : 'Order Summary',
+                style: theme.textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          ),
+
+          // Subscription delivery info banner
+          if (widget.isSubscription && subscription != null) ...[
+            const SizedBox(height: 16),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+              decoration: BoxDecoration(
+                color: Colors.blue.shade50,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.blue.shade200),
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.autorenew_rounded,
+                    color: Colors.blue.shade700,
+                    size: 20,
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      'Products delivered every month for ${subscription!.durationMonths} months',
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: Colors.blue.shade800,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+
+          const SizedBox(height: 20),
+
+          // Product Items
+          if (widget.singleProduct != null)
+            _buildProductItem(
+              theme,
+              isDark,
+              widget.singleProduct!,
+              widget.quantity!,
+              widget.isSubscription
+                  ? widget.price!
+                  : widget.singleProduct!.finalPrice,
+            )
+          else
+            ...widget.cart!.items.map(
+              (item) => Padding(
+                padding: const EdgeInsets.only(bottom: 12),
+                child: _buildProductItem(
+                  theme,
+                  isDark,
+                  item.productVariant,
+                  item.quantity,
+                  item.productVariant.finalPrice,
+                ),
+              ),
+            ),
+
+          const Divider(height: 32),
+
+          // Price Breakdown
+          if (widget.isSubscription && subscription != null) ...[
+            // Subscription-specific breakdown
+            _buildPriceRow(
+              theme,
+              'Unit Price (per item)',
+              '₹${(widget.price ?? 0).toStringAsFixed(2)}',
+            ),
+            Padding(
+              padding: const EdgeInsets.only(top: 2, bottom: 4),
+              child: Text(
+                'Exclusive discount added',
+                style: theme.textTheme.bodySmall?.copyWith(
+                  fontSize: 10,
+                  fontStyle: FontStyle.italic,
+                  color: Colors.green,
+                ),
+              ),
+            ),
+            const SizedBox(height: 8),
+            _buildPriceRow(
+              theme,
+              'Quantity (per month)',
+              '× ${widget.quantity}',
+            ),
+            const SizedBox(height: 8),
+            _buildPriceRow(
+              theme,
+              'Monthly Product Cost',
+              '₹${((widget.price ?? 0) * (widget.quantity ?? 1)).toStringAsFixed(2)}',
+            ),
+            const SizedBox(height: 8),
+            _buildPriceRow(
+              theme,
+              'Delivery (per month)',
+              widget.deliveryCharges > 0
+                  ? '₹${widget.deliveryCharges.toStringAsFixed(2)}'
+                  : 'FREE',
+              isDelivery: true,
+            ),
+            const SizedBox(height: 8),
+            // _buildPriceRow(
+            //   theme,
+            //   'Discount Applied',
+            //   '-${subscription!.discountPercentage.toStringAsFixed(0)}%',
+            //   isDiscount: true,
+            // ),
+          ] else ...[
+            // Regular order breakdown
+            _buildPriceRow(
+              theme,
+              'Subtotal',
+              '₹${(double.parse(totalPrice) - widget.deliveryCharges).toStringAsFixed(2)}',
+            ),
+            const SizedBox(height: 8),
+            _buildPriceRow(
+              theme,
+              'Delivery Charges',
+              widget.deliveryCharges > 0
+                  ? '₹${widget.deliveryCharges.toStringAsFixed(2)}'
+                  : 'FREE',
+              isDelivery: true,
+            ),
+          ],
+
+          const Divider(height: 32),
+
+          // Total
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    widget.isSubscription ? 'Monthly Total' : 'Total Amount',
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  if (widget.isSubscription && subscription != null)
+                    Text(
+                      'Billed each month',
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.hintColor,
+                        fontSize: 11,
+                      ),
+                    ),
+                ],
+              ),
+              Text(
+                '₹${double.parse(totalPrice).toStringAsFixed(2)}',
+                style: theme.textTheme.titleLarge?.copyWith(
+                  color: theme.colorScheme.primary,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          ),
+
+          // Total subscription cost hint
+          if (widget.isSubscription && subscription != null) ...[
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.green.shade50,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.green.shade200),
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.savings_rounded,
+                    color: Colors.green.shade700,
+                    size: 20,
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      'Total over ${subscription!.durationMonths} months: ₹${(double.parse(totalPrice) * subscription!.durationMonths).toStringAsFixed(0)}',
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: Colors.green.shade800,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
         ],
       ),
     );
   }
 
-  Widget _buildShippingAddress(ThemeData theme) {
-    // --- BUG FIX HERE ---
-    // Added null check and now using `_shippingDetails` state variable
-    // instead of `widget.shippingDetails`
-    if (_shippingDetails == null) {
-      return const SizedBox.shrink(); // Or a "Please add address" widget
-    }
+  Widget _buildProductItem(
+    ThemeData theme,
+    bool isDark,
+    Product product,
+    int quantity,
+    double price,
+  ) {
+    String? imageUrl =
+        product.productImages.isNotEmpty
+            ? product.productImages[0].image
+            : null;
 
-    return ExpansionTile(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),
-      collapsedShape:
-          RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),
-      backgroundColor: theme.cardColor,
-      collapsedBackgroundColor: theme.cardColor,
-      tilePadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      title: Row(
-        children: [
-          Icon(Icons.location_on_outlined, color: theme.disabledColor),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Text(
-              _shippingDetails!.address,
-              style: theme.textTheme.bodyLarge,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ),
-        ],
-      ),
+    final bool hasDiscount = product.price > price;
+
+    return Row(
       children: [
-        ListTile(
-          title: Text(_shippingDetails!.address),
-          subtitle: Column(
+        Container(
+          width: 60,
+          height: 60,
+          decoration: BoxDecoration(
+            color: isDark ? Colors.grey.shade900 : Colors.grey.shade100,
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(12),
+            child:
+                imageUrl != null
+                    ? CachedNetworkImage(
+                      imageUrl: imageUrl,
+                      fit: BoxFit.cover,
+                      errorWidget:
+                          (context, url, error) => Icon(
+                            Icons.shopping_bag_outlined,
+                            color: theme.disabledColor,
+                          ),
+                    )
+                    : Icon(
+                      Icons.shopping_bag_outlined,
+                      color: theme.disabledColor,
+                    ),
+          ),
+        ),
+        const SizedBox(width: 14),
+        Expanded(
+          child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('${_shippingDetails!.city}, ${_shippingDetails!.state}'),
-              Text('Pincode: ${_shippingDetails!.pincode}'),
-              Text('Phone: ${_shippingDetails!.phone}'),
+              Text(
+                product.productName,
+                style: theme.textTheme.bodyLarge?.copyWith(
+                  fontWeight: FontWeight.w600,
+                ),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+              const SizedBox(height: 4),
+              Text(
+                'Qty: $quantity',
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.hintColor,
+                ),
+              ),
             ],
+          ),
+        ),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            Text(
+              '₹${price.toStringAsFixed(2)}',
+              style: theme.textTheme.titleSmall?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildPriceRow(
+    ThemeData theme,
+    String label,
+    String value, {
+    bool isDelivery = false,
+    bool isDiscount = false,
+  }) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          label,
+          style: theme.textTheme.bodyMedium?.copyWith(color: theme.hintColor),
+        ),
+        Text(
+          value,
+          style: theme.textTheme.bodyMedium?.copyWith(
+            color:
+                isDiscount
+                    ? Colors.green
+                    : isDelivery && value == 'FREE'
+                    ? Colors.green
+                    : null,
+            fontWeight: FontWeight.w600,
           ),
         ),
       ],
     );
   }
 
-  Widget _buildOrderSummary(ThemeData theme) {
-    return Card(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Padding(
+  Widget _buildPaymentMethodCard(ThemeData theme, bool isDark) {
+    return GestureDetector(
+      onTap: () {
+        HapticFeedback.lightImpact();
+        _showPaymentMethodSelectionDialog();
+      },
+      child: Container(
         padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              widget.isSubscription
-                  ? 'Subscription ${subscription?.name ?? 'Summary'}'
-                  : 'Order Summary',
-              style: theme.textTheme.titleLarge,
+        decoration: BoxDecoration(
+          color: theme.cardColor,
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: theme.shadowColor.withValues(alpha: 0.08),
+              blurRadius: 20,
+              offset: const Offset(0, 4),
             ),
-            const SizedBox(height: 16),
-
-            // --- List of Items (Single or Cart) ---
-            if (widget.singleProduct != null)
-              Column(
+          ],
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: theme.colorScheme.primary.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child: Icon(
+                _selectedPaymentMethod == 'COD'
+                    ? Icons.money_rounded
+                    : Icons.payment_rounded,
+                color: theme.colorScheme.primary,
+                size: 24,
+              ),
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  ListTile(
-                    contentPadding: EdgeInsets.zero,
-                    leading: _buildProductImage(widget.singleProduct!),
-                    title: Text(widget.singleProduct!.productName,
-                        style: theme.textTheme.bodyMedium),
-                    subtitle: Text('Quantity: ${widget.quantity}'),
-                    trailing: Text(widget.isSubscription
-                        ? '₹${widget.price!.toStringAsFixed(2)}'
-                        : '₹${widget.singleProduct!.finalPrice.toStringAsFixed(2)}'),
+                  Text(
+                    'Payment Method',
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.hintColor,
+                    ),
                   ),
-                  if (widget.isSubscription && subscription != null)
-                    ExpansionTile(
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12.0)),
-                      collapsedShape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12.0)),
-                      backgroundColor: theme.cardColor,
-                      collapsedBackgroundColor: theme.cardColor,
-                      tilePadding: const EdgeInsets.symmetric(
-                          horizontal: 2, vertical: 8),
-                      title: Column(
+                  const SizedBox(height: 2),
+                  Text(
+                    _selectedPaymentMethod == 'COD'
+                        ? 'Cash on Delivery'
+                        : 'UPI / Card / NetBanking',
+                    style: theme.textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: isDark ? Colors.grey.shade800 : Colors.grey.shade100,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Icon(
+                Icons.chevron_right_rounded,
+                color: theme.hintColor,
+                size: 20,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBottomBar(ThemeData theme, bool isDark) {
+    if (widget.isSubscription && subscription != null) {
+      return _buildSubscriptionBottomBar(theme, isDark, subscription!);
+    } else {
+      return _buildStandardBottomBar(theme, isDark);
+    }
+  }
+
+  Widget _buildStandardBottomBar(ThemeData theme, bool isDark) {
+    final total = double.parse(totalPrice);
+
+    return Positioned(
+      left: 0,
+      right: 0,
+      bottom: 0,
+      child: AnimatedBuilder(
+        animation: _bottomBarController,
+        builder: (context, child) {
+          return Transform.translate(
+            offset: Offset(0, _bottomBarSlide.value),
+            child: child,
+          );
+        },
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: isDark ? theme.cardColor : Colors.white,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+            boxShadow: [
+              BoxShadow(
+                color: theme.shadowColor.withOpacity(0.15),
+                blurRadius: 30,
+                offset: const Offset(0, -10),
+              ),
+            ],
+          ),
+          child: SafeArea(
+            top: false,
+            child: Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Total Amount',
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: theme.hintColor,
+                        ),
+                      ),
+                      Text(
+                        '₹${total.toStringAsFixed(2)}',
+                        style: theme.textTheme.headlineSmall?.copyWith(
+                          color: theme.colorScheme.primary,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: SizedBox(
+                    height: 56,
+                    child: ElevatedButton(
+                      onPressed: _createOrder,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: theme.colorScheme.primary,
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        elevation: 0,
+                      ),
+                      child: const Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            'Place Order',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          SizedBox(width: 8),
+                          Icon(Icons.arrow_forward_rounded, size: 20),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSubscriptionBottomBar(
+    ThemeData theme,
+    bool isDark,
+    SubscriptionPlan subscription,
+  ) {
+    final totalMonthlyPrice = double.tryParse(totalPrice) ?? 0.0;
+    final fullSubscriptionPrice =
+        totalMonthlyPrice * subscription.durationMonths;
+
+    return Positioned(
+      left: 0,
+      right: 0,
+      bottom: 0,
+      child: AnimatedBuilder(
+        animation: _bottomBarController,
+        builder: (context, child) {
+          return Transform.translate(
+            offset: Offset(0, _bottomBarSlide.value),
+            child: child,
+          );
+        },
+        child: Container(
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color: isDark ? theme.cardColor : Colors.white,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+            boxShadow: [
+              BoxShadow(
+                color: theme.shadowColor.withOpacity(0.15),
+                blurRadius: 30,
+                offset: const Offset(0, -10),
+              ),
+            ],
+          ),
+          child: SafeArea(
+            top: false,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Handle bar
+                Container(
+                  width: 40,
+                  height: 4,
+                  margin: const EdgeInsets.only(bottom: 16),
+                  decoration: BoxDecoration(
+                    color: isDark ? Colors.grey[700] : Colors.grey[300],
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: theme.colorScheme.primary.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Icon(
+                        Icons.card_membership_rounded,
+                        color: theme.colorScheme.primary,
+                        size: 22,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            "₹$totalPrice / month", // Uses the getter
-                            style: theme.textTheme.bodyLarge
-                                ?.copyWith(fontWeight: FontWeight.bold),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
+                            '${subscription.durationMonths}-Month Plan',
+                            style: theme.textTheme.titleSmall?.copyWith(
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                           Text(
-                            "incl. ${subscription?.discountPercentage.toStringAsFixed(0)}% savings + delivery",
-                            style: TextStyle(
-                              color: theme.textTheme.bodySmall?.color,
-                              fontSize:
-                                  theme.textTheme.bodySmall?.fontSize ?? 12,
+                            widget.paymentType == 'PAID_FULL'
+                                ? 'One-time payment'
+                                : 'Monthly installments',
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: theme.hintColor,
                             ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
                           ),
                         ],
                       ),
+                    ),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
-                        ListTile(
-                          title: Text(
-                            "Price Breakdown (per month):",
-                            style: theme.textTheme.bodyMedium?.copyWith(
-                                color: theme.colorScheme.primary,
-                                fontWeight: FontWeight.bold),
+                        Text(
+                          '₹${fullSubscriptionPrice.toStringAsFixed(2)}',
+                          style: theme.textTheme.titleMedium?.copyWith(
+                            color: theme.colorScheme.primary,
+                            fontWeight: FontWeight.bold,
                           ),
-                          subtitle: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Text("Subtotal:",
-                                      style: theme.textTheme.bodyMedium),
-                                  Text(
-                                      "₹${(double.parse(totalPrice) - widget.deliveryCharges).toStringAsFixed(2)}",
-                                      style: theme.textTheme.bodyMedium),
-                                ],
-                              ),
-                              Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Text("Delivery Charges:",
-                                      style: theme.textTheme.bodyMedium),
-                                  Text(
-                                      "₹${widget.deliveryCharges.toStringAsFixed(2)}",
-                                      style: theme.textTheme.bodyMedium),
-                                ],
-                              ),
-                            ],
+                        ),
+                        Text(
+                          'total',
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: theme.hintColor,
                           ),
                         ),
                       ],
-                    )
-                ],
-              )
-            else
-              ...widget.cart!.items.map((item) => ListTile(
-                    contentPadding: EdgeInsets.zero,
-                    leading: _buildProductImage(item.productVariant),
-                    title: Text(item.productVariant.productName),
-                    subtitle: Text('Quantity: ${item.quantity}'),
-                    trailing: Text('₹${item.totalPrice}'),
-                  )),
-            
-            // --- LAYOUT FIX: Moved Totals outside the if/else ---
-            
-            if (widget.deliveryCharges > 0 && !widget.isSubscription)
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 8),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text('Delivery Charges', style: theme.textTheme.bodyLarge),
-                    Text('₹${widget.deliveryCharges.toStringAsFixed(2)}',
-                        style: theme.textTheme.bodyLarge
-                            ?.copyWith(fontWeight: FontWeight.bold)),
+                    ),
                   ],
                 ),
-              ),
-              
-            // Don't show total for subscription, it's in the bottom bar
-            if (!widget.isSubscription) ...[
-              const Divider(height: 24),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text('Total Amount', style: theme.textTheme.titleLarge),
-                  Text(
-                    '₹${(double.parse(totalPrice)).toStringAsFixed(2)}',
-                    style: theme.textTheme.titleLarge
-                        ?.copyWith(color: theme.colorScheme.primary),
+                const SizedBox(height: 16),
+                SizedBox(
+                  width: double.infinity,
+                  height: 56,
+                  child: ElevatedButton(
+                    onPressed: _createOrder,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: theme.colorScheme.primary,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      elevation: 0,
+                    ),
+                    child: const Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          'Subscribe Now',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        SizedBox(width: 8),
+                        Icon(Icons.arrow_forward_rounded, size: 20),
+                      ],
+                    ),
                   ),
-                ],
-              ),
-            ]
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildPaymentTypeSelector(ThemeData theme) {
-    if (!widget.isSubscription || subscription == null) {
-      return const SizedBox.shrink();
-    }
-    return Card(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Padding(
-        padding: const EdgeInsets.all(8),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8.0),
-              child: Text('Payment Type', style: theme.textTheme.titleLarge),
+                ),
+              ],
             ),
-            const SizedBox(height: 8),
-            RadioListTile<String>(
-              value: 'PAID_FULL',
-              groupValue: _selectedPaymentType,
-              onChanged: (value) => setState(() => _selectedPaymentType = value!),
-              title: const Text('Pay in Full'),
-              subtitle: const Text('Pay the entire amount upfront'),
-            ),
-            if (subscription!.allowsInstallments)
-              RadioListTile<String>(
-                value: 'INSTALLMENT',
-                groupValue: _selectedPaymentType,
-                onChanged: (value) =>
-                    setState(() => _selectedPaymentType = value!),
-                title: const Text('Pay in Installments'),
-                subtitle: const Text('Pay in monthly installments'),
-              ),
-          ],
+          ),
         ),
-      ),
-    );
-  }
-
-  Widget _buildPaymentMethodSelector(ThemeData theme) {
-    return Card(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: ListTile(
-        onTap: _showPaymentMethodSelectionDialog,
-        leading: Icon(
-          _selectedPaymentMethod == 'COD' ? Icons.money : Icons.payment,
-          color: theme.colorScheme.primary,
-        ),
-        title: Text('Pay Using',
-            style: theme.textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.bold)),
-        subtitle: Text(_selectedPaymentMethod == 'COD'
-            ? 'Cash on Delivery'
-            : 'UPI / Card / NetBanking'),
-        trailing: const Icon(Icons.chevron_right),
       ),
     );
   }
 
   Future<void> _showPaymentMethodSelectionDialog() async {
     final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
 
     String? newSelection = await showModalBottomSheet<String>(
       context: context,
+      backgroundColor: theme.cardColor,
       shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
       builder: (BuildContext context) {
         return Padding(
-          padding: const EdgeInsets.all(16.0),
+          padding: const EdgeInsets.all(20),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
-            children: <Widget>[
-              Text('Select Payment Method', style: theme.textTheme.titleLarge),
-              const SizedBox(height: 16),
-              if (!widget.isSubscription)
-                ListTile(
-                  leading: Icon(Icons.money, color: colorScheme.primary),
-                  title: const Text('Cash on Delivery'),
-                  onTap: () => Navigator.pop(context, 'COD'),
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8)),
-                  tileColor: _selectedPaymentMethod == 'COD'
-                      ? colorScheme.primary.withOpacity(0.1)
-                      : null,
+            children: [
+              // Handle bar
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  margin: const EdgeInsets.only(bottom: 20),
+                  decoration: BoxDecoration(
+                    color: isDark ? Colors.grey[700] : Colors.grey[300],
+                    borderRadius: BorderRadius.circular(2),
+                  ),
                 ),
-              if (!widget.isSubscription) const Divider(),
-              ListTile(
-                leading: Icon(Icons.payment, color: colorScheme.secondary),
-                title: const Text('Pay Online'),
-                subtitle: const Text('UPI / Card / NetBanking'),
-                onTap: () => Navigator.pop(context, 'UPI'),
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8)),
-                tileColor: _selectedPaymentMethod == 'UPI'
-                    ? colorScheme.secondary.withOpacity(0.1)
-                    : null,
               ),
+              Text(
+                'Select Payment Method',
+                style: theme.textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 20),
+              if (!widget.isSubscription) ...[
+                _buildPaymentOption(
+                  theme,
+                  isDark,
+                  'COD',
+                  'Cash on Delivery',
+                  'Pay when you receive your order',
+                  Icons.money_rounded,
+                  Colors.orange,
+                ),
+                const SizedBox(height: 12),
+              ],
+              _buildPaymentOption(
+                theme,
+                isDark,
+                'UPI',
+                'Pay Online',
+                'UPI / Card / NetBanking',
+                Icons.payment_rounded,
+                theme.colorScheme.primary,
+              ),
+              const SizedBox(height: 20),
             ],
           ),
         );
       },
     );
+
     if (newSelection != null) {
+      HapticFeedback.selectionClick();
       setState(() {
         _selectedPaymentMethod = newSelection;
       });
     }
   }
 
-  Widget _buildProductImage(Product variant) {
-    final theme = Theme.of(context);
-    String? imageUrl =
-        variant.productImages.isNotEmpty ? variant.productImages[0].image : null;
-    return Container(
-      width: 50,
-      height: 50,
-      clipBehavior: Clip.antiAlias,
-      decoration: BoxDecoration(
-        color: theme.splashColor,
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: imageUrl != null
-          ? Image.network(
-              imageUrl,
-              fit: BoxFit.cover,
-              errorBuilder: (context, error, stackTrace) =>
-                  Icon(Icons.shopping_bag_outlined, color: theme.disabledColor),
-            )
-          : Icon(Icons.shopping_bag_outlined, color: theme.disabledColor),
-    );
-  }
-}
+  Widget _buildPaymentOption(
+    ThemeData theme,
+    bool isDark,
+    String value,
+    String title,
+    String subtitle,
+    IconData icon,
+    Color color,
+  ) {
+    final isSelected = _selectedPaymentMethod == value;
 
-// --- GLOBAL HELPER WIDGETS (UNCHANGED) ---
-
-extension on String {
-  String toStringAsFixed(int i) {
-    return double.tryParse(this)?.toStringAsFixed(i) ?? this;
-  }
-}
-
-void _showSubscriptionDetails(
-  BuildContext context,
-  SubscriptionPlan subscription,
-  int selectedPlan,
-  double price,
-  double deliveryCharges, {
-  bool showAmountPerDelivery = false,
-}) {
-  double perDeliveryAmount = price;
-  double perDeliveryCharge = deliveryCharges;
-  double totalAmount =
-      (perDeliveryAmount + perDeliveryCharge) * subscription.durationMonths;
-
-  double amountPerDelivery =
-      (totalAmount / subscription.installmentFrequencyMonths);
-
-  showDialog(
-    context: context,
-    builder: (BuildContext context) {
-      return Dialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        insetPadding: EdgeInsets.symmetric(horizontal: 24, vertical: 24),
-        child: ConstrainedBox(
-          constraints: BoxConstraints(
-            maxHeight: MediaQuery.of(context).size.height * 0.75,
+    return GestureDetector(
+      onTap: () => Navigator.pop(context, value),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: isSelected ? color.withOpacity(0.1) : theme.cardColor,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color:
+                isSelected
+                    ? color
+                    : (isDark ? Colors.grey.shade800 : Colors.grey.shade200),
+            width: isSelected ? 2 : 1,
           ),
-          child: SingleChildScrollView(
-            child: Padding(
-              padding: const EdgeInsets.all(20.0),
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: color.withOpacity(0.15),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(icon, color: color, size: 24),
+            ),
+            const SizedBox(width: 14),
+            Expanded(
               child: Column(
-                mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Center(
-                    child: Text(
-                      'Payment Details',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: const Color.fromARGB(255, 26, 126, 31),
-                      ),
+                  Text(
+                    title,
+                    style: theme.textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
-                  SizedBox(height: 10),
-                  ListTile(
-                    leading: Icon(
-                      Icons.shopping_basket,
-                      color: Colors.indigo,
-                      size: 28,
-                    ),
-                    title: Text(
-                      'Plan name',
-                      style: TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                    subtitle: Text(
-                      subscription.name,
-                      style: TextStyle(fontSize: 16),
-                    ),
-                  ),
-                  Divider(),
-                  ListTile(
-                    leading: Icon(
-                      Icons.card_membership,
-                      color: Colors.indigo,
-                      size: 28,
-                    ),
-                    title: Text(
-                      'Plan Duration (months)',
-                      style: TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                    subtitle: Text(
-                      subscription.durationMonths.toString(),
-                      style: TextStyle(fontSize: 16),
-                    ),
-                  ),
-                  Divider(),
-                  ListTile(
-                    leading: Icon(
-                      Icons.local_shipping,
-                      color: Colors.indigo,
-                      size: 28,
-                    ),
-                    title: Text(
-                      'Number of Deliveries',
-                      style: TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                    subtitle: Text(
-                      subscription.durationMonths.toString(),
-                      style: TextStyle(fontSize: 16),
-                    ),
-                  ),
-                  Divider(),
-                  if (showAmountPerDelivery) ...[
-                    ListTile(
-                      leading: Icon(
-                        Icons.payments,
-                        color: Colors.purple,
-                        size: 28,
-                      ),
-                      title: Text(
-                        'Amount per Delivery (Installment)',
-                        style: TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                      subtitle: Text(
-                        '₹${amountPerDelivery.toStringAsFixed(2)}',
-                        style: TextStyle(fontSize: 16),
-                      ),
-                    ),
-                    Divider(),
-                  ],
-                  ListTile(
-                    leading: Icon(
-                      Icons.attach_money,
-                      color: Colors.green,
-                      size: 28,
-                    ),
-                    title: Text(
-                      'Amount per Delivery',
-                      style: TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                    subtitle: Text(
-                      '₹${perDeliveryAmount.toStringAsFixed(2)}',
-                      style: TextStyle(fontSize: 16),
-                    ),
-                  ),
-                  Divider(),
-                  ListTile(
-                    leading: Icon(
-                      Icons.local_shipping,
-                      color: Colors.orange,
-                      size: 28,
-                    ),
-                    title: Text(
-                      'Delivery Charges per Delivery',
-                      style: TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                    subtitle: Text(
-                      '₹${perDeliveryCharge.toStringAsFixed(2)}',
-                      style: TextStyle(fontSize: 16),
-                    ),
-                  ),
-                  Divider(thickness: 2),
-                  ListTile(
-                    leading: Icon(
-                      Icons.calculate,
-                      color: Colors.blue,
-                      size: 28,
-                    ),
-                    title: Text(
-                      'Total Amount',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        color: Colors.green[800],
-                        fontSize: 18,
-                      ),
-                    ),
-                    subtitle: Text(
-                      '(${perDeliveryAmount.toStringAsFixed(2)} + ${perDeliveryCharge.toStringAsFixed(2)}) x ${subscription.durationMonths} = ₹${totalAmount.toStringAsFixed(2)}',
-                      style: TextStyle(
-                        fontSize: 17,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                  SizedBox(height: 10),
-                  Center(
-                    child: ElevatedButton(
-                      onPressed: () => Navigator.pop(context),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.indigo[700],
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        padding: EdgeInsets.symmetric(
-                          horizontal: 32,
-                          vertical: 14,
-                        ),
-                      ),
-                      child: Text(
-                        'Close',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
+                  Text(
+                    subtitle,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.hintColor,
                     ),
                   ),
                 ],
               ),
             ),
+            if (isSelected)
+              Container(
+                padding: const EdgeInsets.all(4),
+                decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+                child: const Icon(Icons.check, color: Colors.white, size: 16),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLoadingOverlay(ThemeData theme) {
+    return Container(
+      color: Colors.black.withOpacity(0.3),
+      child: Center(
+        child: Container(
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            color: theme.cardColor,
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              CircularProgressIndicator(color: theme.colorScheme.primary),
+              const SizedBox(height: 16),
+              Text(
+                'Processing your order...',
+                style: theme.textTheme.bodyMedium,
+              ),
+            ],
           ),
         ),
-      );
-    },
-  );
+      ),
+    );
+  }
+}
+
+// --- GLOBAL HELPER WIDGETS ---
+
+extension on String {
+  String toStringAsFixed(int i) {
+    return double.tryParse(this)?.toStringAsFixed(i) ?? this;
+  }
 }

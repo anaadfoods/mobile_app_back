@@ -38,6 +38,17 @@ class AuthProfileUpdateSuccess extends Authenticated {
   List<Object?> get props => [user, message];
 }
 
+/// A transient state for when a user's address has been updated.
+/// It extends [Authenticated] to keep the user in the logged-in state.
+class AuthAddressUpdated extends Authenticated {
+  final String message;
+
+  const AuthAddressUpdated(super.user, this.message);
+
+  @override
+  List<Object?> get props => [user, message];
+}
+
 /// A transient state indicating that user registration was successful.
 /// The app should typically navigate to the login screen from this state.
 class AuthRegistrationSuccess extends AuthState {}

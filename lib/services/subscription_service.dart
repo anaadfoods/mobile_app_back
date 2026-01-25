@@ -2,6 +2,10 @@ import 'package:grocery_app/common_widgets/global_import.dart';
 
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
+import 'package:permission_handler/permission_handler.dart';
+import 'package:open_filex/open_filex.dart';
+import 'package:path_provider/path_provider.dart';
+import 'dart:io';
 
 // Top-level function for background JSON parsing
 Map<String, dynamic> _parseJson(String jsonString) {
@@ -21,13 +25,14 @@ List<Subscription> _parseSubscriptions(String responseBody) {
   // Iterate over all status lists (ACTIVE, PAUSED, etc.) and combine them
   subscriptionsMap.forEach((status, list) {
     if (list is List) {
-      allSubscriptions.addAll(list.map<Subscription>((item) => Subscription.fromJson(item)));
+      allSubscriptions.addAll(
+        list.map<Subscription>((item) => Subscription.fromJson(item)),
+      );
     }
   });
 
   return allSubscriptions;
 }
-
 
 class SubscriptionService {
   static final SubscriptionService _instance = SubscriptionService._internal();
@@ -67,7 +72,8 @@ class SubscriptionService {
             'subscription_id': responseData['subscription_id'],
             'merchant_transaction_id': responseData['merchant_transaction_id'],
             'message':
-                responseData['message'] ?? 'Payment session created successfully',
+                responseData['message'] ??
+                'Payment session created successfully',
           };
         } else {
           return {
@@ -88,7 +94,6 @@ class SubscriptionService {
           };
         }
       } else {
-
         print(responseData['errors']);
         return {
           'success': false,
@@ -136,8 +141,7 @@ class SubscriptionService {
       }
 
       // The compute function handles both list and map responses by parsing first.
-      final dynamic parsedData =
-          await compute(jsonDecode, response.body);
+      final dynamic parsedData = await compute(jsonDecode, response.body);
 
       if (parsedData is List) {
         final subscriptions =
@@ -175,32 +179,38 @@ class SubscriptionService {
         Uri.parse(url),
         headers: ApiConfig.getAuthHeaders(token),
       );
-      
+
       print('--- SUBSCRIPTION RESPONSE ---');
       print('Status Code: ${response.statusCode}');
       // print('Response Body: ${response.body}'); // You can keep this for debugging
 
       if (response.statusCode != 200) {
         final errorBody = jsonDecode(response.body);
-        return {'success': false, 'message': errorBody['detail'] ?? 'Failed to load subscriptions.'};
+        return {
+          'success': false,
+          'message': errorBody['detail'] ?? 'Failed to load subscriptions.',
+        };
       }
 
       // Use the compute function to parse the complex JSON in the background
-      final List<Subscription> allSubscriptions = await compute(_parseSubscriptions, response.body);
-      
+      final List<Subscription> allSubscriptions = await compute(
+        _parseSubscriptions,
+        response.body,
+      );
+
       return {
         'success': true,
-        'data': allSubscriptions, // Return the combined list under the 'data' key
+        'data':
+            allSubscriptions, // Return the combined list under the 'data' key
       };
-
     } catch (e) {
       return {'success': false, 'message': e.toString()};
     }
   }
 
-
   Future<Map<String, dynamic>> getSubscriptionDetails(
-      int subscriptionId) async {
+    int subscriptionId,
+  ) async {
     try {
       final token = await _authService.getAccessToken();
       if (token == null) {
@@ -308,8 +318,7 @@ class SubscriptionService {
   Future<Map<String, dynamic>> getSubscriptionPlans() async {
     try {
       final response = await http.get(
-        Uri.parse(
-            '${ApiConfig.baseUrl}${ApiConfig.subscriptionPlansEndpoint}'),
+        Uri.parse('${ApiConfig.baseUrl}${ApiConfig.subscriptionPlansEndpoint}'),
         headers: ApiConfig.getBaseHeaders(),
       );
 
@@ -325,9 +334,8 @@ class SubscriptionService {
 
       final responseData = await compute(_parseJsonList, response.body);
 
-      final plans = responseData
-          .map((item) => SubscriptionPlan.fromJson(item))
-          .toList();
+      final plans =
+          responseData.map((item) => SubscriptionPlan.fromJson(item)).toList();
 
       return {
         'success': true,
@@ -343,8 +351,8 @@ class SubscriptionService {
       };
     }
   }
-  
-    Future<Map<String, dynamic>> subscribeToPlan(int planId) async {
+
+  Future<Map<String, dynamic>> subscribeToPlan(int planId) async {
     try {
       final token = await _authService.getAccessToken();
       if (token == null) {
@@ -419,14 +427,15 @@ class SubscriptionService {
           '${ApiConfig.baseUrl}$subscriptionsEndpoint/$subscriptionId/pause/',
         ),
         headers: ApiConfig.getAuthHeaders(token),
-        body: pauseStartDate != null && pauseEndDate != null
-            ? jsonEncode({
-                'pause_start_date':
-                    pauseStartDate.toIso8601String().split('T')[0],
-                'pause_end_date':
-                    pauseEndDate.toIso8601String().split('T')[0],
-              })
-            : null,
+        body:
+            pauseStartDate != null && pauseEndDate != null
+                ? jsonEncode({
+                  'pause_start_date':
+                      pauseStartDate.toIso8601String().split('T')[0],
+                  'pause_end_date':
+                      pauseEndDate.toIso8601String().split('T')[0],
+                })
+                : null,
       );
 
       final responseData = await compute(_parseJson, response.body);
@@ -457,7 +466,7 @@ class SubscriptionService {
       } else {
         return {
           'success': false,
-          'message': responseData['message'] ?? 'Failed to pause subscription',
+          'message': responseData['detail'] ?? 'Failed to pause subscription',
         };
       }
     } catch (e) {
@@ -564,7 +573,8 @@ class SubscriptionService {
             'subscription_id': responseData['subscription_id'],
             'merchant_transaction_id': responseData['merchant_transaction_id'],
             'message':
-                responseData['message'] ?? 'Payment session created successfully',
+                responseData['message'] ??
+                'Payment session created successfully',
           };
         } else {
           return {
@@ -591,43 +601,122 @@ class SubscriptionService {
     }
   }
 
-Future<ApiResponse> getSubscriptionInvoices(int subscriptionId) async {
-  try {
+  Future<ApiResponse> getSubscriptionInvoices(int subscriptionId) async {
+    try {
+      ApiResponse parseApiResponse(String responseBody) {
+        return apiResponseFromJson(responseBody);
+      }
 
-    ApiResponse parseApiResponse(String responseBody) {
-  return apiResponseFromJson(responseBody);
-}
-    final token = await _authService.getAccessToken();
-    if (token == null) {
-      throw Exception('Authentication token is missing');
-    }
+      final token = await _authService.getAccessToken();
+      if (token == null) {
+        throw Exception('Authentication token is missing');
+      }
 
+      final response = await http.get(
+        Uri.parse(
+          '${ApiConfig.baseUrl}/api/odoo/subscriptions/$subscriptionId/invoices/',
+        ),
+        headers: ApiConfig.getAuthHeaders(token),
+      );
 
-
-    final response = await http.get(
-      Uri.parse(
-        '${ApiConfig.baseUrl}/api/odoo/subscriptions/$subscriptionId/invoices/',
-      ),
-      headers: ApiConfig.getAuthHeaders(token),
-    );
-
-    if (response.statusCode == 200) {
+      if (response.statusCode == 200) {
         print(response.statusCode);
-      // Use compute to parse the JSON and create the model in a background isolate.
-      return await compute(parseApiResponse, response.body);
-    } else {
-      // For errors, parse the generic JSON to get the message.
-      final errorData = await compute(_parseJson, response.body);
+        // Use compute to parse the JSON and create the model in a background isolate.
+        return await compute(parseApiResponse, response.body);
+      } else {
+        // For errors, parse the generic JSON to get the message.
+        final errorData = await compute(_parseJson, response.body);
+        throw Exception(
+          errorData['message'] ??
+              'Failed to load invoices: Status code ${response.statusCode}',
+        );
+      }
+    } catch (e) {
+      // Log the original error for debugging, but throw a more user-friendly message.
+      print('Error getting subscription invoices: $e');
       throw Exception(
-        errorData['message'] ?? 'Failed to load invoices: Status code ${response.statusCode}',
+        'An error occurred while fetching your invoices. Please try again.',
       );
     }
-  } catch (e) {
-    // Log the original error for debugging, but throw a more user-friendly message.
-    print('Error getting subscription invoices: $e');
-    throw Exception('An error occurred while fetching your invoices. Please try again.');
   }
-}
-  // File I/O should be handled carefully. It can still block the main thread.
 
+  // File I/O should be handled carefully. It can still block the main thread.
+  Future<String> downloadInvoice(String s3Url, String displayName) async {
+    try {
+      // Check if the URL is internal (starts with our API base URL)
+      // If it is, we need to attach the auth token.
+      final isInternalUrl = s3Url.startsWith(ApiConfig.baseUrl);
+      Map<String, String>? headers;
+
+      if (isInternalUrl) {
+        final token = await _authService.getAccessToken();
+        if (token != null) {
+          headers = ApiConfig.getAuthHeaders(token);
+        }
+      }
+
+      print('Downloading invoice from: $s3Url');
+      print('Is internal URL: $isInternalUrl');
+
+      // Download the PDF
+      final pdfResponse = await http.get(Uri.parse(s3Url), headers: headers);
+
+      if (pdfResponse.statusCode == 200) {
+        String? savedPath;
+        bool savedToDownloads = false;
+
+        // Try to save to Downloads first (Android < 10 or with permissions)
+        if (Platform.isAndroid) {
+          try {
+            // Request storage permission
+            // ignore: unused_local_variable
+            var status = await Permission.storage.request();
+
+            final downloadsPath = '/storage/emulated/0/Download';
+            final directory = Directory(downloadsPath);
+
+            if (await directory.exists()) {
+              final sanitizedDisplayName = displayName.replaceAll(
+                RegExp(r'[\\/:*?"<>|]'),
+                '_',
+              );
+              final filePath = '$downloadsPath/$sanitizedDisplayName.pdf';
+              final file = File(filePath);
+
+              await file.writeAsBytes(pdfResponse.bodyBytes);
+              savedPath = filePath;
+              savedToDownloads = true;
+            }
+          } catch (e) {
+            print('Could not save to Downloads: $e');
+            // Continue to fallback
+          }
+        }
+
+        // Fallback to Application Documents or Temp directory
+        if (savedPath == null) {
+          final dir = await getTemporaryDirectory();
+          final sanitizedDisplayName = displayName.replaceAll(
+            RegExp(r'[\\/:*?"<>|]'),
+            '_',
+          );
+          final filePath = '${dir.path}/$sanitizedDisplayName.pdf';
+          final file = File(filePath);
+          await file.writeAsBytes(pdfResponse.bodyBytes);
+          savedPath = filePath;
+        }
+
+        print('Invoice downloaded successfully to: $savedPath');
+        await OpenFilex.open(savedPath);
+        return savedPath;
+      } else {
+        throw Exception(
+          'Failed to download PDF: ${pdfResponse.statusCode} ${pdfResponse.reasonPhrase}',
+        );
+      }
+    } catch (e) {
+      print('Error downloading invoice: $e');
+      throw Exception('Failed to download invoice: $e');
+    }
+  }
 }

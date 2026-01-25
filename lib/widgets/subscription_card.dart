@@ -1,5 +1,6 @@
 import 'package:grocery_app/common_widgets/global_import.dart';
 import 'package:grocery_app/cubits/subscription/subscription_state.dart';
+import 'package:grocery_app/widgets/pause_date_picker_sheet.dart';
 
 class SubscriptionCarousel extends StatefulWidget {
   const SubscriptionCarousel({super.key});
@@ -111,23 +112,31 @@ class _SubscriptionCarouselState extends State<SubscriptionCarousel>
           ),
         ),
         SizedBox(height: responsive.S),
-        SizedBox(
-          height: responsive.value(mobile: 290, tablet: 320),
-          child: PageView.builder(
-            controller: _pageController,
-            itemCount: subscriptions.length,
-            itemBuilder: (context, index) {
-              final subscription = subscriptions[index];
-              return SubscriptionCard(
-                subscription: subscription,
-                responsive: responsive,
-                onTogglePause: () => _showToggleConfirmation(subscription),
-                onRepayment: () {
-                  final handler = SubscriptionHandler(context);
-                  handler.processUPIRepayment(subscription.id);
-                },
-              );
-            },
+        SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          physics: const BouncingScrollPhysics(),
+          padding: EdgeInsets.symmetric(horizontal: responsive.screenPadding),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children:
+                subscriptions.map((subscription) {
+                  return Container(
+                    width:
+                        MediaQuery.of(context).size.width -
+                        (responsive.screenPadding * 2),
+                    padding: const EdgeInsets.only(right: 12),
+                    child: SubscriptionCard(
+                      subscription: subscription,
+                      responsive: responsive,
+                      onTogglePause:
+                          () => _showToggleConfirmation(subscription),
+                      onRepayment: () {
+                        final handler = SubscriptionHandler(context);
+                        handler.processUPIRepayment(subscription.id);
+                      },
+                    ),
+                  );
+                }).toList(),
           ),
         ),
       ],
@@ -152,12 +161,9 @@ class _SubscriptionCarouselState extends State<SubscriptionCarousel>
           ),
         ),
         SizedBox(height: responsive.S),
-        SizedBox(
-          height: responsive.value(mobile: 290, tablet: 320),
-          child: PageView(
-            physics: const NeverScrollableScrollPhysics(),
-            children: [SubscriptionCardSkeleton(responsive: responsive)],
-          ),
+        Padding(
+          padding: EdgeInsets.symmetric(horizontal: responsive.screenPadding),
+          child: SubscriptionCardSkeleton(responsive: responsive),
         ),
       ],
     );
@@ -170,206 +176,38 @@ class _SubscriptionCarouselState extends State<SubscriptionCarousel>
     DateTime? selectedEndDate;
 
     if (isCurrentlyPaused) {
-      showDialog(
+      showModalBottomSheet(
         context: context,
+        backgroundColor: Colors.transparent,
         builder:
-            (dialogContext) => AlertDialog(
-              title: const Text('Resume Subscription?'),
-              content: const Text(
-                'Are you sure you want to resume this subscription?',
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.pop(dialogContext),
-                  child: const Text('Cancel'),
-                ),
-                TextButton(
-                  onPressed: () {
-                    Navigator.pop(dialogContext);
-                    context.read<SubscriptionCubit>().togglePauseSubscription(
-                      subscription.id,
-                      null,
-                      null,
-                    );
-                  },
-                  child: const Text('Confirm'),
-                ),
-              ],
+            (context) => ResumeSubscriptionSheet(
+              onConfirm: () {
+                context.read<SubscriptionCubit>().togglePauseSubscription(
+                  subscription.id,
+                  null,
+                  null,
+                );
+              },
             ),
       );
       return;
     }
 
-    showDialog(
+    showModalBottomSheet(
       context: context,
-      builder: (BuildContext dialogContext) {
-        return StatefulBuilder(
-          builder: (context, setState) {
-            return Dialog(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(20.0),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          'Pause From',
-                          style: Theme.of(context).textTheme.displaySmall,
-                        ),
-                        IconButton(
-                          onPressed: () => Navigator.pop(dialogContext),
-                          icon: const Icon(Icons.close),
-                          splashRadius: 20,
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 20),
-                    Row(
-                      children: [
-                        _buildDatePickerField(
-                          context: context,
-                          hintText: 'From',
-                          selectedDate: selectedStartDate,
-                          onTap: () async {
-                            final date = await showDatePicker(
-                              context: context,
-                              initialDate: DateTime.now(),
-                              firstDate: DateTime.now(),
-                              lastDate: DateTime.now().add(
-                                const Duration(days: 365),
-                              ),
-                            );
-                            if (date != null) {
-                              setState(() => selectedStartDate = date);
-                            }
-                          },
-                        ),
-                        const Padding(
-                          padding: EdgeInsets.symmetric(horizontal: 8.0),
-                          child: Text('To'),
-                        ),
-                        _buildDatePickerField(
-                          context: context,
-                          hintText: 'To',
-                          selectedDate: selectedEndDate,
-                          onTap: () async {
-                            final date = await showDatePicker(
-                              context: context,
-                              initialDate: selectedStartDate ?? DateTime.now(),
-                              firstDate: selectedStartDate ?? DateTime.now(),
-                              lastDate: DateTime.now().add(
-                                const Duration(days: 365),
-                              ),
-                            );
-                            if (date != null) {
-                              setState(() => selectedEndDate = date);
-                            }
-                          },
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 32),
-                    SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton(
-                        onPressed: () {
-                          if (maxPausesLeft <= 0) {
-                            SnackBarHelper.showError(
-                              context,
-                              'No pauses remaining.',
-                            );
-                            return;
-                          }
-                          if (selectedStartDate == null ||
-                              selectedEndDate == null) {
-                            SnackBarHelper.showError(
-                              context,
-                              'Please select both start and end dates.',
-                            );
-                            return;
-                          }
-                          if (selectedEndDate!.isBefore(selectedStartDate!)) {
-                            SnackBarHelper.showError(
-                              context,
-                              'End date must be after start date.',
-                            );
-                            return;
-                          }
-                          Navigator.pop(dialogContext);
-                          context
-                              .read<SubscriptionCubit>()
-                              .togglePauseSubscription(
-                                subscription.id,
-                                selectedStartDate,
-                                selectedEndDate,
-                              );
-                        },
-                        child: const Text('Save Changes'),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            );
-          },
-        );
-      },
-    );
-  }
-
-  Widget _buildDatePickerField({
-    required BuildContext context,
-    required String hintText,
-    required DateTime? selectedDate,
-    required Function() onTap,
-  }) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-    return Expanded(
-      child: GestureDetector(
-        onTap: onTap,
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 8),
-          decoration: BoxDecoration(
-            color:
-                hintText == 'From'
-                    ? Colors.transparent
-                    : theme.inputDecorationTheme.fillColor,
-            border: Border.all(
-              color:
-                  hintText == 'From' ? colorScheme.primary : Colors.transparent,
-            ),
-            borderRadius: BorderRadius.circular(8),
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder:
+          (context) => PauseDatePickerSheet(
+            maxPausesLeft: subscription.remainingPauseTimes,
+            onConfirm: (start, end) {
+              context.read<SubscriptionCubit>().togglePauseSubscription(
+                subscription.id,
+                start,
+                end,
+              );
+            },
           ),
-          child: Row(
-            children: [
-              Icon(
-                Icons.calendar_today_outlined,
-                color: colorScheme.primary,
-                size: 12,
-              ),
-              const SizedBox(width: 8),
-              Text(
-                selectedDate != null
-                    ? DateFormat('MMM dd, yyyy').format(selectedDate)
-                    : hintText,
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color:
-                      selectedDate != null
-                          ? theme.textTheme.bodyLarge?.color
-                          : theme.hintColor,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
     );
   }
 }
@@ -409,275 +247,577 @@ class _SubscriptionCardState extends State<SubscriptionCard> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return GestureDetector(
-      onTapDown: (_) => setState(() => _isPressed = true),
-      onTapUp: (_) => setState(() => _isPressed = false),
-      onTapCancel: () => setState(() => _isPressed = false),
-      onTap: () => _navigateToDetails(context, widget.subscription),
-      child: AnimatedScale(
-        scale: _isPressed ? 0.98 : 1.0,
-        duration: const Duration(milliseconds: AppColors.animFast),
-        curve: Curves.easeInOut,
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: AppColors.animMedium),
-          margin: EdgeInsets.symmetric(
-            vertical: widget.responsive.S,
-            horizontal: widget.responsive.screenPadding / 2,
-          ),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(AppColors.radiusL),
-            border: Border.all(color: theme.dividerColor),
-            color: theme.cardColor,
-            boxShadow: [
-              BoxShadow(
-                color: theme.shadowColor.withOpacity(
-                  _isPressed ? 0.02 : AppColors.shadowOpacityLight,
-                ),
-                blurRadius: _isPressed ? 4 : 10,
-                offset: Offset(0, _isPressed ? 1 : 4),
-              ),
-            ],
-          ),
-          padding: EdgeInsets.all(
-            widget.responsive.value(mobile: 12, tablet: 16),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              _buildHeader(context),
-              _buildProductDetails(context),
-              _buildFooter(context),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildHeader(BuildContext context) {
-    final theme = Theme.of(context);
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            theme.colorScheme.primary,
-            theme.colorScheme.primary.withOpacity(0.85),
-          ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: theme.colorScheme.primary.withOpacity(0.3),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(
-            Icons.check_circle,
-            color: theme.colorScheme.onPrimary,
-            size: 16,
-          ),
-          const SizedBox(width: 6),
-          Text(
-            "Subscription - ${widget.subscription.planName}",
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: theme.colorScheme.onPrimary,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildProductDetails(BuildContext context) {
-    final theme = Theme.of(context);
-    final textTheme = theme.textTheme;
-    final item = widget.subscription.items.first;
+    final isDark = theme.brightness == Brightness.dark;
+    final subscription = widget.subscription;
+    final item = subscription.items.first;
+    final bool isPaused = subscription.status == 'PAUSED';
+    final deliveriesLeft =
+        subscription.totalDeliveries - subscription.completedDeliveries;
+    final progress =
+        subscription.totalDeliveries > 0
+            ? (subscription.completedDeliveries / subscription.totalDeliveries)
+                .clamp(0.0, 1.0)
+            : 0.0;
     final double discountPercent =
         item.price > 0
             ? ((item.price - item.discountedPrice) / item.price) * 100
             : 0;
 
-    return Container(
-      color: theme.cardColor,
-      padding: const EdgeInsets.all(2.0),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          ClipRRect(
-            borderRadius: BorderRadius.circular(12),
-            child: CachedNetworkImage(
-              imageUrl: item.imageUrl ?? '',
-              height: widget.responsive.value(mobile: 80, tablet: 100),
-              width: widget.responsive.value(mobile: 80, tablet: 100),
-              fit: BoxFit.cover,
-              placeholder:
-                  (context, url) => Container(
-                    color: theme.splashColor,
-                    child: const Center(
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    ),
-                  ),
-              errorWidget:
-                  (context, url, error) => Container(
-                    color: theme.splashColor,
-                    child: Icon(
-                      Icons.image_not_supported_outlined,
-                      color: theme.iconTheme.color?.withOpacity(0.5),
-                    ),
-                  ),
-            ),
+    return GestureDetector(
+      onTapDown: (_) => setState(() => _isPressed = true),
+      onTapUp: (_) => setState(() => _isPressed = false),
+      onTapCancel: () => setState(() => _isPressed = false),
+      onTap: () => _navigateToDetails(context, subscription),
+      child: AnimatedScale(
+        scale: _isPressed ? 0.97 : 1.0,
+        duration: const Duration(milliseconds: 150),
+        curve: Curves.easeInOut,
+        child: Container(
+          margin: EdgeInsets.symmetric(
+            vertical: widget.responsive.S,
+            horizontal: widget.responsive.screenPadding / 2,
           ),
-          SizedBox(width: widget.responsive.S),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors:
+                  isDark
+                      ? [const Color(0xFF1A1A2E), const Color(0xFF16213E)]
+                      : [Colors.white, const Color(0xFFFAFBFC)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            borderRadius: BorderRadius.circular(24),
+            border: Border.all(
+              color:
+                  isDark
+                      ? Colors.white.withOpacity(0.08)
+                      : AppColors.primaryColor.withOpacity(0.15),
+              width: 1.5,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: AppColors.primaryColor.withOpacity(isDark ? 0.15 : 0.08),
+                blurRadius: 20,
+                offset: const Offset(0, 8),
+                spreadRadius: 0,
+              ),
+              BoxShadow(
+                color: Colors.black.withOpacity(isDark ? 0.3 : 0.04),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(24),
+            child: Stack(
               children: [
-                Text(
-                  item.productName,
-                  style: textTheme.bodyLarge?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                Text(
-                  "${widget.subscription.planName} – ${item.quantity} units",
-                  style: textTheme.bodyMedium,
-                ),
-                SizedBox(height: widget.responsive.S),
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Text(
-                      "₹${item.discountedPrice.toStringAsFixed(0)}",
-                      style: textTheme.displaySmall,
-                    ),
-                    SizedBox(width: widget.responsive.S),
-                    Text(
-                      "₹${item.price.toStringAsFixed(0)}",
-                      style: textTheme.bodyLarge?.copyWith(
-                        color: theme.disabledColor,
-                        decoration: TextDecoration.lineThrough,
+                // Background decoration
+                Positioned(
+                  top: -30,
+                  right: -30,
+                  child: Container(
+                    width: 120,
+                    height: 120,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      gradient: RadialGradient(
+                        colors: [
+                          AppColors.primaryColor.withOpacity(0.15),
+                          AppColors.primaryColor.withOpacity(0.0),
+                        ],
                       ),
                     ),
-                    if (discountPercent > 0) ...[
-                      SizedBox(width: widget.responsive.S),
+                  ),
+                ),
+                Positioned(
+                  bottom: -50,
+                  left: -30,
+                  child: Container(
+                    width: 100,
+                    height: 100,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      gradient: RadialGradient(
+                        colors: [
+                          AppColors.primaryLight.withOpacity(0.1),
+                          AppColors.primaryLight.withOpacity(0.0),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+                // Content
+                Padding(
+                  padding: EdgeInsets.all(
+                    widget.responsive.value(mobile: 16, tablet: 20),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Header Row
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          // Status Badge
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 14,
+                              vertical: 8,
+                            ),
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                colors:
+                                    isPaused
+                                        ? [
+                                          AppColors.warning,
+                                          AppColors.warning.withOpacity(0.8),
+                                        ]
+                                        : [
+                                          AppColors.primaryColor,
+                                          AppColors.primaryDark,
+                                        ],
+                              ),
+                              borderRadius: BorderRadius.circular(30),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: (isPaused
+                                          ? AppColors.warning
+                                          : AppColors.primaryColor)
+                                      .withOpacity(0.4),
+                                  blurRadius: 8,
+                                  offset: const Offset(0, 3),
+                                ),
+                              ],
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  isPaused
+                                      ? Icons.pause_circle_rounded
+                                      : Icons.autorenew_rounded,
+                                  color: Colors.white,
+                                  size: 16,
+                                ),
+                                const SizedBox(width: 6),
+                                Text(
+                                  isPaused ? 'Paused' : subscription.planName,
+                                  style: theme.textTheme.labelMedium?.copyWith(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          // Delivery Badge
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 6,
+                            ),
+                            decoration: BoxDecoration(
+                              color:
+                                  isDark
+                                      ? Colors.white.withOpacity(0.1)
+                                      : AppColors.primaryColor.withOpacity(
+                                        0.08,
+                                      ),
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: AppColors.primaryColor.withOpacity(0.2),
+                              ),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  Icons.local_shipping_rounded,
+                                  color: AppColors.primaryColor,
+                                  size: 14,
+                                ),
+                                const SizedBox(width: 6),
+                                Text(
+                                  _formatDate(subscription.nextDeliveryDate),
+                                  style: theme.textTheme.labelSmall?.copyWith(
+                                    color: AppColors.primaryColor,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: widget.responsive.M),
+                      // Product Row
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          // Product Image with modern styling
+                          Container(
+                            width: widget.responsive.value(
+                              mobile: 85,
+                              tablet: 100,
+                            ),
+                            height: widget.responsive.value(
+                              mobile: 85,
+                              tablet: 100,
+                            ),
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(18),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(
+                                    isDark ? 0.4 : 0.12,
+                                  ),
+                                  blurRadius: 15,
+                                  offset: const Offset(0, 6),
+                                ),
+                              ],
+                            ),
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(18),
+                              child: Stack(
+                                children: [
+                                  CachedNetworkImage(
+                                    imageUrl: item.imageUrl ?? '',
+                                    height: double.infinity,
+                                    width: double.infinity,
+                                    fit: BoxFit.cover,
+                                    placeholder:
+                                        (context, url) => Container(
+                                          color:
+                                              isDark
+                                                  ? Colors.grey[850]
+                                                  : Colors.grey[100],
+                                          child: Center(
+                                            child: CircularProgressIndicator(
+                                              strokeWidth: 2,
+                                              color: AppColors.primaryColor
+                                                  .withOpacity(0.5),
+                                            ),
+                                          ),
+                                        ),
+                                    errorWidget:
+                                        (context, url, error) => Container(
+                                          color:
+                                              isDark
+                                                  ? Colors.grey[850]
+                                                  : Colors.grey[100],
+                                          child: Icon(
+                                            Icons.image_rounded,
+                                            color: theme.hintColor,
+                                            size: 32,
+                                          ),
+                                        ),
+                                  ),
+                                  // Discount Badge
+                                  if (discountPercent > 0)
+                                    Positioned(
+                                      top: 6,
+                                      left: 6,
+                                      child: Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 6,
+                                          vertical: 3,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          gradient: LinearGradient(
+                                            colors: [
+                                              AppColors.success,
+                                              AppColors.success.withOpacity(
+                                                0.85,
+                                              ),
+                                            ],
+                                          ),
+                                          borderRadius: BorderRadius.circular(
+                                            8,
+                                          ),
+                                        ),
+                                        child: Text(
+                                          '${discountPercent.toStringAsFixed(0)}%',
+                                          style: const TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 10,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                ],
+                              ),
+                            ),
+                          ),
+                          SizedBox(width: widget.responsive.M),
+                          // Product Details
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  item.productName,
+                                  style: theme.textTheme.titleMedium?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                    height: 1.2,
+                                  ),
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  '${item.quantity} units • ${subscription.planName}',
+                                  style: theme.textTheme.bodySmall?.copyWith(
+                                    color: theme.hintColor,
+                                  ),
+                                ),
+                                const SizedBox(height: 10),
+                                Row(
+                                  children: [
+                                    Text(
+                                      '₹${item.discountedPrice.toStringAsFixed(0)}',
+                                      style: theme.textTheme.titleLarge
+                                          ?.copyWith(
+                                            fontWeight: FontWeight.bold,
+                                            color: AppColors.primaryColor,
+                                          ),
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Text(
+                                      '₹${item.price.toStringAsFixed(0)}',
+                                      style: theme.textTheme.bodyMedium
+                                          ?.copyWith(
+                                            decoration:
+                                                TextDecoration.lineThrough,
+                                            color: theme.hintColor,
+                                          ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: widget.responsive.M),
+                      // Progress Section
                       Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 6,
-                          vertical: 2,
-                        ),
+                        padding: const EdgeInsets.all(14),
                         decoration: BoxDecoration(
-                          color: AppColors.success.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                        child: Text(
-                          "${discountPercent.toStringAsFixed(0)}% Off",
-                          style: textTheme.bodySmall?.copyWith(
-                            color: AppColors.success,
-                            fontWeight: FontWeight.bold,
+                          color:
+                              isDark
+                                  ? Colors.white.withOpacity(0.05)
+                                  : AppColors.primaryColor.withOpacity(0.04),
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                            color: AppColors.primaryColor.withOpacity(0.1),
                           ),
                         ),
+                        child: Row(
+                          children: [
+                            // Circular Progress
+                            Stack(
+                              alignment: Alignment.center,
+                              children: [
+                                SizedBox(
+                                  width: 48,
+                                  height: 48,
+                                  child: CircularProgressIndicator(
+                                    value: progress,
+                                    strokeWidth: 4,
+                                    backgroundColor:
+                                        isDark
+                                            ? Colors.grey[800]
+                                            : Colors.grey[200],
+                                    valueColor: AlwaysStoppedAnimation<Color>(
+                                      AppColors.primaryColor,
+                                    ),
+                                  ),
+                                ),
+                                Text(
+                                  '${(progress * 100).toInt()}%',
+                                  style: theme.textTheme.labelSmall?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 11,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(width: 14),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    '$deliveriesLeft deliveries remaining',
+                                    style: theme.textTheme.bodyMedium?.copyWith(
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    '${subscription.completedDeliveries}/${subscription.totalDeliveries} completed • ${subscription.remainingPauseTimes} pauses left',
+                                    style: theme.textTheme.bodySmall?.copyWith(
+                                      color: theme.hintColor,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
+                      SizedBox(height: widget.responsive.M),
+                      // Action Buttons
+                      Row(
+                        children: [
+                          // Pause/Resume Button
+                          Expanded(
+                            child: Container(
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(14),
+                                border: Border.all(
+                                  color:
+                                      isPaused
+                                          ? AppColors.success
+                                          : AppColors.warning,
+                                  width: 1.5,
+                                ),
+                              ),
+                              child: Material(
+                                color: Colors.transparent,
+                                child: InkWell(
+                                  onTap: widget.onTogglePause,
+                                  borderRadius: BorderRadius.circular(14),
+                                  child: Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 12,
+                                    ),
+                                    child: FittedBox(
+                                      fit: BoxFit.scaleDown,
+                                      child: Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          Icon(
+                                            isPaused
+                                                ? Icons.play_circle_rounded
+                                                : Icons.pause_circle_rounded,
+                                            color:
+                                                isPaused
+                                                    ? AppColors.success
+                                                    : AppColors.warning,
+                                            size: 20,
+                                          ),
+                                          const SizedBox(width: 8),
+                                          Text(
+                                            isPaused ? 'Resume' : 'Pause',
+                                            style: theme.textTheme.labelLarge
+                                                ?.copyWith(
+                                                  color:
+                                                      isPaused
+                                                          ? AppColors.success
+                                                          : AppColors.warning,
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                          // Repayment Button
+                          if ((subscription
+                                          .installmentInfo
+                                          ?.installmentPaymentStatus ??
+                                      '')
+                                  .toUpperCase() ==
+                              'PENDING') ...[
+                            const SizedBox(width: 12),
+                            SubscriptionRepaymentButton(
+                              subscription: subscription,
+                              isExpanded: true,
+                            ),
+                          ],
+                          const SizedBox(width: 12),
+                          // View Details Button
+                          Expanded(
+                            child: Container(
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  colors: [
+                                    AppColors.primaryColor,
+                                    AppColors.primaryDark,
+                                  ],
+                                ),
+                                borderRadius: BorderRadius.circular(14),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: AppColors.primaryColor.withOpacity(
+                                      0.35,
+                                    ),
+                                    blurRadius: 10,
+                                    offset: const Offset(0, 4),
+                                  ),
+                                ],
+                              ),
+                              child: Material(
+                                color: Colors.transparent,
+                                child: InkWell(
+                                  onTap:
+                                      () => _navigateToDetails(
+                                        context,
+                                        subscription,
+                                      ),
+                                  borderRadius: BorderRadius.circular(14),
+                                  child: Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 12,
+                                    ),
+                                    child: FittedBox(
+                                      fit: BoxFit.scaleDown,
+                                      child: Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          const Icon(
+                                            Icons.visibility_rounded,
+                                            color: Colors.white,
+                                            size: 20,
+                                          ),
+                                          const SizedBox(width: 8),
+                                          Text(
+                                            'Details',
+                                            style: theme.textTheme.labelLarge
+                                                ?.copyWith(
+                                                  color: Colors.white,
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+
+                      // Payment Warning removed as per new design
                     ],
-                  ],
+                  ),
                 ),
               ],
             ),
           ),
-        ],
+        ),
       ),
-    );
-  }
-
-  Widget _buildFooter(BuildContext context) {
-    final theme = Theme.of(context);
-    final textTheme = theme.textTheme;
-    final colorScheme = theme.colorScheme;
-    final deliveriesLeft =
-        widget.subscription.totalDeliveries -
-        widget.subscription.completedDeliveries;
-    final bool isPaused = widget.subscription.status == 'PAUSED';
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            ElevatedButton.icon(
-              style: theme.elevatedButtonTheme.style,
-              icon: Icon(isPaused ? Icons.play_arrow : Icons.pause, size: 20),
-              label: Text(isPaused ? "Resume" : "Pause"),
-              onPressed: widget.onTogglePause,
-            ),
-            SizedBox(width: widget.responsive.S),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  "${widget.subscription.remainingPauseTimes} Pause Left",
-                  style: textTheme.bodyMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.buttonBackgroundColor,
-                  ),
-                  overflow: TextOverflow.ellipsis,
-                ),
-                Text(
-                  "$deliveriesLeft/${widget.subscription.totalDeliveries} Deliveries Left",
-                  style: textTheme.bodyMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.buttonBackgroundColor,
-                  ),
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
-            ),
-          ],
-        ),
-        SizedBox(height: widget.responsive.S),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Expanded(
-              child: Text(
-                "Next Delivery: ${_formatDate(widget.subscription.nextDeliveryDate)}",
-                style: textTheme.bodyMedium,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-            if (widget.subscription.installmentInfo != null &&
-                widget.subscription.canPayNextInstallment == true)
-              Text(
-                "${widget.subscription.installmentInfo?.installmentPaymentStatus.toUpperCase()}",
-              ),
-            if (widget.subscription.canPayNextInstallment) ...[
-              if (widget
-                          .subscription
-                          .installmentInfo
-                          ?.installmentPaymentStatus ==
-                      "PENDING" &&
-                  widget.subscription.installmentInfo!.currentInstallment > 1)
-                TextButton(
-                  onPressed: widget.onRepayment,
-                  child: Text(
-                    "Pay Now",
-                    style: TextStyle(color: colorScheme.primary),
-                  ),
-                ),
-            ],
-          ],
-        ),
-      ],
     );
   }
 
@@ -759,34 +899,6 @@ class SubscriptionCardSkeleton extends StatelessWidget {
           ],
         ),
       ),
-    );
-  }
-}
-
-class ShimmerLoading extends StatelessWidget {
-  const ShimmerLoading({
-    super.key,
-    required this.isLoading,
-    required this.child,
-  });
-
-  final bool isLoading;
-  final Widget child;
-
-  @override
-  Widget build(BuildContext context) {
-    if (!isLoading) {
-      return child;
-    }
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-    final baseColor = isDark ? Colors.grey[850]! : Colors.grey[300]!;
-    final highlightColor = isDark ? Colors.grey[700]! : Colors.grey[100]!;
-
-    return Shimmer.fromColors(
-      baseColor: baseColor,
-      highlightColor: highlightColor,
-      child: child,
     );
   }
 }

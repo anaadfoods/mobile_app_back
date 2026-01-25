@@ -175,7 +175,13 @@ class _CustomInputState extends State<CustomInput> {
                 : null,
         style: effectiveTextStyle,
         cursorColor: widget.onPrimary ? onPrimaryColor : primaryColor,
-        decoration: finalDecoration,
+        decoration: finalDecoration.copyWith(
+          contentPadding: const EdgeInsets.symmetric(
+            vertical: 12,
+            horizontal: 14,
+          ), // Compact padding
+          isDense: true, // Reduces height further
+        ),
       ),
     );
   }

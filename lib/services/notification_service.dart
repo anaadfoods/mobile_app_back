@@ -1,3 +1,4 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:grocery_app/common_widgets/global_import.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -59,7 +60,14 @@ class NotificationService {
   // Get device id
   static Future<String> deviceId = getDeviceId();
 
+  // Store initial message if app was launched from terminated state
+  RemoteMessage? _pendingInitialMessage;
+  bool _isInitialized = false;
+
   Future<void> initialize(NotificationCubit read) async {
+    if (_isInitialized) return;
+    _isInitialized = true;
+
     try {
       // Initialize Firebase Messaging
       await _initializeFirebaseMessaging();
@@ -95,8 +103,19 @@ class NotificationService {
     // Handle initial message when app is opened from terminated state
     RemoteMessage? initialMessage =
         await FirebaseMessaging.instance.getInitialMessage();
+
     if (initialMessage != null) {
-      _handleMessageOpenedApp(initialMessage);
+      debugPrint('Initial message receiving: ${initialMessage.data}');
+      _pendingInitialMessage = initialMessage;
+    }
+  }
+
+  // Called from AppInitializer when navigator is ready
+  void processInitialMessage() {
+    if (_pendingInitialMessage != null) {
+      debugPrint('Processing pending initial notification message');
+      _handleMessageOpenedApp(_pendingInitialMessage!);
+      _pendingInitialMessage = null;
     }
   }
 
@@ -285,6 +304,8 @@ class NotificationService {
   void _handleMessageOpenedApp(RemoteMessage message) {
     debugPrint('App opened from notification: ${message.data}');
     _onMessageOpenedAppController.add(message);
+    // Handle redirection based on notification data
+    handleRedirection(message.data);
   }
 
   void _onNotificationTapped(NotificationResponse response) {
@@ -293,7 +314,8 @@ class NotificationService {
     if (response.payload != null) {
       try {
         Map<String, dynamic> data = json.decode(response.payload!);
-        _handleNotificationAction(data);
+        // Use handleRedirection for consistent routing
+        handleRedirection(data);
       } catch (e) {
         debugPrint('Error parsing notification payload: $e');
         // Default to notifications screen if payload parsing fails
@@ -305,52 +327,101 @@ class NotificationService {
     }
   }
 
-  // In notification_service.dart
+  Future<void> _showLocalNotification(RemoteMessage message) async {
+    String channelId = _getChannelId(message.data);
+    String title = message.notification?.title ?? 'New Notification';
+    String body = message.notification?.body ?? '';
 
-Future<void> _showLocalNotification(RemoteMessage message) async {
-  String channelId = _getChannelId(message.data);
-  String title = message.notification?.title ?? 'New Notification';
-  String body = message.notification?.body ?? '';
+    // Get image URL from notification or data payload
+    String? imageUrl =
+        message.notification?.android?.imageUrl ??
+        message.notification?.apple?.imageUrl ??
+        message.data['image'] ??
+        message.data['image_url'];
 
-  AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
-    channelId,
-    _getChannelName(channelId),
-    channelDescription: _getChannelDescription(channelId),
-    importance: Importance.max, // Use max importance for heads-up
-    priority: Priority.high,
-    ticker: 'ticker',
-    icon: '@mipmap/ic_launcher',
-    color: const Color(0xFF4CAF50),
+    // Prepare style information based on whether image exists
+    StyleInformation styleInformation;
 
-    // ADD THIS TO MAKE THE NOTIFICATION EXPANDABLE
-    styleInformation: BigTextStyleInformation(
-      body, // The main text to be displayed in expanded view
-      htmlFormatBigText: true,
-      contentTitle: title, // Title to be shown in expanded view
-      htmlFormatContentTitle: true,
-    ),
-  );
+    if (imageUrl != null && imageUrl.isNotEmpty) {
+      try {
+        // Download image for BigPictureStyle notification
+        final response = await http.get(Uri.parse(imageUrl));
+        if (response.statusCode == 200) {
+          styleInformation = BigPictureStyleInformation(
+            ByteArrayAndroidBitmap(response.bodyBytes),
+            largeIcon: ByteArrayAndroidBitmap(response.bodyBytes),
+            contentTitle: title,
+            htmlFormatContentTitle: true,
+            summaryText: body,
+            htmlFormatSummaryText: true,
+          );
+          debugPrint('Image loaded successfully for notification');
+        } else {
+          debugPrint('Failed to load image: ${response.statusCode}');
+          styleInformation = BigTextStyleInformation(
+            body,
+            htmlFormatBigText: true,
+            contentTitle: title,
+            htmlFormatContentTitle: true,
+          );
+        }
+      } catch (e) {
+        debugPrint('Error loading image for notification: $e');
+        styleInformation = BigTextStyleInformation(
+          body,
+          htmlFormatBigText: true,
+          contentTitle: title,
+          htmlFormatContentTitle: true,
+        );
+      }
+    } else {
+      styleInformation = BigTextStyleInformation(
+        body,
+        htmlFormatBigText: true,
+        contentTitle: title,
+        htmlFormatContentTitle: true,
+      );
+    }
 
-  DarwinNotificationDetails iosDetails = const DarwinNotificationDetails(
-    presentAlert: true,
-    presentBadge: true,
-    presentSound: true,
-    subtitle: 'New Notification', // You can add a subtitle for iOS
-  );
+    AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
+      channelId,
+      _getChannelName(channelId),
+      channelDescription: _getChannelDescription(channelId),
+      importance: Importance.max,
+      priority: Priority.high,
+      ticker: 'ticker',
+      icon: '@mipmap/ic_launcher',
+      color: const Color(0xFF4CAF50),
+      styleInformation: styleInformation,
+    );
 
-  NotificationDetails notificationDetails = NotificationDetails(
-    android: androidDetails,
-    iOS: iosDetails, // Make sure to include iOS details
-  );
+    DarwinNotificationDetails iosDetails = DarwinNotificationDetails(
+      presentAlert: true,
+      presentBadge: true,
+      presentSound: true,
+      subtitle: title,
+      // iOS handles image from notification.image automatically via FCM
+    );
 
-  await _localNotifications.show(
-    message.hashCode,
-    title,
-    body,
-    notificationDetails,
-    payload: json.encode(message.data), // The payload will handle the redirect
-  );
-}
+    NotificationDetails notificationDetails = NotificationDetails(
+      android: androidDetails,
+      iOS: iosDetails,
+    );
+
+    // Include image URL in payload for in-app display
+    Map<String, dynamic> payloadData = Map<String, dynamic>.from(message.data);
+    if (imageUrl != null) {
+      payloadData['image'] = imageUrl;
+    }
+
+    await _localNotifications.show(
+      message.hashCode,
+      title,
+      body,
+      notificationDetails,
+      payload: json.encode(payloadData),
+    );
+  }
 
   String _getChannelId(Map<String, dynamic> data) {
     String? type = data['type'];
@@ -405,75 +476,117 @@ Future<void> _showLocalNotification(RemoteMessage message) async {
     }
   }
 
-  void _handleNotificationAction(Map<String, dynamic> data) {
-    String? action = data['type'];
-    String? id = data['id'];
+  /// Handles deep linking redirection from FCM notification payloads.
+  /// Supports Django backend payload format with 'screen', 'product_id', 'order_id' keys.
+  /// Falls back to existing type-based routing for other notification types.
+  ///
+  /// Screen-based routing (primary):
+  ///   - order_tracking: requires order_id
+  ///   - product_detail: requires product_id
+  ///   - subscription_detail: requires subscription_id
+  ///   - cart, profile, home, notifications: no ID required
+  ///
+  /// Type-based fallback (when screen is missing):
+  ///   - Uses 'type' and 'id' fields for routing
+  void handleRedirection(Map<String, dynamic> data) {
+    debugPrint('handleRedirection called with data: $data');
+    final String? screen = data['screen'] as String?;
+    final String? genericId = data['id'] as String?; // Fallback ID field
 
-    switch (action) {
-      case "order":
-        // Redirect to order screen
-        _navigateToOrder(id);
-        break;
-      case "subscription":
-      case "payment":
-        // Redirect to subscription detail screen
-        _navigateToSubscription(id);
-        break;
-      case "product":
-      case "promotional":
-        // Redirect to home screen
-        _navigateToHome();
-        break;
-      case "system":
-        // Stay on notifications screen for system updates
-        _navigateToNotifications();
-        break;
-      default:
-        debugPrint('Unknown notification action: $action');
-        // Default to notifications screen
-        _navigateToNotifications();
+    // Handle screen-based routing (primary method from backend)
+    if (screen != null && screen.isNotEmpty) {
+      debugPrint('Handling screen-based redirection: $screen');
+      switch (screen) {
+        case 'product_detail':
+          final productId = (data['product_id'] ?? genericId) as String?;
+          if (productId != null && productId.isNotEmpty) {
+            debugPrint('Navigating to product_detail with id: $productId');
+            NavigationService.navigateToProductDetails(productId);
+          } else {
+            debugPrint('product_id missing for product_detail screen');
+            _navigateToNotifications();
+          }
+          return;
+        case 'order_tracking':
+          final orderId = (data['order_id'] ?? genericId) as String?;
+          if (orderId != null && orderId.isNotEmpty) {
+            debugPrint('Navigating to order_tracking with id: $orderId');
+            NavigationService.navigateToOrderDetails(orderId);
+          } else {
+            debugPrint('order_id missing for order_tracking screen');
+            _navigateToNotifications();
+          }
+          return;
+        case 'subscription_detail':
+          final subscriptionId = (data['subscription_id'] ?? genericId) as String?;
+          if (subscriptionId != null && subscriptionId.isNotEmpty) {
+            debugPrint(
+              'Navigating to subscription_detail with id: $subscriptionId',
+            );
+            NavigationService.navigateToSubscriptionDetails(subscriptionId);
+          } else {
+            debugPrint(
+              'subscription_id missing for subscription_detail screen',
+            );
+            _navigateToNotifications();
+          }
+          return;
+        case 'cart':
+          debugPrint('Navigating to cart');
+          NavigationService.navigateToCart();
+          return;
+        case 'profile':
+          debugPrint('Navigating to profile');
+          NavigationService.navigateToAccount();
+          return;
+        case 'home':
+          debugPrint('Navigating to home');
+          NavigationService.navigateToHome();
+          return;
+        case 'notifications':
+          debugPrint('Navigating to notifications');
+          NavigationService.navigateToNotifications();
+          return;
+        default:
+          debugPrint(
+            'Unknown screen type: $screen, falling back to type-based routing',
+          );
+      }
     }
+
+    // Fall back to type-based routing when screen is missing
+    debugPrint('Falling back to type-based routing');
+    _handleTypeBasedRouting(data, genericId);
   }
 
-  // Navigation methods - these will be implemented by the app
-  void _navigateToOrder(String? orderId) {
-    debugPrint('Navigate to order: $orderId');
-    NavigationService.navigateToOrderDetails(orderId);
-  }
-
-  void _navigateToSubscription(String? subscriptionId) {
-    debugPrint('Navigate to subscription: $subscriptionId');
-    NavigationService.navigateToSubscriptionDetails(subscriptionId);
-  }
-
-  // void _navigateToPaymentReminder(String? subscriptionId) {
-  //   debugPrint('Navigate to payment reminder: $subscriptionId');
-  //   NavigationService.navigateToSubscriptionDetails(subscriptionId);
-  // }
-
-  // void _navigateToCart() {
-  //   debugPrint('Navigate to cart');
-  //   NavigationService.navigateToCart();
-  // }
-
-  void _navigateToProfile() {
-    debugPrint('Navigate to profile');
-    NavigationService.navigateToAccount();
-  }
-
-  void _navigateToPromo(String? promoId) {
-    debugPrint('Navigate to promo: $promoId');
-    NavigationService.navigateToPromoDetails(promoId);
-  }
-
-  void _navigateToProduct(String? productId) {
-    debugPrint('Navigate to product: $productId');
-    NavigationService.navigateToProductDetails(productId);
-  }
-
-  void _navigateToHome() {
-    debugPrint('Navigate to home');
-    NavigationService.navigateToHome();
+  /// Type-based routing fallback when 'screen' field is missing
+  void _handleTypeBasedRouting(Map<String, dynamic> data, String? genericId) {
+    final String? type = data['type'] as String?;
+    
+    switch (type) {
+      case 'subscription':
+      case 'payment_subscription':
+        final subscriptionId = (data['subscription_id'] ?? genericId) as String?;
+        NavigationService.navigateToSubscriptionDetails(subscriptionId);
+        break;
+      case 'order':
+        final orderId = (data['order_id'] ?? genericId) as String?;
+        NavigationService.navigateToOrderDetails(orderId);
+        break;
+      case 'product':
+        final productId = (data['product_id'] ?? genericId) as String?;
+        NavigationService.navigateToProductDetails(productId);
+        break;
+      case 'payment_order':
+        final orderId = (data['order_id'] ?? genericId) as String?;
+        NavigationService.navigateToOrderDetails(orderId);
+        break;
+      case 'promotional':
+      case 'system':
+      default:
+        _navigateToNotifications();
+        break;
+    }
   }
 
   void _navigateToNotifications() {
@@ -484,50 +597,52 @@ Future<void> _showLocalNotification(RemoteMessage message) async {
   // Public methods for sending local notifications
   // In notification_service.dart
 
-Future<void> showLocalNotification({
-  required String title,
-  required String body,
-  String? payload,
-  int id = 0,
-  String? type,
-}) async {
-  String channelId = _getChannelId({'type': type ?? 'order'});
+  Future<void> showLocalNotification({
+    required String title,
+    required String body,
+    String? payload,
+    int id = 0,
+    String? type,
+  }) async {
+    String channelId = _getChannelId({'type': type ?? 'order'});
 
-  AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
-    channelId,
-    _getChannelName(channelId),
-    channelDescription: _getChannelDescription(channelId),
-    importance: Importance.max,
-    priority: Priority.high,
-    ticker: 'ticker',
-    // ADD THE STYLE HERE AS WELL
-    styleInformation: BigTextStyleInformation(
+    AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
+      channelId,
+      _getChannelName(channelId),
+      channelDescription: _getChannelDescription(channelId),
+      importance: Importance.max,
+      priority: Priority.high,
+      ticker: 'ticker',
+      icon: '@mipmap/ic_launcher',
+      color: const Color(0xFF4CAF50),
+      // Style for better text display
+      styleInformation: BigTextStyleInformation(
+        body,
+        htmlFormatBigText: true,
+        contentTitle: title,
+        htmlFormatContentTitle: true,
+      ),
+    );
+
+    const DarwinNotificationDetails iosDetails = DarwinNotificationDetails(
+      presentAlert: true,
+      presentBadge: true,
+      presentSound: true,
+    );
+
+    NotificationDetails notificationDetails = NotificationDetails(
+      android: androidDetails,
+      iOS: iosDetails,
+    );
+
+    await _localNotifications.show(
+      id,
+      title,
       body,
-      htmlFormatBigText: true,
-      contentTitle: title,
-      htmlFormatContentTitle: true,
-    ),
-  );
-  
-  const DarwinNotificationDetails iosDetails = DarwinNotificationDetails(
-    presentAlert: true,
-    presentBadge: true,
-    presentSound: true,
-  );
-
-  NotificationDetails notificationDetails = NotificationDetails(
-    android: androidDetails,
-    iOS: iosDetails,
-  );
-
-  await _localNotifications.show(
-    id,
-    title,
-    body,
-    notificationDetails,
-    payload: payload,
-  );
-}
+      notificationDetails,
+      payload: payload,
+    );
+  }
 
   // Method to subscribe to topics
   Future<void> subscribeToTopic(String topic) async {
@@ -566,7 +681,7 @@ Future<void> showLocalNotification({
     String deviceID = await getDeviceId();
 
     final url = Uri.parse(
-      'https://app.anaadfoods.com/api/notifications/register-token/',
+      '${ApiConfig.baseUrl}/api/notifications/register-token/',
     );
     try {
       final response = await http.post(
@@ -597,7 +712,7 @@ Future<void> showLocalNotification({
     String bearerToken,
   ) async {
     final url = Uri.parse(
-      'https://app.anaadfoods.com/api/notifications/logout-device/',
+      '${ApiConfig.baseUrl}/api/notifications/logout-device/',
     );
     try {
       String deviceID = await getDeviceId();
@@ -624,9 +739,19 @@ Future<void> showLocalNotification({
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   // Ensure Firebase is initialized
-  // await Firebase.initializeApp();
+  await Firebase.initializeApp();
 
   debugPrint('Handling a background message: ${message.messageId}');
   debugPrint('Message data: ${message.data}');
   debugPrint('Message notification: ${message.notification?.title}');
+
+  // Parse and save notification
+  try {
+    Map<String, dynamic> notificationData = MessageUtility.parseMessageData(
+      message,
+    );
+    await NotificationHelper.saveNotification(notificationData);
+  } catch (e) {
+    debugPrint('Error saving background notification: $e');
+  }
 }
