@@ -75,10 +75,7 @@ class _LoginScreenState extends State<LoginScreen>
       vsync: this,
     );
     _logoBreathing = Tween<double>(begin: 1.0, end: 1.02).animate(
-      CurvedAnimation(
-        parent: _breathingController,
-        curve: Curves.easeInOut,
-      ),
+      CurvedAnimation(parent: _breathingController, curve: Curves.easeInOut),
     );
 
     // Input stagger animation
@@ -154,10 +151,15 @@ class _LoginScreenState extends State<LoginScreen>
           if (state is Authenticated) {
             Navigator.of(context).pushAndRemoveUntil(
               PageRouteBuilder(
-                pageBuilder: (context, animation, secondaryAnimation) =>
-                    const DashboardScreen(),
-                transitionsBuilder:
-                    (context, animation, secondaryAnimation, child) {
+                pageBuilder:
+                    (context, animation, secondaryAnimation) =>
+                        const DashboardScreen(),
+                transitionsBuilder: (
+                  context,
+                  animation,
+                  secondaryAnimation,
+                  child,
+                ) {
                   return FadeTransition(
                     opacity: CurvedAnimation(
                       parent: animation,
@@ -189,7 +191,7 @@ class _LoginScreenState extends State<LoginScreen>
                         // Base background image
                         Positioned.fill(
                           child: Image.asset(
-                            "assets/images/OnBoarding/background_login_sign.png",
+                            "assets/images/OnBoarding/background_home.png",
                             fit: BoxFit.cover,
                           ),
                         ),
@@ -201,9 +203,9 @@ class _LoginScreenState extends State<LoginScreen>
                                 begin: Alignment.topCenter,
                                 end: Alignment.bottomCenter,
                                 colors: [
-                                  colorScheme.primary.withOpacity(0.1),
+                                  colorScheme.primary.withValues(alpha: 0.1),
                                   Colors.transparent,
-                                  colorScheme.primary.withOpacity(0.05),
+                                  colorScheme.primary.withValues(alpha: 0.05),
                                 ],
                               ),
                             ),
@@ -211,21 +213,25 @@ class _LoginScreenState extends State<LoginScreen>
                         ),
                         // Floating decorative circles
                         Positioned(
-                          top: size.height * 0.1 +
+                          top:
+                              size.height * 0.1 +
                               math.sin(_floatController.value * math.pi) * 20,
                           right: -50,
                           child: _buildFloatingCircle(
                             100,
-                            colorScheme.primary.withOpacity(0.1),
+                            colorScheme.primary.withValues(alpha: 0.1),
                           ),
                         ),
                         Positioned(
-                          bottom: size.height * 0.3 +
+                          bottom:
+                              size.height * 0.3 +
                               math.cos(_floatController.value * math.pi) * 15,
                           left: -30,
                           child: _buildFloatingCircle(
                             80,
-                            AppColors.buttonBackgroundColor.withOpacity(0.08),
+                            AppColors.buttonBackgroundColor.withValues(
+                              alpha: 0.08,
+                            ),
                           ),
                         ),
                       ],
@@ -250,34 +256,27 @@ class _LoginScreenState extends State<LoginScreen>
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.stretch,
                               children: [
-                                // Animated Logo with subtle breathing
+                                // Animated Logo with subtle breathing (No background circle)
                                 AnimatedBuilder(
-                                  animation: Listenable.merge([_cardController, _breathingController]),
+                                  animation: Listenable.merge([
+                                    _cardController,
+                                    _breathingController,
+                                  ]),
                                   builder: (context, child) {
                                     return Transform.scale(
-                                      scale: _logoScale.value * _logoBreathing.value,
+                                      scale:
+                                          _logoScale.value *
+                                          _logoBreathing.value,
                                       child: Opacity(
                                         opacity: _cardFade.value,
                                         child: Align(
-                                          alignment: Alignment.topCenter,
-                                          child: Container(
-                                            padding: const EdgeInsets.all(16),
-                                            decoration: BoxDecoration(
-                                              shape: BoxShape.circle,
-                                              color: Colors.white,
-                                              boxShadow: [
-                                                BoxShadow(
-                                                  color: colorScheme.primary
-                                                      .withOpacity(0.15 + (_logoBreathing.value - 1.0) * 2),
-                                                  blurRadius: 25 + (_logoBreathing.value - 1.0) * 100,
-                                                  spreadRadius: 3,
-                                                ),
-                                              ],
-                                            ),
-                                            child: Image.asset(
-                                              "assets/images/OnBoarding/logo.png",
-                                              height: 60,
-                                            ),
+                                          alignment:
+                                              Alignment
+                                                  .center, // Center alignment
+                                          child: Image.asset(
+                                            "assets/images/OnBoarding/logo.png",
+                                            height:
+                                                80, // Slightly larger as requested (user asked to increase size in previous turn, keep it reasonable)
                                           ),
                                         ),
                                       ),
@@ -315,8 +314,9 @@ class _LoginScreenState extends State<LoginScreen>
                                           gradient: LinearGradient(
                                             colors: [
                                               colorScheme.primary,
-                                              colorScheme.primary
-                                                  .withOpacity(0.85),
+                                              colorScheme.primary.withValues(
+                                                alpha: 0.85,
+                                              ),
                                             ],
                                             begin: Alignment.topLeft,
                                             end: Alignment.bottomRight,
@@ -325,14 +325,15 @@ class _LoginScreenState extends State<LoginScreen>
                                             AppColors.radiusXL,
                                           ),
                                           border: Border.all(
-                                            color:
-                                                Colors.white.withOpacity(0.2),
+                                            color: Colors.white.withValues(
+                                              alpha: 0.2,
+                                            ),
                                             width: 1.5,
                                           ),
                                           boxShadow: [
                                             BoxShadow(
                                               color: colorScheme.primary
-                                                  .withOpacity(0.4),
+                                                  .withValues(alpha: 0.4),
                                               blurRadius: 30,
                                               offset: const Offset(0, 15),
                                             ),
@@ -348,14 +349,19 @@ class _LoginScreenState extends State<LoginScreen>
                                               _buildStaggeredWidget(
                                                 delay: 0.0,
                                                 child: Text(
-                                                  "Welcome Back!",
+                                                  "Welcome Home!",
+                                                  textAlign:
+                                                      TextAlign
+                                                          .center, // Center align
                                                   style: textTheme.headlineSmall
                                                       ?.copyWith(
-                                                    color:
-                                                        colorScheme.onPrimary,
-                                                    fontWeight: FontWeight.bold,
-                                                    letterSpacing: 0.5,
-                                                  ),
+                                                        color:
+                                                            colorScheme
+                                                                .onPrimary,
+                                                        fontWeight:
+                                                            FontWeight.bold,
+                                                        letterSpacing: 0.5,
+                                                      ),
                                                 ),
                                               ),
                                               const SizedBox(
@@ -364,12 +370,18 @@ class _LoginScreenState extends State<LoginScreen>
                                               _buildStaggeredWidget(
                                                 delay: 0.1,
                                                 child: Text(
-                                                  "Login to your account",
+                                                  "Your harvest is ready and waiting.",
+                                                  textAlign:
+                                                      TextAlign
+                                                          .center, // Center align
                                                   style: textTheme.bodyMedium
                                                       ?.copyWith(
-                                                    color: colorScheme.onPrimary
-                                                        .withOpacity(0.85),
-                                                  ),
+                                                        color: colorScheme
+                                                            .onPrimary
+                                                            .withValues(
+                                                              alpha: 0.85,
+                                                            ),
+                                                      ),
                                                 ),
                                               ),
                                               const SizedBox(
@@ -385,8 +397,9 @@ class _LoginScreenState extends State<LoginScreen>
                                                     controller:
                                                         _emailController,
                                                     focusNode: _emailFocus,
-                                                    keyboardType: TextInputType
-                                                        .emailAddress,
+                                                    keyboardType:
+                                                        TextInputType
+                                                            .emailAddress,
                                                     onPrimary: true,
                                                     validator: (value) {
                                                       if (value == null ||
@@ -439,9 +452,10 @@ class _LoginScreenState extends State<LoginScreen>
                                                   alignment:
                                                       Alignment.centerRight,
                                                   child: TextButton(
-                                                    onPressed: isLoading
-                                                        ? null
-                                                        : () => Navigator.push(
+                                                    onPressed:
+                                                        isLoading
+                                                            ? null
+                                                            : () => Navigator.push(
                                                               context,
                                                               _buildPageRoute(
                                                                 const ForgetPasswordScreen(),
@@ -455,10 +469,12 @@ class _LoginScreenState extends State<LoginScreen>
                                                       "Forgot Password?",
                                                       style: textTheme.bodySmall
                                                           ?.copyWith(
-                                                        color: colorScheme
-                                                            .onPrimary
-                                                            .withOpacity(0.85),
-                                                      ),
+                                                            color: colorScheme
+                                                                .onPrimary
+                                                                .withValues(
+                                                                  alpha: 0.85,
+                                                                ),
+                                                          ),
                                                     ),
                                                   ),
                                                 ),
@@ -490,16 +506,18 @@ class _LoginScreenState extends State<LoginScreen>
                                                       "Don't have an account?",
                                                       style: textTheme.bodySmall
                                                           ?.copyWith(
-                                                        color: colorScheme
-                                                            .onPrimary
-                                                            .withOpacity(0.85),
-                                                      ),
+                                                            color: colorScheme
+                                                                .onPrimary
+                                                                .withValues(
+                                                                  alpha: 0.85,
+                                                                ),
+                                                          ),
                                                     ),
                                                     TextButton(
-                                                      onPressed: isLoading
-                                                          ? null
-                                                          : () =>
-                                                              Navigator.push(
+                                                      onPressed:
+                                                          isLoading
+                                                              ? null
+                                                              : () => Navigator.push(
                                                                 context,
                                                                 _buildPageRoute(
                                                                   const SignupScreen(),
@@ -510,11 +528,13 @@ class _LoginScreenState extends State<LoginScreen>
                                                         style: textTheme
                                                             .bodyMedium
                                                             ?.copyWith(
-                                                          color: AppColors
-                                                              .buttonBackgroundColor,
-                                                          fontWeight:
-                                                              FontWeight.bold,
-                                                        ),
+                                                              color:
+                                                                  AppColors
+                                                                      .buttonBackgroundColor,
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .bold,
+                                                            ),
                                                       ),
                                                     ),
                                                   ],
@@ -534,15 +554,15 @@ class _LoginScreenState extends State<LoginScreen>
                                 AnimatedBuilder(
                                   animation: _inputController,
                                   builder: (context, child) {
-                                    final opacity = Tween<double>(
-                                      begin: 0.0,
-                                      end: 1.0,
-                                    )
-                                        .animate(CurvedAnimation(
-                                          parent: _inputController,
-                                          curve: const Interval(0.7, 1.0),
-                                        ))
-                                        .value;
+                                    final opacity =
+                                        Tween<double>(begin: 0.0, end: 1.0)
+                                            .animate(
+                                              CurvedAnimation(
+                                                parent: _inputController,
+                                                curve: const Interval(0.7, 1.0),
+                                              ),
+                                            )
+                                            .value;
                                     return Opacity(
                                       opacity: opacity,
                                       child: child,
@@ -551,8 +571,9 @@ class _LoginScreenState extends State<LoginScreen>
                                   child: Row(
                                     children: [
                                       Expanded(
-                                        child:
-                                            Divider(color: theme.dividerColor),
+                                        child: Divider(
+                                          color: theme.dividerColor,
+                                        ),
                                       ),
                                       Padding(
                                         padding: const EdgeInsets.symmetric(
@@ -566,8 +587,9 @@ class _LoginScreenState extends State<LoginScreen>
                                         ),
                                       ),
                                       Expanded(
-                                        child:
-                                            Divider(color: theme.dividerColor),
+                                        child: Divider(
+                                          color: theme.dividerColor,
+                                        ),
                                       ),
                                     ],
                                   ),
@@ -578,28 +600,28 @@ class _LoginScreenState extends State<LoginScreen>
                                 AnimatedBuilder(
                                   animation: _inputController,
                                   builder: (context, child) {
-                                    final slideValue = Tween<double>(
-                                      begin: 30.0,
-                                      end: 0.0,
-                                    )
-                                        .animate(CurvedAnimation(
-                                          parent: _inputController,
-                                          curve: const Interval(
-                                            0.8,
-                                            1.0,
-                                            curve: Curves.easeOut,
-                                          ),
-                                        ))
-                                        .value;
-                                    final opacity = Tween<double>(
-                                      begin: 0.0,
-                                      end: 1.0,
-                                    )
-                                        .animate(CurvedAnimation(
-                                          parent: _inputController,
-                                          curve: const Interval(0.8, 1.0),
-                                        ))
-                                        .value;
+                                    final slideValue =
+                                        Tween<double>(begin: 30.0, end: 0.0)
+                                            .animate(
+                                              CurvedAnimation(
+                                                parent: _inputController,
+                                                curve: const Interval(
+                                                  0.8,
+                                                  1.0,
+                                                  curve: Curves.easeOut,
+                                                ),
+                                              ),
+                                            )
+                                            .value;
+                                    final opacity =
+                                        Tween<double>(begin: 0.0, end: 1.0)
+                                            .animate(
+                                              CurvedAnimation(
+                                                parent: _inputController,
+                                                curve: const Interval(0.8, 1.0),
+                                              ),
+                                            )
+                                            .value;
                                     return Transform.translate(
                                       offset: Offset(0, slideValue),
                                       child: Opacity(
@@ -611,8 +633,11 @@ class _LoginScreenState extends State<LoginScreen>
                                   child: Center(
                                     child: _GoogleSignInButton(
                                       isLoading: isLoading,
-                                      onPressed: () =>
-                                          context.read<AuthCubit>().googleLogin(),
+                                      onPressed:
+                                          () =>
+                                              context
+                                                  .read<AuthCubit>()
+                                                  .googleLogin(),
                                     ),
                                   ),
                                 ),
@@ -642,7 +667,7 @@ class _LoginScreenState extends State<LoginScreen>
         color: color,
         boxShadow: [
           BoxShadow(
-            color: color.withOpacity(0.5),
+            color: color.withValues(alpha: 0.5),
             blurRadius: 30,
             spreadRadius: 10,
           ),
@@ -651,10 +676,7 @@ class _LoginScreenState extends State<LoginScreen>
     );
   }
 
-  Widget _buildStaggeredWidget({
-    required double delay,
-    required Widget child,
-  }) {
+  Widget _buildStaggeredWidget({required double delay, required Widget child}) {
     return AnimatedBuilder(
       animation: _inputController,
       builder: (context, _) {
@@ -670,34 +692,31 @@ class _LoginScreenState extends State<LoginScreen>
         );
         return Transform.translate(
           offset: Offset(0, 20 * (1 - animation.value)),
-          child: Opacity(
-            opacity: animation.value,
-            child: child,
-          ),
+          child: Opacity(opacity: animation.value, child: child),
         );
       },
     );
   }
 
-  Widget _buildAnimatedInput({
-    required Widget child,
-    required bool isFocused,
-  }) {
+  Widget _buildAnimatedInput({required Widget child, required bool isFocused}) {
     return AnimatedContainer(
       duration: const Duration(milliseconds: 200),
       curve: Curves.easeOut,
       transform: Matrix4.identity()..scale(isFocused ? 1.02 : 1.0),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(AppColors.radiusM),
-        boxShadow: isFocused
-            ? [
-                BoxShadow(
-                  color: AppColors.buttonBackgroundColor.withOpacity(0.3),
-                  blurRadius: 15,
-                  spreadRadius: 0,
-                ),
-              ]
-            : null,
+        boxShadow:
+            isFocused
+                ? [
+                  BoxShadow(
+                    color: AppColors.buttonBackgroundColor.withValues(
+                      alpha: 0.3,
+                    ),
+                    blurRadius: 15,
+                    spreadRadius: 0,
+                  ),
+                ]
+                : null,
       ),
       child: child,
     );
@@ -720,15 +739,11 @@ class _LoginScreenState extends State<LoginScreen>
                 AppColors.buttonBackgroundColor.withRed(200),
                 AppColors.buttonBackgroundColor,
               ],
-              stops: [
-                0.0,
-                _shimmerController.value,
-                1.0,
-              ],
+              stops: [0.0, _shimmerController.value, 1.0],
             ),
             boxShadow: [
               BoxShadow(
-                color: AppColors.buttonBackgroundColor.withOpacity(0.4),
+                color: AppColors.buttonBackgroundColor.withValues(alpha: 0.4),
                 blurRadius: 15,
                 offset: const Offset(0, 6),
               ),
@@ -739,34 +754,35 @@ class _LoginScreenState extends State<LoginScreen>
             child: InkWell(
               borderRadius: BorderRadius.circular(AppColors.radiusRound),
               onTap: isLoading ? null : onPressed,
-              splashColor: Colors.white.withOpacity(0.2),
-              highlightColor: Colors.white.withOpacity(0.1),
+              splashColor: Colors.white.withValues(alpha: 0.2),
+              highlightColor: Colors.white.withValues(alpha: 0.1),
               child: Padding(
                 padding: const EdgeInsets.symmetric(
                   vertical: AppColors.spacingL,
                 ),
                 child: Center(
-                  child: isLoading
-                      ? const SizedBox(
-                          width: 24,
-                          height: 24,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2.5,
-                            valueColor:
-                                AlwaysStoppedAnimation<Color>(Colors.white),
-                          ),
-                        )
-                      : Text(
-                          "Login",
-                          style: Theme.of(context)
-                              .textTheme
-                              .titleMedium
-                              ?.copyWith(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
-                                letterSpacing: 0.5,
+                  child:
+                      isLoading
+                          ? const SizedBox(
+                            width: 24,
+                            height: 24,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2.5,
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                Colors.white,
                               ),
-                        ),
+                            ),
+                          )
+                          : Text(
+                            "Login",
+                            style: Theme.of(
+                              context,
+                            ).textTheme.titleMedium?.copyWith(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                              letterSpacing: 0.5,
+                            ),
+                          ),
                 ),
               ),
             ),
@@ -784,14 +800,10 @@ class _LoginScreenState extends State<LoginScreen>
           position: Tween<Offset>(
             begin: const Offset(1.0, 0.0),
             end: Offset.zero,
-          ).animate(CurvedAnimation(
-            parent: animation,
-            curve: Curves.easeOutCubic,
-          )),
-          child: FadeTransition(
-            opacity: animation,
-            child: child,
+          ).animate(
+            CurvedAnimation(parent: animation, curve: Curves.easeOutCubic),
           ),
+          child: FadeTransition(opacity: animation, child: child),
         );
       },
       transitionDuration: const Duration(milliseconds: 400),
@@ -804,10 +816,7 @@ class _GoogleSignInButton extends StatefulWidget {
   final bool isLoading;
   final VoidCallback onPressed;
 
-  const _GoogleSignInButton({
-    required this.isLoading,
-    required this.onPressed,
-  });
+  const _GoogleSignInButton({required this.isLoading, required this.onPressed});
 
   @override
   State<_GoogleSignInButton> createState() => _GoogleSignInButtonState();
@@ -849,10 +858,13 @@ class _GoogleSignInButtonState extends State<_GoogleSignInButton>
         onTapDown: (_) => setState(() => _isPressed = true),
         onTapUp: (_) => setState(() => _isPressed = false),
         onTapCancel: () => setState(() => _isPressed = false),
-        onTap: widget.isLoading ? null : () {
-          HapticFeedback.lightImpact();
-          widget.onPressed();
-        },
+        onTap:
+            widget.isLoading
+                ? null
+                : () {
+                  HapticFeedback.lightImpact();
+                  widget.onPressed();
+                },
         child: AnimatedScale(
           scale: _isPressed ? 0.95 : 1.0,
           duration: const Duration(milliseconds: 100),
@@ -887,19 +899,17 @@ class _GoogleSignInButtonState extends State<_GoogleSignInButton>
                   child: SizedBox(
                     width: 20,
                     height: 20,
-                    child: CustomPaint(
-                      painter: _GoogleLogoPainter(),
-                    ),
+                    child: CustomPaint(painter: _GoogleLogoPainter()),
                   ),
                 ),
                 const SizedBox(width: AppColors.spacingM),
                 Text(
                   "Sign in with Google",
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: Colors.grey.shade700,
-                        fontWeight: FontWeight.w600,
-                        letterSpacing: 0.2,
-                      ),
+                    color: Colors.grey.shade700,
+                    fontWeight: FontWeight.w600,
+                    letterSpacing: 0.2,
+                  ),
                 ),
               ],
             ),
@@ -918,60 +928,60 @@ class _GoogleLogoPainter extends CustomPainter {
     final double center = s / 2;
     final double outerRadius = s / 2;
     final double innerRadius = s * 0.28;
-    
+
     // Google brand colors
     const Color blue = Color(0xFF4285F4);
     const Color red = Color(0xFFEA4335);
     const Color yellow = Color(0xFFFBBC05);
     const Color green = Color(0xFF34A853);
-    
+
     final paint = Paint()..style = PaintingStyle.fill;
-    
+
     // Draw the colored arcs (outer ring)
     // Blue section (right side, from -45° to 45°)
     paint.color = blue;
     canvas.drawArc(
       Rect.fromCircle(center: Offset(center, center), radius: outerRadius),
       -0.78, // -45 degrees
-      1.57,  // 90 degrees
+      1.57, // 90 degrees
       true,
       paint,
     );
-    
+
     // Green section (bottom right, from 45° to 135°)
     paint.color = green;
     canvas.drawArc(
       Rect.fromCircle(center: Offset(center, center), radius: outerRadius),
-      0.78,  // 45 degrees
-      1.57,  // 90 degrees
+      0.78, // 45 degrees
+      1.57, // 90 degrees
       true,
       paint,
     );
-    
+
     // Yellow section (bottom left, from 135° to 225°)
     paint.color = yellow;
     canvas.drawArc(
       Rect.fromCircle(center: Offset(center, center), radius: outerRadius),
-      2.36,  // 135 degrees
-      1.57,  // 90 degrees
+      2.36, // 135 degrees
+      1.57, // 90 degrees
       true,
       paint,
     );
-    
+
     // Red section (top, from 225° to 315°)
     paint.color = red;
     canvas.drawArc(
       Rect.fromCircle(center: Offset(center, center), radius: outerRadius),
-      3.93,  // 225 degrees
-      1.57,  // 90 degrees
+      3.93, // 225 degrees
+      1.57, // 90 degrees
       true,
       paint,
     );
-    
+
     // Cut out the inner circle (white center)
     paint.color = Colors.white;
     canvas.drawCircle(Offset(center, center), innerRadius, paint);
-    
+
     // Cut out the top-right opening of the G
     paint.color = Colors.white;
     final path = Path();
@@ -982,12 +992,17 @@ class _GoogleLogoPainter extends CustomPainter {
     path.lineTo(center, center - innerRadius);
     path.close();
     canvas.drawPath(path, paint);
-    
+
     // Draw the horizontal bar of the G (blue)
     paint.color = blue;
     final barHeight = s * 0.22;
     final barRect = RRect.fromRectAndRadius(
-      Rect.fromLTWH(center - s * 0.02, center - barHeight / 2, s * 0.54, barHeight),
+      Rect.fromLTWH(
+        center - s * 0.02,
+        center - barHeight / 2,
+        s * 0.54,
+        barHeight,
+      ),
       const Radius.circular(1),
     );
     canvas.drawRRect(barRect, paint);
@@ -996,3 +1011,4 @@ class _GoogleLogoPainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
+

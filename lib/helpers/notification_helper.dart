@@ -1,3 +1,6 @@
+import 'dart:convert';
+import 'package:flutter/foundation.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../services/notification_service.dart';
 
 class NotificationHelper {
@@ -43,5 +46,35 @@ class NotificationHelper {
       id: id,
       payload: payload,
     );
+  }
+
+  /// Save notification to local storage
+  static Future<void> saveNotification(
+    Map<String, dynamic> notification,
+  ) async {
+    try {
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      List<Map<String, dynamic>> notifications = [];
+      String? notificationsJson = prefs.getString('notifications');
+
+      if (notificationsJson != null) {
+        List<dynamic> notificationsList = json.decode(notificationsJson);
+        notifications = notificationsList.cast<Map<String, dynamic>>();
+      }
+
+      // Add new notification to the beginning
+      notifications.insert(0, notification);
+
+      // Save updated list
+      await prefs.setString('notifications', json.encode(notifications));
+
+      // Update badge count if needed (optional)
+      int currentCount = prefs.getInt('notification_count') ?? 0;
+      await prefs.setInt('notification_count', currentCount + 1);
+
+      debugPrint('Notification saved successfully');
+    } catch (e) {
+      debugPrint('Error saving notification: $e');
+    }
   }
 }

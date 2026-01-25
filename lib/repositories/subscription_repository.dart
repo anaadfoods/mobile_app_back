@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show debugPrint;
 import 'package:grocery_app/models/plan_Search_model.dart';
 import 'package:grocery_app/services/plan_search_service.dart';
 
@@ -134,12 +135,10 @@ class SubscriptionRepository {
           throw SubscriptionException(result['message'] ?? 'Failed to get subscriptions from service.');
         }
       } catch (e, stackTrace) {
-        // ++ THIS WILL PRINT THE PRECISE ERROR ++
-        print('--- DETAILED SUBSCRIPTION PARSING ERROR ---');
-        print('ERROR: $e');
-        print('STACK TRACE: $stackTrace');
-        // Re-throw the original exception to the Cubit
-        throw SubscriptionException('Failed to parse subscription data.');
+        debugPrint('Subscription error: $e');
+        debugPrint('Stack: $stackTrace');
+        // User-friendly message - hide technical details
+        throw SubscriptionException("Couldn't load subscriptions right now 📶\n\n🌱 Natural farming saves farmers 70% on input costs compared to chemical farming!");
       }
     });
   }

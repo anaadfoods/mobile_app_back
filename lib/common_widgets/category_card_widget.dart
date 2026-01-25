@@ -117,3 +117,4 @@ class _CategoryCardWidgetState extends State<CategoryCardWidget> {
     );
   }
 }
+

@@ -1,6 +1,4 @@
 import 'dart:ui';
-import 'dart:math' as math;
-import 'package:flutter/services.dart';
 import 'package:grocery_app/common_widgets/global_import.dart';
 import 'package:http/http.dart' as http;
 
@@ -128,9 +126,11 @@ class _CombinedScreenState extends State<CombinedScreen>
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
                   colors: [
-                    Colors.black.withOpacity(0.3),
-                    Colors.black.withOpacity(0.7),
+                    Colors.black.withOpacity(0.1),
+                    Colors.transparent,
+                    Colors.black.withOpacity(0.9),
                   ],
+                  stops: const [0.0, 0.4, 1.0],
                 ),
               ),
             ),
@@ -196,7 +196,7 @@ class _CombinedScreenState extends State<CombinedScreen>
                   ),
                   const SizedBox(height: 12),
                   Text(
-                    'Natural Farming',
+                    ' Remote Farming Program',
                     style: theme.textTheme.headlineMedium?.copyWith(
                       color: Colors.white,
                       fontWeight: FontWeight.bold,
@@ -205,7 +205,7 @@ class _CombinedScreenState extends State<CombinedScreen>
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    'Toxin-Free Produce for Your Family',
+                    'Certified toxin-free ICBN agriculture with complete traceability',
                     style: theme.textTheme.bodyLarge?.copyWith(
                       color: Colors.white.withOpacity(0.9),
                     ),
@@ -273,7 +273,7 @@ class _CombinedScreenState extends State<CombinedScreen>
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'The Promise of Purity',
+                            'The Purity Standard',
                             style: theme.textTheme.titleLarge?.copyWith(
                               fontWeight: FontWeight.bold,
                             ),
@@ -293,7 +293,7 @@ class _CombinedScreenState extends State<CombinedScreen>
                 ),
                 const SizedBox(height: 20),
                 Text(
-                  'We believe your family deserves the purest produce. Our farming methods go beyond organic standards to deliver truly toxin-free food to your table.',
+                  "We strictly adhere to natural(ICBN) farming protocols. This means no synthetic chemicals, toxins or pesticides and zero shortcuts. We grow crops that not only meet the highest Safety Standards but also redefine the Nutritional Standards. Here, you don't just buy produce; rather commit to the harvest",
                   style: theme.textTheme.bodyMedium?.copyWith(
                     color: isDark ? Colors.grey[300] : Colors.grey[700],
                     height: 1.6,
@@ -312,15 +312,17 @@ class _CombinedScreenState extends State<CombinedScreen>
       {
         'icon': Icons.home_work_outlined,
         'title': 'Your Mini Farm',
-        'desc': 'Dedicated section based on family size',
+        'desc':
+            'Land allocated exclusively to grow your/your family’s seasonal vegetable requirements',
         'color': const Color(0xFF4CAF50),
         'image':
             'https://images.unsplash.com/photo-1563203432-345337a36416?q=80&w=1964&auto=format&fit=crop',
       },
       {
         'icon': Icons.person_pin_rounded,
-        'title': 'Personal Farmer',
-        'desc': 'A farmer dedicated solely to you',
+        'title': 'Your Farm Manager',
+        'desc':
+            'Expert agronomists overseeing the entire crop lifecycle for you',
         'color': const Color(0xFF2196F3),
         'image':
             'https://images.unsplash.com/photo-1599599810694-b5b37304c847?q=80&w=2070&auto=format&fit=crop',
@@ -583,13 +585,13 @@ class _CombinedScreenState extends State<CombinedScreen>
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Contract Farming',
+                        'Enterprise Farming Partnership',
                         style: theme.textTheme.titleLarge?.copyWith(
                           fontWeight: FontWeight.bold,
                         ),
                       ),
                       Text(
-                        'For Businesses',
+                        'A transparent, predictable supply chain for your business',
                         style: theme.textTheme.bodyMedium?.copyWith(
                           color: isDark ? Colors.grey[400] : Colors.grey[600],
                         ),
@@ -607,18 +609,18 @@ class _CombinedScreenState extends State<CombinedScreen>
             const SizedBox(height: 24),
             _buildAdvantageItem(
               theme,
-              'Utmost Transparency',
-              'Know where, when, and how your produce grows',
+              'Seed-to-Scale Visibility',
+              'Eliminate the "black box" of sourcing. Gain total visibility over your dedicated yield, from the sowing of Heirloom seeds to final logistics, ensuring your production lines never stop.',
             ),
             _buildAdvantageItem(
               theme,
-              'Consistent Quality',
-              'Eliminate unpredictability with dedicated supply',
+              'Standardized Purity',
+              'Guarantee consistent nutritional density for your customers. We adhere to strict Toxin-Free ICBN Farming protocols certified by the Government of INDIA, protecting your brand from the liabilities of modern chemical farming.',
             ),
             _buildAdvantageItem(
               theme,
-              'Ethical Sourcing',
-              'Partner with trust and reliability',
+              'Ethical Compliance',
+              ' Turn your supply chain into a corporate asset. Partnering with ANAAD directly validates your commitment to Environmental Health and Farmer Economic Welfare, providing a verifiable impact story for your stakeholders',
             ),
           ],
         ),
@@ -668,9 +670,9 @@ class _CombinedScreenState extends State<CombinedScreen>
   Widget _buildTimelineSection(ThemeData theme, bool isDark) {
     final steps = [
       {'icon': Icons.chat_bubble_outline, 'label': 'Consultation'},
-      {'icon': Icons.agriculture_outlined, 'label': 'Farming'},
-      {'icon': Icons.location_searching, 'label': 'Tracking'},
-      {'icon': Icons.inventory_2_outlined, 'label': 'Supply'},
+      {'icon': Icons.agriculture_outlined, 'label': 'Cultivation'},
+      {'icon': Icons.location_searching, 'label': 'Monitoring'},
+      {'icon': Icons.inventory_2_outlined, 'label': 'Fulfillment'},
     ];
 
     return Column(
@@ -818,13 +820,34 @@ Future<void> _showNotificationForm(BuildContext context) async {
                         color: Colors.transparent,
                         child: Container(
                           decoration: BoxDecoration(
-                            color: (isDark ? Colors.grey[900] : Colors.white)!
-                                .withOpacity(0.95),
+                            gradient: LinearGradient(
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                              colors:
+                                  isDark
+                                      ? [
+                                        const Color(0xFF1E3A2F),
+                                        const Color(0xFF0F1F1A),
+                                      ]
+                                      : [
+                                        Colors.white,
+                                        const Color(
+                                          0xFF4CAF50,
+                                        ).withOpacity(0.1),
+                                      ],
+                            ),
                             borderRadius: BorderRadius.circular(24),
                             border: Border.all(
                               color: Colors.white.withOpacity(0.2),
                               width: 1,
                             ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: const Color(0xFF4CAF50).withOpacity(0.2),
+                                blurRadius: 30,
+                                offset: const Offset(0, 10),
+                              ),
+                            ],
                           ),
                           child: SingleChildScrollView(
                             child: Padding(

@@ -116,12 +116,7 @@ class DashboardScreenState extends State<DashboardScreen>
 
         if (isWarning) {
           lastTimeBackPressed = now;
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Press back again to exit'),
-              duration: Duration(seconds: 2),
-            ),
-          );
+          SnackBarHelper.showInfo(context, "Tap back again to exit 👋");
         } else {
           Navigator.of(context).pop();
         }
@@ -707,7 +702,7 @@ class _DockNavItemState extends State<_DockNavItem>
                       decoration: BoxDecoration(
                         color:
                             widget.isActive
-                                ? widget.colorScheme.primary.withOpacity(0.12)
+                                ? const Color(0xFFad5e46).withOpacity(0.12)
                                 : Colors.transparent,
                         borderRadius: BorderRadius.circular(10),
                       ),
@@ -717,7 +712,7 @@ class _DockNavItemState extends State<_DockNavItem>
                             : widget.item.icon,
                         color:
                             widget.isActive
-                                ? widget.colorScheme.primary
+                                ? const Color(0xFFad5e46)
                                 : (widget.isDark
                                     ? Colors.grey[400]
                                     : Colors.grey[600]),
@@ -739,7 +734,7 @@ class _DockNavItemState extends State<_DockNavItem>
                         widget.isActive ? FontWeight.w600 : FontWeight.w500,
                     color:
                         widget.isActive
-                            ? widget.colorScheme.primary
+                            ? const Color(0xFFad5e46)
                             : (widget.isDark
                                 ? Colors.grey[400]
                                 : Colors.grey[600]),
@@ -755,3 +750,4 @@ class _DockNavItemState extends State<_DockNavItem>
     );
   }
 }
+

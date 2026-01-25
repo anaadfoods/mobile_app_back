@@ -166,7 +166,6 @@ class _HelpScreenState extends State<HelpScreen> with TickerProviderStateMixin {
         backgroundColor: theme.scaffoldBackgroundColor,
         extendBodyBehindAppBar: true,
         body: SingleChildScrollView(
-          physics: const BouncingScrollPhysics(),
           child: Column(
             children: [
               // Animated Header
@@ -262,26 +261,34 @@ class _HelpScreenState extends State<HelpScreen> with TickerProviderStateMixin {
                 Positioned(
                   top: statusBarHeight + 60,
                   left: 24,
-                  right: 24,
+                  right: 100, // Increased to avoid overlap with icon
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
-                        'Help Center',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 28,
-                          fontWeight: FontWeight.bold,
-                          letterSpacing: 0.5,
+                      FittedBox(
+                        fit: BoxFit.scaleDown,
+                        alignment: Alignment.centerLeft,
+                        child: const Text(
+                          'The Community Desk',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 28,
+                            fontWeight: FontWeight.bold,
+                            letterSpacing: 0.5,
+                          ),
                         ),
                       ),
                       const SizedBox(height: 8),
-                      Text(
-                        'We\'re here to assist you on your journey',
-                        style: TextStyle(
-                          color: Colors.white.withAlpha(200),
-                          fontSize: 15,
-                          fontWeight: FontWeight.w400,
+                      FittedBox(
+                        fit: BoxFit.scaleDown,
+                        alignment: Alignment.centerLeft,
+                        child: Text(
+                          'Questions about your food? Speak to us',
+                          style: TextStyle(
+                            color: Colors.white.withAlpha(200),
+                            fontSize: 15,
+                            fontWeight: FontWeight.w400,
+                          ),
                         ),
                       ),
                     ],
@@ -397,24 +404,24 @@ class _HelpScreenState extends State<HelpScreen> with TickerProviderStateMixin {
     final contacts = [
       {
         'icon': Icons.email_rounded,
-        'title': 'Email Us',
-        'subtitle': 'Get a response within 24h',
+        'title': 'Write to Us',
+        'subtitle': ' A detailed response within 3-5 business days',
         'color': Colors.blue,
         'gradient': [Colors.blue.shade400, Colors.blue.shade600],
         'onTap': () => _launchEmail('complaints@anaadfoods.com'),
       },
       {
         'icon': Icons.chat_rounded,
-        'title': 'WhatsApp',
-        'subtitle': 'Chat with us instantly',
+        'title': 'Chat Live',
+        'subtitle': 'within 24 hours',
         'color': Colors.green,
         'gradient': [Colors.green.shade400, Colors.green.shade600],
         'onTap': () => _launchWhatsApp('919996166186'),
       },
       {
         'icon': Icons.phone_rounded,
-        'title': 'Call Us',
-        'subtitle': 'Talk to our team',
+        'title': 'Speak to Us',
+        'subtitle': 'Real voices, no robots',
         'color': Colors.orange,
         'gradient': [Colors.orange.shade400, Colors.orange.shade600],
         'onTap': () => _launchPhoneCall('9996166186'),
@@ -610,7 +617,7 @@ class _HelpScreenState extends State<HelpScreen> with TickerProviderStateMixin {
           ),
           const SizedBox(height: 16),
           Text(
-            'Still Need Help?',
+            'Tell Us More',
             style: theme.textTheme.titleLarge?.copyWith(
               fontWeight: FontWeight.bold,
             ),
@@ -644,7 +651,7 @@ class _HelpScreenState extends State<HelpScreen> with TickerProviderStateMixin {
                   Icon(Icons.edit_note_rounded, size: 22),
                   SizedBox(width: 10),
                   Text(
-                    'Fill Out Form',
+                    'Send Message',
                     style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
                   ),
                 ],

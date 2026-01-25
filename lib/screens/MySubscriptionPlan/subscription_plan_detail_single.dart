@@ -1,10 +1,16 @@
 import 'package:grocery_app/common_widgets/global_import.dart';
-import 'package:grocery_app/common_widgets/global_import.dart' as http;
+
+import 'package:grocery_app/widgets/pause_date_picker_sheet.dart';
 
 class SubscriptionPlanDetailScreen extends StatefulWidget {
-  final Subscription subscription;
+  final Subscription? subscription;
+  final String? subscriptionId;
 
-  const SubscriptionPlanDetailScreen({super.key, required this.subscription});
+  const SubscriptionPlanDetailScreen({
+    super.key,
+    this.subscription,
+    this.subscriptionId,
+  });
 
   @override
   State<SubscriptionPlanDetailScreen> createState() =>
@@ -22,7 +28,10 @@ class _SubscriptionPlanDetailScreenState
   String? _invoiceError;
   late AnimationController _pulseController;
   late Animation<double> _pulseAnimation;
-  late Subscription _currentOrder; // Assuming Order is part of your model
+  Subscription?
+  _currentOrder; // Using _currentOrder as the state variable for subscription
+  bool _isLoadingSubscription = false;
+
   List<TextDto> orderList = [];
   List<TextDto> shippedList = [];
   List<TextDto> outOfDeliveryList = [];
@@ -31,8 +40,6 @@ class _SubscriptionPlanDetailScreenState
   @override
   void initState() {
     super.initState();
-    _currentOrder = widget.subscription; // Placeholder, adjust as needed
-    _loadInvoices();
 
     _pulseController = AnimationController(
       duration: const Duration(seconds: 2),
@@ -42,10 +49,40 @@ class _SubscriptionPlanDetailScreenState
       CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
     );
 
-    if (widget.subscription.installmentPaymentStatus == "PENDING") {
+    if (widget.subscription != null) {
+      _currentOrder = widget.subscription;
+      _initAnimationsAndData();
+    } else if (widget.subscriptionId != null) {
+      _loadSubscription(widget.subscriptionId!);
+    }
+  }
+
+  void _initAnimationsAndData() {
+    if (_currentOrder?.installmentPaymentStatus == "PENDING") {
       _pulseController.repeat(reverse: true);
     }
-    // _setupOrderStatusSteps();
+    _loadInvoices();
+  }
+
+  Future<void> _loadSubscription(String id) async {
+    setState(() => _isLoadingSubscription = true);
+    try {
+      final subscription = await _subscriptionService.getSubscriptionsbyId(
+        id as int,
+      );
+      if (mounted) {
+        setState(() {
+          _currentOrder = subscription as Subscription?;
+          _isLoadingSubscription = false;
+        });
+        _initAnimationsAndData();
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isLoadingSubscription = false);
+        SnackBarHelper.showError(context, 'Failed to load subscription: $e');
+      }
+    }
   }
 
   @override
@@ -59,9 +96,10 @@ class _SubscriptionPlanDetailScreenState
       _isLoadingInvoices = true;
       _invoiceError = null;
     });
+    if (_currentOrder == null) return;
     try {
       final response = await _subscriptionService.getSubscriptionInvoices(
-        widget.subscription.id,
+        _currentOrder!.id,
       );
       if (mounted) {
         setState(() {
@@ -84,36 +122,41 @@ class _SubscriptionPlanDetailScreenState
   }
 
   Future<void> _downloadAndOpenInvoice(Invoice invoice) async {
+    if (Platform.isAndroid) {
+      final androidInfo = await DeviceInfoPlugin().androidInfo;
+      if (androidInfo.version.sdkInt <= 32) {
+        final status = await Permission.storage.status;
+        if (!status.isGranted) {
+          final result = await Permission.storage.request();
+          if (!result.isGranted) {
+            if (mounted) {
+              SnackBarHelper.showError(
+                context,
+                'Please provide media access to download the invoice.',
+                action: SnackBarAction(
+                  label: 'Settings',
+                  textColor: Colors.white,
+                  onPressed: openAppSettings,
+                ),
+              );
+            }
+            return;
+          }
+        }
+      }
+    }
+
     SnackBarHelper.showInfo(context, 'Downloading ${invoice.displayName}...');
     try {
-      final response = await http.get(Uri.parse(invoice.s3Url));
-      if (response.statusCode == 200) {
-        Directory? downloadsDir;
-        if (Platform.isAndroid) {
-          downloadsDir = Directory('/storage/emulated/0/Download');
-        } else {
-          downloadsDir = await getApplicationDocumentsDirectory();
-        }
-        if (!await downloadsDir.exists()) {
-          await downloadsDir.create(recursive: true);
-        }
-        final filePath = '${downloadsDir.path}/${invoice.displayName}.pdf';
-        final file = File(filePath);
-        await file.writeAsBytes(response.bodyBytes);
-        SnackBarHelper.showSuccess(
-          context,
-          'Invoice saved to Downloads folder!',
-        );
-        final result = await OpenFilex.open(filePath);
-        if (result.type != ResultType.done) {
-          SnackBarHelper.showError(
-            context,
-            'Could not open file: ${result.message}.',
-          );
-        }
-      } else {
-        throw Exception('Failed to download PDF: ${response.statusCode}');
-      }
+      final savedPath = await _subscriptionService.downloadInvoice(
+        invoice.s3Url,
+        invoice.displayName,
+      );
+
+      SnackBarHelper.showSuccess(context, 'Invoice saved to: $savedPath');
+
+      // The service already opens the file, but just in case or if we want to log it
+      print('Invoice downloaded and opened: $savedPath');
     } catch (e) {
       SnackBarHelper.showError(context, 'Error downloading invoice: $e');
     }
@@ -145,212 +188,33 @@ class _SubscriptionPlanDetailScreenState
   }
 
   void _showToggleConfirmation(Subscription subscription) {
-    // The logic is unchanged, but the dialogs will use the app's theme.
     final isCurrentlyPaused = subscription.status == 'PAUSED';
-    final maxPausesLeft = subscription.remainingPauseTimes;
-    DateTime? selectedStartDate;
-    DateTime? selectedEndDate;
-    DateTime? selectedNextDeliveryDate;
 
     if (isCurrentlyPaused) {
-      showDialog(
+      showModalBottomSheet(
         context: context,
+        backgroundColor: Colors.transparent,
         builder:
-            (context) => AlertDialog(
-              title: const Text('Resume Subscription?'),
-              content: const Text(
-                'Are you sure you want to resume this subscription?',
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.pop(context),
-                  child: const Text('Cancel'),
-                ),
-                TextButton(
-                  onPressed: () {
-                    Navigator.pop(context);
-                    _togglePauseSubscription(
-                      subscription,
-                      selectedStartDate,
-                      selectedEndDate,
-                    );
-                  },
-                  child: const Text('Confirm'),
-                ),
-              ],
+            (context) => ResumeSubscriptionSheet(
+              onConfirm:
+                  () => _togglePauseSubscription(subscription, null, null),
             ),
       );
       return;
     }
 
-    showDialog(
+    // Show pause date picker
+    showModalBottomSheet(
       context: context,
-      builder: (BuildContext context) {
-        return StatefulBuilder(
-          builder: (context, setState) {
-            return Dialog(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(20.0),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          'Pause From',
-                          style: Theme.of(context).textTheme.displaySmall,
-                        ),
-                        IconButton(
-                          onPressed: () => Navigator.pop(context),
-                          icon: const Icon(Icons.close),
-                          splashRadius: 20,
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 20),
-                    Row(
-                      children: [
-                        _buildDatePickerField(
-                          context: context,
-                          hintText: 'From',
-                          selectedDate: selectedStartDate,
-                          onTap: () async {
-                            final date = await showDatePicker(
-                              context: context,
-                              initialDate: DateTime.now(),
-                              firstDate: DateTime.now(),
-                              lastDate: DateTime.now().add(
-                                const Duration(days: 365),
-                              ),
-                            );
-                            if (date != null) {
-                              setState(() => selectedStartDate = date);
-                            }
-                          },
-                        ),
-                        const Padding(
-                          padding: EdgeInsets.symmetric(horizontal: 8.0),
-                          child: Text('To'),
-                        ),
-                        _buildDatePickerField(
-                          context: context,
-                          hintText: 'To',
-                          selectedDate: selectedEndDate,
-                          onTap: () async {
-                            final date = await showDatePicker(
-                              context: context,
-                              initialDate: selectedStartDate ?? DateTime.now(),
-                              firstDate: selectedStartDate ?? DateTime.now(),
-                              lastDate: DateTime.now().add(
-                                const Duration(days: 365),
-                              ),
-                            );
-                            if (date != null) {
-                              setState(() => selectedEndDate = date);
-                            }
-                          },
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 32),
-                    SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton(
-                        onPressed: () {
-                          if (maxPausesLeft <= 0) {
-                            SnackBarHelper.showError(
-                              context,
-                              'No pauses remaining.',
-                            );
-                            return;
-                          }
-                          if (selectedStartDate == null ||
-                              selectedEndDate == null) {
-                            SnackBarHelper.showError(
-                              context,
-                              'Please select both start and end dates.',
-                            );
-                            return;
-                          }
-                          if (selectedEndDate!.isBefore(selectedStartDate!)) {
-                            SnackBarHelper.showError(
-                              context,
-                              'End date must be after start date.',
-                            );
-                            return;
-                          }
-                          Navigator.pop(context);
-                          _togglePauseSubscription(
-                            subscription,
-                            selectedStartDate!,
-                            selectedEndDate!,
-                          );
-                        },
-                        child: const Text('Save Changes'),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            );
-          },
-        );
-      },
-    );
-  }
-
-  Widget _buildDatePickerField({
-    required BuildContext context,
-    required String hintText,
-    required DateTime? selectedDate,
-    required Function() onTap,
-  }) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-    return Expanded(
-      child: GestureDetector(
-        onTap: onTap as void Function()?,
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 8),
-          decoration: BoxDecoration(
-            color:
-                hintText == 'From'
-                    ? Colors.transparent
-                    : theme.inputDecorationTheme.fillColor,
-            border: Border.all(
-              color:
-                  hintText == 'From' ? colorScheme.primary : Colors.transparent,
-            ),
-            borderRadius: BorderRadius.circular(8),
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder:
+          (context) => PauseDatePickerSheet(
+            maxPausesLeft: subscription.remainingPauseTimes,
+            onConfirm:
+                (start, end) =>
+                    _togglePauseSubscription(subscription, start, end),
           ),
-          child: Row(
-            children: [
-              Icon(
-                Icons.calendar_today_outlined,
-                color: colorScheme.primary,
-                size: 12,
-              ),
-              const SizedBox(width: 8),
-              Text(
-                selectedDate != null
-                    ? DateFormat('MMM dd, yyyy').format(selectedDate)
-                    : hintText,
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color:
-                      selectedDate != null
-                          ? theme.textTheme.bodyLarge?.color
-                          : theme.hintColor,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
     );
   }
 
@@ -363,7 +227,7 @@ class _SubscriptionPlanDetailScreenState
   // }
 
   // Future<void> _handleRepayment() async {
-  //   await SubscriptionHandler().processUPIRepayment(context, widget.subscription.id);
+  //   await SubscriptionHandler().processUPIRepayment(context, _currentOrder!.id);
   // }
 
   // void _setupOrderStatusSteps() {
@@ -378,68 +242,84 @@ class _SubscriptionPlanDetailScreenState
 
   @override
   Widget build(BuildContext context) {
+    if (_isLoadingSubscription || _currentOrder == null) {
+      return Scaffold(
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+        body: const Center(child: CircularProgressIndicator()),
+      );
+    }
+
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
     return Scaffold(
       backgroundColor:
           isDark ? const Color(0xFF0A0A0A) : const Color(0xFFF5F7FA),
-      body: CustomScrollView(
-        slivers: [
-          // Modern U-Shape Header
-          _buildAnimatedHeader(theme, isDark),
-          // Content
-          SliverToBoxAdapter(
-            child:
-                _isLoading
-                    ? const Center(child: CircularProgressIndicator())
-                    : Padding(
-                      padding: EdgeInsets.fromLTRB(
-                        16,
-                        20,
-                        16,
-                        MediaQuery.of(context).padding.bottom + 100,
-                      ),
-                      child: Column(
-                        children: [
-                          _buildHeroProductCard(theme, isDark),
-                          const SizedBox(height: 20),
-                          _buildModernSummaryCard(theme, isDark),
-                          const SizedBox(height: 20),
-                          _buildDeliveryProgressCard(theme, isDark),
-                          const SizedBox(height: 20),
-                          _buildModernPauseSection(theme, isDark),
-                          const SizedBox(height: 20),
-                          _buildModernSectionCard(
-                            theme: theme,
-                            isDark: isDark,
-                            icon: Icons.description_rounded,
-                            title: 'Invoices',
-                            gradient: [
-                              AppColors.info,
-                              AppColors.info.withOpacity(0.7),
-                            ],
-                            child: InvoiceTrackerWidget(
-                              isLoading: _isLoadingInvoices,
-                              error: _invoiceError,
-                              invoices: _invoices,
-                              onInvoiceTap: (invoice) {
-                                _downloadAndOpenInvoice(invoice);
-                              },
+      body: RefreshIndicator(
+        onRefresh: () async {
+          // Trigger a refresh (e.g. reload invoices or subscription details)
+          await _loadInvoices();
+        },
+        color: theme.colorScheme.primary,
+        child: CustomScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          slivers: [
+            // Modern U-Shape Header
+            _buildAnimatedHeader(theme, isDark),
+            // Content
+            SliverToBoxAdapter(
+              child:
+                  _isLoading
+                      ? const Center(child: CircularProgressIndicator())
+                      : Padding(
+                        padding: EdgeInsets.fromLTRB(
+                          16,
+                          20,
+                          16,
+                          MediaQuery.of(context).padding.bottom + 100,
+                        ),
+                        child: Column(
+                          children: [
+                            _buildPaymentPendingHeader(theme),
+                            _buildHeroProductCard(theme, isDark),
+                            const SizedBox(height: 20),
+                            _buildModernSummaryCard(theme, isDark),
+                            const SizedBox(height: 20),
+                            _buildDeliveryProgressCard(theme, isDark),
+                            const SizedBox(height: 20),
+                            _buildModernPauseSection(theme, isDark),
+                            const SizedBox(height: 20),
+                            _buildModernSectionCard(
+                              theme: theme,
+                              isDark: isDark,
+                              icon: Icons.description_rounded,
+                              title: 'Invoices',
+                              gradient: [
+                                AppColors.info,
+                                AppColors.info.withOpacity(0.7),
+                              ],
+                              child: InvoiceTrackerWidget(
+                                isLoading: _isLoadingInvoices,
+                                error: _invoiceError,
+                                invoices: _invoices,
+                                onInvoiceTap: (invoice) {
+                                  _downloadAndOpenInvoice(invoice);
+                                },
+                              ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
-                    ),
-          ),
-        ],
+            ),
+          ],
+        ),
       ),
       bottomNavigationBar: _buildModernBottomButtons(theme, isDark),
     );
   }
 
   Widget _buildAnimatedHeader(ThemeData theme, bool isDark) {
-    final subscription = widget.subscription;
+    final subscription = _currentOrder!;
     final item =
         subscription.items.isNotEmpty ? subscription.items.first : null;
 
@@ -528,21 +408,21 @@ class _SubscriptionPlanDetailScreenState
                             ),
                           ),
                         ),
-                        GestureDetector(
-                          onTap: _loadInvoices,
-                          child: Container(
-                            padding: const EdgeInsets.all(10),
-                            decoration: BoxDecoration(
-                              color: Colors.white.withOpacity(0.2),
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: const Icon(
-                              Icons.refresh_rounded,
-                              color: Colors.white,
-                              size: 20,
-                            ),
-                          ),
-                        ),
+                        // GestureDetector(
+                        //   onTap: _loadInvoices,
+                        //   child: Container(
+                        //     padding: const EdgeInsets.all(10),
+                        //     decoration: BoxDecoration(
+                        //       color: Colors.white.withOpacity(0.2),
+                        //       borderRadius: BorderRadius.circular(12),
+                        //     ),
+                        //     child: const Icon(
+                        //       Icons.refresh_rounded,
+                        //       color: Colors.white,
+                        //       size: 20,
+                        //     ),
+                        //   ),
+                        // ),
                       ],
                     ),
                     const Spacer(),
@@ -576,7 +456,7 @@ class _SubscriptionPlanDetailScreenState
   }
 
   Widget _buildStatusBadge(ThemeData theme, bool isDark) {
-    final subscription = widget.subscription;
+    final subscription = _currentOrder!;
     final isPaused = subscription.status == 'PAUSED';
     final isCancelled = subscription.status == 'CANCELLED';
 
@@ -629,7 +509,7 @@ class _SubscriptionPlanDetailScreenState
   }
 
   Widget _buildHeroProductCard(ThemeData theme, bool isDark) {
-    final item = widget.subscription.items.first;
+    final item = _currentOrder!.items.first;
     final double discountPercent =
         item.price > 0
             ? ((item.price - item.discountedPrice) / item.price) * 100
@@ -814,7 +694,7 @@ class _SubscriptionPlanDetailScreenState
   }
 
   Widget _buildModernSummaryCard(ThemeData theme, bool isDark) {
-    final subscription = widget.subscription;
+    final subscription = _currentOrder!;
     final isPaymentPending = subscription.installmentPaymentStatus == 'PENDING';
 
     return Container(
@@ -969,52 +849,6 @@ class _SubscriptionPlanDetailScreenState
             ),
           ),
           // Pay Now button if pending
-          if (isPaymentPending) ...[
-            const SizedBox(height: 16),
-            Container(
-              width: double.infinity,
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [AppColors.error, AppColors.error.withOpacity(0.85)],
-                ),
-                borderRadius: BorderRadius.circular(14),
-                boxShadow: [
-                  BoxShadow(
-                    color: AppColors.error.withOpacity(0.3),
-                    blurRadius: 10,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
-              ),
-              child: Material(
-                color: Colors.transparent,
-                child: InkWell(
-                  onTap: () async {
-                    final handler = SubscriptionHandler(context);
-                    await handler.processUPIRepayment(subscription.id);
-                  },
-                  borderRadius: BorderRadius.circular(14),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Icon(Icons.payment_rounded, color: Colors.white),
-                        const SizedBox(width: 10),
-                        Text(
-                          'Pay Now',
-                          style: theme.textTheme.titleMedium?.copyWith(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ],
         ],
       ),
     );
@@ -1056,7 +890,7 @@ class _SubscriptionPlanDetailScreenState
   Widget _buildDeliveryProgressCard(ThemeData theme, bool isDark) {
     final subscription = widget.subscription;
     final deliveriesLeft =
-        subscription.totalDeliveries - subscription.completedDeliveries;
+        subscription!.totalDeliveries - subscription.completedDeliveries;
     final progress =
         subscription.totalDeliveries > 0
             ? (subscription.completedDeliveries / subscription.totalDeliveries)
@@ -1220,9 +1054,47 @@ class _SubscriptionPlanDetailScreenState
     );
   }
 
+  Widget _buildPaymentPendingHeader(ThemeData theme) {
+    if ((widget.subscription!.installmentInfo?.installmentPaymentStatus ?? '')
+            .toUpperCase() !=
+        'PENDING') {
+      return const SizedBox.shrink();
+    }
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 20),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.error.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.error.withOpacity(0.3)),
+      ),
+      child: Row(
+        children: [
+          Icon(Icons.warning_rounded, color: AppColors.error, size: 24),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              'Payment Pending',
+              style: theme.textTheme.titleMedium?.copyWith(
+                color: AppColors.error,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+          SubscriptionRepaymentButton(
+            subscription: widget.subscription!,
+            isExpanded: false,
+            showLabel: true,
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildModernPauseSection(ThemeData theme, bool isDark) {
     final subscription = widget.subscription;
-    final bool isPaused = subscription.status == 'PAUSED';
+    final bool isPaused = subscription!.status == 'PAUSED';
 
     return Container(
       padding: const EdgeInsets.all(20),

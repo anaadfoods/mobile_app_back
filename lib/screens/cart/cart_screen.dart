@@ -1,5 +1,4 @@
 import 'dart:math' as math;
-import 'package:flutter/services.dart';
 import 'package:grocery_app/common_widgets/global_import.dart';
 
 class CartScreen extends StatefulWidget {
@@ -96,15 +95,18 @@ class _CartScreenState extends State<CartScreen> with TickerProviderStateMixin {
         listener: (context, state) {
           if (state is CartError) {
             SnackBarHelper.showError(context, state.message);
+          } else if (state is CartSuccess) {
+            if (state.error != null && state.error!.isNotEmpty) {
+              SnackBarHelper.showError(context, state.error!);
+            } else if (state.message != null && state.message!.isNotEmpty) {
+              SnackBarHelper.showSuccess(context, state.message!);
+            }
           }
         },
         builder: (context, state) {
           return Stack(
             children: [
               CustomScrollView(
-                physics: const AlwaysScrollableScrollPhysics(
-                  parent: BouncingScrollPhysics(),
-                ),
                 slivers: [
                   // Animated Header
                   _buildAnimatedHeader(theme, isDark, state),
@@ -163,9 +165,9 @@ class _CartScreenState extends State<CartScreen> with TickerProviderStateMixin {
               end: Alignment.bottomRight,
               colors: [
                 theme.colorScheme.primary,
-                theme.colorScheme.primary.withOpacity(0.85),
+                theme.colorScheme.primary.withValues(alpha: 0.85),
                 isDark
-                    ? theme.colorScheme.primary.withOpacity(0.7)
+                    ? theme.colorScheme.primary.withValues(alpha: 0.7)
                     : Colors.green.shade400,
               ],
             ),
@@ -175,7 +177,7 @@ class _CartScreenState extends State<CartScreen> with TickerProviderStateMixin {
             ),
             boxShadow: [
               BoxShadow(
-                color: theme.colorScheme.primary.withOpacity(0.3),
+                color: theme.colorScheme.primary.withValues(alpha: 0.3),
                 blurRadius: 20,
                 offset: const Offset(0, 10),
               ),
@@ -195,7 +197,7 @@ class _CartScreenState extends State<CartScreen> with TickerProviderStateMixin {
                   height: 120,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: Colors.white.withOpacity(0.1),
+                    color: Colors.white.withValues(alpha: 0.1),
                   ),
                 ),
               ),
@@ -207,7 +209,7 @@ class _CartScreenState extends State<CartScreen> with TickerProviderStateMixin {
                   height: 100,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: Colors.white.withOpacity(0.08),
+                    color: Colors.white.withValues(alpha: 0.08),
                   ),
                 ),
               ),
@@ -245,7 +247,7 @@ class _CartScreenState extends State<CartScreen> with TickerProviderStateMixin {
                           Container(
                             padding: const EdgeInsets.all(12),
                             decoration: BoxDecoration(
-                              color: Colors.white.withOpacity(0.2),
+                              color: Colors.white.withValues(alpha: 0.2),
                               borderRadius: BorderRadius.circular(16),
                             ),
                             child: const Icon(
@@ -273,7 +275,7 @@ class _CartScreenState extends State<CartScreen> with TickerProviderStateMixin {
                                       ? "$itemCount items ready for checkout"
                                       : "Your cart is empty",
                                   style: theme.textTheme.bodyMedium?.copyWith(
-                                    color: Colors.white.withOpacity(0.9),
+                                    color: Colors.white.withValues(alpha: 0.9),
                                   ),
                                 ),
                               ],
@@ -315,7 +317,7 @@ class _CartScreenState extends State<CartScreen> with TickerProviderStateMixin {
             height: size,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: Colors.white.withOpacity(opacity.clamp(0.05, 0.25)),
+              color: Colors.white.withValues(alpha: opacity.clamp(0.05, 0.25)),
             ),
           ),
         );
@@ -325,7 +327,7 @@ class _CartScreenState extends State<CartScreen> with TickerProviderStateMixin {
 
   Widget _buildIconButton(IconData icon, VoidCallback onTap) {
     return Material(
-      color: Colors.white.withOpacity(0.2),
+      color: Colors.white.withValues(alpha: 0.2),
       borderRadius: BorderRadius.circular(12),
       child: InkWell(
         onTap: onTap,
@@ -423,7 +425,7 @@ class _CartScreenState extends State<CartScreen> with TickerProviderStateMixin {
             borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
             boxShadow: [
               BoxShadow(
-                color: theme.shadowColor.withOpacity(0.15),
+                color: theme.shadowColor.withValues(alpha: 0.15),
                 blurRadius: 30,
                 offset: const Offset(0, -10),
               ),
@@ -457,7 +459,9 @@ class _CartScreenState extends State<CartScreen> with TickerProviderStateMixin {
                           vertical: 8,
                         ),
                         decoration: BoxDecoration(
-                          color: theme.colorScheme.primary.withOpacity(0.1),
+                          color: theme.colorScheme.primary.withValues(
+                            alpha: 0.1,
+                          ),
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Row(
@@ -541,7 +545,7 @@ class _CartScreenState extends State<CartScreen> with TickerProviderStateMixin {
                           Container(
                             padding: const EdgeInsets.all(4),
                             decoration: BoxDecoration(
-                              color: Colors.white.withOpacity(0.2),
+                              color: Colors.white.withValues(alpha: 0.2),
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: const Icon(
@@ -576,7 +580,7 @@ class _CartScreenState extends State<CartScreen> with TickerProviderStateMixin {
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: theme.colorScheme.error.withOpacity(0.1),
+                    color: theme.colorScheme.error.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: Icon(
@@ -619,7 +623,7 @@ class _CartScreenState extends State<CartScreen> with TickerProviderStateMixin {
 
   Widget _buildLoadingState(ThemeData theme) {
     return Shimmer.fromColors(
-      baseColor: theme.colorScheme.surface.withOpacity(0.5),
+      baseColor: theme.colorScheme.surface.withValues(alpha: 0.5),
       highlightColor: theme.colorScheme.surface,
       child: ListView.builder(
         padding: const EdgeInsets.all(16),
@@ -652,82 +656,93 @@ class _CartScreenState extends State<CartScreen> with TickerProviderStateMixin {
   }
 
   Widget _buildEmptyState(ThemeData theme) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(32),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            // Animated Cart Icon
-            TweenAnimationBuilder<double>(
-              tween: Tween(begin: 0, end: 1),
-              duration: const Duration(milliseconds: 800),
-              curve: Curves.elasticOut,
-              builder: (context, value, child) {
-                return Transform.scale(scale: value, child: child);
-              },
-              child: Container(
-                padding: const EdgeInsets.all(32),
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [
-                      theme.colorScheme.primary.withOpacity(0.1),
-                      theme.colorScheme.primary.withOpacity(0.05),
-                    ],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isSmallScreen = constraints.maxHeight < 600;
+        final iconSize = isSmallScreen ? 60.0 : 80.0;
+        final padding = isSmallScreen ? 24.0 : 32.0;
+
+        return Center(
+          child: SingleChildScrollView(
+            padding: EdgeInsets.all(padding),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                // Animated Cart Icon
+                TweenAnimationBuilder<double>(
+                  tween: Tween(begin: 0, end: 1),
+                  duration: const Duration(milliseconds: 800),
+                  curve: Curves.elasticOut,
+                  builder: (context, value, child) {
+                    return Transform.scale(scale: value, child: child);
+                  },
+                  child: Container(
+                    padding: EdgeInsets.all(isSmallScreen ? 20 : 32),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          theme.colorScheme.primary.withValues(alpha: 0.1),
+                          theme.colorScheme.primary.withValues(alpha: 0.05),
+                        ],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(
+                      Icons.shopping_cart_outlined,
+                      size: iconSize,
+                      color: theme.colorScheme.primary.withValues(alpha: 0.5),
+                    ),
                   ),
-                  shape: BoxShape.circle,
                 ),
-                child: Icon(
-                  Icons.shopping_cart_outlined,
-                  size: 80,
-                  color: theme.colorScheme.primary.withOpacity(0.5),
+                SizedBox(height: padding),
+                Text(
+                  'Your Cart is Empty',
+                  style: theme.textTheme.headlineSmall?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    fontSize: isSmallScreen ? 20 : 24,
+                  ),
+                  textAlign: TextAlign.center,
                 ),
-              ),
-            ),
-            const SizedBox(height: 32),
-            Text(
-              'Your Cart is Empty',
-              style: theme.textTheme.headlineSmall?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 12),
-            Text(
-              "Looks like you haven't added anything yet.\nStart shopping to fill it up!",
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: theme.hintColor,
-                height: 1.5,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 40),
-            ElevatedButton.icon(
-              onPressed: () {
-                HapticFeedback.lightImpact();
-                // Navigate to Categories tab (index 3) instead of popping
-                final dashboardState =
-                    context.findAncestorStateOfType<DashboardScreenState>();
-                if (dashboardState != null) {
-                  dashboardState.switchToTab(3); // Categories tab
-                }
-              },
-              icon: const Icon(Icons.shopping_bag_outlined),
-              label: const Text('Start Shopping'),
-              style: ElevatedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 32,
-                  vertical: 16,
+                const SizedBox(height: 12),
+                Text(
+                  "Looks like you haven't added anything yet.\nStart shopping to fill it up!",
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: theme.hintColor,
+                    height: 1.5,
+                    fontSize: isSmallScreen ? 13 : 14,
+                  ),
+                  textAlign: TextAlign.center,
                 ),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
+                SizedBox(height: isSmallScreen ? 24 : 40),
+                ElevatedButton.icon(
+                  onPressed: () {
+                    HapticFeedback.lightImpact();
+                    // Navigate to Categories tab (index 3) instead of popping
+                    final dashboardState =
+                        context.findAncestorStateOfType<DashboardScreenState>();
+                    if (dashboardState != null) {
+                      dashboardState.switchToTab(3); // Categories tab
+                    }
+                  },
+                  icon: const Icon(Icons.shopping_bag_outlined),
+                  label: const Text('Start Shopping'),
+                  style: ElevatedButton.styleFrom(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: 32,
+                      vertical: isSmallScreen ? 12 : 16,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                  ),
                 ),
-              ),
+              ],
             ),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 }
@@ -784,7 +799,9 @@ class _AnimatedCartItemState extends State<_AnimatedCartItem> {
             ),
             boxShadow: [
               BoxShadow(
-                color: theme.shadowColor.withOpacity(_isPressed ? 0.12 : 0.06),
+                color: theme.shadowColor.withValues(
+                  alpha: _isPressed ? 0.12 : 0.06,
+                ),
                 blurRadius: _isPressed ? 16 : 8,
                 offset: Offset(0, _isPressed ? 6 : 3),
               ),
@@ -857,21 +874,23 @@ class _AnimatedCartItemState extends State<_AnimatedCartItem> {
                     Row(
                       children: [
                         // Price
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 10,
-                            vertical: 4,
-                          ),
-                          decoration: BoxDecoration(
-                            color: theme.colorScheme.primary.withOpacity(0.1),
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          child: Text(
-                            '₹${item.productVariant.finalPrice.toStringAsFixed(0)}',
-                            style: TextStyle(
-                              color: theme.colorScheme.primary,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 14,
+                        FittedBox(
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 4,
+                            ),
+                            decoration: BoxDecoration(
+                              color: theme.colorScheme.primary.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: Text(
+                              '₹${item.productVariant.finalPrice.toStringAsFixed(0)}',
+                              style: TextStyle(
+                                color: theme.colorScheme.primary,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 14,
+                              ),
                             ),
                           ),
                         ),
@@ -885,33 +904,36 @@ class _AnimatedCartItemState extends State<_AnimatedCartItem> {
                                     : Colors.grey.shade100,
                             borderRadius: BorderRadius.circular(12),
                           ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              _buildQuantityButton(
-                                theme,
-                                Icons.remove,
-                                () =>
-                                    widget.onQuantityChanged(item.quantity - 1),
-                              ),
-                              Padding(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 12,
-                                ),
-                                child: Text(
-                                  '${item.quantity}',
-                                  style: theme.textTheme.titleMedium?.copyWith(
-                                    fontWeight: FontWeight.bold,
+                          child: FittedBox(
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                _buildQuantityButton(
+                                  theme,
+                                  Icons.remove,
+                                  () => widget.onQuantityChanged(
+                                    item.quantity - 1,
                                   ),
                                 ),
-                              ),
-                              _buildQuantityButton(
-                                theme,
-                                Icons.add,
-                                () =>
-                                    widget.onQuantityChanged(item.quantity + 1),
-                              ),
-                            ],
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 12,
+                                  ),
+                                  child: Text(
+                                    '${item.quantity}',
+                                    style: theme.textTheme.titleMedium
+                                        ?.copyWith(fontWeight: FontWeight.bold),
+                                  ),
+                                ),
+                                _buildQuantityButton(
+                                  theme,
+                                  Icons.add,
+                                  () => widget.onQuantityChanged(
+                                    item.quantity + 1,
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                         ),
                       ],

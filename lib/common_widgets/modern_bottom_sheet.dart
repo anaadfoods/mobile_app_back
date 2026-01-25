@@ -43,7 +43,7 @@ class ModernBottomSheet extends StatefulWidget {
     bool enableDrag = true,
   }) {
     HapticFeedback.lightImpact();
-    
+
     return showModalBottomSheet<T>(
       context: context,
       isScrollControlled: true,
@@ -51,16 +51,17 @@ class ModernBottomSheet extends StatefulWidget {
       enableDrag: enableDrag,
       backgroundColor: Colors.transparent,
       barrierColor: Colors.black.withOpacity(0.5),
-      builder: (context) => ModernBottomSheet(
-        title: title,
-        subtitle: subtitle,
-        headerIcon: headerIcon,
-        accentColor: accentColor,
-        showParticles: showParticles,
-        showGradientHeader: showGradientHeader,
-        maxHeight: maxHeight,
-        child: child,
-      ),
+      builder:
+          (context) => ModernBottomSheet(
+            title: title,
+            subtitle: subtitle,
+            headerIcon: headerIcon,
+            accentColor: accentColor,
+            showParticles: showParticles,
+            showGradientHeader: showGradientHeader,
+            maxHeight: maxHeight,
+            child: child,
+          ),
     );
   }
 }
@@ -100,14 +101,14 @@ class _ModernBottomSheetState extends State<ModernBottomSheet>
     _slideAnimation = Tween<Offset>(
       begin: const Offset(0, 0.3),
       end: Offset.zero,
-    ).animate(CurvedAnimation(
-      parent: _slideController,
-      curve: Curves.easeOutCubic,
-    ));
-
-    _fadeAnimation = Tween<double>(begin: 0, end: 1).animate(
-      CurvedAnimation(parent: _slideController, curve: Curves.easeOut),
+    ).animate(
+      CurvedAnimation(parent: _slideController, curve: Curves.easeOutCubic),
     );
+
+    _fadeAnimation = Tween<double>(
+      begin: 0,
+      end: 1,
+    ).animate(CurvedAnimation(parent: _slideController, curve: Curves.easeOut));
 
     _glowAnimation = Tween<double>(begin: 0.3, end: 0.6).animate(
       CurvedAnimation(parent: _glowController, curve: Curves.easeInOut),
@@ -177,8 +178,12 @@ class _ModernBottomSheetState extends State<ModernBottomSheet>
                               begin: Alignment.topCenter,
                               end: Alignment.bottomCenter,
                               colors: [
-                                accentColor.withOpacity(_glowAnimation.value * 0.4),
-                                accentColor.withOpacity(_glowAnimation.value * 0.1),
+                                accentColor.withOpacity(
+                                  _glowAnimation.value * 0.4,
+                                ),
+                                accentColor.withOpacity(
+                                  _glowAnimation.value * 0.1,
+                                ),
                                 Colors.transparent,
                               ],
                             ),
@@ -190,7 +195,10 @@ class _ModernBottomSheetState extends State<ModernBottomSheet>
 
                 // Floating particles
                 if (widget.showParticles)
-                  ...List.generate(6, (index) => _buildFloatingParticle(index, accentColor)),
+                  ...List.generate(
+                    6,
+                    (index) => _buildFloatingParticle(index, accentColor),
+                  ),
 
                 // Content
                 Column(
@@ -204,9 +212,7 @@ class _ModernBottomSheetState extends State<ModernBottomSheet>
                       _buildHeader(theme, isDark, accentColor),
 
                     // Child content
-                    Flexible(
-                      child: widget.child,
-                    ),
+                    Flexible(child: widget.child),
                   ],
                 ),
               ],
@@ -265,15 +271,9 @@ class _ModernBottomSheetState extends State<ModernBottomSheet>
                   ],
                 ),
                 borderRadius: BorderRadius.circular(14),
-                border: Border.all(
-                  color: accentColor.withOpacity(0.3),
-                ),
+                border: Border.all(color: accentColor.withOpacity(0.3)),
               ),
-              child: Icon(
-                widget.headerIcon,
-                color: accentColor,
-                size: 24,
-              ),
+              child: Icon(widget.headerIcon, color: accentColor, size: 24),
             ),
             const SizedBox(width: 14),
           ],
@@ -369,44 +369,48 @@ class ModernSelectionCard extends StatelessWidget {
     final color = accentColor ?? theme.colorScheme.primary;
 
     return GestureDetector(
-      onTap: isEnabled ? () {
-        HapticFeedback.selectionClick();
-        onTap?.call();
-      } : null,
+      onTap:
+          isEnabled
+              ? () {
+                HapticFeedback.selectionClick();
+                onTap?.call();
+              }
+              : null,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 250),
         curve: Curves.easeOutCubic,
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          gradient: isSelected
-              ? LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [
-                    color,
-                    color.withOpacity(0.85),
-                  ],
-                )
-              : null,
-          color: isSelected
-              ? null
-              : (isDark ? Colors.grey.shade900 : Colors.grey.shade50),
+          gradient:
+              isSelected
+                  ? LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [color, color.withOpacity(0.85)],
+                  )
+                  : null,
+          color:
+              isSelected
+                  ? null
+                  : (isDark ? Colors.grey.shade900 : Colors.grey.shade50),
           borderRadius: BorderRadius.circular(18),
           border: Border.all(
-            color: isSelected
-                ? color.withOpacity(0.5)
-                : (isDark ? Colors.grey.shade800 : Colors.grey.shade200),
+            color:
+                isSelected
+                    ? color.withOpacity(0.5)
+                    : (isDark ? Colors.grey.shade800 : Colors.grey.shade200),
             width: isSelected ? 2 : 1,
           ),
-          boxShadow: isSelected
-              ? [
-                  BoxShadow(
-                    color: color.withOpacity(0.3),
-                    blurRadius: 12,
-                    offset: const Offset(0, 4),
-                  ),
-                ]
-              : null,
+          boxShadow:
+              isSelected
+                  ? [
+                    BoxShadow(
+                      color: color.withOpacity(0.3),
+                      blurRadius: 12,
+                      offset: const Offset(0, 4),
+                    ),
+                  ]
+                  : null,
         ),
         child: Opacity(
           opacity: isEnabled ? 1.0 : 0.5,
@@ -422,19 +426,28 @@ class ModernSelectionCard extends StatelessWidget {
                     height: 24,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: isSelected
-                          ? Colors.white.withOpacity(0.2)
-                          : Colors.transparent,
+                      color:
+                          isSelected
+                              ? Colors.white.withOpacity(0.2)
+                              : Colors.transparent,
                       border: Border.all(
-                        color: isSelected
-                            ? Colors.white
-                            : (isDark ? Colors.grey.shade600 : Colors.grey.shade400),
+                        color:
+                            isSelected
+                                ? Colors.white
+                                : (isDark
+                                    ? Colors.grey.shade600
+                                    : Colors.grey.shade400),
                         width: 2,
                       ),
                     ),
-                    child: isSelected
-                        ? const Icon(Icons.check, size: 14, color: Colors.white)
-                        : null,
+                    child:
+                        isSelected
+                            ? const Icon(
+                              Icons.check,
+                              size: 14,
+                              color: Colors.white,
+                            )
+                            : null,
                   ),
                   const SizedBox(width: 14),
 
@@ -465,9 +478,10 @@ class ModernSelectionCard extends StatelessWidget {
                           Text(
                             subtitle!,
                             style: theme.textTheme.bodySmall?.copyWith(
-                              color: isSelected
-                                  ? Colors.white.withOpacity(0.8)
-                                  : theme.hintColor,
+                              color:
+                                  isSelected
+                                      ? Colors.white.withOpacity(0.8)
+                                      : theme.hintColor,
                             ),
                           ),
                         ],
@@ -491,9 +505,10 @@ class ModernSelectionCard extends StatelessWidget {
                           Text(
                             trailingSubtext!,
                             style: theme.textTheme.bodySmall?.copyWith(
-                              color: isSelected
-                                  ? Colors.white.withOpacity(0.7)
-                                  : theme.hintColor,
+                              color:
+                                  isSelected
+                                      ? Colors.white.withOpacity(0.7)
+                                      : theme.hintColor,
                               decoration: TextDecoration.lineThrough,
                             ),
                           ),
@@ -537,32 +552,23 @@ class ModernQuantitySelector extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    final color = accentColor ?? theme.colorScheme.primary;
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
       decoration: BoxDecoration(
-        color: isDark ? Colors.grey.shade900 : Colors.grey.shade100,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: color.withOpacity(0.2),
-        ),
+        color: isDark ? Colors.grey.shade800 : Colors.grey.shade100,
+        borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           _buildButton(
-            icon: Icons.remove_rounded,
-            onTap: quantity > minQuantity
-                ? () => onChanged(quantity - 1)
-                : null,
+            icon: Icons.remove,
+            onTap:
+                quantity > minQuantity ? () => onChanged(quantity - 1) : null,
             theme: theme,
-            isDark: isDark,
-            color: color,
           ),
-          Container(
-            constraints: const BoxConstraints(minWidth: 48),
-            alignment: Alignment.center,
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12),
             child: Text(
               '$quantity',
               style: theme.textTheme.titleMedium?.copyWith(
@@ -571,13 +577,10 @@ class ModernQuantitySelector extends StatelessWidget {
             ),
           ),
           _buildButton(
-            icon: Icons.add_rounded,
-            onTap: quantity < maxQuantity
-                ? () => onChanged(quantity + 1)
-                : null,
+            icon: Icons.add,
+            onTap:
+                quantity < maxQuantity ? () => onChanged(quantity + 1) : null,
             theme: theme,
-            isDark: isDark,
-            color: color,
           ),
         ],
       ),
@@ -588,41 +591,26 @@ class ModernQuantitySelector extends StatelessWidget {
     required IconData icon,
     required VoidCallback? onTap,
     required ThemeData theme,
-    required bool isDark,
-    required Color color,
   }) {
-    final isEnabled = onTap != null;
-
-    return GestureDetector(
-      onTap: () {
-        if (isEnabled) {
-          HapticFeedback.selectionClick();
-          onTap();
-        }
-      },
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 150),
-        width: 36,
-        height: 36,
-        decoration: BoxDecoration(
-          color: isEnabled
-              ? (isDark ? Colors.grey.shade800 : Colors.white)
-              : Colors.transparent,
-          borderRadius: BorderRadius.circular(10),
-          boxShadow: isEnabled
-              ? [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
-                    blurRadius: 4,
-                    offset: const Offset(0, 2),
-                  ),
-                ]
-              : null,
-        ),
-        child: Icon(
-          icon,
-          size: 20,
-          color: isEnabled ? color : theme.disabledColor,
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap:
+            onTap != null
+                ? () {
+                  HapticFeedback.selectionClick();
+                  onTap();
+                }
+                : null,
+        borderRadius: BorderRadius.circular(8),
+        child: Padding(
+          padding: const EdgeInsets.all(8),
+          child: Icon(
+            icon,
+            size: 18,
+            color:
+                onTap != null ? theme.colorScheme.primary : theme.disabledColor,
+          ),
         ),
       ),
     );
@@ -654,68 +642,69 @@ class ModernBottomSheetButton extends StatelessWidget {
     final buttonColor = color ?? theme.colorScheme.primary;
 
     return GestureDetector(
-      onTap: isLoading ? null : () {
-        HapticFeedback.mediumImpact();
-        onTap?.call();
-      },
+      onTap:
+          isLoading
+              ? null
+              : () {
+                HapticFeedback.mediumImpact();
+                onTap?.call();
+              },
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
         height: 56,
         decoration: BoxDecoration(
-          gradient: isOutlined
-              ? null
-              : LinearGradient(
-                  colors: [
-                    buttonColor,
-                    buttonColor.withOpacity(0.85),
-                  ],
-                ),
+          gradient:
+              isOutlined
+                  ? null
+                  : LinearGradient(
+                    colors: [buttonColor, buttonColor.withOpacity(0.85)],
+                  ),
           color: isOutlined ? Colors.transparent : null,
           borderRadius: BorderRadius.circular(16),
-          border: isOutlined
-              ? Border.all(color: buttonColor, width: 2)
-              : null,
-          boxShadow: isOutlined
-              ? null
-              : [
-                  BoxShadow(
-                    color: buttonColor.withOpacity(0.3),
-                    blurRadius: 12,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
-        ),
-        child: Center(
-          child: isLoading
-              ? SizedBox(
-                  width: 24,
-                  height: 24,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2.5,
-                    color: isOutlined ? buttonColor : Colors.white,
-                  ),
-                )
-              : Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    if (icon != null) ...[
-                      Icon(
-                        icon,
-                        color: isOutlined ? buttonColor : Colors.white,
-                        size: 22,
-                      ),
-                      const SizedBox(width: 10),
-                    ],
-                    Text(
-                      label,
-                      style: TextStyle(
-                        color: isOutlined ? buttonColor : Colors.white,
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
+          border: isOutlined ? Border.all(color: buttonColor, width: 2) : null,
+          boxShadow:
+              isOutlined
+                  ? null
+                  : [
+                    BoxShadow(
+                      color: buttonColor.withOpacity(0.3),
+                      blurRadius: 12,
+                      offset: const Offset(0, 4),
                     ),
                   ],
-                ),
+        ),
+        child: Center(
+          child:
+              isLoading
+                  ? SizedBox(
+                    width: 24,
+                    height: 24,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2.5,
+                      color: isOutlined ? buttonColor : Colors.white,
+                    ),
+                  )
+                  : Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      if (icon != null) ...[
+                        Icon(
+                          icon,
+                          color: isOutlined ? buttonColor : Colors.white,
+                          size: 22,
+                        ),
+                        const SizedBox(width: 10),
+                      ],
+                      Text(
+                        label,
+                        style: TextStyle(
+                          color: isOutlined ? buttonColor : Colors.white,
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
         ),
       ),
     );

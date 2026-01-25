@@ -130,7 +130,8 @@ class _AccountScreenState extends State<AccountScreen>
                                 () => Navigator.push(
                                   context,
                                   MaterialPageRoute(
-                                    builder: (context) => const AddressScreen(),
+                                    builder:
+                                        (context) => AddressSelectionScreen(),
                                   ),
                                 ),
                           ),
@@ -669,7 +670,7 @@ class _AccountScreenState extends State<AccountScreen>
   }
 
   Widget _buildPreferencesSection(ThemeData theme) {
-    final colorScheme = theme.colorScheme;
+    // final colorScheme = theme.colorScheme; // Unused - commented out
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -934,3 +935,4 @@ class _MenuItem {
     required this.onTap,
   });
 }
+

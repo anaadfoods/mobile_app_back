@@ -3,8 +3,9 @@ import 'package:flutter/services.dart';
 import 'package:grocery_app/common_widgets/global_import.dart';
 
 class OrderDetailScreen extends StatefulWidget {
-  final Order order;
-  const OrderDetailScreen({super.key, required this.order});
+  final Order? order;
+  final String? orderId;
+  const OrderDetailScreen({super.key, this.order, this.orderId});
 
   @override
   State<OrderDetailScreen> createState() => _OrderDetailScreenState();
@@ -14,14 +15,14 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
     with SingleTickerProviderStateMixin {
   final OrderService _orderService = OrderService();
   bool _isCancelling = false;
-  late Order _currentOrder;
+  Order? _currentOrder;
+  bool _isLoading = false;
   late AnimationController _animController;
   late Animation<double> _fadeAnimation;
 
   @override
   void initState() {
     super.initState();
-    _currentOrder = widget.order;
     _animController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 800),
@@ -30,7 +31,34 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
       parent: _animController,
       curve: Curves.easeOutCubic,
     );
-    _animController.forward();
+
+    if (widget.order != null) {
+      _currentOrder = widget.order;
+      _animController.forward();
+    } else if (widget.orderId != null) {
+      _loadOrder(widget.orderId!);
+    } else {
+      // Handle error case - maybe pop or show error
+    }
+  }
+
+  Future<void> _loadOrder(String id) async {
+    setState(() => _isLoading = true);
+    try {
+      final order = await _orderService.getOrderById(id as int);
+      if (mounted) {
+        setState(() {
+          _currentOrder = order;
+          _isLoading = false;
+        });
+        _animController.forward();
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isLoading = false);
+        SnackBarHelper.showError(context, 'Failed to load order: $e');
+      }
+    }
   }
 
   @override
@@ -48,7 +76,8 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
   }
 
   void _copyOrderNumber() async {
-    await Clipboard.setData(ClipboardData(text: _currentOrder.orderNumber));
+    if (_currentOrder == null) return;
+    await Clipboard.setData(ClipboardData(text: _currentOrder!.orderNumber));
     HapticFeedback.lightImpact();
     if (!mounted) return;
     SnackBarHelper.showSuccess(context, 'Order number copied!');
@@ -62,13 +91,15 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
 
     if (confirmed != true) return;
 
+    if (_currentOrder == null) return;
+
     try {
       setState(() => _isCancelling = true);
-      final success = await _orderService.cancelOrder(_currentOrder.id);
+      final success = await _orderService.cancelOrder(_currentOrder!.id);
       if (mounted) {
         if (success) {
           setState(() {
-            _currentOrder = _currentOrder.copyWith(status: "CANCELLED");
+            _currentOrder = _currentOrder!.copyWith(status: "CANCELLED");
             _isCancelling = false;
           });
           SnackBarHelper.showSuccess(context, 'Order cancelled successfully');
@@ -81,7 +112,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
     } catch (e) {
       if (mounted) {
         setState(() => _isCancelling = false);
-        SnackBarHelper.showError(context, 'Failed to cancel order: $e');
+        AppErrorHelper.showErrorSnackbar(context, error: e);
       }
     }
   }
@@ -89,10 +120,37 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
   Future<void> _downloadInvoice() async {
     try {
       HapticFeedback.lightImpact();
+
+      if (Platform.isAndroid) {
+        final androidInfo = await DeviceInfoPlugin().androidInfo;
+        if (androidInfo.version.sdkInt <= 32) {
+          final status = await Permission.storage.status;
+          if (!status.isGranted) {
+            final result = await Permission.storage.request();
+            if (!result.isGranted) {
+              if (mounted) {
+                SnackBarHelper.showError(
+                  context,
+                  'Please provide media access to download the invoice.',
+                  action: SnackBarAction(
+                    label: 'Settings',
+                    textColor: Colors.white,
+                    onPressed: openAppSettings,
+                  ),
+                );
+              }
+              return;
+            }
+          }
+        }
+      }
+
       SnackBarHelper.showLoading(context, 'Downloading invoice...');
 
+      if (_currentOrder == null) return;
+
       final filePath = await _orderService.downloadOrderInvoice(
-        _currentOrder.orderNumber,
+        _currentOrder!.orderNumber,
       );
 
       if (!mounted) return;
@@ -109,9 +167,18 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
       );
     } catch (e) {
       if (!mounted) return;
+
+      String message = e.toString().replaceAll('Exception: ', '');
+      // Remove any remaining wrapping if it exists (though we fixed service to not wrap known ones)
+      if (message.startsWith('Failed to download invoice: ')) {
+        message = message.replaceAll('Failed to download invoice: ', '');
+      }
+
+      final isSpecificError = message.contains('No invoice available');
+
       SnackBarHelper.showError(
         context,
-        'Failed to download invoice: $e',
+        isSpecificError ? message : 'Failed to download invoice: $message',
         action: SnackBarAction(
           label: 'Retry',
           textColor: Colors.white,
@@ -123,51 +190,74 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
 
   @override
   Widget build(BuildContext context) {
+    if (_isLoading || _currentOrder == null) {
+      return Scaffold(
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+        body: const Center(child: CircularProgressIndicator()),
+      );
+    }
+
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    final status = _getStatusInfo(_currentOrder.status);
+    final status = _getStatusInfo(_currentOrder!.status);
 
     return Scaffold(
       backgroundColor:
           isDark ? const Color(0xFF121212) : const Color(0xFFF8F9FA),
-      body: CustomScrollView(
-        physics: const BouncingScrollPhysics(),
-        slivers: [
-          // Premium U-Shape Header
-          _buildAnimatedHeader(theme, isDark, status),
-          // Content
-          SliverToBoxAdapter(
-            child: FadeTransition(
-              opacity: _fadeAnimation,
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(16, 0, 16, 100),
-                child: Column(
-                  children: [
-                    // Order Timeline
-                    _buildTimelineCard(theme, isDark),
-                    const SizedBox(height: 16),
-                    // Referral Reward Banner
-                    if (_currentOrder.hasReferralReward)
-                      _buildReferralRewardBanner(theme, isDark),
-                    if (_currentOrder.hasReferralReward)
+      body: RefreshIndicator(
+        onRefresh: () async {
+          // Refresh order details Logic
+          // Ideally fetch updated order details
+          final updatedOrder = await _orderService.getOrderById(
+            _currentOrder!.id,
+          );
+          if (updatedOrder.id == _currentOrder!.id) {
+            // Update state if needed, or just let it spin
+            setState(() {
+              _currentOrder = updatedOrder;
+            });
+          }
+        },
+        color: theme.colorScheme.primary,
+        child: CustomScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          slivers: [
+            // Premium U-Shape Header
+            _buildAnimatedHeader(theme, isDark, status),
+            // Content
+            SliverToBoxAdapter(
+              child: FadeTransition(
+                opacity: _fadeAnimation,
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 100),
+                  child: Column(
+                    children: [
+                      // Order Timeline
+                      _buildTimelineCard(theme, isDark),
                       const SizedBox(height: 16),
-                    // Products
-                    _buildProductsCard(theme, isDark),
-                    const SizedBox(height: 16),
-                    // Price Summary
-                    _buildPriceSummaryCard(theme, isDark),
-                    const SizedBox(height: 16),
-                    // Delivery Details
-                    _buildDeliveryCard(theme, isDark),
-                    const SizedBox(height: 16),
-                    // Actions
-                    _buildActionsCard(theme, isDark),
-                  ],
+                      // Referral Reward Banner
+                      if (_currentOrder!.hasReferralReward)
+                        _buildReferralRewardBanner(theme, isDark),
+                      if (_currentOrder!.hasReferralReward)
+                        const SizedBox(height: 16),
+                      // Products
+                      _buildProductsCard(theme, isDark),
+                      const SizedBox(height: 16),
+                      // Price Summary
+                      _buildPriceSummaryCard(theme, isDark),
+                      const SizedBox(height: 16),
+                      // Delivery Details
+                      _buildDeliveryCard(theme, isDark),
+                      const SizedBox(height: 16),
+                      // Actions
+                      _buildActionsCard(theme, isDark),
+                    ],
+                  ),
                 ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
       floatingActionButton: _buildWhatsAppFAB(),
     );
@@ -305,16 +395,21 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(
-                                'Order #${_currentOrder.orderNumber}',
-                                style: theme.textTheme.headlineSmall?.copyWith(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.bold,
+                              FittedBox(
+                                fit: BoxFit.scaleDown,
+                                alignment: Alignment.centerLeft,
+                                child: Text(
+                                  'Order #${_currentOrder!.orderNumber}',
+                                  style: theme.textTheme.headlineSmall
+                                      ?.copyWith(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.bold,
+                                      ),
                                 ),
                               ),
                               const SizedBox(height: 4),
                               Text(
-                                'Placed on ${_formatShortDate(_currentOrder.createdAt)}',
+                                'Placed on ${_formatShortDate(_currentOrder!.createdAt)}',
                                 style: theme.textTheme.bodyMedium?.copyWith(
                                   color: Colors.white.withOpacity(0.8),
                                 ),
@@ -541,14 +636,14 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
           _buildCardHeader(
             theme,
             icon: Icons.shopping_bag_rounded,
-            title: 'Items (${_currentOrder.items.length})',
+            title: 'Items (${_currentOrder!.items.length})',
             color: AppColors.primaryColor,
           ),
           const SizedBox(height: 16),
-          ..._currentOrder.items.asMap().entries.map((entry) {
+          ..._currentOrder!.items.asMap().entries.map((entry) {
             final index = entry.key;
             final item = entry.value;
-            final isLast = index == _currentOrder.items.length - 1;
+            final isLast = index == _currentOrder!.items.length - 1;
             return _buildProductItem(theme, isDark, item, isLast);
           }),
         ],
@@ -734,16 +829,16 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
             color: AppColors.buttonBackgroundColor,
           ),
           const SizedBox(height: 20),
-          _buildPriceRow(theme, 'Subtotal', _currentOrder.subtotal),
+          _buildPriceRow(theme, 'Subtotal', _currentOrder!.subtotal),
           const SizedBox(height: 12),
           _buildPriceRow(
             theme,
             'Discount',
-            -_currentOrder.discount,
+            -_currentOrder!.discount,
             isDiscount: true,
           ),
           const SizedBox(height: 12),
-          _buildPriceRow(theme, 'Delivery', _currentOrder.deliveryCharges),
+          _buildPriceRow(theme, 'Delivery', _currentOrder!.deliveryCharges),
           const SizedBox(height: 16),
           Container(
             padding: const EdgeInsets.all(16),
@@ -766,7 +861,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
                   ),
                 ),
                 Text(
-                  '₹${_currentOrder.total.toStringAsFixed(2)}',
+                  '₹${_currentOrder!.total.toStringAsFixed(2)}',
                   style: theme.textTheme.titleLarge?.copyWith(
                     fontWeight: FontWeight.bold,
                     color: AppColors.primaryColor,
@@ -781,22 +876,22 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             decoration: BoxDecoration(
               color: _getPaymentStatusColor(
-                _currentOrder.paymentStatus,
+                _currentOrder!.paymentStatus,
               ).withOpacity(0.1),
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
                 color: _getPaymentStatusColor(
-                  _currentOrder.paymentStatus,
+                  _currentOrder!.paymentStatus,
                 ).withOpacity(0.3),
               ),
             ),
             child: Row(
               children: [
                 Icon(
-                  _currentOrder.paymentStatus == 'PAID'
+                  _currentOrder!.paymentStatus == 'PAID'
                       ? Icons.check_circle_rounded
                       : Icons.pending_rounded,
-                  color: _getPaymentStatusColor(_currentOrder.paymentStatus),
+                  color: _getPaymentStatusColor(_currentOrder!.paymentStatus),
                   size: 20,
                 ),
                 const SizedBox(width: 12),
@@ -805,16 +900,16 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Payment ${_currentOrder.paymentStatus}',
+                        'Payment ${_currentOrder!.paymentStatus}',
                         style: theme.textTheme.titleSmall?.copyWith(
                           fontWeight: FontWeight.w600,
                           color: _getPaymentStatusColor(
-                            _currentOrder.paymentStatus,
+                            _currentOrder!.paymentStatus,
                           ),
                         ),
                       ),
                       Text(
-                        'via ${_currentOrder.paymentMethod}',
+                        'via ${_currentOrder!.paymentMethod}',
                         style: theme.textTheme.bodySmall?.copyWith(
                           color: theme.hintColor,
                         ),
@@ -880,20 +975,20 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  _currentOrder.deliveryAddress,
+                  _currentOrder!.deliveryAddress,
                   style: theme.textTheme.bodyLarge?.copyWith(
                     fontWeight: FontWeight.w500,
                   ),
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  '${_currentOrder.deliveryCity}, ${_currentOrder.deliveryState}',
+                  '${_currentOrder!.deliveryCity}, ${_currentOrder!.deliveryState}',
                   style: theme.textTheme.bodyMedium?.copyWith(
                     color: theme.hintColor,
                   ),
                 ),
                 Text(
-                  _currentOrder.deliveryPincode,
+                  _currentOrder!.deliveryPincode,
                   style: theme.textTheme.bodyMedium?.copyWith(
                     color: theme.hintColor,
                   ),
@@ -908,7 +1003,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
                     ),
                     const SizedBox(width: 8),
                     Text(
-                      _currentOrder.deliveryPhone,
+                      _currentOrder!.deliveryPhone,
                       style: theme.textTheme.bodyMedium?.copyWith(
                         color: theme.hintColor,
                       ),
@@ -946,7 +1041,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
                         ),
                       ),
                       Text(
-                        _formatDate(_currentOrder.expectedDeliveryDate),
+                        _formatDate(_currentOrder!.expectedDeliveryDate),
                         style: theme.textTheme.titleSmall?.copyWith(
                           fontWeight: FontWeight.w600,
                           color: AppColors.success,
@@ -965,9 +1060,9 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
 
   Widget _buildActionsCard(ThemeData theme, bool isDark) {
     final canCancel =
-        _currentOrder.status != 'DELIVERED' &&
-        _currentOrder.status != 'CANCELLED' &&
-        _currentOrder.status != 'SHIPPED';
+        _currentOrder!.status != 'DELIVERED' &&
+        _currentOrder!.status != 'CANCELLED' &&
+        _currentOrder!.status != 'SHIPPED';
 
     return _ModernCard(
       isDark: isDark,
@@ -994,7 +1089,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
                 context,
                 MaterialPageRoute(
                   builder:
-                      (_) => HelpScreen(orderNumber: _currentOrder.orderNumber),
+                      (_) => HelpScreen(orderNumber: _currentOrder!.orderNumber),
                 ),
               );
             },
@@ -1133,12 +1228,12 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
       onPressed: () async {
         HapticFeedback.lightImpact();
         final user = AuthService().currentUser;
-        const phone = '919518095953';
+        const phone = '+919996166186';
         final message = Uri.encodeComponent(
           'Hi! I need help with my order.\n\n'
-          'Order #${_currentOrder.orderNumber}\n'
-          'Status: ${_currentOrder.status}\n'
-          'Amount: ₹${_currentOrder.total}\n\n'
+          'Order #${_currentOrder!.orderNumber}\n'
+          'Status: ${_currentOrder!.status}\n'
+          'Amount: ₹${_currentOrder!.total}\n\n'
           'Name: ${user?.firstName ?? ''} ${user?.lastName ?? ''}\n'
           'Phone: ${user?.phoneNumber ?? ''}',
         );
@@ -1156,14 +1251,14 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
   }
 
   List<_TimelineStep> _getTimelineSteps() {
-    final status = _currentOrder.status.toUpperCase();
+    final status = _currentOrder!.status.toUpperCase();
     final steps = <_TimelineStep>[];
 
     // Order Placed - always completed
     steps.add(
       _TimelineStep(
         title: 'Order Placed',
-        subtitle: _formatShortDate(_currentOrder.createdAt),
+        subtitle: _formatShortDate(_currentOrder!.createdAt),
         icon: Icons.check_circle_outline,
         color: AppColors.success,
         isCompleted: true,
@@ -1208,8 +1303,8 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
         title: 'Delivered',
         subtitle:
             isDelivered
-                ? _formatShortDate(_currentOrder.updatedAt)
-                : 'Expected: ${DateFormat('MMM d').format(_currentOrder.expectedDeliveryDate)}',
+                ? _formatShortDate(_currentOrder!.updatedAt)
+                : 'Expected: ${DateFormat('MMM d').format(_currentOrder!.expectedDeliveryDate)}',
         icon: Icons.home_outlined,
         color: AppColors.success,
         isCompleted: isDelivered,

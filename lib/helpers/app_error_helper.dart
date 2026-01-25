@@ -93,11 +93,11 @@ class AppErrorHelper {
       case 429:
         return 'Too many requests. Please wait a moment and try again.';
       case 500:
-        return 'We\'re experiencing technical difficulties. Please try again later.';
+        return 'Something went wrong on our end. Please try again.';
       case 502:
-        return 'Our servers are temporarily unavailable. Please try again in a moment.';
+        return 'We are upgrading our systems. Please check back soon.';
       case 503:
-        return 'Service temporarily unavailable. We\'re working on it!';
+        return 'Service temporarily under maintenance. We\'ll be back shortly!';
       case 504:
         return 'Server took too long to respond. Please try again.';
       default:

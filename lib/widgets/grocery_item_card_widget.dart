@@ -48,8 +48,8 @@ class _GroceryItemCardWidgetState extends State<GroceryItemCardWidget> {
             ),
             boxShadow: [
               BoxShadow(
-                color: theme.shadowColor.withOpacity(
-                  _isPressed ? 0.02 : AppColors.shadowOpacityLight,
+                color: theme.shadowColor.withValues(
+                  alpha: _isPressed ? 0.02 : AppColors.shadowOpacityLight,
                 ),
                 blurRadius: _isPressed ? 4 : 8,
                 offset: Offset(0, _isPressed ? 1 : 3),
@@ -230,3 +230,4 @@ class _GroceryItemCardWidgetState extends State<GroceryItemCardWidget> {
     return 0;
   }
 }
+

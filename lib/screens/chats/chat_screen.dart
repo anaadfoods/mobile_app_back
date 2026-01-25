@@ -115,12 +115,7 @@ drawer: Drawer(
             child: BlocConsumer<ChatCubit, ChatState>(
               listener: (context, state) {
                 if (state.status == ChatStatus.failure) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(state.errorMessage),
-                      backgroundColor: color.error,
-                    ),
-                  );
+                  SnackBarHelper.showSomethingWrong(context);
                 }
               },
               builder: (context, state) {
@@ -296,3 +291,4 @@ drawer: Drawer(
     );
   }
 }
+

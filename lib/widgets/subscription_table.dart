@@ -134,7 +134,9 @@ class _SubscriptionTableState extends State<SubscriptionTable>
     }
 
     try {
-      final result = await _subscriptionService.getSubscriptionPlanProducts(planId);
+      final result = await _subscriptionService.getSubscriptionPlanProducts(
+        planId,
+      );
       if (mounted) {
         if (result['success']) {
           final response = result['data'] as SubscriptionPlanProductsResponse;
@@ -212,13 +214,13 @@ class _SubscriptionTableState extends State<SubscriptionTable>
                 final actualIndex = index % _plans.length;
                 final plan = _plans[actualIndex];
                 final isActive = actualIndex == _currentIndex;
-                
+
                 return AnimatedBuilder(
                   animation: _pageController,
                   builder: (context, child) {
                     double scale = 1.0;
                     double opacity = 1.0;
-                    
+
                     if (_pageController.position.haveDimensions) {
                       final page = _pageController.page ?? 1000.0;
                       final diff = (page - index).abs();
@@ -226,14 +228,11 @@ class _SubscriptionTableState extends State<SubscriptionTable>
                       scale = (1 - (diff * 0.12)).clamp(0.8, 1.0);
                       opacity = (1 - (diff * 0.3)).clamp(0.5, 1.0);
                     }
-                    
+
                     return Center(
                       child: Transform.scale(
                         scale: scale,
-                        child: Opacity(
-                          opacity: opacity,
-                          child: child,
-                        ),
+                        child: Opacity(opacity: opacity, child: child),
                       ),
                     );
                   },
@@ -284,12 +283,41 @@ class _SubscriptionTableState extends State<SubscriptionTable>
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.error_outline, size: 40, color: theme.colorScheme.error),
+          Icon(
+            Icons.calendar_today_outlined,
+            size: 40,
+            color: const Color(0xFF8B7355), // Warm mocha - friendly
+          ),
           const SizedBox(height: 12),
           Text(
-            _error ?? 'Failed to load',
-            style: TextStyle(color: theme.colorScheme.error),
+            "Couldn't load subscription plans",
+            style: TextStyle(
+              color: const Color(0xFF8B7355),
+              fontWeight: FontWeight.w600,
+            ),
             textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 4),
+          Text(
+            "Check your connection and try again 📶",
+            style: TextStyle(
+              color: Colors.grey.shade600,
+              fontSize: 12,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 8),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24),
+            child: Text(
+              "🌾 Beejamrutham (cow-based seed treatment) improves germination by 20%!",
+              style: TextStyle(
+                color: Colors.green.shade700,
+                fontSize: 11,
+                fontStyle: FontStyle.italic,
+              ),
+              textAlign: TextAlign.center,
+            ),
           ),
           const SizedBox(height: 12),
           TextButton.icon(
@@ -322,9 +350,10 @@ class _SubscriptionTableState extends State<SubscriptionTable>
             height: 8,
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(4),
-              color: isActive
-                  ? AppColors.primaryColor
-                  : (isDark ? Colors.white24 : Colors.black12),
+              color:
+                  isActive
+                      ? AppColors.primaryColor
+                      : (isDark ? Colors.white24 : Colors.black12),
             ),
           ),
         );
@@ -480,7 +509,6 @@ class _SubscriptionTableState extends State<SubscriptionTable>
                     ),
 
                     const Spacer(),
-
                     // Stats row
                     Container(
                       padding: const EdgeInsets.all(14),
@@ -509,10 +537,7 @@ class _SubscriptionTableState extends State<SubscriptionTable>
                             height: 30,
                             color: Colors.white.withOpacity(0.2),
                           ),
-                          _buildStat(
-                            '${plan.durationMonths}',
-                            'Months',
-                          ),
+                          _buildStat('${plan.durationMonths}', 'Months'),
                         ],
                       ),
                     ),
@@ -578,10 +603,7 @@ class _SubscriptionTableState extends State<SubscriptionTable>
         const SizedBox(height: 2),
         Text(
           label,
-          style: TextStyle(
-            color: Colors.white.withOpacity(0.7),
-            fontSize: 11,
-          ),
+          style: TextStyle(color: Colors.white.withOpacity(0.7), fontSize: 11),
         ),
       ],
     );
@@ -593,20 +615,20 @@ class _SubscriptionTableState extends State<SubscriptionTable>
     switch (index % 4) {
       case 0:
         return _CardColors(
-          gradient: [const Color(0xFF2E7D32), const Color(0xFF1B5E20)],
-          shadow: const Color(0xFF2E7D32),
+          gradient: [const Color(0xFF85a260), const Color(0xFF85a260)],
+          shadow: const Color(0xFF85a260),
           icon: Icons.eco_rounded,
         );
       case 1:
         return _CardColors(
-          gradient: [const Color(0xFF1565C0), const Color(0xFF0D47A1)],
-          shadow: const Color(0xFF1565C0),
+          gradient: [const Color(0xFF4e6d30), const Color(0xFF4e6d30)],
+          shadow: const Color(0xFF4e6d30),
           icon: Icons.water_drop_rounded,
         );
       case 2:
         return _CardColors(
-          gradient: [const Color(0xFFE65100), const Color(0xFFBF360C)],
-          shadow: const Color(0xFFE65100),
+          gradient: [const Color(0xFF365322), const Color(0xFF365322)],
+          shadow: const Color(0xFF365322),
           icon: Icons.local_fire_department_rounded,
         );
       case 3:
@@ -732,12 +754,23 @@ class _SubscriptionPopupContent extends StatefulWidget {
 class _SubscriptionPopupContentState extends State<_SubscriptionPopupContent> {
   late SubscriptionPlan _selectedPlan;
   String? _selectedProduct;
+  late PageController _pageController;
 
   @override
   void initState() {
     super.initState();
     _selectedPlan = widget.initialPlan;
+    final initialIndex = widget.allPlans.indexOf(widget.initialPlan);
+    _pageController = PageController(
+      initialPage: initialIndex != -1 ? initialIndex : 0,
+    );
     _loadProductsForPlan(_selectedPlan.id);
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
   }
 
   Future<void> _loadProductsForPlan(int planId) async {
@@ -750,10 +783,6 @@ class _SubscriptionPopupContentState extends State<_SubscriptionPopupContent> {
 
   @override
   Widget build(BuildContext context) {
-    final currentProducts = widget.allProducts[_selectedPlan.id] ?? [];
-    final areProductsLoading =
-        widget.loadingProductsState[_selectedPlan.id] == true;
-
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -776,180 +805,220 @@ class _SubscriptionPopupContentState extends State<_SubscriptionPopupContent> {
           ),
         ),
 
-        Flexible(
-          fit: FlexFit.loose,
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Header
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Expanded(
+        SizedBox(
+          height: MediaQuery.of(context).size.height * 0.55,
+          child: PageView.builder(
+            controller: _pageController,
+            itemCount: widget.allPlans.length,
+            onPageChanged: (index) {
+              setState(() {
+                _selectedPlan = widget.allPlans[index];
+                _selectedProduct = null;
+              });
+              _loadProductsForPlan(_selectedPlan.id);
+            },
+            itemBuilder: (context, index) {
+              final plan = widget.allPlans[index];
+              final currentProducts = widget.allProducts[plan.id] ?? [];
+              final areProductsLoading =
+                  widget.loadingProductsState[plan.id] == true;
+
+              return Column(
+                children: [
+                  Flexible(
+                    fit: FlexFit.loose,
+                    child: SingleChildScrollView(
+                      padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            _selectedPlan.name,
-                            style: const TextStyle(
-                              fontSize: 26,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
-                            ),
+                          // Header
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      plan.name,
+                                      style: const TextStyle(
+                                        fontSize: 26,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 8),
+                                    Text(
+                                      plan.description,
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        color: Colors.white.withOpacity(0.85),
+                                        height: 1.4,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(width: 16),
+                              Container(
+                                padding: const EdgeInsets.all(14),
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
+                                child: const Icon(
+                                  Icons.eco_rounded,
+                                  color: Color(0xFF2E7D32),
+                                  size: 32,
+                                ),
+                              ),
+                            ],
                           ),
-                          const SizedBox(height: 8),
-                          Text(
-                            _selectedPlan.description,
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: Colors.white.withOpacity(0.85),
-                              height: 1.4,
-                            ),
+
+                          const SizedBox(height: 24),
+
+                          // Info cards
+                          _buildInfoCard(
+                            Icons.calendar_month_rounded,
+                            'Duration',
+                            '${plan.durationMonths} Months',
+                          ),
+                          const SizedBox(height: 10),
+                          _buildInfoCard(
+                            Icons.payment_rounded,
+                            'Installments',
+                            plan.allowsInstallments
+                                ? 'Available'
+                                : 'Not Available',
+                          ),
+                          const SizedBox(height: 10),
+                          _buildInfoCard(
+                            Icons.local_offer_rounded,
+                            'Total Savings',
+                            '${plan.totalDiscountPercentage}% Off',
+                          ),
+                          const SizedBox(height: 10),
+                          _buildInfoCard(
+                            Icons.verified_rounded,
+                            'Plan Type',
+                            plan.isOneTimeOnly ? 'One-Time' : 'Recurring',
                           ),
                         ],
                       ),
                     ),
-                    const SizedBox(width: 16),
-                    Container(
-                      padding: const EdgeInsets.all(14),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      child: const Icon(
-                        Icons.eco_rounded,
-                        color: Color(0xFF2E7D32),
-                        size: 32,
+                  ),
+
+                  // Product selector
+                  Container(
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      color: Colors.black.withOpacity(0.2),
+                      border: Border(
+                        top: BorderSide(color: Colors.white.withOpacity(0.1)),
                       ),
                     ),
-                  ],
-                ),
-
-                const SizedBox(height: 24),
-
-                // Info cards
-                _buildInfoCard(
-                  Icons.calendar_month_rounded,
-                  'Duration',
-                  '${_selectedPlan.durationMonths} Months',
-                ),
-                const SizedBox(height: 10),
-                _buildInfoCard(
-                  Icons.payment_rounded,
-                  'Installments',
-                  _selectedPlan.allowsInstallments ? 'Available' : 'Not Available',
-                ),
-                const SizedBox(height: 10),
-                _buildInfoCard(
-                  Icons.local_offer_rounded,
-                  'Total Savings',
-                  '${_selectedPlan.totalDiscountPercentage}% Off',
-                ),
-                const SizedBox(height: 10),
-                _buildInfoCard(
-                  Icons.verified_rounded,
-                  'Plan Type',
-                  _selectedPlan.isOneTimeOnly ? 'One-Time' : 'Recurring',
-                ),
-              ],
-            ),
-          ),
-        ),
-
-        // Product selector
-        Container(
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            color: Colors.black.withOpacity(0.2),
-            border: Border(
-              top: BorderSide(color: Colors.white.withOpacity(0.1)),
-            ),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Select Product',
-                style: TextStyle(
-                  color: Colors.white.withOpacity(0.8),
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              const SizedBox(height: 10),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(14),
-                  border: Border.all(color: Colors.white.withOpacity(0.3)),
-                  color: Colors.white.withOpacity(0.1),
-                ),
-                child: areProductsLoading
-                    ? const Center(
-                        child: Padding(
-                          padding: EdgeInsets.all(12),
-                          child: SizedBox(
-                            height: 20,
-                            width: 20,
-                            child: CircularProgressIndicator(
-                              color: Colors.white,
-                              strokeWidth: 2,
-                            ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Select Product',
+                          style: TextStyle(
+                            color: Colors.white.withOpacity(0.8),
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
                           ),
                         ),
-                      )
-                    : DropdownButtonHideUnderline(
-                        child: DropdownButton<String>(
-                          isExpanded: true,
-                          value: _selectedProduct,
-                          dropdownColor: const Color(0xFF2E7D32),
-                          icon: const Icon(
-                            Icons.keyboard_arrow_down_rounded,
-                            color: Colors.white,
+                        const SizedBox(height: 10),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 4,
                           ),
-                          hint: Text(
-                            currentProducts.isEmpty
-                                ? 'No products available'
-                                : 'Choose a product',
-                            style: TextStyle(
-                              color: Colors.white.withOpacity(0.7),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(14),
+                            border: Border.all(
+                              color: Colors.white.withOpacity(0.3),
                             ),
+                            color: Colors.white.withOpacity(0.1),
                           ),
-                          items: currentProducts.map((p) {
-                            return DropdownMenuItem<String>(
-                              value: p.productName,
-                              child: Text(
-                                p.productName,
-                                style: const TextStyle(color: Colors.white),
-                              ),
-                              onTap: () async {
-                                final product =
-                                    await CategoryService.fetchProductById(
-                                  p.productId,
-                                );
-                                if (!context.mounted) return;
-                                Navigator.push(
-                                  context,
-                                  AnimatedTransitions.fadeScale(
-                                    ProductDetailsScreen(product: product),
+                          child:
+                              areProductsLoading
+                                  ? const Center(
+                                    child: Padding(
+                                      padding: EdgeInsets.all(12),
+                                      child: SizedBox(
+                                        height: 20,
+                                        width: 20,
+                                        child: CircularProgressIndicator(
+                                          color: Colors.white,
+                                          strokeWidth: 2,
+                                        ),
+                                      ),
+                                    ),
+                                  )
+                                  : DropdownButtonHideUnderline(
+                                    child: DropdownButton<String>(
+                                      borderRadius: BorderRadius.circular(14),
+                                      isExpanded: true,
+                                      value: _selectedProduct,
+                                      dropdownColor: const Color(0xFF2E7D32),
+                                      icon: const Icon(
+                                        Icons.keyboard_arrow_down_rounded,
+                                        color: Colors.white,
+                                      ),
+                                      hint: Text(
+                                        currentProducts.isEmpty
+                                            ? 'No products available'
+                                            : 'Choose a product',
+                                        style: TextStyle(
+                                          color: Colors.white.withOpacity(0.7),
+                                        ),
+                                      ),
+                                      items:
+                                          currentProducts.map((p) {
+                                            return DropdownMenuItem<String>(
+                                              value: p.productName,
+                                              child: Text(
+                                                p.productName,
+                                                style: const TextStyle(
+                                                  color: Colors.white,
+                                                ),
+                                              ),
+                                              onTap: () async {
+                                                final product =
+                                                    await CategoryService.fetchProductById(
+                                                      p.productId,
+                                                    );
+                                                if (!context.mounted) return;
+                                                Navigator.push(
+                                                  context,
+                                                  AnimatedTransitions.fadeScale(
+                                                    ProductDetailsScreen(
+                                                      product: product,
+                                                    ),
+                                                  ),
+                                                );
+                                              },
+                                            );
+                                          }).toList(),
+                                      onChanged:
+                                          currentProducts.isEmpty
+                                              ? null
+                                              : (val) {
+                                                setState(() {
+                                                  _selectedProduct = val;
+                                                });
+                                              },
+                                    ),
                                   ),
-                                );
-                              },
-                            );
-                          }).toList(),
-                          onChanged: currentProducts.isEmpty
-                              ? null
-                              : (val) {
-                                  setState(() {
-                                    _selectedProduct = val;
-                                  });
-                                },
                         ),
-                      ),
-              ),
-            ],
+                      ],
+                    ),
+                  ),
+                ],
+              );
+            },
           ),
         ),
       ],
@@ -958,7 +1027,7 @@ class _SubscriptionPopupContentState extends State<_SubscriptionPopupContent> {
 
   Widget _buildInfoCard(IconData icon, String label, String value) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
       decoration: BoxDecoration(
         color: Colors.white.withOpacity(0.12),
         borderRadius: BorderRadius.circular(14),
@@ -1003,3 +1072,4 @@ class _SubscriptionPopupContentState extends State<_SubscriptionPopupContent> {
     );
   }
 }
+

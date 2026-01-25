@@ -1,11 +1,10 @@
 import 'dart:ui';
-import 'dart:math' as math;
-import 'package:flutter/services.dart';
 import 'package:grocery_app/common_widgets/global_import.dart';
 import 'package:grocery_app/screens/innovations/anaad_redemptions_screen.dart';
 import 'package:grocery_app/screens/innovations/anaad_robots_screen.dart';
 import 'package:grocery_app/screens/innovations/anaad_games_screen.dart';
 import 'package:grocery_app/screens/innovations/refer_earn_screen.dart';
+import 'package:grocery_app/screens/innovations/panchang/panchang_home_screen.dart';
 
 class AnaadInnovationsScreen extends StatefulWidget {
   const AnaadInnovationsScreen({super.key});
@@ -152,8 +151,10 @@ class _AnaadInnovationsScreenState extends State<AnaadInnovationsScreen>
       height: size,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        color: color.withOpacity(0.6),
-        boxShadow: [BoxShadow(color: color.withOpacity(0.4), blurRadius: 10)],
+        color: color.withValues(alpha: 0.6),
+        boxShadow: [
+          BoxShadow(color: color.withValues(alpha: 0.4), blurRadius: 10),
+        ],
       ),
     );
   }
@@ -177,8 +178,8 @@ class _AnaadInnovationsScreenState extends State<AnaadInnovationsScreen>
               },
               child: Container(
                 decoration: BoxDecoration(
-                  color: (isDark ? Colors.white : Colors.black).withOpacity(
-                    0.1,
+                  color: (isDark ? Colors.white : Colors.black).withValues(
+                    alpha: 0.1,
                   ),
                   borderRadius: BorderRadius.circular(12),
                 ),
@@ -233,7 +234,7 @@ class _AnaadInnovationsScreenState extends State<AnaadInnovationsScreen>
                 isDark: isDark,
                 icon: Icons.card_giftcard_rounded,
                 title: 'Anaad Redemptions',
-                subtitle: 'Redeem points for free products',
+                subtitle: 'Turn your points into pure produce.',
                 gradient: [const Color(0xFF10B981), const Color(0xFF059669)],
                 isComingSoon: true,
                 delay: 0,
@@ -248,7 +249,7 @@ class _AnaadInnovationsScreenState extends State<AnaadInnovationsScreen>
                 isDark: isDark,
                 icon: Icons.smart_toy_rounded,
                 title: 'Anaad Robots',
-                subtitle: 'AI-powered farming revolution',
+                subtitle: 'Technology that serves the soil.',
                 gradient: [const Color(0xFF8B5CF6), const Color(0xFF6D28D9)],
                 isComingSoon: true,
                 delay: 1,
@@ -262,9 +263,9 @@ class _AnaadInnovationsScreenState extends State<AnaadInnovationsScreen>
                 isDark: isDark,
                 icon: Icons.sports_esports_rounded,
                 title: 'Anaad Games',
-                subtitle: 'Learn sustainable farming through play',
+                subtitle: 'Learn the art of natural farming.',
                 gradient: [const Color(0xFF3B82F6), const Color(0xFF1D4ED8)],
-                isComingSoon: true,
+                isComingSoon: false,
                 delay: 2,
                 onTap: () => _navigateTo(context, const AnaadGamesScreen()),
               ),
@@ -276,11 +277,25 @@ class _AnaadInnovationsScreenState extends State<AnaadInnovationsScreen>
                 isDark: isDark,
                 icon: Icons.share_rounded,
                 title: 'Refer & Earn',
-                subtitle: 'Share and earn Anaad Cash',
+                subtitle: 'Grow our community, reap the rewards',
                 gradient: [const Color(0xFFF59E0B), const Color(0xFFD97706)],
                 isComingSoon: false,
                 delay: 3,
                 onTap: () => _navigateTo(context, const ReferEarnScreen()),
+              ),
+              const SizedBox(height: 40),
+
+              _buildFeatureCard(
+                context: context,
+                theme: theme,
+                isDark: isDark,
+                icon: Icons.calendar_month_rounded,
+                title: 'Panchang Calendar',
+                subtitle: 'Today\'s Panchang & calendar view',
+                gradient: [const Color(0xFF6B21A8), const Color(0xFF7C3AED)],
+                isComingSoon: false,
+                delay: 4,
+                onTap: () => _navigateTo(context, const PanchangHomeScreen()),
               ),
               const SizedBox(height: 40),
             ],
@@ -334,18 +349,18 @@ class _AnaadInnovationsScreenState extends State<AnaadInnovationsScreen>
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                     colors: [
-                      const Color(0xFF6B21A8).withOpacity(0.6),
-                      const Color(0xFF7C3AED).withOpacity(0.55),
+                      const Color(0xFF6B21A8).withValues(alpha: 0.6),
+                      const Color(0xFF7C3AED).withValues(alpha: 0.55),
                     ],
                   ),
                   borderRadius: BorderRadius.circular(24),
                   border: Border.all(
-                    color: Colors.white.withOpacity(0.15),
+                    color: Colors.white.withValues(alpha: 0.15),
                     width: 1.5,
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: const Color(0xFF6B21A8).withOpacity(0.2),
+                      color: const Color(0xFF6B21A8).withValues(alpha: 0.2),
                       blurRadius: 25,
                       offset: const Offset(0, 10),
                     ),
@@ -362,7 +377,7 @@ class _AnaadInnovationsScreenState extends State<AnaadInnovationsScreen>
                             Container(
                               padding: const EdgeInsets.all(12),
                               decoration: BoxDecoration(
-                                color: Colors.white.withOpacity(0.15),
+                                color: Colors.white.withValues(alpha: 0.15),
                                 borderRadius: BorderRadius.circular(14),
                               ),
                               child: const Icon(
@@ -378,7 +393,7 @@ class _AnaadInnovationsScreenState extends State<AnaadInnovationsScreen>
                                 Text(
                                   'Anaad Points',
                                   style: theme.textTheme.titleMedium?.copyWith(
-                                    color: Colors.white.withOpacity(0.6),
+                                    color: Colors.white.withValues(alpha: 0.6),
                                     fontWeight: FontWeight.w500,
                                   ),
                                 ),
@@ -402,7 +417,7 @@ class _AnaadInnovationsScreenState extends State<AnaadInnovationsScreen>
                                       decoration: BoxDecoration(
                                         color: const Color(
                                           0xFF10B981,
-                                        ).withOpacity(0.2),
+                                        ).withValues(alpha: 0.2),
                                         borderRadius: BorderRadius.circular(8),
                                       ),
                                       child: Row(
@@ -419,7 +434,7 @@ class _AnaadInnovationsScreenState extends State<AnaadInnovationsScreen>
                                                 ?.copyWith(
                                                   color: const Color(
                                                     0xFF6EE7B7,
-                                                  ).withOpacity(0.7),
+                                                  ).withValues(alpha: 0.7),
                                                   fontWeight: FontWeight.w600,
                                                 ),
                                           ),
@@ -439,7 +454,7 @@ class _AnaadInnovationsScreenState extends State<AnaadInnovationsScreen>
                             vertical: 10,
                           ),
                           decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.1),
+                            color: Colors.white.withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: Row(
@@ -454,7 +469,7 @@ class _AnaadInnovationsScreenState extends State<AnaadInnovationsScreen>
                               Text(
                                 'Coming Soon - Earn points with orders!',
                                 style: theme.textTheme.bodySmall?.copyWith(
-                                  color: Colors.white.withOpacity(0.6),
+                                  color: Colors.white.withValues(alpha: 0.6),
                                 ),
                               ),
                             ],
@@ -472,11 +487,11 @@ class _AnaadInnovationsScreenState extends State<AnaadInnovationsScreen>
                           vertical: 5,
                         ),
                         decoration: BoxDecoration(
-                          color: Colors.orange.withOpacity(0.9),
+                          color: Colors.orange.withValues(alpha: 0.9),
                           borderRadius: BorderRadius.circular(12),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.orange.withOpacity(0.4),
+                              color: Colors.orange.withValues(alpha: 0.4),
                               blurRadius: 8,
                               offset: const Offset(0, 2),
                             ),
@@ -628,14 +643,16 @@ class _FeatureCardContentState extends State<_FeatureCardContent>
             color: widget.isDark ? const Color(0xFF1E1E2E) : Colors.white,
             borderRadius: BorderRadius.circular(20),
             border: Border.all(
-              color: widget.gradient[0].withOpacity(
-                widget.isComingSoon ? 0.5 : 0.3,
+              color: widget.gradient[0].withValues(
+                alpha: widget.isComingSoon ? 0.5 : 0.3,
               ),
               width: widget.isComingSoon ? 2 : 1.5,
             ),
             boxShadow: [
               BoxShadow(
-                color: widget.gradient[0].withOpacity(_isPressed ? 0.2 : 0.15),
+                color: widget.gradient[0].withValues(
+                  alpha: _isPressed ? 0.2 : 0.15,
+                ),
                 blurRadius: _isPressed ? 10 : 20,
                 offset: Offset(0, _isPressed ? 4 : 8),
               ),
@@ -657,7 +674,7 @@ class _FeatureCardContentState extends State<_FeatureCardContent>
                           borderRadius: BorderRadius.circular(16),
                           boxShadow: [
                             BoxShadow(
-                              color: widget.gradient[0].withOpacity(0.4),
+                              color: widget.gradient[0].withValues(alpha: 0.4),
                               blurRadius: 12,
                               offset: const Offset(0, 4),
                             ),
@@ -677,7 +694,7 @@ class _FeatureCardContentState extends State<_FeatureCardContent>
                               shape: BoxShape.circle,
                               boxShadow: [
                                 BoxShadow(
-                                  color: Colors.black.withOpacity(0.2),
+                                  color: Colors.black.withValues(alpha: 0.2),
                                   blurRadius: 4,
                                 ),
                               ],
@@ -760,7 +777,9 @@ class _FeatureCardContentState extends State<_FeatureCardContent>
                             borderRadius: BorderRadius.circular(borderRadius),
                             boxShadow: [
                               BoxShadow(
-                                color: widget.gradient[0].withOpacity(0.4),
+                                color: widget.gradient[0].withValues(
+                                  alpha: 0.4,
+                                ),
                                 blurRadius: 6,
                                 offset: const Offset(0, 2),
                               ),
@@ -798,3 +817,4 @@ class _FeatureCardContentState extends State<_FeatureCardContent>
     );
   }
 }
+
