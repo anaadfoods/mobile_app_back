@@ -671,7 +671,7 @@ class _SignupScreenState extends State<SignupScreen>
                                             ),
                                       ),
                                     ),
-                                    const SizedBox(height: AppColors.spacingXS),
+                                    const SizedBox(height: AppColors.spacingS),
                                     _buildStaggeredWidget(
                                       delay: 0.05,
                                       child: Text(
@@ -709,7 +709,7 @@ class _SignupScreenState extends State<SignupScreen>
                                                       ),
                                             ),
                                           ),
-                                          const SizedBox(width: 12),
+                                          const SizedBox(width: 16),
                                           Expanded(
                                             child: CustomInput(
                                               hintText: "Last Name",
@@ -731,7 +731,7 @@ class _SignupScreenState extends State<SignupScreen>
                                         ],
                                       ),
                                     ),
-                                    const SizedBox(height: AppColors.spacingL),
+                                    const SizedBox(height: 20),
 
                                     // Username
                                     _buildStaggeredWidget(
@@ -752,7 +752,7 @@ class _SignupScreenState extends State<SignupScreen>
                                             ),
                                       ),
                                     ),
-                                    const SizedBox(height: AppColors.spacingL),
+                                    const SizedBox(height: 20),
 
                                     // Email with verify
                                     _buildStaggeredWidget(
@@ -876,7 +876,7 @@ class _SignupScreenState extends State<SignupScreen>
                                         // ),
                                       ),
                                     ),
-                                    const SizedBox(height: AppColors.spacingL),
+                                    const SizedBox(height: 20),
 
                                     // Password
                                     _buildStaggeredWidget(
@@ -900,7 +900,7 @@ class _SignupScreenState extends State<SignupScreen>
                                             ),
                                       ),
                                     ),
-                                    const SizedBox(height: AppColors.spacingL),
+                                    const SizedBox(height: 20),
 
                                     // Confirm Password
                                     _buildStaggeredWidget(
@@ -924,7 +924,7 @@ class _SignupScreenState extends State<SignupScreen>
                                             ),
                                       ),
                                     ),
-                                    const SizedBox(height: AppColors.spacingL),
+                                    const SizedBox(height: 20),
 
                                     // Referral Code
                                     _buildStaggeredWidget(
@@ -935,14 +935,14 @@ class _SignupScreenState extends State<SignupScreen>
                                         onPrimary: true,
                                       ),
                                     ),
-                                    const SizedBox(height: AppColors.spacingL),
+                                    const SizedBox(height: 20),
 
                                     // Legal Checkboxes
                                     _buildStaggeredWidget(
                                       delay: 0.42,
                                       child: _buildLegalCheckboxes(),
                                     ),
-                                    const SizedBox(height: AppColors.spacingL),
+                                    const SizedBox(height: 24),
 
                                     // Sign Up Button
                                     _buildStaggeredWidget(
@@ -1238,33 +1238,48 @@ class _SignupScreenState extends State<SignupScreen>
     required bool isVerified,
     required VoidCallback onPressed,
   }) {
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 300),
-      curve: Curves.easeOut,
-      child: TextButton(
-        onPressed: isVerified ? null : onPressed,
-        style: TextButton.styleFrom(
-          backgroundColor:
-              isVerified ? AppColors.success : AppColors.buttonBackgroundColor,
-          foregroundColor: Colors.white,
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
-          ),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            if (isVerified)
-              const Padding(
-                padding: EdgeInsets.only(right: 4),
-                child: Icon(Icons.check_circle, size: 16, color: Colors.white),
-              ),
-            Text(
-              label,
-              style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 12),
+    return Padding(
+      padding: const EdgeInsets.only(right: 5, top: 4, bottom: 4),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeOut,
+        child: TextButton(
+          onPressed: isVerified ? null : onPressed,
+          style: TextButton.styleFrom(
+            backgroundColor:
+                isVerified
+                    ? AppColors.success
+                    : AppColors.buttonBackgroundColor,
+            foregroundColor: Colors.white,
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            minimumSize: const Size(0, 32),
+            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
             ),
-          ],
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (isVerified)
+                const Padding(
+                  padding: EdgeInsets.only(right: 4),
+                  child: Icon(
+                    Icons.check_circle,
+                    size: 14,
+                    color: Colors.white,
+                  ),
+                ),
+              Text(
+                label,
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 11,
+                  letterSpacing: 0.3,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -1606,4 +1621,3 @@ class _GoogleLogoPainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
-

@@ -44,6 +44,11 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
   final SubscriptionService _subscriptionService = SubscriptionService();
   final AuthService _authService = AuthService();
 
+  // --- DEBOUNCE STATE ---
+  Timer? _cartDebounceTimer;
+  bool _isCartOperationPending = false;
+  static const _debounceDuration = Duration(milliseconds: 500);
+
   @override
   void initState() {
     super.initState();
@@ -98,6 +103,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
 
   @override
   void dispose() {
+    _cartDebounceTimer?.cancel();
     _pageController.dispose();
     _shimmerController.dispose();
     _floatController.dispose();
@@ -295,9 +301,11 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
                           const SizedBox(height: 32),
 
                           Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 20,
-                              vertical: 24,
+                            padding: const EdgeInsets.only(
+                              left: 20,
+                              right: 20,
+                              top: 24,
+                              bottom: 12,
                             ),
 
                             width: double.infinity,
@@ -326,8 +334,6 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
                                 const SizedBox(height: 24),
 
                                 _buildSimilarProductsSection(isDark),
-
-                                const SizedBox(height: 24),
                               ],
                             ),
                           ),
@@ -544,7 +550,11 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
       );
     }
 
-    setState(() => _isTogglingFavorite = false);
+    // Add a small cooldown delay before allowing next toggle
+    await Future.delayed(const Duration(milliseconds: 300));
+    if (mounted) {
+      setState(() => _isTogglingFavorite = false);
+    }
   }
 
   // ... (All other _build... widgets from _buildBestsellerTag to _buildProductCard remain the same)
@@ -1032,25 +1042,37 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
                               ? const LinearGradient(
                                 begin: Alignment.topLeft,
                                 end: Alignment.bottomRight,
-                                colors: [Color(0xFFB9A06D), Color(0xFFD4B98E)],
+                                colors: [Color(0xFFB9A06D), Color(0xFFCEB77E)],
                               )
                               : null,
                       color:
                           isSelected
                               ? null
                               : (isDark
-                                  ? Colors.grey.shade900
-                                  : Colors.grey.shade50),
+                                  ? const Color(0xFF2A2520)
+                                  : const Color(0xFFFAF7F0)),
                       borderRadius: BorderRadius.circular(16),
                       border: Border.all(
                         color:
                             isSelected
                                 ? const Color(0xFFB9A06D)
                                 : (isDark
-                                    ? Colors.grey.shade700
-                                    : Colors.grey.shade300),
-                        width: isSelected ? 2 : 1,
+                                    ? const Color(0xFF5C4D3C)
+                                    : const Color(0xFFE5D9C3)),
+                        width: isSelected ? 2.5 : 1.5,
                       ),
+                      boxShadow:
+                          isSelected
+                              ? [
+                                BoxShadow(
+                                  color: const Color(
+                                    0xFFB9A06D,
+                                  ).withOpacity(0.3),
+                                  blurRadius: 12,
+                                  offset: const Offset(0, 4),
+                                ),
+                              ]
+                              : null,
                     ),
                     child: Opacity(
                       opacity: isEnabled ? 1.0 : 0.4,
@@ -1060,10 +1082,13 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
                             plan.name,
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
+                              fontSize: 13,
                               color:
                                   isSelected
                                       ? Colors.white
-                                      : (isDark ? Colors.white : Colors.black),
+                                      : (isDark
+                                          ? const Color(0xFFE5D9C3)
+                                          : const Color(0xFF5C4D3C)),
                             ),
                           ),
                           const SizedBox(height: 8),
@@ -1072,34 +1097,39 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
                               Text(
                                 "₹${availablePlanData.discountedPrice.toStringAsFixed(0)}",
                                 style: TextStyle(
-                                  fontSize: 14,
+                                  fontSize: 15,
                                   color:
                                       isSelected
                                           ? Colors.white
                                           : (isDark
                                               ? Colors.white
-                                              : Colors.black),
+                                              : const Color(0xFF3D3426)),
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
-                              SizedBox(width: 2),
+                              const SizedBox(width: 4),
                               Container(
                                 padding: const EdgeInsets.symmetric(
-                                  vertical: 5,
-                                  horizontal: 4,
+                                  vertical: 4,
+                                  horizontal: 6,
                                 ),
                                 decoration: BoxDecoration(
                                   color:
                                       isSelected
-                                          ? Colors.grey.withValues(alpha: 0.5)
-                                          : Colors.grey.withValues(alpha: 0.7),
-                                  borderRadius: BorderRadius.circular(10),
+                                          ? Colors.white.withOpacity(0.25)
+                                          : const Color(
+                                            0xFFB9A06D,
+                                          ).withOpacity(0.15),
+                                  borderRadius: BorderRadius.circular(8),
                                 ),
                                 child: Text(
                                   "Save ${availablePlanData.discountPercentage.toStringAsFixed(0)}%",
                                   style: TextStyle(
                                     fontSize: 10,
-                                    color: Colors.white,
+                                    color:
+                                        isSelected
+                                            ? Colors.white
+                                            : const Color(0xFFB9A06D),
                                     fontWeight: FontWeight.bold,
                                   ),
                                 ),
@@ -1243,19 +1273,21 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
   }
 
   Widget _buildBottomActionBar() {
+    final bottomPadding = MediaQuery.of(context).padding.bottom;
     return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: 20,
-        vertical: 15,
-      ).copyWith(bottom: 30),
+      padding: EdgeInsets.fromLTRB(
+        20,
+        12,
+        20,
+        bottomPadding > 0 ? bottomPadding : 12,
+      ),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.1),
-            blurRadius: 10,
-            offset: const Offset(0, -5),
+            color: Colors.black.withValues(alpha: 0.08),
+            blurRadius: 8,
+            offset: const Offset(0, -2),
           ),
         ],
       ),
@@ -1452,7 +1484,25 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
   }
 
   Future<void> _handleQuantityChanged(int newQuantity) async {
-    // Login check remains the same
+    // Cancel any pending debounce timer
+    _cartDebounceTimer?.cancel();
+
+    // If an operation is already in progress, debounce future calls
+    if (_isCartOperationPending) {
+      _cartDebounceTimer = Timer(_debounceDuration, () {
+        _executeCartOperation(newQuantity);
+      });
+      return;
+    }
+
+    // Execute immediately for the first tap
+    await _executeCartOperation(newQuantity);
+  }
+
+  Future<void> _executeCartOperation(int newQuantity) async {
+    if (_isCartOperationPending) return;
+
+    // Login check
     final token = await _authService.getAccessToken();
     if (token == null) {
       SnackBarHelper.showWarning(context, 'Please login to modify your cart');
@@ -1463,27 +1513,38 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
       return;
     }
 
-    final cartCubit = context.read<CartCubit>();
-    final currentState = cartCubit.state;
-    int currentQuantity = 0;
+    setState(() => _isCartOperationPending = true);
 
-    if (currentState is CartSuccess) {
-      final cartItem = currentState.cart.items.firstWhereOrNull(
-        (item) => item.productVariant.id == widget.product.id,
-      );
-      currentQuantity = cartItem?.quantity ?? 0;
-    }
+    try {
+      final cartCubit = context.read<CartCubit>();
+      final currentState = cartCubit.state;
+      int currentQuantity = 0;
 
-    // Now, call the correct cubit method based on the action
-    if (newQuantity > 0 && currentQuantity == 0) {
-      // This is an "Add to Cart" action
-      cartCubit.addItem(widget.product, newQuantity);
-    } else if (newQuantity == 0 && currentQuantity > 0) {
-      // This is a "Remove" action
-      cartCubit.removeItem(widget.product.id);
-    } else {
-      // This is a quantity "Update" action
-      cartCubit.updateItem(widget.product.id, newQuantity);
+      if (currentState is CartSuccess) {
+        final cartItem = currentState.cart.items.firstWhereOrNull(
+          (item) => item.productVariant.id == widget.product.id,
+        );
+        currentQuantity = cartItem?.quantity ?? 0;
+      }
+
+      // Now, call the correct cubit method based on the action
+      if (newQuantity > 0 && currentQuantity == 0) {
+        // This is an "Add to Cart" action
+        cartCubit.addItem(widget.product, newQuantity);
+      } else if (newQuantity == 0 && currentQuantity > 0) {
+        // This is a "Remove" action
+        cartCubit.removeItem(widget.product.id);
+      } else {
+        // This is a quantity "Update" action
+        cartCubit.updateItem(widget.product.id, newQuantity);
+      }
+    } finally {
+      // Reset the pending flag after a short delay to allow the operation to complete
+      Future.delayed(_debounceDuration, () {
+        if (mounted) {
+          setState(() => _isCartOperationPending = false);
+        }
+      });
     }
   }
 

@@ -1,4 +1,5 @@
 import 'package:grocery_app/common_widgets/global_import.dart';
+import 'package:grocery_app/models/order_tracking_model.dart';
 import 'package:http/http.dart' as http;
 import 'package:permission_handler/permission_handler.dart';
 
@@ -166,6 +167,37 @@ class OrderService {
       return Order.fromJson(data);
     } else {
       throw Exception('Failed to fetch order details');
+    }
+  }
+
+  /// Fetches order tracking/shipment data for the given order number.
+  /// Returns OrderTracking with AWB, estimated delivery, and tracking events.
+  Future<OrderTracking?> getOrderTracking(String orderNumber) async {
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl${ApiConfig.orderTrackingEndpoint(orderNumber)}'),
+        headers: await _getHeaders(),
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return OrderTracking.fromJson(data);
+      } else if (response.statusCode == 404) {
+        // No tracking data available yet
+        return null;
+      } else if (response.statusCode == 401) {
+        final refreshed = await _authService.refreshAccessToken();
+        if (refreshed) {
+          return getOrderTracking(orderNumber);
+        }
+        return null;
+      } else {
+        print('Failed to fetch tracking: ${response.statusCode}');
+        return null;
+      }
+    } catch (e) {
+      print('Error fetching order tracking: $e');
+      return null;
     }
   }
 

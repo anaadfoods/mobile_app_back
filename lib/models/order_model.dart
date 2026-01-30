@@ -10,37 +10,103 @@ Order orderFromJson(String str) => Order.fromJson(json.decode(str));
 String orderToJson(Order data) => json.encode(data.toJson());
 
 /// A helper function to safely parse date strings from the API,
-/// handling multiple possible formats.
-DateTime parseFlexibleDate(String? dateString) {
-  if (dateString == null || dateString.isEmpty) {
-    return DateTime.now();
+/// handling multiple possible formats with STRICT parsing.
+///
+/// This function uses parseStrict() instead of parse() to prevent
+/// DateFormat's lenient parsing which can silently produce incorrect dates
+/// (e.g., mismatched separators or overflowed day/month values).
+///
+/// Returns DateTime(1970, 1, 1) as a sentinel value if parsing fails.
+DateTime parseFlexibleDate(dynamic dateValue) {
+  // Handle null or empty values
+  if (dateValue == null) {
+    return DateTime(1970, 1, 1);
+  }
+
+  // Convert to string, handling int, double, or other types
+  String dateString;
+  if (dateValue is String) {
+    dateString = dateValue.trim();
+  } else if (dateValue is int || dateValue is double) {
+    // Handle numeric timestamps (milliseconds since epoch)
+    try {
+      return DateTime.fromMillisecondsSinceEpoch(dateValue.toInt());
+    } catch (_) {
+      return DateTime(1970, 1, 1);
+    }
+  } else {
+    dateString = dateValue.toString().trim();
+  }
+
+  if (dateString.isEmpty) {
+    return DateTime(1970, 1, 1);
   }
 
   // List of formats to try, in order of priority
+  // Each format must match EXACTLY with parseStrict()
   final formats = [
-    'dd-MM-yyyy HH:mm', // 19-12-2025 07:57
-    'dd-MM-yyyy', // 19-12-2025
-    'dd/MM/yyyy HH:mm', // 19/12/2025 07:57
-    'dd/MM/yyyy', // 19/12/2025
-    'yyyy-MM-dd HH:mm:ss', // 2025-12-19 07:57:00
-    'yyyy-MM-dd', // 2025-12-19
+    'dd/MM/yyyy', // 27/01/2026
+    'dd/MM/yyyy HH:mm', // 27/01/2026 21:50
+    'dd-MM-yyyy', // 27-01-2026
+    'dd-MM-yyyy HH:mm', // 27-01-2026 21:50
+    'yyyy-MM-dd', // 2026-01-27
+    'yyyy-MM-dd HH:mm:ss', // 2026-01-27 21:50:00
   ];
 
   for (final format in formats) {
     try {
-      return DateFormat(format).parse(dateString);
+      // Use parseStrict() to enforce exact format matching
+      // This prevents lenient parsing that could produce incorrect dates
+      final date = DateFormat(format).parseStrict(dateString);
+
+      // Validate the parsed date is reasonable (between 2000 and 2100)
+      if (date.year >= 2000 && date.year <= 2100) {
+        return date;
+      }
+      // If year is < 100, assume it's meant to be 20xx
+      if (date.year < 100) {
+        return DateTime(
+          date.year + 2000,
+          date.month,
+          date.day,
+          date.hour,
+          date.minute,
+          date.second,
+        );
+      }
     } catch (_) {
+      // parseStrict() throws FormatException if format doesn't match exactly
       // Continue to next format
     }
   }
 
-  // Try standard ISO 8601 format as fallback
+  // Try standard ISO 8601 format as fallback (DateTime.parse is already strict)
   try {
-    return DateTime.parse(dateString);
+    final date = DateTime.parse(dateString);
+    if (date.year >= 2000 && date.year <= 2100) {
+      return date;
+    }
+    if (date.year < 100) {
+      return DateTime(
+        date.year + 2000,
+        date.month,
+        date.day,
+        date.hour,
+        date.minute,
+        date.second,
+      );
+    }
+    return date;
   } catch (_) {
-    // If all parsing fails, return the current date as a fallback
-    return DateTime.now();
+    // If all parsing fails, return a sentinel date (epoch)
+    // This allows the UI to detect and display "Delivery date pending"
+    return DateTime(1970, 1, 1);
   }
+}
+
+/// Helper to check if a date is the sentinel value (invalid/missing date)
+bool isInvalidDate(DateTime date) {
+  return date.year == 1970 && date.month == 1 && date.day == 1;
 }
 
 class Order {

@@ -4,6 +4,8 @@ import '../../models/panchang/panchang_day_models.dart';
 import '../../models/panchang/panchang_highlights_models.dart';
 import '../../models/panchang/panchang_muhurats_models.dart';
 
+import '../../models/panchang/panchang_guidance_models.dart';
+
 abstract class PanchangHomeState extends Equatable {
   const PanchangHomeState();
 
@@ -23,15 +25,17 @@ class PanchangHomeSuccess extends PanchangHomeState {
   final PanchangDayResponse day;
   final DateTime selectedDate;
   final PanchangHighlightsResponse? highlights;
+  final GuidanceTodayResponse? guidance;
 
   const PanchangHomeSuccess({
     required this.day,
     required this.selectedDate,
     this.highlights,
+    this.guidance,
   });
 
   @override
-  List<Object?> get props => [day, selectedDate, highlights];
+  List<Object?> get props => [day, selectedDate, highlights, guidance];
 }
 
 class PanchangHomeError extends PanchangHomeState {

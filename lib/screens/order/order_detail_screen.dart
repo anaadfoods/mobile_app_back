@@ -1,6 +1,7 @@
 import 'dart:ui';
 import 'package:flutter/services.dart';
 import 'package:grocery_app/common_widgets/global_import.dart';
+import 'package:grocery_app/models/order_tracking_model.dart';
 
 class OrderDetailScreen extends StatefulWidget {
   final Order? order;
@@ -20,6 +21,10 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
   late AnimationController _animController;
   late Animation<double> _fadeAnimation;
 
+  // Tracking state
+  OrderTracking? _orderTracking;
+  bool _isLoadingTracking = false;
+
   @override
   void initState() {
     super.initState();
@@ -35,6 +40,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
     if (widget.order != null) {
       _currentOrder = widget.order;
       _animController.forward();
+      _fetchTracking();
     } else if (widget.orderId != null) {
       _loadOrder(widget.orderId!);
     } else {
@@ -42,16 +48,40 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
     }
   }
 
+  /// Fetches tracking data for the current order
+  Future<void> _fetchTracking() async {
+    if (_currentOrder == null) return;
+    if (_isLoadingTracking) return;
+
+    setState(() => _isLoadingTracking = true);
+    try {
+      final tracking = await _orderService.getOrderTracking(
+        _currentOrder!.orderNumber,
+      );
+      if (mounted) {
+        setState(() {
+          _orderTracking = tracking;
+          _isLoadingTracking = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isLoadingTracking = false);
+      }
+    }
+  }
+
   Future<void> _loadOrder(String id) async {
     setState(() => _isLoading = true);
     try {
-      final order = await _orderService.getOrderById(id as int);
+      final order = await _orderService.getOrderById(int.parse(id));
       if (mounted) {
         setState(() {
           _currentOrder = order;
           _isLoading = false;
         });
         _animController.forward();
+        _fetchTracking();
       }
     } catch (e) {
       if (mounted) {
@@ -68,10 +98,12 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
   }
 
   String _formatDate(DateTime date) {
-    return DateFormat('EEEE, MMMM d, yyyy').format(date);
+    if (date.year == 1970) return 'Delivery date pending';
+    return DateFormat('yyyy-MM-dd').format(date);
   }
 
   String _formatShortDate(DateTime date) {
+    if (date.year == 1970) return 'Date unknown';
     return DateFormat('MMM d, h:mm a').format(date);
   }
 
@@ -206,17 +238,16 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
           isDark ? const Color(0xFF121212) : const Color(0xFFF8F9FA),
       body: RefreshIndicator(
         onRefresh: () async {
-          // Refresh order details Logic
-          // Ideally fetch updated order details
+          // Refresh order details and tracking
           final updatedOrder = await _orderService.getOrderById(
             _currentOrder!.id,
           );
           if (updatedOrder.id == _currentOrder!.id) {
-            // Update state if needed, or just let it spin
             setState(() {
               _currentOrder = updatedOrder;
             });
           }
+          await _fetchTracking();
         },
         color: theme.colorScheme.primary,
         child: CustomScrollView(
@@ -232,8 +263,11 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
                   padding: const EdgeInsets.fromLTRB(16, 0, 16, 100),
                   child: Column(
                     children: [
-                      // Order Timeline
-                      _buildTimelineCard(theme, isDark),
+                      // Premium Delivery Header (Amazon-style)
+                      _buildDeliveryDateHeader(theme, isDark),
+                      const SizedBox(height: 16),
+                      // Order Timeline with tracking
+                      _buildTrackingTimelineCard(theme, isDark),
                       const SizedBox(height: 16),
                       // Referral Reward Banner
                       if (_currentOrder!.hasReferralReward)
@@ -445,7 +479,165 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
     );
   }
 
-  Widget _buildTimelineCard(ThemeData theme, bool isDark) {
+  // ==================== PREMIUM DELIVERY HEADER ====================
+  /// Amazon-style delivery header showing estimated delivery prominently
+  Widget _buildDeliveryDateHeader(ThemeData theme, bool isDark) {
+    // Determine the delivery date to display
+    final DateTime? estimatedDelivery =
+        _orderTracking?.estimatedDelivery ??
+        (_currentOrder!.expectedDeliveryDate.year != 1970
+            ? _currentOrder!.expectedDeliveryDate
+            : null);
+
+    final bool isDelivered = _currentOrder!.status.toUpperCase() == 'DELIVERED';
+    final bool isCancelled = _currentOrder!.status.toUpperCase() == 'CANCELLED';
+
+    // Format the delivery date
+    String deliveryText;
+    Color headerColor;
+    IconData headerIcon;
+
+    if (isDelivered) {
+      deliveryText =
+          'Delivered on ${DateFormat('d MMM, h:mm a').format(_currentOrder!.updatedAt)}';
+      headerColor = AppColors.success;
+      headerIcon = Icons.check_circle_rounded;
+    } else if (isCancelled) {
+      deliveryText = 'Order Cancelled';
+      headerColor = AppColors.error;
+      headerIcon = Icons.cancel_rounded;
+    } else if (estimatedDelivery != null) {
+      deliveryText =
+          'Arriving by ${DateFormat('d MMM, h:mm a').format(estimatedDelivery)}';
+      headerColor = AppColors.success;
+      headerIcon = Icons.local_shipping_rounded;
+    } else {
+      deliveryText = 'Delivery date pending';
+      headerColor = AppColors.warning;
+      headerIcon = Icons.schedule_rounded;
+    }
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            headerColor.withOpacity(0.15),
+            headerColor.withOpacity(0.08),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: headerColor.withOpacity(0.3)),
+        boxShadow: [
+          BoxShadow(
+            color: headerColor.withOpacity(0.1),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          // Icon container
+          Container(
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              color: headerColor.withOpacity(0.2),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(headerIcon, color: headerColor, size: 28),
+          ),
+          const SizedBox(width: 16),
+          // Delivery text
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  deliveryText,
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: headerColor,
+                    fontSize: 18,
+                  ),
+                ),
+                if (_orderTracking?.awbNumber != null) ...[
+                  const SizedBox(height: 4),
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.qr_code_rounded,
+                        size: 14,
+                        color: theme.hintColor,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        'AWB: ${_orderTracking!.awbNumber}',
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: theme.hintColor,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ],
+            ),
+          ),
+          // Product thumbnail (first item)
+          if (_currentOrder!.items.isNotEmpty) _buildProductThumbnail(isDark),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildProductThumbnail(bool isDark) {
+    final firstItem = _currentOrder!.items.first;
+    final imageUrl =
+        firstItem.productDetails.productImages.isNotEmpty
+            ? firstItem.productDetails.productImages[0].image
+            : null;
+
+    return Container(
+      width: 50,
+      height: 50,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: isDark ? Colors.white24 : Colors.grey.shade300,
+          width: 1,
+        ),
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(11),
+        child:
+            imageUrl != null
+                ? Image.network(
+                  imageUrl,
+                  fit: BoxFit.cover,
+                  errorBuilder: (_, __, ___) => _buildImagePlaceholder(isDark),
+                )
+                : _buildImagePlaceholder(isDark),
+      ),
+    );
+  }
+
+  Widget _buildImagePlaceholder(bool isDark) {
+    return Container(
+      color: isDark ? const Color(0xFF2D2D2D) : Colors.grey[100],
+      child: Icon(
+        Icons.image_outlined,
+        color: isDark ? Colors.white24 : Colors.grey[400],
+        size: 20,
+      ),
+    );
+  }
+
+  // ==================== TRACKING TIMELINE CARD ====================
+  /// Premium tracking timeline with "See all updates" link
+  Widget _buildTrackingTimelineCard(ThemeData theme, bool isDark) {
     return _ModernCard(
       isDark: isDark,
       child: Column(
@@ -458,9 +650,344 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
             color: AppColors.info,
           ),
           const SizedBox(height: 20),
-          _buildTimeline(theme, isDark),
+          // Timeline stepper
+          _buildTrackingTimeline(theme, isDark),
+          // "See all updates" link
+          if (_orderTracking != null &&
+              _orderTracking!.trackingEvents.isNotEmpty) ...[
+            const SizedBox(height: 16),
+            GestureDetector(
+              onTap: () => _showTrackingHistorySheet(theme, isDark),
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 10,
+                ),
+                decoration: BoxDecoration(
+                  color: AppColors.info.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.history_rounded,
+                      size: 18,
+                      color: AppColors.info,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      'See all ${_orderTracking!.trackingEvents.length} updates',
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: AppColors.info,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    Icon(
+                      Icons.arrow_forward_ios_rounded,
+                      size: 14,
+                      color: AppColors.info,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
         ],
       ),
+    );
+  }
+
+  /// Build the tracking timeline using tracking data if available
+  Widget _buildTrackingTimeline(ThemeData theme, bool isDark) {
+    final steps = _getTrackingTimelineSteps();
+
+    return Column(
+      children: List.generate(steps.length, (index) {
+        final step = steps[index];
+        final isLast = index == steps.length - 1;
+        final isCompleted = step.isCompleted;
+        final isCurrent = step.isCurrent;
+
+        return GestureDetector(
+          onTap: () {
+            // Open tracking history sheet if tracking data is available
+            if (_orderTracking != null &&
+                _orderTracking!.trackingEvents.isNotEmpty) {
+              _showTrackingHistorySheet(theme, isDark);
+            }
+          },
+          behavior: HitTestBehavior.opaque,
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Timeline indicator
+              Column(
+                children: [
+                  AnimatedContainer(
+                    duration: const Duration(milliseconds: 300),
+                    width: 32,
+                    height: 32,
+                    decoration: BoxDecoration(
+                      color:
+                          isCompleted || isCurrent
+                              ? step.color
+                              : (isDark ? Colors.grey[800] : Colors.grey[200]),
+                      shape: BoxShape.circle,
+                      boxShadow:
+                          isCurrent
+                              ? [
+                                BoxShadow(
+                                  color: step.color.withOpacity(0.4),
+                                  blurRadius: 12,
+                                  spreadRadius: 2,
+                                ),
+                              ]
+                              : null,
+                    ),
+                    child: Icon(
+                      isCompleted ? Icons.check_rounded : step.icon,
+                      color:
+                          isCompleted || isCurrent
+                              ? Colors.white
+                              : (isDark ? Colors.grey[600] : Colors.grey[400]),
+                      size: 16,
+                    ),
+                  ),
+                  if (!isLast)
+                    AnimatedContainer(
+                      duration: const Duration(milliseconds: 300),
+                      width: 2,
+                      height: 40,
+                      color:
+                          isCompleted
+                              ? step.color.withOpacity(0.5)
+                              : (isDark ? Colors.grey[800] : Colors.grey[200]),
+                    ),
+                ],
+              ),
+              const SizedBox(width: 16),
+              // Step content
+              Expanded(
+                child: Padding(
+                  padding: EdgeInsets.only(bottom: isLast ? 0 : 24),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              step.title,
+                              style: theme.textTheme.titleSmall?.copyWith(
+                                fontWeight: FontWeight.w600,
+                                color:
+                                    isCompleted || isCurrent
+                                        ? null
+                                        : theme.hintColor,
+                              ),
+                            ),
+                          ),
+                          // Show arrow indicator if tracking data is available
+                          if (_orderTracking != null &&
+                              _orderTracking!.trackingEvents.isNotEmpty)
+                            Icon(
+                              Icons.chevron_right_rounded,
+                              size: 18,
+                              color: theme.hintColor.withOpacity(0.5),
+                            ),
+                        ],
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        step.subtitle,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: theme.hintColor,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      }),
+    );
+  }
+
+  /// Get timeline steps based on tracking data or order status
+  /// Uses the tracking.status field (shipping status) when available,
+  /// falling back to order status
+  List<_TimelineStep> _getTrackingTimelineSteps() {
+    // Use tracking.status (shipping status like "IN TRANSIT") if available,
+    // otherwise fall back to order status
+    final rawStatus =
+        _orderTracking?.status.isNotEmpty == true
+            ? _orderTracking!.status
+            : _currentOrder!.status;
+    // Normalize: uppercase and replace spaces with underscores
+    final status = rawStatus.toUpperCase().replaceAll(' ', '_');
+    final steps = <_TimelineStep>[];
+
+    // Order Placed
+    steps.add(
+      _TimelineStep(
+        title: 'Order Placed',
+        subtitle: _formatShortDate(_currentOrder!.createdAt),
+        icon: Icons.shopping_bag_outlined,
+        color: AppColors.primaryColor,
+        isCompleted: true,
+        isCurrent: status == 'PLACED' || status == 'CREATED',
+      ),
+    );
+
+    // Shipped
+    final isShipped = [
+      'PACKED',
+      'PICKED_UP',
+      'PICKUP',
+      'MANIFESTED',
+      'SHIPPED',
+      'IN_TRANSIT',
+      'OUT_FOR_DELIVERY',
+      'DELIVERED',
+    ].contains(status);
+    final isCurrentShipped = [
+      'PACKED',
+      'PICKED_UP',
+      'PICKUP',
+      'MANIFESTED',
+      'SHIPPED',
+      'IN_TRANSIT',
+    ].contains(status);
+
+    // Try to get shipped date from tracking events
+    String shippedSubtitle = 'Waiting for shipment';
+    if (isShipped &&
+        _orderTracking != null &&
+        _orderTracking!.trackingEvents.isNotEmpty) {
+      // Find the SHIPPED or PICKED UP event (events are ordered oldest to newest)
+      final shippedEvent = _orderTracking!.trackingEvents.firstWhere((e) {
+        final s = e.status.toUpperCase().replaceAll(' ', '_');
+        return s == 'SHIPPED' || s == 'PICKED_UP' || s == 'IN_TRANSIT';
+      }, orElse: () => _orderTracking!.trackingEvents.first);
+      if (shippedEvent.timestamp.year != 1970) {
+        shippedSubtitle = _formatShortDate(shippedEvent.timestamp);
+      } else {
+        shippedSubtitle = 'Package is on the way';
+      }
+    } else if (isShipped) {
+      shippedSubtitle = 'Package is on the way';
+    }
+
+    steps.add(
+      _TimelineStep(
+        title: 'Shipped',
+        subtitle: shippedSubtitle,
+        icon: Icons.local_shipping_outlined,
+        color: AppColors.info,
+        isCompleted: isShipped && !isCurrentShipped,
+        isCurrent: isCurrentShipped,
+      ),
+    );
+
+    // Out for Delivery
+    final isOutForDelivery = ['OUT_FOR_DELIVERY', 'DELIVERED'].contains(status);
+
+    // Try to get out for delivery date from tracking events
+    String outForDeliverySubtitle = 'Pending';
+    if (isOutForDelivery &&
+        _orderTracking != null &&
+        _orderTracking!.trackingEvents.isNotEmpty) {
+      // Find the OUT FOR DELIVERY event (specifically, not OUT FOR PICKUP)
+      final ofdEvent = _orderTracking!.trackingEvents
+          .cast<TrackingEvent?>()
+          .firstWhere((e) {
+            final s = e!.status.toUpperCase().replaceAll(' ', '_');
+            return s == 'OUT_FOR_DELIVERY' || s.contains('OFD');
+          }, orElse: () => null);
+      if (ofdEvent != null && ofdEvent.timestamp.year != 1970) {
+        outForDeliverySubtitle = _formatShortDate(ofdEvent.timestamp);
+      } else {
+        outForDeliverySubtitle = 'Package is with the delivery agent';
+      }
+    } else if (isOutForDelivery) {
+      outForDeliverySubtitle = 'Package is with the delivery agent';
+    }
+
+    steps.add(
+      _TimelineStep(
+        title: 'Out for Delivery',
+        subtitle: outForDeliverySubtitle,
+        icon: Icons.delivery_dining_outlined,
+        color: AppColors.warning,
+        isCompleted: status == 'DELIVERED',
+        isCurrent: status == 'OUT_FOR_DELIVERY',
+      ),
+    );
+
+    // Delivered
+    final isDelivered = status == 'DELIVERED';
+
+    // Get delivered/expected date
+    String deliveredSubtitle;
+    if (isDelivered) {
+      // Try to get delivered date from tracking events
+      if (_orderTracking != null && _orderTracking!.trackingEvents.isNotEmpty) {
+        final deliveredEvent = _orderTracking!.trackingEvents.firstWhere(
+          (e) => e.status.toUpperCase().contains('DELIVER'),
+          orElse: () => _orderTracking!.trackingEvents.first,
+        );
+        if (deliveredEvent.timestamp.year != 1970) {
+          deliveredSubtitle = _formatShortDate(deliveredEvent.timestamp);
+        } else {
+          deliveredSubtitle = _formatShortDate(_currentOrder!.updatedAt);
+        }
+      } else {
+        deliveredSubtitle = _formatShortDate(_currentOrder!.updatedAt);
+      }
+    } else {
+      // Show expected delivery date
+      if (_orderTracking?.estimatedDelivery != null &&
+          _orderTracking!.estimatedDelivery!.year != 1970) {
+        deliveredSubtitle =
+            'Expected: ${DateFormat('MMM d').format(_orderTracking!.estimatedDelivery!)}';
+      } else if (_currentOrder!.expectedDeliveryDate.year != 1970) {
+        deliveredSubtitle =
+            'Expected: ${DateFormat('MMM d').format(_currentOrder!.expectedDeliveryDate)}';
+      } else {
+        deliveredSubtitle = 'TBD';
+      }
+    }
+
+    steps.add(
+      _TimelineStep(
+        title: 'Delivered',
+        subtitle: deliveredSubtitle,
+        icon: Icons.home_outlined,
+        color: AppColors.success,
+        isCompleted: isDelivered,
+        isCurrent: isDelivered,
+      ),
+    );
+
+    return steps;
+  }
+
+  // ==================== TRACKING HISTORY BOTTOM SHEET ====================
+  void _showTrackingHistorySheet(ThemeData theme, bool isDark) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder:
+          (context) => _TrackingHistorySheet(
+            tracking: _orderTracking!,
+            theme: theme,
+            isDark: isDark,
+          ),
     );
   }
 
@@ -533,97 +1060,6 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
           ),
         ],
       ),
-    );
-  }
-
-  Widget _buildTimeline(ThemeData theme, bool isDark) {
-    final steps = _getTimelineSteps();
-
-    return Column(
-      children: List.generate(steps.length, (index) {
-        final step = steps[index];
-        final isLast = index == steps.length - 1;
-        final isCompleted = step.isCompleted;
-        final isCurrent = step.isCurrent;
-
-        return Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Timeline indicator
-            Column(
-              children: [
-                Container(
-                  width: 32,
-                  height: 32,
-                  decoration: BoxDecoration(
-                    color:
-                        isCompleted || isCurrent
-                            ? step.color
-                            : (isDark ? Colors.grey[800] : Colors.grey[200]),
-                    shape: BoxShape.circle,
-                    boxShadow:
-                        isCurrent
-                            ? [
-                              BoxShadow(
-                                color: step.color.withOpacity(0.4),
-                                blurRadius: 12,
-                                spreadRadius: 2,
-                              ),
-                            ]
-                            : null,
-                  ),
-                  child: Icon(
-                    isCompleted
-                        ? Icons.check_rounded
-                        : (isCurrent ? step.icon : step.icon),
-                    color:
-                        isCompleted || isCurrent
-                            ? Colors.white
-                            : (isDark ? Colors.grey[600] : Colors.grey[400]),
-                    size: 16,
-                  ),
-                ),
-                if (!isLast)
-                  Container(
-                    width: 2,
-                    height: 40,
-                    color:
-                        isCompleted
-                            ? step.color.withOpacity(0.5)
-                            : (isDark ? Colors.grey[800] : Colors.grey[200]),
-                  ),
-              ],
-            ),
-            const SizedBox(width: 16),
-            // Step content
-            Expanded(
-              child: Padding(
-                padding: EdgeInsets.only(bottom: isLast ? 0 : 24),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      step.title,
-                      style: theme.textTheme.titleSmall?.copyWith(
-                        fontWeight: FontWeight.w600,
-                        color:
-                            isCompleted || isCurrent ? null : theme.hintColor,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      step.subtitle,
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: theme.hintColor,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        );
-      }),
     );
   }
 
@@ -802,17 +1238,6 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
         ),
         if (!isLast) const SizedBox(height: 12),
       ],
-    );
-  }
-
-  Widget _buildImagePlaceholder(bool isDark) {
-    return Container(
-      color: isDark ? const Color(0xFF2D2D2D) : Colors.grey[100],
-      child: Icon(
-        Icons.image_outlined,
-        color: isDark ? Colors.white24 : Colors.grey[400],
-        size: 24,
-      ),
     );
   }
 
@@ -1089,7 +1514,8 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
                 context,
                 MaterialPageRoute(
                   builder:
-                      (_) => HelpScreen(orderNumber: _currentOrder!.orderNumber),
+                      (_) =>
+                          HelpScreen(orderNumber: _currentOrder!.orderNumber),
                 ),
               );
             },
@@ -1462,6 +1888,263 @@ class _CancelConfirmDialog extends StatelessWidget {
           onPressed: () => Navigator.pop(context, true),
           style: ElevatedButton.styleFrom(backgroundColor: AppColors.error),
           child: const Text('Yes, Cancel'),
+        ),
+      ],
+    );
+  }
+}
+
+// ==================== TRACKING HISTORY BOTTOM SHEET ====================
+/// Full expanded tracking history with all events grouped by date
+class _TrackingHistorySheet extends StatelessWidget {
+  final OrderTracking tracking;
+  final ThemeData theme;
+  final bool isDark;
+
+  const _TrackingHistorySheet({
+    required this.tracking,
+    required this.theme,
+    required this.isDark,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    // Group events by date
+    final groupedEvents = _groupEventsByDate();
+
+    return Container(
+      constraints: BoxConstraints(
+        maxHeight: MediaQuery.of(context).size.height * 0.85,
+      ),
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Handle bar
+          Container(
+            margin: const EdgeInsets.only(top: 12),
+            width: 40,
+            height: 4,
+            decoration: BoxDecoration(
+              color: isDark ? Colors.grey[700] : Colors.grey[300],
+              borderRadius: BorderRadius.circular(2),
+            ),
+          ),
+          // Header
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 16, 8, 8),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: AppColors.info.withOpacity(0.15),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Icon(
+                    Icons.local_shipping_rounded,
+                    color: AppColors.info,
+                    size: 24,
+                  ),
+                ),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Tracking History',
+                        style: theme.textTheme.titleLarge?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      if (tracking.awbNumber != null)
+                        Text(
+                          'AWB: ${tracking.awbNumber}',
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: theme.hintColor,
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+                IconButton(
+                  onPressed: () => Navigator.pop(context),
+                  icon: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: isDark ? Colors.grey[800] : Colors.grey[100],
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(
+                      Icons.close_rounded,
+                      size: 20,
+                      color: theme.hintColor,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const Divider(),
+          // Events list
+          Flexible(
+            child: ListView.builder(
+              shrinkWrap: true,
+              padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
+              itemCount: groupedEvents.length,
+              itemBuilder: (context, index) {
+                final entry = groupedEvents.entries.elementAt(index);
+                return _buildDateGroup(entry.key, entry.value);
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Map<String, List<TrackingEvent>> _groupEventsByDate() {
+    final grouped = <String, List<TrackingEvent>>{};
+
+    // Sort events in reverse chronological order
+    final sortedEvents = List<TrackingEvent>.from(tracking.trackingEvents)
+      ..sort((a, b) => b.timestamp.compareTo(a.timestamp));
+
+    for (final event in sortedEvents) {
+      final dateKey = DateFormat('EEEE, d MMMM yyyy').format(event.timestamp);
+      grouped.putIfAbsent(dateKey, () => []).add(event);
+    }
+
+    return grouped;
+  }
+
+  Widget _buildDateGroup(String date, List<TrackingEvent> events) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Date header
+        Padding(
+          padding: const EdgeInsets.only(top: 16, bottom: 12),
+          child: Row(
+            children: [
+              Icon(
+                Icons.calendar_today_rounded,
+                size: 16,
+                color: theme.hintColor,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                date,
+                style: theme.textTheme.titleSmall?.copyWith(
+                  fontWeight: FontWeight.w600,
+                  color: theme.hintColor,
+                ),
+              ),
+            ],
+          ),
+        ),
+        // Events for this date
+        ...events.asMap().entries.map((entry) {
+          final isLast = entry.key == events.length - 1;
+          return _buildEventRow(entry.value, isLast);
+        }),
+      ],
+    );
+  }
+
+  Widget _buildEventRow(TrackingEvent event, bool isLast) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Timeline dot and line
+        Column(
+          children: [
+            Container(
+              width: 12,
+              height: 12,
+              decoration: BoxDecoration(
+                color: AppColors.info,
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: AppColors.info.withOpacity(0.3),
+                  width: 3,
+                ),
+              ),
+            ),
+            if (!isLast)
+              Container(
+                width: 2,
+                height: 60,
+                color: isDark ? Colors.grey[700] : Colors.grey[300],
+              ),
+          ],
+        ),
+        const SizedBox(width: 16),
+        // Event content
+        Expanded(
+          child: Padding(
+            padding: EdgeInsets.only(bottom: isLast ? 0 : 12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Time
+                Text(
+                  DateFormat('h:mm a').format(event.timestamp),
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: AppColors.info,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                // Status
+                Text(
+                  event.courierStatus.isNotEmpty
+                      ? event.courierStatus
+                      : event.status,
+                  style: theme.textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                // Activity description
+                if (event.activity.isNotEmpty) ...[
+                  const SizedBox(height: 2),
+                  Text(
+                    event.activity,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.hintColor,
+                    ),
+                  ),
+                ],
+                // Location
+                if (event.location.isNotEmpty) ...[
+                  const SizedBox(height: 4),
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.location_on_outlined,
+                        size: 14,
+                        color: theme.hintColor,
+                      ),
+                      const SizedBox(width: 4),
+                      Expanded(
+                        child: Text(
+                          event.location,
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: theme.hintColor,
+                            fontStyle: FontStyle.italic,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ],
+            ),
+          ),
         ),
       ],
     );

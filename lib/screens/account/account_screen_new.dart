@@ -92,7 +92,7 @@ class _AccountScreenState extends State<AccountScreen>
         child: Column(
           children: [
             _buildHeader(theme, size, user, userName),
-            const SizedBox(height: 70),
+            const SizedBox(height: 90),
             FadeTransition(
               opacity: _fadeAnimation,
               child: SlideTransition(
@@ -231,14 +231,19 @@ class _AccountScreenState extends State<AccountScreen>
     String userName,
   ) {
     final colorScheme = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
+    final statusBarHeight = MediaQuery.of(context).padding.top;
+
+    // Dynamic header height based on status bar
+    final headerHeight = (statusBarHeight + 140).clamp(180.0, 220.0);
 
     return Stack(
       clipBehavior: Clip.none,
       alignment: Alignment.center,
       children: [
-        // Gradient Background
+        // Gradient Background with rounded corners - same as explore screen
         Container(
-          height: size.height * 0.26,
+          height: headerHeight,
           width: double.infinity,
           decoration: BoxDecoration(
             gradient: LinearGradient(
@@ -246,20 +251,33 @@ class _AccountScreenState extends State<AccountScreen>
               end: Alignment.bottomRight,
               colors: [
                 colorScheme.primary,
-                colorScheme.primary.withOpacity(0.85),
-                colorScheme.primary.withOpacity(0.7),
+                colorScheme.primary.withOpacity(0.8),
+                isDark
+                    ? colorScheme.primary.withOpacity(0.6)
+                    : Colors.green.shade400,
               ],
             ),
+            borderRadius: const BorderRadius.only(
+              bottomLeft: Radius.circular(32),
+              bottomRight: Radius.circular(32),
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: colorScheme.primary.withOpacity(0.3),
+                blurRadius: 20,
+                offset: const Offset(0, 10),
+              ),
+            ],
           ),
           child: Stack(
             children: [
-              // Decorative circles
+              // Decorative circles - same as explore screen
               Positioned(
-                top: -60,
+                top: -40,
                 right: -40,
                 child: Container(
-                  height: 180,
-                  width: 180,
+                  width: 150,
+                  height: 150,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     color: Colors.white.withOpacity(0.1),
@@ -267,71 +285,61 @@ class _AccountScreenState extends State<AccountScreen>
                 ),
               ),
               Positioned(
-                top: 60,
-                left: -40,
+                bottom: -20,
+                left: -30,
                 child: Container(
-                  height: 100,
                   width: 100,
+                  height: 100,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     color: Colors.white.withOpacity(0.08),
                   ),
                 ),
               ),
-              Positioned(
-                bottom: 50,
-                right: 30,
-                child: Container(
-                  height: 60,
-                  width: 60,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: Colors.white.withOpacity(0.06),
-                  ),
-                ),
-              ),
-              // Title
-              Positioned(
-                top: MediaQuery.of(context).padding.top + 12,
-                left: 0,
-                right: 0,
-                child: const Center(
-                  child: Text(
-                    'My Profile',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 20,
-                      fontWeight: FontWeight.w600,
-                      letterSpacing: 0.5,
-                    ),
+              // Header Content with SafeArea - same as explore screen
+              SafeArea(
+                bottom: false,
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 16, 20, 16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // Title Row with icon
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.person_rounded,
+                            color: Colors.white,
+                            size: 28,
+                          ),
+                          const SizedBox(width: 10),
+                          Text(
+                            'My Profile',
+                            style: theme.textTheme.headlineSmall?.copyWith(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
                   ),
                 ),
               ),
             ],
           ),
         ),
-        // Curved bottom
+        // Profile Card - with proper padding
         Positioned(
-          bottom: 0,
-          left: 0,
-          right: 0,
-          child: Container(
-            height: 30,
-            decoration: BoxDecoration(
-              color: theme.scaffoldBackgroundColor,
-              borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(30),
-                topRight: Radius.circular(30),
-              ),
-            ),
+          bottom: -70,
+          left: 16,
+          right: 16,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 4),
+            child: _buildProfileCard(theme, user, userName),
           ),
-        ),
-        // Profile Card
-        Positioned(
-          bottom: -50,
-          left: 20,
-          right: 20,
-          child: _buildProfileCard(theme, user, userName),
         ),
       ],
     );
@@ -935,4 +943,3 @@ class _MenuItem {
     required this.onTap,
   });
 }
-

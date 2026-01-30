@@ -256,14 +256,16 @@ class _CombinedScreenState extends State<CombinedScreen>
                     Container(
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        gradient: const LinearGradient(
-                          colors: [Color(0xFF4CAF50), Color(0xFF388E3C)],
-                        ),
+                        color: const Color(0xFF4CAF50).withOpacity(0.15),
                         borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                          color: const Color(0xFF4CAF50).withOpacity(0.5),
+                          width: 2,
+                        ),
                       ),
                       child: const Icon(
-                        Icons.grass_rounded,
-                        color: Colors.white,
+                        Icons.spa_rounded,
+                        color: Color(0xFF4CAF50),
                         size: 32,
                       ),
                     ),
@@ -466,7 +468,7 @@ class _CombinedScreenState extends State<CombinedScreen>
         ),
         const SizedBox(height: 16),
         SizedBox(
-          height: 150,
+          height: 140,
           child: ListView.builder(
             scrollDirection: Axis.horizontal,
             physics: const BouncingScrollPhysics(),
@@ -475,9 +477,9 @@ class _CombinedScreenState extends State<CombinedScreen>
             itemBuilder: (context, index) {
               final benefit = benefits[index];
               return Container(
-                width: 145,
+                width: 140,
                 margin: const EdgeInsets.only(right: 12),
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.all(14),
                 decoration: BoxDecoration(
                   color: isDark ? const Color(0xFF1E1E2E) : Colors.white,
                   borderRadius: BorderRadius.circular(16),
@@ -493,43 +495,50 @@ class _CombinedScreenState extends State<CombinedScreen>
                     ),
                   ],
                 ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF4CAF50).withOpacity(0.15),
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: Icon(
-                        benefit['icon'] as IconData,
-                        color: const Color(0xFF4CAF50),
-                        size: 20,
-                      ),
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: Alignment.topLeft,
+                  child: SizedBox(
+                    width: 112,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF4CAF50).withOpacity(0.15),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Icon(
+                            benefit['icon'] as IconData,
+                            color: const Color(0xFF4CAF50),
+                            size: 20,
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        Text(
+                          benefit['title'] as String,
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            fontWeight: FontWeight.bold,
+                            height: 1.2,
+                          ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          benefit['desc'] as String,
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: isDark ? Colors.grey[400] : Colors.grey[600],
+                            height: 1.2,
+                          ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
                     ),
-                    const SizedBox(height: 12),
-                    Text(
-                      benefit['title'] as String,
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        height: 1.2,
-                      ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      benefit['desc'] as String,
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: isDark ? Colors.grey[400] : Colors.grey[600],
-                        height: 1.3,
-                      ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ],
+                  ),
                 ),
               );
             },
@@ -923,8 +932,16 @@ Future<void> _showNotificationForm(BuildContext context) async {
                                         vertical: 4,
                                       ),
                                       decoration: BoxDecoration(
-                                        color: Colors.grey.withOpacity(0.1),
+                                        color: const Color(
+                                          0xFF4CAF50,
+                                        ).withOpacity(0.08),
                                         borderRadius: BorderRadius.circular(12),
+                                        border: Border.all(
+                                          color: const Color(
+                                            0xFF4CAF50,
+                                          ).withOpacity(0.3),
+                                          width: 1,
+                                        ),
                                       ),
                                       child: DropdownButtonFormField<String>(
                                         value: selectedRequirementType,
@@ -1056,8 +1073,12 @@ Widget _buildFormField(
 }) {
   return Container(
     decoration: BoxDecoration(
-      color: Colors.grey.withOpacity(0.1),
+      color: const Color(0xFF4CAF50).withOpacity(0.08),
       borderRadius: BorderRadius.circular(12),
+      border: Border.all(
+        color: const Color(0xFF4CAF50).withOpacity(0.3),
+        width: 1,
+      ),
     ),
     child: TextFormField(
       controller: controller,
@@ -1065,7 +1086,7 @@ Widget _buildFormField(
       maxLines: maxLines,
       decoration: InputDecoration(
         hintText: hint,
-        prefixIcon: Icon(icon, color: Colors.grey),
+        prefixIcon: Icon(icon, color: const Color(0xFF4CAF50).withOpacity(0.7)),
         border: InputBorder.none,
         contentPadding: const EdgeInsets.symmetric(
           horizontal: 16,

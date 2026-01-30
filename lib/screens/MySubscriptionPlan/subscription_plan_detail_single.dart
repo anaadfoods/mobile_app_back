@@ -158,7 +158,27 @@ class _SubscriptionPlanDetailScreenState
       // The service already opens the file, but just in case or if we want to log it
       print('Invoice downloaded and opened: $savedPath');
     } catch (e) {
-      SnackBarHelper.showError(context, 'Error downloading invoice: $e');
+      // Parse error message and show user-friendly text
+      String errorMessage =
+          'Unable to download invoice. Please try again later.';
+      final errorStr = e.toString().toLowerCase();
+
+      if (errorStr.contains('400') || errorStr.contains('bad request')) {
+        errorMessage = 'Invoice is not available yet. Please try again later.';
+      } else if (errorStr.contains('404') || errorStr.contains('not found')) {
+        errorMessage = 'Invoice not found. It may have been removed.';
+      } else if (errorStr.contains('network') ||
+          errorStr.contains('socket') ||
+          errorStr.contains('connection')) {
+        errorMessage = 'Network error. Please check your internet connection.';
+      } else if (errorStr.contains('permission') ||
+          errorStr.contains('storage')) {
+        errorMessage = 'Storage permission required to save the invoice.';
+      } else if (errorStr.contains('timeout')) {
+        errorMessage = 'Download timed out. Please try again.';
+      }
+
+      SnackBarHelper.showError(context, errorMessage);
     }
   }
 
@@ -235,8 +255,38 @@ class _SubscriptionPlanDetailScreenState
   // }
 
   String _formatDate(String dateStr, {String format = 'MMM dd, yyyy'}) {
-    final date = DateTime.tryParse(dateStr);
+    var date = DateTime.tryParse(dateStr);
+
+    // Try to handle DD-MM-YYYY format if standard parse fails
+    if (date == null) {
+      try {
+        final parts = dateStr.split(RegExp(r'[-/]'));
+        if (parts.length >= 3) {
+          // Assuming DD-MM-YYYY
+          final day = int.parse(parts[0]);
+          final month = int.parse(parts[1]);
+          final year = int.parse(
+            parts[2].split(' ')[0],
+          ); // Handle potential time
+          date = DateTime(year, month, day);
+        }
+      } catch (_) {}
+    }
+
     if (date == null) return dateStr;
+
+    // Fix 2-digit years or 00xx years
+    if (date.year < 100) {
+      date = DateTime(
+        date.year + 2000,
+        date.month,
+        date.day,
+        date.hour,
+        date.minute,
+        date.second,
+      );
+    }
+
     return DateFormat(format).format(date);
   }
 

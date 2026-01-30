@@ -1,6 +1,8 @@
-  class ApiConfig {
+class ApiConfig {
   // static const String baseUrl = 'http://34.131.42.218';
   static const String baseUrl = 'https://bck.anaadfoods.com';
+  // static const String baseUrl = 'http://10.0.2.2:8000';
+
   // static const String baseUrl = "http://192.168.29.209:8000";
 
   static const String paymentUrl = 'http://34.131.42.218:5000';
@@ -66,6 +68,10 @@
   static const String getorders = '/api/orders/';
   static const String userDetailsEndpoint = '/api/user/details/';
 
+  // Order tracking endpoint (returns tracking data for an order)
+  static String orderTrackingEndpoint(String orderNumber) =>
+      '/api/shiprocket/orders/tracking_by_order/?order_number=$orderNumber';
+
   // Subscription endpoints
   static const String subscriptionsEndpoint = '/api/subscriptions/';
   static const String subscriptionPlansEndpoint = '/api/subscriptions/plans/';
@@ -77,6 +83,9 @@
   static const String referralRewardCountEndpoint =
       '/api/auth/referral_reward_count/';
   static const String referralsEndpoint = '/api/auth/referrals/';
+
+  // User summary endpoint
+  static const String userSummaryEndpoint = '/api/core/user-summary/';
 
   // Headers
   static Map<String, String> getBaseHeaders() {

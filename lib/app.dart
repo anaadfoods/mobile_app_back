@@ -120,8 +120,14 @@ class MyApp extends StatelessWidget {
               darkTheme: AppTheme.darkTheme,
               themeMode: themeMode,
               builder: (context, child) {
-                final widget = ConnectivityWrapper(
-                  child: DoubleBackToExitApp(child: child!),
+                // Prevent app from using system font size settings
+                final widget = MediaQuery(
+                  data: MediaQuery.of(
+                    context,
+                  ).copyWith(textScaler: const TextScaler.linear(1.0)),
+                  child: ConnectivityWrapper(
+                    child: DoubleBackToExitApp(child: child!),
+                  ),
                 );
                 return DevicePreview.appBuilder(context, widget);
               },

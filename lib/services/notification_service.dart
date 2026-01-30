@@ -110,12 +110,23 @@ class NotificationService {
     }
   }
 
-  // Called from AppInitializer when navigator is ready
+  /// Called from AppInitializer when navigator is ready.
+  /// CRITICAL: Handles cold start / terminated state navigation.
   void processInitialMessage() {
     if (_pendingInitialMessage != null) {
-      debugPrint('Processing pending initial notification message');
-      _handleMessageOpenedApp(_pendingInitialMessage!);
+      debugPrint(
+        'Processing pending initial notification message: ${_pendingInitialMessage!.data}',
+      );
+      final messageData = Map<String, dynamic>.from(
+        _pendingInitialMessage!.data,
+      );
       _pendingInitialMessage = null;
+
+      // LIFECYCLE SAFETY: Ensure navigation happens after MaterialApp is fully built
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        debugPrint('Executing cold start navigation with data: $messageData');
+        handleRedirection(messageData);
+      });
     }
   }
 
@@ -304,27 +315,32 @@ class NotificationService {
   void _handleMessageOpenedApp(RemoteMessage message) {
     debugPrint('App opened from notification: ${message.data}');
     _onMessageOpenedAppController.add(message);
-    // Handle redirection based on notification data
-    handleRedirection(message.data);
+    // LIFECYCLE SAFETY: Delay navigation until UI is ready
+    // Critical for background -> foreground transitions
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      handleRedirection(message.data);
+    });
   }
 
   void _onNotificationTapped(NotificationResponse response) {
     debugPrint('Notification tapped: ${response.payload}');
-    // Handle local notification tap
-    if (response.payload != null) {
-      try {
-        Map<String, dynamic> data = json.decode(response.payload!);
-        // Use handleRedirection for consistent routing
-        handleRedirection(data);
-      } catch (e) {
-        debugPrint('Error parsing notification payload: $e');
-        // Default to notifications screen if payload parsing fails
+    // LIFECYCLE SAFETY: Delay navigation until UI is ready
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (response.payload != null) {
+        try {
+          Map<String, dynamic> data = json.decode(response.payload!);
+          // Use handleRedirection for consistent routing
+          handleRedirection(data);
+        } catch (e) {
+          debugPrint('Error parsing notification payload: $e');
+          // Default to notifications screen if payload parsing fails
+          NavigationService.navigateToNotifications();
+        }
+      } else {
+        // Default to notifications screen if no payload
         NavigationService.navigateToNotifications();
       }
-    } else {
-      // Default to notifications screen if no payload
-      NavigationService.navigateToNotifications();
-    }
+    });
   }
 
   Future<void> _showLocalNotification(RemoteMessage message) async {
@@ -490,44 +506,54 @@ class NotificationService {
   ///   - Uses 'type' and 'id' fields for routing
   void handleRedirection(Map<String, dynamic> data) {
     debugPrint('handleRedirection called with data: $data');
-    final String? screen = data['screen'] as String?;
-    final String? genericId = data['id'] as String?; // Fallback ID field
 
-    // Handle screen-based routing (primary method from backend)
-    if (screen != null && screen.isNotEmpty) {
-      debugPrint('Handling screen-based redirection: $screen');
-      switch (screen) {
+    // Helper to safely convert any ID type (int or String) to String
+    String? toStringId(dynamic value) {
+      if (value == null) return null;
+      return value.toString();
+    }
+
+    final String? type = data['type'] as String?;
+    final String? genericId = toStringId(data['id']);
+
+    // Handle type-based routing (using 'type' field from backend)
+    if (type != null && type.isNotEmpty) {
+      debugPrint('Handling type-based redirection: $type');
+      switch (type) {
+        case 'product':
         case 'product_detail':
-          final productId = (data['product_id'] ?? genericId) as String?;
+          final productId = toStringId(data['id']) ?? genericId;
           if (productId != null && productId.isNotEmpty) {
             debugPrint('Navigating to product_detail with id: $productId');
             NavigationService.navigateToProductDetails(productId);
           } else {
-            debugPrint('product_id missing for product_detail screen');
+            debugPrint('product_id missing for product screen');
             _navigateToNotifications();
           }
           return;
+        case 'order':
         case 'order_tracking':
-          final orderId = (data['order_id'] ?? genericId) as String?;
+          final orderId = toStringId(data['id']) ?? genericId;
           if (orderId != null && orderId.isNotEmpty) {
             debugPrint('Navigating to order_tracking with id: $orderId');
             NavigationService.navigateToOrderDetails(orderId);
           } else {
-            debugPrint('order_id missing for order_tracking screen');
+            debugPrint('order_id missing for order screen');
             _navigateToNotifications();
           }
           return;
+        case 'subscription':
         case 'subscription_detail':
-          final subscriptionId = (data['subscription_id'] ?? genericId) as String?;
+        case 'payment':
+        case 'payment_subscription':
+          final subscriptionId = toStringId(data['id']) ?? genericId;
           if (subscriptionId != null && subscriptionId.isNotEmpty) {
             debugPrint(
               'Navigating to subscription_detail with id: $subscriptionId',
             );
             NavigationService.navigateToSubscriptionDetails(subscriptionId);
           } else {
-            debugPrint(
-              'subscription_id missing for subscription_detail screen',
-            );
+            debugPrint('subscription_id missing for subscription screen');
             _navigateToNotifications();
           }
           return;
@@ -544,49 +570,18 @@ class NotificationService {
           NavigationService.navigateToHome();
           return;
         case 'notifications':
-          debugPrint('Navigating to notifications');
-          NavigationService.navigateToNotifications();
-          return;
+        case 'promotional':
+        case 'system':
         default:
-          debugPrint(
-            'Unknown screen type: $screen, falling back to type-based routing',
-          );
+          debugPrint('Type $type -> navigating to notifications');
+          _navigateToNotifications();
+          return;
       }
     }
 
-    // Fall back to type-based routing when screen is missing
-    debugPrint('Falling back to type-based routing');
-    _handleTypeBasedRouting(data, genericId);
-  }
-
-  /// Type-based routing fallback when 'screen' field is missing
-  void _handleTypeBasedRouting(Map<String, dynamic> data, String? genericId) {
-    final String? type = data['type'] as String?;
-    
-    switch (type) {
-      case 'subscription':
-      case 'payment_subscription':
-        final subscriptionId = (data['subscription_id'] ?? genericId) as String?;
-        NavigationService.navigateToSubscriptionDetails(subscriptionId);
-        break;
-      case 'order':
-        final orderId = (data['order_id'] ?? genericId) as String?;
-        NavigationService.navigateToOrderDetails(orderId);
-        break;
-      case 'product':
-        final productId = (data['product_id'] ?? genericId) as String?;
-        NavigationService.navigateToProductDetails(productId);
-        break;
-      case 'payment_order':
-        final orderId = (data['order_id'] ?? genericId) as String?;
-        NavigationService.navigateToOrderDetails(orderId);
-        break;
-      case 'promotional':
-      case 'system':
-      default:
-        _navigateToNotifications();
-        break;
-    }
+    // No type found, go to notifications
+    debugPrint('No type found, falling back to notifications');
+    _navigateToNotifications();
   }
 
   void _navigateToNotifications() {

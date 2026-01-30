@@ -313,20 +313,54 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen>
     if (date == null || date.isEmpty) {
       return _getDefaultDeliveryDate();
     }
-    
-    // Convert DD-MM-YYYY to YYYY-MM-DD format
+
     try {
-      final parts = date.split('-');
+      // Normalize separators
+      String normalizedDate = date.replaceAll('/', '-');
+      List<String> parts = normalizedDate.split('-');
+
       if (parts.length == 3) {
-        final day = parts[0].padLeft(2, '0');
-        final month = parts[1].padLeft(2, '0');
-        final year = parts[2];
+        String day, month, year;
+
+        // Check if format is YYYY-MM-DD (year is first)
+        if (parts[0].length == 4) {
+          year = parts[0];
+          month = parts[1];
+          day = parts[2];
+        } else {
+          // Assume DD-MM-YYYY
+          day = parts[0];
+          month = parts[1];
+          year = parts[2];
+        }
+
+        // Handle time part if present in the last segment (e.g. "2026 10:00")
+        if (year.contains(' ')) {
+          year = year.split(' ')[0];
+        }
+        if (day.contains(' ')) {
+          // In case of YYYY-MM-DD HH:MM where day is last
+          day = day.split(' ')[0];
+        }
+
+        // Fix 2-digit years (e.g. "32" -> "2032")
+        // Also fix "0032" if it was already parsed incorrectly previously
+        int yearInt = int.tryParse(year) ?? DateTime.now().year;
+        if (yearInt < 100) {
+          yearInt += 2000;
+        }
+        year = yearInt.toString();
+
+        // Pad day and month
+        day = day.padLeft(2, '0');
+        month = month.padLeft(2, '0');
+
         return '$year-$month-$day';
       }
     } catch (e) {
-      // If parsing fails, return default date
+      // Fallback to default if parsing totally fails
     }
-    
+
     return _getDefaultDeliveryDate();
   }
 
@@ -348,8 +382,9 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen>
                     _deliveryDetails?['delivery_charges']?.toString() ?? '0.0',
                   ) ??
                   0.0,
-              expectedDeliveryDate:
-                  _formatDeliveryDate(_deliveryDetails?['expected_delivery_date']),
+              expectedDeliveryDate: _formatDeliveryDate(
+                _deliveryDetails?['expected_delivery_date'],
+              ),
               paymentType: widget.paymentType,
             ),
       ),
@@ -511,51 +546,59 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen>
 
               // Header Content
               SafeArea(
+                bottom: false,
                 child: Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 8, 20, 20),
+                  padding: const EdgeInsets.fromLTRB(20, 8, 20, 16),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
                     children: [
                       // Back Button
                       _buildIconButton(Icons.arrow_back_ios_new_rounded, () {
                         HapticFeedback.lightImpact();
                         Navigator.pop(context);
                       }),
-                      const Spacer(),
+                      const SizedBox(height: 12),
                       // Title Row
                       Row(
                         children: [
                           Container(
-                            padding: const EdgeInsets.all(12),
+                            padding: const EdgeInsets.all(10),
                             decoration: BoxDecoration(
                               color: Colors.white.withOpacity(0.2),
-                              borderRadius: BorderRadius.circular(16),
+                              borderRadius: BorderRadius.circular(14),
                             ),
                             child: const Icon(
                               Icons.location_on_rounded,
                               color: Colors.white,
-                              size: 28,
+                              size: 24,
                             ),
                           ),
-                          const SizedBox(width: 16),
+                          const SizedBox(width: 14),
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(
-                                  "Delivery Address",
-                                  style: theme.textTheme.headlineMedium
-                                      ?.copyWith(
-                                        color: Colors.white,
-                                        fontWeight: FontWeight.bold,
-                                      ),
+                                FittedBox(
+                                  fit: BoxFit.scaleDown,
+                                  alignment: Alignment.centerLeft,
+                                  child: Text(
+                                    "Delivery Address",
+                                    style: theme.textTheme.headlineSmall
+                                        ?.copyWith(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                  ),
                                 ),
-                                const SizedBox(height: 4),
+                                const SizedBox(height: 2),
                                 Text(
                                   "Where should we deliver your order?",
-                                  style: theme.textTheme.bodyMedium?.copyWith(
+                                  style: theme.textTheme.bodySmall?.copyWith(
                                     color: Colors.white.withOpacity(0.9),
                                   ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
                                 ),
                               ],
                             ),
@@ -1189,14 +1232,7 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen>
           const SizedBox(height: 20),
           Row(
             children: [
-              Expanded(
-                child: _buildDeliveryInfoItem(
-                  theme,
-                  Icons.payments_rounded,
-                  'Delivery Charges',
-                  '₹${_deliveryDetails?['delivery_charges'] ?? '0'}',
-                ),
-              ),
+              Expanded(child: _buildDeliveryChargesItem(theme)),
               Container(
                 width: 1,
                 height: 50,
@@ -1235,6 +1271,55 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen>
         const SizedBox(height: 4),
         Text(
           value,
+          style: theme.textTheme.titleSmall?.copyWith(
+            fontWeight: FontWeight.bold,
+            color: theme.colorScheme.primary,
+          ),
+          textAlign: TextAlign.center,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDeliveryChargesItem(ThemeData theme) {
+    final charges = _deliveryDetails?['delivery_charges'];
+    String codCharge = '0';
+    String prepaidCharge = '0';
+
+    if (charges is Map) {
+      codCharge = (charges['cod'] ?? 0).toString();
+      prepaidCharge = (charges['prepaid'] ?? 0).toString();
+    } else if (charges != null) {
+      // Fallback if it's a single value
+      codCharge = charges.toString();
+      prepaidCharge = charges.toString();
+    }
+
+    return Column(
+      children: [
+        Icon(
+          Icons.payments_rounded,
+          color: theme.colorScheme.primary,
+          size: 24,
+        ),
+        const SizedBox(height: 8),
+        Text(
+          'Delivery Charges',
+          style: theme.textTheme.bodySmall?.copyWith(color: theme.hintColor),
+          textAlign: TextAlign.center,
+        ),
+        const SizedBox(height: 4),
+        Text(
+          'COD: ₹$codCharge',
+          style: theme.textTheme.titleSmall?.copyWith(
+            fontWeight: FontWeight.bold,
+            color: theme.colorScheme.primary,
+          ),
+          textAlign: TextAlign.center,
+        ),
+        const SizedBox(height: 2),
+        Text(
+          'Prepaid: ₹$prepaidCharge',
           style: theme.textTheme.titleSmall?.copyWith(
             fontWeight: FontWeight.bold,
             color: theme.colorScheme.primary,

@@ -54,7 +54,7 @@ export 'package:image_picker/image_picker.dart';
 
 export '../../services/profile_service.dart';
 export 'dart:convert';
-export 'package:grocery_app/common_widgets/imput_widget.dart';
+export 'package:grocery_app/common_widgets/input_widget.dart';
 export 'package:grocery_app/services/api_config.dart';
 export 'package:grocery_app/services/auth_service.dart';
 export 'package:font_awesome_flutter/font_awesome_flutter.dart';

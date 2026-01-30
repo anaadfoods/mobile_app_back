@@ -265,7 +265,7 @@ class _AnaadInnovationsScreenState extends State<AnaadInnovationsScreen>
                 title: 'Anaad Games',
                 subtitle: 'Learn the art of natural farming.',
                 gradient: [const Color(0xFF3B82F6), const Color(0xFF1D4ED8)],
-                isComingSoon: false,
+                isComingSoon: true,
                 delay: 2,
                 onTap: () => _navigateTo(context, const AnaadGamesScreen()),
               ),
@@ -283,7 +283,7 @@ class _AnaadInnovationsScreenState extends State<AnaadInnovationsScreen>
                 delay: 3,
                 onTap: () => _navigateTo(context, const ReferEarnScreen()),
               ),
-              const SizedBox(height: 40),
+              const SizedBox(height: 16),
 
               _buildFeatureCard(
                 context: context,
@@ -318,208 +318,184 @@ class _AnaadInnovationsScreenState extends State<AnaadInnovationsScreen>
           borderRadius: BorderRadius.circular(24),
           child: BackdropFilter(
             filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
-            child: ColorFiltered(
-              colorFilter: ColorFilter.matrix([
-                0.5,
-                0.2,
-                0.2,
-                0,
-                0,
-                0.2,
-                0.5,
-                0.2,
-                0,
-                0,
-                0.2,
-                0.2,
-                0.5,
-                0,
-                0,
-                0,
-                0,
-                0,
-                0.7,
-                0,
-              ]),
-              child: Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(24),
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [
-                      const Color(0xFF6B21A8).withValues(alpha: 0.6),
-                      const Color(0xFF7C3AED).withValues(alpha: 0.55),
-                    ],
-                  ),
-                  borderRadius: BorderRadius.circular(24),
-                  border: Border.all(
-                    color: Colors.white.withValues(alpha: 0.15),
-                    width: 1.5,
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: const Color(0xFF6B21A8).withValues(alpha: 0.2),
-                      blurRadius: 25,
-                      offset: const Offset(0, 10),
-                    ),
-                  ],
+            child: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors:
+                      isDark
+                          ? [const Color(0xFF6B21A8), const Color(0xFF4C1D95)]
+                          : [const Color(0xFF7C3AED), const Color(0xFF8B5CF6)],
                 ),
-                child: Stack(
-                  children: [
-                    // Content
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.all(12),
-                              decoration: BoxDecoration(
-                                color: Colors.white.withValues(alpha: 0.15),
-                                borderRadius: BorderRadius.circular(14),
-                              ),
-                              child: const Icon(
-                                Icons.stars_rounded,
-                                color: Colors.white70,
-                                size: 24,
-                              ),
+                borderRadius: BorderRadius.circular(24),
+                border: Border.all(
+                  color: Colors.white.withValues(alpha: 0.15),
+                  width: 1.5,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color(0xFF6B21A8).withValues(alpha: 0.2),
+                    blurRadius: 25,
+                    offset: const Offset(0, 10),
+                  ),
+                ],
+              ),
+              child: Stack(
+                children: [
+                  // Content
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withValues(alpha: 0.15),
+                              borderRadius: BorderRadius.circular(14),
                             ),
-                            const SizedBox(width: 14),
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'Anaad Points',
-                                  style: theme.textTheme.titleMedium?.copyWith(
-                                    color: Colors.white.withValues(alpha: 0.6),
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                ),
-                                const SizedBox(height: 2),
-                                Row(
-                                  children: [
-                                    Text(
-                                      '$_pointsBalance',
-                                      style: theme.textTheme.headlineMedium
-                                          ?.copyWith(
-                                            color: Colors.white70,
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                    ),
-                                    const SizedBox(width: 8),
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 8,
-                                        vertical: 4,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        color: const Color(
-                                          0xFF10B981,
-                                        ).withValues(alpha: 0.2),
-                                        borderRadius: BorderRadius.circular(8),
-                                      ),
-                                      child: Row(
-                                        children: [
-                                          const Icon(
-                                            Icons.trending_up,
-                                            color: Color(0xFF6EE7B7),
-                                            size: 14,
-                                          ),
-                                          const SizedBox(width: 4),
-                                          Text(
-                                            '+50 this week',
-                                            style: theme.textTheme.labelSmall
-                                                ?.copyWith(
-                                                  color: const Color(
-                                                    0xFF6EE7B7,
-                                                  ).withValues(alpha: 0.7),
-                                                  fontWeight: FontWeight.w600,
-                                                ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ],
+                            child: const Icon(
+                              Icons.stars_rounded,
+                              color: Colors.white70,
+                              size: 24,
                             ),
-                          ],
-                        ),
-                        const SizedBox(height: 20),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 10,
                           ),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withValues(alpha: 0.1),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
+                          const SizedBox(width: 14),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Icon(
-                                Icons.hourglass_top_rounded,
-                                color: Colors.white54,
-                                size: 16,
-                              ),
-                              const SizedBox(width: 8),
                               Text(
-                                'Coming Soon - Earn points with orders!',
-                                style: theme.textTheme.bodySmall?.copyWith(
+                                'Anaad Points',
+                                style: theme.textTheme.titleMedium?.copyWith(
                                   color: Colors.white.withValues(alpha: 0.6),
+                                  fontWeight: FontWeight.w500,
                                 ),
+                              ),
+                              const SizedBox(height: 2),
+                              Row(
+                                children: [
+                                  Text(
+                                    '$_pointsBalance',
+                                    style: theme.textTheme.headlineMedium
+                                        ?.copyWith(
+                                          color: Colors.white70,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 8,
+                                      vertical: 4,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: const Color(
+                                        0xFF10B981,
+                                      ).withValues(alpha: 0.2),
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        const Icon(
+                                          Icons.trending_up,
+                                          color: Color(0xFF6EE7B7),
+                                          size: 14,
+                                        ),
+                                        const SizedBox(width: 4),
+                                        Text(
+                                          '+50 this week',
+                                          style: theme.textTheme.labelSmall
+                                              ?.copyWith(
+                                                color: const Color(
+                                                  0xFF6EE7B7,
+                                                ).withValues(alpha: 0.7),
+                                                fontWeight: FontWeight.w600,
+                                              ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
                               ),
                             ],
                           ),
-                        ),
-                      ],
-                    ),
-                    // Coming Soon Badge
-                    Positioned(
-                      top: -4,
-                      right: -4,
-                      child: Container(
+                        ],
+                      ),
+                      const SizedBox(height: 20),
+                      Container(
                         padding: const EdgeInsets.symmetric(
-                          horizontal: 10,
-                          vertical: 5,
+                          horizontal: 16,
+                          vertical: 10,
                         ),
                         decoration: BoxDecoration(
-                          color: Colors.orange.withValues(alpha: 0.9),
+                          color: Colors.white.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(12),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.orange.withValues(alpha: 0.4),
-                              blurRadius: 8,
-                              offset: const Offset(0, 2),
-                            ),
-                          ],
                         ),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             const Icon(
-                              Icons.rocket_launch_rounded,
-                              size: 12,
-                              color: Colors.white,
+                              Icons.hourglass_top_rounded,
+                              color: Colors.white54,
+                              size: 16,
                             ),
-                            const SizedBox(width: 4),
+                            const SizedBox(width: 8),
                             Text(
-                              'COMING SOON',
-                              style: theme.textTheme.labelSmall?.copyWith(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 9,
+                              'Coming Soon - Earn points with orders!',
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                color: Colors.white.withValues(alpha: 0.6),
                               ),
                             ),
                           ],
                         ),
                       ),
+                    ],
+                  ),
+                  // Coming Soon Badge
+                  Positioned(
+                    top: -4,
+                    right: -4,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 5,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.orange.withValues(alpha: 0.9),
+                        borderRadius: BorderRadius.circular(12),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.orange.withValues(alpha: 0.4),
+                            blurRadius: 8,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(
+                            Icons.rocket_launch_rounded,
+                            size: 12,
+                            color: Colors.white,
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            'COMING SOON',
+                            style: theme.textTheme.labelSmall?.copyWith(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 9,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ),
           ),
@@ -817,4 +793,3 @@ class _FeatureCardContentState extends State<_FeatureCardContent>
     );
   }
 }
-

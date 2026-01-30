@@ -1,7 +1,9 @@
 import "dart:math" as math;
 import "package:flutter/services.dart";
 import "package:grocery_app/common_widgets/global_import.dart";
+import "package:grocery_app/models/user_summary_model.dart";
 import "package:grocery_app/screens/innovations/anaad_innovations_screen.dart";
+import "package:grocery_app/services/user_summary_service.dart";
 
 class AccountScreen extends StatefulWidget {
   const AccountScreen({super.key});
@@ -22,10 +24,45 @@ class _AccountScreenState extends State<AccountScreen>
   // Settings state
   bool _vibrationEnabled = true;
 
+  // User summary state
+  final UserSummaryService _userSummaryService = UserSummaryService();
+  UserSummaryModel? _userSummary;
+  bool _isLoadingSummary = false;
+
   @override
   void initState() {
     super.initState();
     _initAnimations();
+    _fetchUserSummary();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Refresh user summary each time screen is visited
+    _fetchUserSummary();
+  }
+
+  /// Fetches user summary data from the API
+  Future<void> _fetchUserSummary() async {
+    if (_isLoadingSummary) return;
+    if (!mounted) return;
+
+    setState(() => _isLoadingSummary = true);
+
+    try {
+      final summary = await _userSummaryService.getUserSummary();
+      if (mounted) {
+        setState(() {
+          _userSummary = summary;
+          _isLoadingSummary = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isLoadingSummary = false);
+      }
+    }
   }
 
   void _initAnimations() {
@@ -94,7 +131,10 @@ class _AccountScreenState extends State<AccountScreen>
       await launchUrl(url, mode: LaunchMode.externalApplication);
     } else {
       if (context.mounted) {
-        SnackBarHelper.showError(context, "Couldn't open WhatsApp. Is it installed? 💬");
+        SnackBarHelper.showError(
+          context,
+          "Couldn't open WhatsApp. Is it installed? 💬",
+        );
       }
     }
   }
@@ -143,137 +183,143 @@ class _AccountScreenState extends State<AccountScreen>
     return RefreshIndicator(
       color: theme.colorScheme.primary,
       onRefresh: () async {
-        await context.read<AuthCubit>().checkAuthStatus();
+        await Future.wait([
+          context.read<AuthCubit>().checkAuthStatus(),
+          _fetchUserSummary(),
+        ]);
       },
       child: SingleChildScrollView(
         physics: const AlwaysScrollableScrollPhysics(),
         child: Column(
           children: [
             _buildAnimatedHeader(theme, size, user, userName),
-            const SizedBox(height: 70),
+            const SizedBox(height: 75),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20),
               child: Column(
                 children: [
-                  _buildAnimatedStatsRow(theme),
-                      const SizedBox(height: 24),
+                  // Stats Row with padding
+                  Padding(
+                    padding: const EdgeInsets.only(top: 10),
+                    child: _buildAnimatedStatsRow(theme),
+                  ),
+                  const SizedBox(height: 24),
 
-                      // Anaad Innovations Section
-                      _buildInnovationsCard(theme),
-                      const SizedBox(height: 20),
+                  // Anaad Innovations Section
+                  _buildInnovationsCard(theme),
+                  const SizedBox(height: 20),
 
-                      _buildMenuSection(
-                        theme,
-                        title: 'Account',
-                        items: [
-                          _MenuItem(
-                            icon: Icons.person_outline_rounded,
-                            title: 'Edit Profile',
-                            subtitle: 'Update your personal details',
-                            iconColor: Colors.blue,
-                            onTap: () {
-                              _triggerHaptic();
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder:
-                                      (context) =>
-                                          EditProfileScreen(userProfile: user),
-                                ),
-                              );
-                            },
-                          ),
-                        ],
+                  _buildMenuSection(
+                    theme,
+                    title: 'Account',
+                    items: [
+                      _MenuItem(
+                        icon: Icons.person_outline_rounded,
+                        title: 'Edit Profile',
+                        subtitle: 'Update your personal details',
+                        iconColor: Colors.blue,
+                        onTap: () {
+                          _triggerHaptic();
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder:
+                                  (context) =>
+                                      EditProfileScreen(userProfile: user),
+                            ),
+                          );
+                        },
                       ),
-                      const SizedBox(height: 20),
-                      _buildMenuSection(
-                        theme,
-                        title: 'Orders & Subscriptions',
-                        items: [
-                          _MenuItem(
-                            icon: Icons.shopping_bag_outlined,
-                            title: 'My Orders',
-                            subtitle: ' Track your harvest journey',
-                            iconColor: Colors.green,
-                            onTap: () {
-                              _triggerHaptic();
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => OrderScreen(),
-                                ),
-                              );
-                            },
-                          ),
-                          _MenuItem(
-                            icon: Icons.autorenew_rounded,
-                            title: 'My Subscriptions',
-                            subtitle: 'View active subscriptions',
-                            iconColor: Colors.green,
-                            onTap: () {
-                              _triggerHaptic();
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder:
-                                      (context) => const SubscriptionScreen(),
-                                ),
-                              );
-                            },
-                          ),
-                        ],
+                    ],
+                  ),
+                  const SizedBox(height: 20),
+                  _buildMenuSection(
+                    theme,
+                    title: 'Orders & Subscriptions',
+                    items: [
+                      _MenuItem(
+                        icon: Icons.shopping_bag_outlined,
+                        title: 'My Orders',
+                        subtitle: ' Track your harvest journey',
+                        iconColor: Colors.green,
+                        onTap: () {
+                          _triggerHaptic();
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => OrderScreen(),
+                            ),
+                          );
+                        },
                       ),
-                      const SizedBox(height: 20),
-                      _buildPreferencesSection(theme),
-                      const SizedBox(height: 20),
-                      _buildMenuSection(
-                        theme,
-                        title: 'Support',
-                        items: [
-                          _MenuItem(
-                            icon: Icons.help_outline_rounded,
-                            title: 'Help Center',
-                            subtitle: 'FAQs and support',
-                            iconColor: Colors.green,
-                            onTap: () {
-                              _triggerHaptic();
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => const HelpScreen(),
-                                ),
-                              );
-                            },
-                          ),
-                          _MenuItem(
-                            icon: Icons.chat_bubble_outline_rounded,
-                            title: 'Chat on WhatsApp',
-                            subtitle: 'We\'re here to help',
-                            iconColor: Colors.green,
-                            onTap: () => openWhatsApp(context),
-                          ),
-                          _MenuItem(
-                            icon: Icons.info_outline_rounded,
-                            title: 'About Us',
-                            subtitle: 'Learn more about us',
-                            iconColor: Colors.green,
-                            onTap: () {
-                              _triggerHaptic();
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => AboutScreen(),
-                                ),
-                              );
-                            },
-                          ),
-                        ],
+                      _MenuItem(
+                        icon: Icons.autorenew_rounded,
+                        title: 'My Subscriptions',
+                        subtitle: 'View active subscriptions',
+                        iconColor: Colors.green,
+                        onTap: () {
+                          _triggerHaptic();
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const SubscriptionScreen(),
+                            ),
+                          );
+                        },
                       ),
-                      const SizedBox(height: 24),
-                      _buildLogoutButton(theme, context),
-                      const SizedBox(height: 32),
-                      _buildAppVersion(theme),
-                      const SizedBox(height: 24),
+                    ],
+                  ),
+                  const SizedBox(height: 20),
+                  _buildPreferencesSection(theme),
+                  const SizedBox(height: 20),
+                  _buildMenuSection(
+                    theme,
+                    title: 'Support',
+                    items: [
+                      _MenuItem(
+                        icon: Icons.help_outline_rounded,
+                        title: 'Help Center',
+                        subtitle: 'FAQs and support',
+                        iconColor: Colors.green,
+                        onTap: () {
+                          _triggerHaptic();
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const HelpScreen(),
+                            ),
+                          );
+                        },
+                      ),
+                      _MenuItem(
+                        icon: Icons.chat_bubble_outline_rounded,
+                        title: 'Chat on WhatsApp',
+                        subtitle: 'We\'re here to help',
+                        iconColor: Colors.green,
+                        onTap: () => openWhatsApp(context),
+                      ),
+                      _MenuItem(
+                        icon: Icons.info_outline_rounded,
+                        title: 'About Us',
+                        subtitle: 'Learn more about us',
+                        iconColor: Colors.green,
+                        onTap: () {
+                          _triggerHaptic();
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => AboutScreen(),
+                            ),
+                          );
+                        },
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
+                  _buildLogoutButton(theme, context),
+                  const SizedBox(height: 32),
+                  _buildAppVersion(theme),
+                  const SizedBox(height: 24),
                 ],
               ),
             ),
@@ -291,101 +337,121 @@ class _AccountScreenState extends State<AccountScreen>
     String userName,
   ) {
     final colorScheme = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
     final statusBarHeight = MediaQuery.of(context).padding.top;
+
+    // Dynamic header height based on status bar - same as explore screen
+    final screenHeight = size.height;
+    final headerHeight = (statusBarHeight + 180).clamp(
+      200.0,
+      (screenHeight * 0.30).clamp(200.0, 280.0),
+    );
 
     return Stack(
       clipBehavior: Clip.none,
       alignment: Alignment.center,
       children: [
-        // Animated Gradient Background with shimmer
-        AnimatedBuilder(
-          animation: _shimmerController,
-          builder: (context, child) {
-            return Container(
-              height: size.height * 0.28 + statusBarHeight,
-              width: double.infinity,
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [
-                    colorScheme.primary,
-                    Color.lerp(colorScheme.primary, Colors.purple, 0.3)!,
-                    colorScheme.primary.withAlpha(230),
-                  ],
-                  stops: const [0.0, 0.5, 1.0],
+        // Gradient Background with rounded corners - same as explore screen
+        Container(
+          height: headerHeight,
+          width: double.infinity,
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                colorScheme.primary,
+                colorScheme.primary.withOpacity(0.8),
+                isDark
+                    ? colorScheme.primary.withOpacity(0.6)
+                    : Colors.green.shade400,
+              ],
+            ),
+            borderRadius: const BorderRadius.only(
+              bottomLeft: Radius.circular(32),
+              bottomRight: Radius.circular(32),
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: colorScheme.primary.withOpacity(0.3),
+                blurRadius: 20,
+                offset: const Offset(0, 10),
+              ),
+            ],
+          ),
+          child: Stack(
+            children: [
+              // Decorative circles - same as explore screen
+              Positioned(
+                top: -40,
+                right: -40,
+                child: Container(
+                  width: 150,
+                  height: 150,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Colors.white.withOpacity(0.1),
+                  ),
                 ),
               ),
-              child: Stack(
-                children: [
-                  // Wave pattern overlay
-                  Positioned.fill(
-                    child: CustomPaint(
-                      painter: _WavePainter(
-                        animation: _shimmerController.value,
-                        color: Colors.white.withAlpha(15),
-                      ),
-                    ),
+              Positioned(
+                bottom: -20,
+                left: -30,
+                child: Container(
+                  width: 100,
+                  height: 100,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Colors.white.withOpacity(0.08),
                   ),
-                  // Shimmer effect overlay
-                  Positioned.fill(child: _buildShimmerOverlay()),
-                  // Floating animated circles
-                  ..._buildFloatingCircles(),
-                  // Sparkle particles
-                  ..._buildSparkleParticles(),
-                  // Title with shadow
-                  Positioned(
-                    top: statusBarHeight + 16,
-                    left: 0,
-                    right: 0,
-                    child: Center(
-                      child: Text(
-                        'My Profile',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 22,
-                          fontWeight: FontWeight.w700,
-                          letterSpacing: 0.8,
-                          shadows: [
-                            Shadow(
-                              color: Colors.black.withAlpha(40),
-                              blurRadius: 8,
-                              offset: const Offset(0, 2),
+                ),
+              ),
+              // Header Content with SafeArea
+              SafeArea(
+                bottom: false,
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 16, 20, 16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // Title Row with icon - centered
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.person_rounded,
+                            color: Colors.white,
+                            size: 28,
+                          ),
+                          const SizedBox(width: 10),
+                          Text(
+                            'My Profile',
+                            style: theme.textTheme.headlineSmall?.copyWith(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
                             ),
-                          ],
-                        ),
+                          ),
+                        ],
                       ),
-                    ),
+                    ],
                   ),
-                ],
+                ),
               ),
-            );
-          },
-        ),
-        // Curved bottom edge
-        Positioned(
-          bottom: 0,
-          left: 0,
-          right: 0,
-          child: Container(
-            height: 30,
-            decoration: BoxDecoration(
-              color: theme.scaffoldBackgroundColor,
-              borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(30),
-                topRight: Radius.circular(30),
-              ),
-            ),
+            ],
           ),
         ),
-        // Profile Card with pulse animation
+        // Profile Card with proper padding
         Positioned(
-          bottom: -50,
+          bottom: -55,
           left: 20,
           right: 20,
-          child: ScaleTransition(
-            scale: _pulseAnimation,
-            child: _buildProfileCard(theme, user, userName),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 0),
+            child: ScaleTransition(
+              scale: _pulseAnimation,
+              child: _buildProfileCard(theme, user, userName),
+            ),
           ),
         ),
       ],
@@ -650,7 +716,7 @@ class _AccountScreenState extends State<AccountScreen>
   Widget _buildAnimatedStatsRow(ThemeData theme) {
     final colorScheme = theme.colorScheme;
     final isDark = theme.brightness == Brightness.dark;
-    
+
     return TweenAnimationBuilder<double>(
       tween: Tween(begin: 0.0, end: 1.0),
       duration: const Duration(milliseconds: 600),
@@ -676,7 +742,7 @@ class _AccountScreenState extends State<AccountScreen>
               children: [
                 _buildAnimatedStatItem(
                   theme,
-                  12,
+                  _userSummary?.orders.total ?? 0,
                   'Orders',
                   Icons.shopping_bag_outlined,
                   Colors.green,
@@ -691,7 +757,7 @@ class _AccountScreenState extends State<AccountScreen>
                 _buildGradientDivider(theme),
                 _buildAnimatedStatItem(
                   theme,
-                  3,
+                  _userSummary?.subscriptions.activeTotal ?? 0,
                   'Subscriptions',
                   Icons.autorenew_rounded,
                   Colors.green,
@@ -708,7 +774,7 @@ class _AccountScreenState extends State<AccountScreen>
                 _buildGradientDivider(theme),
                 _buildAnimatedStatItem(
                   theme,
-                  5,
+                  _userSummary?.favorites.count ?? 0,
                   'Saved',
                   Icons.favorite_outline_rounded,
                   const Color(0xFFD32F2F),
@@ -1606,9 +1672,10 @@ class _WavePainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = color
-      ..style = PaintingStyle.fill;
+    final paint =
+        Paint()
+          ..color = color
+          ..style = PaintingStyle.fill;
 
     final path = Path();
     final waveHeight = 20.0;
@@ -1617,10 +1684,13 @@ class _WavePainter extends CustomPainter {
     path.moveTo(0, size.height);
 
     for (double x = 0; x <= size.width; x++) {
-      final y = size.height -
+      final y =
+          size.height -
           waveHeight *
-              math.sin((x / size.width * waveCount * math.pi * 2) +
-                  (animation * math.pi * 2));
+              math.sin(
+                (x / size.width * waveCount * math.pi * 2) +
+                    (animation * math.pi * 2),
+              );
       path.lineTo(x, y);
     }
 
