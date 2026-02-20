@@ -566,6 +566,75 @@ class _EditProfileScreenState extends State<EditProfileScreen>
                       ),
                     ),
                   ),
+                  // Menu button
+                  Positioned(
+                    top: statusBarHeight + 8,
+                    right: 8,
+                    child: Material(
+                      color: Colors.white.withAlpha(25),
+                      borderRadius: BorderRadius.circular(12),
+                      child: Theme(
+                        data: Theme.of(
+                          context,
+                        ).copyWith(cardColor: Theme.of(context).cardColor),
+                        child: PopupMenuButton<String>(
+                          onSelected: (value) {
+                            if (value == 'logout') {
+                              _showLogoutDialog(Theme.of(context), context);
+                            } else if (value == 'deactivate') {
+                              _showDeactivationDialog();
+                            }
+                          },
+                          icon: const Icon(
+                            Icons.more_vert_rounded,
+                            color: Colors.white,
+                            size: 24,
+                          ),
+                          offset: const Offset(0, 45),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          itemBuilder:
+                              (context) => [
+                                PopupMenuItem(
+                                  value: 'logout',
+                                  child: Row(
+                                    children: [
+                                      Icon(
+                                        Icons.logout_rounded,
+                                        color: Colors.red,
+                                        size: 20,
+                                      ),
+                                      SizedBox(width: 12),
+                                      Text(
+                                        'Log Out',
+                                        style: TextStyle(color: Colors.red),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                PopupMenuItem(
+                                  value: 'deactivate',
+                                  child: Row(
+                                    children: [
+                                      Icon(
+                                        Icons.delete_forever_rounded,
+                                        color: Colors.red,
+                                        size: 20,
+                                      ),
+                                      SizedBox(width: 12),
+                                      Text(
+                                        'Deactivate Account',
+                                        style: TextStyle(color: Colors.red),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                        ),
+                      ),
+                    ),
+                  ),
                   // Title
                   Positioned(
                     top: statusBarHeight + 12,
@@ -804,7 +873,7 @@ class _EditProfileScreenState extends State<EditProfileScreen>
         return Transform.scale(
           scale: 0.9 + (0.1 * value),
           child: Opacity(
-            opacity: value,
+            opacity: value.clamp(0.0, 1.0),
             child: Container(
               width: double.infinity,
               decoration: BoxDecoration(
@@ -1252,6 +1321,449 @@ class _EditProfileScreenState extends State<EditProfileScreen>
           ),
         ],
       ),
+    );
+  }
+
+  // ==================== LOGOUT Logic ====================
+  void _handleLogout(BuildContext context) {
+    HapticFeedback.mediumImpact();
+    context.read<AuthCubit>().logout();
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => LoginScreen()),
+    );
+  }
+
+  void _showLogoutDialog(ThemeData theme, BuildContext context) {
+    _triggerHaptic();
+    showGeneralDialog(
+      context: context,
+      barrierDismissible: true,
+      barrierLabel: 'Logout Dialog',
+      barrierColor: Colors.black54,
+      transitionDuration: const Duration(milliseconds: 300),
+      pageBuilder: (context, anim1, anim2) => Container(),
+      transitionBuilder: (dialogContext, anim1, anim2, child) {
+        return ScaleTransition(
+          scale: CurvedAnimation(parent: anim1, curve: Curves.easeOutBack),
+          child: FadeTransition(
+            opacity: anim1,
+            child: AlertDialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+              ),
+              title: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Colors.red.withAlpha(25),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(
+                      Icons.logout_rounded,
+                      color: Colors.red.shade600,
+                      size: 24,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  const Text('Log Out'),
+                ],
+              ),
+              content: const Text(
+                'Are you sure you want to log out? You\'ll need to sign in again to access your account.',
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    _triggerHaptic();
+                    Navigator.pop(dialogContext);
+                  },
+                  child: Text(
+                    'Cancel',
+                    style: TextStyle(
+                      color: theme.textTheme.bodyMedium?.color?.withAlpha(178),
+                    ),
+                  ),
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    Navigator.pop(dialogContext);
+                    _handleLogout(context);
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.red.shade600,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 20,
+                      vertical: 10,
+                    ),
+                  ),
+                  child: const Text('Log Out'),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  // ==================== DEACTIVATE Logic ====================
+  void _showDeactivationDialog() {
+    final passwordController = TextEditingController();
+    final otpController = TextEditingController();
+    final formKey = GlobalKey<FormState>();
+    final otpFormKey = GlobalKey<FormState>();
+    final PageController pageController = PageController();
+
+    bool isObscured = true;
+    bool isLoading = false;
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder:
+          (dialogContext) => StatefulBuilder(
+            builder: (innerContext, setDialogState) {
+              return AlertDialog(
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(24),
+                ),
+                contentPadding: EdgeInsets.zero,
+                content: SizedBox(
+                  width: double.maxFinite,
+                  height: 350,
+                  child: PageView(
+                    controller: pageController,
+                    physics: const NeverScrollableScrollPhysics(),
+                    children: [
+                      // STEP 1: Password Confirmation
+                      Padding(
+                        padding: const EdgeInsets.all(24),
+                        child: Form(
+                          key: formKey,
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.all(8),
+                                    decoration: BoxDecoration(
+                                      color: Colors.red.withOpacity(0.1),
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: Icon(
+                                      Icons.warning_amber_rounded,
+                                      color: Colors.red[700],
+                                      size: 28,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  const Text(
+                                    'Deactivate Account',
+                                    style: TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 16),
+                              Text(
+                                'To continue, please enter your password. This will send an OTP to your email and phone.',
+                                style: TextStyle(
+                                  color: Colors.grey[700],
+                                  fontSize: 14,
+                                ),
+                              ),
+                              const SizedBox(height: 24),
+                              TextFormField(
+                                controller: passwordController,
+                                obscureText: isObscured,
+                                enabled: !isLoading,
+                                decoration: InputDecoration(
+                                  labelText: 'Password',
+                                  prefixIcon: const Icon(
+                                    Icons.lock_outline_rounded,
+                                  ),
+                                  suffixIcon: IconButton(
+                                    icon: Icon(
+                                      isObscured
+                                          ? Icons.visibility_outlined
+                                          : Icons.visibility_off_outlined,
+                                    ),
+                                    onPressed:
+                                        isLoading
+                                            ? null
+                                            : () {
+                                              setDialogState(() {
+                                                isObscured = !isObscured;
+                                              });
+                                            },
+                                  ),
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                ),
+                                validator: (value) {
+                                  if (value == null || value.isEmpty) {
+                                    return 'Password is required';
+                                  }
+                                  return null;
+                                },
+                              ),
+                              const Spacer(),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.end,
+                                children: [
+                                  TextButton(
+                                    onPressed:
+                                        isLoading
+                                            ? null
+                                            : () =>
+                                                Navigator.pop(dialogContext),
+                                    child: Text(
+                                      'Cancel',
+                                      style: TextStyle(
+                                        color:
+                                            isLoading
+                                                ? Colors.grey[400]
+                                                : Colors.grey[700],
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  ElevatedButton(
+                                    onPressed:
+                                        isLoading
+                                            ? null
+                                            : () async {
+                                              if (formKey.currentState!
+                                                  .validate()) {
+                                                setDialogState(
+                                                  () => isLoading = true,
+                                                );
+                                                final result = await context
+                                                    .read<AuthCubit>()
+                                                    .deactivateAccount(
+                                                      passwordController.text,
+                                                    );
+                                                if (innerContext.mounted) {
+                                                  setDialogState(
+                                                    () => isLoading = false,
+                                                  );
+                                                  if (result['success']) {
+                                                    pageController.nextPage(
+                                                      duration: const Duration(
+                                                        milliseconds: 300,
+                                                      ),
+                                                      curve: Curves.easeInOut,
+                                                    );
+                                                  } else {
+                                                    SnackBarHelper.showError(
+                                                      context,
+                                                      result['message'],
+                                                    );
+                                                  }
+                                                }
+                                              }
+                                            },
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: Colors.red,
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                    ),
+                                    child:
+                                        isLoading
+                                            ? const SizedBox(
+                                              width: 20,
+                                              height: 20,
+                                              child: CircularProgressIndicator(
+                                                strokeWidth: 2,
+                                                color: Colors.white,
+                                              ),
+                                            )
+                                            : const Text(
+                                              'Confirm Password',
+                                              style: TextStyle(
+                                                color: Colors.white,
+                                              ),
+                                            ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      // STEP 2: OTP Verification
+                      Padding(
+                        padding: const EdgeInsets.all(24),
+                        child: Form(
+                          key: otpFormKey,
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.all(8),
+                                    decoration: BoxDecoration(
+                                      color: Colors.blue.withOpacity(0.1),
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: Icon(
+                                      Icons.security_rounded,
+                                      color: Colors.blue[700],
+                                      size: 28,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  const Text(
+                                    'Verify OTP',
+                                    style: TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 16),
+                              Text(
+                                'An OTP has been sent to your email and phone. Please enter it below to complete deactivation.',
+                                style: TextStyle(
+                                  color: Colors.grey[700],
+                                  fontSize: 14,
+                                ),
+                              ),
+                              const SizedBox(height: 24),
+                              TextFormField(
+                                controller: otpController,
+                                keyboardType: TextInputType.number,
+                                enabled: !isLoading,
+                                decoration: InputDecoration(
+                                  labelText: 'Enter OTP',
+                                  prefixIcon: const Icon(
+                                    Icons.lock_clock_outlined,
+                                  ),
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                ),
+                                validator: (value) {
+                                  if (value == null || value.isEmpty) {
+                                    return 'OTP is required';
+                                  }
+                                  return null;
+                                },
+                              ),
+                              const Spacer(),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.end,
+                                children: [
+                                  TextButton(
+                                    onPressed:
+                                        isLoading
+                                            ? null
+                                            : () {
+                                              pageController.previousPage(
+                                                duration: const Duration(
+                                                  milliseconds: 300,
+                                                ),
+                                                curve: Curves.easeInOut,
+                                              );
+                                            },
+                                    child: Text(
+                                      'Back',
+                                      style: TextStyle(
+                                        color:
+                                            isLoading
+                                                ? Colors.grey[400]
+                                                : Colors.grey[700],
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  ElevatedButton(
+                                    onPressed:
+                                        isLoading
+                                            ? null
+                                            : () async {
+                                              if (otpFormKey.currentState!
+                                                  .validate()) {
+                                                setDialogState(
+                                                  () => isLoading = true,
+                                                );
+                                                final result = await context
+                                                    .read<AuthCubit>()
+                                                    .confirmDeactivation(
+                                                      otpController.text,
+                                                    );
+                                                if (innerContext.mounted) {
+                                                  setDialogState(
+                                                    () => isLoading = false,
+                                                  );
+                                                  if (result['success']) {
+                                                    Navigator.pop(
+                                                      dialogContext,
+                                                    );
+                                                    Navigator.of(
+                                                      context,
+                                                    ).popUntil(
+                                                      (route) => route.isFirst,
+                                                    );
+                                                  } else {
+                                                    SnackBarHelper.showError(
+                                                      context,
+                                                      result['message'],
+                                                    );
+                                                  }
+                                                }
+                                              }
+                                            },
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: Colors.red,
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                    ),
+                                    child:
+                                        isLoading
+                                            ? const SizedBox(
+                                              width: 20,
+                                              height: 20,
+                                              child: CircularProgressIndicator(
+                                                strokeWidth: 2,
+                                                color: Colors.white,
+                                              ),
+                                            )
+                                            : const Text(
+                                              'Final Deactivation',
+                                              style: TextStyle(
+                                                color: Colors.white,
+                                              ),
+                                            ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            },
+          ),
     );
   }
 

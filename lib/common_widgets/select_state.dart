@@ -62,6 +62,7 @@ class _SelectStateState extends State<SelectState> {
       });
 
       // Auto-select initial state if provided
+      if (!mounted) return;
       if (widget.initialState != null && widget.initialState!.isNotEmpty) {
         final matchingState = states.firstWhere(
           (s) => s.name.toLowerCase() == widget.initialState!.toLowerCase(),
@@ -70,7 +71,10 @@ class _SelectStateState extends State<SelectState> {
         if (matchingState.name.toLowerCase() ==
             widget.initialState!.toLowerCase()) {
           setState(() => _selectedStateModel = matchingState);
-          await _loadCitiesForState(matchingState, autoSelectCity: true);
+          // Wait for cities to load before potentially auto-selecting
+          if (mounted) {
+            await _loadCitiesForState(matchingState, autoSelectCity: true);
+          }
         }
       }
     } catch (e) {
@@ -478,4 +482,3 @@ class _SearchableDialogState<T> extends State<_SearchableDialog<T>> {
     );
   }
 }
-

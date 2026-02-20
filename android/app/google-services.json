@@ -7,12 +7,25 @@
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:356514741847:android:8b14ff4944522e144dad12",
+        "mobilesdk_app_id": "1:356514741847:android:8859b0c300394efe4dad12",
         "android_client_info": {
-          "package_name": "com.example.anaadfoodsui"
+          "package_name": "com.anhadnaad.anaadfoodsui"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "356514741847-uc9ei42im1icviajrir771md6sarmadq.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.anhadnaad.anaadfoodsui",
+            "certificate_hash": "07171a8dcb314c72ad753e68331af80f4ce66ccf"
+          }
+        },
+        {
+          "client_id": "356514741847-1000gjfkvl9b1pmp9iqcc8do7vebo1ap.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyDAACEio5BqvGQUhd6ag5T3CvXyHfyNfug"
@@ -20,7 +33,63 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "356514741847-1000gjfkvl9b1pmp9iqcc8do7vebo1ap.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "356514741847-gnfce2mnodiephtfpq58431jh1b0dlkr.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.anaadfoodsui"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:356514741847:android:8b14ff4944522e144dad12",
+        "android_client_info": {
+          "package_name": "com.example.anaadfoodsui"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "356514741847-o3f1vdqolk6oi06fshtm8ooos9od01n3.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.anaadfoodsui",
+            "certificate_hash": "07171a8dcb314c72ad753e68331af80f4ce66ccf"
+          }
+        },
+        {
+          "client_id": "356514741847-1000gjfkvl9b1pmp9iqcc8do7vebo1ap.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDAACEio5BqvGQUhd6ag5T3CvXyHfyNfug"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "356514741847-1000gjfkvl9b1pmp9iqcc8do7vebo1ap.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "356514741847-gnfce2mnodiephtfpq58431jh1b0dlkr.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.anaadfoodsui"
+              }
+            }
+          ]
         }
       }
     }

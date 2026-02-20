@@ -27,11 +27,15 @@ class MessageUtility {
   /// Parse message data and extract relevant information
   static Map<String, dynamic> parseMessageData(RemoteMessage message) {
     Map<String, dynamic> data = message.data;
-    
+
     return {
       'type': data['type'] ?? messageTypeGeneral,
       'action': data['action'],
-      'id': data['id'],
+      'id':
+          data['id'] ??
+          data['order_id'] ??
+          data['product_id'] ??
+          data['subscription_id'],
       'title': message.notification?.title ?? data['title'],
       'body': message.notification?.body ?? data['body'],
       'image': data['image'],
@@ -53,7 +57,11 @@ class MessageUtility {
 
   /// Get ID from data
   static String? getId(Map<String, dynamic> data) {
-    return data['id'];
+    return data['id'] ??
+        data['data']?['id'] ??
+        data['data']?['order_id'] ??
+        data['data']?['product_id'] ??
+        data['data']?['subscription_id'];
   }
 
   /// Check if message is high priority
@@ -346,4 +354,4 @@ class MessageUtility {
         return 'general';
     }
   }
-} 
+}

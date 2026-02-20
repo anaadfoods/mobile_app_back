@@ -1,8 +1,10 @@
+import 'dart:async';
 import 'package:grocery_app/common_widgets/global_import.dart';
 
-class OrderAcceptedScreen extends StatelessWidget {
+class OrderAcceptedScreen extends StatefulWidget {
   final OrderModel? order;
   final PaymentStatus? paymentStatus;
+  final SubscriptionPaymentStatus? subscriptionPaymentStatus;
   final bool? isSubscription;
 
   const OrderAcceptedScreen({
@@ -10,7 +12,56 @@ class OrderAcceptedScreen extends StatelessWidget {
     this.order,
     this.paymentStatus,
     this.isSubscription,
+    this.subscriptionPaymentStatus,
   });
+
+  @override
+  State<OrderAcceptedScreen> createState() => _OrderAcceptedScreenState();
+}
+
+class _OrderAcceptedScreenState extends State<OrderAcceptedScreen> {
+  Timer? _redirectTimer;
+  int _countdown = 3;
+  Timer? _countdownTimer;
+
+  @override
+  void initState() {
+    super.initState();
+    // Start countdown display
+    _countdownTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (mounted && _countdown > 0) {
+        setState(() => _countdown--);
+      }
+    });
+    // Auto-redirect after 3 seconds
+    _redirectTimer = Timer(const Duration(seconds: 3), _autoRedirect);
+  }
+
+  @override
+  void dispose() {
+    _redirectTimer?.cancel();
+    _countdownTimer?.cancel();
+    super.dispose();
+  }
+
+  void _autoRedirect() {
+    if (!mounted) return;
+    final orderId = widget.paymentStatus?.orderId;
+    final subscriptionId = widget.subscriptionPaymentStatus?.subscriptionId;
+
+    if (widget.isSubscription == true && subscriptionId != null) {
+      // Navigate to subscription details
+      Navigator.of(context).popUntil((route) => route.isFirst);
+      NavigationService.navigateToSubscriptionDetails(subscriptionId as String);
+    } else if (orderId != null) {
+      // Navigate to order details
+      Navigator.of(context).popUntil((route) => route.isFirst);
+      NavigationService.navigateToOrderDetails(orderId as String);
+    } else {
+      // Fallback: go home
+      Navigator.of(context).popUntil((route) => route.isFirst);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -20,9 +71,9 @@ class OrderAcceptedScreen extends StatelessWidget {
 
     // Determine which data source to use
     final orderNumber =
-        order?.orderNumber ?? paymentStatus?.orderNumber ?? 'N/A';
+        widget.order?.orderNumber ?? widget.paymentStatus?.orderNumber ?? 'N/A';
     final totalAmount =
-        order?.total ?? paymentStatus?.amount.toString() ?? 'N/A';
+        widget.order?.total ?? widget.paymentStatus?.amount.toString() ?? 'N/A';
 
     return Scaffold(
       body: Container(
@@ -106,8 +157,8 @@ class OrderAcceptedScreen extends StatelessWidget {
                           label: 'Order Number',
                           value: orderNumber,
                         ),
-                        if (paymentStatus?.transactionId != null &&
-                            paymentStatus!.transactionId.isNotEmpty) ...[
+                        if (widget.paymentStatus?.transactionId != null &&
+                            widget.paymentStatus!.transactionId.isNotEmpty) ...[
                           Divider(
                             height: AppColors.spacingXL * 2,
                             color:
@@ -119,7 +170,7 @@ class OrderAcceptedScreen extends StatelessWidget {
                             context,
                             icon: Icons.payment_outlined,
                             label: 'Transaction ID',
-                            value: paymentStatus!.transactionId,
+                            value: widget.paymentStatus!.transactionId,
                           ),
                         ],
                         Divider(
@@ -139,13 +190,26 @@ class OrderAcceptedScreen extends StatelessWidget {
                       ],
                     ),
                   ),
-                  const SizedBox(height: AppColors.spacingXXL),
+                  const SizedBox(height: AppColors.spacingL),
+
+                  // Auto-redirect indicator
+                  Text(
+                    _countdown > 0
+                        ? 'Redirecting in $_countdown seconds...'
+                        : 'Redirecting...',
+                    style: textTheme.bodySmall?.copyWith(
+                      color: theme.hintColor,
+                    ),
+                  ),
+                  const SizedBox(height: AppColors.spacingL),
 
                   // Continue Button
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
                       onPressed: () {
+                        _redirectTimer?.cancel();
+                        _countdownTimer?.cancel();
                         Navigator.of(
                           context,
                         ).popUntil((route) => route.isFirst);
@@ -218,4 +282,3 @@ class OrderAcceptedScreen extends StatelessWidget {
     );
   }
 }
-

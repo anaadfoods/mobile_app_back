@@ -187,12 +187,13 @@ class PanchangHora {
 
   factory PanchangHora.fromJson(Map<String, dynamic> json) {
     final raw = json['slots'];
-    final slots = raw is List
-        ? raw
-            .whereType<Map<String, dynamic>>()
-            .map(PanchangHoraSlot.fromJson)
-            .toList()
-        : <PanchangHoraSlot>[];
+    final slots =
+        raw is List
+            ? raw
+                .whereType<Map<String, dynamic>>()
+                .map(PanchangHoraSlot.fromJson)
+                .toList()
+            : <PanchangHoraSlot>[];
     return PanchangHora(slots: slots);
   }
 }
@@ -263,10 +264,7 @@ class PanchangChoghadiya {
       return const [];
     }
 
-    return PanchangChoghadiya(
-      day: parse('day'),
-      night: parse('night'),
-    );
+    return PanchangChoghadiya(day: parse('day'), night: parse('night'));
   }
 }
 
@@ -285,20 +283,28 @@ class PanchangAuspiciousMuhurats {
 
   factory PanchangAuspiciousMuhurats.fromJson(Map<String, dynamic> json) {
     return PanchangAuspiciousMuhurats(
-      hora: json['hora'] is Map<String, dynamic>
-          ? PanchangHora.fromJson(json['hora'] as Map<String, dynamic>)
-          : null,
-      brahma: json['brahma'] is Map<String, dynamic>
-          ? PanchangTimeWindow.fromJson(json['brahma'] as Map<String, dynamic>)
-          : null,
-      abhijit: json['abhijit'] is Map<String, dynamic>
-          ? PanchangTimeWindow.fromJson(json['abhijit'] as Map<String, dynamic>)
-          : null,
-      choghadiya: json['choghadiya'] is Map<String, dynamic>
-          ? PanchangChoghadiya.fromJson(
-              json['choghadiya'] as Map<String, dynamic>,
-            )
-          : null,
+      hora:
+          json['hora'] is Map<String, dynamic>
+              ? PanchangHora.fromJson(json['hora'] as Map<String, dynamic>)
+              : null,
+      brahma:
+          json['brahma'] is Map<String, dynamic>
+              ? PanchangTimeWindow.fromJson(
+                json['brahma'] as Map<String, dynamic>,
+              )
+              : null,
+      abhijit:
+          json['abhijit'] is Map<String, dynamic>
+              ? PanchangTimeWindow.fromJson(
+                json['abhijit'] as Map<String, dynamic>,
+              )
+              : null,
+      choghadiya:
+          json['choghadiya'] is Map<String, dynamic>
+              ? PanchangChoghadiya.fromJson(
+                json['choghadiya'] as Map<String, dynamic>,
+              )
+              : null,
     );
   }
 }
@@ -368,12 +374,13 @@ class PanchangDayResponse {
 
   factory PanchangDayResponse.fromJson(Map<String, dynamic> json) {
     final festivalsRaw = json['festivals'];
-    final festivals = festivalsRaw is List
-        ? festivalsRaw
-            .whereType<Map<String, dynamic>>()
-            .map(PanchangFestivalItem.fromJson)
-            .toList()
-        : <PanchangFestivalItem>[];
+    final festivals =
+        festivalsRaw is List
+            ? festivalsRaw
+                .whereType<Map<String, dynamic>>()
+                .map(PanchangFestivalItem.fromJson)
+                .toList()
+            : <PanchangFestivalItem>[];
 
     return PanchangDayResponse(
       date: (json['date'] ?? '').toString(),
@@ -383,61 +390,76 @@ class PanchangDayResponse {
       profile: (json['profile'] ?? '').toString(),
       calcVersion: json['calc_version']?.toString(),
       coreCalcNote: json['core_calc_note']?.toString(),
-      location: json['location'] is Map<String, dynamic>
-          ? PanchangLocation.fromJson(json['location'] as Map<String, dynamic>)
-          : const PanchangLocation(label: '', latitude: null, longitude: null),
-      corePanchang: json['core_panchang'] is Map<String, dynamic>
-          ? PanchangCorePanchang.fromJson(
-              json['core_panchang'] as Map<String, dynamic>,
-            )
-          : const PanchangCorePanchang(
-              vara: '',
-              tithi: '',
-              tithiEnd: null,
-              nakshatra: '',
-              nakshatraEnd: null,
-              yoga: '',
-              yogaEnd: null,
-              karana: '',
-              karanaEnd: null,
-              sunRashi: '',
-              moonRashi: '',
-            ),
-      lunar: json['lunar'] is Map<String, dynamic>
-          ? PanchangLunarInfo.fromJson(json['lunar'] as Map<String, dynamic>)
-          : const PanchangLunarInfo(
-              masa: '',
-              paksha: '',
-              masaIndex: 0,
-              masaSystem: '',
-              masaBoundary: null,
-            ),
-      sunMoonTimings: json['sun_moon_timings'] is Map<String, dynamic>
-          ? PanchangSunMoonTimings.fromJson(
-              json['sun_moon_timings'] as Map<String, dynamic>,
-            )
-          : const PanchangSunMoonTimings(
-              sunrise: null,
-              sunset: null,
-              solarNoon: null,
-              moonrise: null,
-              moonset: null,
-            ),
-      auspiciousMuhurats: json['auspicious_muhurats'] is Map<String, dynamic>
-          ? PanchangAuspiciousMuhurats.fromJson(
-              json['auspicious_muhurats'] as Map<String, dynamic>,
-            )
-          : null,
-      inauspiciousTimings: json['inauspicious_timings'] is Map<String, dynamic>
-          ? PanchangInauspiciousTimings.fromJson(
-              json['inauspicious_timings'] as Map<String, dynamic>,
-            )
-          : null,
-      transitions: json['transitions'] is Map<String, dynamic>
-          ? PanchangTransitions.fromJson(
-              json['transitions'] as Map<String, dynamic>,
-            )
-          : null,
+      location:
+          json['location'] is Map<String, dynamic>
+              ? PanchangLocation.fromJson(
+                json['location'] as Map<String, dynamic>,
+              )
+              : const PanchangLocation(
+                label: '',
+                latitude: null,
+                longitude: null,
+              ),
+      corePanchang:
+          json['core_panchang'] is Map<String, dynamic>
+              ? PanchangCorePanchang.fromJson(
+                json['core_panchang'] as Map<String, dynamic>,
+              )
+              : const PanchangCorePanchang(
+                vara: '',
+                tithi: '',
+                tithiEnd: null,
+                nakshatra: '',
+                nakshatraEnd: null,
+                yoga: '',
+                yogaEnd: null,
+                karana: '',
+                karanaEnd: null,
+                sunRashi: '',
+                moonRashi: '',
+              ),
+      lunar:
+          json['lunar'] is Map<String, dynamic>
+              ? PanchangLunarInfo.fromJson(
+                json['lunar'] as Map<String, dynamic>,
+              )
+              : const PanchangLunarInfo(
+                masa: '',
+                paksha: '',
+                masaIndex: 0,
+                masaSystem: '',
+                masaBoundary: null,
+              ),
+      sunMoonTimings:
+          json['sun_moon_timings'] is Map<String, dynamic>
+              ? PanchangSunMoonTimings.fromJson(
+                json['sun_moon_timings'] as Map<String, dynamic>,
+              )
+              : const PanchangSunMoonTimings(
+                sunrise: null,
+                sunset: null,
+                solarNoon: null,
+                moonrise: null,
+                moonset: null,
+              ),
+      auspiciousMuhurats:
+          json['auspicious_muhurats'] is Map<String, dynamic>
+              ? PanchangAuspiciousMuhurats.fromJson(
+                json['auspicious_muhurats'] as Map<String, dynamic>,
+              )
+              : null,
+      inauspiciousTimings:
+          json['inauspicious_timings'] is Map<String, dynamic>
+              ? PanchangInauspiciousTimings.fromJson(
+                json['inauspicious_timings'] as Map<String, dynamic>,
+              )
+              : null,
+      transitions:
+          json['transitions'] is Map<String, dynamic>
+              ? PanchangTransitions.fromJson(
+                json['transitions'] as Map<String, dynamic>,
+              )
+              : null,
       festivals: festivals,
     );
   }

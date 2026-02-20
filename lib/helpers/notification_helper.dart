@@ -54,6 +54,27 @@ class NotificationHelper {
   ) async {
     try {
       SharedPreferences prefs = await SharedPreferences.getInstance();
+
+      // Check for promotional type
+      if (notification['type'] == 'promotional') {
+        List<Map<String, dynamic>> promotionalNotifications = [];
+        String? promoJson = prefs.getString('promotional_notifications');
+
+        if (promoJson != null) {
+          List<dynamic> list = json.decode(promoJson);
+          promotionalNotifications = list.cast<Map<String, dynamic>>();
+        }
+
+        promotionalNotifications.insert(0, notification);
+        await prefs.setString(
+          'promotional_notifications',
+          json.encode(promotionalNotifications),
+        );
+        debugPrint('Promotional notification saved successfully');
+        return;
+      }
+
+      // Handle normal notifications
       List<Map<String, dynamic>> notifications = [];
       String? notificationsJson = prefs.getString('notifications');
 

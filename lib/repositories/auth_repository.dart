@@ -43,19 +43,34 @@ class AuthRepository {
 
   // In AuthRepository.dart (THIS IS THE FIX)
   Future<UserModel> googleLogin() async {
-    final String? idToken = await _authService.getGoogleIdToken();
+    print('DEBUG: AuthRepository.googleLogin() called');
+    try {
+      final String? idToken = await _authService.getGoogleIdToken();
 
-    if (idToken == null) {
-      throw AuthException('Google Sign-In was canceled.');
-    }
+      if (idToken == null) {
+        print('DEBUG: AuthRepository - ID Token is null (canceled)');
+        throw AuthException('Google Sign-In was canceled.');
+      }
+      print(
+        'DEBUG: AuthRepository - ID Token obtained, calling loginWithGoogleToken...',
+      );
 
-    // Now it's clean, just like your other methods
-    final result = await _authService.loginWithGoogleToken(idToken);
+      // Now it's clean, just like your other methods
+      final result = await _authService.loginWithGoogleToken(idToken);
 
-    if (result['success'] == true && result['data'] != null) {
-      return UserModel.fromJson(result['data']);
-    } else {
-      throw AuthException(result['message'] ?? 'Google login failed.');
+      if (result['success'] == true && result['data'] != null) {
+        print('DEBUG: AuthRepository - Login successful, parsing user data...');
+        return UserModel.fromJson(result['data']);
+      } else {
+        print('DEBUG: AuthRepository - Login failed: ${result['message']}');
+        throw AuthException(result['message'] ?? 'Google login failed.');
+      }
+    } on AuthException catch (e) {
+      print('DEBUG: AuthRepository - AuthException caught: $e');
+      rethrow;
+    } catch (e) {
+      print('DEBUG: AuthRepository - Unexpected exception: $e');
+      throw AuthException(e.toString());
     }
   }
 
@@ -183,5 +198,27 @@ class AuthRepository {
     if (result['success'] != true) {
       throw AuthException(result['message'] ?? 'OTP verification failed.');
     }
+  }
+
+  Future<void> deactivateAccount(String password) async {
+    await _makeAuthenticatedRequest(() async {
+      final result = await _authService.deactivateAccount(password);
+      if (result['success'] != true) {
+        throw AuthException(
+          result['message'] ?? 'Failed to deactivate account.',
+        );
+      }
+    });
+  }
+
+  Future<void> confirmDeactivateAccount(String otp) async {
+    await _makeAuthenticatedRequest(() async {
+      final result = await _authService.confirmDeactivateAccount(otp);
+      if (result['success'] != true) {
+        throw AuthException(
+          result['message'] ?? 'Failed to confirm deactivation.',
+        );
+      }
+    });
   }
 }

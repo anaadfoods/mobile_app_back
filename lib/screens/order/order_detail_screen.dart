@@ -1400,6 +1400,13 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
+                  _getRecipientName(),
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
                   _currentOrder!.deliveryAddress,
                   style: theme.textTheme.bodyLarge?.copyWith(
                     fontWeight: FontWeight.w500,
@@ -1788,6 +1795,23 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
       default:
         return Colors.grey;
     }
+  }
+
+  String _getRecipientName() {
+    if (_currentOrder!.recipientName.isNotEmpty) {
+      return _currentOrder!.recipientName;
+    }
+
+    final user = AuthService().currentUser;
+    if (user != null) {
+      final firstName = user.firstName;
+      final lastName = user.lastName;
+      if (firstName.isNotEmpty || lastName.isNotEmpty) {
+        return '$firstName $lastName'.trim();
+      }
+    }
+
+    return 'Valued Customer';
   }
 }
 

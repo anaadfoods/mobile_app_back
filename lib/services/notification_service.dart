@@ -304,6 +304,16 @@ class NotificationService {
         'Message also contained a notification: ${message.notification}',
       );
 
+      // Save notification to local storage
+      try {
+        Map<String, dynamic> notificationData = MessageUtility.parseMessageData(
+          message,
+        );
+        NotificationHelper.saveNotification(notificationData);
+      } catch (e) {
+        debugPrint('Error saving foreground notification: $e');
+      }
+
       // Show local notification
       _showLocalNotification(message);
 
@@ -522,7 +532,10 @@ class NotificationService {
       switch (type) {
         case 'product':
         case 'product_detail':
-          final productId = toStringId(data['id']) ?? genericId;
+          final productId =
+              toStringId(data['id']) ??
+              toStringId(data['product_id']) ??
+              genericId;
           if (productId != null && productId.isNotEmpty) {
             debugPrint('Navigating to product_detail with id: $productId');
             NavigationService.navigateToProductDetails(productId);
@@ -533,7 +546,10 @@ class NotificationService {
           return;
         case 'order':
         case 'order_tracking':
-          final orderId = toStringId(data['id']) ?? genericId;
+          final orderId =
+              toStringId(data['id']) ??
+              toStringId(data['order_id']) ??
+              genericId;
           if (orderId != null && orderId.isNotEmpty) {
             debugPrint('Navigating to order_tracking with id: $orderId');
             NavigationService.navigateToOrderDetails(orderId);
@@ -546,7 +562,10 @@ class NotificationService {
         case 'subscription_detail':
         case 'payment':
         case 'payment_subscription':
-          final subscriptionId = toStringId(data['id']) ?? genericId;
+          final subscriptionId =
+              toStringId(data['id']) ??
+              toStringId(data['subscription_id']) ??
+              genericId;
           if (subscriptionId != null && subscriptionId.isNotEmpty) {
             debugPrint(
               'Navigating to subscription_detail with id: $subscriptionId',
@@ -600,6 +619,44 @@ class NotificationService {
     String? type,
   }) async {
     String channelId = _getChannelId({'type': type ?? 'order'});
+
+    // Save local notification to storage
+    try {
+      Map<String, dynamic> notificationData = {
+        'title': title,
+        'body': body,
+        'type': type ?? 'order',
+        'timestamp': DateTime.now().millisecondsSinceEpoch,
+        'id': id.toString(),
+      };
+
+      if (payload != null) {
+        try {
+          final payloadMap = json.decode(payload) as Map<String, dynamic>;
+          notificationData.addAll(payloadMap);
+          // Ensure type is preserved from payload if available
+          if (payloadMap['type'] != null) {
+            notificationData['type'] = payloadMap['type'];
+          }
+          // Ensure id is preserved from payload if available
+          if (payloadMap['id'] != null) {
+            notificationData['id'] = payloadMap['id'].toString();
+          } else if (payloadMap['order_id'] != null) {
+            notificationData['id'] = payloadMap['order_id'].toString();
+          } else if (payloadMap['subscription_id'] != null) {
+            notificationData['id'] = payloadMap['subscription_id'].toString();
+          } else if (payloadMap['product_id'] != null) {
+            notificationData['id'] = payloadMap['product_id'].toString();
+          }
+        } catch (e) {
+          debugPrint('Error parsing payload for save: $e');
+        }
+      }
+
+      await NotificationHelper.saveNotification(notificationData);
+    } catch (e) {
+      debugPrint('Error saving local notification: $e');
+    }
 
     AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
       channelId,

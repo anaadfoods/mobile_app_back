@@ -282,7 +282,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                       return Transform.scale(
                         scale: _logoPulse.value, // Only breathing, no pop-up
                         child: Image.asset(
-                          'assets/images/OnBoarding/logo.png',
+                          'assets/images/first.jpeg',
                           width: 160, // Increased size significantly
                           height: 160,
                           fit: BoxFit.contain,
@@ -704,27 +704,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
   }
 
   void onGetStartedClicked(BuildContext context) {
-    Navigator.of(context).pushReplacement(
-      PageRouteBuilder(
-        pageBuilder:
-            (context, animation, secondaryAnimation) => const LoginScreen(),
-        transitionsBuilder: (context, animation, secondaryAnimation, child) {
-          return FadeTransition(
-            opacity: CurvedAnimation(parent: animation, curve: Curves.easeOut),
-            child: SlideTransition(
-              position: Tween<Offset>(
-                begin: const Offset(0, 0.1),
-                end: Offset.zero,
-              ).animate(
-                CurvedAnimation(parent: animation, curve: Curves.easeOutCubic),
-              ),
-              child: child,
-            ),
-          );
-        },
-        transitionDuration: const Duration(milliseconds: 600),
-      ),
-    );
+    context.go('/login');
   }
 }
 
@@ -801,4 +781,3 @@ class ParticlePainter extends CustomPainter {
     return oldDelegate.progress != progress;
   }
 }
-

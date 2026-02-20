@@ -25,59 +25,73 @@ class AuthService {
   UserModel? get currentUser => _currentUser;
 
   final String serverClientId = dotenv.env["GOOGLE_SERVER_CLIENT_ID"] ?? "";
-
   late final GoogleSignIn _googleSignIn = GoogleSignIn(
     serverClientId: serverClientId,
     scopes: ['email'],
   );
 
   Future<String?> getGoogleIdToken() async {
+    print('DEBUG: Starting Google Sign-In flow...');
     try {
+      print("DEBUG: GOOGLE_SERVER_CLIENT_ID = $serverClientId");
+
       final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
+      print('DEBUG: _googleSignIn.signIn() returned: $googleUser');
 
       if (googleUser == null) {
+        print('DEBUG: User canceled sign-in (googleUser is null)');
         return null;
       }
 
+      print('DEBUG: Fetching authentication for user: ${googleUser.email}');
       final GoogleSignInAuthentication googleAuth =
           await googleUser.authentication;
+      print(
+        'DEBUG: ID Token received: ${googleAuth.idToken?.substring(0, 10)}...',
+      );
       return googleAuth.idToken;
     } catch (error) {
-      print('Google Sign-In Error: $error');
-      return null;
+      print('DEBUG: Google Sign-In Error in getGoogleIdToken: $error');
+      throw error;
     }
   }
 
   // In AuthService.dart
   Future<Map<String, dynamic>> loginWithGoogleToken(String idToken) async {
-    final url = Uri.parse(
-      '${ApiConfig.baseUrl}/api/auth/google/',
-    ); // Or your env var
+    final url = Uri.parse('${ApiConfig.baseUrl}/api/auth/google/');
+    print('DEBUG: Sending Google ID Token to backend: $url');
+
     try {
       final response = await http.post(
         url,
-        body: {'id_token': idToken},
-        // Add headers if needed
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: jsonEncode({'id_token': idToken}),
       );
+
+      print('DEBUG: Backend Response Status: ${response.statusCode}');
+      print('DEBUG: Backend Response Body: ${response.body}');
 
       final responseData = json.decode(response.body);
       if (response.statusCode == 200) {
-        // You must also save the token here, just like in loginUser
+        print('DEBUG: Backend login successful, saving token...');
         await saveToken(
-          responseData['access'], // Adjust keys as needed
+          responseData['access'],
           responseData['refresh'],
           responseData['user'],
         );
         return {'success': true, 'data': responseData['user']};
       } else {
-        print("Errror occured with else reason");
+        print("DEBUG: Backend returned error: ${responseData['error']}");
         return {
           'success': false,
           'message': responseData['error'] ?? 'Google login failed.',
         };
       }
     } catch (e) {
-      print('Google login error: $e');
+      print('DEBUG: Exception in loginWithGoogleToken: $e');
       return {'success': false, 'message': e.toString()};
     }
   }
@@ -769,6 +783,87 @@ class AuthService {
       }
     } catch (e) {
       print('Verify OTP error: $e');
+      return {
+        'success': false,
+        'message': 'Network error occurred',
+        'error': e.toString(),
+      };
+    }
+  }
+
+  Future<Map<String, dynamic>> deactivateAccount(String password) async {
+    try {
+      final token = await getAccessToken();
+      if (token == null) {
+        return {'success': false, 'message': 'Not authenticated'};
+      }
+
+      final response = await http.post(
+        Uri.parse('${ApiConfig.baseUrl}${ApiConfig.deactivateEndpoint}'),
+        headers: ApiConfig.getAuthHeaders(token),
+        body: jsonEncode({'password': password}),
+      );
+
+      final responseData = jsonDecode(response.body);
+
+      if (response.statusCode == 200) {
+        return {
+          'success': true,
+          'message': responseData['message'] ?? 'OTP sent successfully',
+        };
+      } else {
+        return {
+          'success': false,
+          'message':
+              responseData['message'] ??
+              responseData['detail'] ??
+              'Failed to request deactivation',
+        };
+      }
+    } catch (e) {
+      print('Deactivate account error: $e');
+      return {
+        'success': false,
+        'message': 'Network error occurred',
+        'error': e.toString(),
+      };
+    }
+  }
+
+  Future<Map<String, dynamic>> confirmDeactivateAccount(String otp) async {
+    try {
+      final token = await getAccessToken();
+      if (token == null) {
+        return {'success': false, 'message': 'Not authenticated'};
+      }
+
+      final response = await http.post(
+        Uri.parse('${ApiConfig.baseUrl}${ApiConfig.deactivateConfirmEndpoint}'),
+        headers: ApiConfig.getAuthHeaders(token),
+        body: jsonEncode({'otp': otp}),
+      );
+
+      final responseData = jsonDecode(response.body);
+
+      if (response.statusCode == 200) {
+        // Success - clean up local session
+        await clearToken();
+        return {
+          'success': true,
+          'message':
+              responseData['message'] ?? 'Account deactivated successfully',
+        };
+      } else {
+        return {
+          'success': false,
+          'message':
+              responseData['message'] ??
+              responseData['detail'] ??
+              'Failed to confirm deactivation',
+        };
+      }
+    } catch (e) {
+      print('Confirm deactivate account error: $e');
       return {
         'success': false,
         'message': 'Network error occurred',

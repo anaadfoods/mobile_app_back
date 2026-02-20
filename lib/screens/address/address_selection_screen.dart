@@ -34,6 +34,7 @@ class AddressSelectionScreen extends StatefulWidget {
 class _AddressSelectionScreenState extends State<AddressSelectionScreen>
     with TickerProviderStateMixin {
   final _formKey = GlobalKey<FormState>();
+  final _nameController = TextEditingController();
   final _addressController = TextEditingController();
   final _cityController = TextEditingController();
   final _stateController = TextEditingController();
@@ -65,6 +66,10 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen>
     _initAnimations();
     _pincodeController.addListener(_onPincodeChanged);
     _loadSavedAddress();
+    if (widget.user != null) {
+      _nameController.text =
+          "${widget.user!.firstName} ${widget.user!.lastName}".trim();
+    }
   }
 
   void _initAnimations() {
@@ -110,6 +115,7 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen>
     _stateController.dispose();
     _pincodeController.removeListener(_onPincodeChanged);
     _pincodeController.dispose();
+    _nameController.dispose();
     _phoneController.dispose();
     _headerController.dispose();
     _contentController.dispose();
@@ -143,6 +149,7 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen>
         'state': user.state!,
         'pincode': user.pincode!,
         'phone': user.phoneNumber,
+        'name': "${user.firstName} ${user.lastName}".trim(),
       };
       _selectedAddressType = 'saved';
       _selectAddress(_savedAddress!);
@@ -224,6 +231,9 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen>
       _stateController.text = address['state'] ?? '';
       _pincodeController.text = address['pincode'] ?? '';
       _phoneController.text = address['phone'] ?? '';
+      if (address.containsKey('name')) {
+        _nameController.text = address['name'] ?? '';
+      }
     });
 
     final pincode = (address['pincode'] ?? '').trim();
@@ -294,6 +304,7 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen>
       'state': _stateController.text,
       'pincode': _pincodeController.text,
       'phone': _phoneController.text,
+      'name': _nameController.text,
     };
 
     if (_orderType == OrderType.self && _selectedAddressType == 'new') {
@@ -365,6 +376,19 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen>
   }
 
   void _navigateToCheckout(Map<String, String> shippingDetails) {
+    double codCharge = 0.0;
+    double prepaidCharge = 0.0;
+
+    final charges = _deliveryDetails?['delivery_charges'];
+    if (charges is Map) {
+      codCharge = double.tryParse(charges['cod']?.toString() ?? '0') ?? 0.0;
+      prepaidCharge =
+          double.tryParse(charges['prepaid']?.toString() ?? '0') ?? 0.0;
+    } else if (charges != null) {
+      codCharge = double.tryParse(charges.toString()) ?? 0.0;
+      prepaidCharge = codCharge;
+    }
+
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -377,11 +401,8 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen>
               isSubscription: widget.isSubscription,
               selectedPlan: widget.selectedPlan,
               shippingDetails: shippingDetails,
-              deliveryCharges:
-                  double.tryParse(
-                    _deliveryDetails?['delivery_charges']?.toString() ?? '0.0',
-                  ) ??
-                  0.0,
+              codDeliveryCharge: codCharge,
+              prepaidDeliveryCharge: prepaidCharge,
               expectedDeliveryDate: _formatDeliveryDate(
                 _deliveryDetails?['expected_delivery_date'],
               ),
@@ -1030,6 +1051,18 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen>
               ],
             ),
             const SizedBox(height: 20),
+            _buildModernInput(
+              theme,
+              isDark,
+              controller: _nameController,
+              label: 'Full Name',
+              hint: 'Enter your full name',
+              icon: Icons.person_outline_rounded,
+              validator:
+                  (v) =>
+                      v == null || v.trim().isEmpty ? 'Name is required' : null,
+            ),
+            const SizedBox(height: 16),
             _buildModernInput(
               theme,
               isDark,

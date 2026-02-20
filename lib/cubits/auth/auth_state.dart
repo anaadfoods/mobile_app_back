@@ -62,3 +62,13 @@ class AuthError extends AuthState {
   @override
   List<Object?> get props => [message];
 }
+
+/// State indicating that deactivation OTP has been sent.
+class AuthDeactivationOtpSent extends AuthState {
+  final String message;
+
+  const AuthDeactivationOtpSent(this.message);
+
+  @override
+  List<Object?> get props => [message];
+}

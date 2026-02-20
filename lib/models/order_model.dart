@@ -121,6 +121,7 @@ class Order {
   final String deliveryState;
   final String deliveryPincode;
   final String deliveryPhone;
+  final String recipientName;
   final double subtotal;
   final double tax;
   final double deliveryCharges;
@@ -147,6 +148,7 @@ class Order {
     required this.deliveryState,
     required this.deliveryPincode,
     required this.deliveryPhone,
+    required this.recipientName,
     required this.subtotal,
     required this.tax,
     required this.deliveryCharges,
@@ -175,6 +177,7 @@ class Order {
       deliveryState: json["delivery_state"] ?? '',
       deliveryPincode: json["delivery_pincode"] ?? '',
       deliveryPhone: json["delivery_phone"] ?? '',
+      recipientName: json["recipient_name"] ?? '',
       subtotal: double.tryParse(json["subtotal"]?.toString() ?? '0') ?? 0.0,
       tax: double.tryParse(json["tax"]?.toString() ?? '0') ?? 0.0,
       deliveryCharges:
@@ -210,6 +213,7 @@ class Order {
       "delivery_state": deliveryState,
       "delivery_pincode": deliveryPincode,
       "delivery_phone": deliveryPhone,
+      "recipient_name": recipientName,
       "subtotal": subtotal.toStringAsFixed(2),
       "tax": tax.toStringAsFixed(2),
       "delivery_charges": deliveryCharges.toStringAsFixed(2),
@@ -239,6 +243,7 @@ class Order {
     String? deliveryState,
     String? deliveryPincode,
     String? deliveryPhone,
+    String? recipientName,
     double? subtotal,
     double? tax,
     double? deliveryCharges,
@@ -265,6 +270,7 @@ class Order {
       deliveryState: deliveryState ?? this.deliveryState,
       deliveryPincode: deliveryPincode ?? this.deliveryPincode,
       deliveryPhone: deliveryPhone ?? this.deliveryPhone,
+      recipientName: recipientName ?? this.recipientName,
       subtotal: subtotal ?? this.subtotal,
       tax: tax ?? this.tax,
       deliveryCharges: deliveryCharges ?? this.deliveryCharges,
@@ -434,8 +440,10 @@ class ShippingDetails {
     required this.state,
     required this.pincode,
     required this.phone,
-    String? name,
+    this.name = '',
   });
+
+  final String name;
 
   Map<String, dynamic> toJson() {
     return {
@@ -444,6 +452,7 @@ class ShippingDetails {
       'delivery_state': state,
       'delivery_pincode': pincode,
       'delivery_phone': phone,
+      'delivery_name': name,
     };
   }
 
@@ -454,6 +463,7 @@ class ShippingDetails {
       state: json['delivery_state'] ?? json['state'] ?? '',
       pincode: json['delivery_pincode'] ?? json['pincode'] ?? '',
       phone: json['delivery_phone'] ?? json['phone'] ?? '',
+      name: json['delivery_name'] ?? json['name'] ?? '',
     );
   }
 
@@ -462,7 +472,8 @@ class ShippingDetails {
         city.isNotEmpty &&
         state.isNotEmpty &&
         pincode.isNotEmpty &&
-        phone.isNotEmpty;
+        phone.isNotEmpty &&
+        name.isNotEmpty;
   }
 }
 
@@ -475,6 +486,7 @@ class OrderModel {
   final String shippingState;
   final String shippingPincode;
   final String shippingPhone;
+  final String shippingName;
   final double deliveryFee;
   final String expectedDeliveryDate;
   final List<OrderItem> items;
@@ -490,6 +502,7 @@ class OrderModel {
     required this.shippingState,
     required this.shippingPincode,
     required this.shippingPhone,
+    this.shippingName = '',
     required this.items,
     this.notes,
     this.status,
@@ -505,7 +518,8 @@ class OrderModel {
       'delivery_state': shippingState,
       'delivery_pincode': shippingPincode,
       'delivery_phone': shippingPhone,
-      'delivery_fee': deliveryFee,
+      'recipient_name': shippingName,
+      'delivery_charges': deliveryFee,
       'expected_delivery_date': expectedDeliveryDate,
       'items': items.map((item) => item.toJson()).toList(),
       'notes': notes,
@@ -525,6 +539,7 @@ class OrderModel {
       shippingState: orderData['delivery_state'] ?? '',
       shippingPincode: orderData['delivery_pincode'] ?? '',
       shippingPhone: orderData['delivery_phone'] ?? '',
+      shippingName: orderData['recipient_name'] ?? '',
       items:
           (orderData['items'] as List?)
               ?.map((item) => OrderItem.fromJson(item))
@@ -555,6 +570,7 @@ class OrderModel {
       shippingState: shippingDetails.state,
       shippingPincode: shippingDetails.pincode,
       shippingPhone: shippingDetails.phone,
+      shippingName: shippingDetails.name,
       expectedDeliveryDate: expectedDeliveryDate,
       deliveryFee: deliveryFee,
       items: items,

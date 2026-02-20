@@ -300,10 +300,7 @@ class _SubscriptionTableState extends State<SubscriptionTable>
           const SizedBox(height: 4),
           Text(
             "Check your connection and try again 📶",
-            style: TextStyle(
-              color: Colors.grey.shade600,
-              fontSize: 12,
-            ),
+            style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 8),
@@ -621,21 +618,21 @@ class _SubscriptionTableState extends State<SubscriptionTable>
         );
       case 1:
         return _CardColors(
-          gradient: [const Color(0xFF4e6d30), const Color(0xFF4e6d30)],
-          shadow: const Color(0xFF4e6d30),
+          gradient: [const Color(0xFF688749), const Color(0xFF688749)],
+          shadow: const Color(0xFF688749),
           icon: Icons.water_drop_rounded,
         );
       case 2:
         return _CardColors(
-          gradient: [const Color(0xFF365322), const Color(0xFF365322)],
-          shadow: const Color(0xFF365322),
+          gradient: [const Color(0xFF4e6d30), const Color(0xFF4e6d30)],
+          shadow: const Color(0xFF4e6d30),
           icon: Icons.local_fire_department_rounded,
         );
       case 3:
       default:
         return _CardColors(
-          gradient: [const Color(0xFF6A1B9A), const Color(0xFF4A148C)],
-          shadow: const Color(0xFF6A1B9A),
+          gradient: [const Color(0xFF365322), const Color(0xFF365322)],
+          shadow: const Color(0xFF365322),
           icon: Icons.auto_awesome_rounded,
         );
     }
@@ -996,6 +993,10 @@ class _SubscriptionPopupContentState extends State<_SubscriptionPopupContent> {
                                                   AnimatedTransitions.fadeScale(
                                                     ProductDetailsScreen(
                                                       product: product,
+                                                      autoOpenSubscription:
+                                                          true,
+                                                      initialPlanId:
+                                                          _selectedPlan.id,
                                                     ),
                                                   ),
                                                 );
@@ -1072,4 +1073,3 @@ class _SubscriptionPopupContentState extends State<_SubscriptionPopupContent> {
     );
   }
 }
-

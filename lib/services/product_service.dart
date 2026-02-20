@@ -1,9 +1,6 @@
 import 'package:grocery_app/common_widgets/global_import.dart';
 
-
-
 import 'package:http/http.dart' as http;
-
 
 class CategoryService {
   // static const String baseUrl = 'http://192.168.1.40:8000';
@@ -13,7 +10,7 @@ class CategoryService {
   static const String categoriesEndpoint = '/api/products/categories/';
   static const String baseProductsEndpoint = '/api/products/';
   static const String varientEndPoint = '/variants/by_category/';
-  static const String productsEndpoint = "/api/products/variants/by_category/";
+  static const String productsEndpoint = "/api/products/variants/";
   static const String featuredEndPoint = '/api/products/featured/';
   static const String bestsellersEndpoint = '/api/products/bestsellers/';
   static const int timeoutSeconds = 30;
@@ -72,11 +69,9 @@ class CategoryService {
 
   /// Call API
   Future<List<Product>> searchProducts(String query) async {
-   
-
-    
-    final url =
-        Uri.parse('${ApiConfig.baseUrl}/api/products/variants/search/?q=$query');
+    final url = Uri.parse(
+      '${ApiConfig.baseUrl}/api/products/variants/search/?q=$query',
+    );
 
     try {
       final response = await http.get(url);
@@ -89,12 +84,10 @@ class CategoryService {
       } else {
         return [];
       }
-    } 
-    catch (e) {
+    } catch (e) {
       throw Exception("Error searching products: $e");
     }
   }
-
 
   static Future<List<Product>> fetchProductsByCategory(
     String categoryName,
@@ -106,7 +99,15 @@ class CategoryService {
 
       if (response.statusCode == 200) {
         final List<dynamic> data = json.decode(response.body);
-        return data.map((item) => Product.fromJson(item)).toList();
+        final products = data.map((item) => Product.fromJson(item)).toList();
+
+        // Client-side filtering fallback: Ensure we only return products for the requested category
+        return products
+            .where(
+              (p) =>
+                  p.productCategory.toLowerCase() == categoryName.toLowerCase(),
+            )
+            .toList();
       } else {
         throw Exception("Failed to load products by category");
       }
@@ -115,10 +116,7 @@ class CategoryService {
     }
   }
 
-
-  static Future<List<Product>> fetchSimilarProduct(
-    String categoryName,
-  ) async {
+  static Future<List<Product>> fetchSimilarProduct(String categoryName) async {
     try {
       final String url =
           "$baseUrl/api/products/variants/search/?=$categoryName";

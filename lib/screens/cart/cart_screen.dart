@@ -1,5 +1,5 @@
-import 'dart:math' as math;
 import 'package:grocery_app/common_widgets/global_import.dart';
+import 'package:grocery_app/common_widgets/animated_screen_header.dart';
 
 class CartScreen extends StatefulWidget {
   const CartScreen({super.key});
@@ -12,11 +12,8 @@ class _CartScreenState extends State<CartScreen> with TickerProviderStateMixin {
   // Animation Controllers
   late AnimationController _headerController;
   late AnimationController _contentController;
-  late AnimationController _particleController;
   late AnimationController _checkoutController;
 
-  late Animation<double> _headerSlide;
-  late Animation<double> _headerFade;
   late Animation<double> _contentFade;
   late Animation<double> _checkoutSlide;
 
@@ -38,22 +35,9 @@ class _CartScreenState extends State<CartScreen> with TickerProviderStateMixin {
       vsync: this,
     );
 
-    _particleController = AnimationController(
-      duration: const Duration(seconds: 20),
-      vsync: this,
-    )..repeat();
-
     _checkoutController = AnimationController(
       duration: const Duration(milliseconds: 500),
       vsync: this,
-    );
-
-    _headerSlide = Tween<double>(begin: -30, end: 0).animate(
-      CurvedAnimation(parent: _headerController, curve: Curves.easeOutCubic),
-    );
-
-    _headerFade = Tween<double>(begin: 0, end: 1).animate(
-      CurvedAnimation(parent: _headerController, curve: Curves.easeOut),
     );
 
     _contentFade = Tween<double>(begin: 0, end: 1).animate(
@@ -79,7 +63,6 @@ class _CartScreenState extends State<CartScreen> with TickerProviderStateMixin {
   void dispose() {
     _headerController.dispose();
     _contentController.dispose();
-    _particleController.dispose();
     _checkoutController.dispose();
     super.dispose();
   }
@@ -109,11 +92,35 @@ class _CartScreenState extends State<CartScreen> with TickerProviderStateMixin {
               CustomScrollView(
                 slivers: [
                   // Animated Header
-                  _buildAnimatedHeader(theme, isDark, state),
+                  SliverToBoxAdapter(
+                    child: AnimatedScreenHeader(
+                      title: "My Cart",
+                      subtitle:
+                          state is CartSuccess
+                              ? "${state.cart.totalItems} items ready for checkout"
+                              : "Your cart is empty",
+                      icon: Icons.shopping_cart_rounded,
+                      showBack: true,
+                      hasParticles: true,
+                      height: 200,
+                      animationController: _headerController,
+                      actions: [
+                        if (state is CartSuccess && state.cart.items.isNotEmpty)
+                          GlassmorphicIconButton(
+                            icon: Icons.delete_sweep_rounded,
+                            iconSize: 22,
+                            onTap: () {
+                              HapticFeedback.mediumImpact();
+                              _showClearCartDialog(context);
+                            },
+                          ),
+                      ],
+                    ),
+                  ),
 
                   // Content
                   if (state is CartLoading || state is CartInitial)
-                    SliverFillRemaining(child: _buildLoadingState(theme))
+                    SliverFillRemaining(child: const LoadingStateWidget())
                   else if (state is CartError)
                     SliverFillRemaining(
                       child: _buildErrorState(theme, state.message),
@@ -142,203 +149,9 @@ class _CartScreenState extends State<CartScreen> with TickerProviderStateMixin {
     );
   }
 
-  Widget _buildAnimatedHeader(ThemeData theme, bool isDark, CartState state) {
-    int itemCount = 0;
-    if (state is CartSuccess) {
-      itemCount = state.cart.totalItems;
-    }
-
-    return SliverToBoxAdapter(
-      child: AnimatedBuilder(
-        animation: _headerController,
-        builder: (context, child) {
-          return Transform.translate(
-            offset: Offset(0, _headerSlide.value),
-            child: Opacity(opacity: _headerFade.value, child: child),
-          );
-        },
-        child: Container(
-          height: 200,
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                theme.colorScheme.primary,
-                theme.colorScheme.primary.withValues(alpha: 0.85),
-                isDark
-                    ? theme.colorScheme.primary.withValues(alpha: 0.7)
-                    : Colors.green.shade400,
-              ],
-            ),
-            borderRadius: const BorderRadius.only(
-              bottomLeft: Radius.circular(32),
-              bottomRight: Radius.circular(32),
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: theme.colorScheme.primary.withValues(alpha: 0.3),
-                blurRadius: 20,
-                offset: const Offset(0, 10),
-              ),
-            ],
-          ),
-          child: Stack(
-            children: [
-              // Floating Particles
-              ...List.generate(10, (index) => _buildFloatingParticle(index)),
-
-              // Decorative circles
-              Positioned(
-                top: -30,
-                right: -30,
-                child: Container(
-                  width: 120,
-                  height: 120,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: Colors.white.withValues(alpha: 0.1),
-                  ),
-                ),
-              ),
-              Positioned(
-                bottom: 20,
-                left: -40,
-                child: Container(
-                  width: 100,
-                  height: 100,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: Colors.white.withValues(alpha: 0.08),
-                  ),
-                ),
-              ),
-
-              // Header Content
-              SafeArea(
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 8, 20, 20),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Top Row with Back Button and Clear
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        children: [
-                          // _buildIconButton(
-                          //   Icons.arrow_back_ios_new_rounded,
-                          //   () {
-                          //     HapticFeedback.lightImpact();
-                          //     Navigator.pop(context);
-                          //   },
-                          // ),
-                          if (state is CartSuccess &&
-                              state.cart.items.isNotEmpty)
-                            _buildIconButton(Icons.delete_sweep_rounded, () {
-                              HapticFeedback.mediumImpact();
-                              _showClearCartDialog(context);
-                            }),
-                        ],
-                      ),
-                      const Spacer(),
-                      // Title Row
-                      Row(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.all(12),
-                            decoration: BoxDecoration(
-                              color: Colors.white.withValues(alpha: 0.2),
-                              borderRadius: BorderRadius.circular(16),
-                            ),
-                            child: const Icon(
-                              Icons.shopping_cart_rounded,
-                              color: Colors.white,
-                              size: 28,
-                            ),
-                          ),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  "My Cart",
-                                  style: theme.textTheme.headlineMedium
-                                      ?.copyWith(
-                                        color: Colors.white,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  itemCount > 0
-                                      ? "$itemCount items ready for checkout"
-                                      : "Your cart is empty",
-                                  style: theme.textTheme.bodyMedium?.copyWith(
-                                    color: Colors.white.withValues(alpha: 0.9),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildFloatingParticle(int index) {
-    final random = math.Random(index);
-    final size = 4.0 + random.nextDouble() * 6;
-    final startX = random.nextDouble() * 400;
-    final startY = random.nextDouble() * 200;
-    final duration = 10 + random.nextInt(10);
-
-    return AnimatedBuilder(
-      animation: _particleController,
-      builder: (context, child) {
-        final progress = (_particleController.value * duration) % 1.0;
-        final x = startX + math.sin(progress * math.pi * 2 + index) * 25;
-        final y = startY + math.cos(progress * math.pi * 2 + index) * 15;
-        final opacity = 0.1 + (math.sin(progress * math.pi * 2) * 0.15);
-
-        return Positioned(
-          left: x,
-          top: y,
-          child: Container(
-            width: size,
-            height: size,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: Colors.white.withValues(alpha: opacity.clamp(0.05, 0.25)),
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildIconButton(IconData icon, VoidCallback onTap) {
-    return Material(
-      color: Colors.white.withValues(alpha: 0.2),
-      borderRadius: BorderRadius.circular(12),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
-        child: Padding(
-          padding: const EdgeInsets.all(10),
-          child: Icon(icon, color: Colors.white, size: 22),
-        ),
-      ),
-    );
-  }
+  // _buildFloatingParticle replaced by FloatingParticle widget
+  // _buildIconButton replaced by GlassmorphicIconButton widget
+  // _buildLoadingState replaced by LoadingStateWidget
 
   Widget _buildCartItemsList(ThemeData theme, bool isDark, CartModel cart) {
     return SliverPadding(
@@ -621,28 +434,6 @@ class _CartScreenState extends State<CartScreen> with TickerProviderStateMixin {
     );
   }
 
-  Widget _buildLoadingState(ThemeData theme) {
-    return Shimmer.fromColors(
-      baseColor: theme.colorScheme.surface.withValues(alpha: 0.5),
-      highlightColor: theme.colorScheme.surface,
-      child: ListView.builder(
-        padding: const EdgeInsets.all(16),
-        itemCount: 4,
-        itemBuilder:
-            (context, index) => Padding(
-              padding: const EdgeInsets.only(bottom: 12),
-              child: Container(
-                height: 100,
-                decoration: BoxDecoration(
-                  color: theme.cardColor,
-                  borderRadius: BorderRadius.circular(20),
-                ),
-              ),
-            ),
-      ),
-    );
-  }
-
   Widget _buildErrorState(ThemeData theme, String message) {
     return ErrorStateWidget(
       title: 'Failed to Load Cart',
@@ -723,7 +514,7 @@ class _CartScreenState extends State<CartScreen> with TickerProviderStateMixin {
                     final dashboardState =
                         context.findAncestorStateOfType<DashboardScreenState>();
                     if (dashboardState != null) {
-                      dashboardState.switchToTab(3); // Categories tab
+                      dashboardState.switchToTab(1); // Categories tab
                     }
                   },
                   icon: const Icon(Icons.shopping_bag_outlined),

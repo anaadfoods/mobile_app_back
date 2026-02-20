@@ -86,6 +86,50 @@ class _AboutScreenState extends State<AboutScreen>
     }
   }
 
+  Future<void> _launchEmail(String emailAddress) async {
+    _triggerHaptic();
+    String subject = '';
+
+    final Uri emailUri = Uri(
+      scheme: 'mailto',
+      path: emailAddress,
+      query: 'subject=${Uri.encodeComponent(subject)}',
+    );
+
+    try {
+      if (await canLaunchUrl(emailUri)) {
+        await launchUrl(emailUri);
+      } else {
+        throw 'Could not launch $emailUri';
+      }
+    } catch (e) {
+      if (mounted) {
+        SnackBarHelper.showError(context, 'Could not open email app.');
+      }
+    }
+  }
+
+  Future<void> _launchWhatsApp(String phoneNumber) async {
+    _triggerHaptic();
+    final String message = "";
+
+    final Uri whatsappUri = Uri.parse(
+      'https://wa.me/$phoneNumber?text=${Uri.encodeComponent(message)}',
+    );
+
+    try {
+      if (await canLaunchUrl(whatsappUri)) {
+        await launchUrl(whatsappUri, mode: LaunchMode.externalApplication);
+      } else {
+        throw 'Could not launch $whatsappUri';
+      }
+    } catch (e) {
+      if (mounted) {
+        SnackBarHelper.showError(context, 'Could not open WhatsApp.');
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -552,11 +596,11 @@ class _AboutScreenState extends State<AboutScreen>
 
   Widget _buildBenefitsCard(ThemeData theme, ColorScheme colorScheme) {
     final benefits = [
-      ' Harvested, Not Stored. (Food that breathes, delivered fresh).',
+      'Harvested, Not Stored. (Food that breathes, delivered fresh).',
       'Zero Tolerance for Toxins. (Strictly chemical-free, certified).',
-      ' Profit for the Planter. (Fair profit margins for the hands that feed us.',
+      'Profit for the Planter. (Fair profit margins for the hands that feed us.',
       'Earth to Earth. (Packaging that leaves minimum trace.)'
-          ' The Truth Test. (Every grain checked for absolute purity.)',
+          'The Truth Test. (Every grain checked for absolute purity.)',
     ];
 
     return Container(
@@ -653,12 +697,21 @@ class _AboutScreenState extends State<AboutScreen>
             ),
             child: Column(
               children: [
-                _buildContactRow(
-                  Icons.email_outlined,
-                  'connect@anaadfoods.com',
+                GestureDetector(
+                  onTap: () => _launchEmail('connect@anaadfoods.com'),
+                  child: _buildContactRow(
+                    Icons.email_outlined,
+                    'connect@anaadfoods.com',
+                  ),
                 ),
                 const SizedBox(height: 12),
-                _buildContactRow(Icons.phone_outlined, '+91 9996166186'),
+                GestureDetector(
+                  onTap: () => _launchWhatsApp('+91 9996166186'),
+                  child: _buildContactRow(
+                    Icons.phone_outlined,
+                    '+91 9996166186',
+                  ),
+                ),
                 const SizedBox(height: 12),
                 _buildContactRow(
                   Icons.location_on_outlined,

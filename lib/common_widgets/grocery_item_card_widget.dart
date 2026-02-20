@@ -1,5 +1,6 @@
 import 'package:collection/collection.dart';
 import 'package:grocery_app/common_widgets/global_import.dart';
+import 'package:grocery_app/utils/subscription_navigation_helper.dart';
 
 class GroceryItemCardWidget extends StatefulWidget {
   final Product item;
@@ -211,9 +212,15 @@ class _GroceryItemCardWidgetState extends State<GroceryItemCardWidget> {
                   : ElevatedButton(
                     key: const ValueKey('addButton'),
                     onPressed: () {
-                      cartCubit.addItem(widget.item, 1);
-                     },
-                    child: const Text("Add"),
+                      // Redirect to product details with auto-open subscription
+                      SubscriptionNavigationHelper.navigateToProductDetails(
+                        context,
+                        widget.item,
+                      );
+                      // Commented out existing logic:
+                      // cartCubit.addItem(widget.item, 1);
+                    },
+                    child: const Text("Buy"),
                   ),
         );
       },
@@ -230,4 +237,3 @@ class _GroceryItemCardWidgetState extends State<GroceryItemCardWidget> {
     return 0;
   }
 }
-

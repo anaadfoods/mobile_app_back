@@ -209,7 +209,15 @@ class _ExploreScreenState extends State<ExploreScreen>
             if (_isLoading)
               SliverToBoxAdapter(child: _buildSkeletonLoader(theme))
             else if (_error != null)
-              SliverToBoxAdapter(child: _buildErrorState(theme))
+              SliverToBoxAdapter(
+                child: ErrorStateWidget(
+                  title: "Couldn't load categories right now",
+                  subtitle: 'Check your connection and try again 📶',
+                  icon: Icons.explore_off_outlined,
+                  errorType: ErrorType.network,
+                  onRetry: _handleRefresh,
+                ),
+              )
             else ...[
               // Categories Section
               SliverToBoxAdapter(child: _buildCategoriesSection(theme, isDark)),
@@ -275,7 +283,13 @@ class _ExploreScreenState extends State<ExploreScreen>
           child: Stack(
             children: [
               // Floating Particles
-              ...List.generate(12, (index) => _buildFloatingParticle(index)),
+              ...List.generate(
+                12,
+                (index) => FloatingParticle(
+                  index: index,
+                  controller: _particleController,
+                ),
+              ),
 
               // Decorative circles
               Positioned(
@@ -326,18 +340,18 @@ class _ExploreScreenState extends State<ExploreScreen>
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           if (Navigator.canPop(context))
-                            _buildIconButton(
-                              Icons.arrow_back_ios_new_rounded,
-                              () {
+                            GlassmorphicIconButton(
+                              icon: Icons.arrow_back_ios_new_rounded,
+                              onTap: () {
                                 HapticFeedback.lightImpact();
                                 Navigator.pop(context);
                               },
                             )
                           else
                             const SizedBox(width: 44),
-                          _buildIconButton(
-                            Icons.refresh_rounded,
-                            _handleRefresh,
+                          GlassmorphicIconButton(
+                            icon: Icons.refresh_rounded,
+                            onTap: _handleRefresh,
                           ),
                         ],
                       ),
@@ -401,51 +415,7 @@ class _ExploreScreenState extends State<ExploreScreen>
     );
   }
 
-  Widget _buildFloatingParticle(int index) {
-    final random = math.Random(index);
-    final size = 4.0 + random.nextDouble() * 8;
-    final startX = random.nextDouble() * 400;
-    final startY = random.nextDouble() * 220;
-    final duration = 10 + random.nextInt(10);
-
-    return AnimatedBuilder(
-      animation: _particleController,
-      builder: (context, child) {
-        final progress = (_particleController.value * duration) % 1.0;
-        final x = startX + math.sin(progress * math.pi * 2 + index) * 30;
-        final y = startY + math.cos(progress * math.pi * 2 + index) * 20;
-        final opacity = 0.1 + (math.sin(progress * math.pi * 2) * 0.15);
-
-        return Positioned(
-          left: x,
-          top: y,
-          child: Container(
-            width: size,
-            height: size,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: Colors.white.withOpacity(opacity.clamp(0.05, 0.3)),
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildIconButton(IconData icon, VoidCallback onTap) {
-    return Material(
-      color: Colors.white.withOpacity(0.2),
-      borderRadius: BorderRadius.circular(12),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
-        child: Padding(
-          padding: const EdgeInsets.all(10),
-          child: Icon(icon, color: Colors.white, size: 24),
-        ),
-      ),
-    );
-  }
+  // _buildFloatingParticle and _buildIconButton replaced by FloatingParticle and GlassmorphicIconButton widgets
 
   Widget _buildStatChip(IconData icon, String value, String label) {
     return Container(
@@ -544,7 +514,11 @@ class _ExploreScreenState extends State<ExploreScreen>
         ),
         const SizedBox(height: 16),
         if (_filteredCategories.isEmpty)
-          _buildEmptyState(theme, 'No matching categories found')
+          EmptyStateWidget(
+            icon: Icons.search_off_rounded,
+            title: 'No matching categories found',
+            animated: false,
+          )
         else
           _buildCategoryGrid(theme, isDark),
       ],
@@ -626,7 +600,11 @@ class _ExploreScreenState extends State<ExploreScreen>
         if (_isLoadingBestsellers)
           _buildBestsellerListSkeleton(theme)
         else if (_bestsellers.isEmpty)
-          _buildEmptyState(theme, 'No trending products available')
+          EmptyStateWidget(
+            icon: Icons.search_off_rounded,
+            title: 'No trending products available',
+            animated: false,
+          )
         else
           ListView.builder(
             itemCount: _bestsellers.length,
@@ -647,85 +625,7 @@ class _ExploreScreenState extends State<ExploreScreen>
     );
   }
 
-  Widget _buildEmptyState(ThemeData theme, String message) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(32),
-        child: Column(
-          children: [
-            Icon(
-              Icons.search_off_rounded,
-              size: 64,
-              color: theme.disabledColor.withOpacity(0.5),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              message,
-              style: theme.textTheme.bodyLarge?.copyWith(
-                color: theme.hintColor,
-              ),
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildErrorState(ThemeData theme) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(32),
-        child: Column(
-          children: [
-            Icon(
-              Icons.explore_off_outlined,
-              size: 64,
-              color: const Color(0xFF8B7355), // Warm mocha - friendly
-            ),
-            const SizedBox(height: 16),
-            Text(
-              "Couldn't load categories right now",
-              style: TextStyle(
-                color: const Color(0xFF8B7355),
-                fontWeight: FontWeight.w600,
-                fontSize: 16,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              "Check your connection and try again 📶",
-              style: TextStyle(
-                color: Colors.grey.shade600,
-                fontSize: 13,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 12),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Text(
-                "🌱 Agniastra, made from neem and cow urine, protects crops from 200+ pests naturally!",
-                style: TextStyle(
-                  color: Colors.green.shade700,
-                  fontSize: 12,
-                  fontStyle: FontStyle.italic,
-                ),
-                textAlign: TextAlign.center,
-              ),
-            ),
-            const SizedBox(height: 24),
-            ElevatedButton.icon(
-              onPressed: _handleRefresh,
-              icon: const Icon(Icons.refresh_rounded),
-              label: const Text('Retry'),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+  // _buildEmptyState and _buildErrorState replaced by EmptyStateWidget and ErrorStateWidget
 
   void _onProductClicked(Product item) {
     HapticFeedback.lightImpact();
@@ -743,7 +643,7 @@ class _ExploreScreenState extends State<ExploreScreen>
       category.name,
     );
     if (!mounted) return;
-    if (category.name == "vegetables") {
+    if (category.name == "Vegetables") {
       Navigator.of(
         context,
       ).push(AnimatedTransitions.slideFromRight(const CombinedScreen()));

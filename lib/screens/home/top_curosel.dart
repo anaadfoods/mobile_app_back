@@ -1,21 +1,23 @@
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:grocery_app/common_widgets/global_import.dart';
 import 'package:grocery_app/screens/RFP/delivery_screen.dart';
-import 'package:grocery_app/helpers/color_extractor.dart';
 import 'dart:math' as math;
 
 class CarouselItem {
-  final String imageUrl;
+  final String imagePath;
   final String title;
   final String subtitle;
   final String buttonText;
   final VoidCallback onTap;
+  final Color? color;
 
   const CarouselItem({
-    required this.imageUrl,
+    required this.imagePath,
     required this.title,
     required this.subtitle,
     required this.buttonText,
     required this.onTap,
+    this.color,
   });
 }
 
@@ -34,14 +36,9 @@ class _TopCuroselState extends State<TopCurosel>
   final CarouselController _carouselController = CarouselController();
   int _currentPage = 0;
 
-  /// Pre-extracted colors for each carousel image
-  List<Color> _extractedColors = [];
-  bool _colorsLoaded = false;
-
   /// Animation controller for pulse/glow effect
   late AnimationController _pulseController;
 
-  // Define carousel items as class-level for color extraction
   late List<CarouselItem> _carouselItems;
 
   @override
@@ -52,7 +49,16 @@ class _TopCuroselState extends State<TopCurosel>
       duration: const Duration(milliseconds: 2000),
     )..repeat();
     _initCarouselItems();
-    _extractColors();
+
+    // Notify initial color
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_carouselItems.isNotEmpty && widget.onColorChanged != null) {
+        // Use the color of the first item, or fallback to primary
+        final color =
+            _carouselItems[0].color ?? Theme.of(context).colorScheme.primary;
+        widget.onColorChanged!(color);
+      }
+    });
   }
 
   @override
@@ -61,27 +67,29 @@ class _TopCuroselState extends State<TopCurosel>
     super.dispose();
   }
 
-  void _initCarouselItems() {
-    _carouselItems = [
+  Future<void> _initCarouselItems() async {
+    // Default hardcoded items (preserved for fallback or initial state)
+    // We also use these to get the hardcoded buttonText, color, and onTap by index
+    final List<CarouselItem> hardcodedDefaults = [
       CarouselItem(
-        imageUrl:
-            'https://res.cloudinary.com/dcuwcjq1f/image/upload/v1759836582/atta_chaki_carousel_zowh5e.jpg',
-        title: ' Ground slowly',
+        imagePath: '',
+        title: 'Ground slowly',
         subtitle:
             "Low RPM Natural Stone Milling of the flour preserves every bit of nutrition",
         buttonText: 'See the Product',
+        color: const Color(0xFF8D6E63), // Brownish for grains/milling
         onTap: () {
           final dashboardState =
               context.findAncestorStateOfType<DashboardScreenState>();
-          dashboardState?.switchToTab(3);
+          dashboardState?.switchToTab(1);
         },
       ),
       CarouselItem(
-        imageUrl:
-            'https://res.cloudinary.com/dcuwcjq1f/image/upload/v1759836622/atta_crousel_image_dpennd.jpg',
+        imagePath: '',
         title: 'We don’t manufacture. We grow',
         subtitle: 'A return to Truly Nutritional Food',
         buttonText: 'Read Our Roots',
+        color: const Color(0xFF558B2F), // Green for growing
         onTap: () {
           Navigator.push(
             context,
@@ -90,11 +98,11 @@ class _TopCuroselState extends State<TopCurosel>
         },
       ),
       CarouselItem(
-        imageUrl:
-            'https://res.cloudinary.com/dcuwcjq1f/image/upload/v1759836642/farm_carousel_lcnpp8.jpg',
+        imagePath: '',
         title: 'Picked before the sun rose',
         subtitle: "Harvested only when you order. Not a moment sooner",
         buttonText: 'Visit our Plot',
+        color: const Color(0xFFF9A825), // Golden/Orange for sun/harvest
         onTap: () async {
           final produt = await CategoryService.fetchProductById(2);
           if (!mounted) return;
@@ -107,11 +115,11 @@ class _TopCuroselState extends State<TopCurosel>
         },
       ),
       CarouselItem(
-        imageUrl:
-            'https://res.cloudinary.com/dcuwcjq1f/image/upload/v1759836653/farmer_consultancy_aaosxa.jpg',
-        title: ' Remote Farming Program',
-        subtitle: " You can’t be at the farm. So we bring the farm to you.",
+        imagePath: '',
+        title: 'Remote Farming Program',
+        subtitle: "You can’t be at the farm. So we bring the farm to you.",
         buttonText: 'Visit our Plot',
+        color: const Color(0xFF00695C), // Teal for remote/tech+farm
         onTap: () {
           Navigator.push(
             context,
@@ -124,26 +132,57 @@ class _TopCuroselState extends State<TopCurosel>
         },
       ),
     ];
-  }
 
-  /// Extract dominant colors from all carousel images
-  Future<void> _extractColors() async {
-    final imageUrls = _carouselItems.map((item) => item.imageUrl).toList();
+    // Initialize with defaults first so UI has something to show
+    if (mounted) {
+      setState(() {
+        _carouselItems = hardcodedDefaults;
+      });
+    }
 
     try {
-      final colors = await ColorExtractor.extractColorsFromUrls(imageUrls);
-      if (mounted) {
+      final BannerService bannerService = BannerService();
+      final List<BannerModel> apiBanners = await bannerService.fetchBanners();
+
+      if (apiBanners.isNotEmpty && mounted) {
+        List<CarouselItem> newItems = [];
+
+        // Map API banners to hardcoded styles based on index
+        for (int i = 0; i < apiBanners.length; i++) {
+          final banner = apiBanners[i];
+
+          // Use hardcoded styles from defaults if available, otherwise reuse last one or default
+          final styleSource =
+              i < hardcodedDefaults.length
+                  ? hardcodedDefaults[i]
+                  : hardcodedDefaults.last;
+
+          newItems.add(
+            CarouselItem(
+              imagePath: banner.image, // URL from API
+              title: banner.title,
+              subtitle: banner.subtitle,
+              buttonText: styleSource.buttonText, // Hardcoded
+              color: styleSource.color, // Hardcoded
+              onTap: styleSource.onTap, // Hardcoded
+            ),
+          );
+        }
+
         setState(() {
-          _extractedColors = colors;
-          _colorsLoaded = true;
+          _carouselItems = newItems;
         });
-        // Notify parent with the first image's color
-        if (colors.isNotEmpty) {
-          widget.onColorChanged?.call(colors[0]);
+
+        // Notify color change for the new first item
+        if (_carouselItems.isNotEmpty && widget.onColorChanged != null) {
+          final color =
+              _carouselItems[0].color ?? Theme.of(context).colorScheme.primary;
+          widget.onColorChanged!(color);
         }
       }
     } catch (e) {
-      debugPrint('Failed to extract carousel colors: $e');
+      print("Error fetching banners: $e");
+      // Fallback to defaults (already set)
     }
   }
 
@@ -153,9 +192,11 @@ class _TopCuroselState extends State<TopCurosel>
       _currentPage = index;
     });
 
-    // Notify parent with the new color
-    if (_colorsLoaded && _extractedColors.isNotEmpty) {
-      widget.onColorChanged?.call(_extractedColors[index]);
+    // Notify parent with the new color or fallback
+    if (widget.onColorChanged != null) {
+      final color =
+          _carouselItems[index].color ?? Theme.of(context).colorScheme.primary;
+      widget.onColorChanged!(color);
     }
   }
 
@@ -166,6 +207,12 @@ class _TopCuroselState extends State<TopCurosel>
     final textTheme = theme.textTheme;
     final screenHeight = MediaQuery.of(context).size.height;
 
+    // Determine current color for glow effect
+    final currentColor =
+        _carouselItems.isNotEmpty && _currentPage < _carouselItems.length
+            ? (_carouselItems[_currentPage].color ?? colorScheme.primary)
+            : colorScheme.primary;
+
     return Column(
       children: [
         AnimatedBuilder(
@@ -173,10 +220,6 @@ class _TopCuroselState extends State<TopCurosel>
           builder: (context, child) {
             final glowIntensity =
                 0.2 + (math.sin(_pulseController.value * math.pi * 2) * 0.15);
-            final currentColor =
-                _colorsLoaded && _extractedColors.isNotEmpty
-                    ? _extractedColors[_currentPage]
-                    : colorScheme.primary;
 
             return Container(
               margin: const EdgeInsets.symmetric(horizontal: 8),
@@ -200,10 +243,10 @@ class _TopCuroselState extends State<TopCurosel>
                 itemBuilder: (context, index, realIndex) {
                   final item = _carouselItems[index];
                   final isActive = index == _currentPage;
-                  final itemColor =
-                      _colorsLoaded && _extractedColors.length > index
-                          ? _extractedColors[index]
-                          : colorScheme.primary;
+                  final itemColor = item.color ?? colorScheme.primary;
+
+                  // Check if image path is a URL (http/https) or asset
+                  final isNetworkImage = item.imagePath.startsWith('http');
 
                   return AnimatedScale(
                     scale: isActive ? 1.0 : 0.92,
@@ -231,30 +274,46 @@ class _TopCuroselState extends State<TopCurosel>
                           child: Stack(
                             fit: StackFit.expand,
                             children: [
-                              Image.network(
-                                item.imageUrl,
-                                fit: BoxFit.cover,
-                                width: double.infinity,
-                                loadingBuilder: (
-                                  context,
-                                  child,
-                                  loadingProgress,
-                                ) {
-                                  if (loadingProgress == null) return child;
-                                  return Center(
-                                    child: CircularProgressIndicator(
-                                      value:
-                                          loadingProgress.expectedTotalBytes !=
-                                                  null
-                                              ? loadingProgress
-                                                      .cumulativeBytesLoaded /
-                                                  loadingProgress
-                                                      .expectedTotalBytes!
-                                              : null,
+                              // Image (Network or Asset)
+                              isNetworkImage
+                                  ? CachedNetworkImage(
+                                    imageUrl: item.imagePath,
+                                    fit: BoxFit.cover,
+                                    width: double.infinity,
+                                    placeholder:
+                                        (context, url) => Center(
+                                          child: CircularProgressIndicator(
+                                            color: itemColor,
+                                          ),
+                                        ),
+                                    errorWidget:
+                                        (context, url, error) => const Center(
+                                          child: Icon(Icons.error),
+                                        ),
+                                  )
+                                  : item.imagePath.isEmpty
+                                  ? Container(
+                                    color: itemColor.withOpacity(0.2),
+                                    child: Center(
+                                      child: Icon(
+                                        Icons.image_not_supported_outlined,
+                                        color: itemColor.withOpacity(0.5),
+                                        size: 48,
+                                      ),
                                     ),
-                                  );
-                                },
-                              ),
+                                  )
+                                  : SvgPicture.asset(
+                                    item.imagePath,
+                                    fit: BoxFit.cover,
+                                    width: double.infinity,
+                                    placeholderBuilder:
+                                        (context) => Center(
+                                          child: CircularProgressIndicator(
+                                            color: itemColor,
+                                          ),
+                                        ),
+                                  ),
+                              // Gradient Overlay
                               Container(
                                 decoration: BoxDecoration(
                                   gradient: LinearGradient(
@@ -267,6 +326,7 @@ class _TopCuroselState extends State<TopCurosel>
                                   ),
                                 ),
                               ),
+                              // Content
                               Positioned(
                                 bottom: 12,
                                 left: 16,
@@ -362,11 +422,12 @@ class _TopCuroselState extends State<TopCurosel>
           },
         ),
         const SizedBox(height: 10),
+        // Dots Indicator
         AnimatedSmoothIndicator(
           activeIndex: _currentPage,
           count: _carouselItems.length,
           effect: ExpandingDotsEffect(
-            activeDotColor: colorScheme.primary,
+            activeDotColor: currentColor,
             dotColor: theme.disabledColor,
             dotHeight: 8,
             dotWidth: 8,
@@ -391,4 +452,3 @@ extension on CarouselController {
     required Cubic curve,
   }) {}
 }
-

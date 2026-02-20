@@ -1,5 +1,6 @@
 class SubscriptionCreateRequest {
   final int? plan;
+  final String deliveryName;
   final String deliveryAddress;
   final String deliveryCity;
   final String deliveryState;
@@ -13,6 +14,7 @@ class SubscriptionCreateRequest {
 
   SubscriptionCreateRequest({
     this.plan,
+    this.deliveryName = '',
     required this.deliveryAddress,
     required this.deliveryCity,
     required this.deliveryState,
@@ -21,12 +23,13 @@ class SubscriptionCreateRequest {
     required this.paymentType,
     required this.paymentMethod,
     required this.items,
-   required this.deliveryFee,
-   required this.expectedDeliveryDate, 
+    required this.deliveryFee,
+    required this.expectedDeliveryDate,
   });
 
   Map<String, dynamic> toJson() => {
     'plan': plan ?? 0,
+    'recipient_name': deliveryName,
     'delivery_address': deliveryAddress,
     'delivery_city': deliveryCity,
     'delivery_state': deliveryState,

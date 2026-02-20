@@ -1,7 +1,7 @@
 // import 'package:flutter/material.dart';
 // import 'package:shared_preferences/shared_preferences.dart';
 // import '../../services/notification_service.dart';
-// import '../../widgets/notification_badge_widget.dart';
+// import 'package:grocery_app/common_widgets/notification_badge_widget.dart';
 // import '../../helpers/snackbar_helper.dart';
 
 // class NotificationSettingsScreen extends StatefulWidget {
@@ -525,4 +525,3 @@
 //     );
 //   }
 // }
-

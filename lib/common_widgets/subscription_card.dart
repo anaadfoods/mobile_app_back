@@ -1,6 +1,6 @@
 import 'package:grocery_app/common_widgets/global_import.dart';
 import 'package:grocery_app/cubits/subscription/subscription_state.dart';
-import 'package:grocery_app/widgets/pause_date_picker_sheet.dart';
+import 'package:grocery_app/common_widgets/pause_date_picker_sheet.dart';
 
 class SubscriptionCarousel extends StatefulWidget {
   const SubscriptionCarousel({super.key});

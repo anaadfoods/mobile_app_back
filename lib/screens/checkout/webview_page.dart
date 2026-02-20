@@ -11,6 +11,8 @@ class WebViewPage extends StatefulWidget {
   final int orderId;
   final bool isSubscription;
   final int subID;
+  final String?
+  merchantTransactionId; // Added for explicit transaction ID tracking
 
   const WebViewPage({
     super.key,
@@ -24,6 +26,7 @@ class WebViewPage extends StatefulWidget {
     this.subID = 0,
     this.onPaymentResult,
     this.isSubscription = false,
+    this.merchantTransactionId,
   });
 
   @override
@@ -33,6 +36,7 @@ class WebViewPage extends StatefulWidget {
 class _WebViewPageState extends State<WebViewPage> {
   late WebViewController _controller;
   bool _isLoading = true;
+  bool _isHandlingPayment = false;
   final OrderService _orderService = OrderService();
   final SubscriptionService _subscriptionService = SubscriptionService();
   List<Subscription> allSubscriptions = [];
@@ -85,27 +89,18 @@ class _WebViewPageState extends State<WebViewPage> {
                 widget.onUrlChanged?.call(url);
                 print(url);
 
-                if (url.contains(
-                  "${ApiConfig.baseUrl}/api/payments/success/",
-                )) {
-                  print(url);
-
+                if (url.contains("${ApiConfig.baseUrl}/api/payments/success") ||
+                    url.contains("${ApiConfig.baseUrl}/api/payment/success")) {
                   await _handlePaymentSuccess();
                 } else if (url.contains(
-                  "${ApiConfig.baseUrl}/api/payment/failure",
-                )) {
+                      "${ApiConfig.baseUrl}/api/payments/failure",
+                    ) ||
+                    url.contains("${ApiConfig.baseUrl}/api/payment/failure")) {
                   await _handlePaymentFailure();
                 }
               },
               onNavigationRequest: (NavigationRequest request) {
-                if (request.url.startsWith("${ApiConfig.baseUrl}/api/")) {
-                  if (request.url.contains("payment/success")) {
-                    _handlePaymentSuccess();
-                  } else if (request.url.contains("payment/failure")) {
-                    _handlePaymentFailure();
-                  }
-                  return NavigationDecision.prevent;
-                }
+                // Allow all navigation — onPageFinished handles payment callbacks
                 return NavigationDecision.navigate;
               },
             ),
@@ -114,6 +109,10 @@ class _WebViewPageState extends State<WebViewPage> {
   }
 
   Future<void> _handlePaymentSuccess() async {
+    // Guard against being called multiple times
+    if (_isHandlingPayment) return;
+    _isHandlingPayment = true;
+
     try {
       if (widget.isSubscription) {
         print("Is is Subscription call ${widget.isSubscription}");
@@ -124,89 +123,54 @@ class _WebViewPageState extends State<WebViewPage> {
 
         if (debugpaymentone == null) {
           print("Failed to fetch payment status");
-          _showDialog("Payment verification failed!", false);
-          return;
-        }
-
-        print(debugpaymentone.paymentStatus);
-        await _orderService.postOrderId(debugpaymentone.merchantTransactionId);
-
-        final subscriptionStatus = await SubscriptionService()
-            .fetchSubscriptionPaymentStatus(widget.subID);
-
-        if (subscriptionStatus == null) {
-          print("Failed to fetch subscription status");
-          _showDialog("Payment verification failed!", false);
-          return;
-        }
-
-        print(subscriptionStatus.transactionStatus);
-
-        // Fetch subscription details directly by ID instead of searching local list
-        // This is more reliable as newly created subscriptions may not appear in
-        // the list endpoint until their status changes from PENDING to ACTIVE
-        print(
-          'Fetching subscription details for id: ${subscriptionStatus.subscriptionId}',
-        );
-
-        final subscriptionResult = await _subscriptionService
-            .getSubscriptionDetails(subscriptionStatus.subscriptionId);
-
-        if (subscriptionResult['success'] != true ||
-            subscriptionResult['data'] == null) {
-          print(
-            'Failed to fetch subscription details: ${subscriptionResult['message']}',
-          );
-          _showDialog(
-            "Payment successful! Your subscription is being activated. Please check My Subscriptions.",
-            true,
-          );
-          return;
-        }
-
-        final Subscription subscription =
-            subscriptionResult['data'] as Subscription;
-
-        if (subscriptionStatus.transactionStatus == 'SUCCESS') {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-              builder:
-                  (context) =>
-                      SubscriptionPlanDetailScreen(subscription: subscription),
-            ),
-          );
+          // Check if we should still notify success if we can't verify immediately?
+          // For now, let's assume if we can't verify, we shouldn't proceed blindly,
+          // but since we are modifying to callback, we might want to pass this info back.
+          // However, the original plan was just to delegate.
+          // The parent (CheckoutScreen) will do its own verification.
         } else {
-          _showDialog("Payment Failed!", false);
+          print(debugpaymentone.paymentStatus);
+
+          // Use the passed merchantTransactionId if available, otherwise use the one from status
+          final transactionIdToPost =
+              widget.merchantTransactionId ??
+              debugpaymentone.merchantTransactionId;
+
+          // Attempt to post order ID to backup service, but don't block main flow if it fails
+          try {
+            await _orderService.postOrderId(transactionIdToPost);
+          } catch (e) {
+            print("Warning: Failed to post order ID to backup service: $e");
+          }
         }
+
+        // Delegate to parent
+        widget.onPaymentSuccess?.call(
+          ApiConfig.baseUrl,
+        ); // Passing a dummy valid URL or the actual current URL if accessible
       } else {
         // Order payment status (existing logic)
         final debugpayment = await _orderService.fetchPaymentStatus(
           widget.orderId,
         );
-        await _orderService.postOrderId(debugpayment.orderNumber);
-        final paymentStatus = await _orderService.fetchPaymentStatus(
-          widget.orderId,
-        );
-
-        if (paymentStatus.transactionStatus == 'SUCCESS') {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-              builder:
-                  (context) => OrderAcceptedScreen(
-                    paymentStatus: paymentStatus,
-                    isSubscription: false,
-                  ),
-            ),
-          );
-        } else {
-          _showDialog("Payment Failed!", false);
+        try {
+          await _orderService.postOrderId(debugpayment.orderNumber);
+        } catch (e) {
+          print("Warning: Failed to post order ID: $e");
         }
+
+        // Delegate to parent
+        widget.onPaymentSuccess?.call(ApiConfig.baseUrl);
       }
     } catch (e) {
       print("Error verifying payment: $e");
-      _showDialog("Error verifying payment. Please try again.", false);
+      // Even on error, we might want to let the parent know or just handle failure?
+      // If we fail here, it's safer to not call success.
+      // User can manually exit or retry.
+      _showDialog(
+        "Error verifying payment info. Please check your dashboard.",
+        false,
+      );
     }
   }
 
@@ -425,4 +389,3 @@ class _SuccessDialog extends StatelessWidget {
     );
   }
 }
-

@@ -32,11 +32,11 @@ List<NavigatorItem> navigatorItems = [
     HomeScreen(),
   ),
   NavigatorItem(
-    "Favorites",
-    Icons.favorite_border,
-    Icons.favorite_rounded,
+    "Categories",
+    Icons.grid_view_outlined,
+    Icons.grid_view_rounded,
     1,
-    FavouriteScreen(),
+    ExploreScreen(),
   ),
   NavigatorItem(
     "Cart",
@@ -47,11 +47,11 @@ List<NavigatorItem> navigatorItems = [
     isCenterFab: true,
   ),
   NavigatorItem(
-    "Categories",
-    Icons.grid_view_outlined,
-    Icons.grid_view_rounded,
+    "Wishlist",
+    Icons.favorite_border,
+    Icons.favorite_rounded,
     3,
-    ExploreScreen(),
+    FavouriteScreen(),
   ),
   NavigatorItem(
     "Profile",

@@ -66,6 +66,8 @@
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data android:scheme="https" android:host="app.anaadfoods.com" />
+                <data android:scheme="https" android:host="anaadfoods.com" />
+                <data android:scheme="https" android:host="www.anaadfoods.com" />
             </intent-filter>
 
             <!-- Flutter Deep Linking -->

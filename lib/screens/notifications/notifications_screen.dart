@@ -168,28 +168,49 @@ class _NotificationsScreenState extends State<NotificationsScreen>
     _savePromotionalNotifications();
   }
 
+  // Flag to prevent double navigation
+  bool _isNavigating = false;
+
   void _onNotificationTap(Map<String, dynamic> notification) {
+    if (_isNavigating) return;
+    _isNavigating = true;
+
+    // Reset flag after delay to allow future navigation
+    Future.delayed(const Duration(seconds: 1), () {
+      if (mounted) {
+        _isNavigating = false;
+      }
+    });
+
     String? action = MessageUtility.getAction(notification);
+    // Use the robust ID extraction from MessageUtility
     String? id = MessageUtility.getId(notification);
     String? type = notification['type'];
+
+    debugPrint('Tapped notification - Type: $type, ID: $id, Action: $action');
 
     // Handle different notification types
     switch (type) {
       case 'payment':
         _navigateToSubscription(
           id,
+          notification,
         ); // Redirect to subscription detail for payment reminders
         break;
       case 'subscription':
+      case 'subscription_detail': // Added to match NotificationService
         _navigateToSubscription(
           id,
+          notification,
         ); // Redirect to subscription detail for subscription updates
         break;
       case 'order':
-        _navigateToOrder(id); // Redirect to order screen
+      case 'order_tracking': // Added to match NotificationService
+        _navigateToOrder(id, notification); // Redirect to order screen
         break;
       case 'product':
-        _navigateToHome(); // Redirect to home screen
+      case 'product_detail': // Added to match NotificationService
+        _navigateToProduct(id, notification);
         break;
       case 'promotional':
         _addPromotionalNotification(notification);
@@ -201,27 +222,34 @@ class _NotificationsScreenState extends State<NotificationsScreen>
         break;
       default:
         // Fallback to action-based navigation
-        switch (action) {
-          case MessageUtility.actionViewOrder:
-            _navigateToOrder(id);
-            break;
-          case MessageUtility.actionViewProduct:
-            _navigateToProduct(id);
-            break;
-          case MessageUtility.actionViewSubscription:
-            _navigateToSubscription(id);
-            break;
-          case MessageUtility.actionOpenCart:
-            _navigateToCart();
-            break;
-          case MessageUtility.actionOpenProfile:
-            _navigateToProfile();
-            break;
-          case MessageUtility.actionOpenPromo:
-            _navigateToPromo(id);
-            break;
-          default:
-            debugPrint('Unknown notification type: $type and action: $action');
+        if (action != null) {
+          switch (action) {
+            case MessageUtility.actionViewOrder:
+              _navigateToOrder(id, notification);
+              break;
+            case MessageUtility.actionViewProduct:
+              _navigateToProduct(id, notification);
+              break;
+            case MessageUtility.actionViewSubscription:
+              _navigateToSubscription(id, notification);
+              break;
+            case MessageUtility.actionOpenCart:
+              _navigateToCart(notification);
+              break;
+            case MessageUtility.actionOpenProfile:
+              _navigateToProfile(notification);
+              break;
+            case MessageUtility.actionOpenPromo:
+              _navigateToPromo(id, notification);
+              break;
+            default:
+              debugPrint(
+                'Unknown notification type: $type and action: $action',
+              );
+          }
+        } else {
+          // Fallback if no action, try to route by type again or just debug
+          debugPrint('No action found for type: $type');
         }
     }
   }
@@ -331,16 +359,19 @@ class _NotificationsScreenState extends State<NotificationsScreen>
     // Handle based on type first, then action
     switch (type) {
       case 'payment':
-        _navigateToSubscription(id);
+        _navigateToSubscription(id, notification);
         break;
       case 'subscription':
-        _navigateToSubscription(id);
+        _navigateToSubscription(id, notification);
         break;
       case 'order':
-        _navigateToOrder(id);
+        _navigateToOrder(id, notification);
         break;
       case 'product':
-        _navigateToHome();
+        _navigateToProduct(
+          id,
+          notification,
+        ); // Changed from _navigateToHome to _navigateToProduct
         break;
       case 'promotional':
         // Stay on notifications screen for promotional
@@ -352,13 +383,13 @@ class _NotificationsScreenState extends State<NotificationsScreen>
         // Fallback to action-based navigation
         switch (action) {
           case 'view_product':
-            _navigateToProduct(id);
+            _navigateToProduct(id, notification);
             break;
           case 'view_subscription':
-            _navigateToSubscription(id);
+            _navigateToSubscription(id, notification);
             break;
           case 'open_cart':
-            _navigateToCart();
+            _navigateToCart(notification);
             break;
           default:
             debugPrint('Unknown promotional action: $action');
@@ -404,46 +435,61 @@ class _NotificationsScreenState extends State<NotificationsScreen>
     );
   }
 
-  void _navigateToOrder(String? orderId) {
+  void _navigateToOrder(String? orderId, Map<String, dynamic> notification) {
+    _deleteNotification(notification);
     if (orderId != null) {
       NavigationService.navigateToOrderDetails(orderId);
     }
-    Navigator.pop(context);
+    // Navigator.pop(context); // Removed to prevent navigation conflicts
   }
 
-  void _navigateToProduct(String? productId) {
+  void _navigateToProduct(
+    String? productId,
+    Map<String, dynamic> notification,
+  ) {
+    _deleteNotification(notification);
     if (productId != null) {
       NavigationService.navigateToProductDetails(productId);
     }
-    Navigator.pop(context);
+    // Navigator.pop(context);
   }
 
-  void _navigateToSubscription(String? subscriptionId) {
+  void _navigateToSubscription(
+    String? subscriptionId,
+    Map<String, dynamic> notification,
+  ) {
+    _deleteNotification(notification);
     if (subscriptionId != null) {
       NavigationService.navigateToSubscriptionDetails(subscriptionId);
     }
-    Navigator.pop(context);
+    // Navigator.pop(context);
   }
 
-  void _navigateToCart() {
+  void _navigateToCart(Map<String, dynamic> notification) {
+    _deleteNotification(notification);
     NavigationService.navigateToCart();
-    Navigator.pop(context);
+    // Navigator.pop(context);
   }
 
-  void _navigateToProfile() {
+  void _navigateToProfile(Map<String, dynamic> notification) {
+    _deleteNotification(notification);
     NavigationService.navigateToAccount();
-    Navigator.pop(context);
+    // Navigator.pop(context);
   }
 
-  void _navigateToPromo(String? promoId) {
+  void _navigateToPromo(String? promoId, Map<String, dynamic> notification) {
     // For promotional notifications, stay on notifications screen
     debugPrint('Navigate to promo: $promoId');
-    Navigator.pop(context);
+    // Navigator.pop(context);
   }
 
-  void _navigateToHome() {
-    NavigationService.navigateToHome();
-    Navigator.pop(context);
+  void _deleteNotification(Map<String, dynamic> notification) {
+    setState(() {
+      _notifications.remove(notification);
+      // Also check promotional
+      _promotionalNotifications.remove(notification);
+    });
+    _saveNotifications();
   }
 
   @override
@@ -1136,4 +1182,3 @@ class _NotificationsScreenState extends State<NotificationsScreen>
     );
   }
 }
-

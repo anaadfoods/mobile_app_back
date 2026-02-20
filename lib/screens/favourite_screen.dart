@@ -1,4 +1,3 @@
-import 'dart:math' as math;
 import 'package:collection/collection.dart';
 import 'package:grocery_app/models/product_image_model.dart';
 import 'package:grocery_app/common_widgets/global_import.dart';
@@ -283,7 +282,12 @@ class _FavouriteScreenState extends State<FavouriteScreen>
 
               // Content
               if (_isLoading)
-                SliverFillRemaining(child: _buildLoadingState(theme, isDark))
+                SliverFillRemaining(
+                  child: const LoadingStateWidget(
+                    itemHeight: 112,
+                    borderRadius: 20,
+                  ),
+                )
               else if (_error != null)
                 SliverFillRemaining(child: _buildErrorState(theme))
               else if (_favorites.isEmpty)
@@ -386,7 +390,16 @@ class _FavouriteScreenState extends State<FavouriteScreen>
           child: Stack(
             children: [
               // Floating Particles
-              ...List.generate(10, (index) => _buildFloatingParticle(index)),
+              ...List.generate(
+                10,
+                (index) => FloatingParticle(
+                  index: index,
+                  controller: _particleController,
+                  areaHeight: 200,
+                  swayX: 25,
+                  swayY: 15,
+                ),
+              ),
 
               // Decorative circles
               Positioned(
@@ -485,52 +498,8 @@ class _FavouriteScreenState extends State<FavouriteScreen>
     );
   }
 
-  Widget _buildFloatingParticle(int index) {
-    final random = math.Random(index);
-    final size = 4.0 + random.nextDouble() * 8;
-    final startX = random.nextDouble() * 400;
-    final startY = random.nextDouble() * 200;
-    final duration = 10 + random.nextInt(10);
-
-    return AnimatedBuilder(
-      animation: _particleController,
-      builder: (context, child) {
-        final progress = (_particleController.value * duration) % 1.0;
-        final x = startX + math.sin(progress * math.pi * 2 + index) * 25;
-        final y = startY + math.cos(progress * math.pi * 2 + index) * 15;
-        final opacity = 0.1 + (math.sin(progress * math.pi * 2) * 0.15);
-
-        return Positioned(
-          left: x,
-          top: y,
-          child: Container(
-            width: size,
-            height: size,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: Colors.white.withValues(alpha: opacity.clamp(0.05, 0.3)),
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  // Unused method - commented out to suppress warning
-  // Widget _buildIconButton(IconData icon, VoidCallback onTap) {
-  //   return Material(
-  //     color: Colors.white.withOpacity(0.2),
-  //     borderRadius: BorderRadius.circular(12),
-  //     child: InkWell(
-  //       onTap: onTap,
-  //       borderRadius: BorderRadius.circular(12),
-  //       child: Padding(
-  //         padding: const EdgeInsets.all(10),
-  //         child: Icon(icon, color: Colors.white, size: 22),
-  //       ),
-  //     ),
-  //   );
-  // }
+  // _buildFloatingParticle replaced by FloatingParticle widget
+  // _buildIconButton replaced by GlassmorphicIconButton widget
 
   Widget _buildStatsRow(ThemeData theme, bool isDark, CartModel? cart) {
     final inCart =
@@ -953,29 +922,7 @@ class _FavouriteScreenState extends State<FavouriteScreen>
     );
   }
 
-  Widget _buildLoadingState(ThemeData theme, bool isDark) {
-    return Padding(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        children: List.generate(
-          4,
-          (index) => Padding(
-            padding: const EdgeInsets.only(bottom: 16),
-            child: ShimmerLoading(
-              isLoading: true,
-              child: Container(
-                height: 112,
-                decoration: BoxDecoration(
-                  color: theme.cardColor,
-                  borderRadius: BorderRadius.circular(20),
-                ),
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
+  // _buildLoadingState replaced by LoadingStateWidget
 
   Widget _buildErrorState(ThemeData theme) {
     final isLoginError = _error?.toLowerCase().contains('login') ?? false;
@@ -1069,7 +1016,7 @@ class _FavouriteScreenState extends State<FavouriteScreen>
                     // Switch to Categories tab (index 3)
                     final dashboardState =
                         context.findAncestorStateOfType<DashboardScreenState>();
-                    dashboardState?.switchToTab(3);
+                    dashboardState?.switchToTab(1);
                   },
                   icon: const Icon(Icons.explore_rounded),
                   label: const Text('Explore Products'),

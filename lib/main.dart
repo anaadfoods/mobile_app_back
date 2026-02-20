@@ -5,13 +5,13 @@ import 'app.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 import 'package:device_preview/device_preview.dart';
-import 'package:grocery_app/services/deep_link_service.dart';
+// import 'package:grocery_app/services/deep_link_service.dart'; // Deprecated - Handled by GoRouter
 
 Future<void> main() async {
   await dotenv.load(fileName: ".env");
 
   WidgetsFlutterBinding.ensureInitialized();
-  await dotenv.load(fileName: ".env");
+  // await dotenv.load(fileName: ".env"); // Already loaded above
   debugPrint('Loaded PANCHANG_BASE_URL=${dotenv.env["PANCHANG_BASE_URL"]}');
   // Get an instance of SharedPreferences
   final SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -29,8 +29,8 @@ Future<void> main() async {
   final notificationService = NotificationService();
   await notificationService.getFreshFCMToken();
 
-  // Initialize deep link handling
-  await DeepLinkService().initialize();
+  // Initialize deep link handling - MOVED TO GO_ROUTER
+  // await DeepLinkService().initialize();
 
   SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
   SystemChrome.setSystemUIOverlayStyle(

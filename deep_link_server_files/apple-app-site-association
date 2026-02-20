@@ -1,19 +1,13 @@
 {
-  "applinks": {
-    "apps": [],
-    "details": [{
-      "appIDs": ["YOUR_TEAM_ID.com.example.anaadfoodsui"],
-      "components": [
-        { "/": "/products/*", "comment": "Product detail pages" },
-        { "/": "/orders/*", "comment": "Order detail pages" },
-        { "/": "/subscriptions/*", "comment": "Subscription detail pages" },
-        { "/": "/cart", "comment": "Cart screen" },
-        { "/": "/profile", "comment": "Profile screen" },
-        { "/": "/account", "comment": "Account screen" },
-        { "/": "/notifications", "comment": "Notifications screen" },
-        { "/": "/home", "comment": "Home screen" },
-        { "/": "/", "comment": "Root - Home screen" }
-      ]
-    }]
-  }
+    "applinks": {
+        "apps": [],
+        "details": [
+            {
+                "appID": "8MSLRSD283.com.example.anaadfoodsui",
+                "paths": [
+                    "*"
+                ]
+            }
+        ]
+    }
 }

@@ -26,18 +26,19 @@ import 'package:grocery_app/repositories/chat_repository.dart';
 import 'package:grocery_app/repositories/notification_repository.dart';
 
 // Screens
-import 'package:grocery_app/screens/dashboard/dashboard_screen.dart';
-import 'package:grocery_app/screens/auth/login_screen.dart';
-import 'package:grocery_app/screens/welcome_screen.dart';
-import 'package:grocery_app/screens/order_accepted_screen.dart';
+// import 'package:grocery_app/screens/dashboard/dashboard_screen.dart'; // Handled by Router
+// import 'package:grocery_app/screens/auth/login_screen.dart'; // Handled by Router
+// import 'package:grocery_app/screens/welcome_screen.dart'; // Handled by Router
+// import 'package:grocery_app/screens/order_accepted_screen.dart'; // Unused
 
 // Services
 import 'package:grocery_app/services/notification_service.dart';
-import 'package:grocery_app/services/navigation_service.dart';
+// import 'package:grocery_app/services/navigation_service.dart'; // Unused
 import 'package:grocery_app/helpers/double_click_back.dart';
 import 'package:grocery_app/styles/theme.dart';
 
 import 'package:grocery_app/common_widgets/connectivity_wrapper.dart';
+import 'package:grocery_app/routes/app_router.dart';
 
 class MyApp extends StatelessWidget {
   final bool hasSeenWelcome;
@@ -108,17 +109,18 @@ class MyApp extends StatelessWidget {
         ],
         child: BlocBuilder<ThemeCubit, ThemeMode>(
           builder: (context, themeMode) {
-            return MaterialApp(
+            return MaterialApp.router(
               scrollBehavior: const ScrollBehavior().copyWith(
                 physics: const ClampingScrollPhysics(),
               ),
-              navigatorKey: NavigationService().navigatorKey,
+              // navigatorKey is now in AppRouter
               debugShowCheckedModeBanner: false,
               useInheritedMediaQuery: true,
               locale: DevicePreview.locale(context),
               theme: AppTheme.lightTheme,
               darkTheme: AppTheme.darkTheme,
               themeMode: themeMode,
+              routerConfig: AppRouter().router,
               builder: (context, child) {
                 // Prevent app from using system font size settings
                 final widget = MediaQuery(
@@ -129,23 +131,11 @@ class MyApp extends StatelessWidget {
                     child: DoubleBackToExitApp(child: child!),
                   ),
                 );
-                return DevicePreview.appBuilder(context, widget);
-              },
-              home: AppInitializer(hasSeenWelcome: hasSeenWelcome),
-              onGenerateRoute: (settings) {
-                if (settings.name?.startsWith('flutterpay://') == true) {
-                  final uri = Uri.parse(settings.name!);
-                  if (uri.path.contains('payment/success')) {
-                    return MaterialPageRoute(
-                      builder:
-                          (context) => OrderAcceptedScreen(
-                            paymentStatus: null,
-                            isSubscription: false,
-                          ),
-                    );
-                  }
-                }
-                return null;
+
+                // Wrap with AppGlobalListeners to handle init and bloc listeners
+                final wrappedWidget = AppGlobalListeners(child: widget);
+
+                return DevicePreview.appBuilder(context, wrappedWidget);
               },
             );
           },
@@ -155,15 +145,15 @@ class MyApp extends StatelessWidget {
   }
 }
 
-class AppInitializer extends StatefulWidget {
-  final bool hasSeenWelcome;
-  const AppInitializer({super.key, required this.hasSeenWelcome});
+class AppGlobalListeners extends StatefulWidget {
+  final Widget child;
+  const AppGlobalListeners({super.key, required this.child});
 
   @override
-  State<AppInitializer> createState() => _AppInitializerState();
+  State<AppGlobalListeners> createState() => _AppGlobalListenersState();
 }
 
-class _AppInitializerState extends State<AppInitializer> {
+class _AppGlobalListenersState extends State<AppGlobalListeners> {
   @override
   void initState() {
     super.initState();
@@ -177,16 +167,6 @@ class _AppInitializerState extends State<AppInitializer> {
       }
     });
   }
-
-  @override
-  Widget build(BuildContext context) {
-    return AuthWrapper(hasSeenWelcome: widget.hasSeenWelcome);
-  }
-}
-
-class AuthWrapper extends StatelessWidget {
-  final bool hasSeenWelcome;
-  const AuthWrapper({super.key, required this.hasSeenWelcome});
 
   @override
   Widget build(BuildContext context) {
@@ -210,28 +190,13 @@ class AuthWrapper extends StatelessWidget {
         BlocListener<NotificationCubit, NotificationState>(
           listener: (context, state) {
             if (state is NavigateToRoute) {
-              // Navigation logic
+              // NotificationCubit's navigation logic might need review if it uses Navigator directly
+              // If it uses NavigationService, it should key into GoRouter's navigator
             }
           },
         ),
       ],
-      child: BlocBuilder<AuthCubit, AuthState>(
-        builder: (context, state) {
-          if (state is Authenticated) {
-            return DashboardScreen(key: DashboardScreen.dashboardKey);
-          } else if (state is Unauthenticated || state is AuthError) {
-            if (hasSeenWelcome == false) {
-              return const WelcomeScreen();
-            } else {
-              return const LoginScreen();
-            }
-          } else {
-            return const Scaffold(
-              body: Center(child: CircularProgressIndicator()),
-            );
-          }
-        },
-      ),
+      child: widget.child,
     );
   }
 }

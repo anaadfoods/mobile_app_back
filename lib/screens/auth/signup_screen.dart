@@ -28,7 +28,7 @@ class _SignupScreenState extends State<SignupScreen>
   // final bool _showPassword = false; // Unused - commented out
   // final bool _showConfirmPassword = false; // Unused - commented out
   bool _isEmailVerified = false;
-  // bool _isPhoneVerified = false; // Unused - commented out
+  bool _isPhoneVerified = false;
   String? _selectedGender;
 
   // Legal documents
@@ -180,6 +180,13 @@ class _SignupScreenState extends State<SignupScreen>
       );
       return;
     }
+    if (!_isPhoneVerified) {
+      SnackBarHelper.showError(
+        context,
+        "Please verify your phone number before signing up.",
+      );
+      return;
+    }
     if (!_termsAccepted || !_privacyAccepted) {
       SnackBarHelper.showError(
         context,
@@ -311,6 +318,55 @@ class _SignupScreenState extends State<SignupScreen>
                           forceErrorState: dialogError != null,
                           onChanged:
                               (_) => setDialogState(() => dialogError = null),
+                          defaultPinTheme: PinTheme(
+                            width: 45,
+                            height: 50,
+                            textStyle: const TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withValues(alpha: 0.15),
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: Colors.white.withValues(alpha: 0.3),
+                              ),
+                            ),
+                          ),
+                          focusedPinTheme: PinTheme(
+                            width: 45,
+                            height: 50,
+                            textStyle: const TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withValues(alpha: 0.2),
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: AppColors.buttonBackgroundColor,
+                                width: 2,
+                              ),
+                            ),
+                          ),
+                          submittedPinTheme: PinTheme(
+                            width: 45,
+                            height: 50,
+                            textStyle: const TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withValues(alpha: 0.25),
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: Colors.white.withValues(alpha: 0.5),
+                              ),
+                            ),
+                          ),
                         ),
                         if (dialogError != null) ...[
                           const SizedBox(height: 8),
@@ -470,38 +526,13 @@ class _SignupScreenState extends State<SignupScreen>
       body: BlocConsumer<AuthCubit, AuthState>(
         listener: (context, state) {
           if (state is Authenticated) {
-            Navigator.of(context).pushAndRemoveUntil(
-              PageRouteBuilder(
-                pageBuilder:
-                    (context, animation, secondaryAnimation) =>
-                        const DashboardScreen(),
-                transitionsBuilder: (
-                  context,
-                  animation,
-                  secondaryAnimation,
-                  child,
-                ) {
-                  return FadeTransition(
-                    opacity: CurvedAnimation(
-                      parent: animation,
-                      curve: Curves.easeOut,
-                    ),
-                    child: child,
-                  );
-                },
-                transitionDuration: const Duration(milliseconds: 500),
-              ),
-              (route) => false,
-            );
+            context.go('/');
           } else if (state is AuthRegistrationSuccess) {
             SnackBarHelper.showSuccess(
               context,
               "Registration successful! Please log in.",
             );
-            Navigator.of(context).pushAndRemoveUntil(
-              _buildPageRoute(const LoginScreen()),
-              (route) => false,
-            );
+            context.go('/login');
           } else if (state is AuthError) {
             SnackBarHelper.showError(context, state.message);
           }
@@ -840,40 +871,44 @@ class _SignupScreenState extends State<SignupScreen>
                                               'phone',
                                               isValid,
                                             ),
-                                        // suffixIcon: _buildVerifyButton(
-                                        //   label:
-                                        //       _isPhoneVerified ? "Verified" : "Verify",
-                                        //   isVerified: _isPhoneVerified,
-                                        //   onPressed: () async {
-                                        //     try {
-                                        //       await context
-                                        //           .read<AuthRepository>()
-                                        //           .sendOtp(
-                                        //             _phoneController.text,
-                                        //             'MOBILE',
-                                        //           );
-                                        //       if (!mounted) return;
-                                        //       SnackBarHelper.showSuccess(
-                                        //         context,
-                                        //         'OTP sent to your phone.',
-                                        //       );
-                                        //       await _showOtpDialog(
-                                        //         type: 'phone',
-                                        //         value: _phoneController.text,
-                                        //         onVerified:
-                                        //             () => setState(
-                                        //               () => _isPhoneVerified = true,
-                                        //             ),
-                                        //       );
-                                        //     } on AuthException catch (e) {
-                                        //       if (!mounted) return;
-                                        //       SnackBarHelper.showError(
-                                        //         context,
-                                        //         e.message,
-                                        //       );
-                                        //     }
-                                        //   },
-                                        // ),
+                                        suffixIcon: _buildVerifyButton(
+                                          label:
+                                              _isPhoneVerified
+                                                  ? "Verified"
+                                                  : "Verify",
+                                          isVerified: _isPhoneVerified,
+                                          onPressed: () async {
+                                            try {
+                                              await context
+                                                  .read<AuthRepository>()
+                                                  .sendOtp(
+                                                    _phoneController.text,
+                                                    'MOBILE',
+                                                  );
+                                              if (!mounted) return;
+                                              SnackBarHelper.showSuccess(
+                                                context,
+                                                'OTP sent to your phone.',
+                                              );
+                                              await _showOtpDialog(
+                                                type: 'MOBILE',
+                                                value: _phoneController.text,
+                                                onVerified:
+                                                    () => setState(
+                                                      () =>
+                                                          _isPhoneVerified =
+                                                              true,
+                                                    ),
+                                              );
+                                            } on AuthException catch (e) {
+                                              if (!mounted) return;
+                                              SnackBarHelper.showError(
+                                                context,
+                                                e.message,
+                                              );
+                                            }
+                                          },
+                                        ),
                                       ),
                                     ),
                                     const SizedBox(height: 20),

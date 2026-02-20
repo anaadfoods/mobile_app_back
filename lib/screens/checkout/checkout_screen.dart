@@ -14,7 +14,8 @@ class CheckoutScreen extends StatefulWidget {
   final String? paymentType;
   final int? selectedPlan;
   final Map<String, String>? shippingDetails;
-  final double deliveryCharges;
+  final double codDeliveryCharge;
+  final double prepaidDeliveryCharge;
   final String expectedDeliveryDate;
 
   const CheckoutScreen({
@@ -26,7 +27,8 @@ class CheckoutScreen extends StatefulWidget {
     this.isSubscription = false,
     this.selectedPlan,
     this.shippingDetails,
-    required this.deliveryCharges,
+    required this.codDeliveryCharge,
+    required this.prepaidDeliveryCharge,
     required this.expectedDeliveryDate,
     this.paymentType,
   }) : assert(cart != null || (singleProduct != null && quantity != null));
@@ -66,6 +68,12 @@ class _CheckoutScreenState extends State<CheckoutScreen>
   late Animation<double> _bottomBarSlide;
 
   int get totalItems => widget.cart?.totalItems ?? widget.quantity!;
+  double get currentDeliveryCharge {
+    return _selectedPaymentMethod == 'COD'
+        ? widget.codDeliveryCharge
+        : widget.prepaidDeliveryCharge;
+  }
+
   String get totalPrice {
     double basePrice;
     if (widget.isSubscription) {
@@ -76,7 +84,7 @@ class _CheckoutScreenState extends State<CheckoutScreen>
               ? double.parse(widget.cart!.totalPrice)
               : (widget.singleProduct!.finalPrice * widget.quantity!);
     }
-    return (basePrice + widget.deliveryCharges).toString();
+    return (basePrice + currentDeliveryCharge).toString();
   }
 
   @override
@@ -404,14 +412,15 @@ class _CheckoutScreenState extends State<CheckoutScreen>
   Future<Map<String, dynamic>> _createSubscription() async {
     final request = SubscriptionCreateRequest(
       plan: widget.selectedPlan,
-      deliveryAddress: _shippingDetails!.address ?? "",
+      deliveryAddress: _shippingDetails!.address,
+      deliveryName: _shippingDetails!.name,
       deliveryCity: _shippingDetails!.city ?? "",
       deliveryState: _shippingDetails!.state ?? "",
       deliveryPincode: _shippingDetails!.pincode ?? "",
       deliveryPhone: _shippingDetails!.phone ?? "",
       paymentType: _selectedPaymentType,
       paymentMethod: _selectedPaymentMethod,
-      deliveryFee: widget.deliveryCharges,
+      deliveryFee: currentDeliveryCharge,
       expectedDeliveryDate: widget.expectedDeliveryDate,
       items: [
         SubscriptionCreateItem(
@@ -429,7 +438,7 @@ class _CheckoutScreenState extends State<CheckoutScreen>
       paymentMethod: _selectedPaymentMethod,
       shippingDetails: _shippingDetails!,
       expectedDeliveryDate: widget.expectedDeliveryDate,
-      deliveryFee: widget.deliveryCharges,
+      deliveryFee: currentDeliveryCharge,
       items: _getOrderItems(),
       notes: null,
     );
@@ -439,6 +448,8 @@ class _CheckoutScreenState extends State<CheckoutScreen>
     try {
       final paymentUrl = result['payment_links']['web'];
       final subscriptionId = result['subscription_id'];
+      final merchantTransactionId =
+          result['merchant_transaction_id'] as String?;
 
       if (subscriptionId == null) {
         throw Exception('Subscription ID is null');
@@ -462,36 +473,51 @@ class _CheckoutScreenState extends State<CheckoutScreen>
             title: 'UPI Payment',
             subID: parsedSubscriptionId,
             isSubscription: widget.isSubscription,
+            merchantTransactionId: merchantTransactionId,
             onPaymentSuccess: (url) async {
               try {
-                final subscriptionDetails = await _subscriptionService
-                    .getSubscriptionDetails(parsedSubscriptionId);
+                // Verify payment status first (robust check transferred from WebViewPage)
+                final subscriptionStatus = await _subscriptionService
+                    .fetchSubscriptionPaymentStatus(parsedSubscriptionId);
 
-                if (subscriptionDetails['success'] == true && mounted) {
-                  NotificationHelper.showNotification(
-                    title: 'Payment Successful!',
-                    body:
-                        'Subscription ID: $parsedSubscriptionId\n'
-                        'Payment Mode: UPI\n'
-                        'Status: Paid',
-                    payload: json.encode({
-                      'screen': 'subscription_detail',
-                      'subscription_id': parsedSubscriptionId,
-                      'type': 'subscription',
-                    }),
-                  );
+                if (subscriptionStatus != null &&
+                    (subscriptionStatus.transactionStatus == 'SUCCESS' ||
+                        subscriptionStatus.transactionStatus == 'ACTIVE')) {
+                  final subscriptionDetails = await _subscriptionService
+                      .getSubscriptionDetails(parsedSubscriptionId);
 
-                  Navigator.pushAndRemoveUntil(
-                    context,
-                    AnimatedTransitions.fadeScale(
-                      SubscriptionPlanDetailScreen(
-                        subscription: subscriptionDetails['data'],
+                  if (subscriptionDetails['success'] == true && mounted) {
+                    NotificationHelper.showNotification(
+                      title: 'Payment Successful!',
+                      body:
+                          'Subscription ID: $parsedSubscriptionId\n'
+                          'Payment Mode: UPI\n'
+                          'Status: Paid',
+                      payload: json.encode({
+                        'screen': 'subscription_detail',
+                        'subscription_id': parsedSubscriptionId,
+                        'type': 'subscription',
+                      }),
+                    );
+
+                    Navigator.pushAndRemoveUntil(
+                      context,
+                      AnimatedTransitions.fadeScale(
+                        SubscriptionPlanDetailScreen(
+                          subscription: subscriptionDetails['data'],
+                        ),
                       ),
-                    ),
-                    (route) => route.isFirst,
-                  );
+                      (route) => route.isFirst,
+                    );
+                  } else {
+                    Navigator.pop(context);
+                    _showSubscriptionSuccessMessage(result);
+                  }
                 } else {
                   Navigator.pop(context);
+                  // If verification failed but we got a success URL, we might want to tell the user to check later
+                  // or just show the generic success message if we think it might be a lag.
+                  // But for now, let's treat it as a potential issue or just fall back to generic message.
                   _showSubscriptionSuccessMessage(result);
                 }
               } catch (e) {
@@ -1136,7 +1162,7 @@ class _CheckoutScreenState extends State<CheckoutScreen>
               ],
             ),
           ),
-          if (widget.deliveryCharges == 0)
+          if (currentDeliveryCharge == 0)
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
               decoration: BoxDecoration(
@@ -1229,6 +1255,16 @@ class _CheckoutScreenState extends State<CheckoutScreen>
             ],
           ),
           const SizedBox(height: 16),
+          // Name and Address
+          if (_shippingDetails?.name.isNotEmpty ?? false) ...[
+            Text(
+              _shippingDetails!.name,
+              style: theme.textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 4),
+          ],
           Text(_shippingDetails!.address, style: theme.textTheme.bodyLarge),
           const SizedBox(height: 8),
           Text(
@@ -1450,8 +1486,8 @@ class _CheckoutScreenState extends State<CheckoutScreen>
             _buildPriceRow(
               theme,
               'Delivery (per month)',
-              widget.deliveryCharges > 0
-                  ? '₹${widget.deliveryCharges.toStringAsFixed(2)}'
+              currentDeliveryCharge > 0
+                  ? '₹${currentDeliveryCharge.toStringAsFixed(2)}'
                   : 'FREE',
               isDelivery: true,
             ),
@@ -1467,14 +1503,14 @@ class _CheckoutScreenState extends State<CheckoutScreen>
             _buildPriceRow(
               theme,
               'Subtotal',
-              '₹${(double.parse(totalPrice) - widget.deliveryCharges).toStringAsFixed(2)}',
+              '₹${(double.parse(totalPrice) - currentDeliveryCharge).toStringAsFixed(2)}',
             ),
             const SizedBox(height: 8),
             _buildPriceRow(
               theme,
               'Delivery Charges',
-              widget.deliveryCharges > 0
-                  ? '₹${widget.deliveryCharges.toStringAsFixed(2)}'
+              currentDeliveryCharge > 0
+                  ? '₹${currentDeliveryCharge.toStringAsFixed(2)}'
                   : 'FREE',
               isDelivery: true,
             ),

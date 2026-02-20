@@ -1,4 +1,6 @@
+import 'package:flutter/services.dart';
 import 'package:grocery_app/common_widgets/global_import.dart';
+import 'package:grocery_app/screens/dashboard/dashboard_screen.dart';
 
 class CategoryItemsScreen extends StatefulWidget {
   final String name;
@@ -67,17 +69,17 @@ class _CategoryItemsScreenState extends State<CategoryItemsScreen> {
                 padding: const EdgeInsets.all(AppColors.spacingL),
                 itemCount: filteredProducts.length,
                 itemBuilder: (context, index) {
+                  final product = filteredProducts[index];
                   return Padding(
                     padding: const EdgeInsets.only(bottom: AppColors.spacingM),
                     child: Opacity(
-                      opacity: filteredProducts[index].isInStock ? 1.0 : 0.5,
+                      opacity: product.isInStock ? 1.0 : 0.5,
                       child: GroceryItemCardWidget(
-                        item: filteredProducts[index],
+                        item: product,
                         heroSuffix: "home_screen",
                         onTap:
-                            filteredProducts[index].isInStock
-                                ? () =>
-                                    _onProductClicked(filteredProducts[index])
+                            product.isInStock
+                                ? () => _onProductClicked(product)
                                 : null,
                       ),
                     ),
@@ -111,6 +113,39 @@ class _CategoryItemsScreenState extends State<CategoryItemsScreen> {
                   ),
                 ),
               ),
+      floatingActionButton: BlocBuilder<CartCubit, CartState>(
+        builder: (context, cartState) {
+          final itemCount = cartState.cart?.items.length ?? 0;
+          return FloatingActionButton(
+            onPressed: () {
+              HapticFeedback.lightImpact();
+              // Pop back to dashboard first
+              Navigator.of(context).popUntil((route) => route.isFirst);
+
+              final dashboardState = DashboardScreen.dashboardKey.currentState;
+              if (dashboardState != null) {
+                dashboardState.switchToTab(2);
+              }
+            },
+            backgroundColor: theme.colorScheme.primary,
+            child: Badge(
+              isLabelVisible: itemCount > 0,
+              label: Text(
+                itemCount.toString(),
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 10,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              child: const Icon(
+                Icons.shopping_cart_rounded,
+                color: Colors.white,
+              ),
+            ),
+          );
+        },
+      ),
     );
   }
 
@@ -121,4 +156,3 @@ class _CategoryItemsScreenState extends State<CategoryItemsScreen> {
     );
   }
 }
-

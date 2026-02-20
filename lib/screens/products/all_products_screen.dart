@@ -1,5 +1,6 @@
 import 'package:flutter/services.dart';
 import 'package:grocery_app/common_widgets/global_import.dart';
+import 'package:grocery_app/utils/subscription_navigation_helper.dart';
 
 class AllProductsScreen extends StatefulWidget {
   const AllProductsScreen({super.key, this.products});
@@ -687,8 +688,13 @@ class _AddToCartButton extends StatelessWidget {
 
         return GestureDetector(
           onTap: () {
-            HapticFeedback.lightImpact();
-            cartCubit.addItem(product, 1);
+            // Redirect to product details with auto-open subscription
+            SubscriptionNavigationHelper.navigateToProductDetails(
+              context,
+              product,
+            );
+            // Commented out existing logic:
+            // cartCubit.addItem(product, 1);
           },
           child: Container(
             padding: const EdgeInsets.all(8),

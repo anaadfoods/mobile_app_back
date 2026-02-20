@@ -275,14 +275,17 @@ class OrderService {
     };
 
     try {
-      final response = await http.post(
-        Uri.parse(_endpoint),
-        headers: headers,
-        body: body,
-      );
-      print(response);
+      final response = await http
+          .post(Uri.parse(_endpoint), headers: headers, body: body)
+          .timeout(const Duration(seconds: 30));
+      print("postOrderId response: ${response.statusCode}");
       return response;
     } catch (e) {
+      print('Failed to post order_id: $e');
+      // Return a dummy error response or rethrow depending on how we want to handle it.
+      // For now, let's rethrow so the UI knows something went wrong,
+      // OR return a custom error response if we want to suppress the crash but signal failure.
+      // Given the current usage, meaningful logging is key.
       throw Exception('Failed to post order_id: $e');
     }
   }

@@ -1,6 +1,6 @@
 import 'package:grocery_app/common_widgets/global_import.dart';
 
-import 'package:grocery_app/widgets/pause_date_picker_sheet.dart';
+import 'package:grocery_app/common_widgets/pause_date_picker_sheet.dart';
 
 class SubscriptionPlanDetailScreen extends StatefulWidget {
   final Subscription? subscription;
@@ -336,6 +336,8 @@ class _SubscriptionPlanDetailScreenState
                             _buildModernSummaryCard(theme, isDark),
                             const SizedBox(height: 20),
                             _buildDeliveryProgressCard(theme, isDark),
+                            const SizedBox(height: 20),
+                            _buildDeliveryAddressCard(theme, isDark),
                             const SizedBox(height: 20),
                             _buildModernPauseSection(theme, isDark),
                             const SizedBox(height: 20),
@@ -1511,5 +1513,102 @@ class _SubscriptionPlanDetailScreenState
   Color _outlineColor(ThemeData theme) {
     final cs = theme.colorScheme;
     return cs.outlineVariant;
+  }
+
+  Widget _buildDeliveryAddressCard(ThemeData theme, bool isDark) {
+    final subscription = _currentOrder!;
+
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(isDark ? 0.3 : 0.08),
+            blurRadius: 20,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: AppColors.primaryColor.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: Icon(
+                  Icons.location_on_rounded,
+                  color: AppColors.primaryColor,
+                  size: 24,
+                ),
+              ),
+              const SizedBox(width: 14),
+              Text(
+                'Delivery Address',
+                style: theme.textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Text(
+            _getRecipientName(),
+            style: theme.textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            subscription.deliveryAddress,
+            style: theme.textTheme.bodyMedium?.copyWith(height: 1.5),
+          ),
+          Text(
+            '${subscription.deliveryCity}, ${subscription.deliveryState} - ${subscription.deliveryPincode}',
+            style: theme.textTheme.bodyMedium?.copyWith(
+              height: 1.5,
+              color: theme.hintColor,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              Icon(Icons.phone_rounded, size: 16, color: theme.hintColor),
+              const SizedBox(width: 8),
+              Text(
+                subscription.deliveryPhone,
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: theme.hintColor,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _getRecipientName() {
+    if (_currentOrder != null && _currentOrder!.recipientName.isNotEmpty) {
+      return _currentOrder!.recipientName;
+    }
+
+    final user = AuthService().currentUser;
+    if (user != null) {
+      final firstName = user.firstName;
+      final lastName = user.lastName;
+      if (firstName.isNotEmpty || lastName.isNotEmpty) {
+        return '$firstName $lastName'.trim();
+      }
+    }
+
+    return 'Valued Customer';
   }
 }

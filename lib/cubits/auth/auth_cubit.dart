@@ -143,4 +143,71 @@ class AuthCubit extends Cubit<AuthState> {
       return false;
     }
   }
+
+  Future<Map<String, dynamic>> deactivateAccount(String password) async {
+    // Capture user reference before emitting AuthLoading
+    UserModel? currentUser;
+    if (state is Authenticated) {
+      currentUser = (state as Authenticated).user;
+    }
+
+    emit(AuthLoading());
+    try {
+      await _authRepository.deactivateAccount(password);
+      emit(
+        const AuthDeactivationOtpSent(
+          'OTP has been sent to your email and phone.',
+        ),
+      );
+      return {'success': true, 'message': 'OTP sent successfully.'};
+    } on AuthException catch (e) {
+      if (currentUser != null) {
+        emit(Authenticated(currentUser));
+      } else {
+        emit(Unauthenticated());
+      }
+      return {'success': false, 'message': e.message};
+    } catch (e) {
+      if (currentUser != null) {
+        emit(Authenticated(currentUser));
+      } else {
+        emit(Unauthenticated());
+      }
+      return {'success': false, 'message': 'An unexpected error occurred.'};
+    }
+  }
+
+  Future<Map<String, dynamic>> confirmDeactivation(String otp) async {
+    // Capture user reference before emitting AuthLoading
+    UserModel? currentUser;
+    if (state is Authenticated) {
+      currentUser = (state as Authenticated).user;
+    }
+
+    emit(AuthLoading());
+    try {
+      await _authRepository.confirmDeactivateAccount(otp);
+      emit(Unauthenticated());
+      return {
+        'success': true,
+        'message': 'Your account has been deactivated successfully.',
+      };
+    } on AuthException catch (e) {
+      if (currentUser != null) {
+        // Emit back to authenticated state but keep the OTP sent state context if needed?
+        // Actually, the UI usually handles the state transition.
+        emit(Authenticated(currentUser));
+      } else {
+        emit(Unauthenticated());
+      }
+      return {'success': false, 'message': e.message};
+    } catch (e) {
+      if (currentUser != null) {
+        emit(Authenticated(currentUser));
+      } else {
+        emit(Unauthenticated());
+      }
+      return {'success': false, 'message': 'An unexpected error occurred.'};
+    }
+  }
 }

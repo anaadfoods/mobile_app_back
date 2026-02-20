@@ -4,7 +4,16 @@ import "dart:ui";
 import "package:grocery_app/common_widgets/global_import.dart";
 import "package:grocery_app/screens/RFP/contract_farming_screen.dart";
 import "package:grocery_app/screens/featured_products_screen.dart";
-import "package:grocery_app/widgets/subscription_table.dart";
+import "package:grocery_app/common_widgets/subscription_table.dart";
+import "package:grocery_app/screens/home/home_community_card.dart";
+import "package:grocery_app/screens/home/home_featured_products.dart";
+import "package:grocery_app/screens/home/home_category_card.dart";
+import "package:grocery_app/screens/home/home_search_bar.dart";
+import "package:grocery_app/screens/home/home_search_dropdown.dart";
+import "package:grocery_app/screens/home/home_category_showcase.dart";
+import "package:grocery_app/screens/home/home_communities_section.dart";
+import "package:grocery_app/screens/home/all_products_list.dart";
+import 'package:grocery_app/screens/innovations/panchang/panchang_home_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -425,11 +434,57 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                               ),
                             ),
                             // Modern Animated Notification Bell
-                            _buildModernNotificationBell(context, theme),
+                            Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                _buildModernIconButton(
+                                  icon: Icons.dangerous,
+                                  onTap: () {
+                                    HapticFeedback.lightImpact();
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder:
+                                            (context) =>
+                                                const PanchangHomeScreen(),
+                                      ),
+                                    );
+                                  },
+                                  theme: theme,
+                                  hasBadge: false,
+                                ),
+                                const SizedBox(width: 8),
+                                _buildModernIconButton(
+                                  icon: Icons.notifications_rounded,
+                                  onTap: () {
+                                    HapticFeedback.lightImpact();
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder:
+                                            (context) =>
+                                                const NotificationsScreen(),
+                                      ),
+                                    );
+                                  },
+                                  theme: theme,
+                                  hasBadge: true,
+                                ),
+                              ],
+                            ),
                           ],
                         ),
                       ),
-                      _searchBar(context),
+                      HomeSearchBar(
+                        controller: _searchController,
+                        focusNode: _focusNode,
+                        onChanged: _performSearch,
+                        onClear: () {
+                          _searchController.clear();
+                          setState(() => _searchResults = []);
+                        },
+                        isSearching: _isSearching,
+                      ),
                       const SizedBox(height: 20), // Bottom padding for header
                     ],
                   ),
@@ -457,7 +512,11 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                   if (_isSearching)
                     const Center(child: CircularProgressIndicator())
                   else if (_searchResults.isNotEmpty && _focusNode.hasFocus)
-                    _buildSearchDropdown(context)
+                    HomeSearchDropdown(
+                      searchResults: _searchResults,
+                      onProductTap:
+                          (product) => _onProductClicked(context, product),
+                    )
                   else ...[
                     padded(
                       TopCurosel(
@@ -468,13 +527,18 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                         },
                       ),
                     ),
+                    const SizedBox(height: 12),
+                    const AllProductsList(),
                     padded(const SubscriptionCarousel()),
                     _heading(context, "Subscription Plans", "", () {}),
                     _subscriptionSection(context),
-                    padded(_buildCategoryShowcase(context)),
+                    padded(const HomeCategoryShowcase()),
                     _buildFeaturedProducts(),
                     const SizedBox(height: 4),
-                    _buildCommunities(),
+                    HomeCommunitiesSection(
+                      communitiesFuture: _communitiesFuture,
+                      buildCard: _buildCommunityCard,
+                    ),
                   ],
                 ],
               ),
@@ -485,253 +549,51 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     );
   }
 
-  Widget _buildModernNotificationBell(BuildContext context, ThemeData theme) {
+  Widget _buildModernIconButton({
+    required IconData icon,
+    required VoidCallback onTap,
+    required ThemeData theme,
+    bool hasBadge = false,
+  }) {
+    Widget content = TweenAnimationBuilder<double>(
+      tween: Tween(begin: 0.0, end: 1.0),
+      duration: const Duration(milliseconds: 600),
+      builder: (context, value, child) {
+        return Container(
+          padding: const EdgeInsets.all(10),
+          decoration: BoxDecoration(
+            color: theme.colorScheme.onPrimary.withValues(alpha: 0.15),
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(
+              color: theme.colorScheme.onPrimary.withValues(alpha: 0.1),
+              width: 1,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: theme.colorScheme.primary.withValues(alpha: 0.2 * value),
+                blurRadius: 12,
+                spreadRadius: 0,
+              ),
+            ],
+          ),
+          child: Transform.rotate(
+            angle: math.sin(value * math.pi * 2) * 0.1,
+            child: Icon(icon, color: theme.colorScheme.onPrimary, size: 24),
+          ),
+        );
+      },
+    );
+
+    if (hasBadge) {
+      content = NotificationBadgeWidget(child: content);
+    }
+
     return GestureDetector(
       onTap: () {
         HapticFeedback.lightImpact();
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => const NotificationsScreen()),
-        );
+        onTap();
       },
-      child: NotificationBadgeWidget(
-        child: TweenAnimationBuilder<double>(
-          tween: Tween(begin: 0.0, end: 1.0),
-          duration: const Duration(milliseconds: 600),
-          builder: (context, value, child) {
-            return Container(
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                color: theme.colorScheme.onPrimary.withValues(alpha: 0.15),
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(
-                  color: theme.colorScheme.onPrimary.withValues(alpha: 0.1),
-                  width: 1,
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: theme.colorScheme.primary.withValues(
-                      alpha: 0.2 * value,
-                    ),
-                    blurRadius: 12,
-                    spreadRadius: 0,
-                  ),
-                ],
-              ),
-              child: Transform.rotate(
-                angle: math.sin(value * math.pi * 2) * 0.1,
-                child: Icon(
-                  Icons.notifications_rounded,
-                  color: theme.colorScheme.onPrimary,
-                  size: 24,
-                ),
-              ),
-            );
-          },
-        ),
-      ),
-    );
-  }
-
-  Widget _searchBar(BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-    final isDark = theme.brightness == Brightness.dark;
-
-    return Padding(
-      padding: EdgeInsets.symmetric(
-        horizontal: MediaQuery.of(context).size.width * 0.05,
-      ),
-      child: Container(
-        height: 54,
-        decoration: BoxDecoration(
-          // Use a consistent solid color for dark mode
-          color: isDark ? const Color(0xFF2A2A2A) : Colors.white,
-          borderRadius: BorderRadius.circular(27),
-          boxShadow:
-              _focusNode.hasFocus
-                  ? [
-                    BoxShadow(
-                      color: colorScheme.primary.withValues(alpha: 0.15),
-                      blurRadius: 20,
-                      offset: const Offset(0, 4),
-                    ),
-                  ]
-                  : [],
-        ),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(27),
-          child: Row(
-            children: [
-              const SizedBox(width: 16),
-              Icon(
-                Icons.search_rounded,
-                color:
-                    _focusNode.hasFocus
-                        ? colorScheme.primary
-                        : (isDark
-                            ? Colors.grey.shade400
-                            : Colors.grey.shade600),
-                size: 22,
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: TextField(
-                  controller: _searchController,
-                  focusNode: _focusNode,
-                  style: theme.textTheme.bodyLarge,
-                  onTap: () => setState(() {}),
-                  decoration: InputDecoration(
-                    hintText: "Search products...",
-                    hintStyle: TextStyle(
-                      color:
-                          isDark ? Colors.grey.shade400 : Colors.grey.shade500,
-                      fontWeight: FontWeight.w400,
-                    ),
-                    border: InputBorder.none,
-                    enabledBorder: InputBorder.none,
-                    focusedBorder: InputBorder.none,
-                    errorBorder: InputBorder.none,
-                    disabledBorder: InputBorder.none,
-                    focusedErrorBorder: InputBorder.none,
-                    contentPadding: const EdgeInsets.symmetric(vertical: 16),
-                    isDense: true,
-                  ),
-                  onChanged: (value) => _performSearch(value.trim()),
-                ),
-              ),
-              if (_isSearching)
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 14),
-                  child: SizedBox(
-                    width: 18,
-                    height: 18,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      color: colorScheme.primary,
-                    ),
-                  ),
-                )
-              else if (_searchController.text.isNotEmpty)
-                Padding(
-                  padding: const EdgeInsets.only(right: 8),
-                  child: GestureDetector(
-                    onTap: () {
-                      _searchController.clear();
-                      setState(() => _searchResults = []);
-                    },
-                    child: Container(
-                      padding: const EdgeInsets.all(6),
-                      decoration: BoxDecoration(
-                        color:
-                            isDark
-                                ? Colors.grey.shade800
-                                : Colors.grey.shade300,
-                        shape: BoxShape.circle,
-                      ),
-                      child: Icon(
-                        Icons.close_rounded,
-                        color:
-                            isDark
-                                ? Colors.grey.shade400
-                                : Colors.grey.shade600,
-                        size: 16,
-                      ),
-                    ),
-                  ),
-                )
-              else
-                const SizedBox(width: 16),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildSearchDropdown(BuildContext context) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-
-    return Padding(
-      padding: EdgeInsets.symmetric(
-        horizontal: MediaQuery.of(context).size.width * 0.05,
-      ),
-      child: Container(
-        margin: const EdgeInsets.only(top: 8),
-        decoration: BoxDecoration(
-          color: theme.cardColor,
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: [
-            BoxShadow(
-              color:
-                  isDark
-                      ? Colors.black.withValues(alpha: 0.3)
-                      : Colors.black.withValues(alpha: 0.08),
-              blurRadius: 20,
-              offset: const Offset(0, 8),
-            ),
-          ],
-        ),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(16),
-          child: ListView.separated(
-            itemCount: _searchResults.length,
-            shrinkWrap: true,
-            padding: const EdgeInsets.symmetric(vertical: 8),
-            separatorBuilder:
-                (_, __) => Divider(
-                  height: 1,
-                  indent: 16,
-                  endIndent: 16,
-                  color: theme.dividerColor.withValues(alpha: 0.3),
-                ),
-            itemBuilder: (context, index) {
-              final product = _searchResults[index];
-              return ListTile(
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 4,
-                ),
-                leading: Container(
-                  width: 44,
-                  height: 44,
-                  decoration: BoxDecoration(
-                    color: isDark ? Colors.grey.shade800 : Colors.grey.shade100,
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Icon(
-                    Icons.shopping_bag_outlined,
-                    color: theme.colorScheme.primary,
-                    size: 22,
-                  ),
-                ),
-                title: Text(
-                  product.productName,
-                  style: theme.textTheme.bodyLarge?.copyWith(
-                    fontWeight: FontWeight.w500,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                subtitle: Text(
-                  "₹${product.finalPrice.toString()}",
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color: theme.colorScheme.primary,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                trailing: Icon(
-                  Icons.arrow_forward_ios_rounded,
-                  size: 16,
-                  color: Colors.grey.shade400,
-                ),
-                onTap: () => _onProductClicked(context, product),
-              );
-            },
-          ),
-        ),
-      ),
+      child: content,
     );
   }
 
@@ -742,7 +604,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     return BlocBuilder<ProductCubit, ProductState>(
       builder: (context, state) {
         if (state is ProductLoading) {
-          return _buildFeaturedProductsSkeleton(context);
+          return const FeaturedProductsSkeleton();
         }
         if (state is ProductError) {
           return Center(
@@ -767,10 +629,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                   const SizedBox(height: 4),
                   Text(
                     "Check your connection and try again 🔄",
-                    style: TextStyle(
-                      color: Colors.grey.shade600,
-                      fontSize: 12,
-                    ),
+                    style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
                   ),
                   const SizedBox(height: 8),
                   Text(
@@ -815,296 +674,25 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                   itemCount: featuredProducts.length.clamp(0, 6),
                   itemBuilder: (context, index) {
                     final product = featuredProducts[index];
-                    return _buildFeaturedProductCard(product, index, isDark);
+                    return FeaturedProductCard(
+                      product: product,
+                      index: index,
+                      isDark: isDark,
+                      onTap: () => _onProductClicked(context, product),
+                    );
                   },
                 ),
               ),
             ],
           );
         }
-        return _buildFeaturedProductsSkeleton(context);
+        return const FeaturedProductsSkeleton();
       },
     );
   }
 
-  Widget _buildFeaturedProductCard(Product product, int index, bool isDark) {
-    final theme = Theme.of(context);
-    final hasDiscount = product.discountPercentage > 0;
-
-    // Dummy food gradients
-    final gradients = [
-      [const Color(0xFFFFF3E0), const Color(0xFFFFE0B2)],
-      [const Color(0xFFE8F5E9), const Color(0xFFC8E6C9)],
-      [const Color(0xFFFCE4EC), const Color(0xFFF8BBD0)],
-      [const Color(0xFFE3F2FD), const Color(0xFFBBDEFB)],
-      [const Color(0xFFF3E5F5), const Color(0xFFE1BEE7)],
-      [const Color(0xFFFFFDE7), const Color(0xFFFFF9C4)],
-    ];
-    final icons = [
-      Icons.bakery_dining_rounded,
-      Icons.rice_bowl_rounded,
-      Icons.local_pizza_rounded,
-      Icons.icecream_rounded,
-      Icons.egg_alt_rounded,
-      Icons.breakfast_dining_rounded,
-    ];
-    final iconColors = [
-      const Color(0xFFE65100),
-      const Color(0xFF2E7D32),
-      const Color(0xFFD32F2F),
-      const Color(0xFF7B1FA2),
-      const Color(0xFFF9A825),
-      const Color(0xFF795548),
-    ];
-
-    return GestureDetector(
-      onTap:
-          product.isInStock ? () => _onProductClicked(context, product) : null,
-      child: Opacity(
-        opacity: product.isInStock ? 1.0 : 0.5,
-        child: Container(
-          width: 165,
-          margin: const EdgeInsets.only(right: 14),
-          decoration: BoxDecoration(
-            color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
-            borderRadius: BorderRadius.circular(20),
-            boxShadow: [
-              BoxShadow(
-                color:
-                    isDark
-                        ? Colors.black26
-                        : Colors.black.withValues(alpha: 0.08),
-                blurRadius: 16,
-                offset: const Offset(0, 6),
-              ),
-            ],
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Image section
-              Expanded(
-                flex: 3,
-                child: Stack(
-                  children: [
-                    Container(
-                      width: double.infinity,
-                      decoration: BoxDecoration(
-                        borderRadius: const BorderRadius.vertical(
-                          top: Radius.circular(20),
-                        ),
-                        gradient: LinearGradient(
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                          colors: gradients[index % gradients.length],
-                        ),
-                      ),
-                      child: ClipRRect(
-                        borderRadius: const BorderRadius.vertical(
-                          top: Radius.circular(20),
-                        ),
-                        child:
-                            product.productImages.isNotEmpty
-                                ? CachedNetworkImage(
-                                  imageUrl: product.productImages[0].image,
-                                  fit: BoxFit.cover,
-                                  placeholder:
-                                      (_, __) => Center(
-                                        child: Icon(
-                                          icons[index % icons.length],
-                                          size: 48,
-                                          color: iconColors[index %
-                                                  iconColors.length]
-                                              .withValues(alpha: 0.6),
-                                        ),
-                                      ),
-                                  errorWidget:
-                                      (_, __, ___) => Center(
-                                        child: Icon(
-                                          icons[index % icons.length],
-                                          size: 48,
-                                          color: iconColors[index %
-                                                  iconColors.length]
-                                              .withValues(alpha: 0.6),
-                                        ),
-                                      ),
-                                )
-                                : Center(
-                                  child: Icon(
-                                    icons[index % icons.length],
-                                    size: 48,
-                                    color: iconColors[index % iconColors.length]
-                                        .withValues(alpha: 0.6),
-                                  ),
-                                ),
-                      ),
-                    ),
-                    // Discount badge
-                    if (hasDiscount)
-                      Positioned(
-                        top: 10,
-                        left: 10,
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 4,
-                          ),
-                          decoration: BoxDecoration(
-                            color: AppColors.error,
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Text(
-                            '${product.discountPercentage.toInt()}% OFF',
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 10,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                      ),
-                  ],
-                ),
-              ),
-              // Details section
-              Padding(
-                padding: const EdgeInsets.all(10),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      product.productName,
-                      style: theme.textTheme.titleSmall?.copyWith(
-                        fontWeight: FontWeight.w600,
-                      ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      '${product.weight} ${product.weightUnit}',
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: theme.hintColor,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    const SizedBox(height: 8),
-                    Row(
-                      children: [
-                        Flexible(
-                          child: Text(
-                            '₹${product.finalPrice.toStringAsFixed(0)}',
-                            style: theme.textTheme.titleMedium?.copyWith(
-                              fontWeight: FontWeight.bold,
-                              color: AppColors.primaryColor,
-                            ),
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                        if (hasDiscount) ...[
-                          const SizedBox(width: 4),
-                          Flexible(
-                            child: Text(
-                              '₹${product.price.toStringAsFixed(0)}',
-                              style: theme.textTheme.bodySmall?.copyWith(
-                                decoration: TextDecoration.lineThrough,
-                                color: theme.hintColor,
-                                fontSize: 11,
-                              ),
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                        ],
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildFeaturedProductsSkeleton(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        padded(
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              ShimmerLoading(
-                isLoading: true,
-                child: Skeleton(width: 160, height: 22),
-              ),
-              ShimmerLoading(
-                isLoading: true,
-                child: Skeleton(width: 70, height: 22),
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 12),
-        SizedBox(
-          height: 260,
-          child: ListView.builder(
-            scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            itemCount: 3,
-            itemBuilder: (context, index) {
-              return ShimmerLoading(
-                isLoading: true,
-                child: Container(
-                  width: 165,
-                  margin: const EdgeInsets.only(right: 14),
-                  decoration: BoxDecoration(
-                    color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Column(
-                    children: [
-                      Expanded(
-                        flex: 3,
-                        child: Container(
-                          decoration: BoxDecoration(
-                            color: isDark ? Colors.grey[800] : Colors.grey[200],
-                            borderRadius: const BorderRadius.vertical(
-                              top: Radius.circular(20),
-                            ),
-                          ),
-                        ),
-                      ),
-                      Expanded(
-                        flex: 2,
-                        child: Padding(
-                          padding: const EdgeInsets.all(12),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Skeleton(width: double.infinity, height: 16),
-                              const SizedBox(height: 8),
-                              Skeleton(width: 60, height: 12),
-                              const Spacer(),
-                              Skeleton(width: 80, height: 18),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              );
-            },
-          ),
-        ),
-      ],
-    );
-  }
+  // _buildFeaturedProductCard extracted to home_featured_products.dart
+  // _buildFeaturedProductsSkeleton extracted to home_featured_products.dart
 
   Widget _subscriptionSection(BuildContext context) {
     return const Padding(
@@ -1167,845 +755,12 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     child: widget,
   );
 
-  Widget _buildCategoryShowcase(BuildContext context) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-
-    return Container(
-      margin: const EdgeInsets.symmetric(vertical: 10),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(28),
-        gradient: LinearGradient(
-          colors: [
-            theme.colorScheme.primary,
-            theme.colorScheme.primary.withValues(alpha: 0.85),
-            isDark
-                ? theme.colorScheme.primary.withValues(alpha: 0.7)
-                : Colors.green.shade400,
-          ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: theme.colorScheme.primary.withValues(alpha: 0.3),
-            blurRadius: 20,
-            offset: const Offset(0, 10),
-          ),
-        ],
-      ),
-      child: Stack(
-        children: [
-          // Decorative Background Elements
-          Positioned(
-            top: -30,
-            right: -30,
-            child: Container(
-              width: 120,
-              height: 120,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: Colors.white.withValues(alpha: 0.1),
-              ),
-            ),
-          ),
-          Positioned(
-            bottom: -20,
-            left: -20,
-            child: Container(
-              width: 80,
-              height: 80,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: Colors.white.withValues(alpha: 0.08),
-              ),
-            ),
-          ),
-          Positioned(
-            top: 60,
-            left: 30,
-            child: Container(
-              width: 8,
-              height: 8,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: Colors.white.withValues(alpha: 0.3),
-              ),
-            ),
-          ),
-          Positioned(
-            top: 40,
-            right: 80,
-            child: Container(
-              width: 6,
-              height: 6,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: Colors.white.withValues(alpha: 0.25),
-              ),
-            ),
-          ),
-
-          // Main Content
-          Padding(
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Header with Icon
-                Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.2),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: const Icon(
-                        Icons.eco_rounded,
-                        color: Colors.white,
-                        size: 24,
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            "Rejuvenating Earth",
-                            style: theme.textTheme.titleLarge?.copyWith(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                              height: 1.2,
-                            ),
-                          ),
-                          Text(
-                            "Nourishing Lives",
-                            style: theme.textTheme.titleMedium?.copyWith(
-                              color: Colors.white.withOpacity(0.9),
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 16),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 6,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.2),
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        Icons.shopping_bag_outlined,
-                        color: Colors.white,
-                        size: 14,
-                      ),
-                      const SizedBox(width: 6),
-                      Text(
-                        "Shop by Category",
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 20),
-                Row(
-                  children: [
-                    Expanded(
-                      child: _categoryCard(
-                        context,
-                        "The Ancestral Pantry",
-                        " Stock up on heirloom grains, flours and staples",
-                        "assets/images/natural_farming.png",
-                        () {
-                          final dashboardState =
-                              context
-                                  .findAncestorStateOfType<
-                                    DashboardScreenState
-                                  >();
-                          dashboardState?.switchToTab(3);
-                        },
-                        Icons.grass_rounded,
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: _categoryCard(
-                        context,
-                        "Start Remote Farming",
-                        "Don't just buy vegetables. Own the land they grow on",
-                        "assets/images/natural_veggies.png",
-                        () => Navigator.push(
-                          context,
-                          AnimatedTransitions.slideFromRight(
-                            const CombinedScreen(),
-                          ),
-                        ),
-                        Icons.spa_rounded,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _categoryCard(
-    BuildContext context,
-    String title,
-    String subtitle,
-    String imagePath,
-    Function onTap,
-    IconData icon,
-  ) {
-    final theme = Theme.of(context);
-    return _TappableCard(
-      onTap: () => onTap(),
-      child: Container(
-        height: 130,
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(20),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.15),
-              blurRadius: 15,
-              offset: const Offset(0, 5),
-            ),
-          ],
-        ),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(20),
-          child: Stack(
-            children: [
-              // Background Image
-              Positioned.fill(child: Image.asset(imagePath, fit: BoxFit.cover)),
-              // Gradient Overlay
-              Positioned.fill(
-                child: DecoratedBox(
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: [
-                        Colors.black.withOpacity(0.1),
-                        Colors.black.withOpacity(0.6),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-              // Content
-              Positioned(
-                left: 10,
-                right: 10,
-                bottom: 10,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(4),
-                      decoration: BoxDecoration(
-                        color: theme.colorScheme.primary.withOpacity(0.9),
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                      child: Icon(icon, color: Colors.white, size: 14),
-                    ),
-                    const SizedBox(height: 6),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          title,
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 11, // Manual override for better fit
-                            shadows: [
-                              Shadow(
-                                color: Colors.black.withOpacity(0.5),
-                                blurRadius: 4,
-                              ),
-                            ],
-                          ),
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          subtitle,
-                          style: theme.textTheme.labelSmall?.copyWith(
-                            color: Colors.white.withOpacity(0.9),
-                            fontSize: 9, // Smaller font
-                            fontWeight: FontWeight.w500,
-                            shadows: [
-                              Shadow(
-                                color: Colors.black.withOpacity(0.5),
-                                blurRadius: 4,
-                              ),
-                            ],
-                          ),
-                          maxLines: 3, // Allow wrapping
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-              // Arrow indicator
-              Positioned(
-                top: 10,
-                right: 10,
-                child: Container(
-                  padding: const EdgeInsets.all(6),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.9),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Icon(
-                    Icons.arrow_forward_rounded,
-                    color: theme.colorScheme.primary,
-                    size: 14,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildCommunities() {
-    return FutureBuilder<List<Community>>(
-      future: _communitiesFuture,
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return Padding(
-            padding: const EdgeInsets.all(AppColors.spacingXL),
-            child: Center(
-              child: CircularProgressIndicator(
-                color: Theme.of(context).colorScheme.primary,
-              ),
-            ),
-          );
-        }
-        if (snapshot.hasError) {
-          return Padding(
-            padding: const EdgeInsets.all(AppColors.spacingL),
-            child: Center(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(
-                    Icons.people_outline_rounded,
-                    size: 32,
-                    color: const Color(0xFF6B7B8A), // Cool slate
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    "Communities taking a break ☕",
-                    style: TextStyle(
-                      color: const Color(0xFF6B7B8A),
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    "🐄 Indian farmers have practiced cow-based farming for 5000+ years!",
-                    style: TextStyle(
-                      color: Colors.green.shade700,
-                      fontSize: 11,
-                      fontStyle: FontStyle.italic,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                ],
-              ),
-            ),
-          );
-        }
-        if (!snapshot.hasData || snapshot.data!.isEmpty) {
-          return const SizedBox.shrink();
-        }
-
-        final communities = snapshot.data!;
-
-        return Column(
-          children: [
-            // _heading(context, "Join Our Community", null, null),
-            const SizedBox(height: AppColors.spacingS),
-            ListView.builder(
-              physics: const NeverScrollableScrollPhysics(),
-              shrinkWrap: true,
-              itemCount: communities.length,
-              itemBuilder: (context, index) {
-                final community = communities[index];
-                return _buildCommunityCard(context, community, index);
-              },
-            ),
-            const SizedBox(height: AppColors.spacingL),
-          ],
-        );
-      },
-    );
-  }
-
   Widget _buildCommunityCard(
     BuildContext context,
     Community community,
     int index,
   ) {
     // Delegate to the enhanced card widget
-    return _AnimatedCommunityCard(community: community, index: index);
-  }
-}
-
-/// Step 2: Community Card with press animation + shimmer effect
-class _AnimatedCommunityCard extends StatefulWidget {
-  final Community community;
-  final int index;
-
-  const _AnimatedCommunityCard({required this.community, required this.index});
-
-  @override
-  State<_AnimatedCommunityCard> createState() => _AnimatedCommunityCardState();
-}
-
-class _AnimatedCommunityCardState extends State<_AnimatedCommunityCard>
-    with TickerProviderStateMixin {
-  bool _isPressed = false;
-
-  // Shimmer animation
-  late AnimationController _shimmerController;
-  late Animation<double> _shimmerAnimation;
-
-  // Floating particles animation
-  late AnimationController _floatController;
-  late Animation<double> _floatAnimation;
-
-  @override
-  void initState() {
-    super.initState();
-
-    // Shimmer sweep
-    _shimmerController = AnimationController(
-      duration: const Duration(milliseconds: 3000),
-      vsync: this,
-    )..repeat();
-    _shimmerAnimation = Tween<double>(begin: -1.0, end: 2.0).animate(
-      CurvedAnimation(parent: _shimmerController, curve: Curves.easeInOut),
-    );
-
-    // Floating particles - slow gentle movement
-    _floatController = AnimationController(
-      duration: const Duration(milliseconds: 4000),
-      vsync: this,
-    )..repeat(reverse: true);
-    _floatAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _floatController, curve: Curves.easeInOutSine),
-    );
-  }
-
-  @override
-  void dispose() {
-    _shimmerController.dispose();
-    _floatController.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final community = widget.community;
-    final index = widget.index;
-
-    // Alternate between green and brown gradients for variety
-    final isEvenCard = index % 2 == 0;
-    final gradientColors =
-        isEvenCard
-            ? [
-              const Color(0xFF2E7D32).withOpacity(0.85), // Forest green
-              const Color(0xFF1B5E20).withOpacity(0.7),
-            ]
-            : [
-              const Color(0xFF5D4037).withOpacity(0.9), // Brown
-              const Color(0xFF3E2723).withOpacity(0.75),
-            ];
-
-    return GestureDetector(
-      onTapDown: (_) => setState(() => _isPressed = true),
-      onTapUp: (_) {
-        setState(() => _isPressed = false);
-        HapticFeedback.mediumImpact();
-        Navigator.push(
-          context,
-          AnimatedTransitions.fadeScale(
-            CommunityDetailScreen(community: community),
-          ),
-        );
-      },
-      onTapCancel: () => setState(() => _isPressed = false),
-      child: AnimatedScale(
-        scale: _isPressed ? 0.96 : 1.0,
-        duration: const Duration(milliseconds: 150),
-        curve: Curves.easeOut,
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 150),
-          height: 180,
-          margin: const EdgeInsets.symmetric(
-            vertical: AppColors.spacingS,
-            horizontal: AppColors.spacingL,
-          ),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(AppColors.radiusXL),
-            boxShadow: [
-              BoxShadow(
-                color: (isEvenCard ? Colors.green : Colors.brown).withOpacity(
-                  _isPressed ? 0.15 : 0.25,
-                ),
-                blurRadius: _isPressed ? 8 : 16,
-                offset: Offset(0, _isPressed ? 4 : 8),
-              ),
-            ],
-          ),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(AppColors.radiusXL),
-            child: Stack(
-              fit: StackFit.expand,
-              children: [
-                // Background Image
-                Image.network(
-                  community.image,
-                  fit: BoxFit.cover,
-                  errorBuilder:
-                      (context, error, stackTrace) => Container(
-                        color:
-                            isEvenCard
-                                ? Colors.green.shade800
-                                : Colors.brown.shade800,
-                        child: const Icon(
-                          Icons.eco,
-                          size: 60,
-                          color: Colors.white24,
-                        ),
-                      ),
-                ),
-
-                // Gradient Overlay
-                Container(
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: gradientColors,
-                      begin: Alignment.centerLeft,
-                      end: Alignment.centerRight,
-                    ),
-                  ),
-                ),
-
-                // Shimmer Effect Overlay
-                AnimatedBuilder(
-                  animation: _shimmerAnimation,
-                  builder: (context, _) {
-                    return Container(
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                          colors: [
-                            Colors.transparent,
-                            Colors.white.withOpacity(0.08),
-                            Colors.transparent,
-                          ],
-                          stops: [
-                            (_shimmerAnimation.value - 0.3).clamp(0.0, 1.0),
-                            _shimmerAnimation.value.clamp(0.0, 1.0),
-                            (_shimmerAnimation.value + 0.3).clamp(0.0, 1.0),
-                          ],
-                        ),
-                      ),
-                    );
-                  },
-                ),
-
-                // Floating Decorative Dots
-                AnimatedBuilder(
-                  animation: _floatAnimation,
-                  builder: (context, _) {
-                    final accentColor =
-                        isEvenCard
-                            ? const Color(0xFF69F0AE)
-                            : const Color(0xFFFFAB91);
-                    return Stack(
-                      children: [
-                        // Dot 1 - top right
-                        Positioned(
-                          top: 50 + (_floatAnimation.value * 8),
-                          right: 25,
-                          child: Container(
-                            width: 6,
-                            height: 6,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: accentColor.withOpacity(0.6),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: accentColor.withOpacity(0.4),
-                                  blurRadius: 6,
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                        // Dot 2 - middle right
-                        Positioned(
-                          top: 90 + (_floatAnimation.value * -6),
-                          right: 40,
-                          child: Container(
-                            width: 4,
-                            height: 4,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: accentColor.withOpacity(0.5),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: accentColor.withOpacity(0.3),
-                                  blurRadius: 4,
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                        // Dot 3 - lower right
-                        Positioned(
-                          top: 130 + (_floatAnimation.value * 5),
-                          right: 20,
-                          child: Container(
-                            width: 5,
-                            height: 5,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: accentColor.withOpacity(0.4),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: accentColor.withOpacity(0.25),
-                                  blurRadius: 5,
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ],
-                    );
-                  },
-                ),
-
-                // Content
-                Padding(
-                  padding: const EdgeInsets.all(AppColors.spacingL),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      // Coming Soon Badge - Glassmorphism Style
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(20),
-                        child: BackdropFilter(
-                          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                              vertical: 8,
-                              horizontal: 14,
-                            ),
-                            decoration: BoxDecoration(
-                              color: Colors.white.withOpacity(0.2),
-                              borderRadius: BorderRadius.circular(20),
-                              border: Border.all(
-                                color: Colors.white.withOpacity(0.3),
-                                width: 1,
-                              ),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: (isEvenCard
-                                          ? const Color(0xFF69F0AE)
-                                          : const Color(0xFFFFAB91))
-                                      .withOpacity(0.3),
-                                  blurRadius: 12,
-                                  offset: const Offset(0, 4),
-                                ),
-                              ],
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Container(
-                                  padding: const EdgeInsets.all(1),
-                                  decoration: BoxDecoration(
-                                    color: (isEvenCard
-                                            ? const Color(0xFF69F0AE)
-                                            : const Color(0xFFFFAB91))
-                                        .withOpacity(0.4),
-                                    shape: BoxShape.circle,
-                                  ),
-                                  child: const Icon(
-                                    Icons.auto_awesome,
-                                    size: 12,
-                                    color: Colors.white,
-                                  ),
-                                ),
-                                const SizedBox(width: 8),
-                                Text(
-                                  "Coming Soon",
-                                  style: theme.textTheme.labelSmall?.copyWith(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.w700,
-                                    letterSpacing: 0.5,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-
-                      // Community Name
-                      _buildCommunityNameTitle(community, theme),
-
-                      // Learn More Button - Glassmorphism Style
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(16),
-                        child: BackdropFilter(
-                          filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 12,
-                              vertical: 6,
-                            ),
-                            decoration: BoxDecoration(
-                              color: Colors.white.withOpacity(0.2),
-                              borderRadius: BorderRadius.circular(16),
-                              border: Border.all(
-                                color: Colors.white.withOpacity(0.4),
-                                width: 1.5,
-                              ),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Text(
-                                  "Explore",
-                                  style: theme.textTheme.labelLarge?.copyWith(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.w700,
-                                    letterSpacing: 0.3,
-                                  ),
-                                ),
-                                const SizedBox(width: 8),
-                                const Icon(
-                                  Icons.arrow_forward_rounded,
-                                  size: 18,
-                                  color: Colors.white,
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildCommunityNameTitle(Community community, ThemeData theme) {
-    final nameLower = community.name.toLowerCase();
-    if (nameLower.contains('grinity')) {
-      return Padding(
-        padding: const EdgeInsets.only(bottom: 8.0),
-        child: SvgPicture.asset('assets/images/3.svg', height: 28),
-      );
-    } else if (nameLower.contains('krinity')) {
-      return Padding(
-        padding: const EdgeInsets.only(bottom: 8.0),
-        child: SvgPicture.asset('assets/images/4.svg', height: 28),
-      );
-    }
-    return Text(
-      community.name,
-      style: theme.textTheme.headlineSmall?.copyWith(
-        color: Colors.white,
-        fontWeight: FontWeight.bold,
-        shadows: [
-          Shadow(
-            blurRadius: 8,
-            color: Colors.black.withOpacity(0.3),
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      maxLines: 2,
-      overflow: TextOverflow.ellipsis,
-    );
-  }
-}
-
-// Reusable tappable card with subtle press animation
-class _TappableCard extends StatefulWidget {
-  final Widget child;
-  final VoidCallback onTap;
-
-  const _TappableCard({required this.child, required this.onTap});
-
-  @override
-  State<_TappableCard> createState() => _TappableCardState();
-}
-
-class _TappableCardState extends State<_TappableCard> {
-  bool _isPressed = false;
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTapDown: (_) => setState(() => _isPressed = true),
-      onTapUp: (_) => setState(() => _isPressed = false),
-      onTapCancel: () => setState(() => _isPressed = false),
-      onTap: () {
-        HapticFeedback.selectionClick();
-        widget.onTap();
-      },
-      child: AnimatedScale(
-        scale: _isPressed ? 0.97 : 1.0,
-        duration: const Duration(milliseconds: 100),
-        curve: Curves.easeOut,
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 100),
-          transform: Matrix4.identity()..translate(0.0, _isPressed ? 2.0 : 0.0),
-          child: widget.child,
-        ),
-      ),
-    );
+    return AnimatedCommunityCard(community: community, index: index);
   }
 }

@@ -1,4 +1,3 @@
-
 class Subscription {
   final int id;
   final int plan;
@@ -13,6 +12,7 @@ class Subscription {
   final String deliveryState;
   final String deliveryPincode;
   final String deliveryPhone;
+  final String recipientName;
   final String notes;
   final double subtotal;
   final double deliveryCharges;
@@ -46,6 +46,7 @@ class Subscription {
     required this.deliveryState,
     required this.deliveryPincode,
     required this.deliveryPhone,
+    required this.recipientName,
     required this.notes,
     required this.subtotal,
     required this.deliveryCharges,
@@ -80,10 +81,12 @@ class Subscription {
       paymentStatus: json['payment_status'] ?? '',
       paymentMethod: json['payment_method'] ?? '',
       deliveryAddress: json['delivery_address'] ?? '',
+
       deliveryCity: json['delivery_city'] ?? '',
       deliveryState: json['delivery_state'] ?? '',
       deliveryPincode: json['delivery_pincode'] ?? '',
       deliveryPhone: json['delivery_phone'] ?? '',
+      recipientName: json['recipient_name'] ?? json['delivery_name'] ?? '',
       notes: json['notes'] ?? '',
       subtotal: double.tryParse(json['subtotal']?.toString() ?? '0.0') ?? 0.0,
       deliveryCharges:
@@ -176,7 +179,7 @@ class SubscriptionItem {
     required this.unitWeight,
     required this.weightUnit,
     required this.totalWeight,
-     required this.productCategory,
+    required this.productCategory,
   });
 
   factory SubscriptionItem.fromJson(Map<String, dynamic> json) {
@@ -184,10 +187,9 @@ class SubscriptionItem {
       id: json['id'] ?? 0,
       productVariant: json['product_variant'] ?? 0,
       productName: json['product_name'] ?? '',
-      productCategory : json['product_category'] ?? '',
-      imageUrl:
-           json["product_var_image"],
-          
+      productCategory: json['product_category'] ?? '',
+      imageUrl: json["product_var_image"],
+
       quantity: int.tryParse(json['quantity']?.toString() ?? '0') ?? 0,
       price: double.tryParse(json['price']?.toString() ?? '0.0') ?? 0.0,
       discountedPrice:

@@ -1,11 +1,11 @@
 class ApiConfig {
   // static const String baseUrl = 'http://34.131.42.218';
-  static const String baseUrl = 'https://bck.anaadfoods.com';
-  // static const String baseUrl = 'http://10.0.2.2:8000';
+  // static const String baseUrl = 'https://bck.anaadfoods.com';
+  static const String baseUrl = 'http://10.0.2.2:8000';
 
   // static const String baseUrl = "http://192.168.29.209:8000";
 
-  static const String paymentUrl = 'http://34.131.42.218:5000';
+  static const String paymentUrl = 'http://13.235.242.181:5000';
 
   /// Panchang may be hosted on a different backend than the main app APIs.
   /// Set this to the correct Panchang host when available.
@@ -50,6 +50,9 @@ class ApiConfig {
   static const String profileEndpoint = '/api/auth/profile/';
   static const String testTokenEndpoint = '/api/auth/test-token/';
   static const String sendOtpEndpoint = '/api/auth/send-otp/';
+  static const String deactivateEndpoint = '/api/auth/deactivate/';
+  static const String deactivateConfirmEndpoint =
+      '/api/auth/deactivate_confirm/';
 
   // Product endpoints
   static const String productsEndpoint = '/api/products/';
