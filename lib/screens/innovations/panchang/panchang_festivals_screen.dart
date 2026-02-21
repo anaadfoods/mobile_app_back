@@ -1,4 +1,4 @@
-import 'dart:ui';
+﻿import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -131,7 +131,7 @@ class _PanchangFestivalsScreenState extends State<PanchangFestivalsScreen>
     return BlocProvider.value(
       value: _cubit,
       child: Scaffold(
-        backgroundColor: isDark ? const Color(0xFF0A0A14) : const Color(0xFFF5F7FF),
+        backgroundColor: isDark ? const Color(0xFF070C09) : const Color(0xFFF4F8F4),
         body: Stack(
           children: [
             _buildAnimatedBackground(isDark),
@@ -204,14 +204,14 @@ class _PanchangFestivalsScreenState extends State<PanchangFestivalsScreen>
             end: Alignment.bottomRight,
             colors: isDark
                 ? [
-                    const Color(0xFF0A0A14),
-                    const Color(0xFF1A1A2E),
-                    const Color(0xFF16213E),
+                    const Color(0xFF070C09),
+                    const Color(0xFF0D150E),
+                    const Color(0xFF0A1510),
                   ]
                 : [
-                    const Color(0xFFF5F7FF),
-                    const Color(0xFFE8EFFF),
-                    const Color(0xFFD6E4FF),
+                    const Color(0xFFF4F8F4),
+                    const Color(0xFFDCEEDF),
+                    const Color(0xFFDCEEDF),
                   ],
           ),
         ),
@@ -277,7 +277,7 @@ class _PanchangFestivalsScreenState extends State<PanchangFestivalsScreen>
               Container(
                 decoration: BoxDecoration(
                   color: _isSearchMode
-                      ? const Color(0xFF6B4EFF).withOpacity(0.2)
+                      ? const Color(0xFF3F5E46).withOpacity(0.2)
                       : (isDark
                           ? Colors.white.withOpacity(0.1)
                           : Colors.black.withOpacity(0.05)),
@@ -293,7 +293,7 @@ class _PanchangFestivalsScreenState extends State<PanchangFestivalsScreen>
                       child: Icon(
                         _isSearchMode ? Icons.close_rounded : Icons.search_rounded,
                         color: _isSearchMode
-                            ? const Color(0xFF6B4EFF)
+                            ? const Color(0xFF3F5E46)
                             : (isDark ? Colors.white : Colors.black87),
                       ),
                     ),
@@ -417,7 +417,7 @@ class _PanchangFestivalsScreenState extends State<PanchangFestivalsScreen>
         decoration: BoxDecoration(
           gradient: isSelected
               ? const LinearGradient(
-                  colors: [Color(0xFF6B4EFF), Color(0xFF9D4EFF)],
+                  colors: [Color(0xFF3F5E46), Color(0xFF3A8C54)],
                 )
               : null,
           color: isSelected
@@ -428,7 +428,7 @@ class _PanchangFestivalsScreenState extends State<PanchangFestivalsScreen>
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
             color: isSelected
-                ? const Color(0xFF6B4EFF)
+                ? const Color(0xFF3F5E46)
                 : (isDark
                     ? Colors.white.withOpacity(0.1)
                     : Colors.black.withOpacity(0.1)),
@@ -541,7 +541,7 @@ class _PanchangFestivalsScreenState extends State<PanchangFestivalsScreen>
             ),
             child: const CircularProgressIndicator(
               strokeWidth: 3,
-              valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF6B4EFF)),
+              valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF3F5E46)),
             ),
           ),
           const SizedBox(height: 20),
@@ -564,7 +564,7 @@ class _PanchangFestivalsScreenState extends State<PanchangFestivalsScreen>
 
     return RefreshIndicator(
       onRefresh: () => _cubit.refresh(),
-      color: const Color(0xFF6B4EFF),
+      color: const Color(0xFF3F5E46),
       child: ListView.builder(
         padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
         itemCount: state.response.festivals.length + 1,
@@ -588,12 +588,12 @@ class _PanchangFestivalsScreenState extends State<PanchangFestivalsScreen>
         gradient: const LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [Color(0xFF6B4EFF), Color(0xFF9D4EFF)],
+          colors: [Color(0xFF3F5E46), Color(0xFF3A8C54)],
         ),
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF6B4EFF).withOpacity(0.3),
+            color: const Color(0xFF3F5E46).withOpacity(0.3),
             blurRadius: 20,
             offset: const Offset(0, 10),
           ),
@@ -718,13 +718,13 @@ class _PanchangFestivalsScreenState extends State<PanchangFestivalsScreen>
                     Container(
                       padding: const EdgeInsets.all(10),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF6B4EFF).withOpacity(0.2),
+                        color: const Color(0xFF3F5E46).withOpacity(0.2),
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Icon(
                         Icons.calendar_today_rounded,
                         size: 20,
-                        color: const Color(0xFF6B4EFF),
+                        color: const Color(0xFF3F5E46),
                       ),
                     ),
                     const SizedBox(width: 12),
@@ -938,7 +938,7 @@ class _PanchangFestivalsScreenState extends State<PanchangFestivalsScreen>
         children: [
           const Icon(
             Icons.search_rounded,
-            color: Color(0xFF6B4EFF),
+            color: Color(0xFF3F5E46),
             size: 20,
           ),
           const SizedBox(width: 10),
@@ -955,7 +955,7 @@ class _PanchangFestivalsScreenState extends State<PanchangFestivalsScreen>
                     text: '${state.response.metadata.totalResults} results',
                     style: const TextStyle(
                       fontWeight: FontWeight.bold,
-                      color: Color(0xFF6B4EFF),
+                      color: Color(0xFF3F5E46),
                     ),
                   ),
                   const TextSpan(text: ' for '),

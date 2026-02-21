@@ -1,4 +1,4 @@
-import 'dart:ui';
+﻿import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -116,7 +116,7 @@ class _PanchangMonthScreenState extends State<PanchangMonthScreen>
     return BlocProvider.value(
       value: _cubit,
       child: Scaffold(
-        backgroundColor: isDark ? const Color(0xFF0A0A14) : const Color(0xFFF5F7FF),
+        backgroundColor: isDark ? const Color(0xFF070C09) : const Color(0xFFF4F8F4),
         body: GestureDetector(
           onHorizontalDragEnd: _onHorizontalDragEnd,
           child: Stack(
@@ -193,14 +193,14 @@ class _PanchangMonthScreenState extends State<PanchangMonthScreen>
               end: Alignment.bottomRight,
               colors: isDark
                   ? [
-                      const Color(0xFF1A0F2E),
-                      const Color(0xFF0A0A14),
-                      const Color(0xFF0F1A2E),
+                      const Color(0xFF091309),
+                      const Color(0xFF070C09),
+                      const Color(0xFF091309),
                     ]
                   : [
-                      const Color(0xFFF0EBFF),
-                      const Color(0xFFF5F7FF),
-                      const Color(0xFFEBF0FF),
+                      const Color(0xFFEDF4EE),
+                      const Color(0xFFF4F8F4),
+                      const Color(0xFFDCEEDF),
                     ],
             ),
           ),
@@ -211,8 +211,8 @@ class _PanchangMonthScreenState extends State<PanchangMonthScreen>
           right: -50,
           child: _GlowingOrb(
             color: isDark
-                ? const Color(0xFF6B4EFF).withOpacity(0.3)
-                : const Color(0xFF6B4EFF).withOpacity(0.15),
+                ? const Color(0xFF3F5E46).withOpacity(0.3)
+                : const Color(0xFF3F5E46).withOpacity(0.15),
             size: 200,
           ),
         ),
@@ -284,7 +284,7 @@ class _PanchangMonthScreenState extends State<PanchangMonthScreen>
             child: CircularProgressIndicator(
               strokeWidth: 3,
               valueColor: AlwaysStoppedAnimation(
-                isDark ? const Color(0xFF6B4EFF) : theme.primaryColor,
+                isDark ? const Color(0xFF3F5E46) : theme.primaryColor,
               ),
             ),
           ),
@@ -338,8 +338,8 @@ class _PanchangMonthScreenState extends State<PanchangMonthScreen>
                     end: Alignment.bottomRight,
                     colors: isDark
                         ? [
-                            const Color(0xFF1E1438).withOpacity(0.8),
-                            const Color(0xFF0D0D1A).withOpacity(0.9),
+                            const Color(0xFF0D1A10).withOpacity(0.8),
+                            const Color(0xFF080D09).withOpacity(0.9),
                           ]
                         : [
                             Colors.white.withOpacity(0.95),
@@ -348,13 +348,13 @@ class _PanchangMonthScreenState extends State<PanchangMonthScreen>
                   ),
                   borderRadius: BorderRadius.circular(24),
                   border: Border.all(
-                    color: (isDark ? Colors.white : const Color(0xFF6B4EFF))
+                    color: (isDark ? Colors.white : const Color(0xFF3F5E46))
                         .withOpacity(0.1),
                     width: 1.5,
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: const Color(0xFF6B4EFF).withOpacity(isDark ? 0.2 : 0.08),
+                      color: const Color(0xFF3F5E46).withOpacity(isDark ? 0.2 : 0.08),
                       blurRadius: 30,
                       offset: const Offset(0, 10),
                     ),
@@ -540,12 +540,12 @@ class _DualMonthNavigatorCard extends StatelessWidget {
               end: Alignment.bottomRight,
               colors: isDark
                   ? [
-                      const Color(0xFF2A1F4E).withOpacity(0.8),
+                      const Color(0xFF112214).withOpacity(0.8),
                       const Color(0xFF1A1030).withOpacity(0.8),
                     ]
                   : [
                       Colors.white.withOpacity(0.9),
-                      const Color(0xFFF0EBFF).withOpacity(0.9),
+                      const Color(0xFFEDF4EE).withOpacity(0.9),
                     ],
             ),
             borderRadius: BorderRadius.circular(24),
@@ -554,7 +554,7 @@ class _DualMonthNavigatorCard extends StatelessWidget {
             ),
             boxShadow: [
               BoxShadow(
-                color: const Color(0xFF6B4EFF).withOpacity(isDark ? 0.3 : 0.1),
+                color: const Color(0xFF3F5E46).withOpacity(isDark ? 0.3 : 0.1),
                 blurRadius: 20,
                 offset: const Offset(0, 4),
               ),
@@ -588,15 +588,15 @@ class _DualMonthNavigatorCard extends StatelessWidget {
                         vertical: 4,
                       ),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF6B4EFF).withOpacity(0.2),
+                        color: const Color(0xFF3F5E46).withOpacity(0.2),
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Text(
                         '$year',
                         style: theme.textTheme.bodyMedium?.copyWith(
                           color: isDark
-                              ? const Color(0xFFB4A0FF)
-                              : const Color(0xFF6B4EFF),
+                              ? const Color(0xFF7BC48F)
+                              : const Color(0xFF3F5E46),
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -676,12 +676,12 @@ class _MonthNavigatorCard extends StatelessWidget {
               end: Alignment.bottomRight,
               colors: isDark
                   ? [
-                      const Color(0xFF2A1F4E).withOpacity(0.8),
+                      const Color(0xFF112214).withOpacity(0.8),
                       const Color(0xFF1A1030).withOpacity(0.8),
                     ]
                   : [
                       Colors.white.withOpacity(0.9),
-                      const Color(0xFFF0EBFF).withOpacity(0.9),
+                      const Color(0xFFEDF4EE).withOpacity(0.9),
                     ],
             ),
             borderRadius: BorderRadius.circular(24),
@@ -690,7 +690,7 @@ class _MonthNavigatorCard extends StatelessWidget {
             ),
             boxShadow: [
               BoxShadow(
-                color: const Color(0xFF6B4EFF).withOpacity(isDark ? 0.3 : 0.1),
+                color: const Color(0xFF3F5E46).withOpacity(isDark ? 0.3 : 0.1),
                 blurRadius: 20,
                 offset: const Offset(0, 4),
               ),
@@ -722,15 +722,15 @@ class _MonthNavigatorCard extends StatelessWidget {
                         vertical: 4,
                       ),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF6B4EFF).withOpacity(0.2),
+                        color: const Color(0xFF3F5E46).withOpacity(0.2),
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Text(
                         '$year',
                         style: theme.textTheme.bodyMedium?.copyWith(
                           color: isDark
-                              ? const Color(0xFFB4A0FF)
-                              : const Color(0xFF6B4EFF),
+                              ? const Color(0xFF7BC48F)
+                              : const Color(0xFF3F5E46),
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -1145,7 +1145,7 @@ class _DayCellState extends State<_DayCell>
     // Determine cell color
     Color cellColor;
     if (day.isToday) {
-      cellColor = const Color(0xFF6B4EFF);
+      cellColor = const Color(0xFF3F5E46);
     } else if (hasFestival) {
       cellColor = widget.isDark
           ? const Color(0xFFFFAA33).withOpacity(0.2)
@@ -1183,7 +1183,7 @@ class _DayCellState extends State<_DayCell>
             boxShadow: day.isToday
                 ? [
                     BoxShadow(
-                      color: const Color(0xFF6B4EFF).withOpacity(0.4),
+                      color: const Color(0xFF3F5E46).withOpacity(0.4),
                       blurRadius: 12,
                       offset: const Offset(0, 4),
                     ),
@@ -1372,7 +1372,7 @@ class _DayCellWithMasaState extends State<_DayCellWithMasa>
     // Determine cell color
     Color cellColor;
     if (day.isToday) {
-      cellColor = const Color(0xFF6B4EFF);
+      cellColor = const Color(0xFF3F5E46);
     } else if (hasFestival) {
       cellColor = widget.isDark
           ? const Color(0xFFFFAA33).withOpacity(0.25)
@@ -1411,7 +1411,7 @@ class _DayCellWithMasaState extends State<_DayCellWithMasa>
             boxShadow: day.isToday
                 ? [
                     BoxShadow(
-                      color: const Color(0xFF6B4EFF).withOpacity(0.4),
+                      color: const Color(0xFF3F5E46).withOpacity(0.4),
                       blurRadius: 12,
                       offset: const Offset(0, 4),
                     ),
@@ -1553,7 +1553,7 @@ class _LegendCard extends StatelessWidget {
               Row(
                 children: [
                   _LegendItem(
-                    color: const Color(0xFF6B4EFF),
+                    color: const Color(0xFF3F5E46),
                     label: 'Today',
                     isDark: isDark,
                   ),
@@ -1664,7 +1664,7 @@ class _EnhancedLegendCard extends StatelessWidget {
               Row(
                 children: [
                   _LegendItem(
-                    color: const Color(0xFF6B4EFF),
+                    color: const Color(0xFF3F5E46),
                     label: 'Today',
                     isDark: isDark,
                   ),
@@ -1775,8 +1775,8 @@ class _DayDetailsDialog extends StatelessWidget {
             end: Alignment.bottomRight,
             colors: isDark
                 ? [
-                    const Color(0xFF1E1438),
-                    const Color(0xFF0D0D1A),
+                    const Color(0xFF0D1A10),
+                    const Color(0xFF080D09),
                   ]
                 : [
                     Colors.white,
@@ -1941,13 +1941,13 @@ class _DayDetailsDialog extends StatelessWidget {
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   colors: [
-                    const Color(0xFF6B4EFF).withOpacity(isDark ? 0.2 : 0.1),
-                    const Color(0xFF9D4EFF).withOpacity(isDark ? 0.2 : 0.1),
+                    const Color(0xFF3F5E46).withOpacity(isDark ? 0.2 : 0.1),
+                    const Color(0xFF3A8C54).withOpacity(isDark ? 0.2 : 0.1),
                   ],
                 ),
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(
-                  color: const Color(0xFF6B4EFF).withOpacity(0.2),
+                  color: const Color(0xFF3F5E46).withOpacity(0.2),
                 ),
               ),
               child: Row(
@@ -1955,13 +1955,13 @@ class _DayDetailsDialog extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF6B4EFF).withOpacity(0.2),
+                      color: const Color(0xFF3F5E46).withOpacity(0.2),
                       shape: BoxShape.circle,
                     ),
                     child: Icon(
                       Icons.nightlight_round,
                       size: 18,
-                      color: isDark ? const Color(0xFFB59EFF) : const Color(0xFF6B4EFF),
+                      color: isDark ? const Color(0xFFB59EFF) : const Color(0xFF3F5E46),
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -2379,21 +2379,21 @@ class _BeautifulMonthNavigator extends StatelessWidget {
           end: Alignment.bottomRight,
           colors: isDark
               ? [
-                  const Color(0xFF2A1F4E).withOpacity(0.6),
+                  const Color(0xFF112214).withOpacity(0.6),
                   const Color(0xFF1A1030).withOpacity(0.8),
                 ]
               : [
                   Colors.white.withOpacity(0.95),
-                  const Color(0xFFF0EBFF).withOpacity(0.95),
+                  const Color(0xFFEDF4EE).withOpacity(0.95),
                 ],
         ),
         borderRadius: BorderRadius.circular(28),
         border: Border.all(
-          color: (isDark ? const Color(0xFF6B4EFF) : Colors.black).withOpacity(0.1),
+          color: (isDark ? const Color(0xFF3F5E46) : Colors.black).withOpacity(0.1),
         ),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF6B4EFF).withOpacity(isDark ? 0.25 : 0.1),
+            color: const Color(0xFF3F5E46).withOpacity(isDark ? 0.25 : 0.1),
             blurRadius: 25,
             offset: const Offset(0, 8),
           ),
@@ -2430,8 +2430,8 @@ class _BeautifulMonthNavigator extends StatelessWidget {
                       decoration: BoxDecoration(
                         gradient: LinearGradient(
                           colors: [
-                            const Color(0xFF6B4EFF).withOpacity(0.2),
-                            const Color(0xFF9D4EFF).withOpacity(0.2),
+                            const Color(0xFF3F5E46).withOpacity(0.2),
+                            const Color(0xFF3A8C54).withOpacity(0.2),
                           ],
                         ),
                         borderRadius: BorderRadius.circular(12),
@@ -2439,7 +2439,7 @@ class _BeautifulMonthNavigator extends StatelessWidget {
                       child: Text(
                         '$year',
                         style: theme.textTheme.bodyMedium?.copyWith(
-                          color: isDark ? const Color(0xFFB4A0FF) : const Color(0xFF6B4EFF),
+                          color: isDark ? const Color(0xFF7BC48F) : const Color(0xFF3F5E46),
                           fontWeight: FontWeight.w700,
                         ),
                       ),
@@ -2606,23 +2606,23 @@ class _AnimatedNavButtonState extends State<_AnimatedNavButton>
                   end: Alignment.bottomRight,
                   colors: widget.isDark
                       ? [
-                          const Color(0xFF6B4EFF).withOpacity(0.3),
-                          const Color(0xFF6B4EFF).withOpacity(0.1),
+                          const Color(0xFF3F5E46).withOpacity(0.3),
+                          const Color(0xFF3F5E46).withOpacity(0.1),
                         ]
                       : [
-                          const Color(0xFF6B4EFF).withOpacity(0.15),
-                          const Color(0xFF6B4EFF).withOpacity(0.05),
+                          const Color(0xFF3F5E46).withOpacity(0.15),
+                          const Color(0xFF3F5E46).withOpacity(0.05),
                         ],
                 ),
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(
-                  color: const Color(0xFF6B4EFF).withOpacity(0.2),
+                  color: const Color(0xFF3F5E46).withOpacity(0.2),
                 ),
               ),
               child: Icon(
                 widget.icon,
                 size: 28,
-                color: widget.isDark ? Colors.white : const Color(0xFF6B4EFF),
+                color: widget.isDark ? Colors.white : const Color(0xFF3F5E46),
               ),
             ),
           );
@@ -2657,7 +2657,7 @@ class _BeautifulWeekdayHeader extends StatelessWidget {
                 color: isSunday
                     ? const Color(0xFFFF6B9D).withOpacity(isDark ? 0.15 : 0.1)
                     : isSaturday
-                        ? const Color(0xFF6B4EFF).withOpacity(isDark ? 0.15 : 0.1)
+                        ? const Color(0xFF3F5E46).withOpacity(isDark ? 0.15 : 0.1)
                         : Colors.transparent,
                 borderRadius: BorderRadius.circular(10),
               ),
@@ -2670,7 +2670,7 @@ class _BeautifulWeekdayHeader extends StatelessWidget {
                     color: isSunday
                         ? (isDark ? const Color(0xFFFF6B9D) : Colors.red.shade400)
                         : isSaturday
-                            ? (isDark ? const Color(0xFFB4A0FF) : const Color(0xFF6B4EFF))
+                            ? (isDark ? const Color(0xFF7BC48F) : const Color(0xFF3F5E46))
                             : (isDark ? Colors.white60 : Colors.black54),
                     letterSpacing: 0.5,
                   ),
@@ -2805,7 +2805,7 @@ class _RichDayCellState extends State<_RichDayCell>
     Color cellColor;
     
     if (day.isToday) {
-      cellColor = const Color(0xFF6B4EFF);
+      cellColor = const Color(0xFF3F5E46);
     } else if (hasFestival) {
       cellColor = const Color(0xFFFFAA33).withOpacity(widget.isDark ? 0.15 : 0.1);
     } else if (hasVrat) {
@@ -2837,8 +2837,8 @@ class _RichDayCellState extends State<_RichDayCell>
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                     colors: [
-                      const Color(0xFF6B4EFF),
-                      const Color(0xFF9D4EFF),
+                      const Color(0xFF3F5E46),
+                      const Color(0xFF3A8C54),
                     ],
                   )
                 : hasFestival
@@ -2856,7 +2856,7 @@ class _RichDayCellState extends State<_RichDayCell>
             boxShadow: day.isToday
                 ? [
                     BoxShadow(
-                      color: const Color(0xFF6B4EFF).withOpacity(0.5),
+                      color: const Color(0xFF3F5E46).withOpacity(0.5),
                       blurRadius: 12,
                       offset: const Offset(0, 4),
                     ),
@@ -2896,7 +2896,7 @@ class _RichDayCellState extends State<_RichDayCell>
                             : isSunday
                                 ? (widget.isDark ? const Color(0xFFFF6B9D) : Colors.red.shade400)
                                 : isSaturday
-                                    ? (widget.isDark ? const Color(0xFFB4A0FF) : const Color(0xFF6B4EFF))
+                                    ? (widget.isDark ? const Color(0xFF7BC48F) : const Color(0xFF3F5E46))
                                     : (widget.isDark ? Colors.white : Colors.black87),
                       ),
                     ),
@@ -3145,8 +3145,8 @@ class _BeautifulDayCellState extends State<_BeautifulDayCell>
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                     colors: [
-                      const Color(0xFF6B4EFF),
-                      const Color(0xFF9D4EFF),
+                      const Color(0xFF3F5E46),
+                      const Color(0xFF3A8C54),
                     ],
                   )
                 : null,
@@ -3167,7 +3167,7 @@ class _BeautifulDayCellState extends State<_BeautifulDayCell>
             boxShadow: day.isToday
                 ? [
                     BoxShadow(
-                      color: const Color(0xFF6B4EFF).withOpacity(0.4),
+                      color: const Color(0xFF3F5E46).withOpacity(0.4),
                       blurRadius: 12,
                       offset: const Offset(0, 4),
                     ),
@@ -3211,7 +3211,7 @@ class _BeautifulDayCellState extends State<_BeautifulDayCell>
                             : isSunday
                                 ? (widget.isDark ? const Color(0xFFFF6B9D) : Colors.red.shade400)
                                 : isSaturday
-                                    ? (widget.isDark ? const Color(0xFFB4A0FF) : const Color(0xFF6B4EFF))
+                                    ? (widget.isDark ? const Color(0xFF7BC48F) : const Color(0xFF3F5E46))
                                     : (widget.isDark ? Colors.white : Colors.black87),
                         height: 1.1,
                       ),
@@ -3295,8 +3295,8 @@ class _BeautifulLegendCard extends StatelessWidget {
               end: Alignment.bottomRight,
               colors: isDark
                   ? [
-                      const Color(0xFF1E1438).withOpacity(0.7),
-                      const Color(0xFF0D0D1A).withOpacity(0.8),
+                      const Color(0xFF0D1A10).withOpacity(0.7),
+                      const Color(0xFF080D09).withOpacity(0.8),
                     ]
                   : [
                       Colors.white.withOpacity(0.9),
@@ -3317,13 +3317,13 @@ class _BeautifulLegendCard extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF6B4EFF).withOpacity(0.15),
+                      color: const Color(0xFF3F5E46).withOpacity(0.15),
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: Icon(
                       Icons.palette_outlined,
                       size: 18,
-                      color: isDark ? const Color(0xFFB4A0FF) : const Color(0xFF6B4EFF),
+                      color: isDark ? const Color(0xFF7BC48F) : const Color(0xFF3F5E46),
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -3354,7 +3354,7 @@ class _BeautifulLegendCard extends StatelessWidget {
                   ),
                   const SizedBox(width: 20),
                   _LegendItem(
-                    color: const Color(0xFF6B4EFF),
+                    color: const Color(0xFF3F5E46),
                     label: 'Today',
                     isDark: isDark,
                   ),

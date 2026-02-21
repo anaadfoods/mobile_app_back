@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../cubits/panchang/panchang_guidance_cubit.dart';
@@ -112,9 +112,9 @@ class _PanchangGuidanceProfileScreenState
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: isDark ? const Color(0xFF0F0F23) : const Color(0xFFF5F5F5),
+      backgroundColor: isDark ? const Color(0xFF070C08) : const Color(0xFFF5F5F5),
       appBar: AppBar(
-        backgroundColor: isDark ? const Color(0xFF1A1A2E) : Colors.white,
+        backgroundColor: isDark ? const Color(0xFF0D150E) : Colors.white,
         elevation: 0,
         title: Text(
           'Guidance Preferences',
@@ -148,7 +148,7 @@ class _PanchangGuidanceProfileScreenState
                       : const Icon(Icons.save_rounded),
                   label: const Text('Save'),
                   style: TextButton.styleFrom(
-                    foregroundColor: Colors.blue,
+                    foregroundColor: const Color(0xFF3F5E46),
                   ),
                 ),
               );
@@ -266,7 +266,7 @@ class _PanchangGuidanceProfileScreenState
             title: 'Devata (Deity)',
             subtitle: 'Your primary deity for worship',
             icon: Icons.temple_hindu,
-            color: Colors.purple,
+            color: const Color(0xFF3F5E46),
             isDark: isDark,
             child: _buildOptionGrid(
               options: devataOptions,
@@ -280,7 +280,7 @@ class _PanchangGuidanceProfileScreenState
             title: 'Regional Profile',
             subtitle: 'Regional calendar variations',
             icon: Icons.location_on,
-            color: Colors.blue,
+            color: const Color(0xFF3F5E46),
             isDark: isDark,
             child: _buildOptionGrid(
               options: profileOptions,
@@ -319,7 +319,7 @@ class _PanchangGuidanceProfileScreenState
   }) {
     return Container(
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1A1A2E) : Colors.white,
+        color: isDark ? const Color(0xFF0D150E) : Colors.white,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
           color: color.withOpacity(0.3),
@@ -407,12 +407,12 @@ class _PanchangGuidanceProfileScreenState
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
             decoration: BoxDecoration(
               color: isSelected
-                  ? Colors.blue.withOpacity(isDark ? 0.3 : 0.15)
+                  ? const Color(0xFF3F5E46).withOpacity(isDark ? 0.3 : 0.15)
                   : (isDark ? Colors.white.withOpacity(0.05) : Colors.grey.shade100),
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
                 color: isSelected
-                    ? Colors.blue
+                    ? const Color(0xFF3F5E46)
                     : (isDark ? Colors.white.withOpacity(0.1) : Colors.grey.shade300),
                 width: isSelected ? 2 : 1,
               ),
@@ -431,7 +431,7 @@ class _PanchangGuidanceProfileScreenState
                         fontSize: 14,
                         fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
                         color: isSelected
-                            ? Colors.blue
+                            ? const Color(0xFF3F5E46)
                             : (isDark ? Colors.white : Colors.black87),
                       ),
                     ),
@@ -439,7 +439,7 @@ class _PanchangGuidanceProfileScreenState
                 ),
                 if (isSelected) ...[
                   const SizedBox(width: 8),
-                  const Icon(Icons.check_circle, color: Colors.blue, size: 18),
+                  const Icon(Icons.check_circle, color: const Color(0xFF3F5E46), size: 18),
                 ],
               ],
             ),
