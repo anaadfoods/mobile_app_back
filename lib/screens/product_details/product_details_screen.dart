@@ -3,6 +3,10 @@ import 'package:collection/collection.dart';
 import 'package:flutter/services.dart';
 import 'package:grocery_app/common_widgets/global_import.dart';
 
+import 'package:go_router/go_router.dart';
+import 'package:grocery_app/routes/app_routes.dart';
+import 'package:share_plus/share_plus.dart';
+
 // --- CUBIT & STATE IMPORTS (Ensure paths are correct) ---
 
 class ProductDetailsScreen extends StatefulWidget {
@@ -357,7 +361,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
           GestureDetector(
             onTap: () {
               _triggerHaptic();
-              Navigator.of(context).pop();
+              context.safePop();
             },
             child: Container(
               padding: const EdgeInsets.all(10),
@@ -378,7 +382,12 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
             children: [
               // Share
               GestureDetector(
-                onTap: () => _triggerHaptic(),
+                onTap: () {
+                  _triggerHaptic();
+                  Share.share(
+                    'Check out this product: https://anaadfoods.com/product/${widget.product.id}',
+                  );
+                },
                 child: Container(
                   padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
@@ -452,11 +461,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
 
       SnackBarHelper.showSuccess(context, result['message']);
     } else if (result['requiresLogin'] == true) {
-      Navigator.push(
-        context,
-
-        AnimatedTransitions.slideFromRight(LoginScreen()),
-      );
+      context.push(AppRoute.login.path);
     } else {
       SnackBarHelper.showError(
         context,
@@ -970,9 +975,10 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
   }
 
   void _onProductClicked(BuildContext context, Product item) {
-    Navigator.push(
-      context,
-      AnimatedTransitions.fadeScale(ProductDetailsScreen(product: item)),
+    context.pushNamed(
+      AppRoute.productDetails.name,
+      pathParameters: {'id': item.id.toString()},
+      extra: item,
     );
   }
 
@@ -1194,10 +1200,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
           flex: 2,
           child: OutlinedButton.icon(
             onPressed: () {
-              Navigator.of(context).popUntil((route) => route.isFirst);
-              WidgetsBinding.instance.addPostFrameCallback((_) {
-                DashboardScreen.dashboardKey.currentState?.switchToTab(2);
-              });
+              context.go('/cart');
             },
 
             icon: const Icon(Icons.shopping_cart_checkout, size: 20),
@@ -1270,10 +1273,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
     final token = await _authService.getAccessToken();
     if (token == null) {
       SnackBarHelper.showWarning(context, 'Please login to modify your cart');
-      Navigator.push(
-        context,
-        AnimatedTransitions.slideFromRight(const LoginScreen()),
-      );
+      context.push(AppRoute.login.path);
       return;
     }
 
@@ -1334,18 +1334,16 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
       'Navigating to Address Screen with: isSubscription=$isSubscription, selectedPlanId=$selectedPlanId, quantity=$quantity, price=$price, paymentType=$paymentType',
     );
 
-    Navigator.push(
-      context,
-      AnimatedTransitions.slideFromBottom(
-        AddressSelectionScreen(
-          singleProduct: widget.product,
-          quantity: quantity ?? 1,
-          isSubscription: isSubscription,
-          price: price,
-          selectedPlan: selectedPlanId ?? 0,
-          paymentType: paymentType, // Pass it to the next screen
-        ),
-      ),
+    context.pushNamed(
+      AppRoute.address.name,
+      extra: {
+        'singleProduct': widget.product,
+        'quantity': quantity ?? 1,
+        'isSubscription': isSubscription,
+        'price': price,
+        'selectedPlan': selectedPlanId ?? 0,
+        'paymentType': paymentType,
+      },
     );
   }
 

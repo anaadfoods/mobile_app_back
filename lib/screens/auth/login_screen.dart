@@ -3,7 +3,8 @@ import 'dart:math' as math;
 import 'package:grocery_app/common_widgets/global_import.dart';
 
 class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key});
+  final String? redirectPath;
+  const LoginScreen({super.key, this.redirectPath});
 
   @override
   _LoginScreenState createState() => _LoginScreenState();
@@ -149,7 +150,12 @@ class _LoginScreenState extends State<LoginScreen>
       body: BlocConsumer<AuthCubit, AuthState>(
         listener: (context, state) {
           if (state is Authenticated) {
-            context.go('/');
+            if (widget.redirectPath != null &&
+                widget.redirectPath!.isNotEmpty) {
+              context.go(widget.redirectPath!);
+            } else {
+              context.go('/home');
+            }
           } else if (state is AuthError) {
             SnackBarHelper.showError(context, state.message);
           }
@@ -989,4 +995,3 @@ class _GoogleLogoPainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
-

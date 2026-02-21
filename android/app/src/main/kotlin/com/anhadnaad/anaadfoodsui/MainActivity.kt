@@ -1,4 +1,4 @@
-package com.example.anaadfoodsui
+package com.anhadnaad.anaadfoodsui
 
 import io.flutter.embedding.android.FlutterActivity
 

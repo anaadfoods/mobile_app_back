@@ -1,6 +1,7 @@
 import 'package:collection/collection.dart';
 import 'package:grocery_app/models/product_image_model.dart';
 import 'package:grocery_app/common_widgets/global_import.dart';
+import 'package:grocery_app/routes/app_routes.dart';
 
 class FavouriteScreen extends StatefulWidget {
   const FavouriteScreen({super.key});
@@ -633,11 +634,10 @@ class _FavouriteScreenState extends State<FavouriteScreen>
             favorite.productId,
           );
           if (!mounted) return;
-          Navigator.push(
-            context,
-            AnimatedTransitions.slideFromRight(
-              ProductDetailsScreen(product: product),
-            ),
+          context.pushNamed(
+            AppRoute.productDetails.name,
+            pathParameters: {'id': product.id.toString()},
+            extra: product,
           );
         },
         child: Container(

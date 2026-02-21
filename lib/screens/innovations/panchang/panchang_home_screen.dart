@@ -3,6 +3,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:grocery_app/common_widgets/global_import.dart';
 import 'package:intl/intl.dart';
 
 import '../../../common_widgets/error_state_widget.dart';
@@ -329,7 +330,7 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
           child: GestureDetector(
             onTap: () {
               HapticFeedback.lightImpact();
-              Navigator.pop(context);
+              context.go("/profile");
             },
             child: Container(
               decoration: BoxDecoration(

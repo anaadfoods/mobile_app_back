@@ -1,6 +1,5 @@
 import 'package:grocery_app/services/api_config.dart'; // ++ ADD THIS IMPORT ++
 
-
 class UserModel {
   final String email;
   final String username;
@@ -17,6 +16,7 @@ class UserModel {
   final String? profilePicture;
   final String? referralCode;
   final bool isEmailVerified;
+  final bool isRfp;
   UserModel({
     required this.email,
     required this.username,
@@ -33,6 +33,7 @@ class UserModel {
     this.profilePicture,
     this.referralCode,
     this.isEmailVerified = false,
+    this.isRfp = false,
   });
 
   // Convert UserModel to JSON for registration
@@ -71,17 +72,16 @@ class UserModel {
 
   // Create UserModel from JSON
   factory UserModel.fromJson(Map<String, dynamic> json) {
-
-
- final String? rawImageUrl = json['profile_picture'];
+    final String? rawImageUrl = json['profile_picture'];
     String? finalImageUrl;
 
     // 2. Check if the URL is valid and complete
     if (rawImageUrl != null && rawImageUrl.isNotEmpty) {
       // If it's a full URL, use it directly. Otherwise, prepend the base URL.
-      finalImageUrl = rawImageUrl.startsWith('http')
-          ? rawImageUrl
-          : '${ApiConfig.baseUrl}$rawImageUrl';
+      finalImageUrl =
+          rawImageUrl.startsWith('http')
+              ? rawImageUrl
+              : '${ApiConfig.baseUrl}$rawImageUrl';
     }
 
     return UserModel(
@@ -92,7 +92,7 @@ class UserModel {
       firstName: json['first_name'] ?? '',
       lastName: json['last_name'] ?? '',
       phoneNumber: json['phone_number'] ?? '',
-      gender : json['gender'] ?? '',
+      gender: json['gender'] ?? '',
       address: json['address'],
       pincode: json['pincode'],
       city: json['city'],
@@ -100,6 +100,7 @@ class UserModel {
       profilePicture: finalImageUrl,
       referralCode: json['referral_code'],
       isEmailVerified: json['is_email_verified'] ?? false,
+      isRfp: json['is_rfp'] ?? false,
     );
   }
 
@@ -120,6 +121,7 @@ class UserModel {
     String? profilePicture,
     String? referralCode,
     bool? isEmailVerified,
+    bool? isRfp,
   }) {
     return UserModel(
       email: email ?? this.email,
@@ -137,6 +139,7 @@ class UserModel {
       profilePicture: profilePicture ?? this.profilePicture,
       referralCode: referralCode ?? this.referralCode,
       isEmailVerified: isEmailVerified ?? this.isEmailVerified,
+      isRfp: isRfp ?? this.isRfp,
     );
   }
 }

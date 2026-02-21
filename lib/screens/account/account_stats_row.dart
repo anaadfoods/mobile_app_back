@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:grocery_app/screens/order/order_screen.dart';
 import 'package:grocery_app/screens/MySubscriptionPlan/subscription_plan_detail.dart';
 import 'package:grocery_app/screens/dashboard/dashboard_screen.dart';
+import 'package:go_router/go_router.dart';
+import 'package:grocery_app/routes/app_routes.dart';
 
 class AccountStatsRow extends StatelessWidget {
   final int totalOrders;
@@ -51,10 +53,7 @@ class AccountStatsRow extends StatelessWidget {
                   Colors.green,
                   0,
                   () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => OrderScreen()),
-                    );
+                    context.pushNamed(AppRoute.orderList.name);
                   },
                 ),
                 _buildGradientDivider(theme),
@@ -67,12 +66,7 @@ class AccountStatsRow extends StatelessWidget {
                   Colors.green,
                   1,
                   () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const SubscriptionScreen(),
-                      ),
-                    );
+                    context.pushNamed(AppRoute.subscriptionList.name);
                   },
                 ),
                 _buildGradientDivider(theme),

@@ -81,7 +81,6 @@ class Subscription {
       paymentStatus: json['payment_status'] ?? '',
       paymentMethod: json['payment_method'] ?? '',
       deliveryAddress: json['delivery_address'] ?? '',
-
       deliveryCity: json['delivery_city'] ?? '',
       deliveryState: json['delivery_state'] ?? '',
       deliveryPincode: json['delivery_pincode'] ?? '',

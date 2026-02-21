@@ -1,19 +1,17 @@
 import "dart:math" as math;
 import "dart:ui";
 
+import "package:go_router/go_router.dart";
 import "package:grocery_app/common_widgets/global_import.dart";
-import "package:grocery_app/screens/RFP/contract_farming_screen.dart";
-import "package:grocery_app/screens/featured_products_screen.dart";
+import "package:grocery_app/routes/app_routes.dart";
 import "package:grocery_app/common_widgets/subscription_table.dart";
 import "package:grocery_app/screens/home/home_community_card.dart";
 import "package:grocery_app/screens/home/home_featured_products.dart";
-import "package:grocery_app/screens/home/home_category_card.dart";
 import "package:grocery_app/screens/home/home_search_bar.dart";
 import "package:grocery_app/screens/home/home_search_dropdown.dart";
 import "package:grocery_app/screens/home/home_category_showcase.dart";
 import "package:grocery_app/screens/home/home_communities_section.dart";
 import "package:grocery_app/screens/home/all_products_list.dart";
-import 'package:grocery_app/screens/innovations/panchang/panchang_home_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -122,10 +120,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 
   void _onProductClicked(BuildContext context, Product item) {
     _focusNode.unfocus();
-    Navigator.push(
-      context,
-      AnimatedTransitions.fadeScale(ProductDetailsScreen(product: item)),
-    );
+    context.push('/product/${item.id}');
   }
 
   @override
@@ -441,14 +436,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                   icon: Icons.dangerous,
                                   onTap: () {
                                     HapticFeedback.lightImpact();
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder:
-                                            (context) =>
-                                                const PanchangHomeScreen(),
-                                      ),
-                                    );
+                                    context.push('/${AppRoute.panchang.path}');
                                   },
                                   theme: theme,
                                   hasBadge: false,
@@ -458,14 +446,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                   icon: Icons.notifications_rounded,
                                   onTap: () {
                                     HapticFeedback.lightImpact();
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder:
-                                            (context) =>
-                                                const NotificationsScreen(),
-                                      ),
-                                    );
+                                    context.push(AppRoute.notifications.path);
                                   },
                                   theme: theme,
                                   hasBadge: true,
@@ -658,11 +639,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                 context,
                 "Featured Products",
                 "See All →",
-                () => Navigator.push(
-                  context,
-                  AnimatedTransitions.slideFromRight(
-                    FeaturedProductsScreen(products: featuredProducts),
-                  ),
+                () => context.pushNamed(
+                  AppRoute.featuredProducts.name,
+                  extra: featuredProducts,
                 ),
               ),
               // Horizontal scrolling featured products

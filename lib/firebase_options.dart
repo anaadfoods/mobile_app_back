@@ -52,7 +52,7 @@ class DefaultFirebaseOptions {
 
   static const FirebaseOptions android = FirebaseOptions(
     apiKey: 'AIzaSyDAACEio5BqvGQUhd6ag5T3CvXyHfyNfug',
-    appId: '1:356514741847:android:8b14ff4944522e144dad12',
+    appId: '1:356514741847:android:8859b0c300394efe4dad12',
     messagingSenderId: '356514741847',
     projectId: 'anaadapp',
     storageBucket: 'anaadapp.firebasestorage.app',
@@ -60,11 +60,13 @@ class DefaultFirebaseOptions {
 
   static const FirebaseOptions ios = FirebaseOptions(
     apiKey: 'AIzaSyCRh5uSAo29ylAiBxuBQU8jL5VKJtjdWaU',
-    appId: '1:356514741847:ios:9749852aa134d0484dad12',
+    appId: '1:356514741847:ios:8d644f168f7b9c584dad12',
     messagingSenderId: '356514741847',
     projectId: 'anaadapp',
     storageBucket: 'anaadapp.firebasestorage.app',
-    iosBundleId: 'com.example.anaadfoodsui',
+    androidClientId: '356514741847-o3f1vdqolk6oi06fshtm8ooos9od01n3.apps.googleusercontent.com',
+    iosClientId: '356514741847-jcknjeta1r4eg56bea8jmjb0ucg3v6n2.apps.googleusercontent.com',
+    iosBundleId: 'com.anaad.foods.ios',
   );
 
   static const FirebaseOptions macos = FirebaseOptions(
@@ -73,6 +75,8 @@ class DefaultFirebaseOptions {
     messagingSenderId: '356514741847',
     projectId: 'anaadapp',
     storageBucket: 'anaadapp.firebasestorage.app',
+    androidClientId: '356514741847-o3f1vdqolk6oi06fshtm8ooos9od01n3.apps.googleusercontent.com',
+    iosClientId: '356514741847-gnfce2mnodiephtfpq58431jh1b0dlkr.apps.googleusercontent.com',
     iosBundleId: 'com.example.anaadfoodsui',
   );
 
@@ -85,4 +89,5 @@ class DefaultFirebaseOptions {
     storageBucket: 'anaadapp.firebasestorage.app',
     measurementId: 'G-8WQ8XQEZ66',
   );
+
 }

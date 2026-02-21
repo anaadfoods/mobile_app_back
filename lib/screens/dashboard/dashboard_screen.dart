@@ -3,17 +3,16 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:grocery_app/common_widgets/global_import.dart';
 import 'package:grocery_app/cubits/cart/cart_cubit.dart';
 import 'package:grocery_app/cubits/cart/cart_state.dart';
 import 'navigator_item.dart';
 
 class DashboardScreen extends StatefulWidget {
-  const DashboardScreen({super.key});
+  final StatefulNavigationShell navigationShell;
 
-  /// Global key to access dashboard state from child screens
-  static final GlobalKey<DashboardScreenState> dashboardKey =
-      GlobalKey<DashboardScreenState>();
+  const DashboardScreen({super.key, required this.navigationShell});
 
   @override
   DashboardScreenState createState() => DashboardScreenState();
@@ -21,10 +20,6 @@ class DashboardScreen extends StatefulWidget {
 
 class DashboardScreenState extends State<DashboardScreen>
     with TickerProviderStateMixin {
-  int currentIndex = 0;
-  double _pageOffset = 0.0;
-  late PageController _pageController;
-  late AnimationController _indicatorController;
   late AnimationController _bounceController;
   late AnimationController _fabFloatController;
 
@@ -34,11 +29,6 @@ class DashboardScreenState extends State<DashboardScreen>
   @override
   void initState() {
     super.initState();
-    _pageController = PageController(initialPage: currentIndex);
-    _indicatorController = AnimationController(
-      duration: const Duration(milliseconds: 300),
-      vsync: this,
-    );
     _bounceController = AnimationController(
       duration: const Duration(milliseconds: 400),
       vsync: this,
@@ -48,54 +38,34 @@ class DashboardScreenState extends State<DashboardScreen>
       duration: const Duration(milliseconds: 2000),
       vsync: this,
     )..repeat(reverse: true);
-
-    // Listen to page scroll to update offset for sliding indicator
-    _pageController.addListener(() {
-      setState(() {
-        _pageOffset = _pageController.page ?? currentIndex.toDouble();
-      });
-    });
   }
 
   @override
   void dispose() {
-    _pageController.dispose();
-    _indicatorController.dispose();
     _bounceController.dispose();
     _fabFloatController.dispose();
     super.dispose();
   }
 
   void _onTabChanged(int index) {
-    if (index == currentIndex) return;
+    if (index == widget.navigationShell.currentIndex) return;
 
     // Haptic feedback on tap
     HapticFeedback.selectionClick();
 
-    setState(() {
-      currentIndex = index;
-    });
-
-    // Switch tabs directly (no scrolling through intermediate pages)
-    _pageController.jumpToPage(index);
-
     // Trigger bounce animation
     _bounceController.forward(from: 0);
+
+    // GoRouter handles the switch
+    widget.navigationShell.goBranch(
+      index,
+      initialLocation: index == widget.navigationShell.currentIndex,
+    );
   }
 
-  /// Public method to switch tabs from child screens
+  /// Public method to switch tabs from child screens (kept for backward compatibility if accessed via key)
   void switchToTab(int index) {
     _onTabChanged(index);
-  }
-
-  void _onPageChanged(int index) {
-    if (index != currentIndex) {
-      // Haptic feedback on swipe complete
-      HapticFeedback.mediumImpact();
-      setState(() {
-        currentIndex = index;
-      });
-    }
   }
 
   @override
@@ -103,32 +73,40 @@ class DashboardScreenState extends State<DashboardScreen>
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final isDark = theme.brightness == Brightness.dark;
+    final currentIndex = widget.navigationShell.currentIndex;
+    final pageOffset =
+        currentIndex
+            .toDouble(); // Approximated since there's no continuous scroll with ShellRoute
 
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, result) {
         if (didPop) return;
 
-        final now = DateTime.now();
-        final isWarning =
-            lastTimeBackPressed == null ||
-            now.difference(lastTimeBackPressed!) > const Duration(seconds: 2);
+        // Determine if we should exit the app when back button is pressed on Home tab
+        if (widget.navigationShell.currentIndex == 0 && !context.canPop()) {
+          final now = DateTime.now();
+          final isWarning =
+              lastTimeBackPressed == null ||
+              now.difference(lastTimeBackPressed!) > const Duration(seconds: 2);
 
-        if (isWarning) {
-          lastTimeBackPressed = now;
-          SnackBarHelper.showInfo(context, "Tap back again to exit 👋");
+          if (isWarning) {
+            lastTimeBackPressed = now;
+            SnackBarHelper.showInfo(context, "Tap back again to exit 👋");
+          } else {
+            SystemNavigator.pop(); // Native exit since there is no route left
+          }
         } else {
-          Navigator.of(context).pop();
+          // Otherwise let the router handle the back navigation (e.g pop nested route or go to home branch if on another tab)
+          if (context.canPop()) {
+            context.pop();
+          } else {
+            widget.navigationShell.goBranch(0); // Go back to home tab
+          }
         }
       },
       child: Scaffold(
-        body: PageView(
-          controller: _pageController,
-          onPageChanged: _onPageChanged,
-          // Disable swipe between bottom-nav tabs.
-          physics: const NeverScrollableScrollPhysics(),
-          children: navigatorItems.map((e) => e.screen).toList(),
-        ),
+        body: widget.navigationShell,
         bottomNavigationBar: _PremiumBottomNavBar(
           currentIndex: currentIndex,
           onTabChanged: _onTabChanged,
@@ -137,7 +115,7 @@ class DashboardScreenState extends State<DashboardScreen>
           colorScheme: colorScheme,
           bounceController: _bounceController,
           fabFloatController: _fabFloatController,
-          pageOffset: _pageOffset,
+          pageOffset: pageOffset,
         ),
       ),
     );
@@ -750,4 +728,3 @@ class _DockNavItemState extends State<_DockNavItem>
     );
   }
 }
-

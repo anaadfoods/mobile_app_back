@@ -91,7 +91,7 @@ class _CombinedScreenState extends State<CombinedScreen>
       leading: GestureDetector(
         onTap: () {
           _triggerHaptic();
-          Navigator.pop(context);
+          context.pop();
         },
         child: Container(
           margin: const EdgeInsets.all(8),
@@ -791,24 +791,24 @@ class _CombinedScreenState extends State<CombinedScreen>
   }
 }
 
-Future<void> _showNotificationForm(BuildContext context) async {
+Future<void> _showNotificationForm(BuildContext outerContext) async {
   final formKey = GlobalKey<FormState>();
   final nameController = TextEditingController();
   final phoneController = TextEditingController();
   final emailController = TextEditingController();
   final messageController = TextEditingController();
-  final theme = Theme.of(context);
+  final theme = Theme.of(outerContext);
   final isDark = theme.brightness == Brightness.dark;
   String selectedRequirementType = 'INDIVIDUAL';
 
   await showGeneralDialog(
-    context: context,
+    context: outerContext,
     barrierDismissible: true,
     barrierLabel: 'Dismiss',
     barrierColor: Colors.black.withOpacity(0.6),
     transitionDuration: const Duration(milliseconds: 300),
     pageBuilder: (context, animation, secondaryAnimation) => const SizedBox(),
-    transitionBuilder: (context, animation, secondaryAnimation, child) {
+    transitionBuilder: (dialogContext, animation, secondaryAnimation, child) {
       return ScaleTransition(
         scale: Tween<double>(begin: 0.8, end: 1.0).animate(
           CurvedAnimation(parent: animation, curve: Curves.easeOutBack),
@@ -816,7 +816,7 @@ Future<void> _showNotificationForm(BuildContext context) async {
         child: FadeTransition(
           opacity: animation,
           child: StatefulBuilder(
-            builder: (context, setDialogState) {
+            builder: (dialogContext, setDialogState) {
               return Center(
                 child: Container(
                   margin: const EdgeInsets.symmetric(horizontal: 24),
@@ -992,25 +992,27 @@ Future<void> _showNotificationForm(BuildContext context) async {
                                                 'redirection_from': 'RFP',
                                               }),
                                             );
-                                            if (!context.mounted) return;
-                                            Navigator.pop(context);
+                                            if (!dialogContext.mounted) return;
+                                            Navigator.of(dialogContext).pop();
+                                            if (!outerContext.mounted) return;
                                             if (response.statusCode == 200 ||
                                                 response.statusCode == 201) {
                                               SnackBarHelper.showSuccess(
-                                                context,
+                                                outerContext,
                                                 'Thank you! We\'ll get back to you soon.',
                                               );
                                             } else {
                                               SnackBarHelper.showError(
-                                                context,
+                                                outerContext,
                                                 'Failed. Please try again.',
                                               );
                                             }
                                           } catch (e) {
-                                            if (!context.mounted) return;
-                                            Navigator.pop(context);
+                                            if (!dialogContext.mounted) return;
+                                            Navigator.of(dialogContext).pop();
+                                            if (!outerContext.mounted) return;
                                             SnackBarHelper.showError(
-                                              context,
+                                              outerContext,
                                               'Error. Please try again.',
                                             );
                                           }

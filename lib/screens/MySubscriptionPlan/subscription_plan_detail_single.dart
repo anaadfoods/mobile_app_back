@@ -1,6 +1,7 @@
 import 'package:grocery_app/common_widgets/global_import.dart';
 
 import 'package:grocery_app/common_widgets/pause_date_picker_sheet.dart';
+import 'package:grocery_app/routes/app_routes.dart';
 
 class SubscriptionPlanDetailScreen extends StatefulWidget {
   final Subscription? subscription;
@@ -67,15 +68,23 @@ class _SubscriptionPlanDetailScreenState
   Future<void> _loadSubscription(String id) async {
     setState(() => _isLoadingSubscription = true);
     try {
-      final subscription = await _subscriptionService.getSubscriptionsbyId(
-        id as int,
+      final response = await _subscriptionService.getSubscriptionDetails(
+        int.parse(id),
       );
       if (mounted) {
-        setState(() {
-          _currentOrder = subscription as Subscription?;
-          _isLoadingSubscription = false;
-        });
-        _initAnimationsAndData();
+        if (response['success'] == true && response['data'] != null) {
+          setState(() {
+            _currentOrder = response['data'] as Subscription?;
+            _isLoadingSubscription = false;
+          });
+          _initAnimationsAndData();
+        } else {
+          setState(() => _isLoadingSubscription = false);
+          SnackBarHelper.showError(
+            context,
+            response['message'] ?? 'Failed to load subscription details',
+          );
+        }
       }
     } catch (e) {
       if (mounted) {
@@ -446,7 +455,10 @@ class _SubscriptionPlanDetailScreenState
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         GestureDetector(
-                          onTap: () => Navigator.pop(context),
+                          onTap:
+                              () => context.goNamed(
+                                AppRoute.subscriptionList.name,
+                              ),
                           child: Container(
                             padding: const EdgeInsets.all(10),
                             decoration: BoxDecoration(
@@ -1126,12 +1138,22 @@ class _SubscriptionPlanDetailScreenState
           Icon(Icons.warning_rounded, color: AppColors.error, size: 24),
           const SizedBox(width: 12),
           Expanded(
-            child: Text(
-              'Payment Pending',
-              style: theme.textTheme.titleMedium?.copyWith(
-                color: AppColors.error,
-                fontWeight: FontWeight.bold,
-              ),
+            child: Column(
+              children: [
+                Text(
+                  'Payment Pending',
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    color: AppColors.error,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                Text(
+                  '${widget.subscription!.lastPaymentDate}',
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: AppColors.error,
+                  ),
+                ),
+              ],
             ),
           ),
           SubscriptionRepaymentButton(
