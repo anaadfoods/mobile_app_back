@@ -70,16 +70,10 @@ class _AnimatedCommunityCardState extends State<AnimatedCommunityCard>
 
     // Alternate between green and brown gradients for variety
     final isEvenCard = index % 2 == 0;
-    final gradientColors =
+    final baseColor =
         isEvenCard
-            ? [
-              const Color(0xFF2E7D32).withOpacity(0.85), // Forest green
-              const Color(0xFF1B5E20).withOpacity(0.7),
-            ]
-            : [
-              const Color(0xFF5D4037).withOpacity(0.9), // Brown
-              const Color(0xFF3E2723).withOpacity(0.75),
-            ];
+            ? const Color(0xFF2E7D32) // Forest green
+            : const Color(0xFF5D4037); // Brown
 
     return GestureDetector(
       onTapDown: (_) => setState(() => _isPressed = true),
@@ -140,13 +134,18 @@ class _AnimatedCommunityCardState extends State<AnimatedCommunityCard>
                       ),
                 ),
 
-                // Gradient Overlay
+                // Gradient Overlay — only bottom 50%
                 Container(
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
-                      colors: gradientColors,
-                      begin: Alignment.centerLeft,
-                      end: Alignment.centerRight,
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      stops: const [0.0, 0.5, 1.0],
+                      colors: [
+                        Colors.transparent,
+                        baseColor.withOpacity(0.33),
+                        baseColor.withOpacity(0.51),
+                      ],
                     ),
                   ),
                 ),

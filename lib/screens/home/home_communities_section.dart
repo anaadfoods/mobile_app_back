@@ -117,12 +117,12 @@ class HomeCommunitiesSection extends StatelessWidget {
                   ),
                   const SizedBox(height: 10),
                   // Main title
-                  const Text(
+                  Text(
                     'Join the Movement',
                     style: TextStyle(
                       fontSize: 22,
                       fontWeight: FontWeight.w800,
-                      color: Colors.white,
+                      color: Theme.of(context).colorScheme.onSurface,
                       letterSpacing: 0.4,
                       height: 1.1,
                     ),

@@ -147,7 +147,7 @@ class _OrderScreenState extends State<OrderScreen>
             end: Alignment.bottomRight,
             colors:
                 isDark
-                    ? [const Color(0xFF2D2D2D), const Color(0xFF1A1A1A)]
+                    ? [const Color(0xFF1B3A24), const Color(0xFF122918)]
                     : [
                       AppColors.primaryColor,
                       AppColors.primaryColor.withValues(alpha: 0.8),
