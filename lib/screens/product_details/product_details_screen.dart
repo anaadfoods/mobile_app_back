@@ -273,8 +273,6 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
                             children: [
                               const SizedBox(height: 10),
                               _buildProductTitle(theme),
-                              const SizedBox(height: 8),
-                              _buildRatingAndOrders(theme),
                               const SizedBox(height: 16),
                               _buildPriceBox(theme),
                               const SizedBox(height: 24),
@@ -474,25 +472,6 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
 
   // ... (All other _build... widgets from _buildBestsellerTag to _buildProductCard remain the same)
 
-  Widget _buildBestsellerTag() {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: BoxDecoration(
-        color: const Color(0xFFB9A06D),
-        borderRadius: BorderRadius.circular(4),
-      ),
-      child: const Text(
-        'Bestseller',
-        style: TextStyle(
-          color: Colors.white,
-          fontWeight: FontWeight.bold,
-          fontSize: 10,
-          letterSpacing: 0.5,
-        ),
-      ),
-    );
-  }
-
   Widget _buildProductTitle(ThemeData theme) {
     return Text(
       '${widget.product.productName} - ${widget.product.weight}',
@@ -500,49 +479,6 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
         fontWeight: FontWeight.bold,
         height: 1.2,
       ),
-    );
-  }
-
-  Widget _buildRatingAndOrders(ThemeData theme) {
-    return Row(
-      children: [
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-          decoration: BoxDecoration(
-            color: Colors.amber.withOpacity(0.1),
-            borderRadius: BorderRadius.circular(6),
-            border: Border.all(color: Colors.amber.withOpacity(0.5)),
-          ),
-          child: Row(
-            children: [
-              const Icon(Icons.star_rounded, color: Colors.amber, size: 16),
-              const SizedBox(width: 4),
-              const Text(
-                '4.6',
-                style: TextStyle(
-                  color: Colors.amber,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 12,
-                ),
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(width: 12),
-        Text(
-          '1.2k reviews',
-          style: theme.textTheme.bodySmall?.copyWith(color: Colors.grey),
-        ),
-        const SizedBox(width: 8),
-        const CircleAvatar(radius: 2, backgroundColor: Colors.grey),
-        const SizedBox(width: 8),
-        Text(
-          '8.5k orders',
-          style: theme.textTheme.bodySmall?.copyWith(color: Colors.grey),
-        ),
-        const SizedBox(width: 8),
-        _buildBestsellerTag(),
-      ],
     );
   }
 
@@ -1158,22 +1094,24 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
               }
             },
             icon: const Icon(
-              Icons.stars_rounded,
+              Icons.shopping_bag_rounded,
               size: 20,
               color: Colors.white,
             ),
             label: const Text(
-              "Subscribe Now",
+              "Buy Now",
               style: TextStyle(
-                fontWeight: FontWeight.bold,
+                fontWeight: FontWeight.w800,
+                fontSize: 16,
                 color: Colors.white,
+                letterSpacing: 0.5,
               ),
             ),
             style: ElevatedButton.styleFrom(
               padding: const EdgeInsets.symmetric(vertical: 16),
-              backgroundColor: const Color(
-                0xFFB9A06D,
-              ), // Gold color for subscription
+              backgroundColor: const Color(0xFF2E7D32),
+              shadowColor: const Color(0xFF2E7D32).withOpacity(0.5),
+              elevation: 6,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
               ),
@@ -1929,18 +1867,29 @@ class _ModernSubscriptionSheetState extends State<_ModernSubscriptionSheet>
                               Container(
                                 padding: const EdgeInsets.all(12),
                                 decoration: BoxDecoration(
-                                  gradient: LinearGradient(
+                                  gradient: const LinearGradient(
                                     colors: [
-                                      accentColor.withValues(alpha: 0.2),
-                                      accentColor.withValues(alpha: 0.1),
+                                      Color(0xFF2E7D32),
+                                      Color(0xFF388E3C),
                                     ],
+                                    begin: Alignment.topLeft,
+                                    end: Alignment.bottomRight,
                                   ),
                                   borderRadius: BorderRadius.circular(14),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: const Color(
+                                        0xFF2E7D32,
+                                      ).withValues(alpha: 0.4),
+                                      blurRadius: 10,
+                                      spreadRadius: 1,
+                                    ),
+                                  ],
                                 ),
                                 child: Icon(
-                                  Icons.card_membership_rounded,
-                                  color: accentColor,
-                                  size: 26,
+                                  Icons.sell_rounded,
+                                  color: Colors.white,
+                                  size: 24,
                                 ),
                               ),
                               const SizedBox(width: 14),
@@ -1949,17 +1898,21 @@ class _ModernSubscriptionSheetState extends State<_ModernSubscriptionSheet>
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      'Choose Your Plan',
+                                      'Choose Your Order',
                                       style: theme.textTheme.titleLarge
                                           ?.copyWith(
-                                            fontWeight: FontWeight.bold,
+                                            fontWeight: FontWeight.w800,
+                                            letterSpacing: 0.2,
                                           ),
                                     ),
                                     const SizedBox(height: 4),
                                     Text(
-                                      'Subscribe & save with monthly deliveries',
+                                      'One-time buy or subscribe to save every month.',
                                       style: theme.textTheme.bodySmall
-                                          ?.copyWith(color: theme.hintColor),
+                                          ?.copyWith(
+                                            color: theme.hintColor,
+                                            height: 1.4,
+                                          ),
                                     ),
                                   ],
                                 ),
@@ -1988,7 +1941,76 @@ class _ModernSubscriptionSheetState extends State<_ModernSubscriptionSheet>
                             ),
                             const SizedBox(height: 16),
 
-                            Divider(thickness: 5),
+                            // Styled separator
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: Container(
+                                    height: 1.5,
+                                    decoration: BoxDecoration(
+                                      gradient: LinearGradient(
+                                        colors: [
+                                          Colors.transparent,
+                                          isDark
+                                              ? Colors.white.withValues(
+                                                alpha: 0.12,
+                                              )
+                                              : const Color(0xFFC5DFC9),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 12,
+                                  ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: const [
+                                      Icon(
+                                        Icons.workspace_premium_rounded,
+                                        size: 13,
+                                        color: Color(0xFF2E7D32),
+                                      ),
+                                      SizedBox(width: 6),
+                                      Text(
+                                        'OR SUBSCRIBE & SAVE',
+                                        style: TextStyle(
+                                          fontSize: 10,
+                                          fontWeight: FontWeight.w700,
+                                          color: Color(0xFF2E7D32),
+                                          letterSpacing: 1.2,
+                                        ),
+                                      ),
+                                      SizedBox(width: 6),
+                                      Icon(
+                                        Icons.workspace_premium_rounded,
+                                        size: 13,
+                                        color: Color(0xFF2E7D32),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                Expanded(
+                                  child: Container(
+                                    height: 1.5,
+                                    decoration: BoxDecoration(
+                                      gradient: LinearGradient(
+                                        colors: [
+                                          isDark
+                                              ? Colors.white.withValues(
+                                                alpha: 0.12,
+                                              )
+                                              : const Color(0xFFC5DFC9),
+                                          Colors.transparent,
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
                             const SizedBox(height: 16),
 
                             // Plan Cards
@@ -2037,8 +2059,9 @@ class _ModernSubscriptionSheetState extends State<_ModernSubscriptionSheet>
                           top: BorderSide(
                             color:
                                 isDark
-                                    ? Colors.white.withOpacity(0.1)
-                                    : Colors.grey.shade200,
+                                    ? Colors.white.withOpacity(0.08)
+                                    : const Color(0xFFD6EADA),
+                            width: 1.5,
                           ),
                         ),
                       ),
@@ -2052,14 +2075,15 @@ class _ModernSubscriptionSheetState extends State<_ModernSubscriptionSheet>
                               decoration: BoxDecoration(
                                 color:
                                     isDark
-                                        ? Colors.grey.shade900
-                                        : Colors.grey.shade50,
+                                        ? const Color(0xFF1A2B1D)
+                                        : const Color(0xFFF1F8F2),
                                 borderRadius: BorderRadius.circular(16),
                                 border: Border.all(
                                   color:
                                       isDark
-                                          ? Colors.grey.shade800
-                                          : Colors.grey.shade200,
+                                          ? const Color(0xFF2D4A31)
+                                          : const Color(0xFFC5DFC9),
+                                  width: 1.5,
                                 ),
                               ),
                               child: Row(
@@ -2166,14 +2190,18 @@ class _ModernSubscriptionSheetState extends State<_ModernSubscriptionSheet>
           color:
               isSelected
                   ? null
-                  : (isDark ? Colors.grey.shade900 : Colors.grey.shade50),
+                  : (isDark
+                      ? const Color(0xFF1A2B1D)
+                      : const Color(0xFFF1F8F2)),
           borderRadius: BorderRadius.circular(18),
           border: Border.all(
             color:
                 isSelected
                     ? accentColor.withValues(alpha: 0.5)
-                    : (isDark ? Colors.grey.shade800 : Colors.grey.shade200),
-            width: isSelected ? 2 : 1,
+                    : (isDark
+                        ? const Color(0xFF2D4A31)
+                        : const Color(0xFFC5DFC9)),
+            width: isSelected ? 2 : 1.5,
           ),
           boxShadow:
               isSelected
@@ -2184,7 +2212,13 @@ class _ModernSubscriptionSheetState extends State<_ModernSubscriptionSheet>
                       offset: const Offset(0, 6),
                     ),
                   ]
-                  : null,
+                  : [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.06),
+                      blurRadius: 8,
+                      offset: const Offset(0, 3),
+                    ),
+                  ],
         ),
         child: Opacity(
           opacity: isEnabled ? 1.0 : 0.5,
@@ -2209,8 +2243,8 @@ class _ModernSubscriptionSheetState extends State<_ModernSubscriptionSheet>
                             isSelected
                                 ? Colors.white
                                 : (isDark
-                                    ? Colors.grey.shade600
-                                    : Colors.grey.shade400),
+                                    ? const Color(0xFF4CAF50)
+                                    : const Color(0xFF81C784)),
                         width: 2,
                       ),
                     ),
@@ -2457,14 +2491,18 @@ class _ModernSubscriptionSheetState extends State<_ModernSubscriptionSheet>
           color:
               isSelected
                   ? null
-                  : (isDark ? Colors.grey.shade900 : Colors.grey.shade50),
+                  : (isDark
+                      ? const Color(0xFF1A2B1D)
+                      : const Color(0xFFF1F8F2)),
           borderRadius: BorderRadius.circular(18),
           border: Border.all(
             color:
                 isSelected
                     ? accentColor.withValues(alpha: 0.5)
-                    : (isDark ? Colors.grey.shade800 : Colors.grey.shade200),
-            width: isSelected ? 2 : 1,
+                    : (isDark
+                        ? const Color(0xFF2D4A31)
+                        : const Color(0xFFC5DFC9)),
+            width: isSelected ? 2 : 1.5,
           ),
           boxShadow:
               isSelected
@@ -2475,7 +2513,13 @@ class _ModernSubscriptionSheetState extends State<_ModernSubscriptionSheet>
                       offset: const Offset(0, 6),
                     ),
                   ]
-                  : null,
+                  : [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.06),
+                      blurRadius: 8,
+                      offset: const Offset(0, 3),
+                    ),
+                  ],
         ),
         child: Column(
           children: [
@@ -2497,8 +2541,8 @@ class _ModernSubscriptionSheetState extends State<_ModernSubscriptionSheet>
                           isSelected
                               ? Colors.white
                               : (isDark
-                                  ? Colors.grey.shade600
-                                  : Colors.grey.shade400),
+                                  ? const Color(0xFF4CAF50)
+                                  : const Color(0xFF81C784)),
                       width: 2,
                     ),
                   ),

@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:grocery_app/common_widgets/global_import.dart';
 import 'package:grocery_app/screens/RFP/delivery_screen.dart';
@@ -313,89 +314,111 @@ class _TopCuroselState extends State<TopCurosel>
                                           ),
                                         ),
                                   ),
-                              // Gradient Overlay
+                              // Subtle gradient to give depth to the image
                               Container(
                                 decoration: BoxDecoration(
                                   gradient: LinearGradient(
                                     colors: [
-                                      Colors.black.withOpacity(0.6),
+                                      Colors.black.withOpacity(0.25),
                                       Colors.transparent,
                                     ],
                                     begin: Alignment.bottomCenter,
-                                    end: Alignment.center,
+                                    end: Alignment.topCenter,
                                   ),
                                 ),
                               ),
-                              // Content
+                              // Frosted Glass Content Panel
                               Positioned(
                                 bottom: 12,
                                 left: 16,
                                 right: 16,
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Text(
-                                      item.title,
-                                      style: textTheme.bodyMedium?.copyWith(
-                                        color: Colors.white,
-                                        fontWeight: FontWeight.bold,
-                                        shadows: [
-                                          const Shadow(
-                                            blurRadius: 2,
-                                            color: Colors.black54,
-                                          ),
-                                        ],
-                                      ),
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(14),
+                                  child: BackdropFilter(
+                                    filter: ImageFilter.blur(
+                                      sigmaX: 9,
+                                      sigmaY: 9,
                                     ),
-                                    const SizedBox(height: 2),
-                                    Text(
-                                      item.subtitle,
-                                      style: textTheme.labelSmall?.copyWith(
-                                        color: Colors.white.withOpacity(0.95),
-                                        fontWeight: FontWeight.w500,
-                                        shadows: [
-                                          const Shadow(
-                                            blurRadius: 2,
-                                            color: Colors.black54,
-                                          ),
-                                        ],
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 14,
+                                        vertical: 10,
                                       ),
-                                      maxLines: 3,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                    const SizedBox(height: 6),
-                                    Align(
-                                      alignment: Alignment.centerLeft,
-                                      child: SizedBox(
-                                        height: 28,
-                                        child: TextButton(
-                                          onPressed: item.onTap,
-                                          style: TextButton.styleFrom(
-                                            backgroundColor: colorScheme.primary
-                                                .withOpacity(0.9),
-                                            padding: const EdgeInsets.symmetric(
-                                              horizontal: 12,
-                                            ),
-                                            shape: RoundedRectangleBorder(
-                                              borderRadius:
-                                                  BorderRadius.circular(8),
-                                            ),
-                                          ),
-                                          child: Text(
-                                            item.buttonText,
-                                            style: textTheme.labelMedium
-                                                ?.copyWith(
-                                                  fontSize: 10,
-                                                  color: colorScheme.onPrimary,
-                                                ),
-                                          ),
+                                      decoration: BoxDecoration(
+                                        color: Colors.black.withOpacity(0.15),
+                                        borderRadius: BorderRadius.circular(14),
+                                        border: Border.all(
+                                          color: Colors.white.withOpacity(0.12),
+                                          width: 1,
                                         ),
                                       ),
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Text(
+                                            item.title,
+                                            style:
+                                                textTheme.bodyMedium?.copyWith(
+                                                  color: Colors.white,
+                                                  fontWeight: FontWeight.bold,
+                                                  letterSpacing: 0.3,
+                                                ),
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                          const SizedBox(height: 3),
+                                          Text(
+                                            item.subtitle,
+                                            style:
+                                                textTheme.labelSmall?.copyWith(
+                                                  color: Colors.white
+                                                      .withOpacity(0.88),
+                                                  fontWeight: FontWeight.w400,
+                                                  height: 1.4,
+                                                ),
+                                            maxLines: 2,
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                          const SizedBox(height: 8),
+                                          Align(
+                                            alignment: Alignment.centerLeft,
+                                            child: SizedBox(
+                                              height: 28,
+                                              child: TextButton(
+                                                onPressed: item.onTap,
+                                                style: TextButton.styleFrom(
+                                                  backgroundColor:
+                                                      colorScheme.primary
+                                                          .withOpacity(0.9),
+                                                  padding:
+                                                      const EdgeInsets.symmetric(
+                                                    horizontal: 12,
+                                                  ),
+                                                  shape: RoundedRectangleBorder(
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                          8,
+                                                        ),
+                                                  ),
+                                                ),
+                                                child: Text(
+                                                  item.buttonText,
+                                                  style: textTheme.labelMedium
+                                                      ?.copyWith(
+                                                        fontSize: 10,
+                                                        color:
+                                                            colorScheme.onPrimary,
+                                                      ),
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
                                     ),
-                                  ],
+                                  ),
                                 ),
                               ),
                             ],

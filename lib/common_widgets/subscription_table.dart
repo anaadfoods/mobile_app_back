@@ -752,6 +752,7 @@ class _SubscriptionPopupContentState extends State<_SubscriptionPopupContent> {
   late SubscriptionPlan _selectedPlan;
   String? _selectedProduct;
   late PageController _pageController;
+  bool _isDropdownOpen = false;
 
   @override
   void initState() {
@@ -811,6 +812,7 @@ class _SubscriptionPopupContentState extends State<_SubscriptionPopupContent> {
               setState(() {
                 _selectedPlan = widget.allPlans[index];
                 _selectedProduct = null;
+                _isDropdownOpen = false;
               });
               _loadProductsForPlan(_selectedPlan.id);
             },
@@ -908,7 +910,7 @@ class _SubscriptionPopupContentState extends State<_SubscriptionPopupContent> {
 
                   // Product selector
                   Container(
-                    padding: const EdgeInsets.all(20),
+                    padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
                     decoration: BoxDecoration(
                       color: Colors.black.withOpacity(0.2),
                       border: Border(
@@ -918,101 +920,331 @@ class _SubscriptionPopupContentState extends State<_SubscriptionPopupContent> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          'Select Product',
-                          style: TextStyle(
-                            color: Colors.white.withOpacity(0.8),
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        const SizedBox(height: 10),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 4,
-                          ),
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(14),
-                            border: Border.all(
-                              color: Colors.white.withOpacity(0.3),
+                        // Label
+                        Row(
+                          children: [
+                            Container(
+                              width: 3,
+                              height: 14,
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(2),
+                              ),
                             ),
-                            color: Colors.white.withOpacity(0.1),
-                          ),
-                          child:
-                              areProductsLoading
-                                  ? const Center(
-                                    child: Padding(
-                                      padding: EdgeInsets.all(12),
-                                      child: SizedBox(
-                                        height: 20,
-                                        width: 20,
-                                        child: CircularProgressIndicator(
-                                          color: Colors.white,
-                                          strokeWidth: 2,
-                                        ),
-                                      ),
-                                    ),
-                                  )
-                                  : DropdownButtonHideUnderline(
-                                    child: DropdownButton<String>(
-                                      borderRadius: BorderRadius.circular(14),
-                                      isExpanded: true,
-                                      value: _selectedProduct,
-                                      dropdownColor: const Color(0xFF2E7D32),
-                                      icon: const Icon(
-                                        Icons.keyboard_arrow_down_rounded,
-                                        color: Colors.white,
-                                      ),
-                                      hint: Text(
-                                        currentProducts.isEmpty
-                                            ? 'No products available'
-                                            : 'Choose a product',
-                                        style: TextStyle(
-                                          color: Colors.white.withOpacity(0.7),
-                                        ),
-                                      ),
-                                      items:
-                                          currentProducts.map((p) {
-                                            return DropdownMenuItem<String>(
-                                              value: p.productName,
-                                              child: Text(
-                                                p.productName,
-                                                style: const TextStyle(
-                                                  color: Colors.white,
-                                                ),
-                                              ),
-                                              onTap: () async {
-                                                final product =
-                                                    await CategoryService.fetchProductById(
-                                                      p.productId,
-                                                    );
-                                                if (!context.mounted) return;
-                                                Navigator.push(
-                                                  context,
-                                                  AnimatedTransitions.fadeScale(
-                                                    ProductDetailsScreen(
-                                                      product: product,
-                                                      autoOpenSubscription:
-                                                          true,
-                                                      initialPlanId:
-                                                          _selectedPlan.id,
-                                                    ),
-                                                  ),
-                                                );
-                                              },
-                                            );
-                                          }).toList(),
-                                      onChanged:
-                                          currentProducts.isEmpty
-                                              ? null
-                                              : (val) {
-                                                setState(() {
-                                                  _selectedProduct = val;
-                                                });
-                                              },
-                                    ),
+                            const SizedBox(width: 8),
+                            Text(
+                              'Choose a Product',
+                              style: TextStyle(
+                                color: Colors.white.withOpacity(0.9),
+                                fontSize: 13,
+                                fontWeight: FontWeight.w700,
+                                letterSpacing: 0.4,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 12),
+
+                        // Tap-to-expand selector bar
+                        GestureDetector(
+                          onTap: () {
+                            if (areProductsLoading ||
+                                currentProducts.isEmpty) return;
+                            setState(
+                              () => _isDropdownOpen = !_isDropdownOpen,
+                            );
+                          },
+                          child: AnimatedContainer(
+                            duration: const Duration(milliseconds: 250),
+                            curve: Curves.easeOutCubic,
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(14),
+                              border: Border.all(
+                                color:
+                                    _isDropdownOpen
+                                        ? Colors.white.withOpacity(0.6)
+                                        : Colors.white.withOpacity(0.25),
+                                width: 1.5,
+                              ),
+                              color:
+                                  _isDropdownOpen
+                                      ? Colors.white.withOpacity(0.18)
+                                      : Colors.white.withOpacity(0.08),
+                            ),
+                            child: Column(
+                              children: [
+                                // Header row
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 16,
+                                    vertical: 14,
                                   ),
+                                  child: Row(
+                                    children: [
+                                      Icon(
+                                        Icons.shopping_bag_outlined,
+                                        color: Colors.white.withOpacity(0.8),
+                                        size: 18,
+                                      ),
+                                      const SizedBox(width: 12),
+                                      Expanded(
+                                        child:
+                                            areProductsLoading
+                                                ? Row(
+                                                  children: [
+                                                    SizedBox(
+                                                      width: 16,
+                                                      height: 16,
+                                                      child: CircularProgressIndicator(
+                                                        color: Colors.white,
+                                                        strokeWidth: 2,
+                                                      ),
+                                                    ),
+                                                    const SizedBox(width: 10),
+                                                    Text(
+                                                      'Loading products…',
+                                                      style: TextStyle(
+                                                        color: Colors.white
+                                                            .withOpacity(0.6),
+                                                        fontSize: 14,
+                                                      ),
+                                                    ),
+                                                  ],
+                                                )
+                                                : Text(
+                                                  _selectedProduct ??
+                                                      (currentProducts.isEmpty
+                                                          ? 'No products available'
+                                                          : 'Tap to choose a product'),
+                                                  style: TextStyle(
+                                                    color:
+                                                        _selectedProduct != null
+                                                            ? Colors.white
+                                                            : Colors.white
+                                                                .withOpacity(
+                                                                  0.6,
+                                                                ),
+                                                    fontSize: 14,
+                                                    fontWeight:
+                                                        _selectedProduct != null
+                                                            ? FontWeight.w600
+                                                            : FontWeight.w400,
+                                                  ),
+                                                ),
+                                      ),
+                                      if (!areProductsLoading &&
+                                          currentProducts.isNotEmpty)
+                                        AnimatedRotation(
+                                          turns: _isDropdownOpen ? 0.5 : 0,
+                                          duration: const Duration(
+                                            milliseconds: 250,
+                                          ),
+                                          curve: Curves.easeOutCubic,
+                                          child: Icon(
+                                            Icons.keyboard_arrow_down_rounded,
+                                            color: Colors.white,
+                                            size: 22,
+                                          ),
+                                        ),
+                                    ],
+                                  ),
+                                ),
+
+                                // Expandable product list
+                                AnimatedSize(
+                                  duration: const Duration(milliseconds: 300),
+                                  curve: Curves.easeOutCubic,
+                                  child:
+                                      _isDropdownOpen
+                                          ? ClipRRect(
+                                            borderRadius:
+                                                const BorderRadius.vertical(
+                                                  bottom: Radius.circular(13),
+                                                ),
+                                            child: Column(
+                                              children: [
+                                                Container(
+                                                  height: 1,
+                                                  color: Colors.white
+                                                      .withOpacity(0.15),
+                                                ),
+                                                ...currentProducts
+                                                    .asMap()
+                                                    .entries
+                                                    .map((entry) {
+                                                      final i = entry.key;
+                                                      final p = entry.value;
+                                                      final isLast =
+                                                          i ==
+                                                          currentProducts
+                                                                  .length -
+                                                              1;
+                                                      final isChosen =
+                                                          _selectedProduct ==
+                                                          p.productName;
+
+                                                      return TweenAnimationBuilder<
+                                                        double
+                                                      >(
+                                                        tween: Tween(
+                                                          begin: 0,
+                                                          end: 1,
+                                                        ),
+                                                        duration: Duration(
+                                                          milliseconds:
+                                                              200 + (i * 60),
+                                                        ),
+                                                        curve: Curves.easeOut,
+                                                        builder: (
+                                                          ctx,
+                                                          value,
+                                                          child,
+                                                        ) {
+                                                          return Transform.translate(
+                                                            offset: Offset(
+                                                              0,
+                                                              (1 - value) * 10,
+                                                            ),
+                                                            child: Opacity(
+                                                              opacity: value
+                                                                  .clamp(
+                                                                    0,
+                                                                    1,
+                                                                  ),
+                                                              child: child,
+                                                            ),
+                                                          );
+                                                        },
+                                                        child: GestureDetector(
+                                                          onTap: () async {
+                                                            HapticFeedback
+                                                                .selectionClick();
+                                                            setState(() {
+                                                              _selectedProduct =
+                                                                  p.productName;
+                                                              _isDropdownOpen =
+                                                                  false;
+                                                            });
+                                                            final product =
+                                                                await CategoryService.fetchProductById(
+                                                                  p.productId,
+                                                                );
+                                                            if (!context
+                                                                .mounted) return;
+                                                            Navigator.push(
+                                                              context,
+                                                              AnimatedTransitions
+                                                                  .fadeScale(
+                                                                    ProductDetailsScreen(
+                                                                      product:
+                                                                          product,
+                                                                      autoOpenSubscription:
+                                                                          true,
+                                                                      initialPlanId:
+                                                                          _selectedPlan
+                                                                              .id,
+                                                                    ),
+                                                                  ),
+                                                            );
+                                                          },
+                                                          child: AnimatedContainer(
+                                                            duration: const Duration(
+                                                              milliseconds: 200,
+                                                            ),
+                                                            color:
+                                                                isChosen
+                                                                    ? Colors
+                                                                        .white
+                                                                        .withOpacity(
+                                                                          0.18,
+                                                                        )
+                                                                    : Colors
+                                                                        .transparent,
+                                                            child: Column(
+                                                              children: [
+                                                                Padding(
+                                                                  padding: const EdgeInsets.symmetric(
+                                                                    horizontal:
+                                                                        16,
+                                                                    vertical:
+                                                                        13,
+                                                                  ),
+                                                                  child: Row(
+                                                                    children: [
+                                                                      AnimatedContainer(
+                                                                        duration: const Duration(
+                                                                          milliseconds:
+                                                                              200,
+                                                                        ),
+                                                                        width:
+                                                                            8,
+                                                                        height:
+                                                                            8,
+                                                                        decoration: BoxDecoration(
+                                                                          shape:
+                                                                              BoxShape.circle,
+                                                                          color:
+                                                                              isChosen ? Colors.white : Colors.white.withOpacity(0.3),
+                                                                        ),
+                                                                      ),
+                                                                      const SizedBox(
+                                                                        width:
+                                                                            12,
+                                                                      ),
+                                                                      Expanded(
+                                                                        child:
+                                                                            Text(
+                                                                          p.productName,
+                                                                          style: TextStyle(
+                                                                            color:
+                                                                                Colors.white.withOpacity(isChosen ? 1.0 : 0.85),
+                                                                            fontSize:
+                                                                                14,
+                                                                            fontWeight:
+                                                                                isChosen ? FontWeight.w700 : FontWeight.w400,
+                                                                          ),
+                                                                        ),
+                                                                      ),
+                                                                      if (isChosen)
+                                                                        const Icon(
+                                                                          Icons
+                                                                              .check_circle_rounded,
+                                                                          color:
+                                                                              Colors.white,
+                                                                          size:
+                                                                              18,
+                                                                        ),
+                                                                    ],
+                                                                  ),
+                                                                ),
+                                                                if (!isLast)
+                                                                  Container(
+                                                                    height: 1,
+                                                                    margin: const EdgeInsets.symmetric(
+                                                                      horizontal:
+                                                                          16,
+                                                                    ),
+                                                                    color: Colors
+                                                                        .white
+                                                                        .withOpacity(
+                                                                          0.08,
+                                                                        ),
+                                                                  ),
+                                                              ],
+                                                            ),
+                                                          ),
+                                                        ),
+                                                      );
+                                                    })
+                                                    .toList(),
+                                              ],
+                                            ),
+                                          )
+                                          : const SizedBox.shrink(),
+                                ),
+                              ],
+                            ),
+                          ),
                         ),
                       ],
                     ),

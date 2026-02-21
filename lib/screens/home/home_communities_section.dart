@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:ui';
 import 'package:grocery_app/styles/colors.dart';
 import 'package:grocery_app/models/cummunity_model.dart';
 
@@ -70,8 +71,92 @@ class HomeCommunitiesSection extends StatelessWidget {
 
         return Column(
           children: [
-            // _heading(context, "Join Our Community", null, null),
-            const SizedBox(height: AppColors.spacingS),
+            // ── Section Header ──────────────────────────────────────
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 4, 20, 6),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Decorative top rule with leaf accent
+                  Row(
+                    children: [
+                      Container(
+                        width: 32,
+                        height: 2,
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [
+                              Colors.transparent,
+                              const Color(0xFF3f5e46),
+                            ],
+                          ),
+                          borderRadius: BorderRadius.circular(2),
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      const Icon(
+                        Icons.eco_rounded,
+                        size: 14,
+                        color: Color(0xFF3f5e46),
+                      ),
+                      const SizedBox(width: 6),
+                      Container(
+                        width: 32,
+                        height: 2,
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [
+                              const Color(0xFF3f5e46),
+                              Colors.transparent,
+                            ],
+                          ),
+                          borderRadius: BorderRadius.circular(2),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 10),
+                  // Main title
+                  const Text(
+                    'Join the Movement',
+                    style: TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.w800,
+                      color: Colors.white,
+                      letterSpacing: 0.4,
+                      height: 1.1,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  // Golden tagline
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Container(
+                        width: 3,
+                        height: 14,
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFB8860B),
+                          borderRadius: BorderRadius.circular(2),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      const Text(
+                        'Where good food finds good people.',
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w500,
+                          color: Color(0xFFB8860B),
+                          letterSpacing: 0.3,
+                          fontStyle: FontStyle.italic,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            // ────────────────────────────────────────────────────────
             ListView.builder(
               physics: const NeverScrollableScrollPhysics(),
               shrinkWrap: true,

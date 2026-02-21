@@ -153,7 +153,7 @@ class _SubscriptionPlanDetailScreenState
         invoice.displayName,
       );
 
-      SnackBarHelper.showSuccess(context, 'Invoice saved to: $savedPath');
+      SnackBarHelper.showInvoiceDownloaded(context);
 
       // The service already opens the file, but just in case or if we want to log it
       print('Invoice downloaded and opened: $savedPath');
