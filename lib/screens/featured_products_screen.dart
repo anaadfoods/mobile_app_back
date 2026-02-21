@@ -1,4 +1,5 @@
 import 'package:flutter/services.dart';
+import 'package:grocery_app/common_widgets/coming_soon_overlay.dart';
 import 'package:grocery_app/common_widgets/global_import.dart';
 import 'package:go_router/go_router.dart';
 import 'package:grocery_app/routes/app_routes.dart';
@@ -322,10 +323,12 @@ class _FeaturedProductCard extends StatelessWidget {
     final hasDiscount = product.discountPercentage > 0;
 
     return GestureDetector(
-      onTap: product.isInStock ? onTap : null,
+      onTap: (product.isInStock && product.tag) ? onTap : null,
       child: Opacity(
-        opacity: product.isInStock ? 1.0 : 0.5,
-        child: Container(
+        opacity: (product.isInStock && product.tag) ? 1.0 : 0.5,
+        child: Stack(
+          children: [
+            Container(
           decoration: BoxDecoration(
             color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
             borderRadius: BorderRadius.circular(20),
@@ -464,6 +467,8 @@ class _FeaturedProductCard extends StatelessWidget {
               ),
             ],
           ),
+            if (!product.tag) const ComingSoonOverlay(),
+          ],
         ),
       ),
     );

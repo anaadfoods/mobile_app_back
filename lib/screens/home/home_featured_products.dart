@@ -1,3 +1,4 @@
+import 'package:grocery_app/common_widgets/coming_soon_overlay.dart';
 import 'package:grocery_app/common_widgets/global_import.dart';
 
 /// Skeleton loading placeholder for the featured products section.
@@ -136,10 +137,12 @@ class FeaturedProductCard extends StatelessWidget {
     final hasDiscount = product.discountPercentage > 0;
 
     return GestureDetector(
-      onTap: product.isInStock ? onTap : null,
+      onTap: (product.isInStock && product.tag) ? onTap : null,
       child: Opacity(
-        opacity: product.isInStock ? 1.0 : 0.5,
-        child: Container(
+        opacity: (product.isInStock && product.tag) ? 1.0 : 0.5,
+        child: Stack(
+          children: [
+            Container(
           width: 165,
           margin: const EdgeInsets.only(right: 14),
           decoration: BoxDecoration(
@@ -302,6 +305,8 @@ class FeaturedProductCard extends StatelessWidget {
               ),
             ],
           ),
+            if (!product.tag) const ComingSoonOverlay(),
+          ],
         ),
       ),
     );
