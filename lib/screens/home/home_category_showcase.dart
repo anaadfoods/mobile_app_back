@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:grocery_app/helpers/animated_transitions.dart';
-import 'package:grocery_app/screens/RFP/contract_farming_screen.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
+import 'package:grocery_app/cubits/auth/auth_cubit.dart';
+import 'package:grocery_app/cubits/auth/auth_state.dart';
 import 'package:grocery_app/screens/dashboard/dashboard_screen.dart';
 import 'package:grocery_app/screens/home/home_category_card.dart';
 
@@ -189,13 +191,15 @@ class HomeCategoryShowcase extends StatelessWidget {
                         subtitle:
                             "Don't just buy vegetables. Own the land they grow on",
                         imagePath: "assets/images/showcase_2.svg",
-                        onTap:
-                            () => Navigator.push(
-                              context,
-                              AnimatedTransitions.slideFromRight(
-                                const CombinedScreen(),
-                              ),
-                            ),
+                        onTap: () {
+                          final authState = context.read<AuthCubit>().state;
+                          final isRfp =
+                              authState is Authenticated &&
+                              authState.user.isRfp;
+                          context.push(
+                            isRfp ? '/delivery' : '/contract-farming',
+                          );
+                        },
                         icon: Icons.spa_rounded,
                       ),
                     ),

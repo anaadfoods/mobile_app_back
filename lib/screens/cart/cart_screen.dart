@@ -1,5 +1,6 @@
 import 'package:grocery_app/common_widgets/global_import.dart';
 import 'package:grocery_app/common_widgets/animated_screen_header.dart';
+import 'package:grocery_app/routes/app_routes.dart';
 
 class CartScreen extends StatefulWidget {
   const CartScreen({super.key});
@@ -181,12 +182,9 @@ class _CartScreenState extends State<CartScreen> with TickerProviderStateMixin {
                     item.productVariant.id,
                   );
                   if (!mounted) return;
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder:
-                          (context) => ProductDetailsScreen(product: product),
-                    ),
+                  context.pushNamed(
+                    AppRoute.productDetails.name,
+                    pathParameters: {'id': product.id.toString()},
                   );
                 },
                 onQuantityChanged: (newQty) {
@@ -328,12 +326,11 @@ class _CartScreenState extends State<CartScreen> with TickerProviderStateMixin {
                     child: ElevatedButton(
                       onPressed: () {
                         HapticFeedback.mediumImpact();
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder:
-                                (context) => AddressSelectionScreen(cart: cart),
-                          ),
+                        // We previously had AddressSelectionScreen but the route says checkout
+                        // We will route to checkout per app_router definition, passing required params if necessary
+                        context.pushNamed(
+                          AppRoute.address.name,
+                          extra: {'cart': cart},
                         );
                       },
                       style: ElevatedButton.styleFrom(

@@ -1,5 +1,6 @@
+import 'package:go_router/go_router.dart';
 import 'package:grocery_app/common_widgets/global_import.dart';
-import 'package:grocery_app/screens/category_items_screen.dart';
+import 'package:grocery_app/routes/app_routes.dart';
 import 'package:grocery_app/screens/home/home_featured_products.dart';
 
 class AllProductsList extends StatefulWidget {
@@ -50,14 +51,9 @@ class _AllProductsListState extends State<AllProductsList> {
                   try {
                     final products = await CategoryService.fetchAllProducts();
                     if (context.mounted) {
-                      Navigator.push(
-                        context,
-                        AnimatedTransitions.fadeScale(
-                          CategoryItemsScreen(
-                            name: "All Products",
-                            allProducts: products,
-                          ),
-                        ),
+                      context.push(
+                        AppRoute.categoryItems.path,
+                        extra: {'name': "All Products", 'products': products},
                       );
                     }
                   } catch (e) {
@@ -95,12 +91,7 @@ class _AllProductsListState extends State<AllProductsList> {
                     index: index,
                     isDark: Theme.of(context).brightness == Brightness.dark,
                     onTap: () {
-                      Navigator.push(
-                        context,
-                        AnimatedTransitions.fadeScale(
-                          ProductDetailsScreen(product: product),
-                        ),
-                      );
+                      context.push('/product/${product.id}');
                     },
                   );
                 },

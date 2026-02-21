@@ -1,6 +1,6 @@
 import 'package:flutter/services.dart';
 import 'package:grocery_app/common_widgets/global_import.dart';
-import 'package:grocery_app/screens/dashboard/dashboard_screen.dart';
+import 'package:grocery_app/routes/app_routes.dart';
 
 class CategoryItemsScreen extends StatefulWidget {
   final String name;
@@ -120,12 +120,10 @@ class _CategoryItemsScreenState extends State<CategoryItemsScreen> {
             onPressed: () {
               HapticFeedback.lightImpact();
               // Pop back to dashboard first
-              Navigator.of(context).popUntil((route) => route.isFirst);
+              context.goNamed(AppRoute.home.name);
 
-              final dashboardState = DashboardScreen.dashboardKey.currentState;
-              if (dashboardState != null) {
-                dashboardState.switchToTab(2);
-              }
+              // Go to Cart branch directly via GoRouter
+              context.goNamed(AppRoute.cart.name);
             },
             backgroundColor: theme.colorScheme.primary,
             child: Badge(
@@ -150,9 +148,9 @@ class _CategoryItemsScreenState extends State<CategoryItemsScreen> {
   }
 
   void _onProductClicked(Product item) {
-    Navigator.push(
-      context,
-      AnimatedTransitions.fadeScale(ProductDetailsScreen(product: item)),
+    context.pushNamed(
+      AppRoute.productDetails.name,
+      pathParameters: {'id': item.id.toString()},
     );
   }
 }

@@ -1,4 +1,6 @@
 import 'package:grocery_app/common_widgets/global_import.dart';
+import 'package:go_router/go_router.dart';
+import 'package:grocery_app/routes/app_routes.dart';
 import 'dart:math' as math;
 
 class OrderScreen extends StatefulWidget {
@@ -220,7 +222,7 @@ class _OrderScreenState extends State<OrderScreen>
                   children: [
                     // Top Row with Back Button
                     GestureDetector(
-                      onTap: () => Navigator.pop(context),
+                      onTap: () => context.go("/profile"),
                       child: Container(
                         padding: const EdgeInsets.all(10),
                         decoration: BoxDecoration(
@@ -408,9 +410,10 @@ class _OrderScreenState extends State<OrderScreen>
     HapticFeedback.lightImpact();
     final orderDetails = await _orderService.getOrderById(order.id);
     if (!mounted) return;
-    final result = await Navigator.push(
-      context,
-      MaterialPageRoute(builder: (_) => OrderDetailScreen(order: orderDetails)),
+    final result = await context.pushNamed<bool>(
+      AppRoute.orderDetails.name,
+      pathParameters: {'id': order.id.toString()},
+      extra: orderDetails, // Passing down cached details if needed
     );
     if (result == true) {
       await _fetchOrders();

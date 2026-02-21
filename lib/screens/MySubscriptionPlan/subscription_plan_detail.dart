@@ -1,6 +1,8 @@
 import 'package:flutter/services.dart';
 import 'package:grocery_app/common_widgets/global_import.dart';
 import 'package:grocery_app/common_widgets/pause_date_picker_sheet.dart';
+import 'package:go_router/go_router.dart';
+import 'package:grocery_app/routes/app_routes.dart';
 import 'dart:math' as math;
 
 class SubscriptionScreen extends StatefulWidget {
@@ -237,7 +239,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                   children: [
                     // Top Row with Back Button
                     GestureDetector(
-                      onTap: () => Navigator.pop(context),
+                      onTap: () => context.go("/profile"),
                       child: Container(
                         padding: const EdgeInsets.all(10),
                         decoration: BoxDecoration(
@@ -883,13 +885,10 @@ class _SubscriptionCardState extends State<_SubscriptionCard> {
       child: GestureDetector(
         onTap: () {
           HapticFeedback.lightImpact();
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder:
-                  (_) =>
-                      SubscriptionPlanDetailScreen(subscription: subscription),
-            ),
+          context.pushNamed(
+            AppRoute.subscriptionDetails.name,
+            pathParameters: {'id': subscription.id.toString()},
+            extra: subscription,
           );
         },
         child: Container(

@@ -1,7 +1,9 @@
 import 'dart:ui';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:grocery_app/common_widgets/global_import.dart';
-import 'package:grocery_app/screens/RFP/delivery_screen.dart';
+import 'package:grocery_app/cubits/auth/auth_cubit.dart';
+import 'package:grocery_app/cubits/auth/auth_state.dart';
 import 'dart:math' as math;
 
 class CarouselItem {
@@ -92,10 +94,7 @@ class _TopCuroselState extends State<TopCurosel>
         buttonText: 'Read Our Roots',
         color: const Color(0xFF558B2F), // Green for growing
         onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => AboutScreen()),
-          );
+          context.push('/about-us');
         },
       ),
       CarouselItem(
@@ -104,15 +103,8 @@ class _TopCuroselState extends State<TopCurosel>
         subtitle: "Harvested only when you order. Not a moment sooner",
         buttonText: 'Visit our Plot',
         color: const Color(0xFFF9A825), // Golden/Orange for sun/harvest
-        onTap: () async {
-          final produt = await CategoryService.fetchProductById(2);
-          if (!mounted) return;
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => ProductDetailsScreen(product: produt),
-            ),
-          );
+        onTap: () {
+          context.push('/product/1');
         },
       ),
       CarouselItem(
@@ -122,14 +114,9 @@ class _TopCuroselState extends State<TopCurosel>
         buttonText: 'Visit our Plot',
         color: const Color(0xFF00695C), // Teal for remote/tech+farm
         onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (buiilder) {
-                return DeliveryScreen();
-              },
-            ),
-          );
+          final authState = context.read<AuthCubit>().state;
+          final isRfp = authState is Authenticated && authState.user.isRfp;
+          context.push(isRfp ? '/delivery' : '/contract-farming');
         },
       ),
     ];

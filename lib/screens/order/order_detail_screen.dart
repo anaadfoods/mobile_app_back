@@ -363,7 +363,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         GestureDetector(
-                          onTap: () => Navigator.pop(context),
+                          onTap: () => context.go("/orders"),
                           child: Container(
                             padding: const EdgeInsets.all(10),
                             decoration: BoxDecoration(

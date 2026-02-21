@@ -3,6 +3,8 @@ import 'package:flutter/services.dart';
 import 'dart:math' as math;
 import 'package:grocery_app/models/user_model.dart';
 import 'package:grocery_app/screens/profile/edit_profile_screen.dart';
+import 'package:go_router/go_router.dart';
+import 'package:grocery_app/routes/app_routes.dart';
 
 class AccountProfileCard extends StatefulWidget {
   final UserModel user;
@@ -70,12 +72,7 @@ class _AccountProfileCardState extends State<AccountProfileCard>
       child: GestureDetector(
         onTap: () {
           _triggerMediumHaptic();
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => EditProfileScreen(userProfile: widget.user),
-            ),
-          );
+          context.pushNamed(AppRoute.editProfile.name, extra: widget.user);
         },
         child: Container(
           padding: const EdgeInsets.all(12),
@@ -135,13 +132,9 @@ class _AccountProfileCardState extends State<AccountProfileCard>
                 child: InkWell(
                   onTap: () {
                     _triggerHaptic();
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder:
-                            (context) =>
-                                EditProfileScreen(userProfile: widget.user),
-                      ),
+                    context.pushNamed(
+                      AppRoute.editProfile.name,
+                      extra: widget.user,
                     );
                   },
                   customBorder: const CircleBorder(),

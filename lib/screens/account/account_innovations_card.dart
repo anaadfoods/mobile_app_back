@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:grocery_app/screens/innovations/anaad_innovations_screen.dart';
+import 'package:go_router/go_router.dart';
+import 'package:grocery_app/routes/app_routes.dart';
 
 class AccountInnovationsCard extends StatelessWidget {
   const AccountInnovationsCard({super.key});
@@ -25,12 +26,7 @@ class AccountInnovationsCard extends StatelessWidget {
             child: GestureDetector(
               onTap: () {
                 _triggerMediumHaptic();
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => const AnaadInnovationsScreen(),
-                  ),
-                );
+                context.pushNamed(AppRoute.innovations.name);
               },
               child: Container(
                 width: double.infinity,

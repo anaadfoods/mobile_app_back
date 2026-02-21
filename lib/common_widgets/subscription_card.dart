@@ -1,6 +1,8 @@
 import 'package:grocery_app/common_widgets/global_import.dart';
 import 'package:grocery_app/cubits/subscription/subscription_state.dart';
 import 'package:grocery_app/common_widgets/pause_date_picker_sheet.dart';
+import 'package:go_router/go_router.dart';
+import 'package:grocery_app/routes/app_routes.dart';
 
 class SubscriptionCarousel extends StatefulWidget {
   const SubscriptionCarousel({super.key});
@@ -94,12 +96,7 @@ class _SubscriptionCarouselState extends State<SubscriptionCarousel>
               Text("Active Subscription", style: theme.textTheme.displaySmall),
               GestureDetector(
                 onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const SubscriptionScreen(),
-                    ),
-                  );
+                  context.pushNamed(AppRoute.subscriptionList.name);
                 },
                 child: Text(
                   "See all Plans",
@@ -234,13 +231,10 @@ class _SubscriptionCardState extends State<SubscriptionCard> {
   bool _isPressed = false;
 
   void _navigateToDetails(BuildContext context, Subscription subscription) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder:
-            (context) =>
-                SubscriptionPlanDetailScreen(subscription: subscription),
-      ),
+    context.pushNamed(
+      AppRoute.subscriptionDetails.name,
+      pathParameters: {'id': subscription.id.toString()},
+      extra: subscription,
     );
   }
 

@@ -552,7 +552,7 @@ class _EditProfileScreenState extends State<EditProfileScreen>
                       child: InkWell(
                         onTap: () {
                           _triggerHaptic();
-                          Navigator.pop(context);
+                          context.go("/profile");
                         },
                         borderRadius: BorderRadius.circular(12),
                         child: const Padding(

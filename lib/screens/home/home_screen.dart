@@ -2,13 +2,12 @@
 import "dart:ui" as ui;
 import "dart:ui";
 
+import "package:go_router/go_router.dart";
 import "package:grocery_app/common_widgets/global_import.dart";
-import "package:grocery_app/screens/RFP/contract_farming_screen.dart";
-import "package:grocery_app/screens/featured_products_screen.dart";
+import "package:grocery_app/routes/app_routes.dart";
 import "package:grocery_app/common_widgets/subscription_table.dart";
 import "package:grocery_app/screens/home/home_community_card.dart";
 import "package:grocery_app/screens/home/home_featured_products.dart";
-import "package:grocery_app/screens/home/home_category_card.dart";
 import "package:grocery_app/screens/home/home_search_bar.dart";
 import "package:grocery_app/screens/home/home_search_dropdown.dart";
 import "package:grocery_app/screens/home/home_category_showcase.dart";
@@ -124,10 +123,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 
   void _onProductClicked(BuildContext context, Product item) {
     _focusNode.unfocus();
-    Navigator.push(
-      context,
-      AnimatedTransitions.fadeScale(ProductDetailsScreen(product: item)),
-    );
+    context.push('/product/${item.id}');
   }
 
   @override
@@ -247,12 +243,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 
                                   return GestureDetector(
                                     onTap: () {
-                                      final dashboardState =
-                                          context
-                                              .findAncestorStateOfType<
-                                                DashboardScreenState
-                                              >();
-                                      dashboardState?.switchToTab(5);
+                                      context.push(AppRoute.profile.path);
                                     },
                                     child: Row(
                                       children: [
@@ -442,13 +433,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                 _PanchangChakraButton(
                                   theme: theme,
                                   onTap: () {
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (context) =>
-                                            const PanchangHomeScreen(),
-                                      ),
-                                    );
+                                    HapticFeedback.lightImpact();
+                                    context.push(AppRoute.panchang.path);
                                   },
                                 ),
                                 const SizedBox(width: 8),
@@ -456,14 +442,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                   icon: Icons.notifications_rounded,
                                   onTap: () {
                                     HapticFeedback.lightImpact();
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder:
-                                            (context) =>
-                                                const NotificationsScreen(),
-                                      ),
-                                    );
+                                    context.push(AppRoute.notifications.path);
                                   },
                                   theme: theme,
                                   hasBadge: true,
@@ -577,7 +556,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           ),
           child: Transform.rotate(
             angle: math.sin(value * math.pi * 2) * 0.1,
-            child: customChild ??
+            child:
+                customChild ??
                 Icon(icon, color: theme.colorScheme.onPrimary, size: 24),
           ),
         );
@@ -657,12 +637,10 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
               _heading(
                 context,
                 "Featured Products",
-                "See All â†’",
-                () => Navigator.push(
-                  context,
-                  AnimatedTransitions.slideFromRight(
-                    FeaturedProductsScreen(products: featuredProducts),
-                  ),
+                "See All →",
+                () => context.pushNamed(
+                  AppRoute.featuredProducts.name,
+                  extra: featuredProducts,
                 ),
               ),
               // Horizontal scrolling featured products
@@ -843,7 +821,9 @@ class _PanchangChakraButtonState extends State<_PanchangChakraButton>
               color: widget.theme.colorScheme.onPrimary.withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(16),
               border: Border.all(
-                color: widget.theme.colorScheme.onPrimary.withValues(alpha: 0.1),
+                color: widget.theme.colorScheme.onPrimary.withValues(
+                  alpha: 0.1,
+                ),
                 width: 1,
               ),
               boxShadow: [
@@ -891,10 +871,10 @@ class _PanchangChakraButtonState extends State<_PanchangChakraButton>
 
 // Planets: [orbitFraction, periodSec, startAngle, colorARGB]
 const _miniPlanets = [
-  [0.22, 4.8,  0.70, 0xFFA8A8A8],  // Mercury â€” grey
-  [0.40, 10.0, 2.40, 0xFFE8C060],  // Venus   â€” gold
-  [0.60, 20.0, 4.90, 0xFF42A5F5],  // Earth   â€” blue
-  [0.82, 38.0, 1.10, 0xFFEF5350],  // Mars    â€” red
+  [0.22, 4.8, 0.70, 0xFFA8A8A8], // Mercury â€” grey
+  [0.40, 10.0, 2.40, 0xFFE8C060], // Venus   â€” gold
+  [0.60, 20.0, 4.90, 0xFF42A5F5], // Earth   â€” blue
+  [0.82, 38.0, 1.10, 0xFFEF5350], // Mars    â€” red
 ];
 
 class _MiniSolarPainter extends CustomPainter {
@@ -953,18 +933,16 @@ class _MiniSolarPainter extends CustomPainter {
             Color(0xFFFF8F00),
           ],
           stops: const [0.0, 0.5, 1.0],
-        ).createShader(
-          Rect.fromCircle(center: Offset(cx, cy), radius: sunR),
-        ),
+        ).createShader(Rect.fromCircle(center: Offset(cx, cy), radius: sunR)),
     );
 
     // â”€â”€ Planets â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     for (final p in _miniPlanets) {
       final orbitR = (p[0] as double) * max;
       final period = p[1] as double;
-      final start  = p[2] as double;
-      final color  = Color(p[3] as int);
-      final pr     = 0.9 + orbitR * 0.055; // planet dot radius
+      final start = p[2] as double;
+      final color = Color(p[3] as int);
+      final pr = 0.9 + orbitR * 0.055; // planet dot radius
 
       final angle = (t / period) * 2 * math.pi + start;
       final px = cx + orbitR * math.cos(angle);
@@ -1114,23 +1092,31 @@ class _SolarPopupContentState extends State<_SolarPopupContent>
                           children: [
                             Expanded(
                               child: Divider(
-                                color: const Color(0xFFFFCA28).withOpacity(0.25),
+                                color: const Color(
+                                  0xFFFFCA28,
+                                ).withOpacity(0.25),
                                 thickness: 0.5,
                               ),
                             ),
                             Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 10),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 10,
+                              ),
                               child: Text(
                                 '\u2726',
                                 style: TextStyle(
-                                  color: const Color(0xFFFFCA28).withOpacity(0.60),
+                                  color: const Color(
+                                    0xFFFFCA28,
+                                  ).withOpacity(0.60),
                                   fontSize: 11,
                                 ),
                               ),
                             ),
                             Expanded(
                               child: Divider(
-                                color: const Color(0xFFFFCA28).withOpacity(0.25),
+                                color: const Color(
+                                  0xFFFFCA28,
+                                ).withOpacity(0.25),
                                 thickness: 0.5,
                               ),
                             ),
@@ -1176,7 +1162,9 @@ class _SolarPopupContentState extends State<_SolarPopupContent>
                         // Coming Soon badge
                         Container(
                           padding: const EdgeInsets.symmetric(
-                              horizontal: 18, vertical: 7),
+                            horizontal: 18,
+                            vertical: 7,
+                          ),
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(20),
                             border: Border.all(
@@ -1190,14 +1178,18 @@ class _SolarPopupContentState extends State<_SolarPopupContent>
                             children: [
                               Icon(
                                 Icons.auto_awesome_rounded,
-                                color: const Color(0xFFFFCA28).withOpacity(0.80),
+                                color: const Color(
+                                  0xFFFFCA28,
+                                ).withOpacity(0.80),
                                 size: 13,
                               ),
                               const SizedBox(width: 7),
                               Text(
                                 'COSMIC FOOD CALENDAR  \u00b7  COMING SOON',
                                 style: TextStyle(
-                                  color: const Color(0xFFFFCA28).withOpacity(0.80),
+                                  color: const Color(
+                                    0xFFFFCA28,
+                                  ).withOpacity(0.80),
                                   fontSize: 9.5,
                                   fontWeight: FontWeight.w500,
                                   letterSpacing: 1.8,
@@ -1280,38 +1272,102 @@ class _PPlanet {
   final List<List<double>>? bands;
 
   const _PPlanet({
-    required this.name, required this.color, required this.colorDark,
-    required this.radius, required this.orbit, required this.period,
-    required this.start, this.hasRings = false, this.atmosphere, this.bands,
+    required this.name,
+    required this.color,
+    required this.colorDark,
+    required this.radius,
+    required this.orbit,
+    required this.period,
+    required this.start,
+    this.hasRings = false,
+    this.atmosphere,
+    this.bands,
   });
 }
 
 const _pPlanets = <_PPlanet>[
-  _PPlanet(name: 'Mercury', color: Color(0xFFB0ACA6), colorDark: Color(0xFF5A5652),
-      radius: 2.6, orbit: 0.105, period: 4.8, start: 0.7),
-  _PPlanet(name: 'Venus', color: Color(0xFFE8C876), colorDark: Color(0xFF8A6F32),
-      radius: 3.6, orbit: 0.160, period: 7.8, start: 2.4,
-      atmosphere: Color(0xFFFFF3C4)),
-  _PPlanet(name: 'Earth', color: Color(0xFF4DA6FF), colorDark: Color(0xFF1A4070),
-      radius: 4.0, orbit: 0.218, period: 12.0, start: 4.9,
-      atmosphere: Color(0xFF80D0FF)),
-  _PPlanet(name: 'Mars', color: Color(0xFFE06040), colorDark: Color(0xFF6D2A1A),
-      radius: 3.2, orbit: 0.278, period: 20.0, start: 1.1),
-  _PPlanet(name: 'Jupiter', color: Color(0xFFD4A96A), colorDark: Color(0xFF6A5030),
-      radius: 7.5, orbit: 0.400, period: 36.0, start: 3.5,
-      bands: [
-        [0xFFC8906A, -0.35, 0.20],
-        [0xFFE8C890, 0.0, 0.15],
-        [0xFFB07848, 0.30, 0.22],
-      ]),
-  _PPlanet(name: 'Saturn', color: Color(0xFFEAD5A0), colorDark: Color(0xFF806838),
-      radius: 6.2, orbit: 0.520, period: 58.0, start: 5.6, hasRings: true),
-  _PPlanet(name: 'Uranus', color: Color(0xFF80DEEA), colorDark: Color(0xFF2A6070),
-      radius: 5.0, orbit: 0.680, period: 82.0, start: 0.2,
-      atmosphere: Color(0xFFA0F0F8)),
-  _PPlanet(name: 'Neptune', color: Color(0xFF5C6BC0), colorDark: Color(0xFF283060),
-      radius: 4.6, orbit: 0.840, period: 118.0, start: 2.8,
-      atmosphere: Color(0xFF8090E0)),
+  _PPlanet(
+    name: 'Mercury',
+    color: Color(0xFFB0ACA6),
+    colorDark: Color(0xFF5A5652),
+    radius: 2.6,
+    orbit: 0.105,
+    period: 4.8,
+    start: 0.7,
+  ),
+  _PPlanet(
+    name: 'Venus',
+    color: Color(0xFFE8C876),
+    colorDark: Color(0xFF8A6F32),
+    radius: 3.6,
+    orbit: 0.160,
+    period: 7.8,
+    start: 2.4,
+    atmosphere: Color(0xFFFFF3C4),
+  ),
+  _PPlanet(
+    name: 'Earth',
+    color: Color(0xFF4DA6FF),
+    colorDark: Color(0xFF1A4070),
+    radius: 4.0,
+    orbit: 0.218,
+    period: 12.0,
+    start: 4.9,
+    atmosphere: Color(0xFF80D0FF),
+  ),
+  _PPlanet(
+    name: 'Mars',
+    color: Color(0xFFE06040),
+    colorDark: Color(0xFF6D2A1A),
+    radius: 3.2,
+    orbit: 0.278,
+    period: 20.0,
+    start: 1.1,
+  ),
+  _PPlanet(
+    name: 'Jupiter',
+    color: Color(0xFFD4A96A),
+    colorDark: Color(0xFF6A5030),
+    radius: 7.5,
+    orbit: 0.400,
+    period: 36.0,
+    start: 3.5,
+    bands: [
+      [0xFFC8906A, -0.35, 0.20],
+      [0xFFE8C890, 0.0, 0.15],
+      [0xFFB07848, 0.30, 0.22],
+    ],
+  ),
+  _PPlanet(
+    name: 'Saturn',
+    color: Color(0xFFEAD5A0),
+    colorDark: Color(0xFF806838),
+    radius: 6.2,
+    orbit: 0.520,
+    period: 58.0,
+    start: 5.6,
+    hasRings: true,
+  ),
+  _PPlanet(
+    name: 'Uranus',
+    color: Color(0xFF80DEEA),
+    colorDark: Color(0xFF2A6070),
+    radius: 5.0,
+    orbit: 0.680,
+    period: 82.0,
+    start: 0.2,
+    atmosphere: Color(0xFFA0F0F8),
+  ),
+  _PPlanet(
+    name: 'Neptune',
+    color: Color(0xFF5C6BC0),
+    colorDark: Color(0xFF283060),
+    radius: 4.6,
+    orbit: 0.840,
+    period: 118.0,
+    start: 2.8,
+    atmosphere: Color(0xFF8090E0),
+  ),
 ];
 
 // Computed 3D position for z-sorting
@@ -1319,7 +1375,14 @@ class _PPos {
   final int idx;
   final Offset screen;
   final double z, angle, scale, bright;
-  const _PPos(this.idx, this.screen, this.z, this.angle, this.scale, this.bright);
+  const _PPos(
+    this.idx,
+    this.screen,
+    this.z,
+    this.angle,
+    this.scale,
+    this.bright,
+  );
 }
 
 class _RealisticPopupPainter extends CustomPainter {
@@ -1349,47 +1412,70 @@ class _RealisticPopupPainter extends CustomPainter {
     canvas.drawRect(
       Offset.zero & size,
       Paint()
-        ..shader = ui.Gradient.radial(center, maxOrbit * 1.2, const [
-          Color(0xFF0C1424), Color(0xFF060C16),
-          Color(0xFF020408), Color(0xFF000000),
-        ], const [0.0, 0.35, 0.65, 1.0]),
+        ..shader = ui.Gradient.radial(
+          center,
+          maxOrbit * 1.2,
+          const [
+            Color(0xFF0C1424),
+            Color(0xFF060C16),
+            Color(0xFF020408),
+            Color(0xFF000000),
+          ],
+          const [0.0, 0.35, 0.65, 1.0],
+        ),
     );
-    canvas.drawCircle(center, maxOrbit * 0.40, Paint()
-      ..color = const Color(0xFFFF8F00).withOpacity(0.018)
-      ..maskFilter = MaskFilter.blur(BlurStyle.normal, maxOrbit * 0.30));
+    canvas.drawCircle(
+      center,
+      maxOrbit * 0.40,
+      Paint()
+        ..color = const Color(0xFFFF8F00).withOpacity(0.018)
+        ..maskFilter = MaskFilter.blur(BlurStyle.normal, maxOrbit * 0.30),
+    );
 
     // ── Distant galaxies / nebula clouds ─────────────────────
     // Spiral galaxy blob (upper-left)
     canvas.drawOval(
       Rect.fromCenter(
         center: Offset(size.width * 0.12, size.height * 0.08),
-        width: 38, height: 16),
+        width: 38,
+        height: 16,
+      ),
       Paint()
         ..color = const Color(0xFF8090D0).withOpacity(0.07)
-        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 12));
+        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 12),
+    );
     canvas.drawOval(
       Rect.fromCenter(
         center: Offset(size.width * 0.12, size.height * 0.08),
-        width: 18, height: 8),
+        width: 18,
+        height: 8,
+      ),
       Paint()
         ..color = const Color(0xFFB0C0F0).withOpacity(0.10)
-        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 5));
+        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 5),
+    );
 
     // Warm galaxy (upper-right corner)
     canvas.drawOval(
       Rect.fromCenter(
         center: Offset(size.width * 0.88, size.height * 0.12),
-        width: 28, height: 10),
+        width: 28,
+        height: 10,
+      ),
       Paint()
         ..color = const Color(0xFFD0A060).withOpacity(0.06)
-        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 10));
+        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 10),
+    );
     canvas.drawOval(
       Rect.fromCenter(
         center: Offset(size.width * 0.88, size.height * 0.12),
-        width: 12, height: 5),
+        width: 12,
+        height: 5,
+      ),
       Paint()
         ..color = const Color(0xFFF0D098).withOpacity(0.09)
-        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4));
+        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4),
+    );
 
     // Blue nebula cloud (left side)
     canvas.drawCircle(
@@ -1397,7 +1483,8 @@ class _RealisticPopupPainter extends CustomPainter {
       size.width * 0.10,
       Paint()
         ..color = const Color(0xFF2A3880).withOpacity(0.08)
-        ..maskFilter = MaskFilter.blur(BlurStyle.normal, size.width * 0.08));
+        ..maskFilter = MaskFilter.blur(BlurStyle.normal, size.width * 0.08),
+    );
 
     // Warm nebula cloud (right side, faint)
     canvas.drawCircle(
@@ -1405,22 +1492,26 @@ class _RealisticPopupPainter extends CustomPainter {
       size.width * 0.08,
       Paint()
         ..color = const Color(0xFF4A2020).withOpacity(0.06)
-        ..maskFilter = MaskFilter.blur(BlurStyle.normal, size.width * 0.07));
+        ..maskFilter = MaskFilter.blur(BlurStyle.normal, size.width * 0.07),
+    );
 
     // Tiny galaxy cluster (centre-top)
     canvas.drawOval(
       Rect.fromCenter(
         center: Offset(size.width * 0.55, size.height * 0.04),
-        width: 20, height: 8),
+        width: 20,
+        height: 8,
+      ),
       Paint()
         ..color = const Color(0xFFA0A8E0).withOpacity(0.06)
-        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 7));
+        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 7),
+    );
 
     // ── Star field (multi-layer for depth) ───────────────────
     final starRng = math.Random(77);
     const starTints = [
       Color(0xFFFFFFFF), // white
-      Color(0xFFFFE8C8), // warm yellow  
+      Color(0xFFFFE8C8), // warm yellow
       Color(0xFFC8D8FF), // cool blue
       Color(0xFFFFCCCC), // soft red
       Color(0xFFD0F0FF), // ice blue
@@ -1434,14 +1525,21 @@ class _RealisticPopupPainter extends CustomPainter {
       final sz = starRng.nextDouble() * 0.7 + 0.15;
       final baseOp = starRng.nextDouble() * 0.35 + 0.08;
       // Subtle twinkle
-      final twinkle = starRng.nextBool()
-          ? (0.5 + 0.5 * math.sin(t * (starRng.nextDouble() * 2.0 + 0.3) +
-              starRng.nextDouble() * 6.28))
-          : 1.0;
+      final twinkle =
+          starRng.nextBool()
+              ? (0.5 +
+                  0.5 *
+                      math.sin(
+                        t * (starRng.nextDouble() * 2.0 + 0.3) +
+                            starRng.nextDouble() * 6.28,
+                      ))
+              : 1.0;
       final tint = starTints[starRng.nextInt(starTints.length)];
       canvas.drawCircle(
-        Offset(sx, sy), sz,
-        Paint()..color = tint.withOpacity((baseOp * twinkle).clamp(0.03, 0.50)));
+        Offset(sx, sy),
+        sz,
+        Paint()..color = tint.withOpacity((baseOp * twinkle).clamp(0.03, 0.50)),
+      );
     }
 
     // Layer 2: Medium stars with glow
@@ -1450,17 +1548,29 @@ class _RealisticPopupPainter extends CustomPainter {
       final sy = starRng.nextDouble() * size.height;
       final sz = starRng.nextDouble() * 1.0 + 0.8;
       final baseOp = starRng.nextDouble() * 0.40 + 0.25;
-      final twinkle = 0.5 + 0.5 * math.sin(
-          t * (starRng.nextDouble() * 1.8 + 0.4) + starRng.nextDouble() * 6.28);
+      final twinkle =
+          0.5 +
+          0.5 *
+              math.sin(
+                t * (starRng.nextDouble() * 1.8 + 0.4) +
+                    starRng.nextDouble() * 6.28,
+              );
       final tint = starTints[starRng.nextInt(starTints.length)];
       final op = (baseOp * twinkle).clamp(0.05, 0.70);
       // Soft glow
-      canvas.drawCircle(Offset(sx, sy), sz * 2.5, Paint()
-        ..color = tint.withOpacity(op * 0.12)
-        ..maskFilter = MaskFilter.blur(BlurStyle.normal, sz * 2));
+      canvas.drawCircle(
+        Offset(sx, sy),
+        sz * 2.5,
+        Paint()
+          ..color = tint.withOpacity(op * 0.12)
+          ..maskFilter = MaskFilter.blur(BlurStyle.normal, sz * 2),
+      );
       // Core
-      canvas.drawCircle(Offset(sx, sy), sz, Paint()
-        ..color = tint.withOpacity(op));
+      canvas.drawCircle(
+        Offset(sx, sy),
+        sz,
+        Paint()..color = tint.withOpacity(op),
+      );
     }
 
     // Layer 3: Bright points with cross-flares
@@ -1469,23 +1579,33 @@ class _RealisticPopupPainter extends CustomPainter {
       final sy = starRng.nextDouble() * size.height;
       final sz = starRng.nextDouble() * 0.8 + 1.2;
       final baseOp = starRng.nextDouble() * 0.30 + 0.45;
-      final twinkle = 0.4 + 0.6 * math.sin(
-          t * (starRng.nextDouble() * 2.5 + 0.5) + starRng.nextDouble() * 6.28);
+      final twinkle =
+          0.4 +
+          0.6 *
+              math.sin(
+                t * (starRng.nextDouble() * 2.5 + 0.5) +
+                    starRng.nextDouble() * 6.28,
+              );
       final tint = starTints[starRng.nextInt(starTints.length)];
       final op = (baseOp * twinkle).clamp(0.08, 0.85);
       final pos = Offset(sx, sy);
       // Glow halo
-      canvas.drawCircle(pos, sz * 3.5, Paint()
-        ..color = tint.withOpacity(op * 0.08)
-        ..maskFilter = MaskFilter.blur(BlurStyle.normal, sz * 3));
+      canvas.drawCircle(
+        pos,
+        sz * 3.5,
+        Paint()
+          ..color = tint.withOpacity(op * 0.08)
+          ..maskFilter = MaskFilter.blur(BlurStyle.normal, sz * 3),
+      );
       // Core
       canvas.drawCircle(pos, sz, Paint()..color = tint.withOpacity(op));
       // Cross-flares
       if (op > 0.40) {
-        final fl = Paint()
-          ..color = tint.withOpacity(op * 0.22)
-          ..strokeWidth = 0.4
-          ..strokeCap = StrokeCap.round;
+        final fl =
+            Paint()
+              ..color = tint.withOpacity(op * 0.22)
+              ..strokeWidth = 0.4
+              ..strokeCap = StrokeCap.round;
         final len = sz * 3.5;
         canvas.drawLine(pos - Offset(len, 0), pos + Offset(len, 0), fl);
         canvas.drawLine(pos - Offset(0, len), pos + Offset(0, len), fl);
@@ -1493,36 +1613,55 @@ class _RealisticPopupPainter extends CustomPainter {
     }
 
     // â”€â”€ 3D orbital plane grid â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-    final gridPaint = Paint()
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 0.3;
+    final gridPaint =
+        Paint()
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 0.3;
     for (int i = 1; i <= 10; i++) {
       final r = maxOrbit * (i / 10.0) * 1.02;
       final opacity = (0.022 * (1.0 - i / 12.0)).clamp(0.0, 1.0);
       gridPaint.color = Colors.white.withOpacity(opacity);
-      canvas.drawOval(Rect.fromCenter(
-        center: center, width: r * 2, height: r * 2 * _popupTilt), gridPaint);
+      canvas.drawOval(
+        Rect.fromCenter(
+          center: center,
+          width: r * 2,
+          height: r * 2 * _popupTilt,
+        ),
+        gridPaint,
+      );
     }
-    final radialPaint = Paint()
-      ..color = Colors.white.withOpacity(0.010)
-      ..strokeWidth = 0.3;
+    final radialPaint =
+        Paint()
+          ..color = Colors.white.withOpacity(0.010)
+          ..strokeWidth = 0.3;
     for (int i = 0; i < 12; i++) {
       final angle = i * math.pi / 6;
       final far = maxOrbit * 1.02;
-      canvas.drawLine(center, Offset(
-        center.dx + far * math.cos(angle),
-        center.dy + far * math.sin(angle) * _popupTilt), radialPaint);
+      canvas.drawLine(
+        center,
+        Offset(
+          center.dx + far * math.cos(angle),
+          center.dy + far * math.sin(angle) * _popupTilt,
+        ),
+        radialPaint,
+      );
     }
 
     // â”€â”€ Elliptical orbit paths â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     for (final p in _pPlanets) {
       final r = p.orbit * maxOrbit;
       final rect = Rect.fromCenter(
-        center: center, width: r * 2, height: r * 2 * _popupTilt);
-      canvas.drawOval(rect, Paint()
-        ..color = Colors.white.withOpacity(0.045)
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 0.5);
+        center: center,
+        width: r * 2,
+        height: r * 2 * _popupTilt,
+      );
+      canvas.drawOval(
+        rect,
+        Paint()
+          ..color = Colors.white.withOpacity(0.045)
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 0.5,
+      );
     }
 
     // â”€â”€ Asteroid belt (3D) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
@@ -1534,11 +1673,15 @@ class _RealisticPopupPainter extends CustomPainter {
       final zN = math.sin(angle);
       final depthOp = (0.5 + zN * 0.5).clamp(0.15, 1.0);
       canvas.drawCircle(
-        Offset(cx + rOff * math.cos(angle),
-               cy + rOff * math.sin(angle) * _popupTilt),
+        Offset(
+          cx + rOff * math.cos(angle),
+          cy + rOff * math.sin(angle) * _popupTilt,
+        ),
         (arng.nextDouble() * 0.7 + 0.15) * (1.0 + zN * 0.15),
-        Paint()..color = Colors.white.withOpacity(
-            (arng.nextDouble() * 0.10 + 0.03) * depthOp),
+        Paint()
+          ..color = Colors.white.withOpacity(
+            (arng.nextDouble() * 0.10 + 0.03) * depthOp,
+          ),
       );
     }
 
@@ -1569,9 +1712,13 @@ class _RealisticPopupPainter extends CustomPainter {
   void _drawSun(Canvas canvas, Offset c, double r) {
     final pulse = 1.0 + 0.03 * math.sin(t * 2.2);
     final pulse2 = 1.0 + 0.05 * math.sin(t * 1.4 + 1.0);
-    canvas.drawCircle(c, r * 5.0 * pulse2, Paint()
-      ..color = const Color(0xFFFF6D00).withOpacity(0.012)
-      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 30));
+    canvas.drawCircle(
+      c,
+      r * 5.0 * pulse2,
+      Paint()
+        ..color = const Color(0xFFFF6D00).withOpacity(0.012)
+        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 30),
+    );
     for (int i = 0; i < 6; i++) {
       final rayAngle = i * math.pi / 3 + t * 0.05;
       final rayLen = r * (3.0 + 0.6 * math.sin(t * 1.8 + i));
@@ -1584,51 +1731,101 @@ class _RealisticPopupPainter extends CustomPainter {
           ..color = const Color(0xFFFFCC02).withOpacity(0.035)
           ..strokeWidth = 2.0
           ..strokeCap = StrokeCap.round
-          ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 3));
+          ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 3),
+      );
     }
     for (int i = 5; i >= 1; i--) {
-      canvas.drawCircle(c, r * (1.0 + i * 0.50) * pulse, Paint()
-        ..color = const Color(0xFFFF9800).withOpacity(0.025 * i)
-        ..maskFilter = MaskFilter.blur(BlurStyle.normal, 10.0 + i * 3));
+      canvas.drawCircle(
+        c,
+        r * (1.0 + i * 0.50) * pulse,
+        Paint()
+          ..color = const Color(0xFFFF9800).withOpacity(0.025 * i)
+          ..maskFilter = MaskFilter.blur(BlurStyle.normal, 10.0 + i * 3),
+      );
     }
-    canvas.drawCircle(c, r * 1.45, Paint()
-      ..color = const Color(0xFFFFCC02).withOpacity(0.20)
-      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 6));
-    canvas.drawCircle(c, r, Paint()
-      ..shader = ui.Gradient.radial(c, r, const [
-        Color(0xFFFFFFE8), Color(0xFFFFF176), Color(0xFFFFCA28),
-        Color(0xFFFF8F00), Color(0xFFE65100),
-      ], const [0.0, 0.25, 0.55, 0.82, 1.0]));
+    canvas.drawCircle(
+      c,
+      r * 1.45,
+      Paint()
+        ..color = const Color(0xFFFFCC02).withOpacity(0.20)
+        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 6),
+    );
+    canvas.drawCircle(
+      c,
+      r,
+      Paint()
+        ..shader = ui.Gradient.radial(
+          c,
+          r,
+          const [
+            Color(0xFFFFFFE8),
+            Color(0xFFFFF176),
+            Color(0xFFFFCA28),
+            Color(0xFFFF8F00),
+            Color(0xFFE65100),
+          ],
+          const [0.0, 0.25, 0.55, 0.82, 1.0],
+        ),
+    );
     final spotA = t * 0.3;
     canvas.save();
     canvas.clipPath(Path()..addOval(Rect.fromCircle(center: c, radius: r)));
     canvas.drawCircle(
-      Offset(c.dx + r * 0.35 * math.cos(spotA), c.dy + r * 0.15 * math.sin(spotA)),
+      Offset(
+        c.dx + r * 0.35 * math.cos(spotA),
+        c.dy + r * 0.15 * math.sin(spotA),
+      ),
       r * 0.10,
-      Paint()..color = const Color(0xFFCC7700).withOpacity(0.32));
+      Paint()..color = const Color(0xFFCC7700).withOpacity(0.32),
+    );
     canvas.restore();
   }
 
-  void _drawOrbitTrail(Canvas canvas, Offset center, _PPos pp, double maxOrbit) {
+  void _drawOrbitTrail(
+    Canvas canvas,
+    Offset center,
+    _PPos pp,
+    double maxOrbit,
+  ) {
     final p = _pPlanets[pp.idx];
     final r = p.orbit * maxOrbit;
     const sweep = 0.50;
     final rect = Rect.fromCenter(
-      center: center, width: r * 2, height: r * 2 * _popupTilt);
-    canvas.drawArc(rect, pp.angle - sweep, sweep, false, Paint()
-      ..color = p.color.withOpacity(0.10 * pp.bright.clamp(0.5, 1.5))
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 2.5 * pp.scale
-      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 3));
-    canvas.drawArc(rect, pp.angle - sweep * 0.5, sweep * 0.5, false, Paint()
-      ..color = p.color.withOpacity(0.20 * pp.bright.clamp(0.5, 1.5))
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 0.8 * pp.scale
-      ..strokeCap = StrokeCap.round);
+      center: center,
+      width: r * 2,
+      height: r * 2 * _popupTilt,
+    );
+    canvas.drawArc(
+      rect,
+      pp.angle - sweep,
+      sweep,
+      false,
+      Paint()
+        ..color = p.color.withOpacity(0.10 * pp.bright.clamp(0.5, 1.5))
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 2.5 * pp.scale
+        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 3),
+    );
+    canvas.drawArc(
+      rect,
+      pp.angle - sweep * 0.5,
+      sweep * 0.5,
+      false,
+      Paint()
+        ..color = p.color.withOpacity(0.20 * pp.bright.clamp(0.5, 1.5))
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 0.8 * pp.scale
+        ..strokeCap = StrokeCap.round,
+    );
   }
 
-  void _drawFullPlanet(Canvas canvas, _PPos pp, Offset sunCenter,
-      double sunR, Size size) {
+  void _drawFullPlanet(
+    Canvas canvas,
+    _PPos pp,
+    Offset sunCenter,
+    double sunR,
+    Size size,
+  ) {
     final p = _pPlanets[pp.idx];
     final r = p.radius * pp.scale;
     final pos = pp.screen;
@@ -1639,29 +1836,49 @@ class _RealisticPopupPainter extends CustomPainter {
     final ld = Offset(toSun.dx / dist, toSun.dy / dist);
 
     // Shadow on orbital plane
-    canvas.drawOval(Rect.fromCenter(
-      center: Offset(pos.dx + 1.5, pos.dy + r * 0.6),
-      width: r * 2.0, height: r * 0.4), Paint()
-      ..color = Colors.black.withOpacity(0.12 * bright)
-      ..maskFilter = MaskFilter.blur(BlurStyle.normal, r * 0.7));
+    canvas.drawOval(
+      Rect.fromCenter(
+        center: Offset(pos.dx + 1.5, pos.dy + r * 0.6),
+        width: r * 2.0,
+        height: r * 0.4,
+      ),
+      Paint()
+        ..color = Colors.black.withOpacity(0.12 * bright)
+        ..maskFilter = MaskFilter.blur(BlurStyle.normal, r * 0.7),
+    );
 
     if (p.atmosphere != null) {
-      canvas.drawCircle(pos + ld * r * 0.12, r * 1.5, Paint()
-        ..color = p.atmosphere!.withOpacity(0.08 * bright)
-        ..maskFilter = MaskFilter.blur(BlurStyle.normal, r * 0.6));
+      canvas.drawCircle(
+        pos + ld * r * 0.12,
+        r * 1.5,
+        Paint()
+          ..color = p.atmosphere!.withOpacity(0.08 * bright)
+          ..maskFilter = MaskFilter.blur(BlurStyle.normal, r * 0.6),
+      );
     }
 
-    canvas.drawCircle(pos, r * 2.0, Paint()
-      ..color = p.color.withOpacity(0.12 * bright)
-      ..maskFilter = MaskFilter.blur(BlurStyle.normal, r * 0.8));
+    canvas.drawCircle(
+      pos,
+      r * 2.0,
+      Paint()
+        ..color = p.color.withOpacity(0.12 * bright)
+        ..maskFilter = MaskFilter.blur(BlurStyle.normal, r * 0.8),
+    );
 
     if (p.hasRings) _drawRing(canvas, pos, r, false);
 
     final litColor = Color.lerp(p.color, Colors.white, (bright - 1.0) * 0.15)!;
-    final darkColor = Color.lerp(p.colorDark, Colors.black, (1.0 - bright) * 0.08)!;
-    canvas.drawCircle(pos, r, Paint()
-      ..shader = ui.Gradient.linear(
-        pos + ld * r, pos - ld * r, [litColor, darkColor]));
+    final darkColor =
+        Color.lerp(p.colorDark, Colors.black, (1.0 - bright) * 0.08)!;
+    canvas.drawCircle(
+      pos,
+      r,
+      Paint()
+        ..shader = ui.Gradient.linear(pos + ld * r, pos - ld * r, [
+          litColor,
+          darkColor,
+        ]),
+    );
 
     if (p.bands != null) {
       canvas.save();
@@ -1671,29 +1888,43 @@ class _RealisticPopupPainter extends CustomPainter {
         final bh = r * b[2];
         canvas.drawRect(
           Rect.fromLTWH(pos.dx - r, by - bh / 2, r * 2, bh),
-          Paint()..color = Color(b[0].toInt()).withOpacity(0.50 * bright));
+          Paint()..color = Color(b[0].toInt()).withOpacity(0.50 * bright),
+        );
       }
       canvas.restore();
     }
 
-    canvas.drawCircle(pos + ld * r * 0.28, r * 0.35, Paint()
-      ..shader = ui.Gradient.radial(
-        pos + ld * r * 0.28, r * 0.35,
-        [Colors.white.withOpacity(0.40 * bright), Colors.white.withOpacity(0.0)]));
+    canvas.drawCircle(
+      pos + ld * r * 0.28,
+      r * 0.35,
+      Paint()
+        ..shader = ui.Gradient.radial(pos + ld * r * 0.28, r * 0.35, [
+          Colors.white.withOpacity(0.40 * bright),
+          Colors.white.withOpacity(0.0),
+        ]),
+    );
 
-    canvas.drawCircle(pos, r, Paint()
-      ..color = Colors.white.withOpacity(0.06 * bright)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 0.5);
+    canvas.drawCircle(
+      pos,
+      r,
+      Paint()
+        ..color = Colors.white.withOpacity(0.06 * bright)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 0.5,
+    );
 
     if (p.hasRings) {
       _drawRing(canvas, pos, r, true);
       canvas.save();
       canvas.clipPath(Path()..addOval(Rect.fromCircle(center: pos, radius: r)));
       canvas.drawRect(
-        Rect.fromCenter(center: pos + Offset(0, r * 0.08),
-            width: r * 5, height: r * 0.25),
-        Paint()..color = Colors.black.withOpacity(0.10));
+        Rect.fromCenter(
+          center: pos + Offset(0, r * 0.08),
+          width: r * 5,
+          height: r * 0.25,
+        ),
+        Paint()..color = Colors.black.withOpacity(0.10),
+      );
       canvas.restore();
     }
 
@@ -1714,9 +1945,11 @@ class _RealisticPopupPainter extends CustomPainter {
     final lx = (pos.dx - tp.width / 2).clamp(3.0, size.width - tp.width - 3);
     final ly = (pos.dy + r + 4.0).clamp(3.0, size.height - tp.height - 3);
     canvas.drawRect(
-      Rect.fromLTWH(lx - 2, ly - 1, tp.width + 4, tp.height + 2), Paint()
+      Rect.fromLTWH(lx - 2, ly - 1, tp.width + 4, tp.height + 2),
+      Paint()
         ..color = p.color.withOpacity(0.08 * bright)
-        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 5));
+        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 5),
+    );
     tp.paint(canvas, Offset(lx, ly));
   }
 
@@ -1725,12 +1958,20 @@ class _RealisticPopupPainter extends CustomPainter {
       final rect = Rect.fromCenter(
         center: pos,
         width: r * 2.5 * mul * 2,
-        height: r * 0.55 * mul * 2);
-      canvas.drawArc(rect, front ? 0 : math.pi, math.pi, false, Paint()
-        ..color = c
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = th);
+        height: r * 0.55 * mul * 2,
+      );
+      canvas.drawArc(
+        rect,
+        front ? 0 : math.pi,
+        math.pi,
+        false,
+        Paint()
+          ..color = c
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = th,
+      );
     }
+
     arc(3.0, const Color(0xFFD4B896).withOpacity(0.55), 1.0);
     arc(1.2, Colors.transparent, 0.88);
     arc(1.8, const Color(0xFFBDA882).withOpacity(0.38), 0.80);
@@ -1750,21 +1991,37 @@ class _RealisticPopupPainter extends CustomPainter {
     final mx = ex + moonOrbit * math.cos(moonAngle);
     final my = ey + moonOrbit * math.sin(moonAngle) * _popupTilt;
     final moonPos = Offset(mx, my);
-    canvas.drawOval(Rect.fromCenter(
-      center: earthPos, width: moonOrbit * 2,
-      height: moonOrbit * 2 * _popupTilt), Paint()
-      ..color = Colors.white.withOpacity(0.06)
-      ..style = PaintingStyle.stroke ..strokeWidth = 0.3);
-    canvas.drawCircle(moonPos, 3.0, Paint()
-      ..color = const Color(0xFFCFD8DC).withOpacity(0.14)
-      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 2));
+    canvas.drawOval(
+      Rect.fromCenter(
+        center: earthPos,
+        width: moonOrbit * 2,
+        height: moonOrbit * 2 * _popupTilt,
+      ),
+      Paint()
+        ..color = Colors.white.withOpacity(0.06)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 0.3,
+    );
+    canvas.drawCircle(
+      moonPos,
+      3.0,
+      Paint()
+        ..color = const Color(0xFFCFD8DC).withOpacity(0.14)
+        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 2),
+    );
     final toSun = center - moonPos;
     final dist = toSun.distance.clamp(1.0, double.infinity);
     final ld = Offset(toSun.dx / dist, toSun.dy / dist);
-    canvas.drawCircle(moonPos, 1.5, Paint()
-      ..shader = ui.Gradient.linear(
-        moonPos + ld * 1.5, moonPos - ld * 1.5,
-        const [Color(0xFFE0E4E8), Color(0xFF606868)]));
+    canvas.drawCircle(
+      moonPos,
+      1.5,
+      Paint()
+        ..shader = ui.Gradient.linear(
+          moonPos + ld * 1.5,
+          moonPos - ld * 1.5,
+          const [Color(0xFFE0E4E8), Color(0xFF606868)],
+        ),
+    );
   }
 
   @override

@@ -1,7 +1,10 @@
 import 'dart:math' as math;
 import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:grocery_app/common_widgets/global_import.dart';
-import 'package:grocery_app/screens/RFP/contract_farming_screen.dart';
+import 'package:grocery_app/cubits/auth/auth_cubit.dart';
+import 'package:grocery_app/cubits/auth/auth_state.dart';
+import 'package:grocery_app/routes/app_routes.dart';
 
 class ExploreScreen extends StatefulWidget {
   const ExploreScreen({super.key});
@@ -629,9 +632,9 @@ class _ExploreScreenState extends State<ExploreScreen>
 
   void _onProductClicked(Product item) {
     HapticFeedback.lightImpact();
-    Navigator.push(
-      context,
-      AnimatedTransitions.fadeScale(ProductDetailsScreen(product: item)),
+    context.pushNamed(
+      AppRoute.productDetails.name,
+      pathParameters: {'id': item.id.toString()},
     );
   }
 
@@ -644,14 +647,13 @@ class _ExploreScreenState extends State<ExploreScreen>
     );
     if (!mounted) return;
     if (category.name == "Vegetables") {
-      Navigator.of(
-        context,
-      ).push(AnimatedTransitions.slideFromRight(const CombinedScreen()));
+      final authState = context.read<AuthCubit>().state;
+      final isRfp = authState is Authenticated && authState.user.isRfp;
+      context.push(isRfp ? '/delivery' : '/contract-farming');
     } else {
-      Navigator.of(context).push(
-        AnimatedTransitions.slideFromRight(
-          CategoryItemsScreen(name: category.name, allProducts: products),
-        ),
+      context.push(
+        '/category-items',
+        extra: {'name': category.name, 'products': products},
       );
     }
   }

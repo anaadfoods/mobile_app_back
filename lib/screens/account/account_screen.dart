@@ -2,8 +2,8 @@ import "dart:math" as math;
 import "package:flutter/services.dart";
 import "package:grocery_app/common_widgets/global_import.dart";
 import "package:grocery_app/models/user_summary_model.dart";
+import "package:grocery_app/routes/app_routes.dart";
 import "package:grocery_app/screens/innovations/panchang/panchang_home_screen.dart";
-import "package:grocery_app/screens/innovations/refer_earn_screen.dart";
 
 import "package:grocery_app/services/user_summary_service.dart";
 import "package:grocery_app/common_widgets/animated_screen_header.dart";
@@ -241,13 +241,9 @@ class _AccountScreenState extends State<AccountScreen>
                         iconColor: Colors.blue,
                         onTap: () {
                           _triggerHaptic();
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder:
-                                  (context) =>
-                                      EditProfileScreen(userProfile: user),
-                            ),
+                          context.pushNamed(
+                            AppRoute.editProfile.name,
+                            extra: user,
                           );
                         },
                       ),
@@ -258,12 +254,8 @@ class _AccountScreenState extends State<AccountScreen>
                         iconColor: Colors.blue,
                         onTap: () {
                           _triggerHaptic();
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => ReferEarnScreen(),
-                            ),
-                          );
+                          // Refer and Earn route doesn't exist, we will add it to routes later if needed
+                          context.pushNamed(AppRoute.referEarn.name);
                         },
                       ),
                     ],
@@ -278,12 +270,9 @@ class _AccountScreenState extends State<AccountScreen>
                         iconColor: Colors.blue,
                         onTap: () {
                           _triggerHaptic();
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => PanchangHomeScreen(),
-                            ),
-                          );
+                          context.pushNamed(
+                            AppRoute.panchang.name,
+                          ); // Using AppRoute
                         },
                       ),
                     ],
@@ -299,12 +288,7 @@ class _AccountScreenState extends State<AccountScreen>
                         iconColor: Colors.green,
                         onTap: () {
                           _triggerHaptic();
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => OrderScreen(),
-                            ),
-                          );
+                          context.pushNamed(AppRoute.orderList.name);
                         },
                       ),
                       AccountMenuItem(
@@ -314,12 +298,7 @@ class _AccountScreenState extends State<AccountScreen>
                         iconColor: Colors.green,
                         onTap: () {
                           _triggerHaptic();
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const SubscriptionScreen(),
-                            ),
-                          );
+                          context.pushNamed(AppRoute.subscriptionList.name);
                         },
                       ),
                     ],
@@ -342,12 +321,7 @@ class _AccountScreenState extends State<AccountScreen>
                         iconColor: Colors.green,
                         onTap: () {
                           _triggerHaptic();
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const HelpScreen(),
-                            ),
-                          );
+                          context.pushNamed(AppRoute.help.name);
                         },
                       ),
                       AccountMenuItem(
@@ -364,12 +338,7 @@ class _AccountScreenState extends State<AccountScreen>
                         iconColor: Colors.green,
                         onTap: () {
                           _triggerHaptic();
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => AboutScreen(),
-                            ),
-                          );
+                          context.pushNamed(AppRoute.aboutUs.name);
                         },
                       ),
                     ],

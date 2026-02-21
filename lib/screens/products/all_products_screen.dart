@@ -1,6 +1,8 @@
 import 'package:flutter/services.dart';
 import 'package:grocery_app/common_widgets/global_import.dart';
 import 'package:grocery_app/utils/subscription_navigation_helper.dart';
+import 'package:go_router/go_router.dart';
+import 'package:grocery_app/routes/app_routes.dart';
 
 class AllProductsScreen extends StatefulWidget {
   const AllProductsScreen({super.key, this.products});
@@ -209,7 +211,7 @@ class _AllProductsScreenState extends State<AllProductsScreen> {
                 child: const Icon(Icons.arrow_back_ios_new, size: 18),
               ),
               color: Colors.white,
-              onPressed: () => Navigator.pop(context),
+              onPressed: () => context.pop(),
             ),
             actions: [
               IconButton(
@@ -390,9 +392,10 @@ class _AllProductsScreenState extends State<AllProductsScreen> {
   void _onProductTap(Product product) {
     if (!product.isInStock) return;
     HapticFeedback.lightImpact();
-    Navigator.push(
-      context,
-      AnimatedTransitions.fadeScale(ProductDetailsScreen(product: product)),
+    context.pushNamed(
+      AppRoute.productDetails.name,
+      pathParameters: {'id': product.id.toString()},
+      extra: product,
     );
   }
 }

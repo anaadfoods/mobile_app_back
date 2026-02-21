@@ -2,7 +2,9 @@
 
 import 'dart:math' as math;
 import 'package:flutter/services.dart';
+import 'package:go_router/go_router.dart';
 import 'package:grocery_app/common_widgets/global_import.dart';
+import 'package:grocery_app/routes/app_routes.dart';
 import 'package:grocery_app/services/referral_reward_service.dart';
 
 class CheckoutScreen extends StatefulWidget {
@@ -610,9 +612,10 @@ class _CheckoutScreenState extends State<CheckoutScreen>
           }),
         );
 
-        Navigator.pushReplacement(
-          context,
-          AnimatedTransitions.fadeScale(OrderDetailScreen(order: order)),
+        context.replaceNamed(
+          AppRoute.orderDetails.name,
+          pathParameters: {'id': order.id.toString()},
+          extra: order,
         );
       } else {
         Navigator.pop(context);
@@ -625,19 +628,19 @@ class _CheckoutScreenState extends State<CheckoutScreen>
   }
 
   void _navigateToSubscriptionDetails(dynamic subscription) {
-    Navigator.pushAndRemoveUntil(
-      context,
-      AnimatedTransitions.fadeScale(
-        SubscriptionPlanDetailScreen(subscription: subscription),
-      ),
-      (route) => route.isFirst,
+    context.go(AppRoute.home.path);
+    context.pushNamed(
+      AppRoute.subscriptionDetails.name,
+      pathParameters: {'id': subscription['id'].toString()},
+      extra: subscription,
     );
   }
 
   void _navigateToOrderAccepted(Order order) {
-    Navigator.pushReplacement(
-      context,
-      AnimatedTransitions.fadeScale(OrderDetailScreen(order: order)),
+    context.replaceNamed(
+      AppRoute.orderDetails.name,
+      pathParameters: {'id': order.id.toString()},
+      extra: order,
     );
   }
 
