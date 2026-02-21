@@ -1,4 +1,5 @@
 import 'package:flutter/services.dart';
+import 'package:grocery_app/common_widgets/coming_soon_overlay.dart';
 import 'package:grocery_app/common_widgets/global_import.dart';
 import 'package:grocery_app/routes/app_routes.dart';
 
@@ -72,16 +73,21 @@ class _CategoryItemsScreenState extends State<CategoryItemsScreen> {
                   final product = filteredProducts[index];
                   return Padding(
                     padding: const EdgeInsets.only(bottom: AppColors.spacingM),
-                    child: Opacity(
-                      opacity: product.isInStock ? 1.0 : 0.5,
-                      child: GroceryItemCardWidget(
-                        item: product,
-                        heroSuffix: "home_screen",
-                        onTap:
-                            product.isInStock
-                                ? () => _onProductClicked(product)
-                                : null,
-                      ),
+                    child: Stack(
+                      children: [
+                        Opacity(
+                          opacity: product.isInStock ? 1.0 : 0.5,
+                          child: GroceryItemCardWidget(
+                            item: product,
+                            heroSuffix: "home_screen",
+                            onTap:
+                                (product.isInStock && product.tag)
+                                    ? () => _onProductClicked(product)
+                                    : null,
+                          ),
+                        ),
+                        if (!product.tag) const ComingSoonOverlay(),
+                      ],
                     ),
                   );
                 },

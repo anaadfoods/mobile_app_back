@@ -1,4 +1,5 @@
 import 'package:flutter/services.dart';
+import 'package:grocery_app/common_widgets/coming_soon_overlay.dart';
 import 'package:grocery_app/common_widgets/global_import.dart';
 import 'package:grocery_app/utils/subscription_navigation_helper.dart';
 import 'package:go_router/go_router.dart';
@@ -377,10 +378,15 @@ class _AllProductsScreenState extends State<AllProductsScreen> {
         delegate: SliverChildBuilderDelegate(
           (context, index) => Padding(
             padding: const EdgeInsets.only(bottom: 12),
-            child: GroceryItemCardWidget(
-              item: _products[index],
-              heroSuffix: 'all_products_list_$index',
-              onTap: () => _onProductTap(_products[index]),
+            child: Stack(
+              children: [
+                GroceryItemCardWidget(
+                  item: _products[index],
+                  heroSuffix: 'all_products_list_$index',
+                  onTap: () => _onProductTap(_products[index]),
+                ),
+                if (!_products[index].tag) const ComingSoonOverlay(),
+              ],
             ),
           ),
           childCount: _products.length,
@@ -390,7 +396,7 @@ class _AllProductsScreenState extends State<AllProductsScreen> {
   }
 
   void _onProductTap(Product product) {
-    if (!product.isInStock) return;
+    if (!product.isInStock || !product.tag) return;
     HapticFeedback.lightImpact();
     context.pushNamed(
       AppRoute.productDetails.name,
@@ -419,10 +425,12 @@ class _FeaturedProductCard extends StatelessWidget {
     final hasDiscount = product.discountPercentage > 0;
 
     return GestureDetector(
-      onTap: product.isInStock ? onTap : null,
+      onTap: (product.isInStock && product.tag) ? onTap : null,
       child: Opacity(
-        opacity: product.isInStock ? 1.0 : 0.5,
-        child: Container(
+        opacity: (product.isInStock && product.tag) ? 1.0 : 0.5,
+        child: Stack(
+          children: [
+            Container(
           decoration: BoxDecoration(
             color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
             borderRadius: BorderRadius.circular(20),
@@ -561,6 +569,8 @@ class _FeaturedProductCard extends StatelessWidget {
               ),
             ],
           ),
+            if (!product.tag) const ComingSoonOverlay(),
+          ],
         ),
       ),
     );

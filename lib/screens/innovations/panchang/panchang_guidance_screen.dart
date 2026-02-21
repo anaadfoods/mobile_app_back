@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 
@@ -53,7 +53,7 @@ class _PanchangGuidanceScreenState extends State<PanchangGuidanceScreen>
     return BlocProvider.value(
       value: _cubit,
       child: Scaffold(
-        backgroundColor: isDark ? const Color(0xFF0F0F23) : const Color(0xFFF5F5F5),
+        backgroundColor: isDark ? const Color(0xFF070C08) : const Color(0xFFF5F5F5),
         body: BlocBuilder<PanchangGuidanceCubit, PanchangGuidanceState>(
           builder: (context, state) {
             if (state is PanchangGuidanceLoading) {
@@ -85,7 +85,7 @@ class _PanchangGuidanceScreenState extends State<PanchangGuidanceScreen>
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               gradient: LinearGradient(
-                colors: [Colors.blue.shade400, Colors.purple.shade400],
+                colors: [const Color(0xFF3F5E46), const Color(0xFF3A8C54)],
               ),
             ),
             child: const CircularProgressIndicator(
@@ -143,7 +143,7 @@ class _PanchangGuidanceScreenState extends State<PanchangGuidanceScreen>
               icon: const Icon(Icons.refresh),
               label: const Text('Retry'),
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.blue,
+                backgroundColor: const Color(0xFF3F5E46),
                 foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
               ),
@@ -194,7 +194,7 @@ class _PanchangGuidanceScreenState extends State<PanchangGuidanceScreen>
       expandedHeight: 140,
       floating: false,
       pinned: true,
-      backgroundColor: isDark ? const Color(0xFF1A1A2E) : Colors.white,
+      backgroundColor: isDark ? const Color(0xFF0D150E) : Colors.white,
       elevation: 0,
       leading: IconButton(
         icon: Icon(
@@ -254,8 +254,8 @@ class _PanchangGuidanceScreenState extends State<PanchangGuidanceScreen>
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
               colors: isDark
-                  ? [const Color(0xFF1A1A2E), const Color(0xFF16213E)]
-                  : [Colors.white, const Color(0xFFF0F4FF)],
+                  ? [const Color(0xFF0D150E), const Color(0xFF0A1510)]
+                  : [Colors.white, const Color(0xFFEDF4EE)],
             ),
           ),
         ),
@@ -269,12 +269,12 @@ class _PanchangGuidanceScreenState extends State<PanchangGuidanceScreen>
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: isDark
-              ? [const Color(0xFF2D2D5A), const Color(0xFF1A1A3E)]
-              : [const Color(0xFFE8EAFF), const Color(0xFFF5F6FF)],
+              ? [const Color(0xFF0D1A10), const Color(0xFF0D1A0F)]
+              : [const Color(0xFFEDF4EE), const Color(0xFFF4F8F4)],
         ),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: Colors.blue.withOpacity(0.3),
+          color: const Color(0xFF3F5E46).withOpacity(0.3),
         ),
       ),
       child: Row(
@@ -285,7 +285,7 @@ class _PanchangGuidanceScreenState extends State<PanchangGuidanceScreen>
               children: [
                 Row(
                   children: [
-                    Icon(Icons.calendar_today, size: 16, color: Colors.blue.shade400),
+                    Icon(Icons.calendar_today, size: 16, color: const Color(0xFF3A8C54)),
                     const SizedBox(width: 8),
                     Text(
                       source.tithi,
@@ -377,7 +377,7 @@ class _PanchangGuidanceScreenState extends State<PanchangGuidanceScreen>
       },
       child: Container(
         decoration: BoxDecoration(
-          color: isDark ? const Color(0xFF1A1A2E) : Colors.white,
+          color: isDark ? const Color(0xFF0D150E) : Colors.white,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
             color: verdictData.color.withOpacity(0.3),
@@ -618,11 +618,11 @@ class _PanchangGuidanceScreenState extends State<PanchangGuidanceScreen>
       case 'good':
         return _VerdictData('GOOD', Colors.teal.shade500);
       case 'recommended':
-        return _VerdictData('RECOMMENDED', Colors.blue.shade500);
+        return _VerdictData('RECOMMENDED', const Color(0xFF3A8C54));
       case 'ok_with_caution':
         return _VerdictData('OK WITH CAUTION', Colors.orange.shade600);
       case 'optional':
-        return _VerdictData('OPTIONAL', Colors.purple.shade400);
+        return _VerdictData('OPTIONAL', const Color(0xFF7BC48F));
       case 'none':
         return _VerdictData('NOT APPLICABLE', Colors.grey.shade500);
       default:

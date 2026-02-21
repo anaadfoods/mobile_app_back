@@ -11,6 +11,7 @@ class Product {
   final double finalPrice;
   final bool isInStock;
   final bool isActive;
+  final bool tag;
   final String productName;
   final String productDescription;
   final String productCategory;
@@ -26,6 +27,7 @@ class Product {
     required this.finalPrice,
     required this.isInStock,
     required this.isActive,
+    required this.tag,
     required this.productName,
     required this.productDescription,
     required this.productCategory,
@@ -44,6 +46,7 @@ class Product {
       finalPrice: finalPrice.toString(),
       isInStock: isInStock,
       isActive: isActive,
+      tag: tag,
       productName: productName,
       productDescription: productDescription,
       productCategory: productCategory,
@@ -63,6 +66,7 @@ class Product {
       finalPrice: double.tryParse(json['final_price']?.toString() ?? '0') ?? 0,
       isInStock: json['is_in_stock'] ?? false,
       isActive: json['is_active'] ?? false,
+      tag: json['tag'] ?? true,
       productName: json['product_name'] ?? '',
       productDescription: json['product_description'] ?? '',
       productCategory: json['product_category'] ?? '',
@@ -85,6 +89,7 @@ class Product {
       'final_price': finalPrice,
       'is_in_stock': isInStock,
       'is_active': isActive,
+      'tag': tag,
       'product_name': productName,
       'product_description': productDescription,
       'product_category': productCategory,

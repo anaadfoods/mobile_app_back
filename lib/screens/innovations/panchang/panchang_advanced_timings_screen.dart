@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 
@@ -107,7 +107,7 @@ class _PanchangAdvancedTimingsScreenState extends State<PanchangAdvancedTimingsS
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
-      backgroundColor: isDark ? const Color(0xFF0A0A1A) : const Color(0xFFF8F9FF),
+      backgroundColor: isDark ? const Color(0xFF080D0A) : const Color(0xFFF4F8F4),
       body: BlocBuilder<PanchangHomeCubit, PanchangHomeState>(
         builder: (context, state) {
           if (state is PanchangMuhuratsLoading) return _buildLoadingState(isDark);
@@ -175,7 +175,7 @@ class _PanchangAdvancedTimingsScreenState extends State<PanchangAdvancedTimingsS
       expandedHeight: 180,
       floating: false,
       pinned: true,
-      backgroundColor: isDark ? const Color(0xFF0A0A1A) : Colors.white,
+      backgroundColor: isDark ? const Color(0xFF080D0A) : Colors.white,
       elevation: 0,
       leading: Container(
         margin: const EdgeInsets.all(8),
@@ -201,7 +201,7 @@ class _PanchangAdvancedTimingsScreenState extends State<PanchangAdvancedTimingsS
         centerTitle: false,
         titlePadding: const EdgeInsets.only(left: 56, bottom: 16),
         background: Container(
-          decoration: BoxDecoration(gradient: LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: isDark ? [const Color(0xFF1A1A3E), const Color(0xFF0A0A1A)] : [const Color(0xFFE8EAFF), const Color(0xFFF8F9FF)])),
+          decoration: BoxDecoration(gradient: LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: isDark ? [const Color(0xFF0D1A0F), const Color(0xFF080D0A)] : [const Color(0xFFEDF4EE), const Color(0xFFF4F8F4)])),
           child: Stack(
             children: [
               Positioned(top: 30, right: 20, child: _buildDecorativePlanet('☉', const Color(0xFFFF6B00), 50)),
@@ -228,7 +228,7 @@ class _PanchangAdvancedTimingsScreenState extends State<PanchangAdvancedTimingsS
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        gradient: LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: isDark ? [const Color(0xFF1E1B4B), const Color(0xFF312E81)] : [Colors.white, const Color(0xFFF5F3FF)]),
+        gradient: LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: isDark ? [const Color(0xFF0D1A10), const Color(0xFF143318)] : [Colors.white, const Color(0xFFF5F3FF)]),
         borderRadius: BorderRadius.circular(24),
         boxShadow: [BoxShadow(color: const Color(0xFF6366F1).withOpacity(isDark ? 0.3 : 0.15), blurRadius: 20, offset: const Offset(0, 8))],
       ),
@@ -281,7 +281,7 @@ class _PanchangAdvancedTimingsScreenState extends State<PanchangAdvancedTimingsS
 
     return Container(
       decoration: BoxDecoration(
-        gradient: LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: isDark ? [const Color(0xFF1A1A2E), const Color(0xFF16213E)] : [Colors.white, const Color(0xFFFFFBEB)]),
+        gradient: LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: isDark ? [const Color(0xFF0D150E), const Color(0xFF0A1510)] : [Colors.white, const Color(0xFFFFFBEB)]),
         borderRadius: BorderRadius.circular(24),
         border: Border.all(color: const Color(0xFFFFD700).withOpacity(0.4), width: 2),
         boxShadow: [BoxShadow(color: const Color(0xFFFFD700).withOpacity(isDark ? 0.2 : 0.15), blurRadius: 25, offset: const Offset(0, 8))],
@@ -357,7 +357,7 @@ class _PanchangAdvancedTimingsScreenState extends State<PanchangAdvancedTimingsS
 
     return Container(
       decoration: BoxDecoration(
-        gradient: LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: isDark ? [const Color(0xFF1A2E1A), const Color(0xFF16213E)] : [Colors.white, const Color(0xFFF0FFF4)]),
+        gradient: LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: isDark ? [const Color(0xFF1A2E1A), const Color(0xFF0A1510)] : [Colors.white, const Color(0xFFF0FFF4)]),
         borderRadius: BorderRadius.circular(24),
         border: Border.all(color: const Color(0xFF10B981).withOpacity(0.4), width: 2),
         boxShadow: [BoxShadow(color: const Color(0xFF10B981).withOpacity(isDark ? 0.2 : 0.15), blurRadius: 25, offset: const Offset(0, 8))],
@@ -445,7 +445,7 @@ class _PanchangAdvancedTimingsScreenState extends State<PanchangAdvancedTimingsS
         child: Container(
           constraints: const BoxConstraints(maxWidth: 350),
           decoration: BoxDecoration(
-            gradient: LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: isDark ? [const Color(0xFF1E1B4B), const Color(0xFF0F0F23)] : [Colors.white, const Color(0xFFF5F3FF)]),
+            gradient: LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: isDark ? [const Color(0xFF0D1A10), const Color(0xFF070C08)] : [Colors.white, const Color(0xFFF5F3FF)]),
             borderRadius: BorderRadius.circular(24),
             border: Border.all(color: planet.color.withOpacity(0.5), width: 2),
             boxShadow: [BoxShadow(color: planet.color.withOpacity(0.3), blurRadius: 30, spreadRadius: 5)],
@@ -489,7 +489,7 @@ class _PanchangAdvancedTimingsScreenState extends State<PanchangAdvancedTimingsS
         insetPadding: const EdgeInsets.all(20),
         child: Container(
           constraints: const BoxConstraints(maxWidth: 400),
-          decoration: BoxDecoration(gradient: LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: isDark ? [const Color(0xFF1E1B4B), const Color(0xFF0F0F23)] : [Colors.white, const Color(0xFFFFFBEB)]), borderRadius: BorderRadius.circular(24), boxShadow: [BoxShadow(color: const Color(0xFFFFD700).withOpacity(0.3), blurRadius: 30, spreadRadius: 5)]),
+          decoration: BoxDecoration(gradient: LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: isDark ? [const Color(0xFF0D1A10), const Color(0xFF070C08)] : [Colors.white, const Color(0xFFFFFBEB)]), borderRadius: BorderRadius.circular(24), boxShadow: [BoxShadow(color: const Color(0xFFFFD700).withOpacity(0.3), blurRadius: 30, spreadRadius: 5)]),
           child: SingleChildScrollView(
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -519,7 +519,7 @@ class _PanchangAdvancedTimingsScreenState extends State<PanchangAdvancedTimingsS
         insetPadding: const EdgeInsets.all(20),
         child: Container(
           constraints: const BoxConstraints(maxWidth: 400),
-          decoration: BoxDecoration(gradient: LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: isDark ? [const Color(0xFF1A2E1A), const Color(0xFF0F0F23)] : [Colors.white, const Color(0xFFF0FFF4)]), borderRadius: BorderRadius.circular(24), boxShadow: [BoxShadow(color: const Color(0xFF10B981).withOpacity(0.3), blurRadius: 30, spreadRadius: 5)]),
+          decoration: BoxDecoration(gradient: LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: isDark ? [const Color(0xFF1A2E1A), const Color(0xFF070C08)] : [Colors.white, const Color(0xFFF0FFF4)]), borderRadius: BorderRadius.circular(24), boxShadow: [BoxShadow(color: const Color(0xFF10B981).withOpacity(0.3), blurRadius: 30, spreadRadius: 5)]),
           child: SingleChildScrollView(
             child: Column(
               mainAxisSize: MainAxisSize.min,
