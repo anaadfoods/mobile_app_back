@@ -228,12 +228,15 @@ class SubscriptionService {
         headers: ApiConfig.getAuthHeaders(token),
       );
 
-      final responseData = await compute(_parseJson, response.body);
-
       if (response.statusCode == 200) {
+        final responseData = await compute(_parseJson, response.body);
+        final dataMap =
+            responseData.containsKey('data')
+                ? responseData['data']
+                : responseData;
         return {
           'success': true,
-          'data': Subscription.fromJson(responseData['data']),
+          'data': Subscription.fromJson(dataMap),
           'message': 'Subscription details fetched successfully',
         };
       } else if (response.statusCode == 401) {
@@ -248,11 +251,22 @@ class SubscriptionService {
           };
         }
       } else {
-        return {
-          'success': false,
-          'message':
-              responseData['message'] ?? 'Failed to fetch subscription details',
-        };
+        try {
+          final responseData = await compute(_parseJson, response.body);
+          return {
+            'success': false,
+            'message':
+                responseData['message'] ??
+                responseData['detail'] ??
+                'Failed to fetch subscription details',
+          };
+        } catch (_) {
+          return {
+            'success': false,
+            'message':
+                'Failed to fetch subscription (Status: ${response.statusCode})',
+          };
+        }
       }
     } catch (e) {
       return {

@@ -164,9 +164,26 @@ class OrderService {
     );
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
-      return Order.fromJson(data);
+      final orderData =
+          data is Map && data.containsKey('data') ? data['data'] : data;
+      return Order.fromJson(orderData);
+    } else if (response.statusCode == 401) {
+      final refreshed = await _authService.refreshAccessToken();
+      if (refreshed) {
+        return getOrderById(orderId);
+      }
+      throw Exception('Session expired');
     } else {
-      throw Exception('Failed to fetch order details');
+      try {
+        final data = jsonDecode(response.body);
+        throw Exception(
+          data['message'] ?? data['detail'] ?? 'Failed to fetch order details',
+        );
+      } catch (_) {
+        throw Exception(
+          'Failed to fetch order (Status: ${response.statusCode})',
+        );
+      }
     }
   }
 
