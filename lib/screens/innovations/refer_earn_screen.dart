@@ -1,4 +1,4 @@
-import 'dart:ui';
+﻿import 'dart:ui';
 import 'package:flutter/services.dart';
 import 'package:grocery_app/common_widgets/global_import.dart';
 import 'package:share_plus/share_plus.dart';
@@ -107,10 +107,10 @@ class _ReferEarnScreenState extends State<ReferEarnScreen>
       body:
           _isLoading
               ? const Center(
-                child: CircularProgressIndicator(color: Color(0xFFF59E0B)),
+                child: CircularProgressIndicator(color: Color(0xFF4A7C59)),
               )
               : RefreshIndicator(
-                color: const Color(0xFFF59E0B),
+                color: const Color(0xFF4A7C59),
                 onRefresh: _fetchReferralData,
                 child: SingleChildScrollView(
                   physics: const AlwaysScrollableScrollPhysics(),
@@ -159,12 +159,12 @@ class _ReferEarnScreenState extends State<ReferEarnScreen>
           padding: const EdgeInsets.all(24),
           decoration: BoxDecoration(
             gradient: const LinearGradient(
-              colors: [Color(0xFFF59E0B), Color(0xFFD97706)],
+              colors: [Color(0xFF4A7C59), Color(0xFF3F5E46)],
             ),
             shape: BoxShape.circle,
             boxShadow: [
               BoxShadow(
-                color: const Color(0xFFF59E0B).withOpacity(0.4),
+                color: const Color(0xFF4A7C59).withOpacity(0.4),
                 blurRadius: 25,
                 offset: const Offset(0, 8),
               ),
@@ -205,14 +205,14 @@ class _ReferEarnScreenState extends State<ReferEarnScreen>
           decoration: BoxDecoration(
             gradient: LinearGradient(
               colors: [
-                const Color(0xFFF59E0B).withOpacity(0.95),
-                const Color(0xFFD97706).withOpacity(0.9),
+                const Color(0xFF4A7C59).withOpacity(0.95),
+                const Color(0xFF3F5E46).withOpacity(0.9),
               ],
             ),
             borderRadius: BorderRadius.circular(24),
             boxShadow: [
               BoxShadow(
-                color: const Color(0xFFF59E0B).withOpacity(0.4),
+                color: const Color(0xFF4A7C59).withOpacity(0.4),
                 blurRadius: 20,
                 offset: const Offset(0, 8),
               ),
@@ -320,14 +320,14 @@ class _ReferEarnScreenState extends State<ReferEarnScreen>
                         children: [
                           Icon(
                             Icons.share_rounded,
-                            color: const Color(0xFFD97706),
+                            color: const Color(0xFF3F5E46),
                             size: 20,
                           ),
                           const SizedBox(width: 8),
                           Text(
                             'Share Now',
                             style: theme.textTheme.titleSmall?.copyWith(
-                              color: const Color(0xFFD97706),
+                              color: const Color(0xFF3F5E46),
                               fontWeight: FontWeight.bold,
                             ),
                           ),
@@ -451,7 +451,7 @@ class _ReferEarnScreenState extends State<ReferEarnScreen>
                 Icons.hourglass_top_rounded,
                 '$_pendingReferrals',
                 'Pending',
-                const Color(0xFFF59E0B),
+                const Color(0xFF4A7C59),
               ),
               _buildStatItem(
                 theme,
@@ -549,13 +549,13 @@ class _ReferEarnScreenState extends State<ReferEarnScreen>
                   vertical: 6,
                 ),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFF59E0B).withOpacity(0.15),
+                  color: const Color(0xFF4A7C59).withOpacity(0.15),
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Text(
                   '${_referralData!.referredUsers.length}',
                   style: theme.textTheme.labelLarge?.copyWith(
-                    color: const Color(0xFFF59E0B),
+                    color: const Color(0xFF4A7C59),
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -574,7 +574,7 @@ class _ReferEarnScreenState extends State<ReferEarnScreen>
   Widget _buildUserCard(ThemeData theme, bool isDark, ReferredUser user) {
     final statusColor =
         user.status == 'PENDING'
-            ? const Color(0xFFF59E0B)
+            ? const Color(0xFF4A7C59)
             : const Color(0xFF10B981);
     final statusText = user.status ?? 'Active';
     final dateStr =
@@ -599,8 +599,8 @@ class _ReferEarnScreenState extends State<ReferEarnScreen>
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: [
-                  const Color(0xFFF59E0B).withOpacity(0.8),
-                  const Color(0xFFD97706).withOpacity(0.9),
+                  const Color(0xFF4A7C59).withOpacity(0.8),
+                  const Color(0xFF3F5E46).withOpacity(0.9),
                 ],
               ),
               borderRadius: BorderRadius.circular(12),
@@ -708,7 +708,7 @@ class _ReferEarnScreenState extends State<ReferEarnScreen>
       decoration: BoxDecoration(
         color: isDark ? const Color.fromARGB(255, 2, 2, 34) : Colors.white,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: const Color(0xFFF59E0B).withOpacity(0.2)),
+        border: Border.all(color: const Color(0xFF4A7C59).withOpacity(0.2)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -718,12 +718,12 @@ class _ReferEarnScreenState extends State<ReferEarnScreen>
               Container(
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFF59E0B).withOpacity(0.15),
+                  color: const Color(0xFF4A7C59).withOpacity(0.15),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: const Icon(
                   Icons.help_outline_rounded,
-                  color: Color(0xFFF59E0B),
+                  color: Color(0xFF4A7C59),
                   size: 20,
                 ),
               ),
@@ -749,7 +749,7 @@ class _ReferEarnScreenState extends State<ReferEarnScreen>
                     height: 36,
                     decoration: BoxDecoration(
                       gradient: const LinearGradient(
-                        colors: [Color(0xFFF59E0B), Color(0xFFD97706)],
+                        colors: [Color(0xFF4A7C59), Color(0xFF3F5E46)],
                       ),
                       borderRadius: BorderRadius.circular(10),
                     ),
@@ -785,7 +785,7 @@ class _ReferEarnScreenState extends State<ReferEarnScreen>
                   ),
                   Icon(
                     step['icon'] as IconData,
-                    color: const Color(0xFFF59E0B),
+                    color: const Color(0xFF4A7C59),
                     size: 22,
                   ),
                 ],

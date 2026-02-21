@@ -683,7 +683,7 @@ void showSubscriptionPopup({
                 margin: const EdgeInsets.symmetric(horizontal: 24),
                 constraints: BoxConstraints(
                   maxWidth: 400,
-                  maxHeight: MediaQuery.of(context).size.height * 0.7,
+                  maxHeight: MediaQuery.of(context).size.height * 0.85,
                 ),
                 decoration: BoxDecoration(
                   gradient: const LinearGradient(
@@ -752,6 +752,7 @@ class _SubscriptionPopupContentState extends State<_SubscriptionPopupContent> {
   late SubscriptionPlan _selectedPlan;
   String? _selectedProduct;
   late PageController _pageController;
+  final ScrollController _scrollController = ScrollController();
   bool _isDropdownOpen = false;
 
   @override
@@ -768,6 +769,7 @@ class _SubscriptionPopupContentState extends State<_SubscriptionPopupContent> {
   @override
   void dispose() {
     _pageController.dispose();
+    _scrollController.dispose();
     super.dispose();
   }
 
@@ -815,6 +817,9 @@ class _SubscriptionPopupContentState extends State<_SubscriptionPopupContent> {
                 _isDropdownOpen = false;
               });
               _loadProductsForPlan(_selectedPlan.id);
+              if (_scrollController.hasClients) {
+                _scrollController.jumpTo(0);
+              }
             },
             itemBuilder: (context, index) {
               final plan = widget.allPlans[index];
@@ -826,19 +831,25 @@ class _SubscriptionPopupContentState extends State<_SubscriptionPopupContent> {
                 children: [
                   Flexible(
                     fit: FlexFit.loose,
-                    child: SingleChildScrollView(
-                      padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          // Header
-                          Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
+                    child: Scrollbar(
+                      controller: _scrollController,
+                      thumbVisibility: true,
+                      thickness: 3,
+                      radius: const Radius.circular(4),
+                      child: SingleChildScrollView(
+                        controller: _scrollController,
+                        padding: const EdgeInsets.fromLTRB(24, 0, 20, 24),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // Header
+                            Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
                                     Text(
                                       plan.name,
                                       style: const TextStyle(
@@ -907,6 +918,7 @@ class _SubscriptionPopupContentState extends State<_SubscriptionPopupContent> {
                       ),
                     ),
                   ),
+                ),
 
                   // Product selector
                   Container(

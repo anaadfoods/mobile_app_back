@@ -224,21 +224,17 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                   // Time-based greeting
                                   final hour = DateTime.now().hour;
                                   String greeting;
-                                  IconData greetingIcon;
-                                  Color iconColor;
+                                  String greetingEmoji;
 
                                   if (hour < 12) {
                                     greeting = "Good Morning";
-                                    greetingIcon = Icons.wb_sunny_rounded;
-                                    iconColor = Colors.amber;
+                                    greetingEmoji = '🌅';
                                   } else if (hour < 17) {
                                     greeting = "Good Afternoon";
-                                    greetingIcon = Icons.wb_sunny_outlined;
-                                    iconColor = Colors.orange;
+                                    greetingEmoji = '☀️';
                                   } else {
                                     greeting = "Good Evening";
-                                    greetingIcon = Icons.nightlight_round;
-                                    iconColor = Colors.indigo.shade300;
+                                    greetingEmoji = '🌙';
                                   }
 
                                   return GestureDetector(
@@ -305,36 +301,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                                 CrossAxisAlignment.start,
                                             mainAxisSize: MainAxisSize.min,
                                             children: [
-                                              // Time-based greeting with icon
+                                              // Time-based greeting with live emoji at end
                                               Row(
                                                 children: [
-                                                  TweenAnimationBuilder<double>(
-                                                    tween: Tween(
-                                                      begin: 0.0,
-                                                      end: 1.0,
-                                                    ),
-                                                    duration: const Duration(
-                                                      milliseconds: 800,
-                                                    ),
-                                                    builder: (
-                                                      context,
-                                                      value,
-                                                      child,
-                                                    ) {
-                                                      return Transform.rotate(
-                                                        angle: value * 0.1,
-                                                        child: Opacity(
-                                                          opacity: value,
-                                                          child: Icon(
-                                                            greetingIcon,
-                                                            size: 16,
-                                                            color: iconColor,
-                                                          ),
-                                                        ),
-                                                      );
-                                                    },
-                                                  ),
-                                                  const SizedBox(width: 4),
                                                   Text(
                                                     greeting,
                                                     style: textTheme.bodySmall
@@ -349,6 +318,38 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                                               FontWeight.w500,
                                                           letterSpacing: 0.3,
                                                         ),
+                                                  ),
+                                                  const SizedBox(width: 5),
+                                                  StreamBuilder<int>(
+                                                    stream: Stream.periodic(
+                                                      const Duration(milliseconds: 50),
+                                                      (i) => i,
+                                                    ),
+                                                    builder: (ctx, snap) {
+                                                      final t = (snap.data ?? 0) * 0.05;
+                                                      double scale;
+                                                      double angle;
+                                                      if (hour < 12) {
+                                                        scale = 1.0 + 0.12 * math.sin(t * 1.6);
+                                                        angle = 0.08 * math.sin(t * 0.8);
+                                                      } else if (hour < 17) {
+                                                        scale = 1.0 + 0.08 * math.sin(t * 1.2);
+                                                        angle = t * 0.25;
+                                                      } else {
+                                                        scale = 1.0 + 0.07 * math.sin(t * 0.9);
+                                                        angle = 0.12 * math.sin(t * 0.5);
+                                                      }
+                                                      return Transform.rotate(
+                                                        angle: angle,
+                                                        child: Transform.scale(
+                                                          scale: scale,
+                                                          child: Text(
+                                                            greetingEmoji,
+                                                            style: const TextStyle(fontSize: 14),
+                                                          ),
+                                                        ),
+                                                      );
+                                                    },
                                                   ),
                                                 ],
                                               ),
@@ -375,43 +376,24 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                                     ),
                                                   ),
                                                   const SizedBox(width: 6),
-                                                  // Animated waving hand
-                                                  TweenAnimationBuilder<double>(
-                                                    tween: Tween(
-                                                      begin: 0.0,
-                                                      end: 1.0,
+                                                  // Continuous waving hand emoji
+                                                  StreamBuilder<int>(
+                                                    stream: Stream.periodic(
+                                                      const Duration(milliseconds: 50),
+                                                      (i) => i,
                                                     ),
-                                                    duration: const Duration(
-                                                      milliseconds: 1500,
-                                                    ),
-                                                    builder: (
-                                                      context,
-                                                      value,
-                                                      child,
-                                                    ) {
-                                                      final wave = math.sin(
-                                                        value * 2 * math.pi,
-                                                      );
+                                                    builder: (ctx, snap) {
+                                                      final t = (snap.data ?? 0) * 0.05;
+                                                      final wave = math.sin(t * 3.0);
                                                       return Transform.rotate(
-                                                        angle:
-                                                            0.2 *
-                                                            (1 + wave * 0.3),
-                                                        child:
-                                                            Transform.translate(
-                                                              offset: Offset(
-                                                                0,
-                                                                -2.0 *
-                                                                    wave.abs(),
-                                                              ),
-                                                              child: const Text(
-                                                                "ðŸ‘‹",
-                                                                style:
-                                                                    TextStyle(
-                                                                      fontSize:
-                                                                          18,
-                                                                    ),
-                                                              ),
-                                                            ),
+                                                        angle: 0.28 * wave,
+                                                        child: Transform.translate(
+                                                          offset: Offset(0, -2.5 * wave.abs()),
+                                                          child: const Text(
+                                                            '👋',
+                                                            style: TextStyle(fontSize: 18),
+                                                          ),
+                                                        ),
                                                       );
                                                     },
                                                   ),

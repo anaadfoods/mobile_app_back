@@ -1,7 +1,6 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:grocery_app/models/subscription_invoice_model.dart';
 import 'package:grocery_app/styles/colors.dart';
-// Make sure to import your Invoice model
 
 class InvoiceTrackerWidget extends StatelessWidget {
   final bool isLoading;
@@ -19,127 +18,263 @@ class InvoiceTrackerWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
-            spreadRadius: 1,
-            blurRadius: 5,
-          )
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'Invoices',
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Section header
+        Padding(
+          padding: const EdgeInsets.fromLTRB(0, 8, 0, 14),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: AppColors.primaryColor.withOpacity(0.12),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Icon(
+                  Icons.receipt_long_rounded,
+                  color: AppColors.primaryColor,
+                  size: 20,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Text(
+                'Invoices',
+                style: theme.textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 0.2,
+                ),
+              ),
+              if (!isLoading && invoices.isNotEmpty) ...[
+                const SizedBox(width: 8),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: AppColors.primaryColor,
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Text(
+                    '${invoices.length}',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ],
+              const Spacer(),
+              Container(
+                width: 40,
+                height: 2,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      AppColors.primaryColor.withOpacity(0.6),
+                      Colors.transparent,
+                    ],
+                  ),
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+            ],
           ),
-          const SizedBox(height: 20),
-          _buildContent(),
+        ),
+        _buildContent(context, theme, isDark),
+      ],
+    );
+  }
+
+  Widget _buildContent(BuildContext context, ThemeData theme, bool isDark) {
+    if (isLoading) return _buildLoadingState(isDark);
+    if (error != null || invoices.isEmpty) return _buildEmptyState(theme, isDark);
+    return _buildInvoiceList(context, theme, isDark);
+  }
+
+  Widget _buildLoadingState(bool isDark) {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 32),
+      decoration: BoxDecoration(
+        color: isDark
+            ? Colors.white.withOpacity(0.05)
+            : AppColors.primaryColor.withOpacity(0.04),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: const Center(
+        child: CircularProgressIndicator(
+          color: AppColors.primaryColor,
+          strokeWidth: 2.5,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEmptyState(ThemeData theme, bool isDark) {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 28, horizontal: 20),
+      decoration: BoxDecoration(
+        color: isDark
+            ? Colors.white.withOpacity(0.05)
+            : AppColors.primaryColor.withOpacity(0.04),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: isDark
+              ? Colors.white.withOpacity(0.08)
+              : AppColors.primaryColor.withOpacity(0.12),
+        ),
+      ),
+      child: Row(
+        children: [
+          Icon(Icons.inbox_rounded, size: 32, color: AppColors.primaryColor.withOpacity(0.5)),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'No invoices yet',
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    fontWeight: FontWeight.w600,
+                    color: theme.colorScheme.onSurface,
+                  ),
+                ),
+                const SizedBox(height: 3),
+                Text(
+                  'Invoices will appear here once generated.',
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.onSurface.withOpacity(0.55),
+                  ),
+                ),
+              ],
+            ),
+          ),
         ],
       ),
     );
   }
 
-  /// Builds the content based on the current state (loading, error, empty, or data)
-  Widget _buildContent() {
-    if (isLoading) {
-      return const Center(
-        child: Padding(
-          padding: EdgeInsets.symmetric(vertical: 24.0),
-          child: CircularProgressIndicator(),
-        ),
-      );
-    }
-
-    if (error != null) {
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 24.0),
-          child: Text(
-            'No invoices available yet. or may be error occured while fetching',
-            style: const TextStyle(color:Colors.black),
-            textAlign: TextAlign.center,
-          ),
-        ),
-      );
-    }
-
-    if (invoices.isEmpty) {
-      return const Center(
-        child: Padding(
-          padding: EdgeInsets.symmetric(vertical: 24.0),
-          child: Text('No invoices available yet.'),
-        ),
-      );
-    }
-
-    return ListView.builder(
+  Widget _buildInvoiceList(BuildContext context, ThemeData theme, bool isDark) {
+    return ListView.separated(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       itemCount: invoices.length,
-      itemBuilder: (context, index) {
-        final invoice = invoices[index];
-        final isLastItem = index == invoices.length - 1;
-        return _buildInvoiceItem(invoice, isLastItem: isLastItem);
-      },
+      separatorBuilder: (_, __) => const SizedBox(height: 8),
+      itemBuilder: (context, index) =>
+          _buildInvoiceCard(invoices[index], index, theme, isDark),
     );
   }
 
-  /// Builds a single row in the invoice tracker list
-  Widget _buildInvoiceItem(Invoice invoice, {required bool isLastItem}) {
-    return InkWell(
-      onTap: () => onInvoiceTap(invoice),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 8.0),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // This column builds the icon and the vertical connecting line
-            Column(
+  Widget _buildInvoiceCard(Invoice invoice, int index, ThemeData theme, bool isDark) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: () => onInvoiceTap(invoice),
+        borderRadius: BorderRadius.circular(14),
+        splashColor: AppColors.primaryColor.withOpacity(0.08),
+        highlightColor: AppColors.primaryColor.withOpacity(0.04),
+        child: Ink(
+          decoration: BoxDecoration(
+            color: isDark ? Colors.white.withOpacity(0.06) : theme.cardColor,
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(
+              color: isDark
+                  ? Colors.white.withOpacity(0.09)
+                  : AppColors.primaryColor.withOpacity(0.13),
+            ),
+            boxShadow: isDark
+                ? null
+                : [
+                    BoxShadow(
+                      color: AppColors.primaryColor.withOpacity(0.06),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+          ),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
+            child: Row(
               children: [
-                const CircleAvatar(
-                  radius: 16,
-                  backgroundColor: AppColors.primaryColor, // Green color from image
-                  child: Icon(Icons.receipt_long, color: Colors.white, size: 18),
-                ),
-                if (!isLastItem)
-                  Container(
-                    height: 60, // Adjust height between items
-                    width: 2,
-                    color: Colors.grey.shade300,
+                // Index badge
+                Container(
+                  width: 36,
+                  height: 36,
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [AppColors.primaryColor, AppColors.primaryDark],
+                    ),
+                    borderRadius: BorderRadius.circular(10),
                   ),
+                  child: Center(
+                    child: Text(
+                      '${index + 1}',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 13,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                // Invoice info
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        invoice.displayName,
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          fontWeight: FontWeight.w600,
+                          color: theme.colorScheme.onSurface,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 3),
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.tag_rounded,
+                            size: 11,
+                            color: AppColors.primaryColor.withOpacity(0.7),
+                          ),
+                          const SizedBox(width: 3),
+                          Text(
+                            invoice.odooInvoiceNumber,
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: theme.colorScheme.onSurface.withOpacity(0.5),
+                              fontSize: 11,
+                              letterSpacing: 0.3,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                // Download button
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: AppColors.primaryColor.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: const Icon(
+                    Icons.download_rounded,
+                    color: AppColors.primaryColor,
+                    size: 18,
+                  ),
+                ),
               ],
             ),
-            const SizedBox(width: 12),
-            // This column holds the title and subtitle
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    invoice.displayName,
-                    style: const TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    invoice.odooInvoiceNumber,
-                    style: const TextStyle(color: Colors.grey, fontSize: 12),
-                  ),
-                ],
-              ),
-            ),
-            // Trailing download icon
-            const Padding(
-              padding: EdgeInsets.only(top: 8.0),
-              child: Icon(Icons.download_for_offline, color: Colors.grey),
-            ),
-          ],
+          ),
         ),
       ),
     );
