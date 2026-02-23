@@ -301,10 +301,79 @@ class _SubscriptionPlanDetailScreenState
 
   @override
   Widget build(BuildContext context) {
-    if (_isLoadingSubscription || _currentOrder == null) {
+    if (_isLoadingSubscription) {
       return Scaffold(
         backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         body: const Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    if (_currentOrder == null) {
+      return Scaffold(
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+        appBar: AppBar(
+          title: const Text('Invalid Link'),
+          centerTitle: true,
+          elevation: 0,
+        ),
+        body: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.error_outline_rounded,
+                  size: 80,
+                  color: Theme.of(context).colorScheme.error,
+                ),
+                const SizedBox(height: 24),
+                Text(
+                  'Invalid link or unauthorized access',
+                  textAlign: TextAlign.center,
+                  style: Theme.of(
+                    context,
+                  ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  'We could not load the subscription details. The link may be invalid, or you might not have permission to view it.',
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: Theme.of(context).hintColor,
+                  ),
+                ),
+                const SizedBox(height: 32),
+                BlocBuilder<AuthCubit, AuthState>(
+                  builder: (context, authState) {
+                    final isAuthenticated = authState is Authenticated;
+                    return ElevatedButton.icon(
+                      onPressed: () {
+                        if (isAuthenticated) {
+                          context.goNamed(AppRoute.home.name);
+                        } else {
+                          context.goNamed(AppRoute.login.name);
+                        }
+                      },
+                      icon: Icon(
+                        isAuthenticated
+                            ? Icons.home_rounded
+                            : Icons.login_rounded,
+                      ),
+                      label: Text(isAuthenticated ? 'Go to Home' : 'Log In'),
+                      style: ElevatedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 24,
+                          vertical: 12,
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ],
+            ),
+          ),
+        ),
       );
     }
 
@@ -952,7 +1021,7 @@ class _SubscriptionPlanDetailScreenState
   }
 
   Widget _buildDeliveryProgressCard(ThemeData theme, bool isDark) {
-    final subscription = widget.subscription;
+    final subscription = _currentOrder;
     final deliveriesLeft =
         subscription!.totalDeliveries - subscription.completedDeliveries;
     final progress =
@@ -1119,7 +1188,7 @@ class _SubscriptionPlanDetailScreenState
   }
 
   Widget _buildPaymentPendingHeader(ThemeData theme) {
-    if ((widget.subscription!.installmentInfo?.installmentPaymentStatus ?? '')
+    if ((_currentOrder!.installmentInfo?.installmentPaymentStatus ?? '')
             .toUpperCase() !=
         'PENDING') {
       return const SizedBox.shrink();
@@ -1148,7 +1217,7 @@ class _SubscriptionPlanDetailScreenState
                   ),
                 ),
                 Text(
-                  '${widget.subscription!.lastPaymentDate}',
+                  '${_currentOrder!.lastPaymentDate}',
                   style: theme.textTheme.bodySmall?.copyWith(
                     color: AppColors.error,
                   ),
@@ -1157,7 +1226,7 @@ class _SubscriptionPlanDetailScreenState
             ),
           ),
           SubscriptionRepaymentButton(
-            subscription: widget.subscription!,
+            subscription: _currentOrder!,
             isExpanded: false,
             showLabel: true,
           ),
@@ -1167,7 +1236,7 @@ class _SubscriptionPlanDetailScreenState
   }
 
   Widget _buildModernPauseSection(ThemeData theme, bool isDark) {
-    final subscription = widget.subscription;
+    final subscription = _currentOrder;
     final bool isPaused = subscription!.status == 'PAUSED';
 
     return Container(

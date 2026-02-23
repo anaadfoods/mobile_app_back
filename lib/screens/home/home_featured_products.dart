@@ -137,9 +137,9 @@ class FeaturedProductCard extends StatelessWidget {
     final hasDiscount = product.discountPercentage > 0;
 
     return GestureDetector(
-      onTap: (product.isInStock && product.tag) ? onTap : null,
+      onTap: (product.isInStock && product.isActive) ? onTap : null,
       child: Opacity(
-        opacity: (product.isInStock && product.tag) ? 1.0 : 0.5,
+        opacity: (product.isInStock && product.isActive) ? 1.0 : 0.5,
         child: Stack(
           children: [
             Container(

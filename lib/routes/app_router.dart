@@ -91,23 +91,35 @@ class AppRouter {
     redirect: (BuildContext context, GoRouterState state) async {
       final bool isLoggedIn = await AuthService().isLoggedIn();
 
+      final String path = state.uri.path;
+
+      // Routes that are strictly for authentication
       final bool isAuthRoute =
-          state.uri.path == AppRoute.login.path ||
-          state.uri.path == AppRoute.signup.path ||
-          state.uri.path == AppRoute.welcome.path ||
-          state.uri.path == AppRoute.forgotPassword.path ||
-          state.uri.path == '/'; // Allow initial root until initialized
+          path == AppRoute.login.path ||
+          path == AppRoute.signup.path ||
+          path == AppRoute.welcome.path ||
+          path == AppRoute.forgotPassword.path ||
+          path == '/'; // Allow initial root until initialized
+
+      // Routes that require authentication
+      final bool isProtectedRoute =
+          path.startsWith('/profile') ||
+          path.startsWith('/order') ||
+          path.startsWith('/subscription') ||
+          path.startsWith('/notifications') ||
+          path.startsWith('/checkout') ||
+          path.startsWith('/address');
 
       // Allow splash to resolve itself
-      if (state.uri.path == AppRoute.splash.path) return null;
+      if (path == AppRoute.splash.path) return null;
 
       // Unauthenticated users trying to access protected routes
-      if (!isLoggedIn && !isAuthRoute) {
+      if (!isLoggedIn && isProtectedRoute) {
         return '${AppRoute.login.path}?redirect=${Uri.encodeComponent(state.uri.toString())}';
       }
 
       // Authenticated users trying to access login/signup pages
-      if (isLoggedIn && isAuthRoute && state.uri.path != '/') {
+      if (isLoggedIn && isAuthRoute && path != '/') {
         return AppRoute.home.path;
       }
 
@@ -324,10 +336,12 @@ class AppRouter {
           if (extra is Order) {
             order = extra;
           }
-          return OrderDetailScreen(
-            orderId: state.pathParameters['id'],
-            order: order,
-          );
+          final idParam = state.pathParameters['id'];
+          // Ensure we don't crash if the ID is not an integer
+          if (idParam != null && int.tryParse(idParam) == null) {
+            return const Scaffold(body: Center(child: Text('Invalid Link')));
+          }
+          return OrderDetailScreen(orderId: idParam, order: order);
         },
       ),
       GoRoute(
@@ -346,8 +360,13 @@ class AppRouter {
               sub = null;
             }
           }
+          final idParam = state.pathParameters['id'];
+          // Ensure we don't crash if the ID is not an integer
+          if (idParam != null && int.tryParse(idParam) == null) {
+            return const Scaffold(body: Center(child: Text('Invalid Link')));
+          }
           return SubscriptionPlanDetailScreen(
-            subscriptionId: state.pathParameters['id'],
+            subscriptionId: idParam,
             subscription: sub,
           );
         },

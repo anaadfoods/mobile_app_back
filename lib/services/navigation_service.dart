@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:grocery_app/routes/app_router.dart';
+import 'package:grocery_app/routes/app_routes.dart';
 
 /// Centralized navigation service using AppRouter.
 class NavigationService {
@@ -32,18 +33,24 @@ class NavigationService {
   // ============================================================================
 
   static Future<void> navigateToNotifications() async {
-    AppRouter().router.push('/notifications');
+    AppRouter().router.pushNamed(AppRoute.notifications.name);
   }
 
   static Future<void> navigateToProductDetails(String? productId) async {
     if (productId != null && productId.isNotEmpty) {
-      AppRouter().router.push('/products/$productId');
+      AppRouter().router.pushNamed(
+        AppRoute.productDetails.name,
+        pathParameters: {'id': productId},
+      );
     }
   }
 
   static Future<void> navigateToOrderDetails(String? orderId) async {
     if (orderId != null && orderId.isNotEmpty) {
-      AppRouter().router.push('/orders/$orderId');
+      AppRouter().router.pushNamed(
+        AppRoute.orderDetails.name,
+        pathParameters: {'id': orderId},
+      );
     }
   }
 
@@ -51,20 +58,23 @@ class NavigationService {
     String? subscriptionId,
   ) async {
     if (subscriptionId != null && subscriptionId.isNotEmpty) {
-      AppRouter().router.push('/subscriptions/$subscriptionId');
+      AppRouter().router.pushNamed(
+        AppRoute.subscriptionDetails.name,
+        pathParameters: {'id': subscriptionId},
+      );
     }
   }
 
   static Future<void> navigateToCart() async {
-    AppRouter().router.push('/cart');
+    AppRouter().router.pushNamed(AppRoute.cart.name);
   }
 
   static Future<void> navigateToAccount() async {
-    AppRouter().router.push('/profile');
+    AppRouter().router.pushNamed(AppRoute.profile.name);
   }
 
   static Future<void> navigateToHome() async {
-    AppRouter().router.go('/');
+    AppRouter().router.goNamed(AppRoute.home.name);
   }
 
   // Keep pop method if needed, but usually context.pop() is better in widgets.

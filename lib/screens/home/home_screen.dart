@@ -256,7 +256,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 
                                   return GestureDetector(
                                     onTap: () {
-                                      context.push(AppRoute.profile.path);
+                                      context.go(AppRoute.profile.path);
                                     },
                                     child: Row(
                                       children: [

@@ -2,6 +2,7 @@ import 'dart:ui';
 import 'package:flutter/services.dart';
 import 'package:grocery_app/common_widgets/global_import.dart';
 import 'package:grocery_app/models/order_tracking_model.dart';
+import 'package:grocery_app/routes/app_routes.dart';
 
 class OrderDetailScreen extends StatefulWidget {
   final Order? order;
@@ -222,10 +223,79 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
 
   @override
   Widget build(BuildContext context) {
-    if (_isLoading || _currentOrder == null) {
+    if (_isLoading) {
       return Scaffold(
         backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         body: const Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    if (_currentOrder == null) {
+      return Scaffold(
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+        appBar: AppBar(
+          title: const Text('Invalid Link'),
+          centerTitle: true,
+          elevation: 0,
+        ),
+        body: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.error_outline_rounded,
+                  size: 80,
+                  color: Theme.of(context).colorScheme.error,
+                ),
+                const SizedBox(height: 24),
+                Text(
+                  'Invalid link or unauthorized access',
+                  textAlign: TextAlign.center,
+                  style: Theme.of(
+                    context,
+                  ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  'We could not load the order details. The link may be invalid, or you might not have permission to view it.',
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: Theme.of(context).hintColor,
+                  ),
+                ),
+                const SizedBox(height: 32),
+                BlocBuilder<AuthCubit, AuthState>(
+                  builder: (context, authState) {
+                    final isAuthenticated = authState is Authenticated;
+                    return ElevatedButton.icon(
+                      onPressed: () {
+                        if (isAuthenticated) {
+                          context.goNamed(AppRoute.home.name);
+                        } else {
+                          context.goNamed(AppRoute.login.name);
+                        }
+                      },
+                      icon: Icon(
+                        isAuthenticated
+                            ? Icons.home_rounded
+                            : Icons.login_rounded,
+                      ),
+                      label: Text(isAuthenticated ? 'Go to Home' : 'Log In'),
+                      style: ElevatedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 24,
+                          vertical: 12,
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ],
+            ),
+          ),
+        ),
       );
     }
 
@@ -1258,7 +1328,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
           const SizedBox(height: 12),
           _buildPriceRow(
             theme,
-            'Discount',
+            'Discount included',
             -_currentOrder!.discount,
             isDiscount: true,
           ),

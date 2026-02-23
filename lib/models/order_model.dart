@@ -216,7 +216,7 @@ class Order {
       "recipient_name": recipientName,
       "subtotal": subtotal.toStringAsFixed(2),
       "tax": tax.toStringAsFixed(2),
-      "delivery_charges": deliveryCharges.toStringAsFixed(2),
+      "delivery_fee": deliveryCharges.toStringAsFixed(2),
       "discount": discount.toStringAsFixed(2),
       "total": total.toStringAsFixed(2),
       "created_at": createdAt.toIso8601String(),
@@ -452,7 +452,7 @@ class ShippingDetails {
       'delivery_state': state,
       'delivery_pincode': pincode,
       'delivery_phone': phone,
-      'delivery_name': name,
+      'recipient_name': name,
     };
   }
 
@@ -463,7 +463,7 @@ class ShippingDetails {
       state: json['delivery_state'] ?? json['state'] ?? '',
       pincode: json['delivery_pincode'] ?? json['pincode'] ?? '',
       phone: json['delivery_phone'] ?? json['phone'] ?? '',
-      name: json['delivery_name'] ?? json['name'] ?? '',
+      name: json['recipient_name'] ?? json['name'] ?? '',
     );
   }
 
@@ -519,7 +519,7 @@ class OrderModel {
       'delivery_pincode': shippingPincode,
       'delivery_phone': shippingPhone,
       'recipient_name': shippingName,
-      'delivery_charges': deliveryFee,
+      'delivery_fee': deliveryFee,
       'expected_delivery_date': expectedDeliveryDate,
       'items': items.map((item) => item.toJson()).toList(),
       'notes': notes,
@@ -549,7 +549,7 @@ class OrderModel {
       status: orderData['status'],
       expectedDeliveryDate: orderData['expected_delivery_date'],
       deliveryFee:
-          double.tryParse(orderData['delivery_charges']?.toString() ?? '0.0') ??
+          double.tryParse(orderData['delivery_fee']?.toString() ?? '0.0') ??
           0.0,
     );
   }
