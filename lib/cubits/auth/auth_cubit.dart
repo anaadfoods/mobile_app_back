@@ -61,6 +61,18 @@ class AuthCubit extends Cubit<AuthState> {
     }
   }
 
+  Future<void> appleLogin() async {
+    emit(AuthLoading());
+    try {
+      final user = await _authRepository.appleLogin();
+      emit(Authenticated(user));
+    } on AuthException catch (e) {
+      emit(AuthError(e.message));
+    } catch (e) {
+      emit(const AuthError('An unexpected error occurred. Please try again.'));
+    }
+  }
+
   Future<void> logout() async {
     emit(AuthLoading());
     try {

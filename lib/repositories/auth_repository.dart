@@ -74,6 +74,45 @@ class AuthRepository {
     }
   }
 
+  Future<UserModel> appleLogin() async {
+    print('DEBUG: AuthRepository.appleLogin() called');
+    try {
+      final credentials = await _authService.getAppleIdToken();
+
+      if (credentials == null || credentials['idToken'] == null) {
+        print('DEBUG: AuthRepository - Apple ID Token is null (canceled)');
+        throw AuthException('Apple Sign-In was canceled.');
+      }
+      print(
+        'DEBUG: AuthRepository - Apple ID Token obtained, calling loginWithAppleToken...',
+      );
+
+      final idToken = credentials['idToken']!;
+      final givenName = credentials['givenName'] ?? '';
+      final familyName = credentials['familyName'] ?? '';
+      final name = '$givenName $familyName'.trim();
+
+      final result = await _authService.loginWithAppleToken(
+        idToken,
+        name: name.isEmpty ? null : name,
+      );
+
+      if (result['success'] == true && result['data'] != null) {
+        print('DEBUG: AuthRepository - Login successful, parsing user data...');
+        return UserModel.fromJson(result['data']);
+      } else {
+        print('DEBUG: AuthRepository - Login failed: ${result['message']}');
+        throw AuthException(result['message'] ?? 'Apple login failed.');
+      }
+    } on AuthException catch (e) {
+      print('DEBUG: AuthRepository - AuthException caught: $e');
+      rethrow;
+    } catch (e) {
+      print('DEBUG: AuthRepository - Unexpected exception: $e');
+      throw AuthException(e.toString());
+    }
+  }
+
   // Future<UserModel> googleLogin() async {
   //   final String? idToken = await _authService.getGoogleIdToken();
 

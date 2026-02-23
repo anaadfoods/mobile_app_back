@@ -1,6 +1,7 @@
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:grocery_app/common_widgets/global_import.dart';
 import 'package:http/http.dart' as http;
+import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 
 class AuthService {
   static final AuthService _instance = AuthService._internal();
@@ -56,6 +57,29 @@ class AuthService {
     }
   }
 
+  Future<Map<String, String?>?> getAppleIdToken() async {
+    print('DEBUG: Starting Apple Sign-In flow...');
+    try {
+      final AuthorizationCredentialAppleID credential =
+          await SignInWithApple.getAppleIDCredential(
+            scopes: [
+              AppleIDAuthorizationScopes.email,
+              AppleIDAuthorizationScopes.fullName,
+            ],
+          );
+
+      print('DEBUG: Apple Sign-In Success: ${credential.email}');
+      return {
+        'idToken': credential.identityToken,
+        'givenName': credential.givenName,
+        'familyName': credential.familyName,
+      };
+    } catch (error) {
+      print('DEBUG: Apple Sign-In Error in getAppleIdToken: $error');
+      throw error;
+    }
+  }
+
   // In AuthService.dart
   Future<Map<String, dynamic>> loginWithGoogleToken(String idToken) async {
     final url = Uri.parse('${ApiConfig.baseUrl}/api/auth/google/');
@@ -92,6 +116,53 @@ class AuthService {
       }
     } catch (e) {
       print('DEBUG: Exception in loginWithGoogleToken: $e');
+      return {'success': false, 'message': e.toString()};
+    }
+  }
+
+  Future<Map<String, dynamic>> loginWithAppleToken(
+    String idToken, {
+    String? name,
+  }) async {
+    final url = Uri.parse('${ApiConfig.baseUrl}/api/auth/apple/');
+    print('DEBUG: Sending Apple ID Token to backend: $url');
+
+    try {
+      final body = <String, dynamic>{'id_token': idToken};
+      if (name != null && name.trim().isNotEmpty) {
+        body['name'] = name;
+      }
+
+      final response = await http.post(
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: jsonEncode(body),
+      );
+
+      print('DEBUG: Backend Response Status: ${response.statusCode}');
+      print('DEBUG: Backend Response Body: ${response.body}');
+
+      final responseData = json.decode(response.body);
+      if (response.statusCode == 200) {
+        print('DEBUG: Backend login successful, saving token...');
+        await saveToken(
+          responseData['access'],
+          responseData['refresh'],
+          responseData['user'],
+        );
+        return {'success': true, 'data': responseData['user']};
+      } else {
+        print("DEBUG: Backend returned error: ${responseData['error']}");
+        return {
+          'success': false,
+          'message': responseData['error'] ?? 'Apple login failed.',
+        };
+      }
+    } catch (e) {
+      print('DEBUG: Exception in loginWithAppleToken: $e');
       return {'success': false, 'message': e.toString()};
     }
   }

@@ -95,10 +95,14 @@ class _CategoryItemsScreenState extends State<CategoryItemsScreen> {
                   if (value == 'id') _sortById();
                   if (value == 'price') _sortByPrice();
                 },
-                itemBuilder: (_) => const [
-                  PopupMenuItem(value: 'price', child: Text('Sort by Price')),
-                  PopupMenuItem(value: 'id', child: Text('Sort by ID')),
-                ],
+                itemBuilder:
+                    (_) => const [
+                      PopupMenuItem(
+                        value: 'price',
+                        child: Text('Sort by Price'),
+                      ),
+                      PopupMenuItem(value: 'id', child: Text('Sort by ID')),
+                    ],
               ),
               const SizedBox(width: 8),
             ],
@@ -121,60 +125,60 @@ class _CategoryItemsScreenState extends State<CategoryItemsScreen> {
                     ),
                   ),
                   child: Stack(
-                  children: [
-                    // Decorative circles for depth
-                    Positioned(
-                      top: -20,
-                      right: -20,
-                      child: Container(
-                        width: 110,
-                        height: 110,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: Colors.white.withOpacity(0.07),
+                    children: [
+                      // Decorative circles for depth
+                      Positioned(
+                        top: -20,
+                        right: -20,
+                        child: Container(
+                          width: 110,
+                          height: 110,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: Colors.white.withOpacity(0.07),
+                          ),
                         ),
                       ),
-                    ),
-                    Positioned(
-                      bottom: -30,
-                      left: -10,
-                      child: Container(
-                        width: 80,
-                        height: 80,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: Colors.white.withOpacity(0.05),
+                      Positioned(
+                        bottom: -30,
+                        left: -10,
+                        child: Container(
+                          width: 80,
+                          height: 80,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: Colors.white.withOpacity(0.05),
+                          ),
                         ),
                       ),
-                    ),
-                    SafeArea(
-                      bottom: false,
-                      child: Padding(
-                        padding: const EdgeInsets.fromLTRB(60, 16, 20, 16),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisAlignment: MainAxisAlignment.end,
-                          children: [
-                            Text(
-                              widget.name,
-                              style: theme.textTheme.headlineSmall?.copyWith(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
+                      SafeArea(
+                        bottom: false,
+                        child: Padding(
+                          padding: const EdgeInsets.fromLTRB(60, 16, 20, 16),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            children: [
+                              Text(
+                                widget.name,
+                                style: theme.textTheme.headlineSmall?.copyWith(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              '${filteredProducts.length} products available',
-                              style: theme.textTheme.bodyMedium?.copyWith(
-                                color: Colors.white.withOpacity(0.85),
+                              const SizedBox(height: 4),
+                              Text(
+                                '${filteredProducts.length} products available',
+                                style: theme.textTheme.bodyMedium?.copyWith(
+                                  color: Colors.white.withOpacity(0.85),
+                                ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                       ),
-                    ),
-                  ],
-                ),
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -187,30 +191,28 @@ class _CategoryItemsScreenState extends State<CategoryItemsScreen> {
             SliverPadding(
               padding: const EdgeInsets.all(AppColors.spacingL),
               sliver: SliverList(
-                delegate: SliverChildBuilderDelegate(
-                  (context, index) {
-                    final product = filteredProducts[index];
-                    return Padding(
-                      padding: const EdgeInsets.only(bottom: AppColors.spacingM),
-                      child: Stack(
-                        children: [
-                          Opacity(
-                            opacity: product.isInStock ? 1.0 : 0.5,
-                            child: GroceryItemCardWidget(
-                              item: product,
-                              heroSuffix: "home_screen",
-                              onTap: (product.isInStock && product.tag)
-                                  ? () => _onProductClicked(product)
-                                  : null,
-                            ),
+                delegate: SliverChildBuilderDelegate((context, index) {
+                  final product = filteredProducts[index];
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: AppColors.spacingM),
+                    child: Stack(
+                      children: [
+                        Opacity(
+                          opacity: product.isInStock ? 1.0 : 0.5,
+                          child: GroceryItemCardWidget(
+                            item: product,
+                            heroSuffix: "home_screen",
+                            onTap:
+                                (product.isInStock && product.isActive)
+                                    ? () => _onProductClicked(product)
+                                    : null,
                           ),
-                          if (!product.tag) const ComingSoonOverlay(),
-                        ],
-                      ),
-                    );
-                  },
-                  childCount: filteredProducts.length,
-                ),
+                        ),
+                        if (!product.isActive) const ComingSoonOverlay(),
+                      ],
+                    ),
+                  );
+                }, childCount: filteredProducts.length),
               ),
             )
           else
@@ -355,5 +357,3 @@ class _CategoryItemsScreenState extends State<CategoryItemsScreen> {
     );
   }
 }
-
-

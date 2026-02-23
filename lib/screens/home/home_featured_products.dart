@@ -143,172 +143,172 @@ class FeaturedProductCard extends StatelessWidget {
         child: Stack(
           children: [
             Container(
-          width: 165,
-          margin: const EdgeInsets.only(right: 14),
-          decoration: BoxDecoration(
-            color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
-            borderRadius: BorderRadius.circular(20),
-            boxShadow: [
-              BoxShadow(
-                color:
-                    isDark
-                        ? Colors.black26
-                        : Colors.black.withValues(alpha: 0.08),
-                blurRadius: 16,
-                offset: const Offset(0, 6),
+              width: 165,
+              margin: const EdgeInsets.only(right: 14),
+              decoration: BoxDecoration(
+                color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: [
+                  BoxShadow(
+                    color:
+                        isDark
+                            ? Colors.black26
+                            : Colors.black.withValues(alpha: 0.08),
+                    blurRadius: 16,
+                    offset: const Offset(0, 6),
+                  ),
+                ],
               ),
-            ],
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Image section
-              Expanded(
-                flex: 3,
-                child: Stack(
-                  children: [
-                    Container(
-                      width: double.infinity,
-                      decoration: BoxDecoration(
-                        borderRadius: const BorderRadius.vertical(
-                          top: Radius.circular(20),
-                        ),
-                        gradient: LinearGradient(
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                          colors: _gradients[index % _gradients.length],
-                        ),
-                      ),
-                      child: ClipRRect(
-                        borderRadius: const BorderRadius.vertical(
-                          top: Radius.circular(20),
-                        ),
-                        child:
-                            product.productImages.isNotEmpty
-                                ? CachedNetworkImage(
-                                  imageUrl: product.productImages[0].image,
-                                  fit: BoxFit.cover,
-                                  memCacheWidth: 300,
-                                  memCacheHeight: 300,
-                                  placeholder:
-                                      (_, __) => Center(
-                                        child: Icon(
-                                          _icons[index % _icons.length],
-                                          size: 48,
-                                          color: _iconColors[index %
-                                                  _iconColors.length]
-                                              .withValues(alpha: 0.6),
-                                        ),
-                                      ),
-                                  errorWidget:
-                                      (_, __, ___) => Center(
-                                        child: Icon(
-                                          _icons[index % _icons.length],
-                                          size: 48,
-                                          color: _iconColors[index %
-                                                  _iconColors.length]
-                                              .withValues(alpha: 0.6),
-                                        ),
-                                      ),
-                                )
-                                : Center(
-                                  child: Icon(
-                                    _icons[index % _icons.length],
-                                    size: 48,
-                                    color: _iconColors[index %
-                                            _iconColors.length]
-                                        .withValues(alpha: 0.6),
-                                  ),
-                                ),
-                      ),
-                    ),
-                    // Discount badge
-                    if (hasDiscount)
-                      Positioned(
-                        top: 10,
-                        left: 10,
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 4,
-                          ),
-                          decoration: BoxDecoration(
-                            color: AppColors.error,
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Text(
-                            '${product.discountPercentage.toInt()}% OFF',
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 10,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                      ),
-                  ],
-                ),
-              ),
-              // Details section
-              Padding(
-                padding: const EdgeInsets.all(10),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      product.productName,
-                      style: theme.textTheme.titleSmall?.copyWith(
-                        fontWeight: FontWeight.w600,
-                      ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      '${product.weight} ${product.weightUnit}',
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: theme.hintColor,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    const SizedBox(height: 8),
-                    Row(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Image section
+                  Expanded(
+                    flex: 3,
+                    child: Stack(
                       children: [
-                        Flexible(
-                          child: Text(
-                            '₹${product.finalPrice.toStringAsFixed(0)}',
-                            style: theme.textTheme.titleMedium?.copyWith(
-                              fontWeight: FontWeight.bold,
-                              color: AppColors.primaryColor,
+                        Container(
+                          width: double.infinity,
+                          decoration: BoxDecoration(
+                            borderRadius: const BorderRadius.vertical(
+                              top: Radius.circular(20),
                             ),
-                            overflow: TextOverflow.ellipsis,
+                            gradient: LinearGradient(
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                              colors: _gradients[index % _gradients.length],
+                            ),
+                          ),
+                          child: ClipRRect(
+                            borderRadius: const BorderRadius.vertical(
+                              top: Radius.circular(20),
+                            ),
+                            child:
+                                product.productImages.isNotEmpty
+                                    ? CachedNetworkImage(
+                                      imageUrl: product.productImages[0].image,
+                                      fit: BoxFit.cover,
+                                      memCacheWidth: 300,
+                                      memCacheHeight: 300,
+                                      placeholder:
+                                          (_, __) => Center(
+                                            child: Icon(
+                                              _icons[index % _icons.length],
+                                              size: 48,
+                                              color: _iconColors[index %
+                                                      _iconColors.length]
+                                                  .withValues(alpha: 0.6),
+                                            ),
+                                          ),
+                                      errorWidget:
+                                          (_, __, ___) => Center(
+                                            child: Icon(
+                                              _icons[index % _icons.length],
+                                              size: 48,
+                                              color: _iconColors[index %
+                                                      _iconColors.length]
+                                                  .withValues(alpha: 0.6),
+                                            ),
+                                          ),
+                                    )
+                                    : Center(
+                                      child: Icon(
+                                        _icons[index % _icons.length],
+                                        size: 48,
+                                        color: _iconColors[index %
+                                                _iconColors.length]
+                                            .withValues(alpha: 0.6),
+                                      ),
+                                    ),
                           ),
                         ),
-                        if (hasDiscount) ...[
-                          const SizedBox(width: 4),
-                          Flexible(
-                            child: Text(
-                              '₹${product.price.toStringAsFixed(0)}',
-                              style: theme.textTheme.bodySmall?.copyWith(
-                                decoration: TextDecoration.lineThrough,
-                                color: theme.hintColor,
-                                fontSize: 11,
+                        // Discount badge
+                        if (hasDiscount)
+                          Positioned(
+                            top: 10,
+                            left: 10,
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 4,
                               ),
-                              overflow: TextOverflow.ellipsis,
+                              decoration: BoxDecoration(
+                                color: AppColors.error,
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Text(
+                                '${product.discountPercentage.toInt()}% OFF',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
                             ),
                           ),
-                        ],
                       ],
                     ),
-                  ],
-                ),
+                  ),
+                  // Details section
+                  Padding(
+                    padding: const EdgeInsets.all(10),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          product.productName,
+                          style: theme.textTheme.titleSmall?.copyWith(
+                            fontWeight: FontWeight.w600,
+                          ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          '${product.weight} ${product.weightUnit}',
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: theme.hintColor,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: 8),
+                        Row(
+                          children: [
+                            Flexible(
+                              child: Text(
+                                '₹${product.finalPrice.toStringAsFixed(0)}',
+                                style: theme.textTheme.titleMedium?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                  color: AppColors.primaryColor,
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            if (hasDiscount) ...[
+                              const SizedBox(width: 4),
+                              Flexible(
+                                child: Text(
+                                  '₹${product.price.toStringAsFixed(0)}',
+                                  style: theme.textTheme.bodySmall?.copyWith(
+                                    decoration: TextDecoration.lineThrough,
+                                    color: theme.hintColor,
+                                    fontSize: 11,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ],
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ),
-            ],
-          ),
-          ),
-            if (!product.tag) const ComingSoonOverlay(),
+            ),
+            if (!product.isActive) const ComingSoonOverlay(),
           ],
         ),
       ),

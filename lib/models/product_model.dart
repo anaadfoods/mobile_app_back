@@ -44,6 +44,7 @@ class Product {
       finalPrice: finalPrice.toString(),
       isInStock: isInStock,
       isActive: isActive,
+      tag: true,
       productName: productName,
       productDescription: productDescription,
       productCategory: productCategory,
@@ -66,7 +67,8 @@ class Product {
       productName: json['product_name'] ?? '',
       productDescription: json['product_description'] ?? '',
       productCategory: json['product_category'] ?? '',
-      productImages: (json['product_images'] as List<dynamic>?)
+      productImages:
+          (json['product_images'] as List<dynamic>?)
               ?.map((img) => ProductImage.fromJson(img))
               .toList() ??
           [],

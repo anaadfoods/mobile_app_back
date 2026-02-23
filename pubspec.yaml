@@ -55,6 +55,7 @@ dependencies:
   app_links: ^6.4.0  # Deep linking support
 
   collection: any
+  sign_in_with_apple: ^7.0.1
   # connectivity_plus: ^7.0.0
 dev_dependencies:
   flutter_test:
