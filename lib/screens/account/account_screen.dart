@@ -1,15 +1,10 @@
-import "dart:math" as math;
-import "package:flutter/services.dart";
+﻿import "dart:math" as math;
 import "package:grocery_app/common_widgets/global_import.dart";
 import "package:grocery_app/models/user_summary_model.dart";
 import "package:grocery_app/routes/app_routes.dart";
-import "package:grocery_app/screens/innovations/panchang/panchang_home_screen.dart";
-
 import "package:grocery_app/services/user_summary_service.dart";
-import "package:grocery_app/common_widgets/animated_screen_header.dart";
 import "package:grocery_app/screens/account/account_profile_card.dart";
 import "package:grocery_app/screens/account/account_stats_row.dart";
-import "package:grocery_app/screens/account/account_innovations_card.dart";
 import "package:grocery_app/screens/account/account_menu_section.dart";
 import "package:grocery_app/screens/account/account_preferences_section.dart";
 
@@ -21,9 +16,8 @@ class AccountScreen extends StatefulWidget {
 }
 
 class _AccountScreenState extends State<AccountScreen>
-    with TickerProviderStateMixin {
-  // Animation controllers
-  late AnimationController _pulseController;
+    with SingleTickerProviderStateMixin {
+  // Single animation controller for footer badge shimmer
   late AnimationController _shimmerController;
 
   // Settings state
@@ -37,18 +31,19 @@ class _AccountScreenState extends State<AccountScreen>
   @override
   void initState() {
     super.initState();
-    _initAnimations();
+    _shimmerController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 2500),
+    )..repeat();
     _fetchUserSummary();
   }
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    // Refresh user summary each time screen is visited
     _fetchUserSummary();
   }
 
-  /// Fetches user summary data from the API
   Future<void> _fetchUserSummary() async {
     if (_isLoadingSummary) return;
     if (!mounted) return;
@@ -70,25 +65,8 @@ class _AccountScreenState extends State<AccountScreen>
     }
   }
 
-  void _initAnimations() {
-    // Pulse animation for profile card and other elements
-    _pulseController = AnimationController(
-      vsync: this,
-      duration: const Duration(seconds: 2),
-    );
-    _pulseController.repeat(reverse: true);
-
-    // Shimmer animation for header and other elements
-    _shimmerController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 2500),
-    );
-    _shimmerController.repeat();
-  }
-
   @override
   void dispose() {
-    _pulseController.dispose();
     _shimmerController.dispose();
     super.dispose();
   }
@@ -120,7 +98,7 @@ class _AccountScreenState extends State<AccountScreen>
       if (context.mounted) {
         SnackBarHelper.showError(
           context,
-          "Couldn't open WhatsApp. Is it installed? 💬",
+          "Couldn't open WhatsApp. Is it installed?",
         );
       }
     }
@@ -138,7 +116,6 @@ class _AccountScreenState extends State<AccountScreen>
       child: Scaffold(
         backgroundColor: theme.scaffoldBackgroundColor,
         extendBodyBehindAppBar: true,
-        extendBody: true,
         body: BlocBuilder<AuthCubit, AuthState>(
           builder: (context, state) {
             if (state is Authenticated) {
@@ -157,80 +134,75 @@ class _AccountScreenState extends State<AccountScreen>
 
   Widget _buildAccountView(BuildContext context, UserModel user) {
     final theme = Theme.of(context);
-    final size = MediaQuery.of(context).size;
 
     String userName = '${user.firstName} ${user.lastName}'.trim();
     if (userName.isEmpty) userName = "User";
 
     return RefreshIndicator(
-      color: theme.colorScheme.primary,
+      color: Colors.white,
+      backgroundColor: theme.colorScheme.primary,
       onRefresh: () async {
         await Future.wait([
           context.read<AuthCubit>().checkAuthStatus(),
           _fetchUserSummary(),
         ]);
       },
-      child: SingleChildScrollView(
-        physics: const AlwaysScrollableScrollPhysics(),
-        child: Column(
-          children: [
-            Builder(
-              builder: (context) {
-                final statusBarHeight = MediaQuery.of(context).padding.top;
-                final screenHeight = size.height;
-                final headerHeight = (statusBarHeight + 180).clamp(
-                  200.0,
-                  (screenHeight * 0.30).clamp(200.0, 280.0),
-                );
-
-                return Stack(
-                  clipBehavior: Clip.none,
-                  alignment: Alignment.center,
-                  children: [
-                    AnimatedScreenHeader(
-                      title: "My Profile",
-                      icon: Icons.person_rounded,
-                      showBack: false,
-                      height: headerHeight,
-                      centerTitle: true,
-                    ),
-                    Positioned(
-                      bottom: -55,
-                      left: 20,
-                      right: 20,
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 0),
-                        child: AccountProfileCard(
-                          user: user,
-                          userName: userName,
-                        ),
-                      ),
-                    ),
-                  ],
-                );
-              },
+      child: CustomScrollView(
+        physics: const BouncingScrollPhysics(
+          parent: AlwaysScrollableScrollPhysics(),
+        ),
+        slivers: [
+          // Hero SliverAppBar with gradient + centered avatar
+          SliverAppBar(
+            expandedHeight: 210,
+            floating: false,
+            pinned: false,
+            stretch: true,
+            automaticallyImplyLeading: false,
+            backgroundColor: theme.colorScheme.primary,
+            surfaceTintColor: Colors.transparent,
+            elevation: 0,
+            shape: const RoundedRectangleBorder(
+              borderRadius: BorderRadius.only(
+                bottomLeft: Radius.circular(32),
+                bottomRight: Radius.circular(32),
+              ),
             ),
-            const SizedBox(height: 75),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
+            flexibleSpace: FlexibleSpaceBar(
+              collapseMode: CollapseMode.pin,
+              background: _buildHeroBackground(context, user, userName, theme),
+            ),
+          ),
+
+          // Body Content
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(20, 24, 20, 32),
               child: Column(
                 children: [
-                  // Stats Row with padding
-                  Padding(
-                    padding: const EdgeInsets.only(top: 10),
-                    child: AccountStatsRow(
-                      totalOrders: _userSummary?.orders.total ?? 0,
-                      activeSubscriptions:
-                          _userSummary?.subscriptions.activeTotal ?? 0,
-                      favoriteCount: _userSummary?.favorites.count ?? 0,
-                    ),
+                  // Gradient Stat Chips
+                  AccountStatsRow(
+                    totalOrders: _userSummary?.orders.total ?? 0,
+                    activeSubscriptions:
+                        _userSummary?.subscriptions.activeTotal ?? 0,
+                    favoriteCount: _userSummary?.favorites.count ?? 0,
+                  ),
+                  const SizedBox(height: 20),
+
+                  // Refer & Earn Banner
+                  _buildReferEarnBanner(context, theme),
+                  const SizedBox(height: 24),
+
+                  // Quick Settings (Preferences as inline toggles)
+                  AccountPreferencesSection(
+                    vibrationEnabled: _vibrationEnabled,
+                    onVibrationChanged: (value) {
+                      setState(() => _vibrationEnabled = value);
+                    },
                   ),
                   const SizedBox(height: 24),
 
-                  // Anaad Innovations Section
-                  // const AccountInnovationsCard(),
-                  const SizedBox(height: 20),
-
+                  // Account Section
                   AccountMenuSection(
                     title: 'Account',
                     items: [
@@ -247,45 +219,22 @@ class _AccountScreenState extends State<AccountScreen>
                           );
                         },
                       ),
-                      AccountMenuItem(
-                        icon: Icons.person_outline_rounded,
-                        title: 'Refer & Earn',
-                        subtitle: 'Connect your friend in health',
-                        iconColor: Colors.blue,
-                        onTap: () {
-                          _triggerHaptic();
-                          // Refer and Earn route doesn't exist, we will add it to routes later if needed
-                          context.pushNamed(AppRoute.referEarn.name);
-                        },
-                      ),
-                    ],
-                  ),
-                  AccountMenuSection(
-                    title: 'Panchang',
-                    items: [
-                      AccountMenuItem(
-                        icon: Icons.person_outline_rounded,
-                        title: 'Panchang',
-                        subtitle: 'See your Panchang',
-                        iconColor: Colors.blue,
-                        onTap: () {
-                          _triggerHaptic();
-                          context.pushNamed(
-                            AppRoute.panchang.name,
-                          ); // Using AppRoute
-                        },
-                      ),
                     ],
                   ),
                   const SizedBox(height: 20),
+
+                  // Orders & Subscriptions with trailing values
                   AccountMenuSection(
                     title: 'Orders & Subscriptions',
                     items: [
                       AccountMenuItem(
                         icon: Icons.shopping_bag_outlined,
                         title: 'My Orders',
-                        subtitle: ' Track your harvest journey',
+                        subtitle: 'Track your harvest journey',
                         iconColor: Colors.green,
+                        trailing: _userSummary != null
+                            ? '${_userSummary!.orders.total}'
+                            : null,
                         onTap: () {
                           _triggerHaptic();
                           context.pushNamed(AppRoute.orderList.name);
@@ -294,8 +243,12 @@ class _AccountScreenState extends State<AccountScreen>
                       AccountMenuItem(
                         icon: Icons.autorenew_rounded,
                         title: 'My Subscriptions',
-                        subtitle: 'View active subscriptions',
-                        iconColor: Colors.green,
+                        subtitle: 'View active plans',
+                        iconColor: Colors.blue,
+                        trailing: _userSummary != null &&
+                                _userSummary!.subscriptions.activeTotal > 0
+                            ? '${_userSummary!.subscriptions.activeTotal} active'
+                            : null,
                         onTap: () {
                           _triggerHaptic();
                           context.pushNamed(AppRoute.subscriptionList.name);
@@ -304,13 +257,26 @@ class _AccountScreenState extends State<AccountScreen>
                     ],
                   ),
                   const SizedBox(height: 20),
-                  AccountPreferencesSection(
-                    vibrationEnabled: _vibrationEnabled,
-                    onVibrationChanged: (value) {
-                      setState(() => _vibrationEnabled = value);
-                    },
+
+                  // Explore Section
+                  AccountMenuSection(
+                    title: 'Explore',
+                    items: [
+                      AccountMenuItem(
+                        icon: Icons.auto_awesome_rounded,
+                        title: 'Panchang',
+                        subtitle: 'Daily cosmic insights',
+                        iconColor: Colors.deepOrange,
+                        onTap: () {
+                          _triggerHaptic();
+                          context.pushNamed(AppRoute.panchang.name);
+                        },
+                      ),
+                    ],
                   ),
                   const SizedBox(height: 20),
+
+                  // Support Section
                   AccountMenuSection(
                     title: 'Support',
                     items: [
@@ -318,7 +284,7 @@ class _AccountScreenState extends State<AccountScreen>
                         icon: Icons.help_outline_rounded,
                         title: 'Help Center',
                         subtitle: 'FAQs and support',
-                        iconColor: Colors.green,
+                        iconColor: Colors.teal,
                         onTap: () {
                           _triggerHaptic();
                           context.pushNamed(AppRoute.help.name);
@@ -327,15 +293,15 @@ class _AccountScreenState extends State<AccountScreen>
                       AccountMenuItem(
                         icon: Icons.chat_bubble_outline_rounded,
                         title: 'Chat on WhatsApp',
-                        subtitle: 'We\'re here to help',
-                        iconColor: Colors.green,
+                        subtitle: "We're here to help",
+                        iconColor: const Color(0xFF25D366),
                         onTap: () => openWhatsApp(context),
                       ),
                       AccountMenuItem(
                         icon: Icons.info_outline_rounded,
                         title: 'About Us',
                         subtitle: 'Learn more about us',
-                        iconColor: Colors.green,
+                        iconColor: Colors.indigo,
                         onTap: () {
                           _triggerHaptic();
                           context.pushNamed(AppRoute.aboutUs.name);
@@ -343,153 +309,263 @@ class _AccountScreenState extends State<AccountScreen>
                       ),
                     ],
                   ),
-                  const SizedBox(height: 24),
                   const SizedBox(height: 32),
-                  _buildAppVersion(theme),
+
+                  // Brand Footer
+                  _buildBrandFooter(theme),
                   const SizedBox(height: 24),
                 ],
               ),
             ),
-          ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Hero Background with gradient + subtle pattern + centered avatar
+  Widget _buildHeroBackground(
+    BuildContext context,
+    UserModel user,
+    String userName,
+    ThemeData theme,
+  ) {
+    return ClipRRect(
+      borderRadius: const BorderRadius.only(
+        bottomLeft: Radius.circular(32),
+        bottomRight: Radius.circular(32),
+      ),
+      child: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              theme.colorScheme.primary,
+              theme.colorScheme.primary.withAlpha(220),
+              const Color(0xFF2E4A34),
+            ],
+          ),
+        ),
+      child: Stack(
+        children: [
+          // Profile content centered
+          SafeArea(
+            bottom: false,
+            child: Center(
+              child: Padding(
+                padding: const EdgeInsets.only(top: 6, bottom: 22),
+                child: AccountProfileCard(
+                  user: user,
+                  userName: userName,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    ),
+    );
+  }
+
+  // Refer & Earn green banner
+  Widget _buildReferEarnBanner(BuildContext context, ThemeData theme) {
+    return TweenAnimationBuilder<double>(
+      tween: Tween(begin: 0.0, end: 1.0),
+      duration: const Duration(milliseconds: 600),
+      curve: Curves.easeOut,
+      builder: (context, value, child) {
+        return Opacity(
+          opacity: value.clamp(0.0, 1.0),
+          child: Transform.translate(
+            offset: Offset(0, 10 * (1 - value)),
+            child: child,
+          ),
+        );
+      },
+      child: GestureDetector(
+        onTap: () {
+          _triggerMediumHaptic();
+          context.pushNamed(AppRoute.referEarn.name);
+        },
+        child: Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(18),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                theme.colorScheme.primary,
+                theme.colorScheme.primary.withAlpha(200),
+                const Color(0xFF2E4A34),
+              ],
+            ),
+            borderRadius: BorderRadius.circular(18),
+            boxShadow: [
+              BoxShadow(
+                color: theme.colorScheme.primary.withAlpha(60),
+                blurRadius: 16,
+                offset: const Offset(0, 6),
+              ),
+            ],
+          ),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.white.withAlpha(50),
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: const Icon(
+                  Icons.card_giftcard_rounded,
+                  color: Colors.white,
+                  size: 28,
+                ),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Refer & Earn',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                        letterSpacing: 0.3,
+                      ),
+                    ),
+                    const SizedBox(height: 3),
+                    Text(
+                      'Share health with friends & get rewards',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.white.withAlpha(220),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colors.white.withAlpha(40),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Icon(
+                  Icons.arrow_forward_rounded,
+                  color: Color(0xFF1E88E5),
+                  size: 20,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
 
-  // ==================== ANAAD INNOVATIONS CARD ====================
-
-  // ==================== MENU SECTIONS ====================
-
-  // ==================== LOGOUT BUTTON ====================
-
-  // ==================== APP VERSION ====================
-  Widget _buildAppVersion(ThemeData theme) {
-    return TweenAnimationBuilder<double>(
-      tween: Tween(begin: 0.0, end: 1.0),
-      duration: const Duration(milliseconds: 800),
-      builder: (context, value, child) {
-        return Opacity(
-          opacity: value,
-          child: Column(
-            children: [
-              Text(
-                'Version 1.0.0',
-                style: TextStyle(
-                  fontSize: 12,
-                  color: theme.textTheme.bodyMedium?.color?.withAlpha(102),
-                ),
-              ),
-              const SizedBox(height: 10),
-              _buildInnovationBadge(theme),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildInnovationBadge(ThemeData theme) {
+  // Brand Footer with version + innovation badge
+  Widget _buildBrandFooter(ThemeData theme) {
     const saffronColor = Color(0xFFFF9933);
     final isDark = theme.brightness == Brightness.dark;
 
-    return AnimatedBuilder(
-      animation: _pulseController,
-      builder: (context, child) {
-        final glowIntensity =
-            0.15 + (math.sin(_pulseController.value * math.pi * 2) * 0.1);
-        final pulseScale =
-            1.0 + (math.sin(_pulseController.value * math.pi * 2) * 0.08);
-
-        return Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(20),
-            color:
-                isDark
-                    ? saffronColor.withOpacity(0.08)
-                    : saffronColor.withOpacity(0.06),
-            border: Border.all(
-              color: saffronColor.withOpacity(glowIntensity + 0.2),
-              width: 1,
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: saffronColor.withOpacity(glowIntensity * 0.4),
-                blurRadius: 8,
-                spreadRadius: 0,
-              ),
-            ],
+    return Column(
+      children: [
+        Text(
+          'Version 1.0.0',
+          style: TextStyle(
+            fontSize: 12,
+            color: theme.textTheme.bodyMedium?.color?.withAlpha(90),
           ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Transform.scale(
-                scale: pulseScale,
-                child: ShaderMask(
-                  shaderCallback:
-                      (bounds) => LinearGradient(
-                        colors: [
-                          saffronColor,
-                          const Color(0xFFFFD700),
-                          saffronColor,
-                        ],
-                      ).createShader(bounds),
-                  child: const Text(
-                    '⚡',
-                    style: TextStyle(fontSize: 16, color: Colors.white),
-                  ),
+        ),
+        const SizedBox(height: 12),
+        AnimatedBuilder(
+          animation: _shimmerController,
+          builder: (context, child) {
+            final glowIntensity = 0.15 +
+                (math.sin(_shimmerController.value * math.pi * 2) * 0.1);
+
+            return Container(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(20),
+                color: isDark
+                    ? saffronColor.withAlpha(20)
+                    : saffronColor.withAlpha(15),
+                border: Border.all(
+                  color: saffronColor.withAlpha(((glowIntensity + 0.2) * 255).round()),
+                  width: 1,
                 ),
               ),
-              const SizedBox(width: 8),
-              Flexible(
-                child: FittedBox(
-                  fit: BoxFit.scaleDown,
-                  child: ShaderMask(
-                    shaderCallback:
-                        (bounds) => LinearGradient(
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  ShaderMask(
+                    shaderCallback: (bounds) => LinearGradient(
+                      colors: [
+                        saffronColor,
+                        const Color(0xFFFFD700),
+                        saffronColor,
+                      ],
+                    ).createShader(bounds),
+                    child: const Text(
+                      '\u26A1',
+                      style: TextStyle(fontSize: 14, color: Colors.white),
+                    ),
+                  ),
+                  const SizedBox(width: 6),
+                  Flexible(
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: ShaderMask(
+                        shaderCallback: (bounds) => LinearGradient(
                           colors: [
                             saffronColor,
                             const Color(0xFFFFD700),
                             saffronColor,
                           ],
                         ).createShader(bounds),
-                    child: const Text(
-                      'Powered by Innovators from the Soil of India',
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.white,
-                        letterSpacing: 0.5,
+                        child: const Text(
+                          'Powered by Innovators from the Soil of India',
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.white,
+                            letterSpacing: 0.3,
+                          ),
+                        ),
                       ),
                     ),
                   ),
-                ),
-              ),
-              const SizedBox(width: 4),
-              Transform.scale(
-                scale: pulseScale,
-                child: ShaderMask(
-                  shaderCallback:
-                      (bounds) => LinearGradient(
-                        colors: [
-                          saffronColor,
-                          const Color(0xFFFFD700),
-                          saffronColor,
-                        ],
-                      ).createShader(bounds),
-                  child: const Text(
-                    '⚡',
-                    style: TextStyle(fontSize: 16, color: Colors.white),
+                  const SizedBox(width: 4),
+                  ShaderMask(
+                    shaderCallback: (bounds) => LinearGradient(
+                      colors: [
+                        saffronColor,
+                        const Color(0xFFFFD700),
+                        saffronColor,
+                      ],
+                    ).createShader(bounds),
+                    child: const Text(
+                      '\u26A1',
+                      style: TextStyle(fontSize: 14, color: Colors.white),
+                    ),
                   ),
-                ),
+                ],
               ),
-            ],
-          ),
-        );
-      },
+            );
+          },
+        ),
+      ],
     );
   }
 
+  // Deactivation Dialog (preserved from original)
   void _showDeactivationDialog() {
     final passwordController = TextEditingController();
     final formKey = GlobalKey<FormState>();
@@ -499,156 +575,151 @@ class _AccountScreenState extends State<AccountScreen>
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder:
-          (dialogContext) => StatefulBuilder(
-            builder: (innerContext, setDialogState) {
-              return AlertDialog(
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(24),
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (innerContext, setDialogState) {
+          return AlertDialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(24),
+            ),
+            title: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.red.withAlpha(25),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    Icons.warning_amber_rounded,
+                    color: Colors.red[700],
+                    size: 28,
+                  ),
                 ),
-                title: Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: Colors.red.withOpacity(0.1),
-                        shape: BoxShape.circle,
-                      ),
-                      child: Icon(
-                        Icons.warning_amber_rounded,
-                        color: Colors.red[700],
-                        size: 28,
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    const Text('Deactivate Account'),
-                  ],
-                ),
-                content: Form(
-                  key: formKey,
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Are you sure you want to deactivate your account? This action cannot be undone immediately.',
-                        style: TextStyle(color: Colors.grey[700], fontSize: 14),
-                      ),
-                      const SizedBox(height: 20),
-                      TextFormField(
-                        controller: passwordController,
-                        obscureText: isObscured,
-                        enabled: !isLoading,
-                        decoration: InputDecoration(
-                          labelText: 'Confirm Password',
-                          prefixIcon: const Icon(Icons.lock_outline_rounded),
-                          suffixIcon: IconButton(
-                            icon: Icon(
-                              isObscured
-                                  ? Icons.visibility_outlined
-                                  : Icons.visibility_off_outlined,
-                            ),
-                            onPressed:
-                                isLoading
-                                    ? null
-                                    : () {
-                                      setDialogState(() {
-                                        isObscured = !isObscured;
-                                      });
-                                    },
-                          ),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
+                const SizedBox(width: 12),
+                const Text('Deactivate Account'),
+              ],
+            ),
+            content: Form(
+              key: formKey,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Are you sure you want to deactivate your account? This action cannot be undone immediately.',
+                    style: TextStyle(color: Colors.grey[700], fontSize: 14),
+                  ),
+                  const SizedBox(height: 20),
+                  TextFormField(
+                    controller: passwordController,
+                    obscureText: isObscured,
+                    enabled: !isLoading,
+                    decoration: InputDecoration(
+                      labelText: 'Confirm Password',
+                      prefixIcon: const Icon(Icons.lock_outline_rounded),
+                      suffixIcon: IconButton(
+                        icon: Icon(
+                          isObscured
+                              ? Icons.visibility_outlined
+                              : Icons.visibility_off_outlined,
                         ),
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Password is required';
-                          }
-                          return null;
-                        },
-                      ),
-                    ],
-                  ),
-                ),
-                actionsPadding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
-                actions: [
-                  TextButton(
-                    onPressed:
-                        isLoading ? null : () => Navigator.pop(dialogContext),
-                    child: Text(
-                      'Cancel',
-                      style: TextStyle(
-                        color: isLoading ? Colors.grey[400] : Colors.grey[700],
-                      ),
-                    ),
-                  ),
-                  ElevatedButton(
-                    onPressed:
-                        isLoading
+                        onPressed: isLoading
                             ? null
-                            : () async {
-                              if (formKey.currentState!.validate()) {
-                                setDialogState(() => isLoading = true);
-
-                                final authCubit =
-                                    innerContext.read<AuthCubit>();
-                                final result = await authCubit
-                                    .deactivateAccount(passwordController.text);
-
-                                if (result['success'] == true) {
-                                  // Success — close dialog and show success message
-                                  if (innerContext.mounted) {
-                                    Navigator.pop(innerContext);
-                                  }
-                                  if (mounted) {
-                                    SnackBarHelper.showSuccess(
-                                      context,
-                                      result['message'] ??
-                                          'Your account has been deactivated successfully.',
-                                    );
-                                  }
-                                } else {
-                                  // Error — show error snackbar and keep dialog open
-                                  setDialogState(() => isLoading = false);
-                                  if (mounted) {
-                                    SnackBarHelper.showError(
-                                      context,
-                                      result['message'] ??
-                                          'Failed to deactivate account. Please try again.',
-                                    );
-                                  }
-                                }
-                              }
-                            },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.red,
-                      foregroundColor: Colors.white,
-                      elevation: 0,
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 20,
-                        vertical: 12,
+                            : () {
+                                setDialogState(() {
+                                  isObscured = !isObscured;
+                                });
+                              },
                       ),
-                      shape: RoundedRectangleBorder(
+                      border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
                     ),
-                    child:
-                        isLoading
-                            ? const SizedBox(
-                              width: 20,
-                              height: 20,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                color: Colors.white,
-                              ),
-                            )
-                            : const Text('Deactivate'),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Password is required';
+                      }
+                      return null;
+                    },
                   ),
                 ],
-              );
-            },
-          ),
+              ),
+            ),
+            actionsPadding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
+            actions: [
+              TextButton(
+                onPressed:
+                    isLoading ? null : () => Navigator.pop(dialogContext),
+                child: Text(
+                  'Cancel',
+                  style: TextStyle(
+                    color:
+                        isLoading ? Colors.grey[400] : Colors.grey[700],
+                  ),
+                ),
+              ),
+              ElevatedButton(
+                onPressed: isLoading
+                    ? null
+                    : () async {
+                        if (formKey.currentState!.validate()) {
+                          setDialogState(() => isLoading = true);
+
+                          final authCubit =
+                              innerContext.read<AuthCubit>();
+                          final result = await authCubit
+                              .deactivateAccount(passwordController.text);
+
+                          if (result['success'] == true) {
+                            if (innerContext.mounted) {
+                              Navigator.pop(innerContext);
+                            }
+                            if (mounted) {
+                              SnackBarHelper.showSuccess(
+                                context,
+                                result['message'] ??
+                                    'Your account has been deactivated successfully.',
+                              );
+                            }
+                          } else {
+                            setDialogState(() => isLoading = false);
+                            if (mounted) {
+                              SnackBarHelper.showError(
+                                context,
+                                result['message'] ??
+                                    'Failed to deactivate account. Please try again.',
+                              );
+                            }
+                          }
+                        }
+                      },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.red,
+                  foregroundColor: Colors.white,
+                  elevation: 0,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 12,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                child: isLoading
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.white,
+                        ),
+                      )
+                    : const Text('Deactivate'),
+              ),
+            ],
+          );
+        },
+      ),
     );
   }
 }

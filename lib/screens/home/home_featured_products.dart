@@ -188,6 +188,8 @@ class FeaturedProductCard extends StatelessWidget {
                                 ? CachedNetworkImage(
                                   imageUrl: product.productImages[0].image,
                                   fit: BoxFit.cover,
+                                  memCacheWidth: 300,
+                                  memCacheHeight: 300,
                                   placeholder:
                                       (_, __) => Center(
                                         child: Icon(
@@ -305,8 +307,8 @@ class FeaturedProductCard extends StatelessWidget {
               ),
             ],
           ),
-            ),
-            if (!product.isActive) const ComingSoonOverlay(),
+          ),
+            if (!product.tag) const ComingSoonOverlay(),
           ],
         ),
       ),

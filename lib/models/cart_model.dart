@@ -142,6 +142,7 @@ class ProductVariant {
   final String finalPrice;
   final bool isInStock;
   final bool isActive;
+  final bool tag;
   final String productName;
   final String productDescription;
   final String productCategory;
@@ -157,6 +158,7 @@ class ProductVariant {
     required this.finalPrice,
     required this.isInStock,
     required this.isActive,
+    required this.tag,
     required this.productName,
     required this.productDescription,
     required this.productCategory,
@@ -174,6 +176,7 @@ class ProductVariant {
       finalPrice: json['final_price'],
       isInStock: json['is_in_stock'],
       isActive: json['is_active'],
+      tag: json['tag'] ?? true,
       productName: json['product_name'],
       productDescription: json['product_description'],
       productCategory: json['product_category'],
@@ -195,6 +198,7 @@ class ProductVariant {
       'final_price': finalPrice,
       'is_in_stock': isInStock,
       'is_active': isActive,
+      'tag': tag,
       'product_name': productName,
       'product_description': productDescription,
       'product_category': productCategory,

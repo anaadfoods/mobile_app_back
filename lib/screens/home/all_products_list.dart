@@ -1,3 +1,4 @@
+import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:grocery_app/common_widgets/global_import.dart';
 import 'package:grocery_app/routes/app_routes.dart';
@@ -11,18 +12,33 @@ class AllProductsList extends StatefulWidget {
 }
 
 class _AllProductsListState extends State<AllProductsList> {
+  // Cache the future so it doesn't re-fetch on every rebuild
+  late final Future<List<Product>> _allProductsFuture;
+  bool _isNavigating = false;
+
   @override
   void initState() {
     super.initState();
-    _fetchAllProducts();
+    _allProductsFuture = CategoryService.fetchAllProducts();
   }
 
-  Future<void> _fetchAllProducts() async {
-    // We can use the cubit or directly service if cubit doesn't have "all products" state separate from featured
-    // Let's use a local state for simplicity as ProductCubit might be scoped to featured
-    // but actually, let's try to find a cleaner way.
-    // For now, I'll use a FutureBuilder with the service for "All Products"
-    // to keep it isolated and simple.
+  Future<void> _onSeeAll() async {
+    HapticFeedback.lightImpact();
+    if (_isNavigating) return;
+    setState(() => _isNavigating = true);
+    try {
+      final products = await _allProductsFuture;
+      if (mounted) {
+        context.push(
+          AppRoute.categoryItems.path,
+          extra: {'name': "All Products", 'products': products},
+        );
+      }
+    } catch (e) {
+      debugPrint("Error fetching all products: $e");
+    } finally {
+      if (mounted) setState(() => _isNavigating = false);
+    }
   }
 
   @override
@@ -42,26 +58,38 @@ class _AllProductsListState extends State<AllProductsList> {
                 ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
               ),
 
-              TextButton(
-                onPressed: () async {
-                  // Show loading indicator or simple localized feedback?
-                  // For now, let's just push and let the screen handle data if we had it,
-                  // but CategoryItemsScreen requires data.
-                  // We can fetch it here.
-                  try {
-                    final products = await CategoryService.fetchAllProducts();
-                    if (context.mounted) {
-                      context.push(
-                        AppRoute.categoryItems.path,
-                        extra: {'name': "All Products", 'products': products},
-                      );
-                    }
-                  } catch (e) {
-                    // Handle error silently or show snackbar
-                    debugPrint("Error fetching all products: $e");
-                  }
-                },
-                child: const Text("See All"),
+              GestureDetector(
+                onTap: _onSeeAll,
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 200),
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: _isNavigating
+                      ? SizedBox(
+                          width: 56,
+                          height: 16,
+                          child: ShimmerLoading(
+                            isLoading: true,
+                            child: Container(
+                              decoration: BoxDecoration(
+                                color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.4),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                            ),
+                          ),
+                        )
+                      : Text(
+                          "See All →",
+                          style: TextStyle(
+                            color: Theme.of(context).colorScheme.primary,
+                            fontWeight: FontWeight.w600,
+                            fontSize: 13,
+                          ),
+                        ),
+                ),
               ),
             ],
           ),
@@ -69,7 +97,7 @@ class _AllProductsListState extends State<AllProductsList> {
         SizedBox(
           height: 300,
           child: FutureBuilder<List<Product>>(
-            future: CategoryService.fetchAllProducts(),
+            future: _allProductsFuture,
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
                 return const FeaturedProductsSkeleton(); // Reuse skeleton

@@ -12,7 +12,7 @@ class SubscriptionTable extends StatefulWidget {
 }
 
 class _SubscriptionTableState extends State<SubscriptionTable>
-    with SingleTickerProviderStateMixin {
+    with TickerProviderStateMixin {
   final SubscriptionService _subscriptionService = SubscriptionService();
   List<SubscriptionPlan> _plans = [];
   bool _isLoading = true;
@@ -25,6 +25,7 @@ class _SubscriptionTableState extends State<SubscriptionTable>
 
   late PageController _pageController;
   late AnimationController _pulseController;
+  late AnimationController _shimmerController;
   Timer? _autoScrollTimer;
 
   @override
@@ -37,6 +38,10 @@ class _SubscriptionTableState extends State<SubscriptionTable>
       vsync: this,
       duration: const Duration(milliseconds: 2000),
     )..repeat(reverse: true);
+    _shimmerController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 2800),
+    )..repeat();
     _startAutoScroll();
   }
 
@@ -58,10 +63,15 @@ class _SubscriptionTableState extends State<SubscriptionTable>
     _autoScrollTimer?.cancel();
   }
 
+  bool _hasLoadedData = false;
+
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    _loadData();
+    if (!_hasLoadedData) {
+      _hasLoadedData = true;
+      _loadData();
+    }
   }
 
   Future<void> _loadData() async {
@@ -175,6 +185,7 @@ class _SubscriptionTableState extends State<SubscriptionTable>
     _autoScrollTimer?.cancel();
     _pageController.dispose();
     _pulseController.dispose();
+    _shimmerController.dispose();
     super.dispose();
   }
 
@@ -328,10 +339,14 @@ class _SubscriptionTableState extends State<SubscriptionTable>
   }
 
   Widget _buildPageIndicators(bool isDark) {
+    final bestValIdx = _plans.isEmpty
+        ? -1
+        : _plans.indexWhere((p) => p.durationMonths == 12);
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: List.generate(_plans.length, (index) {
         final isActive = index == _currentIndex;
+        final isBest = index == bestValIdx;
         return GestureDetector(
           onTap: () {
             _pageController.animateToPage(
@@ -343,14 +358,26 @@ class _SubscriptionTableState extends State<SubscriptionTable>
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 300),
             margin: const EdgeInsets.symmetric(horizontal: 4),
-            width: isActive ? 24 : 8,
+            width: isActive ? 28 : 8,
             height: 8,
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(4),
-              color:
-                  isActive
-                      ? AppColors.primaryColor
-                      : (isDark ? Colors.white24 : Colors.black12),
+              color: isActive
+                  ? (isBest
+                      ? const Color(0xFFD4AF37)
+                      : AppColors.primaryColor)
+                  : (isDark ? Colors.white24 : Colors.black12),
+              boxShadow: isActive
+                  ? [
+                      BoxShadow(
+                        color: isBest
+                            ? const Color(0xFFD4AF37).withOpacity(0.6)
+                            : AppColors.primaryColor.withOpacity(0.5),
+                        blurRadius: 6,
+                        spreadRadius: 1,
+                      ),
+                    ]
+                  : null,
             ),
           ),
         );
@@ -364,8 +391,8 @@ class _SubscriptionTableState extends State<SubscriptionTable>
     ThemeData theme,
     bool isDark,
   ) {
-    // Card colors based on plan type
     final cardColors = _getCardColors(plan, isDark);
+    final isBestValue = plan.durationMonths == 12;
 
     return GestureDetector(
       onTap: () {
@@ -387,49 +414,109 @@ class _SubscriptionTableState extends State<SubscriptionTable>
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: cardColors.gradient,
+            stops: const [0.0, 0.5, 1.0],
           ),
           boxShadow: [
             BoxShadow(
-              color: cardColors.shadow.withOpacity(isActive ? 0.4 : 0.2),
-              blurRadius: isActive ? 24 : 16,
-              offset: const Offset(0, 8),
-              spreadRadius: isActive ? 2 : 0,
+              color: cardColors.shadow.withOpacity(isActive ? 0.55 : 0.25),
+              blurRadius: isActive ? 32 : 18,
+              offset: const Offset(0, 10),
+              spreadRadius: isActive ? 4 : 0,
             ),
+            if (isActive)
+              BoxShadow(
+                color: cardColors.shadow.withOpacity(0.18),
+                blurRadius: 60,
+                offset: const Offset(0, 24),
+                spreadRadius: -6,
+              ),
           ],
         ),
         child: ClipRRect(
           borderRadius: BorderRadius.circular(24),
           child: Stack(
             children: [
-              // Background pattern
+              // Large radial circle top-right
               Positioned(
-                right: -30,
-                top: -30,
+                right: -40,
+                top: -40,
                 child: Container(
-                  width: 140,
-                  height: 140,
+                  width: 180,
+                  height: 180,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: Colors.white.withOpacity(0.08),
+                    gradient: RadialGradient(
+                      colors: [
+                        Colors.white.withOpacity(0.13),
+                        Colors.white.withOpacity(0.0),
+                      ],
+                    ),
                   ),
                 ),
               ),
+              // Medium radial circle bottom-left
               Positioned(
-                right: 20,
-                bottom: -40,
+                left: -20,
+                bottom: -30,
                 child: Container(
-                  width: 100,
-                  height: 100,
+                  width: 130,
+                  height: 130,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: Colors.white.withOpacity(0.05),
+                    gradient: RadialGradient(
+                      colors: [
+                        Colors.white.withOpacity(0.09),
+                        Colors.white.withOpacity(0.0),
+                      ],
+                    ),
                   ),
                 ),
               ),
-
-              // Content
+              // Diagonal texture
+              Positioned.fill(
+                child: CustomPaint(painter: _DiagonalLinesPainter()),
+              ),
+              // Shimmer sweep on active card
+              if (isActive)
+                Positioned.fill(
+                  child: IgnorePointer(
+                    child: AnimatedBuilder(
+                      animation: _shimmerController,
+                      builder: (context, _) {
+                        final pos = -0.4 + (_shimmerController.value * 1.8);
+                        return Container(
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                              colors: [
+                                Colors.transparent,
+                                Colors.transparent,
+                                Colors.white.withOpacity(0.08),
+                                Colors.white.withOpacity(0.18),
+                                Colors.white.withOpacity(0.08),
+                                Colors.transparent,
+                                Colors.transparent,
+                              ],
+                              stops: [
+                                0.0,
+                                (pos - 0.2).clamp(0.0, 1.0),
+                                (pos - 0.07).clamp(0.0, 1.0),
+                                pos.clamp(0.0, 1.0),
+                                (pos + 0.07).clamp(0.0, 1.0),
+                                (pos + 0.2).clamp(0.0, 1.0),
+                                1.0,
+                              ],
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ),
+              // Card Content
               Padding(
-                padding: const EdgeInsets.all(20),
+                padding: const EdgeInsets.fromLTRB(20, 20, 20, 20),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -441,101 +528,169 @@ class _SubscriptionTableState extends State<SubscriptionTable>
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              // Badge
+                              // Duration badge
                               Container(
                                 padding: const EdgeInsets.symmetric(
                                   horizontal: 10,
                                   vertical: 4,
                                 ),
                                 decoration: BoxDecoration(
-                                  color: Colors.white.withOpacity(0.2),
+                                  color: Colors.white.withOpacity(
+                                    cardColors.goldAccent ? 0.12 : 0.18,
+                                  ),
                                   borderRadius: BorderRadius.circular(20),
+                                  border: cardColors.goldAccent
+                                      ? Border.all(
+                                          color: const Color(0xFFD4AF37),
+                                          width: 1,
+                                        )
+                                      : Border.all(
+                                          color:
+                                              Colors.white.withOpacity(0.3),
+                                          width: 1,
+                                        ),
                                 ),
                                 child: Text(
                                   '${plan.durationMonths} MONTHS',
-                                  style: const TextStyle(
-                                    color: Colors.white,
+                                  style: TextStyle(
+                                    color: cardColors.goldAccent
+                                        ? const Color(0xFFFFE082)
+                                        : Colors.white,
                                     fontSize: 10,
                                     fontWeight: FontWeight.w700,
-                                    letterSpacing: 1,
+                                    letterSpacing: 1.2,
                                   ),
                                 ),
                               ),
-                              const SizedBox(height: 12),
+                              const SizedBox(height: 10),
                               // Plan name
                               Text(
-                                plan.name,
-                                style: theme.textTheme.headlineSmall?.copyWith(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.bold,
-                                ),
+                                plan.name.toUpperCase(),
+                                style: theme.textTheme.headlineSmall
+                                    ?.copyWith(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.w900,
+                                      fontSize: 19,
+                                      letterSpacing: 0.4,
+                                    ),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                               ),
                             ],
                           ),
                         ),
-                        // Icon
+                        const SizedBox(width: 12),
+                        // Premium icon container
                         Container(
-                          padding: const EdgeInsets.all(12),
+                          padding: const EdgeInsets.all(11),
                           decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.2),
+                            gradient: cardColors.goldAccent
+                                ? const LinearGradient(
+                                    begin: Alignment.topLeft,
+                                    end: Alignment.bottomRight,
+                                    colors: [
+                                      Color(0xFFD4AF37),
+                                      Color(0xFFB8860B),
+                                    ],
+                                  )
+                                : LinearGradient(
+                                    begin: Alignment.topLeft,
+                                    end: Alignment.bottomRight,
+                                    colors: [
+                                      Colors.white.withOpacity(0.28),
+                                      Colors.white.withOpacity(0.12),
+                                    ],
+                                  ),
                             borderRadius: BorderRadius.circular(16),
+                            border: Border.all(
+                              color: cardColors.goldAccent
+                                  ? const Color(0xFFFFE082)
+                                  : Colors.white.withOpacity(0.3),
+                              width: 1.2,
+                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: cardColors.goldAccent
+                                    ? const Color(0xFFD4AF37).withOpacity(0.5)
+                                    : Colors.white.withOpacity(0.12),
+                                blurRadius: cardColors.goldAccent ? 14 : 6,
+                                spreadRadius: cardColors.goldAccent ? 1 : 0,
+                              ),
+                            ],
                           ),
                           child: Icon(
                             cardColors.icon,
                             color: Colors.white,
-                            size: 28,
+                            size: 26,
                           ),
                         ),
                       ],
                     ),
 
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 10),
 
                     // Description
                     Text(
                       plan.description,
                       style: TextStyle(
-                        color: Colors.white.withOpacity(0.85),
-                        fontSize: 13,
-                        height: 1.4,
+                        color: Colors.white.withOpacity(0.78),
+                        fontSize: 12.5,
+                        height: 1.45,
                       ),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
 
                     const Spacer(),
-                    // Stats row
-                    Container(
-                      padding: const EdgeInsets.all(14),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.15),
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceAround,
-                        children: [
-                          _buildStat(
-                            '${plan.totalDiscountPercentage}%',
-                            'Savings',
+
+                    // Glassmorphism stats panel
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(16),
+                      child: BackdropFilter(
+                        filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
+                        child: Container(
+                          padding: const EdgeInsets.all(14),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.11),
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(
+                              color: cardColors.goldAccent
+                                  ? const Color(0xFFD4AF37).withOpacity(0.4)
+                                  : Colors.white.withOpacity(0.22),
+                              width: 1,
+                            ),
                           ),
-                          Container(
-                            width: 1,
-                            height: 30,
-                            color: Colors.white.withOpacity(0.2),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceAround,
+                            children: [
+                              _buildStat(
+                                '${plan.totalDiscountPercentage}%',
+                                'Savings',
+                                cardColors.goldAccent,
+                              ),
+                              Container(
+                                width: 1,
+                                height: 32,
+                                color: Colors.white.withOpacity(0.22),
+                              ),
+                              _buildStat(
+                                plan.allowsInstallments ? 'Yes' : 'No',
+                                'EMI',
+                                cardColors.goldAccent,
+                              ),
+                              Container(
+                                width: 1,
+                                height: 32,
+                                color: Colors.white.withOpacity(0.22),
+                              ),
+                              _buildStat(
+                                '${plan.durationMonths}',
+                                'Months',
+                                cardColors.goldAccent,
+                              ),
+                            ],
                           ),
-                          _buildStat(
-                            plan.allowsInstallments ? 'Yes' : 'No',
-                            'EMI',
-                          ),
-                          Container(
-                            width: 1,
-                            height: 30,
-                            color: Colors.white.withOpacity(0.2),
-                          ),
-                          _buildStat('${plan.durationMonths}', 'Months'),
-                        ],
+                        ),
                       ),
                     ),
 
@@ -546,13 +701,27 @@ class _SubscriptionTableState extends State<SubscriptionTable>
                       width: double.infinity,
                       padding: const EdgeInsets.symmetric(vertical: 14),
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        gradient: cardColors.goldAccent
+                            ? const LinearGradient(
+                                begin: Alignment.centerLeft,
+                                end: Alignment.centerRight,
+                                colors: [
+                                  Color(0xFFD4AF37),
+                                  Color(0xFFEACB55),
+                                  Color(0xFFD4AF37),
+                                ],
+                              )
+                            : null,
+                        color: cardColors.goldAccent ? null : Colors.white,
                         borderRadius: BorderRadius.circular(14),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withOpacity(0.1),
-                            blurRadius: 8,
-                            offset: const Offset(0, 2),
+                            color: cardColors.goldAccent
+                                ? const Color(0xFFD4AF37).withOpacity(0.55)
+                                : Colors.black.withOpacity(0.12),
+                            blurRadius: cardColors.goldAccent ? 18 : 8,
+                            offset: const Offset(0, 3),
+                            spreadRadius: cardColors.goldAccent ? 1 : 0,
                           ),
                         ],
                       ),
@@ -562,15 +731,20 @@ class _SubscriptionTableState extends State<SubscriptionTable>
                           Text(
                             'Explore Plan',
                             style: TextStyle(
-                              color: cardColors.gradient[0],
-                              fontWeight: FontWeight.w700,
+                              color: cardColors.goldAccent
+                                  ? const Color(0xFF1A3010)
+                                  : cardColors.gradient[0],
+                              fontWeight: FontWeight.w800,
                               fontSize: 14,
+                              letterSpacing: 0.3,
                             ),
                           ),
                           const SizedBox(width: 8),
                           Icon(
                             Icons.arrow_forward_rounded,
-                            color: cardColors.gradient[0],
+                            color: cardColors.goldAccent
+                                ? const Color(0xFF1A3010)
+                                : cardColors.gradient[0],
                             size: 18,
                           ),
                         ],
@@ -579,6 +753,56 @@ class _SubscriptionTableState extends State<SubscriptionTable>
                   ],
                 ),
               ),
+              // Best Value floating banner
+              if (isBestValue)
+                Positioned(
+                  top: 0,
+                  right: 20,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 5,
+                    ),
+                    decoration: const BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [Color(0xFFD4AF37), Color(0xFFB8860B)],
+                      ),
+                      borderRadius: BorderRadius.only(
+                        bottomLeft: Radius.circular(10),
+                        bottomRight: Radius.circular(10),
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Color(0x66D4AF37),
+                          blurRadius: 12,
+                          offset: Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: const [
+                        Icon(
+                          Icons.workspace_premium_rounded,
+                          color: Colors.white,
+                          size: 11,
+                        ),
+                        SizedBox(width: 4),
+                        Text(
+                          'BEST VALUE',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 9,
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: 0.8,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
             ],
           ),
         ),
@@ -586,56 +810,60 @@ class _SubscriptionTableState extends State<SubscriptionTable>
     );
   }
 
-  Widget _buildStat(String value, String label) {
+  Widget _buildStat(String value, String label, bool goldAccent) {
     return Column(
       children: [
         Text(
           value,
-          style: const TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.bold,
-            fontSize: 18,
+          style: TextStyle(
+            color: goldAccent ? const Color(0xFFFFE082) : Colors.white,
+            fontWeight: FontWeight.w800,
+            fontSize: 20,
+            letterSpacing: -0.5,
           ),
         ),
-        const SizedBox(height: 2),
+        const SizedBox(height: 3),
         Text(
           label,
-          style: TextStyle(color: Colors.white.withOpacity(0.7), fontSize: 11),
+          style: TextStyle(
+            color: Colors.white.withOpacity(0.65),
+            fontSize: 11,
+            letterSpacing: 0.3,
+          ),
         ),
       ],
     );
   }
 
   _CardColors _getCardColors(SubscriptionPlan plan, bool isDark) {
-    // Assign different gradients based on plan index
-    final index = _plans.indexOf(plan);
-    switch (index % 4) {
-      case 0:
-        return _CardColors(
-          gradient: [const Color(0xFF85a260), const Color(0xFF85a260)],
-          shadow: const Color(0xFF85a260),
-          icon: Icons.eco_rounded,
-        );
-      case 1:
-        return _CardColors(
-          gradient: [const Color(0xFF688749), const Color(0xFF688749)],
-          shadow: const Color(0xFF688749),
-          icon: Icons.water_drop_rounded,
-        );
-      case 2:
-        return _CardColors(
-          gradient: [const Color(0xFF4e6d30), const Color(0xFF4e6d30)],
-          shadow: const Color(0xFF4e6d30),
-          icon: Icons.local_fire_department_rounded,
-        );
-      case 3:
-      default:
-        return _CardColors(
-          gradient: [const Color(0xFF365322), const Color(0xFF365322)],
-          shadow: const Color(0xFF365322),
-          icon: Icons.auto_awesome_rounded,
-        );
+    final nameLower = plan.name.toLowerCase();
+    final isOneYear = plan.durationMonths == 12;
+
+    // Siddh plans — warm saffron-earth gradient
+    if (nameLower.contains('siddh')) {
+      return _CardColors(
+        gradient: const [
+          Color(0xFFD4873A),
+          Color(0xFFA85C1A),
+          Color(0xFF6B3208),
+        ],
+        shadow: const Color(0xFFBF6A20),
+        icon: Icons.spa_rounded,
+        goldAccent: isOneYear,
+      );
     }
+
+    // Tapsavi plans — deep forest green gradient
+    return _CardColors(
+      gradient: const [
+        Color(0xFF3A7035),
+        Color(0xFF1F4E15),
+        Color(0xFF0C2C06),
+      ],
+      shadow: const Color(0xFF2A5E22),
+      icon: Icons.eco_rounded,
+      goldAccent: isOneYear,
+    );
   }
 }
 
@@ -643,12 +871,34 @@ class _CardColors {
   final List<Color> gradient;
   final Color shadow;
   final IconData icon;
+  final bool goldAccent;
 
   _CardColors({
     required this.gradient,
     required this.shadow,
     required this.icon,
+    this.goldAccent = false,
   });
+}
+
+class _DiagonalLinesPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = Colors.white.withOpacity(0.04)
+      ..strokeWidth = 1;
+    const spacing = 22.0;
+    for (double i = -size.height; i < size.width + size.height; i += spacing) {
+      canvas.drawLine(
+        Offset(i, 0),
+        Offset(i + size.height, size.height),
+        paint,
+      );
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
 
 // ================= POPUP DIALOG (Kept intact) =================
@@ -672,7 +922,7 @@ void showSubscriptionPopup({
         children: [
           Positioned.fill(
             child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+              filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
               child: Container(color: Colors.transparent),
             ),
           ),

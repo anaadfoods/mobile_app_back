@@ -1,5 +1,8 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 
+/// Reusable titled card section for account menu items.
+/// Supports optional trailing value badges on each item (e.g. "3 active").
+/// Section titles are displayed in uppercase with letter spacing.
 class AccountMenuSection extends StatelessWidget {
   final String title;
   final List<AccountMenuItem> items;
@@ -18,14 +21,14 @@ class AccountMenuSection extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: const EdgeInsets.only(left: 4, bottom: 12),
+          padding: const EdgeInsets.only(left: 4, bottom: 10),
           child: Text(
-            title,
+            title.toUpperCase(),
             style: TextStyle(
-              fontSize: 15,
-              fontWeight: FontWeight.w600,
-              color: theme.textTheme.bodyLarge?.color?.withAlpha(204),
-              letterSpacing: 0.3,
+              fontSize: 12,
+              fontWeight: FontWeight.w700,
+              color: theme.textTheme.bodyMedium?.color?.withAlpha(130),
+              letterSpacing: 1.2,
             ),
           ),
         ),
@@ -35,127 +38,113 @@ class AccountMenuSection extends StatelessWidget {
             borderRadius: BorderRadius.circular(16),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withAlpha(10),
-                blurRadius: 10,
+                color: Colors.black.withAlpha(8),
+                blurRadius: 12,
                 offset: const Offset(0, 4),
               ),
             ],
           ),
           child: Column(
-            children:
-                items.asMap().entries.map((entry) {
-                  final index = entry.key;
-                  final item = entry.value;
-                  final isLast = index == items.length - 1;
+            children: items.asMap().entries.map((entry) {
+              final index = entry.key;
+              final item = entry.value;
+              final isLast = index == items.length - 1;
 
-                  return Column(
-                    children: [
-                      _buildAnimatedMenuItem(theme, item, index),
-                      if (!isLast)
-                        Padding(
-                          padding: const EdgeInsets.only(left: 60),
-                          child: Divider(
-                            height: 1,
-                            color: theme.dividerColor.withAlpha(38),
-                          ),
-                        ),
-                    ],
-                  );
-                }).toList(),
+              return Column(
+                children: [
+                  _buildMenuItem(theme, item),
+                  if (!isLast)
+                    Padding(
+                      padding: const EdgeInsets.only(left: 56),
+                      child: Divider(
+                        height: 1,
+                        color: theme.dividerColor.withAlpha(38),
+                      ),
+                    ),
+                ],
+              );
+            }).toList(),
           ),
         ),
       ],
     );
   }
 
-  Widget _buildAnimatedMenuItem(
-    ThemeData theme,
-    AccountMenuItem item,
-    int index,
-  ) {
-    return TweenAnimationBuilder<double>(
-      tween: Tween(begin: 0.0, end: 1.0),
-      duration: Duration(milliseconds: 400 + (index * 100)),
-      curve: Curves.easeOut,
-      builder: (context, value, child) {
-        return Transform.translate(
-          offset: Offset(20 * (1 - value), 0),
-          child: Opacity(
-            opacity: value.clamp(0.0, 1.0),
-            child: Material(
-              color: Colors.transparent,
-              child: InkWell(
-                onTap: item.onTap,
-                borderRadius: BorderRadius.circular(16),
-                splashColor: item.iconColor.withAlpha(25),
-                highlightColor: item.iconColor.withAlpha(12),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 14,
-                    vertical: 14,
-                  ),
-                  child: Row(
-                    children: [
-                      TweenAnimationBuilder<double>(
-                        tween: Tween(begin: 0.8, end: 1.0),
-                        duration: const Duration(milliseconds: 300),
-                        curve: Curves.elasticOut,
-                        builder: (context, scale, child) {
-                          return Transform.scale(
-                            scale: scale,
-                            child: Container(
-                              padding: const EdgeInsets.all(10),
-                              decoration: BoxDecoration(
-                                color: item.iconColor.withAlpha(38),
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: Icon(
-                                item.icon,
-                                color: item.iconColor,
-                                size: 20,
-                              ),
-                            ),
-                          );
-                        },
+  Widget _buildMenuItem(ThemeData theme, AccountMenuItem item) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: item.onTap,
+        borderRadius: BorderRadius.circular(16),
+        splashColor: item.iconColor.withAlpha(20),
+        highlightColor: item.iconColor.withAlpha(10),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(9),
+                decoration: BoxDecoration(
+                  color: item.iconColor.withAlpha(30),
+                  borderRadius: BorderRadius.circular(11),
+                ),
+                child: Icon(item.icon, color: item.iconColor, size: 20),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      item.title,
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                        color: theme.textTheme.bodyLarge?.color,
                       ),
-                      const SizedBox(width: 14),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              item.title,
-                              style: TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w500,
-                                color: theme.textTheme.bodyLarge?.color,
-                              ),
-                            ),
-                            const SizedBox(height: 2),
-                            Text(
-                              item.subtitle,
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: theme.textTheme.bodyMedium?.color
-                                    ?.withAlpha(127),
-                              ),
-                            ),
-                          ],
+                    ),
+                    if (item.subtitle.isNotEmpty) ...[
+                      const SizedBox(height: 2),
+                      Text(
+                        item.subtitle,
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: theme.textTheme.bodyMedium?.color
+                              ?.withAlpha(120),
                         ),
                       ),
-                      Icon(
-                        Icons.chevron_right_rounded,
-                        color: theme.textTheme.bodyMedium?.color?.withAlpha(76),
-                        size: 22,
-                      ),
                     ],
-                  ),
+                  ],
                 ),
               ),
-            ),
+              if (item.trailing != null) ...[
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: item.iconColor.withAlpha(20),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    item.trailing!,
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                      color: item.iconColor,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 6),
+              ],
+              Icon(
+                Icons.chevron_right_rounded,
+                color: theme.textTheme.bodyMedium?.color?.withAlpha(70),
+                size: 20,
+              ),
+            ],
           ),
-        );
-      },
+        ),
+      ),
     );
   }
 }
@@ -166,6 +155,7 @@ class AccountMenuItem {
   final String subtitle;
   final Color iconColor;
   final VoidCallback onTap;
+  final String? trailing;
 
   AccountMenuItem({
     required this.icon,
@@ -173,5 +163,6 @@ class AccountMenuItem {
     required this.subtitle,
     required this.iconColor,
     required this.onTap,
+    this.trailing,
   });
 }

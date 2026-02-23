@@ -1,4 +1,4 @@
-﻿import "dart:math" as math;
+import "dart:math" as math;
 import "dart:ui" as ui;
 import "dart:ui";
 
@@ -26,12 +26,13 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   List<Product> _searchResults = [];
   bool _isSearching = false;
+  bool _isNavigatingToFeatured = false;
   final TextEditingController _searchController = TextEditingController();
   final FocusNode _focusNode = FocusNode();
   Timer? _debounce;
 
-  // Dynamic color from carousel images
-  Color? _dynamicBgColor;
+  // Dynamic color from carousel images — isolated via ValueNotifier
+  final ValueNotifier<Color?> _bgColorNotifier = ValueNotifier<Color?>(null);
 
   // Animation controllers for soothing entrance effects
   late AnimationController _headerController;
@@ -43,12 +44,32 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   // Cached future for communities to prevent re-fetching on rebuild
   late Future<List<Community>> _communitiesFuture;
 
+  // Cached greeting (computed once, doesn't change during session)
+  late final int _greetingHour;
+  late final String _greetingText;
+  late final String _greetingEmoji;
+
   @override
   void initState() {
     super.initState();
     _initAnimations();
+    _initGreeting();
     // Cache the communities future so it doesn't re-fetch on every rebuild
     _communitiesFuture = CommunityService.fetchCommunities();
+  }
+
+  void _initGreeting() {
+    _greetingHour = DateTime.now().hour;
+    if (_greetingHour < 12) {
+      _greetingText = 'Good Morning';
+      _greetingEmoji = '🌅';
+    } else if (_greetingHour < 17) {
+      _greetingText = 'Good Afternoon';
+      _greetingEmoji = '☀️';
+    } else {
+      _greetingText = 'Good Evening';
+      _greetingEmoji = '🌙';
+    }
   }
 
   void _initAnimations() {
@@ -95,6 +116,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     _debounce?.cancel();
     _headerController.dispose();
     _contentController.dispose();
+    _bgColorNotifier.dispose();
     super.dispose();
   }
 
@@ -130,11 +152,14 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final textTheme = theme.textTheme;
-    final screenWidth = MediaQuery.of(context).size.width;
+    final screenWidth = MediaQuery.sizeOf(context).width;
 
     return SafeArea(
       top: false,
       child: SingleChildScrollView(
+        physics: const BouncingScrollPhysics(
+          parent: AlwaysScrollableScrollPhysics(),
+        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -144,10 +169,12 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
               builder: (context, child) {
                 return Transform.scale(
                   scale: _headerScale.value,
-                  child: Opacity(opacity: _headerFade.value, child: child),
+                  child: child,
                 );
               },
-              child: Stack(
+              child: FadeTransition(
+                opacity: _headerFade,
+                child: Stack(
                 children: [
                   // Dynamic color header background with blur effect
                   Positioned.fill(
@@ -169,27 +196,32 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                               fit: BoxFit.cover,
                             ),
                             // Dynamic color overlay with blur
-                            if (_dynamicBgColor != null)
-                              BackdropFilter(
-                                filter: ImageFilter.blur(
-                                  sigmaX: 20,
-                                  sigmaY: 20,
-                                ),
-                                child: AnimatedContainer(
-                                  duration: const Duration(milliseconds: 500),
-                                  curve: Curves.easeInOut,
-                                  decoration: BoxDecoration(
-                                    gradient: LinearGradient(
-                                      begin: Alignment.topCenter,
-                                      end: Alignment.bottomCenter,
-                                      colors: [
-                                        _dynamicBgColor!.withValues(alpha: 0.7),
-                                        _dynamicBgColor!.withValues(alpha: 0.5),
-                                      ],
+                            ValueListenableBuilder<Color?>(
+                              valueListenable: _bgColorNotifier,
+                              builder: (context, dynamicColor, _) {
+                                if (dynamicColor == null) return const SizedBox.shrink();
+                                return BackdropFilter(
+                                  filter: ImageFilter.blur(
+                                    sigmaX: 12,
+                                    sigmaY: 12,
+                                  ),
+                                  child: AnimatedContainer(
+                                    duration: const Duration(milliseconds: 500),
+                                    curve: Curves.easeInOut,
+                                    decoration: BoxDecoration(
+                                      gradient: LinearGradient(
+                                        begin: Alignment.topCenter,
+                                        end: Alignment.bottomCenter,
+                                        colors: [
+                                          dynamicColor.withValues(alpha: 0.7),
+                                          dynamicColor.withValues(alpha: 0.5),
+                                        ],
+                                      ),
                                     ),
                                   ),
-                                ),
-                              ),
+                                );
+                              },
+                            ),
                           ],
                         ),
                       ),
@@ -202,7 +234,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                         padding: EdgeInsets.only(
                           left: screenWidth * 0.05,
                           right: screenWidth * 0.05,
-                          top: MediaQuery.of(context).padding.top + 12,
+                          top: MediaQuery.paddingOf(context).top + 12,
                           bottom: 12,
                         ),
                         child: Row(
@@ -211,6 +243,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                             // Modern Welcome Section with Avatar
                             Expanded(
                               child: BlocBuilder<AuthCubit, AuthState>(
+                                buildWhen: (prev, curr) => prev != curr,
                                 builder: (context, state) {
                                   String name = "User";
                                   String? profilePicture;
@@ -219,22 +252,6 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                         state.user.firstName[0].toUpperCase() +
                                         state.user.firstName.substring(1);
                                     profilePicture = state.user.profilePicture;
-                                  }
-
-                                  // Time-based greeting
-                                  final hour = DateTime.now().hour;
-                                  String greeting;
-                                  String greetingEmoji;
-
-                                  if (hour < 12) {
-                                    greeting = "Good Morning";
-                                    greetingEmoji = '🌅';
-                                  } else if (hour < 17) {
-                                    greeting = "Good Afternoon";
-                                    greetingEmoji = '☀️';
-                                  } else {
-                                    greeting = "Good Evening";
-                                    greetingEmoji = '🌙';
                                   }
 
                                   return GestureDetector(
@@ -270,7 +287,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                                 profilePicture != null &&
                                                         profilePicture
                                                             .isNotEmpty
-                                                    ? NetworkImage(
+                                                    ? CachedNetworkImageProvider(
                                                       profilePicture,
                                                     )
                                                     : null,
@@ -305,7 +322,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                               Row(
                                                 children: [
                                                   Text(
-                                                    greeting,
+                                                    _greetingText,
                                                     style: textTheme.bodySmall
                                                         ?.copyWith(
                                                           color: theme
@@ -320,62 +337,12 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                                         ),
                                                   ),
                                                   const SizedBox(width: 5),
-                                                  StreamBuilder<int>(
-                                                    stream: Stream.periodic(
-                                                      const Duration(
-                                                        milliseconds: 50,
-                                                      ),
-                                                      (i) => i,
+                                                  // Animated greeting emoji
+                                                  RepaintBoundary(
+                                                    child: _AnimatedGreetingEmoji(
+                                                      emoji: _greetingEmoji,
+                                                      hour: _greetingHour,
                                                     ),
-                                                    builder: (ctx, snap) {
-                                                      final t =
-                                                          (snap.data ?? 0) *
-                                                          0.05;
-                                                      double scale;
-                                                      double angle;
-                                                      if (hour < 12) {
-                                                        scale =
-                                                            1.0 +
-                                                            0.12 *
-                                                                math.sin(
-                                                                  t * 1.6,
-                                                                );
-                                                        angle =
-                                                            0.08 *
-                                                            math.sin(t * 0.8);
-                                                      } else if (hour < 17) {
-                                                        scale =
-                                                            1.0 +
-                                                            0.08 *
-                                                                math.sin(
-                                                                  t * 1.2,
-                                                                );
-                                                        angle = t * 0.25;
-                                                      } else {
-                                                        scale =
-                                                            1.0 +
-                                                            0.07 *
-                                                                math.sin(
-                                                                  t * 0.9,
-                                                                );
-                                                        angle =
-                                                            0.12 *
-                                                            math.sin(t * 0.5);
-                                                      }
-                                                      return Transform.rotate(
-                                                        angle: angle,
-                                                        child: Transform.scale(
-                                                          scale: scale,
-                                                          child: Text(
-                                                            greetingEmoji,
-                                                            style:
-                                                                const TextStyle(
-                                                                  fontSize: 14,
-                                                                ),
-                                                          ),
-                                                        ),
-                                                      );
-                                                    },
                                                   ),
                                                 ],
                                               ),
@@ -402,41 +369,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                                     ),
                                                   ),
                                                   const SizedBox(width: 6),
-                                                  // Continuous waving hand emoji
-                                                  StreamBuilder<int>(
-                                                    stream: Stream.periodic(
-                                                      const Duration(
-                                                        milliseconds: 50,
-                                                      ),
-                                                      (i) => i,
-                                                    ),
-                                                    builder: (ctx, snap) {
-                                                      final t =
-                                                          (snap.data ?? 0) *
-                                                          0.05;
-                                                      final wave = math.sin(
-                                                        t * 3.0,
-                                                      );
-                                                      return Transform.rotate(
-                                                        angle: 0.28 * wave,
-                                                        child:
-                                                            Transform.translate(
-                                                              offset: Offset(
-                                                                0,
-                                                                -2.5 *
-                                                                    wave.abs(),
-                                                              ),
-                                                              child: const Text(
-                                                                '👋',
-                                                                style:
-                                                                    TextStyle(
-                                                                      fontSize:
-                                                                          18,
-                                                                    ),
-                                                              ),
-                                                            ),
-                                                      );
-                                                    },
+                                                  // Waving hand emoji
+                                                  const RepaintBoundary(
+                                                    child: _WavingHandEmoji(),
                                                   ),
                                                 ],
                                               ),
@@ -490,22 +425,14 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                   ),
                 ],
               ),
+              ),
             ),
 
             const SizedBox(height: 10),
 
             // Animated Content Section
-            AnimatedBuilder(
-              animation: _contentController,
-              builder: (context, child) {
-                return Opacity(
-                  opacity: _contentFade.value,
-                  child: Transform.translate(
-                    offset: Offset(0, 20 * (1 - _contentFade.value)),
-                    child: child,
-                  ),
-                );
-              },
+            FadeTransition(
+              opacity: _contentFade,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -519,25 +446,27 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                     )
                   else ...[
                     padded(
-                      TopCurosel(
-                        onColorChanged: (color) {
-                          setState(() {
-                            _dynamicBgColor = color;
-                          });
-                        },
+                      RepaintBoundary(
+                        child: TopCurosel(
+                          onColorChanged: (color) {
+                            _bgColorNotifier.value = color;
+                          },
+                        ),
                       ),
                     ),
                     const SizedBox(height: 12),
-                    const AllProductsList(),
-                    padded(const SubscriptionCarousel()),
+                    const RepaintBoundary(child: AllProductsList()),
+                    padded(const RepaintBoundary(child: SubscriptionCarousel())),
                     _heading(context, "Subscription Plans", "", () {}),
-                    _subscriptionSection(context),
-                    padded(const HomeCategoryShowcase()),
-                    _buildFeaturedProducts(),
+                    RepaintBoundary(child: _subscriptionSection(context)),
+                    padded(const RepaintBoundary(child: HomeCategoryShowcase())),
+                    RepaintBoundary(child: _buildFeaturedProducts()),
                     const SizedBox(height: 4),
-                    HomeCommunitiesSection(
-                      communitiesFuture: _communitiesFuture,
-                      buildCard: _buildCommunityCard,
+                    RepaintBoundary(
+                      child: HomeCommunitiesSection(
+                        communitiesFuture: _communitiesFuture,
+                        buildCard: _buildCommunityCard,
+                      ),
                     ),
                   ],
                 ],
@@ -600,11 +529,23 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     );
   }
 
+  Future<void> _onSeeAllFeatured(List<Product> products) async {
+    HapticFeedback.lightImpact();
+    if (_isNavigatingToFeatured) return;
+    setState(() => _isNavigatingToFeatured = true);
+    await Future.delayed(const Duration(milliseconds: 80));
+    if (mounted) {
+      context.pushNamed(AppRoute.featuredProducts.name, extra: products);
+    }
+    if (mounted) setState(() => _isNavigatingToFeatured = false);
+  }
+
   Widget _buildFeaturedProducts() {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
     return BlocBuilder<ProductCubit, ProductState>(
+      buildWhen: (prev, curr) => prev.runtimeType != curr.runtimeType,
       builder: (context, state) {
         if (state is ProductLoading) {
           return const FeaturedProductsSkeleton();
@@ -657,13 +598,59 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _heading(
-                context,
-                "Featured Products",
-                "See All →",
-                () => context.pushNamed(
-                  AppRoute.featuredProducts.name,
-                  extra: featuredProducts,
+              Padding(
+                padding: const EdgeInsets.fromLTRB(
+                  AppColors.spacingL,
+                  AppColors.spacingM,
+                  AppColors.spacingL,
+                  AppColors.spacingS,
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Featured Products',
+                      style: theme.textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    GestureDetector(
+                      onTap: () => _onSeeAllFeatured(featuredProducts),
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 200),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: AppColors.spacingM,
+                          vertical: AppColors.spacingXS,
+                        ),
+                        decoration: BoxDecoration(
+                          color: theme.colorScheme.primary.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(AppColors.radiusRound),
+                        ),
+                        child: _isNavigatingToFeatured
+                            ? SizedBox(
+                                width: 58,
+                                height: 16,
+                                child: ShimmerLoading(
+                                  isLoading: true,
+                                  child: Container(
+                                    decoration: BoxDecoration(
+                                      color: theme.colorScheme.primary
+                                          .withValues(alpha: 0.4),
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                  ),
+                                ),
+                              )
+                            : Text(
+                                'See All →',
+                                style: theme.textTheme.labelMedium?.copyWith(
+                                  color: theme.colorScheme.primary,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
               // Horizontal scrolling featured products
@@ -671,6 +658,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                 height: 290,
                 child: ListView.builder(
                   scrollDirection: Axis.horizontal,
+                  addAutomaticKeepAlives: false,
                   padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
                   itemCount: featuredProducts.length.clamp(0, 6),
                   itemBuilder: (context, index) {
@@ -768,6 +756,112 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 
 // â”€â”€â”€ Live Mini Solar System button for Panchang â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
+// --- Standalone animated greeting emoji (isolated repaint) -----------------
+
+class _AnimatedGreetingEmoji extends StatefulWidget {
+  final String emoji;
+  final int hour;
+  const _AnimatedGreetingEmoji({required this.emoji, required this.hour});
+
+  @override
+  State<_AnimatedGreetingEmoji> createState() => _AnimatedGreetingEmojiState();
+}
+
+class _AnimatedGreetingEmojiState extends State<_AnimatedGreetingEmoji>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _ctrl;
+
+  @override
+  void initState() {
+    super.initState();
+    _ctrl = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 3),
+    )..repeat();
+  }
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _ctrl,
+      builder: (_, __) {
+        final t = _ctrl.value * 2 * math.pi;
+        double scale;
+        double angle;
+        final h = widget.hour;
+        if (h < 12) {
+          scale = 1.0 + 0.12 * math.sin(t * 1.6);
+          angle = 0.08 * math.sin(t * 0.8);
+        } else if (h < 17) {
+          scale = 1.0 + 0.08 * math.sin(t * 1.2);
+          angle = _ctrl.value * math.pi * 2 * 0.25;
+        } else {
+          scale = 1.0 + 0.07 * math.sin(t * 0.9);
+          angle = 0.12 * math.sin(t * 0.5);
+        }
+        return Transform.rotate(
+          angle: angle,
+          child: Transform.scale(
+            scale: scale,
+            child: Text(widget.emoji, style: const TextStyle(fontSize: 14)),
+          ),
+        );
+      },
+    );
+  }
+}
+
+// --- Standalone waving hand emoji (isolated repaint) ------------------------
+
+class _WavingHandEmoji extends StatefulWidget {
+  const _WavingHandEmoji();
+
+  @override
+  State<_WavingHandEmoji> createState() => _WavingHandEmojiState();
+}
+
+class _WavingHandEmojiState extends State<_WavingHandEmoji>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _ctrl;
+
+  @override
+  void initState() {
+    super.initState();
+    _ctrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1200),
+    )..repeat(reverse: true);
+  }
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _ctrl,
+      builder: (_, __) {
+        final wave = math.sin(_ctrl.value * math.pi);
+        return Transform.rotate(
+          angle: 0.28 * wave,
+          child: Transform.translate(
+            offset: Offset(0, -2.5 * wave.abs()),
+            child: const Text('👋', style: TextStyle(fontSize: 18)),
+          ),
+        );
+      },
+    );
+  }
+}
 class _PanchangChakraButton extends StatefulWidget {
   final ThemeData theme;
   final VoidCallback onTap;
@@ -788,7 +882,7 @@ class _PanchangChakraButtonState extends State<_PanchangChakraButton>
     _sw = Stopwatch()..start();
     _ticker = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 16),
+      duration: const Duration(milliseconds: 100),
     )..repeat();
   }
 
@@ -835,14 +929,15 @@ class _PanchangChakraButtonState extends State<_PanchangChakraButton>
         widget.onTap();
       },
       onLongPress: () => _showSolarSystemPopup(context),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
+      child: Stack(
+        clipBehavior: Clip.none,
+        alignment: Alignment.center,
         children: [
           Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
               color: widget.theme.colorScheme.onPrimary.withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(14),
               border: Border.all(
                 color: widget.theme.colorScheme.onPrimary.withValues(
                   alpha: 0.1,
@@ -862,29 +957,31 @@ class _PanchangChakraButtonState extends State<_PanchangChakraButton>
               builder: (context, _) {
                 final t = _sw.elapsed.inMilliseconds / 1000.0;
                 return CustomPaint(
-                  size: const Size(36, 36),
+                  size: const Size(24, 24),
                   painter: _MiniSolarPainter(t: t),
                 );
               },
             ),
           ),
-          const SizedBox(height: 3),
-          // Pulsing "hold" hint below icon
-          AnimatedBuilder(
-            animation: _ticker,
-            builder: (context, _) {
-              final t = _sw.elapsed.inMilliseconds / 1000.0;
-              final pulse = 0.35 + 0.35 * math.sin(t * 1.1).abs();
-              return Text(
-                'hold',
-                style: TextStyle(
-                  color: const Color(0xFFFFCA28).withOpacity(pulse),
-                  fontSize: 7,
-                  fontWeight: FontWeight.w300,
-                  letterSpacing: 1.5,
-                ),
-              );
-            },
+          // Pulsing "hold" hint overlaid below the container
+          Positioned(
+            bottom: -13,
+            child: AnimatedBuilder(
+              animation: _ticker,
+              builder: (context, _) {
+                final t = _sw.elapsed.inMilliseconds / 1000.0;
+                final pulse = 0.35 + 0.35 * math.sin(t * 1.1).abs();
+                return Text(
+                  'hold',
+                  style: TextStyle(
+                    color: const Color(0xFFFFCA28).withOpacity(pulse),
+                    fontSize: 7,
+                    fontWeight: FontWeight.w300,
+                    letterSpacing: 1.5,
+                  ),
+                );
+              },
+            ),
           ),
         ],
       ),
@@ -1408,6 +1505,84 @@ class _PPos {
   );
 }
 
+// --- Pre-computed star/asteroid data for the solar popup ------------------
+// Fixed seeds (77/31) - positions are invariant; computed once at app startup.
+class _StarDot {
+  final double xf, yf, r, baseOp, freq, phase;
+  final bool twinkles;
+  final Color tint;
+  const _StarDot(this.xf, this.yf, this.r, this.baseOp, this.twinkles,
+      this.freq, this.phase, this.tint);
+}
+
+class _BrightStar {
+  final double xf, yf, r, baseOp, freq, phase;
+  final Color tint;
+  const _BrightStar(
+      this.xf, this.yf, this.r, this.baseOp, this.freq, this.phase, this.tint);
+}
+
+class _BeltDot {
+  final double baseAngle, rFrac, dotBase, opBase;
+  const _BeltDot(this.baseAngle, this.rFrac, this.dotBase, this.opBase);
+}
+
+class _PopupStarData {
+  final List<_StarDot> layer1;
+  final List<_BrightStar> layer2;
+  final List<_BrightStar> layer3;
+  final List<_BeltDot> belt;
+  _PopupStarData(this.layer1, this.layer2, this.layer3, this.belt);
+}
+
+final _popupStarData = () {
+  const tints = <Color>[
+    Color(0xFFFFFFFF), Color(0xFFFFE8C8), Color(0xFFC8D8FF),
+    Color(0xFFFFCCCC), Color(0xFFD0F0FF), Color(0xFFFFF0B0),
+  ];
+  final rng = math.Random(77);
+  // Layer 1 - 180 tiny stars (mirrors exact RNG sequence in original paint())
+  final l1 = List<_StarDot>.generate(180, (_) {
+    final xf = rng.nextDouble();
+    final yf = rng.nextDouble();
+    final r  = rng.nextDouble() * 0.7 + 0.15;
+    final op = rng.nextDouble() * 0.35 + 0.08;
+    final tw = rng.nextBool();
+    final freq  = tw ? rng.nextDouble() * 2.0 + 0.3 : 0.0;
+    final phase = tw ? rng.nextDouble() * 6.28 : 0.0;
+    return _StarDot(xf, yf, r, op, tw, freq, phase, tints[rng.nextInt(tints.length)]);
+  });
+  // Layer 2 - 40 medium glowing stars (continues same RNG from layer 1)
+  final l2 = List<_BrightStar>.generate(40, (_) {
+    final xf = rng.nextDouble();
+    final yf = rng.nextDouble();
+    final r  = rng.nextDouble() * 1.0 + 0.8;
+    final op = rng.nextDouble() * 0.40 + 0.25;
+    final freq  = rng.nextDouble() * 1.8 + 0.4;
+    final phase = rng.nextDouble() * 6.28;
+    return _BrightStar(xf, yf, r, op, freq, phase, tints[rng.nextInt(tints.length)]);
+  });
+  // Layer 3 - 12 bright cross-flare stars (continues same RNG)
+  final l3 = List<_BrightStar>.generate(12, (_) {
+    final xf = rng.nextDouble();
+    final yf = rng.nextDouble();
+    final r  = rng.nextDouble() * 0.8 + 1.2;
+    final op = rng.nextDouble() * 0.30 + 0.45;
+    final freq  = rng.nextDouble() * 2.5 + 0.5;
+    final phase = rng.nextDouble() * 6.28;
+    return _BrightStar(xf, yf, r, op, freq, phase, tints[rng.nextInt(tints.length)]);
+  });
+  // Asteroid belt - independent seed 31
+  final arng = math.Random(31);
+  final belt = List<_BeltDot>.generate(55, (_) => _BeltDot(
+    arng.nextDouble() * math.pi * 2,
+    0.340 + (arng.nextDouble() - 0.5) * 0.032,
+    arng.nextDouble() * 0.7 + 0.15,
+    arng.nextDouble() * 0.10 + 0.03,
+  ));
+  return _PopupStarData(l1, l2, l3, belt);
+}();
+
 class _RealisticPopupPainter extends CustomPainter {
   final double t;
   const _RealisticPopupPainter({required this.t});
@@ -1531,112 +1706,64 @@ class _RealisticPopupPainter extends CustomPainter {
     );
 
     // ── Star field (multi-layer for depth) ───────────────────
-    final starRng = math.Random(77);
-    const starTints = [
-      Color(0xFFFFFFFF), // white
-      Color(0xFFFFE8C8), // warm yellow
-      Color(0xFFC8D8FF), // cool blue
-      Color(0xFFFFCCCC), // soft red
-      Color(0xFFD0F0FF), // ice blue
-      Color(0xFFFFF0B0), // pale gold
-    ];
-
-    // Layer 1: Dense tiny stars (far away)
-    for (int i = 0; i < 180; i++) {
-      final sx = starRng.nextDouble() * size.width;
-      final sy = starRng.nextDouble() * size.height;
-      final sz = starRng.nextDouble() * 0.7 + 0.15;
-      final baseOp = starRng.nextDouble() * 0.35 + 0.08;
-      // Subtle twinkle
-      final twinkle =
-          starRng.nextBool()
-              ? (0.5 +
-                  0.5 *
-                      math.sin(
-                        t * (starRng.nextDouble() * 2.0 + 0.3) +
-                            starRng.nextDouble() * 6.28,
-                      ))
-              : 1.0;
-      final tint = starTints[starRng.nextInt(starTints.length)];
+    // -- Star field (multi-layer for depth) - uses pre-computed data ---------
+    final _sw = size.width;
+    final _sh = size.height;
+    // Layer 1: Dense tiny stars
+    for (final s in _popupStarData.layer1) {
+      final twinkle = s.twinkles
+          ? (0.5 + 0.5 * math.sin(t * s.freq + s.phase))
+          : 1.0;
       canvas.drawCircle(
-        Offset(sx, sy),
-        sz,
-        Paint()..color = tint.withOpacity((baseOp * twinkle).clamp(0.03, 0.50)),
+        Offset(s.xf * _sw, s.yf * _sh),
+        s.r,
+        Paint()..color = s.tint.withOpacity((s.baseOp * twinkle).clamp(0.03, 0.50)),
       );
     }
 
     // Layer 2: Medium stars with glow
-    for (int i = 0; i < 40; i++) {
-      final sx = starRng.nextDouble() * size.width;
-      final sy = starRng.nextDouble() * size.height;
-      final sz = starRng.nextDouble() * 1.0 + 0.8;
-      final baseOp = starRng.nextDouble() * 0.40 + 0.25;
-      final twinkle =
-          0.5 +
-          0.5 *
-              math.sin(
-                t * (starRng.nextDouble() * 1.8 + 0.4) +
-                    starRng.nextDouble() * 6.28,
-              );
-      final tint = starTints[starRng.nextInt(starTints.length)];
-      final op = (baseOp * twinkle).clamp(0.05, 0.70);
-      // Soft glow
+    for (final s in _popupStarData.layer2) {
+      final twinkle = 0.5 + 0.5 * math.sin(t * s.freq + s.phase);
+      final op = (s.baseOp * twinkle).clamp(0.05, 0.70);
       canvas.drawCircle(
-        Offset(sx, sy),
-        sz * 2.5,
+        Offset(s.xf * _sw, s.yf * _sh),
+        s.r * 2.5,
         Paint()
-          ..color = tint.withOpacity(op * 0.12)
-          ..maskFilter = MaskFilter.blur(BlurStyle.normal, sz * 2),
+          ..color = s.tint.withOpacity(op * 0.12)
+          ..maskFilter = MaskFilter.blur(BlurStyle.normal, s.r * 2),
       );
-      // Core
       canvas.drawCircle(
-        Offset(sx, sy),
-        sz,
-        Paint()..color = tint.withOpacity(op),
+        Offset(s.xf * _sw, s.yf * _sh),
+        s.r,
+        Paint()..color = s.tint.withOpacity(op),
       );
     }
 
     // Layer 3: Bright points with cross-flares
-    for (int i = 0; i < 12; i++) {
-      final sx = starRng.nextDouble() * size.width;
-      final sy = starRng.nextDouble() * size.height;
-      final sz = starRng.nextDouble() * 0.8 + 1.2;
-      final baseOp = starRng.nextDouble() * 0.30 + 0.45;
-      final twinkle =
-          0.4 +
-          0.6 *
-              math.sin(
-                t * (starRng.nextDouble() * 2.5 + 0.5) +
-                    starRng.nextDouble() * 6.28,
-              );
-      final tint = starTints[starRng.nextInt(starTints.length)];
-      final op = (baseOp * twinkle).clamp(0.08, 0.85);
-      final pos = Offset(sx, sy);
-      // Glow halo
+    for (final s in _popupStarData.layer3) {
+      final twinkle = 0.4 + 0.6 * math.sin(t * s.freq + s.phase);
+      final op = (s.baseOp * twinkle).clamp(0.08, 0.85);
+      final pos = Offset(s.xf * _sw, s.yf * _sh);
       canvas.drawCircle(
         pos,
-        sz * 3.5,
+        s.r * 3.5,
         Paint()
-          ..color = tint.withOpacity(op * 0.08)
-          ..maskFilter = MaskFilter.blur(BlurStyle.normal, sz * 3),
+          ..color = s.tint.withOpacity(op * 0.08)
+          ..maskFilter = MaskFilter.blur(BlurStyle.normal, s.r * 3),
       );
-      // Core
-      canvas.drawCircle(pos, sz, Paint()..color = tint.withOpacity(op));
-      // Cross-flares
+      canvas.drawCircle(pos, s.r, Paint()..color = s.tint.withOpacity(op));
       if (op > 0.40) {
-        final fl =
-            Paint()
-              ..color = tint.withOpacity(op * 0.22)
-              ..strokeWidth = 0.4
-              ..strokeCap = StrokeCap.round;
-        final len = sz * 3.5;
+        final fl = Paint()
+          ..color = s.tint.withOpacity(op * 0.22)
+          ..strokeWidth = 0.4
+          ..strokeCap = StrokeCap.round;
+        final len = s.r * 3.5;
         canvas.drawLine(pos - Offset(len, 0), pos + Offset(len, 0), fl);
         canvas.drawLine(pos - Offset(0, len), pos + Offset(0, len), fl);
       }
     }
 
-    // â”€â”€ 3D orbital plane grid â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-    final gridPaint =
+        final gridPaint =
         Paint()
           ..style = PaintingStyle.stroke
           ..strokeWidth = 0.3;
@@ -1688,28 +1815,25 @@ class _RealisticPopupPainter extends CustomPainter {
     }
 
     // â”€â”€ Asteroid belt (3D) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-    final beltR = maxOrbit * 0.340;
-    final arng = math.Random(31);
-    for (int i = 0; i < 55; i++) {
-      final angle = arng.nextDouble() * math.pi * 2 + t * 0.008;
-      final rOff = beltR + (arng.nextDouble() - 0.5) * maxOrbit * 0.032;
-      final zN = math.sin(angle);
+    // -- Asteroid belt (3D) - uses pre-computed data -------------------------
+    for (final a in _popupStarData.belt) {
+      final angle = a.baseAngle + t * 0.008;
+      final rOff  = a.rFrac * maxOrbit;
+      final zN    = math.sin(angle);
       final depthOp = (0.5 + zN * 0.5).clamp(0.15, 1.0);
       canvas.drawCircle(
         Offset(
           cx + rOff * math.cos(angle),
           cy + rOff * math.sin(angle) * _popupTilt,
         ),
-        (arng.nextDouble() * 0.7 + 0.15) * (1.0 + zN * 0.15),
-        Paint()
-          ..color = Colors.white.withOpacity(
-            (arng.nextDouble() * 0.10 + 0.03) * depthOp,
-          ),
+        a.dotBase * (1.0 + zN * 0.15),
+        Paint()..color = Colors.white.withOpacity(
+          (a.opBase * depthOp).clamp(0.0, 1.0),
+        ),
       );
     }
 
-    // â”€â”€ Compute & z-sort planet positions â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-    final positions = <_PPos>[];
+        final positions = <_PPos>[];
     for (int i = 0; i < _pPlanets.length; i++) {
       positions.add(_project(i, center, maxOrbit));
     }
@@ -2048,5 +2172,5 @@ class _RealisticPopupPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(_RealisticPopupPainter old) => true;
+  bool shouldRepaint(_RealisticPopupPainter old) => old.t != t;
 }
