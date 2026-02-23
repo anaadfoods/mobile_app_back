@@ -117,11 +117,18 @@ class _AnimatedCommunityCardState extends State<AnimatedCommunityCard>
               fit: StackFit.expand,
               children: [
                 // Background Image
-                Image.network(
-                  community.image,
+                CachedNetworkImage(
+                  imageUrl: community.image,
                   fit: BoxFit.cover,
-                  errorBuilder:
-                      (context, error, stackTrace) => Container(
+                  width: double.infinity,
+                  height: double.infinity,
+                  placeholder: (context, url) => Container(
+                    color: isEvenCard
+                        ? Colors.green.shade800
+                        : Colors.brown.shade800,
+                  ),
+                  errorWidget:
+                      (context, url, error) => Container(
                         color:
                             isEvenCard
                                 ? Colors.green.shade800
@@ -255,11 +262,12 @@ class _AnimatedCommunityCardState extends State<AnimatedCommunityCard>
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       // Coming Soon Badge - Glassmorphism Style
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(20),
-                        child: BackdropFilter(
-                          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                          child: Container(
+                      RepaintBoundary(
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(20),
+                          child: BackdropFilter(
+                            filter: ImageFilter.blur(sigmaX: 6, sigmaY: 6),
+                            child: Container(
                             padding: const EdgeInsets.symmetric(
                               vertical: 8,
                               horizontal: 14,
@@ -314,16 +322,18 @@ class _AnimatedCommunityCardState extends State<AnimatedCommunityCard>
                           ),
                         ),
                       ),
+                      ),
 
                       // Community Name
                       _buildCommunityNameTitle(community, theme),
 
                       // Learn More Button - Glassmorphism Style
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(16),
-                        child: BackdropFilter(
-                          filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
-                          child: Container(
+                      RepaintBoundary(
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(16),
+                          child: BackdropFilter(
+                            filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
+                            child: Container(
                             padding: const EdgeInsets.symmetric(
                               horizontal: 12,
                               vertical: 6,
@@ -357,6 +367,7 @@ class _AnimatedCommunityCardState extends State<AnimatedCommunityCard>
                             ),
                           ),
                         ),
+                      ),
                       ),
                     ],
                   ),

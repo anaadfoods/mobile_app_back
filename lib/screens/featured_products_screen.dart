@@ -17,11 +17,15 @@ class _FeaturedProductsScreenState extends State<FeaturedProductsScreen> {
   late List<Product> _products;
   String _sortBy = 'featured';
   bool _isGridView = false;
+  bool _showShimmer = true;
 
   @override
   void initState() {
     super.initState();
     _products = List.from(widget.products);
+    Future.delayed(const Duration(milliseconds: 550), () {
+      if (mounted) setState(() => _showShimmer = false);
+    });
   }
 
   void _sortProducts(String sortType) {
@@ -60,24 +64,31 @@ class _FeaturedProductsScreenState extends State<FeaturedProductsScreen> {
             expandedHeight: 140,
             floating: false,
             pinned: true,
-            backgroundColor:
-                isDark ? const Color(0xFF1A1A1A) : AppColors.primaryColor,
+            backgroundColor: AppColors.primaryColor,
+            shape: const RoundedRectangleBorder(
+              borderRadius: BorderRadius.only(
+                bottomLeft: Radius.circular(32),
+                bottomRight: Radius.circular(32),
+              ),
+            ),
             flexibleSpace: FlexibleSpaceBar(
-              background: Container(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors:
-                        isDark
-                            ? [const Color(0xFF2D2D2D), const Color(0xFF1A1A1A)]
-                            : [
-                              AppColors.primaryColor,
-                              AppColors.primaryColor.withOpacity(0.8),
-                            ],
-                  ),
+              background: ClipRRect(
+                borderRadius: const BorderRadius.only(
+                  bottomLeft: Radius.circular(32),
+                  bottomRight: Radius.circular(32),
                 ),
-                child: SafeArea(
+                child: Container(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [
+                        AppColors.primaryColor,
+                        AppColors.primaryColor.withOpacity(0.8),
+                      ],
+                    ),
+                  ),
+                  child: SafeArea(
                   bottom: false,
                   child: Padding(
                     padding: const EdgeInsets.fromLTRB(60, 16, 20, 16),
@@ -102,6 +113,7 @@ class _FeaturedProductsScreenState extends State<FeaturedProductsScreen> {
                       ],
                     ),
                   ),
+                ),
                 ),
               ),
             ),
@@ -178,12 +190,84 @@ class _FeaturedProductsScreenState extends State<FeaturedProductsScreen> {
           ),
 
           // Products grid/list
-          _isGridView
-              ? _buildGridView(theme, isDark)
-              : _buildListView(theme, isDark),
+          _showShimmer
+              ? _buildShimmerSliver(isDark)
+              : _isGridView
+                  ? _buildGridView(theme, isDark)
+                  : _buildListView(theme, isDark),
 
           const SliverToBoxAdapter(child: SizedBox(height: 100)),
         ],
+      ),
+    );
+  }
+
+  Widget _buildShimmerSliver(bool isDark) {
+    return SliverPadding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      sliver: SliverList(
+        delegate: SliverChildBuilderDelegate(
+          (_, __) => Padding(
+            padding: const EdgeInsets.only(bottom: 12),
+            child: ShimmerLoading(
+              isLoading: true,
+              child: Container(
+                height: 100,
+                decoration: BoxDecoration(
+                  color: isDark ? const Color(0xFF2A2A2A) : Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.05),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 100,
+                      decoration: BoxDecoration(
+                        color: isDark ? Colors.grey[800] : Colors.grey[200],
+                        borderRadius: const BorderRadius.horizontal(
+                          left: Radius.circular(16),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Skeleton(width: double.infinity, height: 14),
+                          const SizedBox(height: 8),
+                          Skeleton(width: 120, height: 12),
+                          const SizedBox(height: 10),
+                          Skeleton(width: 80, height: 16),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 14),
+                    Padding(
+                      padding: const EdgeInsets.only(right: 14),
+                      child: Container(
+                        width: 36,
+                        height: 36,
+                        decoration: BoxDecoration(
+                          color: isDark ? Colors.grey[700] : Colors.grey[200],
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          childCount: 8,
+        ),
       ),
     );
   }
@@ -466,6 +550,7 @@ class _FeaturedProductCard extends StatelessWidget {
                 ),
               ),
             ],
+          ),
           ),
             if (!product.tag) const ComingSoonOverlay(),
           ],

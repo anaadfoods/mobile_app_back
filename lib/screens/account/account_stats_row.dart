@@ -1,10 +1,11 @@
-import 'package:flutter/material.dart';
-import 'package:grocery_app/screens/order/order_screen.dart';
-import 'package:grocery_app/screens/MySubscriptionPlan/subscription_plan_detail.dart';
+﻿import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:grocery_app/screens/dashboard/dashboard_screen.dart';
 import 'package:go_router/go_router.dart';
 import 'package:grocery_app/routes/app_routes.dart';
 
+/// Interactive gradient-filled stat chips displayed in a horizontal row.
+/// Each chip shows icon + count + label with a colorful gradient background.
 class AccountStatsRow extends StatelessWidget {
   final int totalOrders;
   final int activeSubscriptions;
@@ -21,143 +22,134 @@ class AccountStatsRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
+    return Row(
+      children: [
+        Expanded(
+          child: _buildStatChip(
+            context,
+            theme,
+            count: totalOrders,
+            label: 'Orders',
+            icon: Icons.shopping_bag_outlined,
+            iconColor: Colors.amber,
+            gradient: [theme.colorScheme.primary, const Color(0xFF5A7D62)],
+            onTap: () {
+              HapticFeedback.lightImpact();
+              context.pushNamed(AppRoute.orderList.name);
+            },
+          ),
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: _buildStatChip(
+            context,
+            theme,
+            count: activeSubscriptions,
+            label: 'Plans',
+            icon: Icons.autorenew_rounded,
+            iconColor: const Color(0xFF42A5F5),
+            gradient: [theme.colorScheme.primary, const Color(0xFF5A7D62)],
+            onTap: () {
+              HapticFeedback.lightImpact();
+              context.pushNamed(AppRoute.subscriptionList.name);
+            },
+          ),
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: _buildStatChip(
+            context,
+            theme,
+            count: favoriteCount,
+            label: 'Wishlist',
+            icon: Icons.favorite_rounded,
+            iconColor: const Color(0xFFEF5350),
+            gradient: [theme.colorScheme.primary, const Color(0xFF5A7D62)],
+            onTap: () {
+              HapticFeedback.lightImpact();
+              context
+                  .findAncestorStateOfType<DashboardScreenState>()!
+                  .switchToTab(3);
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildStatChip(
+    BuildContext context,
+    ThemeData theme, {
+    required int count,
+    required String label,
+    required IconData icon,
+    Color iconColor = Colors.white,
+    required List<Color> gradient,
+    required VoidCallback onTap,
+  }) {
     return TweenAnimationBuilder<double>(
       tween: Tween(begin: 0.0, end: 1.0),
       duration: const Duration(milliseconds: 600),
       curve: Curves.easeOutBack,
       builder: (context, value, child) {
         return Transform.scale(
-          scale: value,
-          child: Container(
-            padding: const EdgeInsets.all(2),
+          scale: 0.8 + (0.2 * value),
+          child: Opacity(
+            opacity: value.clamp(0.0, 1.0),
+            child: child,
+          ),
+        );
+      },
+      child: Material(
+        borderRadius: BorderRadius.circular(12),
+        clipBehavior: Clip.antiAlias,
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onTap,
+          child: Ink(
             decoration: BoxDecoration(
-              color: theme.cardColor,
-              borderRadius: BorderRadius.circular(16),
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: gradient,
+              ),
+              borderRadius: BorderRadius.circular(12),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withAlpha(10),
-                  blurRadius: 10,
+                  color: gradient.first.withAlpha(60),
+                  blurRadius: 12,
                   offset: const Offset(0, 4),
                 ),
               ],
             ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: [
-                _buildAnimatedStatItem(
-                  context,
-                  theme,
-                  totalOrders,
-                  'Orders',
-                  Icons.shopping_bag_outlined,
-                  Colors.green,
-                  0,
-                  () {
-                    context.pushNamed(AppRoute.orderList.name);
-                  },
-                ),
-                _buildGradientDivider(theme),
-                _buildAnimatedStatItem(
-                  context,
-                  theme,
-                  activeSubscriptions,
-                  'Subscriptions',
-                  Icons.autorenew_rounded,
-                  Colors.green,
-                  1,
-                  () {
-                    context.pushNamed(AppRoute.subscriptionList.name);
-                  },
-                ),
-                _buildGradientDivider(theme),
-                _buildAnimatedStatItem(
-                  context,
-                  theme,
-                  favoriteCount,
-                  'Wishlist',
-                  Icons.favorite_outline_rounded,
-                  const Color(0xFFD32F2F),
-                  2,
-                  () {
-                    context
-                        .findAncestorStateOfType<DashboardScreenState>()!
-                        .switchToTab(3);
-                  },
-                ),
-              ],
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(icon, color: iconColor, size: 18),
+                  const SizedBox(height: 4),
+                  Text(
+                    count.toString(),
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    label,
+                    style: TextStyle(
+                      fontSize: 10,
+                      color: Colors.white.withAlpha(220),
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
-        );
-      },
-    );
-  }
-
-  Widget _buildAnimatedStatItem(
-    BuildContext context,
-    ThemeData theme,
-    int count,
-    String label,
-    IconData icon,
-    Color color,
-    int index,
-    VoidCallback onTap,
-  ) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: color.withAlpha(25),
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(icon, color: color, size: 22),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                count.toString(),
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: theme.textTheme.titleLarge?.color,
-                ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                label,
-                style: TextStyle(
-                  fontSize: 12,
-                  color: theme.textTheme.bodyMedium?.color?.withAlpha(179),
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildGradientDivider(ThemeData theme) {
-    return Container(
-      height: 40,
-      width: 1,
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [
-            theme.dividerColor.withAlpha(0),
-            theme.dividerColor.withAlpha(128),
-            theme.dividerColor.withAlpha(0),
-          ],
         ),
       ),
     );

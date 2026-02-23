@@ -105,7 +105,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
       final products = await CategoryService.fetchProductsByCategory(
         widget.product.productCategory,
       );
-      if (products.isNotEmpty && mounted) {
+      if (mounted) {
         setState(() {
           similarProducts = products;
           _isLoadingSimilarProduct = false;
@@ -588,16 +588,18 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
               child: CachedNetworkImage(
                 imageUrl: productImages[index].image,
                 fit: BoxFit.cover,
-                placeholder:
-                    (context, url) => Container(
-                      color: Colors.grey[200],
-                      child: const Center(child: CircularProgressIndicator()),
-                    ),
-                errorWidget:
-                    (context, url, error) => Container(
-                      color: Colors.grey[200],
-                      child: const Icon(Icons.error),
-                    ),
+                placeholder: (context, url) => Shimmer.fromColors(
+                  baseColor: Colors.grey[300]!,
+                  highlightColor: Colors.grey[100]!,
+                  child: Container(
+                    color: Colors.grey[300],
+                  ),
+                ),
+                errorWidget: (context, url, error) => Container(
+                  color: Colors.grey[200],
+                  child: const Icon(Icons.broken_image_outlined,
+                      color: Colors.grey, size: 40),
+                ),
               ),
             ),
           );
@@ -829,12 +831,10 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
 
   Widget _buildSimilarProductsSection(bool isDark) {
     if (_isLoadingSimilarProduct) {
-      return _buildPlansSkeleton();
+      return _buildSimilarProductsSkeleton();
     }
 
-    if (availablePlansForProduct.isEmpty ||
-        allPlans.isEmpty ||
-        similarProducts.isEmpty) {
+    if (similarProducts.isEmpty) {
       return const SizedBox.shrink();
     }
 
@@ -921,14 +921,21 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
   // --- NEW: Skeleton widget for the plans section ---
   Widget _buildPlansSkeleton() {
     return Shimmer.fromColors(
-      baseColor: Colors.grey[200]!,
+      baseColor: Colors.grey[300]!,
       highlightColor: Colors.grey[100]!,
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 5),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Container(width: 180, height: 24, color: Colors.white),
+            Container(
+              width: 180,
+              height: 24,
+              decoration: BoxDecoration(
+                color: Colors.grey[300],
+                borderRadius: BorderRadius.circular(6),
+              ),
+            ),
             const SizedBox(height: 16),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -938,7 +945,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
                     height: 80,
                     margin: const EdgeInsets.symmetric(horizontal: 4),
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: Colors.grey[300],
                       borderRadius: BorderRadius.circular(10),
                     ),
                   ),
@@ -947,6 +954,37 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildSimilarProductsSkeleton() {
+    return Shimmer.fromColors(
+      baseColor: Colors.grey[300]!,
+      highlightColor: Colors.grey[100]!,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: 160,
+            height: 22,
+            decoration: BoxDecoration(
+              color: Colors.grey[300],
+              borderRadius: BorderRadius.circular(6),
+            ),
+          ),
+          const SizedBox(height: 16),
+          ...List.generate(3, (i) => Padding(
+            padding: const EdgeInsets.only(bottom: 12),
+            child: Container(
+              height: 90,
+              decoration: BoxDecoration(
+                color: Colors.grey[300],
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+          )),
+        ],
       ),
     );
   }
@@ -1649,20 +1687,22 @@ class _ExpandableDescriptionState extends State<ExpandableDescription> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         AnimatedSize(
           duration: const Duration(milliseconds: 300),
           child: Text(
-            widget.text,
+            widget.text.trim(),
             style: TextStyle(
-              color: Colors.grey[300],
+              color: isDark ? Colors.grey[300] : Colors.grey[800],
               fontSize: 14,
-              height: 1.5,
+              height: 1.6,
             ),
-            maxLines: _isExpanded ? null : 2,
-            overflow: TextOverflow.fade,
+            textAlign: TextAlign.justify,
+            maxLines: _isExpanded ? null : 3,
+            overflow: _isExpanded ? TextOverflow.visible : TextOverflow.ellipsis,
           ),
         ),
         const SizedBox(height: 6),

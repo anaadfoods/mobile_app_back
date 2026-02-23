@@ -160,6 +160,8 @@ class HomeCommunitiesSection extends StatelessWidget {
             ListView.builder(
               physics: const NeverScrollableScrollPhysics(),
               shrinkWrap: true,
+              padding: EdgeInsets.zero,
+              cacheExtent: 300,
               itemCount: communities.length,
               itemBuilder: (context, index) {
                 final community = communities[index];

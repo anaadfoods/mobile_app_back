@@ -1,11 +1,13 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'dart:math' as math;
 import 'package:grocery_app/models/user_model.dart';
-import 'package:grocery_app/screens/profile/edit_profile_screen.dart';
 import 'package:go_router/go_router.dart';
 import 'package:grocery_app/routes/app_routes.dart';
 
+/// Hero-style profile card designed to sit inside the SliverAppBar header.
+/// Shows centered avatar with shimmer border, name, email, and verified badge
+/// on a transparent background (parent provides the gradient).
 class AccountProfileCard extends StatefulWidget {
   final UserModel user;
   final String userName;
@@ -21,177 +23,131 @@ class AccountProfileCard extends StatefulWidget {
 }
 
 class _AccountProfileCardState extends State<AccountProfileCard>
-    with TickerProviderStateMixin {
-  late AnimationController _pulseController;
-  late Animation<double> _pulseAnimation;
+    with SingleTickerProviderStateMixin {
   late AnimationController _shimmerController;
 
   @override
   void initState() {
     super.initState();
-    // Pulse animation for profile card
-    _pulseController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 2000),
-    );
-    _pulseAnimation = Tween<double>(begin: 1.0, end: 1.03).animate(
-      CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
-    );
-    _pulseController.repeat(reverse: true);
-
-    // Shimmer animation for avatar
     _shimmerController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 2500),
-    );
-    _shimmerController.repeat();
+      duration: const Duration(milliseconds: 3000),
+    )..repeat();
   }
 
   @override
   void dispose() {
-    _pulseController.dispose();
     _shimmerController.dispose();
     super.dispose();
-  }
-
-  void _triggerHaptic() {
-    HapticFeedback.lightImpact();
-  }
-
-  void _triggerMediumHaptic() {
-    HapticFeedback.mediumImpact();
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
 
-    return ScaleTransition(
-      scale: _pulseAnimation,
-      child: GestureDetector(
-        onTap: () {
-          _triggerMediumHaptic();
-          context.pushNamed(AppRoute.editProfile.name, extra: widget.user);
-        },
-        child: Container(
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: theme.cardColor,
-            borderRadius: BorderRadius.circular(20),
-            boxShadow: [
-              BoxShadow(
-                color: colorScheme.primary.withAlpha(40),
-                blurRadius: 20,
-                offset: const Offset(0, 8),
-              ),
-            ],
-          ),
-          child: Row(
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        // Avatar with shimmer border + edit overlay
+        GestureDetector(
+          onTap: () {
+            HapticFeedback.lightImpact();
+            context.pushNamed(AppRoute.editProfile.name, extra: widget.user);
+          },
+          child: Stack(
+            alignment: Alignment.bottomRight,
             children: [
-              // Avatar with animated gradient border
-              _buildAnimatedAvatar(theme, widget.user),
-              const SizedBox(width: 14),
-              // User Info
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      widget.userName,
-                      style: TextStyle(
-                        fontSize: 17,
-                        fontWeight: FontWeight.bold,
-                        color: theme.textTheme.bodyLarge?.color,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
+              _buildAnimatedAvatar(theme),
+              Container(
+                padding: const EdgeInsets.all(6),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withAlpha(40),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
                     ),
-                    const SizedBox(height: 3),
-                    Text(
-                      widget.user.email,
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: theme.textTheme.bodyMedium?.color?.withAlpha(
-                          153,
-                        ),
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    const SizedBox(height: 8),
-                    _buildVerifiedBadge(theme, widget.user),
                   ],
                 ),
-              ),
-              // Edit Button with ripple
-              Material(
-                color: colorScheme.primary.withAlpha(25),
-                shape: const CircleBorder(),
-                child: InkWell(
-                  onTap: () {
-                    _triggerHaptic();
-                    context.pushNamed(
-                      AppRoute.editProfile.name,
-                      extra: widget.user,
-                    );
-                  },
-                  customBorder: const CircleBorder(),
-                  splashColor: colorScheme.primary.withAlpha(51),
-                  child: Padding(
-                    padding: const EdgeInsets.all(10),
-                    child: Icon(
-                      Icons.edit_outlined,
-                      size: 18,
-                      color: colorScheme.primary,
-                    ),
-                  ),
+                child: Icon(
+                  Icons.camera_alt_rounded,
+                  size: 16,
+                  color: theme.colorScheme.primary,
                 ),
               ),
             ],
           ),
         ),
-      ),
+        const SizedBox(height: 8),
+        // Name
+        Text(
+          widget.userName,
+          style: const TextStyle(
+            fontSize: 19,
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+            letterSpacing: 0.3,
+          ),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        ),
+        const SizedBox(height: 3),
+        // Email
+        Text(
+          widget.user.email,
+          style: TextStyle(
+            fontSize: 13,
+            color: Colors.white.withAlpha(200),
+            letterSpacing: 0.2,
+          ),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        ),
+        const SizedBox(height: 6),
+        // Verified Badge
+        _buildVerifiedBadge(widget.user),
+      ],
     );
   }
 
-  Widget _buildAnimatedAvatar(ThemeData theme, UserModel user) {
-    final colorScheme = theme.colorScheme;
-
+  Widget _buildAnimatedAvatar(ThemeData theme) {
     return AnimatedBuilder(
       animation: _shimmerController,
       builder: (context, child) {
         return Container(
-          padding: const EdgeInsets.all(3),
+          padding: const EdgeInsets.all(3.5),
           decoration: BoxDecoration(
             shape: BoxShape.circle,
             gradient: SweepGradient(
               startAngle: _shimmerController.value * math.pi * 2,
               colors: [
-                colorScheme.primary,
-                colorScheme.primary.withAlpha(128),
-                colorScheme.primary,
+                Colors.white,
+                Colors.white.withAlpha(100),
+                Colors.white,
               ],
             ),
           ),
           child: CircleAvatar(
-            radius: 32,
-            backgroundColor: theme.cardColor,
+            radius: 34,
+            backgroundColor: Colors.white.withAlpha(30),
             child: CircleAvatar(
-              radius: 29,
-              backgroundColor: colorScheme.primary.withAlpha(25),
+              radius: 31,
+              backgroundColor: theme.colorScheme.primary.withAlpha(60),
               backgroundImage:
-                  user.profilePicture != null && user.profilePicture!.isNotEmpty
-                      ? NetworkImage(user.profilePicture!)
+                  widget.user.profilePicture != null &&
+                          widget.user.profilePicture!.isNotEmpty
+                      ? NetworkImage(widget.user.profilePicture!)
                       : null,
               child:
-                  user.profilePicture == null || user.profilePicture!.isEmpty
-                      ? Icon(
-                        Icons.person_rounded,
-                        size: 32,
-                        color: colorScheme.primary,
-                      )
+                  widget.user.profilePicture == null ||
+                          widget.user.profilePicture!.isEmpty
+                      ? const Icon(
+                          Icons.person_rounded,
+                          size: 32,
+                          color: Colors.white,
+                        )
                       : null,
             ),
           ),
@@ -200,7 +156,7 @@ class _AccountProfileCardState extends State<AccountProfileCard>
     );
   }
 
-  Widget _buildVerifiedBadge(ThemeData theme, UserModel user) {
+  Widget _buildVerifiedBadge(UserModel user) {
     return TweenAnimationBuilder<double>(
       tween: Tween(begin: 0.0, end: 1.0),
       duration: const Duration(milliseconds: 800),
@@ -209,32 +165,31 @@ class _AccountProfileCardState extends State<AccountProfileCard>
         return Transform.scale(
           scale: value,
           child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
             decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [
-                  Colors.amber.withAlpha(51),
-                  Colors.orange.withAlpha(38),
-                ],
-              ),
+              color: Colors.white.withAlpha(30),
               borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: Colors.amber.withAlpha(76), width: 1),
+              border: Border.all(
+                color: Colors.white.withAlpha(60),
+                width: 1,
+              ),
             ),
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(
+                const Icon(
                   Icons.verified_rounded,
-                  size: 14,
-                  color: Colors.amber[700],
+                  size: 15,
+                  color: Colors.amberAccent,
                 ),
-                const SizedBox(width: 4),
+                const SizedBox(width: 6),
                 Text(
                   '@${user.username}',
-                  style: TextStyle(
-                    fontSize: 11,
+                  style: const TextStyle(
+                    fontSize: 12,
                     fontWeight: FontWeight.w600,
-                    color: Colors.amber[700],
+                    color: Colors.white,
+                    letterSpacing: 0.3,
                   ),
                 ),
               ],

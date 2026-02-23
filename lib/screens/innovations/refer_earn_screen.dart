@@ -69,8 +69,8 @@ class _ReferEarnScreenState extends State<ReferEarnScreen>
   void _share() {
     HapticFeedback.mediumImpact();
     Share.share(
-      'Join Anaad and get ₹50 off on your first order! Use my referral code: $_referralCode\n\nDownload now: https://anaad.app/download',
-      subject: 'Join Anaad - Get ₹50 Off!',
+      'Join Anaad — where food meets farming! Use my referral code: $_referralCode to sign up & place your first order.\n\nDownload now: https://anaad.app/download',
+      subject: 'Join Anaad — Fresh from the Farm!',
     );
   }
 
@@ -186,7 +186,7 @@ class _ReferEarnScreenState extends State<ReferEarnScreen>
         ),
         const SizedBox(height: 8),
         Text(
-          ' Invite your loved ones to the table. You both earn 50 ANAAD points when they join.',
+          'Invite your loved ones to Anaad. When your friend signs up and places their first order, you receive a surprise gift from the Anaad team! 🎁',
           style: theme.textTheme.bodyMedium?.copyWith(
             color: isDark ? Colors.grey[400] : Colors.grey[600],
           ),
@@ -456,9 +456,9 @@ class _ReferEarnScreenState extends State<ReferEarnScreen>
               _buildStatItem(
                 theme,
                 isDark,
-                Icons.stars_rounded,
+                Icons.shopping_cart_checkout_rounded,
                 '$_acceptedReferrals',
-                'Accepted',
+                'Ordered',
                 const Color(0xFF10B981),
               ),
             ],
@@ -689,7 +689,7 @@ class _ReferEarnScreenState extends State<ReferEarnScreen>
       {
         'icon': Icons.person_add_rounded,
         'title': 'Join',
-        'desc': 'They sign up and join the ICBN Family',
+        'desc': 'They sign up and join the Anaad family',
       },
       {
         'icon': Icons.shopping_cart_rounded,
@@ -698,8 +698,8 @@ class _ReferEarnScreenState extends State<ReferEarnScreen>
       },
       {
         'icon': Icons.celebration_rounded,
-        'title': 'Earn',
-        'desc': 'You both get 50 ANAAD points!',
+        'title': 'Get Your Gift',
+        'desc': 'You receive a surprise gift from the Anaad team! 🎁',
       },
     ];
 

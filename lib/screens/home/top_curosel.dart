@@ -193,7 +193,7 @@ class _TopCuroselState extends State<TopCurosel>
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final textTheme = theme.textTheme;
-    final screenHeight = MediaQuery.of(context).size.height;
+    final screenHeight = MediaQuery.sizeOf(context).height;
 
     // Determine current color for glow effect
     final currentColor =
@@ -203,30 +203,29 @@ class _TopCuroselState extends State<TopCurosel>
 
     return Column(
       children: [
-        AnimatedBuilder(
-          animation: _pulseController,
-          builder: (context, child) {
-            final glowIntensity =
-                0.2 + (math.sin(_pulseController.value * math.pi * 2) * 0.15);
+        RepaintBoundary(
+          child: AnimatedBuilder(
+            animation: _pulseController,
+            builder: (context, child) {
+              final glowIntensity =
+                  0.15 + (math.sin(_pulseController.value * math.pi * 2) * 0.10);
 
-            return Container(
-              margin: const EdgeInsets.symmetric(horizontal: 8),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(16),
-                boxShadow: [
-                  BoxShadow(
-                    color: currentColor.withOpacity(glowIntensity),
-                    blurRadius: 20,
-                    spreadRadius: 2,
-                  ),
-                  BoxShadow(
-                    color: currentColor.withOpacity(glowIntensity * 0.5),
-                    blurRadius: 40,
-                    spreadRadius: 4,
-                  ),
-                ],
-              ),
-              child: CarouselSlider.builder(
+              return Container(
+                margin: const EdgeInsets.symmetric(horizontal: 8),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(
+                      color: currentColor.withOpacity(glowIntensity),
+                      blurRadius: 16,
+                      spreadRadius: 1,
+                    ),
+                  ],
+                ),
+                child: child,
+              );
+            },
+            child: CarouselSlider.builder(
                 itemCount: _carouselItems.length,
                 itemBuilder: (context, index, realIndex) {
                   final item = _carouselItems[index];
@@ -268,6 +267,7 @@ class _TopCuroselState extends State<TopCurosel>
                                     imageUrl: item.imagePath,
                                     fit: BoxFit.cover,
                                     width: double.infinity,
+                                    memCacheWidth: 600,
                                     placeholder:
                                         (context, url) => Center(
                                           child: CircularProgressIndicator(
@@ -323,8 +323,8 @@ class _TopCuroselState extends State<TopCurosel>
                                   borderRadius: BorderRadius.circular(14),
                                   child: BackdropFilter(
                                     filter: ImageFilter.blur(
-                                      sigmaX: 9,
-                                      sigmaY: 9,
+                                      sigmaX: 6,
+                                      sigmaY: 6,
                                     ),
                                     child: Container(
                                       padding: const EdgeInsets.symmetric(
@@ -428,9 +428,8 @@ class _TopCuroselState extends State<TopCurosel>
                   },
                 ),
               ),
-            );
-          },
-        ),
+            ),
+          ),
         const SizedBox(height: 10),
         // Dots Indicator
         AnimatedSmoothIndicator(

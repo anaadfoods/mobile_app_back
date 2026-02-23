@@ -569,6 +569,7 @@ class _FeaturedProductCard extends StatelessWidget {
               ),
             ],
           ),
+          ),
             if (!product.tag) const ComingSoonOverlay(),
           ],
         ),
