@@ -848,77 +848,78 @@ class _SubscriptionPopupContentState extends State<_SubscriptionPopupContent> {
                               children: [
                                 Expanded(
                                   child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
-                                    Text(
-                                      plan.name,
-                                      style: const TextStyle(
-                                        fontSize: 26,
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.white,
+                                      Text(
+                                        plan.name,
+                                        style: const TextStyle(
+                                          fontSize: 26,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.white,
+                                        ),
                                       ),
-                                    ),
-                                    const SizedBox(height: 8),
-                                    Text(
-                                      plan.description,
-                                      style: TextStyle(
-                                        fontSize: 14,
-                                        color: Colors.white.withOpacity(0.85),
-                                        height: 1.4,
+                                      const SizedBox(height: 8),
+                                      Text(
+                                        plan.description,
+                                        style: TextStyle(
+                                          fontSize: 14,
+                                          color: Colors.white.withOpacity(0.85),
+                                          height: 1.4,
+                                        ),
                                       ),
-                                    ),
-                                  ],
+                                    ],
+                                  ),
                                 ),
-                              ),
-                              const SizedBox(width: 16),
-                              Container(
-                                padding: const EdgeInsets.all(14),
-                                decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  borderRadius: BorderRadius.circular(16),
+                                const SizedBox(width: 16),
+                                Container(
+                                  padding: const EdgeInsets.all(14),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(16),
+                                  ),
+                                  child: const Icon(
+                                    Icons.eco_rounded,
+                                    color: Color(0xFF2E7D32),
+                                    size: 32,
+                                  ),
                                 ),
-                                child: const Icon(
-                                  Icons.eco_rounded,
-                                  color: Color(0xFF2E7D32),
-                                  size: 32,
-                                ),
-                              ),
-                            ],
-                          ),
+                              ],
+                            ),
 
-                          const SizedBox(height: 24),
+                            const SizedBox(height: 24),
 
-                          // Info cards
-                          _buildInfoCard(
-                            Icons.calendar_month_rounded,
-                            'Duration',
-                            '${plan.durationMonths} Months',
-                          ),
-                          const SizedBox(height: 10),
-                          _buildInfoCard(
-                            Icons.payment_rounded,
-                            'Installments',
-                            plan.allowsInstallments
-                                ? 'Available'
-                                : 'Not Available',
-                          ),
-                          const SizedBox(height: 10),
-                          _buildInfoCard(
-                            Icons.local_offer_rounded,
-                            'Total Savings',
-                            '${plan.totalDiscountPercentage}% Off',
-                          ),
-                          const SizedBox(height: 10),
-                          _buildInfoCard(
-                            Icons.verified_rounded,
-                            'Plan Type',
-                            plan.isOneTimeOnly ? 'One-Time' : 'Recurring',
-                          ),
-                        ],
+                            // Info cards
+                            _buildInfoCard(
+                              Icons.calendar_month_rounded,
+                              'Duration',
+                              '${plan.durationMonths} Months',
+                            ),
+                            const SizedBox(height: 10),
+                            _buildInfoCard(
+                              Icons.payment_rounded,
+                              'Installments',
+                              plan.allowsInstallments
+                                  ? 'Available'
+                                  : 'Not Available',
+                            ),
+                            const SizedBox(height: 10),
+                            _buildInfoCard(
+                              Icons.local_offer_rounded,
+                              'Total Savings',
+                              '${plan.totalDiscountPercentage}% Off',
+                            ),
+                            const SizedBox(height: 10),
+                            _buildInfoCard(
+                              Icons.verified_rounded,
+                              'Plan Type',
+                              plan.isOneTimeOnly ? 'One-Time' : 'Recurring',
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ),
-                ),
 
                   // Product selector
                   Container(
@@ -960,11 +961,9 @@ class _SubscriptionPopupContentState extends State<_SubscriptionPopupContent> {
                         // Tap-to-expand selector bar
                         GestureDetector(
                           onTap: () {
-                            if (areProductsLoading ||
-                                currentProducts.isEmpty) return;
-                            setState(
-                              () => _isDropdownOpen = !_isDropdownOpen,
-                            );
+                            if (areProductsLoading || currentProducts.isEmpty)
+                              return;
+                            setState(() => _isDropdownOpen = !_isDropdownOpen);
                           },
                           child: AnimatedContainer(
                             duration: const Duration(milliseconds: 250),
@@ -1007,10 +1006,11 @@ class _SubscriptionPopupContentState extends State<_SubscriptionPopupContent> {
                                                     SizedBox(
                                                       width: 16,
                                                       height: 16,
-                                                      child: CircularProgressIndicator(
-                                                        color: Colors.white,
-                                                        strokeWidth: 2,
-                                                      ),
+                                                      child:
+                                                          CircularProgressIndicator(
+                                                            color: Colors.white,
+                                                            strokeWidth: 2,
+                                                          ),
                                                     ),
                                                     const SizedBox(width: 10),
                                                     Text(
@@ -1080,175 +1080,197 @@ class _SubscriptionPopupContentState extends State<_SubscriptionPopupContent> {
                                                   color: Colors.white
                                                       .withOpacity(0.15),
                                                 ),
-                                                ...currentProducts
-                                                    .asMap()
-                                                    .entries
-                                                    .map((entry) {
-                                                      final i = entry.key;
-                                                      final p = entry.value;
-                                                      final isLast =
-                                                          i ==
-                                                          currentProducts
-                                                                  .length -
-                                                              1;
-                                                      final isChosen =
-                                                          _selectedProduct ==
-                                                          p.productName;
+                                                ...currentProducts.asMap().entries.map((
+                                                  entry,
+                                                ) {
+                                                  final i = entry.key;
+                                                  final p = entry.value;
+                                                  final isLast =
+                                                      i ==
+                                                      currentProducts.length -
+                                                          1;
+                                                  final isChosen =
+                                                      _selectedProduct ==
+                                                      p.productName;
 
-                                                      return TweenAnimationBuilder<
-                                                        double
-                                                      >(
-                                                        tween: Tween(
-                                                          begin: 0,
-                                                          end: 1,
+                                                  return TweenAnimationBuilder<
+                                                    double
+                                                  >(
+                                                    tween: Tween(
+                                                      begin: 0,
+                                                      end: 1,
+                                                    ),
+                                                    duration: Duration(
+                                                      milliseconds:
+                                                          200 + (i * 60),
+                                                    ),
+                                                    curve: Curves.easeOut,
+                                                    builder: (
+                                                      ctx,
+                                                      value,
+                                                      child,
+                                                    ) {
+                                                      return Transform.translate(
+                                                        offset: Offset(
+                                                          0,
+                                                          (1 - value) * 10,
                                                         ),
-                                                        duration: Duration(
-                                                          milliseconds:
-                                                              200 + (i * 60),
+                                                        child: Opacity(
+                                                          opacity: value.clamp(
+                                                            0,
+                                                            1,
+                                                          ),
+                                                          child: child,
                                                         ),
-                                                        curve: Curves.easeOut,
-                                                        builder: (
-                                                          ctx,
-                                                          value,
-                                                          child,
-                                                        ) {
-                                                          return Transform.translate(
-                                                            offset: Offset(
-                                                              0,
-                                                              (1 - value) * 10,
-                                                            ),
-                                                            child: Opacity(
-                                                              opacity: value
-                                                                  .clamp(
-                                                                    0,
-                                                                    1,
-                                                                  ),
-                                                              child: child,
+                                                      );
+                                                    },
+                                                    child: GestureDetector(
+                                                      onTap: () async {
+                                                        HapticFeedback.selectionClick();
+                                                        setState(() {
+                                                          _selectedProduct =
+                                                              p.productName;
+                                                          _isDropdownOpen =
+                                                              false;
+                                                        });
+                                                        try {
+                                                          final product =
+                                                              await CategoryService.fetchProductById(
+                                                                p.productId,
+                                                              );
+                                                          if (!context.mounted)
+                                                            return;
+                                                          Navigator.push(
+                                                            context,
+                                                            AnimatedTransitions.fadeScale(
+                                                              ProductDetailsScreen(
+                                                                product:
+                                                                    product,
+                                                                autoOpenSubscription:
+                                                                    true,
+                                                                initialPlanId:
+                                                                    _selectedPlan
+                                                                        .id,
+                                                              ),
                                                             ),
                                                           );
-                                                        },
-                                                        child: GestureDetector(
-                                                          onTap: () async {
-                                                            HapticFeedback
-                                                                .selectionClick();
-                                                            setState(() {
-                                                              _selectedProduct =
-                                                                  p.productName;
-                                                              _isDropdownOpen =
-                                                                  false;
-                                                            });
-                                                            final product =
-                                                                await CategoryService.fetchProductById(
-                                                                  p.productId,
-                                                                );
-                                                            if (!context
-                                                                .mounted) return;
-                                                            Navigator.push(
-                                                              context,
-                                                              AnimatedTransitions
-                                                                  .fadeScale(
-                                                                    ProductDetailsScreen(
-                                                                      product:
-                                                                          product,
-                                                                      autoOpenSubscription:
-                                                                          true,
-                                                                      initialPlanId:
-                                                                          _selectedPlan
-                                                                              .id,
-                                                                    ),
+                                                        } catch (e) {
+                                                          if (!context.mounted)
+                                                            return;
+                                                          ScaffoldMessenger.of(
+                                                            context,
+                                                          ).showSnackBar(
+                                                            const SnackBar(
+                                                              content: Text(
+                                                                'Failed to load product details.',
+                                                              ),
+                                                              backgroundColor:
+                                                                  Colors.red,
+                                                              duration:
+                                                                  Duration(
+                                                                    seconds: 2,
                                                                   ),
-                                                            );
-                                                          },
-                                                          child: AnimatedContainer(
-                                                            duration: const Duration(
+                                                            ),
+                                                          );
+                                                        }
+                                                      },
+                                                      child: AnimatedContainer(
+                                                        duration:
+                                                            const Duration(
                                                               milliseconds: 200,
                                                             ),
-                                                            color:
-                                                                isChosen
-                                                                    ? Colors
-                                                                        .white
-                                                                        .withOpacity(
-                                                                          0.18,
-                                                                        )
-                                                                    : Colors
-                                                                        .transparent,
-                                                            child: Column(
-                                                              children: [
-                                                                Padding(
-                                                                  padding: const EdgeInsets.symmetric(
+                                                        color:
+                                                            isChosen
+                                                                ? Colors.white
+                                                                    .withOpacity(
+                                                                      0.18,
+                                                                    )
+                                                                : Colors
+                                                                    .transparent,
+                                                        child: Column(
+                                                          children: [
+                                                            Padding(
+                                                              padding:
+                                                                  const EdgeInsets.symmetric(
                                                                     horizontal:
                                                                         16,
                                                                     vertical:
                                                                         13,
                                                                   ),
-                                                                  child: Row(
-                                                                    children: [
-                                                                      AnimatedContainer(
-                                                                        duration: const Duration(
-                                                                          milliseconds:
-                                                                              200,
-                                                                        ),
-                                                                        width:
-                                                                            8,
-                                                                        height:
-                                                                            8,
-                                                                        decoration: BoxDecoration(
-                                                                          shape:
-                                                                              BoxShape.circle,
-                                                                          color:
-                                                                              isChosen ? Colors.white : Colors.white.withOpacity(0.3),
-                                                                        ),
-                                                                      ),
-                                                                      const SizedBox(
-                                                                        width:
-                                                                            12,
-                                                                      ),
-                                                                      Expanded(
-                                                                        child:
-                                                                            Text(
-                                                                          p.productName,
-                                                                          style: TextStyle(
-                                                                            color:
-                                                                                Colors.white.withOpacity(isChosen ? 1.0 : 0.85),
-                                                                            fontSize:
-                                                                                14,
-                                                                            fontWeight:
-                                                                                isChosen ? FontWeight.w700 : FontWeight.w400,
-                                                                          ),
-                                                                        ),
-                                                                      ),
-                                                                      if (isChosen)
-                                                                        const Icon(
-                                                                          Icons
-                                                                              .check_circle_rounded,
-                                                                          color:
-                                                                              Colors.white,
-                                                                          size:
-                                                                              18,
-                                                                        ),
-                                                                    ],
+                                                              child: Row(
+                                                                children: [
+                                                                  AnimatedContainer(
+                                                                    duration: const Duration(
+                                                                      milliseconds:
+                                                                          200,
+                                                                    ),
+                                                                    width: 8,
+                                                                    height: 8,
+                                                                    decoration: BoxDecoration(
+                                                                      shape:
+                                                                          BoxShape
+                                                                              .circle,
+                                                                      color:
+                                                                          isChosen
+                                                                              ? Colors.white
+                                                                              : Colors.white.withOpacity(
+                                                                                0.3,
+                                                                              ),
+                                                                    ),
                                                                   ),
-                                                                ),
-                                                                if (!isLast)
-                                                                  Container(
-                                                                    height: 1,
-                                                                    margin: const EdgeInsets.symmetric(
+                                                                  const SizedBox(
+                                                                    width: 12,
+                                                                  ),
+                                                                  Expanded(
+                                                                    child: Text(
+                                                                      p.productName,
+                                                                      style: TextStyle(
+                                                                        color: Colors.white.withOpacity(
+                                                                          isChosen
+                                                                              ? 1.0
+                                                                              : 0.85,
+                                                                        ),
+                                                                        fontSize:
+                                                                            14,
+                                                                        fontWeight:
+                                                                            isChosen
+                                                                                ? FontWeight.w700
+                                                                                : FontWeight.w400,
+                                                                      ),
+                                                                    ),
+                                                                  ),
+                                                                  if (isChosen)
+                                                                    const Icon(
+                                                                      Icons
+                                                                          .check_circle_rounded,
+                                                                      color:
+                                                                          Colors
+                                                                              .white,
+                                                                      size: 18,
+                                                                    ),
+                                                                ],
+                                                              ),
+                                                            ),
+                                                            if (!isLast)
+                                                              Container(
+                                                                height: 1,
+                                                                margin:
+                                                                    const EdgeInsets.symmetric(
                                                                       horizontal:
                                                                           16,
                                                                     ),
-                                                                    color: Colors
-                                                                        .white
-                                                                        .withOpacity(
-                                                                          0.08,
-                                                                        ),
-                                                                  ),
-                                                              ],
-                                                            ),
-                                                          ),
+                                                                color: Colors
+                                                                    .white
+                                                                    .withOpacity(
+                                                                      0.08,
+                                                                    ),
+                                                              ),
+                                                          ],
                                                         ),
-                                                      );
-                                                    })
-                                                    .toList(),
+                                                      ),
+                                                    ),
+                                                  );
+                                                }).toList(),
                                               ],
                                             ),
                                           )

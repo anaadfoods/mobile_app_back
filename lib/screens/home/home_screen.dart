@@ -239,7 +239,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 
                                   return GestureDetector(
                                     onTap: () {
-                                      context.push(AppRoute.profile.path);
+                                      context.go(AppRoute.profile.path);
                                     },
                                     child: Row(
                                       children: [
@@ -322,22 +322,45 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                                   const SizedBox(width: 5),
                                                   StreamBuilder<int>(
                                                     stream: Stream.periodic(
-                                                      const Duration(milliseconds: 50),
+                                                      const Duration(
+                                                        milliseconds: 50,
+                                                      ),
                                                       (i) => i,
                                                     ),
                                                     builder: (ctx, snap) {
-                                                      final t = (snap.data ?? 0) * 0.05;
+                                                      final t =
+                                                          (snap.data ?? 0) *
+                                                          0.05;
                                                       double scale;
                                                       double angle;
                                                       if (hour < 12) {
-                                                        scale = 1.0 + 0.12 * math.sin(t * 1.6);
-                                                        angle = 0.08 * math.sin(t * 0.8);
+                                                        scale =
+                                                            1.0 +
+                                                            0.12 *
+                                                                math.sin(
+                                                                  t * 1.6,
+                                                                );
+                                                        angle =
+                                                            0.08 *
+                                                            math.sin(t * 0.8);
                                                       } else if (hour < 17) {
-                                                        scale = 1.0 + 0.08 * math.sin(t * 1.2);
+                                                        scale =
+                                                            1.0 +
+                                                            0.08 *
+                                                                math.sin(
+                                                                  t * 1.2,
+                                                                );
                                                         angle = t * 0.25;
                                                       } else {
-                                                        scale = 1.0 + 0.07 * math.sin(t * 0.9);
-                                                        angle = 0.12 * math.sin(t * 0.5);
+                                                        scale =
+                                                            1.0 +
+                                                            0.07 *
+                                                                math.sin(
+                                                                  t * 0.9,
+                                                                );
+                                                        angle =
+                                                            0.12 *
+                                                            math.sin(t * 0.5);
                                                       }
                                                       return Transform.rotate(
                                                         angle: angle,
@@ -345,7 +368,10 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                                           scale: scale,
                                                           child: Text(
                                                             greetingEmoji,
-                                                            style: const TextStyle(fontSize: 14),
+                                                            style:
+                                                                const TextStyle(
+                                                                  fontSize: 14,
+                                                                ),
                                                           ),
                                                         ),
                                                       );
@@ -379,21 +405,36 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                                   // Continuous waving hand emoji
                                                   StreamBuilder<int>(
                                                     stream: Stream.periodic(
-                                                      const Duration(milliseconds: 50),
+                                                      const Duration(
+                                                        milliseconds: 50,
+                                                      ),
                                                       (i) => i,
                                                     ),
                                                     builder: (ctx, snap) {
-                                                      final t = (snap.data ?? 0) * 0.05;
-                                                      final wave = math.sin(t * 3.0);
+                                                      final t =
+                                                          (snap.data ?? 0) *
+                                                          0.05;
+                                                      final wave = math.sin(
+                                                        t * 3.0,
+                                                      );
                                                       return Transform.rotate(
                                                         angle: 0.28 * wave,
-                                                        child: Transform.translate(
-                                                          offset: Offset(0, -2.5 * wave.abs()),
-                                                          child: const Text(
-                                                            '👋',
-                                                            style: TextStyle(fontSize: 18),
-                                                          ),
-                                                        ),
+                                                        child:
+                                                            Transform.translate(
+                                                              offset: Offset(
+                                                                0,
+                                                                -2.5 *
+                                                                    wave.abs(),
+                                                              ),
+                                                              child: const Text(
+                                                                '👋',
+                                                                style:
+                                                                    TextStyle(
+                                                                      fontSize:
+                                                                          18,
+                                                                    ),
+                                                              ),
+                                                            ),
                                                       );
                                                     },
                                                   ),

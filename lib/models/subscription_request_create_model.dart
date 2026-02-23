@@ -37,7 +37,7 @@ class SubscriptionCreateRequest {
     'delivery_phone': deliveryPhone,
     'payment_type': paymentType,
     'payment_method': paymentMethod,
-    'delivery_charges': deliveryFee,
+    'delivery_fee': deliveryFee,
     'expected_delivery_date': expectedDeliveryDate,
     'items': items.map((e) => e.toJson()).toList(),
   };

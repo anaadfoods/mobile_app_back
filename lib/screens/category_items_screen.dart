@@ -81,12 +81,12 @@ class _CategoryItemsScreenState extends State<CategoryItemsScreen> {
                             item: product,
                             heroSuffix: "home_screen",
                             onTap:
-                                (product.isInStock && product.tag)
+                                (product.isInStock && product.isActive)
                                     ? () => _onProductClicked(product)
                                     : null,
                           ),
                         ),
-                        if (!product.tag) const ComingSoonOverlay(),
+                        if (!product.isActive) const ComingSoonOverlay(),
                       ],
                     ),
                   );

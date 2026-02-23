@@ -266,16 +266,31 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
                   ),
                 ),
                 const SizedBox(height: 32),
-                ElevatedButton.icon(
-                  onPressed: () => context.goNamed(AppRoute.home.name),
-                  icon: const Icon(Icons.home_rounded),
-                  label: const Text('Go to Home'),
-                  style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 24,
-                      vertical: 12,
-                    ),
-                  ),
+                BlocBuilder<AuthCubit, AuthState>(
+                  builder: (context, authState) {
+                    final isAuthenticated = authState is Authenticated;
+                    return ElevatedButton.icon(
+                      onPressed: () {
+                        if (isAuthenticated) {
+                          context.goNamed(AppRoute.home.name);
+                        } else {
+                          context.goNamed(AppRoute.login.name);
+                        }
+                      },
+                      icon: Icon(
+                        isAuthenticated
+                            ? Icons.home_rounded
+                            : Icons.login_rounded,
+                      ),
+                      label: Text(isAuthenticated ? 'Go to Home' : 'Log In'),
+                      style: ElevatedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 24,
+                          vertical: 12,
+                        ),
+                      ),
+                    );
+                  },
                 ),
               ],
             ),
@@ -1313,7 +1328,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
           const SizedBox(height: 12),
           _buildPriceRow(
             theme,
-            'Discount',
+            'Discount included',
             -_currentOrder!.discount,
             isDiscount: true,
           ),

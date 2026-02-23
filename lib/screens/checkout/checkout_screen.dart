@@ -342,7 +342,21 @@ class _CheckoutScreenState extends State<CheckoutScreen>
               TextButton(
                 onPressed: () {
                   Navigator.of(context).pop();
-                  Navigator.of(context).pop();
+                  if (result['subscription_id'] != null) {
+                    try {
+                      int subId = int.parse(
+                        result['subscription_id'].toString(),
+                      );
+                      context.goNamed(
+                        AppRoute.subscriptionDetails.name,
+                        pathParameters: {'id': subId.toString()},
+                      );
+                    } catch (e) {
+                      context.go(AppRoute.home.path);
+                    }
+                  } else {
+                    context.go(AppRoute.home.path);
+                  }
                 },
                 child: const Text('OK'),
               ),
@@ -502,14 +516,11 @@ class _CheckoutScreenState extends State<CheckoutScreen>
                       }),
                     );
 
-                    Navigator.pushAndRemoveUntil(
-                      context,
-                      AnimatedTransitions.fadeScale(
-                        SubscriptionPlanDetailScreen(
-                          subscription: subscriptionDetails['data'],
-                        ),
-                      ),
-                      (route) => route.isFirst,
+                    Navigator.pop(context); // Close WebView
+                    context.goNamed(
+                      AppRoute.subscriptionDetails.name,
+                      pathParameters: {'id': parsedSubscriptionId.toString()},
+                      extra: subscriptionDetails['data'],
                     );
                   } else {
                     Navigator.pop(context);
@@ -612,7 +623,8 @@ class _CheckoutScreenState extends State<CheckoutScreen>
           }),
         );
 
-        context.replaceNamed(
+        Navigator.pop(context); // Close WebView
+        context.goNamed(
           AppRoute.orderDetails.name,
           pathParameters: {'id': order.id.toString()},
           extra: order,
@@ -628,8 +640,7 @@ class _CheckoutScreenState extends State<CheckoutScreen>
   }
 
   void _navigateToSubscriptionDetails(dynamic subscription) {
-    context.go(AppRoute.home.path);
-    context.pushNamed(
+    context.goNamed(
       AppRoute.subscriptionDetails.name,
       pathParameters: {'id': subscription['id'].toString()},
       extra: subscription,
@@ -637,7 +648,7 @@ class _CheckoutScreenState extends State<CheckoutScreen>
   }
 
   void _navigateToOrderAccepted(Order order) {
-    context.replaceNamed(
+    context.goNamed(
       AppRoute.orderDetails.name,
       pathParameters: {'id': order.id.toString()},
       extra: order,
