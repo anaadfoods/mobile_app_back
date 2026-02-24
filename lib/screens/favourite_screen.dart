@@ -225,7 +225,6 @@ class _FavouriteScreenState extends State<FavouriteScreen>
       finalPrice: double.tryParse(favorite.price) ?? 0.0,
       isInStock: true,
       isActive: true,
-      tag: true,
       productName: favorite.name,
       productDescription: '',
       productCategory: '',

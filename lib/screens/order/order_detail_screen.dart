@@ -447,20 +447,58 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
                             ),
                           ),
                         ),
-                        GestureDetector(
-                          onTap: _downloadInvoice,
-                          child: Container(
-                            padding: const EdgeInsets.all(10),
-                            decoration: BoxDecoration(
-                              color: Colors.white.withOpacity(0.2),
-                              borderRadius: BorderRadius.circular(12),
+                        // Action Buttons: Refresh, Invoice
+                        Row(
+                          children: [
+                            GestureDetector(
+                              onTap: () async {
+                                HapticFeedback.lightImpact();
+                                SnackBarHelper.showLoading(
+                                  context,
+                                  'Refreshing...',
+                                );
+                                final updatedOrder = await _orderService
+                                    .getOrderById(_currentOrder!.id);
+                                if (updatedOrder.id == _currentOrder!.id) {
+                                  setState(() => _currentOrder = updatedOrder);
+                                }
+                                await _fetchTracking();
+                                if (mounted) {
+                                  ScaffoldMessenger.of(
+                                    context,
+                                  ).hideCurrentSnackBar();
+                                }
+                              },
+                              child: Container(
+                                padding: const EdgeInsets.all(10),
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withOpacity(0.2),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: const Icon(
+                                  Icons.refresh_rounded,
+                                  color: Colors.white,
+                                  size: 20,
+                                ),
+                              ),
                             ),
-                            child: const Icon(
-                              Icons.receipt_long_rounded,
-                              color: Colors.white,
-                              size: 20,
+                            const SizedBox(width: 12),
+                            GestureDetector(
+                              onTap: _downloadInvoice,
+                              child: Container(
+                                padding: const EdgeInsets.all(10),
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withOpacity(0.2),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: const Icon(
+                                  Icons.receipt_long_rounded,
+                                  color: Colors.white,
+                                  size: 20,
+                                ),
+                              ),
                             ),
-                          ),
+                          ],
                         ),
                       ],
                     ),

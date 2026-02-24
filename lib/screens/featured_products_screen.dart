@@ -89,31 +89,31 @@ class _FeaturedProductsScreenState extends State<FeaturedProductsScreen> {
                     ),
                   ),
                   child: SafeArea(
-                  bottom: false,
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(60, 16, 20, 16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        Text(
-                          'Featured Products',
-                          style: theme.textTheme.headlineSmall?.copyWith(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
+                    bottom: false,
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(60, 16, 20, 16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          Text(
+                            'Featured Products',
+                            style: theme.textTheme.headlineSmall?.copyWith(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          '${_products.length} products available',
-                          style: theme.textTheme.bodyMedium?.copyWith(
-                            color: Colors.white.withOpacity(0.8),
+                          const SizedBox(height: 4),
+                          Text(
+                            '${_products.length} products available',
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              color: Colors.white.withOpacity(0.8),
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
-                ),
                 ),
               ),
             ),
@@ -193,8 +193,8 @@ class _FeaturedProductsScreenState extends State<FeaturedProductsScreen> {
           _showShimmer
               ? _buildShimmerSliver(isDark)
               : _isGridView
-                  ? _buildGridView(theme, isDark)
-                  : _buildListView(theme, isDark),
+              ? _buildGridView(theme, isDark)
+              : _buildListView(theme, isDark),
 
           const SliverToBoxAdapter(child: SizedBox(height: 100)),
         ],
@@ -413,146 +413,149 @@ class _FeaturedProductCard extends StatelessWidget {
         child: Stack(
           children: [
             Container(
-          decoration: BoxDecoration(
-            color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
-            borderRadius: BorderRadius.circular(20),
-            boxShadow: [
-              BoxShadow(
-                color: isDark ? Colors.black26 : Colors.black.withOpacity(0.06),
-                blurRadius: 12,
-                offset: const Offset(0, 4),
+              decoration: BoxDecoration(
+                color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: [
+                  BoxShadow(
+                    color:
+                        isDark
+                            ? Colors.black26
+                            : Colors.black.withOpacity(0.06),
+                    blurRadius: 12,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
               ),
-            ],
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Image section
-              Expanded(
-                flex: 3,
-                child: Stack(
-                  children: [
-                    Container(
-                      width: double.infinity,
-                      decoration: BoxDecoration(
-                        borderRadius: const BorderRadius.vertical(
-                          top: Radius.circular(20),
-                        ),
-                        gradient: _getDummyGradient(index),
-                      ),
-                      child: ClipRRect(
-                        borderRadius: const BorderRadius.vertical(
-                          top: Radius.circular(20),
-                        ),
-                        child: _buildProductImage(product, index),
-                      ),
-                    ),
-                    // Discount badge
-                    if (hasDiscount)
-                      Positioned(
-                        top: 10,
-                        left: 10,
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 4,
-                          ),
-                          decoration: BoxDecoration(
-                            color: AppColors.error,
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Text(
-                            '${product.discountPercentage.toInt()}% OFF',
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 10,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                      ),
-                    // Favorite button
-                    Positioned(
-                      top: 10,
-                      right: 10,
-                      child: Container(
-                        padding: const EdgeInsets.all(6),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.9),
-                          shape: BoxShape.circle,
-                        ),
-                        child: Icon(
-                          Icons.favorite_border,
-                          size: 18,
-                          color: isDark ? Colors.black54 : Colors.black45,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-
-              // Details section
-              Padding(
-                padding: const EdgeInsets.all(12),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      product.productName,
-                      style: theme.textTheme.titleSmall?.copyWith(
-                        fontWeight: FontWeight.w600,
-                      ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      '${product.weight} ${product.weightUnit}',
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: theme.hintColor,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    const SizedBox(height: 8),
-                    Row(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Image section
+                  Expanded(
+                    flex: 3,
+                    child: Stack(
                       children: [
-                        Flexible(
-                          child: Text(
-                            '₹${product.finalPrice.toStringAsFixed(0)}',
-                            style: theme.textTheme.titleMedium?.copyWith(
-                              fontWeight: FontWeight.bold,
-                              color: AppColors.primaryColor,
+                        Container(
+                          width: double.infinity,
+                          decoration: BoxDecoration(
+                            borderRadius: const BorderRadius.vertical(
+                              top: Radius.circular(20),
                             ),
-                            overflow: TextOverflow.ellipsis,
+                            gradient: _getDummyGradient(index),
+                          ),
+                          child: ClipRRect(
+                            borderRadius: const BorderRadius.vertical(
+                              top: Radius.circular(20),
+                            ),
+                            child: _buildProductImage(product, index),
                           ),
                         ),
-                        if (hasDiscount) ...[
-                          const SizedBox(width: 6),
-                          Flexible(
-                            child: Text(
-                              '₹${product.price.toStringAsFixed(0)}',
-                              style: theme.textTheme.bodySmall?.copyWith(
-                                decoration: TextDecoration.lineThrough,
-                                color: theme.hintColor,
+                        // Discount badge
+                        if (hasDiscount)
+                          Positioned(
+                            top: 10,
+                            left: 10,
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 4,
                               ),
-                              overflow: TextOverflow.ellipsis,
+                              decoration: BoxDecoration(
+                                color: AppColors.error,
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Text(
+                                '${product.discountPercentage.toInt()}% OFF',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
                             ),
                           ),
-                        ],
-                        const SizedBox(width: 8),
-                        _AddToCartButton(product: product),
+                        // Favorite button
+                        Positioned(
+                          top: 10,
+                          right: 10,
+                          child: Container(
+                            padding: const EdgeInsets.all(6),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.9),
+                              shape: BoxShape.circle,
+                            ),
+                            child: Icon(
+                              Icons.favorite_border,
+                              size: 18,
+                              color: isDark ? Colors.black54 : Colors.black45,
+                            ),
+                          ),
+                        ),
                       ],
                     ),
-                  ],
-                ),
+                  ),
+
+                  // Details section
+                  Padding(
+                    padding: const EdgeInsets.all(12),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          product.productName,
+                          style: theme.textTheme.titleSmall?.copyWith(
+                            fontWeight: FontWeight.w600,
+                          ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          '${product.weight} ${product.weightUnit}',
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: theme.hintColor,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: 8),
+                        Row(
+                          children: [
+                            Flexible(
+                              child: Text(
+                                '₹${product.finalPrice.toStringAsFixed(0)}',
+                                style: theme.textTheme.titleMedium?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                  color: AppColors.primaryColor,
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            if (hasDiscount) ...[
+                              const SizedBox(width: 6),
+                              Flexible(
+                                child: Text(
+                                  '₹${product.price.toStringAsFixed(0)}',
+                                  style: theme.textTheme.bodySmall?.copyWith(
+                                    decoration: TextDecoration.lineThrough,
+                                    color: theme.hintColor,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ],
+                            const SizedBox(width: 8),
+                            _AddToCartButton(product: product),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ),
-            ],
-          ),
-          ),
-            if (!product.tag) const ComingSoonOverlay(),
+            ),
+            if (!product.isActive) const ComingSoonOverlay(),
           ],
         ),
       ),

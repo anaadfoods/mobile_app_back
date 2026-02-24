@@ -1,6 +1,7 @@
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:grocery_app/common_widgets/global_import.dart';
 import 'package:http/http.dart' as http;
+import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 
 class AuthService {
   static final AuthService _instance = AuthService._internal();
@@ -56,6 +57,29 @@ class AuthService {
     }
   }
 
+  Future<Map<String, String?>?> getAppleIdToken() async {
+    print('DEBUG: Starting Apple Sign-In flow...');
+    try {
+      final AuthorizationCredentialAppleID credential =
+          await SignInWithApple.getAppleIDCredential(
+            scopes: [
+              AppleIDAuthorizationScopes.email,
+              AppleIDAuthorizationScopes.fullName,
+            ],
+          );
+
+      print('DEBUG: Apple Sign-In Success: ${credential.email}');
+      return {
+        'idToken': credential.identityToken,
+        'givenName': credential.givenName,
+        'familyName': credential.familyName,
+      };
+    } catch (error) {
+      print('DEBUG: Apple Sign-In Error in getAppleIdToken: $error');
+      throw error;
+    }
+  }
+
   // In AuthService.dart
   Future<Map<String, dynamic>> loginWithGoogleToken(String idToken) async {
     final url = Uri.parse('${ApiConfig.baseUrl}/api/auth/google/');
@@ -92,6 +116,53 @@ class AuthService {
       }
     } catch (e) {
       print('DEBUG: Exception in loginWithGoogleToken: $e');
+      return {'success': false, 'message': e.toString()};
+    }
+  }
+
+  Future<Map<String, dynamic>> loginWithAppleToken(
+    String idToken, {
+    String? name,
+  }) async {
+    final url = Uri.parse('${ApiConfig.baseUrl}/api/auth/apple/');
+    print('DEBUG: Sending Apple ID Token to backend: $url');
+
+    try {
+      final body = <String, dynamic>{'id_token': idToken};
+      if (name != null && name.trim().isNotEmpty) {
+        body['name'] = name;
+      }
+
+      final response = await http.post(
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: jsonEncode(body),
+      );
+
+      print('DEBUG: Backend Response Status: ${response.statusCode}');
+      print('DEBUG: Backend Response Body: ${response.body}');
+
+      final responseData = json.decode(response.body);
+      if (response.statusCode == 200) {
+        print('DEBUG: Backend login successful, saving token...');
+        await saveToken(
+          responseData['access'],
+          responseData['refresh'],
+          responseData['user'],
+        );
+        return {'success': true, 'data': responseData['user']};
+      } else {
+        print("DEBUG: Backend returned error: ${responseData['error']}");
+        return {
+          'success': false,
+          'message': responseData['error'] ?? 'Apple login failed.',
+        };
+      }
+    } catch (e) {
+      print('DEBUG: Exception in loginWithAppleToken: $e');
       return {'success': false, 'message': e.toString()};
     }
   }
@@ -308,6 +379,52 @@ class AuthService {
     } catch (e) {
       print('Token check error: $e');
       return false;
+    }
+  }
+
+  /// Checks if token is valid, if expired attempts to refresh.
+  /// Only returns false if we definitively know the token(s) are invalid (e.g. 401 response).
+  /// Returns true if valid or if we can't reach the server (to prevent accidental logouts).
+  Future<bool> verifyAndRefreshToken() async {
+    try {
+      final token = await getAccessToken();
+      if (token == null) return false;
+
+      final response = await http
+          .get(
+            Uri.parse('${ApiConfig.baseUrl}${ApiConfig.testTokenEndpoint}'),
+            headers: await _getAuthHeaders(),
+          )
+          .timeout(const Duration(seconds: 10));
+
+      if (response.statusCode == 401) {
+        final refreshTokenStr = await getRefreshToken();
+        if (refreshTokenStr == null) return false;
+
+        final refreshResp = await http
+            .post(
+              Uri.parse('${ApiConfig.baseUrl}${ApiConfig.refreshEndpoint}'),
+              headers: ApiConfig.getBaseHeaders(),
+              body: jsonEncode({'refresh': refreshTokenStr}),
+            )
+            .timeout(const Duration(seconds: 10));
+
+        if (refreshResp.statusCode == 200) {
+          final responseData = jsonDecode(refreshResp.body);
+          if (responseData['access'] != null) {
+            final prefs = await SharedPreferences.getInstance();
+            await prefs.setString('access_token', responseData['access']);
+            return true;
+          }
+        } else if (refreshResp.statusCode == 401 ||
+            refreshResp.statusCode == 400) {
+          return false;
+        }
+      }
+      return response.statusCode != 401;
+    } catch (e) {
+      print('verifyAndRefreshToken network/timeout error: $e');
+      return true;
     }
   }
 

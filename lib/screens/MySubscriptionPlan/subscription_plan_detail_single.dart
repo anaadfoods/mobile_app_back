@@ -385,7 +385,12 @@ class _SubscriptionPlanDetailScreenState
           isDark ? const Color(0xFF0A0A0A) : const Color(0xFFF5F7FA),
       body: RefreshIndicator(
         onRefresh: () async {
-          // Trigger a refresh (e.g. reload invoices or subscription details)
+          // Trigger a refresh of subscription details and invoices
+          if (_currentOrder != null) {
+            await _loadSubscription(_currentOrder!.id.toString());
+          } else if (widget.subscriptionId != null) {
+            await _loadSubscription(widget.subscriptionId!);
+          }
           await _loadInvoices();
         },
         color: theme.colorScheme.primary,
@@ -505,13 +510,6 @@ class _SubscriptionPlanDetailScreenState
               ),
             ),
 
-            // Status Badge
-            Positioned(
-              top: 60,
-              right: 20,
-              child: _buildStatusBadge(theme, isDark),
-            ),
-
             // Header Content
             SafeArea(
               child: Padding(
@@ -541,38 +539,70 @@ class _SubscriptionPlanDetailScreenState
                             ),
                           ),
                         ),
-                        // GestureDetector(
-                        //   onTap: _loadInvoices,
-                        //   child: Container(
-                        //     padding: const EdgeInsets.all(10),
-                        //     decoration: BoxDecoration(
-                        //       color: Colors.white.withOpacity(0.2),
-                        //       borderRadius: BorderRadius.circular(12),
-                        //     ),
-                        //     child: const Icon(
-                        //       Icons.refresh_rounded,
-                        //       color: Colors.white,
-                        //       size: 20,
-                        //     ),
-                        //   ),
-                        // ),
+                        GestureDetector(
+                          onTap: () async {
+                            HapticFeedback.lightImpact();
+                            SnackBarHelper.showLoading(
+                              context,
+                              'Refreshing...',
+                            );
+
+                            // Re-load subscription details and invoices
+                            if (_currentOrder != null) {
+                              await _loadSubscription(
+                                _currentOrder!.id.toString(),
+                              );
+                            } else if (widget.subscriptionId != null) {
+                              await _loadSubscription(widget.subscriptionId!);
+                            }
+                            await _loadInvoices();
+
+                            if (mounted) {
+                              ScaffoldMessenger.of(
+                                context,
+                              ).hideCurrentSnackBar();
+                            }
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.all(10),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.2),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: const Icon(
+                              Icons.refresh_rounded,
+                              color: Colors.white,
+                              size: 20,
+                            ),
+                          ),
+                        ),
                       ],
                     ),
                     const Spacer(),
-                    // Title
-                    Text(
-                      "Subscription Details",
-                      style: theme.textTheme.headlineMedium?.copyWith(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                      ),
+                    // Title and Status Badge
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Expanded(
+                          child: Text(
+                            "Subscription Details",
+                            style: theme.textTheme.titleLarge?.copyWith(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        _buildStatusBadge(theme, isDark),
+                      ],
                     ),
                     const SizedBox(height: 4),
                     Text(
                       item != null
                           ? item.productName
                           : "View your subscription",
-                      style: theme.textTheme.bodyMedium?.copyWith(
+                      style: theme.textTheme.bodySmall?.copyWith(
                         color: Colors.white.withOpacity(0.9),
                       ),
                       maxLines: 1,
@@ -612,26 +642,26 @@ class _SubscriptionPlanDetailScreenState
     }
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
         color: statusColor,
         borderRadius: BorderRadius.circular(30),
         boxShadow: [
           BoxShadow(
             color: statusColor.withOpacity(0.4),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
           ),
         ],
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(statusIcon, color: Colors.white, size: 18),
-          const SizedBox(width: 6),
+          Icon(statusIcon, color: Colors.white, size: 16),
+          const SizedBox(width: 4),
           Text(
             statusText,
-            style: theme.textTheme.labelLarge?.copyWith(
+            style: theme.textTheme.labelMedium?.copyWith(
               color: Colors.white,
               fontWeight: FontWeight.bold,
             ),
@@ -958,7 +988,7 @@ class _SubscriptionPlanDetailScreenState
                     'Next Delivery',
                     _formatDate(
                       subscription.nextDeliveryDate,
-                      format: 'MMM dd',
+                      format: 'MMM dd, yyyy',
                     ),
                     AppColors.primaryColor,
                   ),
@@ -974,7 +1004,7 @@ class _SubscriptionPlanDetailScreenState
                     isDark,
                     Icons.date_range_rounded,
                     'Valid Till',
-                    _formatDate(subscription.endDate, format: 'MMM dd'),
+                    _formatDate(subscription.endDate, format: 'MMM dd, yyyy'),
                     AppColors.info,
                   ),
                 ),

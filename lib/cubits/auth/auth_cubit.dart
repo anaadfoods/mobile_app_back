@@ -17,11 +17,25 @@ class AuthCubit extends Cubit<AuthState> {
       final user = await _authRepository.checkAuthStatus();
       if (user != null) {
         emit(Authenticated(user));
+        verifyAndRefreshToken();
       } else {
         emit(Unauthenticated());
       }
     } catch (_) {
       emit(Unauthenticated());
+    }
+  }
+
+  Future<void> verifyAndRefreshToken() async {
+    try {
+      if (state is Authenticated) {
+        final isValid = await _authRepository.verifyAndRefreshToken();
+        if (!isValid) {
+          emit(Unauthenticated());
+        }
+      }
+    } catch (_) {
+      // Keep authenticated on random errors
     }
   }
 
@@ -53,6 +67,18 @@ class AuthCubit extends Cubit<AuthState> {
     emit(AuthLoading());
     try {
       final user = await _authRepository.googleLogin();
+      emit(Authenticated(user));
+    } on AuthException catch (e) {
+      emit(AuthError(e.message));
+    } catch (e) {
+      emit(const AuthError('An unexpected error occurred. Please try again.'));
+    }
+  }
+
+  Future<void> appleLogin() async {
+    emit(AuthLoading());
+    try {
+      final user = await _authRepository.appleLogin();
       emit(Authenticated(user));
     } on AuthException catch (e) {
       emit(AuthError(e.message));

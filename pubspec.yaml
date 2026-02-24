@@ -1,7 +1,7 @@
 name: grocery_app
 description: "A new Flutter project."
 publish_to: "none"
-version: 0.1.0
+version: 0.4.0
 
 environment:
   sdk: ^3.7.0
@@ -55,6 +55,7 @@ dependencies:
   app_links: ^6.4.0  # Deep linking support
 
   collection: any
+  sign_in_with_apple: ^7.0.1
   # connectivity_plus: ^7.0.0
 dev_dependencies:
   flutter_test:
