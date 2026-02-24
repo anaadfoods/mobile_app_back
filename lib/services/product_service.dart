@@ -67,6 +67,15 @@ class CategoryService {
     }
   }
 
+  // Helper to sort products so isActive = true comes first
+  static void _sortProductsByActive(List<Product> products) {
+    products.sort((a, b) {
+      if (a.isActive && !b.isActive) return -1;
+      if (!a.isActive && b.isActive) return 1;
+      return 0;
+    });
+  }
+
   /// Call API
   Future<List<Product>> searchProducts(String query) async {
     final url = Uri.parse(
@@ -80,6 +89,7 @@ class CategoryService {
         final List<dynamic> data = json.decode(response.body);
         List<Product> results =
             data.map((item) => Product.fromJson(item)).toList();
+        _sortProductsByActive(results);
         return results;
       } else {
         return [];
@@ -102,12 +112,17 @@ class CategoryService {
         final products = data.map((item) => Product.fromJson(item)).toList();
 
         // Client-side filtering fallback: Ensure we only return products for the requested category
-        return products
-            .where(
-              (p) =>
-                  p.productCategory.toLowerCase() == categoryName.toLowerCase(),
-            )
-            .toList();
+        final filteredProducts =
+            products
+                .where(
+                  (p) =>
+                      p.productCategory.toLowerCase() ==
+                      categoryName.toLowerCase(),
+                )
+                .toList();
+
+        _sortProductsByActive(filteredProducts);
+        return filteredProducts;
       } else {
         throw Exception("Failed to load products by category");
       }
@@ -124,7 +139,9 @@ class CategoryService {
 
       if (response.statusCode == 200) {
         final List<dynamic> data = json.decode(response.body);
-        return data.map((item) => Product.fromJson(item)).toList();
+        final results = data.map((item) => Product.fromJson(item)).toList();
+        _sortProductsByActive(results);
+        return results;
       } else {
         throw Exception("Failed to load products by category");
       }
@@ -139,7 +156,9 @@ class CategoryService {
 
       if (response.statusCode == 200) {
         final List<dynamic> data = json.decode(response.body);
-        return data.map((item) => Product.fromJson(item)).toList();
+        final results = data.map((item) => Product.fromJson(item)).toList();
+        _sortProductsByActive(results);
+        return results;
       } else {
         throw Exception('Failed to load featured products');
       }
@@ -154,7 +173,9 @@ class CategoryService {
 
       if (response.statusCode == 200) {
         final List<dynamic> data = json.decode(response.body);
-        return data.map((item) => Product.fromJson(item)).toList();
+        final results = data.map((item) => Product.fromJson(item)).toList();
+        _sortProductsByActive(results);
+        return results;
       } else {
         throw Exception('Failed to load products');
       }
@@ -171,7 +192,9 @@ class CategoryService {
 
       if (response.statusCode == 200) {
         final List<dynamic> data = json.decode(response.body);
-        return data.map((item) => Product.fromJson(item)).toList();
+        final results = data.map((item) => Product.fromJson(item)).toList();
+        _sortProductsByActive(results);
+        return results;
       } else {
         throw Exception('Failed to load bestseller products');
       }

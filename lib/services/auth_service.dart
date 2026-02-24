@@ -382,6 +382,52 @@ class AuthService {
     }
   }
 
+  /// Checks if token is valid, if expired attempts to refresh.
+  /// Only returns false if we definitively know the token(s) are invalid (e.g. 401 response).
+  /// Returns true if valid or if we can't reach the server (to prevent accidental logouts).
+  Future<bool> verifyAndRefreshToken() async {
+    try {
+      final token = await getAccessToken();
+      if (token == null) return false;
+
+      final response = await http
+          .get(
+            Uri.parse('${ApiConfig.baseUrl}${ApiConfig.testTokenEndpoint}'),
+            headers: await _getAuthHeaders(),
+          )
+          .timeout(const Duration(seconds: 10));
+
+      if (response.statusCode == 401) {
+        final refreshTokenStr = await getRefreshToken();
+        if (refreshTokenStr == null) return false;
+
+        final refreshResp = await http
+            .post(
+              Uri.parse('${ApiConfig.baseUrl}${ApiConfig.refreshEndpoint}'),
+              headers: ApiConfig.getBaseHeaders(),
+              body: jsonEncode({'refresh': refreshTokenStr}),
+            )
+            .timeout(const Duration(seconds: 10));
+
+        if (refreshResp.statusCode == 200) {
+          final responseData = jsonDecode(refreshResp.body);
+          if (responseData['access'] != null) {
+            final prefs = await SharedPreferences.getInstance();
+            await prefs.setString('access_token', responseData['access']);
+            return true;
+          }
+        } else if (refreshResp.statusCode == 401 ||
+            refreshResp.statusCode == 400) {
+          return false;
+        }
+      }
+      return response.statusCode != 401;
+    } catch (e) {
+      print('verifyAndRefreshToken network/timeout error: $e');
+      return true;
+    }
+  }
+
   /// Returns true on success. On failure, logs server response and returns false.
   Future<bool> updateUserAddress(Map<String, String> addressDetails) async {
     try {

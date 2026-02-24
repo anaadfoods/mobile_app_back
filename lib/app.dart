@@ -153,10 +153,11 @@ class AppGlobalListeners extends StatefulWidget {
   State<AppGlobalListeners> createState() => _AppGlobalListenersState();
 }
 
-class _AppGlobalListenersState extends State<AppGlobalListeners> {
+class _AppGlobalListenersState extends State<AppGlobalListeners> with WidgetsBindingObserver {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         final notificationService = NotificationService();
@@ -166,6 +167,19 @@ class _AppGlobalListenersState extends State<AppGlobalListeners> {
         notificationService.processInitialMessage();
       }
     });
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      context.read<AuthCubit>().verifyAndRefreshToken();
+    }
   }
 
   @override

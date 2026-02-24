@@ -1,6 +1,9 @@
+import 'dart:ui';
 import 'package:collection/collection.dart';
 import 'package:grocery_app/common_widgets/global_import.dart';
 import 'package:grocery_app/utils/subscription_navigation_helper.dart';
+import 'package:grocery_app/common_widgets/coming_soon_overlay.dart';
+import 'package:grocery_app/common_widgets/out_of_stock_overlay.dart';
 
 class GroceryItemCardWidget extends StatefulWidget {
   final Product item;
@@ -21,18 +24,39 @@ class GroceryItemCardWidget extends StatefulWidget {
 class _GroceryItemCardWidgetState extends State<GroceryItemCardWidget> {
   bool _isPressed = false;
 
+  void _handleTapDown(_) {
+    if (widget.item.isActive && widget.item.isInStock) {
+      setState(() => _isPressed = true);
+    }
+  }
+
+  void _handleTapUp(_) {
+    if (widget.item.isActive && widget.item.isInStock) {
+      setState(() => _isPressed = false);
+    }
+  }
+
+  void _handleTapCancel() {
+    if (widget.item.isActive && widget.item.isInStock) {
+      setState(() => _isPressed = false);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final textTheme = theme.textTheme;
     final colorScheme = theme.colorScheme;
     final isDark = theme.brightness == Brightness.dark;
+    final isActive = widget.item.isActive;
+    final isInStock = widget.item.isInStock;
+    final isInteractable = isActive && isInStock;
 
     return GestureDetector(
-      onTapDown: (_) => setState(() => _isPressed = true),
-      onTapUp: (_) => setState(() => _isPressed = false),
-      onTapCancel: () => setState(() => _isPressed = false),
-      onTap: widget.onTap,
+      onTapDown: _handleTapDown,
+      onTapUp: _handleTapUp,
+      onTapCancel: _handleTapCancel,
+      onTap: isInteractable ? widget.onTap : null,
       child: AnimatedScale(
         scale: _isPressed ? 0.98 : 1.0,
         duration: const Duration(milliseconds: AppColors.animFast),
@@ -59,98 +83,125 @@ class _GroceryItemCardWidgetState extends State<GroceryItemCardWidget> {
           ),
           child: ClipRRect(
             borderRadius: BorderRadius.circular(AppColors.radiusL),
-            child: Row(
+            child: Stack(
               children: [
-                // Product Image Container
-                Container(
-                  margin: const EdgeInsets.all(AppColors.spacingS),
-                  width: 100,
-                  height: 100,
-                  decoration: BoxDecoration(
-                    color: isDark ? Colors.grey.shade900 : Colors.grey.shade50,
-                    borderRadius: BorderRadius.circular(AppColors.radiusM),
-                    border: Border.all(
-                      color:
-                          isDark ? Colors.grey.shade700 : Colors.grey.shade100,
-                      width: 1,
-                    ),
-                  ),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(AppColors.radiusM),
-                    child: Hero(
-                      tag: '${widget.item.id}-${widget.heroSuffix ?? ''}',
-                      child: _buildImageWidget(theme),
-                    ),
-                  ),
-                ),
-                // Product Details
-                Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: AppColors.spacingM,
-                      vertical: AppColors.spacingM,
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        AppText(
-                          text: widget.item.productName,
-                          style: textTheme.bodyLarge?.copyWith(
-                            fontWeight: FontWeight.w600,
-                          ),
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
+                Row(
+                  children: [
+                    // Product Image Container
+                    Container(
+                      margin: const EdgeInsets.all(AppColors.spacingS),
+                      width: 100,
+                      height: 100,
+                      decoration: BoxDecoration(
+                        color:
+                            isDark ? Colors.grey.shade900 : Colors.grey.shade50,
+                        borderRadius: BorderRadius.circular(AppColors.radiusM),
+                        border: Border.all(
+                          color:
+                              isDark
+                                  ? Colors.grey.shade700
+                                  : Colors.grey.shade100,
+                          width: 1,
                         ),
-                        const SizedBox(height: 2),
-                        AppText(
-                          text: widget.item.productCategory,
-                          style: textTheme.bodySmall?.copyWith(
-                            color: theme.hintColor,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
+                      ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(AppColors.radiusM),
+                        child: Hero(
+                          tag: '${widget.item.id}-${widget.heroSuffix ?? ''}',
+                          child: _buildImageWidget(theme),
                         ),
-                        const SizedBox(height: 6),
-                        // Rating stars
-                        Row(
-                          children: List.generate(
-                            5,
-                            (index) => Icon(
-                              Icons.star,
-                              size: 14,
-                              color: AppColors.orderPlaced,
-                            ),
-                          ),
+                      ),
+                    ),
+                    // Product Details
+                    Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: AppColors.spacingM,
+                          vertical: AppColors.spacingM,
                         ),
-                        const SizedBox(height: 10),
-                        Row(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             AppText(
-                              text:
-                                  "₹${widget.item.finalPrice.toStringAsFixed(0)}",
-                              style: textTheme.titleMedium?.copyWith(
-                                fontWeight: FontWeight.bold,
-                                color: colorScheme.primary,
+                              text: widget.item.productName,
+                              style: textTheme.bodyLarge?.copyWith(
+                                fontWeight: FontWeight.w600,
                               ),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
                             ),
-                            const SizedBox(width: 8),
-                            if (widget.item.price > widget.item.finalPrice)
-                              AppText(
-                                text:
-                                    "₹${widget.item.price.toStringAsFixed(0)}",
-                                style: textTheme.bodySmall?.copyWith(
-                                  color: theme.disabledColor,
-                                  decoration: TextDecoration.lineThrough,
+                            const SizedBox(height: 2),
+                            AppText(
+                              text: widget.item.productCategory,
+                              style: textTheme.bodySmall?.copyWith(
+                                color: theme.hintColor,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            const SizedBox(height: 6),
+                            // Rating stars
+                            Row(
+                              children: List.generate(
+                                5,
+                                (index) => Icon(
+                                  Icons.star,
+                                  size: 14,
+                                  color: AppColors.orderPlaced,
                                 ),
                               ),
-                            const Spacer(),
-                            _buildActionWidget(context),
+                            ),
+                            const SizedBox(height: 10),
+                            Row(
+                              children: [
+                                AppText(
+                                  text:
+                                      "₹${widget.item.finalPrice.toStringAsFixed(0)}",
+                                  style: textTheme.titleMedium?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                    color: colorScheme.primary,
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                if (widget.item.price > widget.item.finalPrice)
+                                  AppText(
+                                    text:
+                                        "₹${widget.item.price.toStringAsFixed(0)}",
+                                    style: textTheme.bodySmall?.copyWith(
+                                      color: theme.disabledColor,
+                                      decoration: TextDecoration.lineThrough,
+                                    ),
+                                  ),
+                                const Spacer(),
+                                if (isInteractable) _buildActionWidget(context),
+                              ],
+                            ),
                           ],
                         ),
-                      ],
+                      ),
+                    ),
+                  ],
+                ),
+                if (!isActive)
+                  Positioned.fill(
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(AppColors.radiusL),
+                      child: BackdropFilter(
+                        filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+                        child: const ComingSoonOverlay(),
+                      ),
+                    ),
+                  )
+                else if (!isInStock)
+                  Positioned.fill(
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(AppColors.radiusL),
+                      child: BackdropFilter(
+                        filter: ImageFilter.blur(sigmaX: 4, sigmaY: 4),
+                        child: const OutOfStockOverlay(),
+                      ),
                     ),
                   ),
-                ),
               ],
             ),
           ),

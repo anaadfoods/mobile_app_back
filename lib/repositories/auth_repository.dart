@@ -174,6 +174,10 @@ class AuthRepository {
     return null;
   }
 
+  Future<bool> verifyAndRefreshToken() async {
+    return await _authService.verifyAndRefreshToken();
+  }
+
   Future<UserModel> updateProfile(UserModel user) async {
     return _makeAuthenticatedRequest(() async {
       final result = await _authService.updateProfile(user);

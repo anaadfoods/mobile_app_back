@@ -17,11 +17,25 @@ class AuthCubit extends Cubit<AuthState> {
       final user = await _authRepository.checkAuthStatus();
       if (user != null) {
         emit(Authenticated(user));
+        verifyAndRefreshToken();
       } else {
         emit(Unauthenticated());
       }
     } catch (_) {
       emit(Unauthenticated());
+    }
+  }
+
+  Future<void> verifyAndRefreshToken() async {
+    try {
+      if (state is Authenticated) {
+        final isValid = await _authRepository.verifyAndRefreshToken();
+        if (!isValid) {
+          emit(Unauthenticated());
+        }
+      }
+    } catch (_) {
+      // Keep authenticated on random errors
     }
   }
 

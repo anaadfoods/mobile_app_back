@@ -1,5 +1,7 @@
+import 'dart:ui';
 import 'package:grocery_app/common_widgets/coming_soon_overlay.dart';
 import 'package:grocery_app/common_widgets/global_import.dart';
+import 'package:grocery_app/common_widgets/out_of_stock_overlay.dart';
 
 /// Skeleton loading placeholder for the featured products section.
 ///
@@ -308,7 +310,26 @@ class FeaturedProductCard extends StatelessWidget {
                 ],
               ),
             ),
-            if (!product.isActive) const ComingSoonOverlay(),
+            if (!product.isActive)
+              Positioned.fill(
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(20),
+                  child: BackdropFilter(
+                    filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+                    child: const ComingSoonOverlay(),
+                  ),
+                ),
+              )
+            else if (!product.isInStock)
+              Positioned.fill(
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(20),
+                  child: BackdropFilter(
+                    filter: ImageFilter.blur(sigmaX: 4, sigmaY: 4),
+                    child: const OutOfStockOverlay(),
+                  ),
+                ),
+              ),
           ],
         ),
       ),
