@@ -8,8 +8,8 @@ class SubscriptionCreateRequest {
   final String deliveryPhone;
   final String paymentType;
   final String paymentMethod;
-  final double deliveryFee;
-  final String expectedDeliveryDate;
+  // final double deliveryFee;
+  // final String expectedDeliveryDate;
   final List<SubscriptionCreateItem> items;
 
   SubscriptionCreateRequest({
@@ -23,8 +23,8 @@ class SubscriptionCreateRequest {
     required this.paymentType,
     required this.paymentMethod,
     required this.items,
-    required this.deliveryFee,
-    required this.expectedDeliveryDate,
+    // required this.deliveryFee,
+    // required this.expectedDeliveryDate,
   });
 
   Map<String, dynamic> toJson() => {
@@ -37,8 +37,8 @@ class SubscriptionCreateRequest {
     'delivery_phone': deliveryPhone,
     'payment_type': paymentType,
     'payment_method': paymentMethod,
-    'delivery_fee': deliveryFee,
-    'expected_delivery_date': expectedDeliveryDate,
+    // 'delivery_fee': deliveryFee,
+    // 'expected_delivery_date': expectedDeliveryDate,
     'items': items.map((e) => e.toJson()).toList(),
   };
 }

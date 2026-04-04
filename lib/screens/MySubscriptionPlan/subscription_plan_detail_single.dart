@@ -216,23 +216,174 @@ class _SubscriptionPlanDetailScreenState
     }
   }
 
+  void _showConfirmationPopup(
+    BuildContext context,
+    bool isPause,
+    VoidCallback onConfirm,
+  ) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    showDialog(
+      context: context,
+      builder: (BuildContext dialogContext) {
+        return Dialog(
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          insetPadding: const EdgeInsets.symmetric(horizontal: 24),
+          child: Container(
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors:
+                    isDark
+                        ? [const Color(0xFF1E1E1E), const Color(0xFF252525)]
+                        : [Colors.white, Colors.grey[50]!],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(24),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(isDark ? 0.3 : 0.1),
+                  blurRadius: 20,
+                  offset: const Offset(0, 10),
+                ),
+              ],
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: (isPause ? AppColors.warning : AppColors.success)
+                        .withOpacity(0.15),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    isPause
+                        ? Icons.pause_circle_rounded
+                        : Icons.play_circle_rounded,
+                    color: isPause ? AppColors.warning : AppColors.success,
+                    size: 40,
+                  ),
+                ),
+                const SizedBox(height: 20),
+                Text(
+                  isPause ? 'Pause Subscription?' : 'Resume Subscription?',
+                  style: theme.textTheme.headlineSmall?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  isPause
+                      ? 'Are you sure you want to pause your subscription for the selected dates?'
+                      : 'Are you sure you want to resume your subscription? Your deliveries will restart from the next scheduled date.',
+                  textAlign: TextAlign.center,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: theme.hintColor,
+                    height: 1.4,
+                  ),
+                ),
+                const SizedBox(height: 32),
+                Row(
+                  children: [
+                    Expanded(
+                      child: TextButton(
+                        onPressed: () => Navigator.pop(dialogContext),
+                        style: TextButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                        ),
+                        child: Text(
+                          'Cancel',
+                          style: theme.textTheme.titleMedium?.copyWith(
+                            color: theme.hintColor,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Container(
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors:
+                                isPause
+                                    ? [
+                                      AppColors.warning,
+                                      AppColors.warning.withOpacity(0.8),
+                                    ]
+                                    : [
+                                      AppColors.success,
+                                      AppColors.success.withOpacity(0.8),
+                                    ],
+                          ),
+                          borderRadius: BorderRadius.circular(16),
+                          boxShadow: [
+                            BoxShadow(
+                              color: (isPause
+                                      ? AppColors.warning
+                                      : AppColors.success)
+                                  .withOpacity(0.3),
+                              blurRadius: 12,
+                              offset: const Offset(0, 6),
+                            ),
+                          ],
+                        ),
+                        child: Material(
+                          color: Colors.transparent,
+                          child: InkWell(
+                            onTap: () {
+                              Navigator.pop(dialogContext);
+                              onConfirm();
+                            },
+                            borderRadius: BorderRadius.circular(16),
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 16),
+                              child: Center(
+                                child: Text(
+                                  isPause ? 'Pause' : 'Resume',
+                                  style: theme.textTheme.titleMedium?.copyWith(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   void _showToggleConfirmation(Subscription subscription) {
     final isCurrentlyPaused = subscription.status == 'PAUSED';
 
     if (isCurrentlyPaused) {
-      showModalBottomSheet(
-        context: context,
-        backgroundColor: Colors.transparent,
-        builder:
-            (context) => ResumeSubscriptionSheet(
-              onConfirm:
-                  () => _togglePauseSubscription(subscription, null, null),
-            ),
+      _showConfirmationPopup(
+        context,
+        false, // isPause = false
+        () => _togglePauseSubscription(subscription, null, null),
       );
       return;
     }
 
-    // Show pause date picker
+    // Show pause date picker first, then confirm
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -240,9 +391,13 @@ class _SubscriptionPlanDetailScreenState
       builder:
           (context) => PauseDatePickerSheet(
             maxPausesLeft: subscription.remainingPauseTimes,
-            onConfirm:
-                (start, end) =>
-                    _togglePauseSubscription(subscription, start, end),
+            onConfirm: (start, end) {
+              _showConfirmationPopup(
+                context,
+                true, // isPause = true
+                () => _togglePauseSubscription(subscription, start, end),
+              );
+            },
           ),
     );
   }
@@ -1171,6 +1326,12 @@ class _SubscriptionPlanDetailScreenState
             children: [
               _buildProgressStat(
                 theme,
+                '${subscription.totalDeliveries}',
+                'Total',
+                AppColors.info,
+              ),
+              _buildProgressStat(
+                theme,
                 '${subscription.completedDeliveries}',
                 'Completed',
                 AppColors.success,
@@ -1180,12 +1341,6 @@ class _SubscriptionPlanDetailScreenState
                 '$deliveriesLeft',
                 'Remaining',
                 AppColors.warning,
-              ),
-              _buildProgressStat(
-                theme,
-                '${subscription.totalDeliveries}',
-                'Total',
-                AppColors.info,
               ),
             ],
           ),

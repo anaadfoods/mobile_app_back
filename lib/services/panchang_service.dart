@@ -1,6 +1,5 @@
 import 'dart:convert';
 
-import 'package:flutter/foundation.dart';
 import 'package:grocery_app/services/api_config.dart';
 import 'package:grocery_app/services/api_exception.dart';
 import 'package:http/http.dart' as http;
@@ -12,6 +11,10 @@ import '../models/panchang/panchang_highlights_models.dart';
 import '../models/panchang/panchang_muhurats_models.dart';
 import '../models/panchang/panchang_vrat_models.dart';
 import '../models/panchang/panchang_guidance_models.dart';
+
+void logApi(String message) {
+  // Logging removed
+}
 
 class PanchangService {
   static final PanchangService _instance = PanchangService._internal();
@@ -28,30 +31,25 @@ class PanchangService {
     double? lat,
     double? lon,
   }) async {
-    final uri = _buildUri(
-      ApiConfig.panchangDayEndpoint,
-      {
-        if (date != null) 'date': date,
-        'tz': tz,
-        'locale': locale,
-        'calendar_system': calendarSystem,
-        'profile': profile,
-        if (lat != null) 'lat': lat.toString(),
-        if (lon != null) 'lon': lon.toString(),
-      },
-    );
+    final uri = _buildUri(ApiConfig.panchangDayEndpoint, {
+      if (date != null) 'date': date,
+      'tz': tz,
+      'locale': locale,
+      'calendar_system': calendarSystem,
+      'profile': profile,
+      if (lat != null) 'lat': lat.toString(),
+      if (lon != null) 'lon': lon.toString(),
+    });
 
-    if (kDebugMode) {
-      debugPrint('Panchang requesting: $uri');
-    }
+    logApi('Panchang requesting: $uri');
 
     final response = await http
         .get(uri, headers: ApiConfig.getAuthHeaders(token))
         .timeout(const Duration(seconds: 20));
 
-    if (kDebugMode) {
-      debugPrint('Panchang GET $uri -> ${response.statusCode}');
-    }
+    logApi(
+      'Panchang GET $uri -> ${response.statusCode}\nResponse body: ${response.body}',
+    );
 
     if (response.statusCode >= 200 && response.statusCode < 300) {
       final body = jsonDecode(response.body);
@@ -75,31 +73,26 @@ class PanchangService {
     double? lat,
     double? lon,
   }) async {
-    final uri = _buildUri(
-      ApiConfig.panchangMonthEndpoint,
-      {
-        'year': year.toString(),
-        'month': month.toString(),
-        'tz': tz,
-        'locale': locale,
-        'calendar_system': calendarSystem,
-        'profile': profile,
-        if (lat != null) 'lat': lat.toString(),
-        if (lon != null) 'lon': lon.toString(),
-      },
-    );
+    final uri = _buildUri(ApiConfig.panchangMonthEndpoint, {
+      'year': year.toString(),
+      'month': month.toString(),
+      'tz': tz,
+      'locale': locale,
+      'calendar_system': calendarSystem,
+      'profile': profile,
+      if (lat != null) 'lat': lat.toString(),
+      if (lon != null) 'lon': lon.toString(),
+    });
 
-    if (kDebugMode) {
-      debugPrint('Panchang requesting: $uri');
-    }
+    logApi('Panchang requesting: $uri');
 
     final response = await http
         .get(uri, headers: ApiConfig.getAuthHeaders(token))
         .timeout(const Duration(seconds: 20));
 
-    if (kDebugMode) {
-      debugPrint('Panchang GET $uri -> ${response.statusCode}');
-    }
+    logApi(
+      'Panchang GET $uri -> ${response.statusCode}\nResponse body: ${response.body}',
+    );
 
     if (response.statusCode >= 200 && response.statusCode < 300) {
       final body = jsonDecode(response.body);
@@ -125,39 +118,31 @@ class PanchangService {
     double? lat,
     double? lon,
   }) async {
-    final uri = _buildUri(
-      ApiConfig.panchangFestivalsEndpoint,
-      {
-        'start': startDate,
-        'end': endDate,
-        if (type != null && type.isNotEmpty) 'type': type,
-        'tz': tz,
-        'locale': locale,
-        'calendar_system': calendarSystem,
-        'profile': profile,
-        if (lat != null) 'lat': lat.toString(),
-        if (lon != null) 'lon': lon.toString(),
-      },
-    );
+    final uri = _buildUri(ApiConfig.panchangFestivalsEndpoint, {
+      'start': startDate,
+      'end': endDate,
+      if (type != null && type.isNotEmpty) 'type': type,
+      'tz': tz,
+      'locale': locale,
+      'calendar_system': calendarSystem,
+      'profile': profile,
+      if (lat != null) 'lat': lat.toString(),
+      if (lon != null) 'lon': lon.toString(),
+    });
 
-    if (kDebugMode) {
-      debugPrint('Panchang Festivals requesting: $uri');
-    }
+    logApi('Panchang Festivals requesting: $uri');
 
     final response = await http
         .get(uri, headers: ApiConfig.getAuthHeaders(token))
         .timeout(const Duration(seconds: 45));
 
-    if (kDebugMode) {
-      debugPrint('Panchang Festivals GET $uri -> ${response.statusCode}');
-      debugPrint('Response body: ${response.body}');
-    }
+    logApi(
+      'Panchang Festivals GET $uri -> ${response.statusCode}\nResponse body: ${response.body}',
+    );
 
     if (response.statusCode >= 200 && response.statusCode < 300) {
       final body = jsonDecode(response.body);
-      if (kDebugMode) {
-        debugPrint('Parsed festivals response: $body');
-      }
+      logApi('Parsed festivals response: $body');
       if (body is Map<String, dynamic>) {
         return PanchangFestivalsResponse.fromJson(body);
       }
@@ -180,32 +165,27 @@ class PanchangService {
     double? lat,
     double? lon,
   }) async {
-    final uri = _buildUri(
-      ApiConfig.panchangFestivalSearchEndpoint,
-      {
-        'q': query,
-        if (type != null && type.isNotEmpty) 'type': type,
-        if (year != null) 'year': year.toString(),
-        'tz': tz,
-        'locale': locale,
-        'calendar_system': calendarSystem,
-        'profile': profile,
-        if (lat != null) 'lat': lat.toString(),
-        if (lon != null) 'lon': lon.toString(),
-      },
-    );
+    final uri = _buildUri(ApiConfig.panchangFestivalSearchEndpoint, {
+      'q': query,
+      if (type != null && type.isNotEmpty) 'type': type,
+      if (year != null) 'year': year.toString(),
+      'tz': tz,
+      'locale': locale,
+      'calendar_system': calendarSystem,
+      'profile': profile,
+      if (lat != null) 'lat': lat.toString(),
+      if (lon != null) 'lon': lon.toString(),
+    });
 
-    if (kDebugMode) {
-      debugPrint('Panchang Search requesting: $uri');
-    }
+    logApi('Panchang Search requesting: $uri');
 
     final response = await http
         .get(uri, headers: ApiConfig.getAuthHeaders(token))
         .timeout(const Duration(seconds: 20));
 
-    if (kDebugMode) {
-      debugPrint('Panchang Search GET $uri -> ${response.statusCode}');
-    }
+    logApi(
+      'Panchang Search GET $uri -> ${response.statusCode}\nResponse body: ${response.body}',
+    );
 
     if (response.statusCode >= 200 && response.statusCode < 300) {
       final body = jsonDecode(response.body);
@@ -230,31 +210,26 @@ class PanchangService {
     double? lat,
     double? lon,
   }) async {
-    final uri = _buildUri(
-      ApiConfig.panchangHighlightsEndpoint,
-      {
-        'year': year.toString(),
-        'month': month.toString(),
-        'tz': tz,
-        'locale': locale,
-        'calendar_system': calendarSystem,
-        'profile': profile,
-        if (lat != null) 'lat': lat.toString(),
-        if (lon != null) 'lon': lon.toString(),
-      },
-    );
+    final uri = _buildUri(ApiConfig.panchangHighlightsEndpoint, {
+      'year': year.toString(),
+      'month': month.toString(),
+      'tz': tz,
+      'locale': locale,
+      'calendar_system': calendarSystem,
+      'profile': profile,
+      if (lat != null) 'lat': lat.toString(),
+      if (lon != null) 'lon': lon.toString(),
+    });
 
-    if (kDebugMode) {
-      debugPrint('Panchang Highlights requesting: $uri');
-    }
+    logApi('Panchang Highlights requesting: $uri');
 
     final response = await http
         .get(uri, headers: ApiConfig.getAuthHeaders(token))
         .timeout(const Duration(seconds: 20));
 
-    if (kDebugMode) {
-      debugPrint('Panchang Highlights GET $uri -> ${response.statusCode}');
-    }
+    logApi(
+      'Panchang Highlights GET $uri -> ${response.statusCode}\nResponse body: ${response.body}',
+    );
 
     if (response.statusCode >= 200 && response.statusCode < 300) {
       final body = jsonDecode(response.body);
@@ -280,31 +255,26 @@ class PanchangService {
     double? lat,
     double? lon,
   }) async {
-    final uri = _buildUri(
-      ApiConfig.panchangMuhuratsEndpoint,
-      {
-        if (date != null) 'date': date,
-        if (types != null && types.isNotEmpty) 'types': types.join(','),
-        'tz': tz,
-        'locale': locale,
-        'calendar_system': calendarSystem,
-        'profile': profile,
-        if (lat != null) 'lat': lat.toString(),
-        if (lon != null) 'lon': lon.toString(),
-      },
-    );
+    final uri = _buildUri(ApiConfig.panchangMuhuratsEndpoint, {
+      if (date != null) 'date': date,
+      if (types != null && types.isNotEmpty) 'types': types.join(','),
+      'tz': tz,
+      'locale': locale,
+      'calendar_system': calendarSystem,
+      'profile': profile,
+      if (lat != null) 'lat': lat.toString(),
+      if (lon != null) 'lon': lon.toString(),
+    });
 
-    if (kDebugMode) {
-      debugPrint('Panchang Muhurats requesting: $uri');
-    }
+    logApi('Panchang Muhurats requesting: $uri');
 
     final response = await http
         .get(uri, headers: ApiConfig.getAuthHeaders(token))
         .timeout(const Duration(seconds: 20));
 
-    if (kDebugMode) {
-      debugPrint('Panchang Muhurats GET $uri -> ${response.statusCode}');
-    }
+    logApi(
+      'Panchang Muhurats GET $uri -> ${response.statusCode}\nResponse body: ${response.body}',
+    );
 
     if (response.statusCode >= 200 && response.statusCode < 300) {
       final body = jsonDecode(response.body);
@@ -332,32 +302,27 @@ class PanchangService {
     double? lat,
     double? lon,
   }) async {
-    final uri = _buildUri(
-      ApiConfig.panchangVratCalendarEndpoint,
-      {
-        if (days != null) 'days': days.toString(),
-        if (start != null) 'start': start,
-        if (end != null) 'end': end,
-        'tz': tz,
-        'locale': locale,
-        'calendar_system': calendarSystem,
-        'profile': profile,
-        if (lat != null) 'lat': lat.toString(),
-        if (lon != null) 'lon': lon.toString(),
-      },
-    );
+    final uri = _buildUri(ApiConfig.panchangVratCalendarEndpoint, {
+      if (days != null) 'days': days.toString(),
+      if (start != null) 'start': start,
+      if (end != null) 'end': end,
+      'tz': tz,
+      'locale': locale,
+      'calendar_system': calendarSystem,
+      'profile': profile,
+      if (lat != null) 'lat': lat.toString(),
+      if (lon != null) 'lon': lon.toString(),
+    });
 
-    if (kDebugMode) {
-      debugPrint('Panchang Vrat Calendar requesting: $uri');
-    }
+    logApi('Panchang Vrat Calendar requesting: $uri');
 
     final response = await http
         .get(uri, headers: ApiConfig.getAuthHeaders(token))
         .timeout(const Duration(seconds: 20));
 
-    if (kDebugMode) {
-      debugPrint('Panchang Vrat Calendar GET $uri -> ${response.statusCode}');
-    }
+    logApi(
+      'Panchang Vrat Calendar GET $uri -> ${response.statusCode}\nResponse body: ${response.body}',
+    );
 
     if (response.statusCode >= 200 && response.statusCode < 300) {
       final body = jsonDecode(response.body);
@@ -381,30 +346,25 @@ class PanchangService {
     double? lat,
     double? lon,
   }) async {
-    final uri = _buildUri(
-      ApiConfig.panchangGuidanceTodayEndpoint,
-      {
-        if (date != null) 'date': date,
-        'tz': tz,
-        'locale': locale,
-        'calendar_system': calendarSystem,
-        'profile': profile,
-        if (lat != null) 'lat': lat.toString(),
-        if (lon != null) 'lon': lon.toString(),
-      },
-    );
+    final uri = _buildUri(ApiConfig.panchangGuidanceTodayEndpoint, {
+      if (date != null) 'date': date,
+      'tz': tz,
+      'locale': locale,
+      'calendar_system': calendarSystem,
+      'profile': profile,
+      if (lat != null) 'lat': lat.toString(),
+      if (lon != null) 'lon': lon.toString(),
+    });
 
-    if (kDebugMode) {
-      debugPrint('Panchang Guidance Today requesting: $uri');
-    }
+    logApi('Panchang Guidance Today requesting: $uri');
 
     final response = await http
         .get(uri, headers: ApiConfig.getAuthHeaders(token))
         .timeout(const Duration(seconds: 20));
 
-    if (kDebugMode) {
-      debugPrint('Panchang Guidance Today GET $uri -> ${response.statusCode}');
-    }
+    logApi(
+      'Panchang Guidance Today GET $uri -> ${response.statusCode}\nResponse body: ${response.body}',
+    );
 
     if (response.statusCode >= 200 && response.statusCode < 300) {
       final body = jsonDecode(response.body);
@@ -421,19 +381,19 @@ class PanchangService {
   Future<GuidanceProfileResponse> getGuidanceProfile({
     required String token,
   }) async {
-    final uri = Uri.parse('${ApiConfig.panchangBaseUrl}${ApiConfig.panchangGuidanceProfileEndpoint}');
+    final uri = Uri.parse(
+      '${ApiConfig.panchangBaseUrl}${ApiConfig.panchangGuidanceProfileEndpoint}',
+    );
 
-    if (kDebugMode) {
-      debugPrint('Panchang Guidance Profile requesting: $uri');
-    }
+    logApi('Panchang Guidance Profile requesting: $uri');
 
     final response = await http
         .get(uri, headers: ApiConfig.getAuthHeaders(token))
         .timeout(const Duration(seconds: 20));
 
-    if (kDebugMode) {
-      debugPrint('Panchang Guidance Profile GET $uri -> ${response.statusCode}');
-    }
+    logApi(
+      'Panchang Guidance Profile GET $uri -> ${response.statusCode}\nResponse body: ${response.body}',
+    );
 
     if (response.statusCode >= 200 && response.statusCode < 300) {
       final body = jsonDecode(response.body);
@@ -451,12 +411,13 @@ class PanchangService {
     required String token,
     required GuidanceProfileRequest request,
   }) async {
-    final uri = Uri.parse('${ApiConfig.panchangBaseUrl}${ApiConfig.panchangGuidanceProfileEndpoint}');
+    final uri = Uri.parse(
+      '${ApiConfig.panchangBaseUrl}${ApiConfig.panchangGuidanceProfileEndpoint}',
+    );
 
-    if (kDebugMode) {
-      debugPrint('Panchang Guidance Profile saving: $uri');
-      debugPrint('Body: ${jsonEncode(request.toJson())}');
-    }
+    logApi(
+      'Panchang Guidance Profile saving: $uri\nBody: ${jsonEncode(request.toJson())}',
+    );
 
     final response = await http
         .post(
@@ -469,9 +430,9 @@ class PanchangService {
         )
         .timeout(const Duration(seconds: 20));
 
-    if (kDebugMode) {
-      debugPrint('Panchang Guidance Profile POST $uri -> ${response.statusCode}');
-    }
+    logApi(
+      'Panchang Guidance Profile POST $uri -> ${response.statusCode}\nResponse body: ${response.body}',
+    );
 
     if (response.statusCode >= 200 && response.statusCode < 300) {
       final body = jsonDecode(response.body);

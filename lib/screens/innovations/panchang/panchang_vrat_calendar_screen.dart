@@ -1,4 +1,5 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
@@ -27,7 +28,11 @@ class _PanchangVratCalendarScreenState extends State<PanchangVratCalendarScreen>
   DateTimeRange? _lastRange;
   bool _isHindi = false;
 
-  DateTime _focusedMonth = DateTime(DateTime.now().year, DateTime.now().month, 1);
+  DateTime _focusedMonth = DateTime(
+    DateTime.now().year,
+    DateTime.now().month,
+    1,
+  );
   DateTime? _selectedDate;
 
   // Caches (performance)
@@ -79,7 +84,8 @@ class _PanchangVratCalendarScreenState extends State<PanchangVratCalendarScreen>
     return BlocProvider.value(
       value: _cubit,
       child: Scaffold(
-        backgroundColor: isDark ? const Color(0xFF070C08) : const Color(0xFFF4F8F4),
+        backgroundColor:
+            isDark ? const Color(0xFF070C08) : const Color(0xFFF4F8F4),
         body: BlocConsumer<PanchangVratCubit, PanchangVratState>(
           listener: (context, state) {
             if (state is PanchangVratSuccess) {
@@ -137,7 +143,8 @@ class _PanchangVratCalendarScreenState extends State<PanchangVratCalendarScreen>
         background: LayoutBuilder(
           builder: (context, constraints) {
             final maxH = constraints.maxHeight;
-            final t = ((maxH - kToolbarHeight) / (expandedHeight - kToolbarHeight))
+            final t = ((maxH - kToolbarHeight) /
+                    (expandedHeight - kToolbarHeight))
                 .clamp(0.0, 1.0);
             final showSubtitle = t > 0.55;
             final showStats = t > 0.70;
@@ -205,8 +212,10 @@ class _PanchangVratCalendarScreenState extends State<PanchangVratCalendarScreen>
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
-                                    Text(
-                                      _isHindi ? 'व्रत कैलेंडर' : 'Vrat Calendar',
+                                    AutoSizeText(
+                                      _isHindi
+                                          ? 'व्रत कैलेंडर'
+                                          : 'Vrat Calendar',
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
                                       style: const TextStyle(
@@ -216,13 +225,16 @@ class _PanchangVratCalendarScreenState extends State<PanchangVratCalendarScreen>
                                         letterSpacing: -0.5,
                                       ),
                                     ),
-                                    if (showSubtitle && state is PanchangVratSuccess)
-                                      Text(
+                                    if (showSubtitle &&
+                                        state is PanchangVratSuccess)
+                                      AutoSizeText(
                                         _getRangeSubtitle(state.calendar),
                                         maxLines: 1,
                                         overflow: TextOverflow.ellipsis,
                                         style: TextStyle(
-                                          color: Colors.white.withValues(alpha: 0.85),
+                                          color: Colors.white.withValues(
+                                            alpha: 0.85,
+                                          ),
                                           fontSize: 13,
                                           fontWeight: FontWeight.w500,
                                         ),
@@ -262,7 +274,7 @@ class _PanchangVratCalendarScreenState extends State<PanchangVratCalendarScreen>
             borderRadius: BorderRadius.circular(8),
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-              child: Text(
+              child: AutoSizeText(
                 _isHindi ? 'अ' : 'EN',
                 style: const TextStyle(
                   color: Colors.white,
@@ -335,7 +347,7 @@ class _PanchangVratCalendarScreenState extends State<PanchangVratCalendarScreen>
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text(
+              AutoSizeText(
                 label,
                 style: const TextStyle(
                   color: Colors.white,
@@ -343,7 +355,7 @@ class _PanchangVratCalendarScreenState extends State<PanchangVratCalendarScreen>
                   fontWeight: FontWeight.w800,
                 ),
               ),
-              Text(
+              AutoSizeText(
                 subtitle,
                 style: TextStyle(
                   color: Colors.white.withValues(alpha: 0.7),
@@ -369,17 +381,20 @@ class _PanchangVratCalendarScreenState extends State<PanchangVratCalendarScreen>
 
   List<Widget> _buildSuccessContent(PanchangVratSuccess state, bool isDark) {
     final selectedDate = _selectedDate;
-    final selectedKey = selectedDate == null ? null : _formatDateKey(selectedDate);
+    final selectedKey =
+        selectedDate == null ? null : _formatDateKey(selectedDate);
     final filteredItems = _getFilteredItems(state);
-    final itemsByDate = _getItemsByDate(filteredItems, state.selectedImportance);
-    final items = selectedKey == null
-      ? filteredItems
-      : (itemsByDate[selectedKey] ?? const <VratItem>[]);
+    final itemsByDate = _getItemsByDate(
+      filteredItems,
+      state.selectedImportance,
+    );
+    final items =
+        selectedKey == null
+            ? filteredItems
+            : (itemsByDate[selectedKey] ?? const <VratItem>[]);
 
     return [
-      SliverToBoxAdapter(
-        child: _buildFilters(state, isDark),
-      ),
+      SliverToBoxAdapter(child: _buildFilters(state, isDark)),
       if (selectedDate != null)
         SliverToBoxAdapter(
           child: Padding(
@@ -397,27 +412,27 @@ class _PanchangVratCalendarScreenState extends State<PanchangVratCalendarScreen>
         SliverPadding(
           padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
           sliver: SliverList(
-            delegate: SliverChildBuilderDelegate(
-              (context, index) {
-                return AnimatedBuilder(
-                  animation: _animController,
-                  builder: (context, child) {
-                    final delay = (index * 0.1).clamp(0.0, 0.5);
-                    final animValue = Curves.easeOutCubic.transform(
-                      ((_animController.value - delay) / (1 - delay)).clamp(0.0, 1.0),
-                    );
-                    return Transform.translate(
-                      offset: Offset(0, 30 * (1 - animValue)),
-                      child: Opacity(
-                        opacity: animValue,
-                        child: _buildVratCard(items[index], isDark, index),
-                      ),
-                    );
-                  },
-                );
-              },
-              childCount: items.length,
-            ),
+            delegate: SliverChildBuilderDelegate((context, index) {
+              return AnimatedBuilder(
+                animation: _animController,
+                builder: (context, child) {
+                  final delay = (index * 0.1).clamp(0.0, 0.5);
+                  final animValue = Curves.easeOutCubic.transform(
+                    ((_animController.value - delay) / (1 - delay)).clamp(
+                      0.0,
+                      1.0,
+                    ),
+                  );
+                  return Transform.translate(
+                    offset: Offset(0, 30 * (1 - animValue)),
+                    child: Opacity(
+                      opacity: animValue,
+                      child: _buildVratCard(items[index], isDark, index),
+                    ),
+                  );
+                },
+              );
+            }, childCount: items.length),
           ),
         ),
     ];
@@ -442,9 +457,10 @@ class _PanchangVratCalendarScreenState extends State<PanchangVratCalendarScreen>
             child: Row(
               children: [
                 Expanded(
-                  child: next == null
-                      ? _buildTodayHint(isDark)
-                      : _buildNextUpcomingCard(next: next, isDark: isDark),
+                  child:
+                      next == null
+                          ? _buildTodayHint(isDark)
+                          : _buildNextUpcomingCard(next: next, isDark: isDark),
                 ),
                 const SizedBox(width: 12),
                 _buildTodayJumpButton(isDark),
@@ -463,9 +479,10 @@ class _PanchangVratCalendarScreenState extends State<PanchangVratCalendarScreen>
         color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.white,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: isDark
-              ? Colors.white.withValues(alpha: 0.08)
-              : Colors.black.withValues(alpha: 0.05),
+          color:
+              isDark
+                  ? Colors.white.withValues(alpha: 0.08)
+                  : Colors.black.withValues(alpha: 0.05),
         ),
       ),
       child: Row(
@@ -477,7 +494,7 @@ class _PanchangVratCalendarScreenState extends State<PanchangVratCalendarScreen>
           ),
           const SizedBox(width: 10),
           Expanded(
-            child: Text(
+            child: AutoSizeText(
               _isHindi ? 'दिन चुनें — व्रत देखें' : 'Pick a day to see vrats',
               style: TextStyle(
                 color: isDark ? Colors.white70 : Colors.black54,
@@ -529,9 +546,13 @@ class _PanchangVratCalendarScreenState extends State<PanchangVratCalendarScreen>
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.my_location_rounded, size: 18, color: Colors.white),
+            const Icon(
+              Icons.my_location_rounded,
+              size: 18,
+              color: Colors.white,
+            ),
             const SizedBox(width: 8),
-            Text(
+            AutoSizeText(
               _isHindi ? 'आज' : 'Today',
               style: const TextStyle(
                 color: Colors.white,
@@ -545,7 +566,10 @@ class _PanchangVratCalendarScreenState extends State<PanchangVratCalendarScreen>
     );
   }
 
-  Widget _buildNextUpcomingCard({required VratItem next, required bool isDark}) {
+  Widget _buildNextUpcomingCard({
+    required VratItem next,
+    required bool isDark,
+  }) {
     final date = next.dateTime;
     final dateLabel = DateFormat('EEE, d MMM').format(date);
 
@@ -564,9 +588,10 @@ class _PanchangVratCalendarScreenState extends State<PanchangVratCalendarScreen>
           color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.white,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: isDark
-                ? Colors.white.withValues(alpha: 0.08)
-                : Colors.black.withValues(alpha: 0.05),
+            color:
+                isDark
+                    ? Colors.white.withValues(alpha: 0.08)
+                    : Colors.black.withValues(alpha: 0.05),
           ),
         ),
         child: Row(
@@ -585,7 +610,7 @@ class _PanchangVratCalendarScreenState extends State<PanchangVratCalendarScreen>
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text(
+                  AutoSizeText(
                     _isHindi ? 'अगला व्रत' : 'Next Vrat',
                     style: TextStyle(
                       fontSize: 11,
@@ -595,7 +620,7 @@ class _PanchangVratCalendarScreenState extends State<PanchangVratCalendarScreen>
                     ),
                   ),
                   const SizedBox(height: 2),
-                  Text(
+                  AutoSizeText(
                     _getVratName(next),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
@@ -609,7 +634,7 @@ class _PanchangVratCalendarScreenState extends State<PanchangVratCalendarScreen>
               ),
             ),
             const SizedBox(width: 10),
-            Text(
+            AutoSizeText(
               dateLabel,
               style: TextStyle(
                 fontSize: 12,
@@ -641,19 +666,21 @@ class _PanchangVratCalendarScreenState extends State<PanchangVratCalendarScreen>
         color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.white,
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: isDark
-              ? Colors.white.withValues(alpha: 0.08)
-              : Colors.black.withValues(alpha: 0.05),
+          color:
+              isDark
+                  ? Colors.white.withValues(alpha: 0.08)
+                  : Colors.black.withValues(alpha: 0.05),
         ),
-        boxShadow: isDark
-            ? null
-            : [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.04),
-                  blurRadius: 14,
-                  offset: const Offset(0, 6),
-                ),
-              ],
+        boxShadow:
+            isDark
+                ? null
+                : [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.04),
+                    blurRadius: 14,
+                    offset: const Offset(0, 6),
+                  ),
+                ],
       ),
       child: Padding(
         padding: const EdgeInsets.all(14),
@@ -665,7 +692,11 @@ class _PanchangVratCalendarScreenState extends State<PanchangVratCalendarScreen>
                   onPressed: () {
                     HapticFeedback.selectionClick();
                     setState(() {
-                      _focusedMonth = DateTime(_focusedMonth.year, _focusedMonth.month - 1, 1);
+                      _focusedMonth = DateTime(
+                        _focusedMonth.year,
+                        _focusedMonth.month - 1,
+                        1,
+                      );
                     });
                   },
                   icon: Icon(
@@ -674,7 +705,7 @@ class _PanchangVratCalendarScreenState extends State<PanchangVratCalendarScreen>
                   ),
                 ),
                 Expanded(
-                  child: Text(
+                  child: AutoSizeText(
                     monthLabel,
                     textAlign: TextAlign.center,
                     style: TextStyle(
@@ -689,7 +720,11 @@ class _PanchangVratCalendarScreenState extends State<PanchangVratCalendarScreen>
                   onPressed: () {
                     HapticFeedback.selectionClick();
                     setState(() {
-                      _focusedMonth = DateTime(_focusedMonth.year, _focusedMonth.month + 1, 1);
+                      _focusedMonth = DateTime(
+                        _focusedMonth.year,
+                        _focusedMonth.month + 1,
+                        1,
+                      );
                     });
                   },
                   icon: Icon(
@@ -738,26 +773,29 @@ class _PanchangVratCalendarScreenState extends State<PanchangVratCalendarScreen>
                   child: Container(
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(14),
-                      gradient: isSelected
-                          ? const LinearGradient(
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                              colors: [_gradientStart, _gradientEnd],
-                            )
-                          : null,
-                      color: !isSelected
-                          ? (isDark
-                              ? Colors.white.withValues(alpha: 0.03)
-                              : const Color(0xFFF4F8F4))
-                          : null,
+                      gradient:
+                          isSelected
+                              ? const LinearGradient(
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                                colors: [_gradientStart, _gradientEnd],
+                              )
+                              : null,
+                      color:
+                          !isSelected
+                              ? (isDark
+                                  ? Colors.white.withValues(alpha: 0.03)
+                                  : const Color(0xFFF4F8F4))
+                              : null,
                       border: Border.all(
-                        color: isToday
-                            ? (isSelected
-                                ? Colors.white.withValues(alpha: 0.65)
-                                : _gradientStart.withValues(alpha: 0.55))
-                            : (isDark
-                                ? Colors.white.withValues(alpha: 0.06)
-                                : Colors.black.withValues(alpha: 0.04)),
+                        color:
+                            isToday
+                                ? (isSelected
+                                    ? Colors.white.withValues(alpha: 0.65)
+                                    : _gradientStart.withValues(alpha: 0.55))
+                                : (isDark
+                                    ? Colors.white.withValues(alpha: 0.06)
+                                    : Colors.black.withValues(alpha: 0.04)),
                         width: isToday ? 1.4 : 1,
                       ),
                     ),
@@ -766,14 +804,17 @@ class _PanchangVratCalendarScreenState extends State<PanchangVratCalendarScreen>
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Text(
+                          AutoSizeText(
                             '${day.day}',
                             style: TextStyle(
                               fontSize: 13,
                               fontWeight: FontWeight.w900,
-                              color: isSelected
-                                  ? Colors.white
-                                  : (isDark ? Colors.white70 : const Color(0xFF0D150E)),
+                              color:
+                                  isSelected
+                                      ? Colors.white
+                                      : (isDark
+                                          ? Colors.white70
+                                          : const Color(0xFF0D150E)),
                             ),
                           ),
                           const SizedBox(height: 4),
@@ -785,7 +826,10 @@ class _PanchangVratCalendarScreenState extends State<PanchangVratCalendarScreen>
                                   width: 6,
                                   height: 6,
                                   decoration: BoxDecoration(
-                                    color: isSelected ? Colors.white : AppColors.warning,
+                                    color:
+                                        isSelected
+                                            ? Colors.white
+                                            : AppColors.warning,
                                     shape: BoxShape.circle,
                                   ),
                                 ),
@@ -810,7 +854,7 @@ class _PanchangVratCalendarScreenState extends State<PanchangVratCalendarScreen>
       children: List.generate(7, (i) {
         return Expanded(
           child: Center(
-            child: Text(
+            child: AutoSizeText(
               labels[i],
               style: TextStyle(
                 fontSize: 11,
@@ -837,9 +881,10 @@ class _PanchangVratCalendarScreenState extends State<PanchangVratCalendarScreen>
         color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.white,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: isDark
-              ? Colors.white.withValues(alpha: 0.08)
-              : Colors.black.withValues(alpha: 0.05),
+          color:
+              isDark
+                  ? Colors.white.withValues(alpha: 0.08)
+                  : Colors.black.withValues(alpha: 0.05),
         ),
       ),
       child: Row(
@@ -849,7 +894,7 @@ class _PanchangVratCalendarScreenState extends State<PanchangVratCalendarScreen>
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text(
+                AutoSizeText(
                   _isHindi ? 'चुनी हुई तिथि' : 'Selected date',
                   style: TextStyle(
                     fontSize: 11,
@@ -858,7 +903,7 @@ class _PanchangVratCalendarScreenState extends State<PanchangVratCalendarScreen>
                   ),
                 ),
                 const SizedBox(height: 2),
-                Text(
+                AutoSizeText(
                   label,
                   style: TextStyle(
                     fontSize: 14,
@@ -876,7 +921,7 @@ class _PanchangVratCalendarScreenState extends State<PanchangVratCalendarScreen>
               color: AppColors.warning.withValues(alpha: isDark ? 0.15 : 0.10),
               borderRadius: BorderRadius.circular(10),
             ),
-            child: Text(
+            child: AutoSizeText(
               _isHindi ? '$vratCount व्रत' : '$vratCount vrats',
               style: TextStyle(
                 fontSize: 12,
@@ -895,7 +940,10 @@ class _PanchangVratCalendarScreenState extends State<PanchangVratCalendarScreen>
             child: Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: isDark ? Colors.white.withValues(alpha: 0.06) : const Color(0xFFF4F8F4),
+                color:
+                    isDark
+                        ? Colors.white.withValues(alpha: 0.06)
+                        : const Color(0xFFF4F8F4),
                 borderRadius: BorderRadius.circular(10),
               ),
               child: Icon(
@@ -910,7 +958,6 @@ class _PanchangVratCalendarScreenState extends State<PanchangVratCalendarScreen>
     );
   }
 
-
   Widget _buildFilters(PanchangVratSuccess state, bool isDark) {
     return Container(
       margin: const EdgeInsets.fromLTRB(16, 16, 16, 16),
@@ -918,15 +965,16 @@ class _PanchangVratCalendarScreenState extends State<PanchangVratCalendarScreen>
       decoration: BoxDecoration(
         color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.white,
         borderRadius: BorderRadius.circular(16),
-        boxShadow: isDark
-            ? null
-            : [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.04),
-                  blurRadius: 10,
-                  offset: const Offset(0, 2),
-                ),
-              ],
+        boxShadow:
+            isDark
+                ? null
+                : [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.04),
+                    blurRadius: 10,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
       ),
       child: Row(
         children: [
@@ -995,19 +1043,21 @@ class _PanchangVratCalendarScreenState extends State<PanchangVratCalendarScreen>
               Icon(
                 icon,
                 size: 20,
-                color: selected
-                    ? Colors.white
-                    : (isDark ? Colors.white54 : Colors.black45),
+                color:
+                    selected
+                        ? Colors.white
+                        : (isDark ? Colors.white54 : Colors.black45),
               ),
               const SizedBox(height: 4),
-              Text(
+              AutoSizeText(
                 label,
                 style: TextStyle(
                   fontSize: 12,
                   fontWeight: selected ? FontWeight.w700 : FontWeight.w600,
-                  color: selected
-                      ? Colors.white
-                      : (isDark ? Colors.white54 : Colors.black54),
+                  color:
+                      selected
+                          ? Colors.white
+                          : (isDark ? Colors.white54 : Colors.black54),
                 ),
               ),
             ],
@@ -1082,11 +1132,15 @@ class _PanchangVratCalendarScreenState extends State<PanchangVratCalendarScreen>
                         if (daysUntil >= 0 && daysUntil <= 30)
                           _buildCountdownBadge(daysUntil, isDark),
                         const Spacer(),
-                        _buildImportanceBadge(vrat.importanceLower, importanceColor, isDark),
+                        _buildImportanceBadge(
+                          vrat.importanceLower,
+                          importanceColor,
+                          isDark,
+                        ),
                       ],
                     ),
                     const SizedBox(height: 14),
-                    Text(
+                    AutoSizeText(
                       _getVratName(vrat),
                       style: TextStyle(
                         fontSize: 18,
@@ -1097,7 +1151,7 @@ class _PanchangVratCalendarScreenState extends State<PanchangVratCalendarScreen>
                     ),
                     if (details != null) ...[
                       const SizedBox(height: 6),
-                      Text(
+                      AutoSizeText(
                         _metaLine(details),
                         style: TextStyle(
                           fontSize: 13,
@@ -1108,13 +1162,13 @@ class _PanchangVratCalendarScreenState extends State<PanchangVratCalendarScreen>
                     ],
                     if (_getDescription(vrat.info).isNotEmpty) ...[
                       const SizedBox(height: 10),
-                      Text(
+                      AutoSizeText(
                         _getDescription(vrat.info),
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
                           fontSize: 14,
-                          height: 1.4,
+
                           color: isDark ? Colors.white70 : Colors.black54,
                         ),
                       ),
@@ -1171,9 +1225,7 @@ class _PanchangVratCalendarScreenState extends State<PanchangVratCalendarScreen>
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [color, color.withValues(alpha: 0.8)],
-        ),
+        gradient: LinearGradient(colors: [color, color.withValues(alpha: 0.8)]),
         borderRadius: BorderRadius.circular(10),
         boxShadow: [
           BoxShadow(
@@ -1186,7 +1238,7 @@ class _PanchangVratCalendarScreenState extends State<PanchangVratCalendarScreen>
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text(
+          AutoSizeText(
             DateFormat('d').format(date),
             style: const TextStyle(
               color: Colors.white,
@@ -1195,12 +1247,12 @@ class _PanchangVratCalendarScreenState extends State<PanchangVratCalendarScreen>
               height: 1,
             ),
           ),
-          Text(
+          AutoSizeText(
             isToday
                 ? (_isHindi ? 'आज' : 'TODAY')
                 : isTomorrow
-                    ? (_isHindi ? 'कल' : 'TMRW')
-                    : DateFormat('MMM').format(date).toUpperCase(),
+                ? (_isHindi ? 'कल' : 'TMRW')
+                : DateFormat('MMM').format(date).toUpperCase(),
             style: TextStyle(
               color: Colors.white.withValues(alpha: 0.9),
               fontSize: 10,
@@ -1238,7 +1290,7 @@ class _PanchangVratCalendarScreenState extends State<PanchangVratCalendarScreen>
         borderRadius: BorderRadius.circular(8),
         border: Border.all(color: bgColor.withValues(alpha: 0.4)),
       ),
-      child: Text(
+      child: AutoSizeText(
         text,
         style: TextStyle(
           fontSize: 11,
@@ -1257,7 +1309,7 @@ class _PanchangVratCalendarScreenState extends State<PanchangVratCalendarScreen>
         borderRadius: BorderRadius.circular(8),
         border: Border.all(color: color.withValues(alpha: 0.4)),
       ),
-      child: Text(
+      child: AutoSizeText(
         importance.toUpperCase(),
         style: TextStyle(
           fontSize: 10,
@@ -1287,7 +1339,7 @@ class _PanchangVratCalendarScreenState extends State<PanchangVratCalendarScreen>
         children: [
           Icon(icon, size: 14, color: color),
           const SizedBox(width: 6),
-          Text(
+          AutoSizeText(
             value,
             style: TextStyle(
               fontSize: 12,
@@ -1318,7 +1370,7 @@ class _PanchangVratCalendarScreenState extends State<PanchangVratCalendarScreen>
             ),
           ),
           const SizedBox(height: 20),
-          Text(
+          AutoSizeText(
             _isHindi ? 'कोई व्रत नहीं मिला' : 'No Vrats Found',
             style: TextStyle(
               fontSize: 20,
@@ -1327,8 +1379,10 @@ class _PanchangVratCalendarScreenState extends State<PanchangVratCalendarScreen>
             ),
           ),
           const SizedBox(height: 8),
-          Text(
-            _isHindi ? 'फ़िल्टर या तिथि सीमा बदलें' : 'Try adjusting your filters or date range',
+          AutoSizeText(
+            _isHindi
+                ? 'फ़िल्टर या तिथि सीमा बदलें'
+                : 'Try adjusting your filters or date range',
             style: TextStyle(
               fontSize: 14,
               color: isDark ? Colors.white54 : AppColors.textSecondary,
@@ -1338,10 +1392,8 @@ class _PanchangVratCalendarScreenState extends State<PanchangVratCalendarScreen>
           TextButton.icon(
             onPressed: () => _loadNextDays(90),
             icon: const Icon(Icons.refresh_rounded),
-            label: Text(_isHindi ? 'रीसेट करें' : 'Reset Filters'),
-            style: TextButton.styleFrom(
-              foregroundColor: _gradientStart,
-            ),
+            label: AutoSizeText(_isHindi ? 'रीसेट करें' : 'Reset Filters'),
+            style: TextButton.styleFrom(foregroundColor: _gradientStart),
           ),
         ],
       ),
@@ -1381,9 +1433,14 @@ class _PanchangVratCalendarScreenState extends State<PanchangVratCalendarScreen>
                   gradient: LinearGradient(
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
-                    colors: [importanceColor, importanceColor.withValues(alpha: 0.7)],
+                    colors: [
+                      importanceColor,
+                      importanceColor.withValues(alpha: 0.7),
+                    ],
                   ),
-                  borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+                  borderRadius: const BorderRadius.vertical(
+                    top: Radius.circular(28),
+                  ),
                 ),
                 padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
                 child: Column(
@@ -1416,7 +1473,7 @@ class _PanchangVratCalendarScreenState extends State<PanchangVratCalendarScreen>
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(
+                              AutoSizeText(
                                 _getVratName(vrat),
                                 style: const TextStyle(
                                   color: Colors.white,
@@ -1425,8 +1482,10 @@ class _PanchangVratCalendarScreenState extends State<PanchangVratCalendarScreen>
                                 ),
                               ),
                               const SizedBox(height: 4),
-                              Text(
-                                DateFormat('EEEE, MMMM d, y').format(vrat.dateTime),
+                              AutoSizeText(
+                                DateFormat(
+                                  'EEEE, MMMM d, y',
+                                ).format(vrat.dateTime),
                                 style: TextStyle(
                                   color: Colors.white.withValues(alpha: 0.85),
                                   fontSize: 13,
@@ -1442,11 +1501,17 @@ class _PanchangVratCalendarScreenState extends State<PanchangVratCalendarScreen>
                       const SizedBox(height: 16),
                       Row(
                         children: [
-                          _sheetTimingChip(Icons.wb_sunny_rounded, 'Sunrise',
-                              _formatTime(details.sunrise)),
+                          _sheetTimingChip(
+                            Icons.wb_sunny_rounded,
+                            'Sunrise',
+                            _formatTime(details.sunrise),
+                          ),
                           const SizedBox(width: 10),
-                          _sheetTimingChip(Icons.nightlight_round, 'Sunset',
-                              _formatTime(details.sunset)),
+                          _sheetTimingChip(
+                            Icons.nightlight_round,
+                            'Sunset',
+                            _formatTime(details.sunset),
+                          ),
                         ],
                       ),
                     ],
@@ -1508,7 +1573,8 @@ class _PanchangVratCalendarScreenState extends State<PanchangVratCalendarScreen>
                     if (_getAllowedList(observance).isNotEmpty) ...[
                       _buildListCard(
                         icon: Icons.check_circle_outline_rounded,
-                        title: _isHindi ? 'क्या कर सकते हैं' : 'What\'s Allowed',
+                        title:
+                            _isHindi ? 'क्या कर सकते हैं' : 'What\'s Allowed',
                         items: _getAllowedList(observance),
                         color: AppColors.success,
                         isDark: isDark,
@@ -1549,7 +1615,7 @@ class _PanchangVratCalendarScreenState extends State<PanchangVratCalendarScreen>
           children: [
             Icon(icon, color: Colors.white, size: 18),
             const SizedBox(width: 8),
-            Text(
+            AutoSizeText(
               value,
               style: const TextStyle(
                 color: Colors.white,
@@ -1575,10 +1641,16 @@ class _PanchangVratCalendarScreenState extends State<PanchangVratCalendarScreen>
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: isDark ? Colors.white.withValues(alpha: 0.05) : const Color(0xFFF4F8F4),
+        color:
+            isDark
+                ? Colors.white.withValues(alpha: 0.05)
+                : const Color(0xFFF4F8F4),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: isDark ? Colors.white.withValues(alpha: 0.08) : Colors.black.withValues(alpha: 0.04),
+          color:
+              isDark
+                  ? Colors.white.withValues(alpha: 0.08)
+                  : Colors.black.withValues(alpha: 0.04),
         ),
       ),
       child: Column(
@@ -1595,7 +1667,7 @@ class _PanchangVratCalendarScreenState extends State<PanchangVratCalendarScreen>
                 child: Icon(icon, color: color, size: 18),
               ),
               const SizedBox(width: 12),
-              Text(
+              AutoSizeText(
                 title,
                 style: TextStyle(
                   fontSize: 15,
@@ -1606,11 +1678,11 @@ class _PanchangVratCalendarScreenState extends State<PanchangVratCalendarScreen>
             ],
           ),
           const SizedBox(height: 12),
-          Text(
+          AutoSizeText(
             content,
             style: TextStyle(
               fontSize: 14,
-              height: 1.5,
+
               color: isDark ? Colors.white70 : Colors.black54,
             ),
           ),
@@ -1629,10 +1701,16 @@ class _PanchangVratCalendarScreenState extends State<PanchangVratCalendarScreen>
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: isDark ? Colors.white.withValues(alpha: 0.05) : const Color(0xFFF4F8F4),
+        color:
+            isDark
+                ? Colors.white.withValues(alpha: 0.05)
+                : const Color(0xFFF4F8F4),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: isDark ? Colors.white.withValues(alpha: 0.08) : Colors.black.withValues(alpha: 0.04),
+          color:
+              isDark
+                  ? Colors.white.withValues(alpha: 0.08)
+                  : Colors.black.withValues(alpha: 0.04),
         ),
       ),
       child: Column(
@@ -1649,7 +1727,7 @@ class _PanchangVratCalendarScreenState extends State<PanchangVratCalendarScreen>
                 child: Icon(icon, color: color, size: 18),
               ),
               const SizedBox(width: 12),
-              Text(
+              AutoSizeText(
                 title,
                 style: TextStyle(
                   fontSize: 15,
@@ -1677,11 +1755,11 @@ class _PanchangVratCalendarScreenState extends State<PanchangVratCalendarScreen>
                   ),
                   const SizedBox(width: 10),
                   Expanded(
-                    child: Text(
+                    child: AutoSizeText(
                       item,
                       style: TextStyle(
                         fontSize: 14,
-                        height: 1.4,
+
                         color: isDark ? Colors.white70 : Colors.black54,
                       ),
                     ),
@@ -1772,13 +1850,17 @@ class _PanchangVratCalendarScreenState extends State<PanchangVratCalendarScreen>
 
   DateTime _ensureMonthGridCache() {
     final monthStart = DateTime(_focusedMonth.year, _focusedMonth.month, 1);
-    if (_cachedMonthDays.isNotEmpty && _isSameDate(_cachedMonthStart, monthStart)) {
+    if (_cachedMonthDays.isNotEmpty &&
+        _isSameDate(_cachedMonthStart, monthStart)) {
       return monthStart;
     }
 
     final startWeekday = monthStart.weekday; // Mon=1..Sun=7
     final gridStart = monthStart.subtract(Duration(days: startWeekday - 1));
-    final days = List<DateTime>.generate(42, (i) => gridStart.add(Duration(days: i)));
+    final days = List<DateTime>.generate(
+      42,
+      (i) => gridStart.add(Duration(days: i)),
+    );
     final keys = List<String>.generate(42, (i) => _formatDateKey(days[i]));
 
     _cachedMonthStart = monthStart;
@@ -1858,9 +1940,10 @@ class _PanchangVratCalendarScreenState extends State<PanchangVratCalendarScreen>
       final todayKey = _formatDateKey(today);
       final hasToday = calendar.items.any((e) => e.date == todayKey);
       setState(() {
-        final selected = hasToday
-            ? DateTime(today.year, today.month, today.day)
-            : calendar.items.first.dateTime;
+        final selected =
+            hasToday
+                ? DateTime(today.year, today.month, today.day)
+                : calendar.items.first.dateTime;
         _selectedDate = selected;
         final d = selected;
         _focusedMonth = DateTime(d.year, d.month, 1);
@@ -1925,7 +2008,8 @@ class _PanchangVratCalendarScreenState extends State<PanchangVratCalendarScreen>
 
   String _metaLine(VratDetails details) {
     final parts = <String>[];
-    if ((details.paksha ?? '').isNotEmpty) parts.add('${details.paksha} Paksha');
+    if ((details.paksha ?? '').isNotEmpty)
+      parts.add('${details.paksha} Paksha');
     if ((details.masa ?? '').isNotEmpty) parts.add(details.masa ?? '');
     if ((details.tithi ?? '').isNotEmpty) parts.add(details.tithi ?? '');
     return parts.join(' • ');
@@ -1969,13 +2053,15 @@ class _PanchangVratCalendarScreenState extends State<PanchangVratCalendarScreen>
 
   List<String> _getAllowedList(VratObservance? observance) {
     if (observance == null) return [];
-    if (_isHindi && observance.allowedHi.isNotEmpty) return observance.allowedHi;
+    if (_isHindi && observance.allowedHi.isNotEmpty)
+      return observance.allowedHi;
     return observance.allowedEn;
   }
 
   String _getParanNotes(VratParanRules? rules) {
     if (rules == null) return '';
-    if (_isHindi && (rules.notesHi ?? '').isNotEmpty) return rules.notesHi ?? '';
+    if (_isHindi && (rules.notesHi ?? '').isNotEmpty)
+      return rules.notesHi ?? '';
     return rules.notesEn ?? '';
   }
 }
@@ -1989,8 +2075,8 @@ class _PinnedHeaderDelegate extends SliverPersistentHeaderDelegate {
     required double minExtent,
     required double maxExtent,
     required this.child,
-  })  : _minExtent = minExtent,
-        _maxExtent = maxExtent;
+  }) : _minExtent = minExtent,
+       _maxExtent = maxExtent;
 
   @override
   double get minExtent => _minExtent;
@@ -2014,4 +2100,3 @@ class _PinnedHeaderDelegate extends SliverPersistentHeaderDelegate {
         child != oldDelegate.child;
   }
 }
-

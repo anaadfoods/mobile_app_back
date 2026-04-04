@@ -487,8 +487,8 @@ class OrderModel {
   final String shippingPincode;
   final String shippingPhone;
   final String shippingName;
-  final double deliveryFee;
-  final String expectedDeliveryDate;
+  // final double deliveryFee;
+  // final String expectedDeliveryDate;
   final List<OrderItem> items;
   final String? notes;
   final String? status;
@@ -506,8 +506,8 @@ class OrderModel {
     required this.items,
     this.notes,
     this.status,
-    required this.expectedDeliveryDate, // Use 'this.'
-    required this.deliveryFee,
+    // required this.expectedDeliveryDate, // Use 'this.'
+    // required this.deliveryFee,
   });
 
   Map<String, dynamic> toJson() {
@@ -519,8 +519,8 @@ class OrderModel {
       'delivery_pincode': shippingPincode,
       'delivery_phone': shippingPhone,
       'recipient_name': shippingName,
-      'delivery_fee': deliveryFee,
-      'expected_delivery_date': expectedDeliveryDate,
+      // 'delivery_fee': deliveryFee,
+      // 'expected_delivery_date': expectedDeliveryDate,
       'items': items.map((item) => item.toJson()).toList(),
       'notes': notes,
     };
@@ -547,10 +547,10 @@ class OrderModel {
           [],
       notes: orderData['notes'],
       status: orderData['status'],
-      expectedDeliveryDate: orderData['expected_delivery_date'],
-      deliveryFee:
-          double.tryParse(orderData['delivery_fee']?.toString() ?? '0.0') ??
-          0.0,
+      // expectedDeliveryDate: orderData['expected_delivery_date'],
+      // deliveryFee:
+      //     double.tryParse(orderData['delivery_fee']?.toString() ?? '0.0') ??
+      //     0.0,
     );
   }
 
@@ -558,8 +558,8 @@ class OrderModel {
   factory OrderModel.fromShippingDetails({
     required String paymentMethod,
     required ShippingDetails shippingDetails,
-    required String expectedDeliveryDate,
-    required double deliveryFee,
+    // required String expectedDeliveryDate,
+    // required double deliveryFee,
     required List<OrderItem> items,
     String? notes,
   }) {
@@ -571,8 +571,8 @@ class OrderModel {
       shippingPincode: shippingDetails.pincode,
       shippingPhone: shippingDetails.phone,
       shippingName: shippingDetails.name,
-      expectedDeliveryDate: expectedDeliveryDate,
-      deliveryFee: deliveryFee,
+      // expectedDeliveryDate: expectedDeliveryDate,
+      // deliveryFee: deliveryFee,
       items: items,
       notes: notes,
     );

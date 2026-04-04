@@ -129,8 +129,18 @@ class SubscriptionRepository {
         final result = await _subscriptionService.getSubscriptions();
         
         if (result['success'] == true && result['data'] != null) {
-          // The error is likely happening inside this line as it tries to parse
-          return result['data'] as List<Subscription>;
+          final subscriptions = result['data'] as List<Subscription>;
+          
+          // Filter out UPI subscriptions that have failed or are still pending payment
+          return subscriptions.where((sub) {
+            if (sub.paymentMethod.toUpperCase() == 'UPI') {
+              final status = sub.paymentStatus.toUpperCase();
+              if (status == 'PAYMENT_PENDING' || status == 'PENDING' || status == 'FAILED') {
+                return false;
+              }
+            }
+            return true;
+          }).toList();
         } else {
           throw SubscriptionException(result['message'] ?? 'Failed to get subscriptions from service.');
         }

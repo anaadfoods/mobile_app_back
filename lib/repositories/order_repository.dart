@@ -42,10 +42,20 @@ class OrderRepository {
     }
   }
 
-  /// Fetches a list of orders. Correctly returns `List<Order>`.
   Future<List<Order>> getOrders() async {
     // The service method returns List<Order>, which is what we need.
-    return _makeAuthenticatedRequest(() => _orderService.getOrders());
+    final orders = await _makeAuthenticatedRequest(() => _orderService.getOrders());
+
+    // Filter out UPI orders that have failed or are still pending payment
+    return orders.where((order) {
+      if (order.paymentMethod.toUpperCase() == 'UPI') {
+        final status = order.paymentStatus.toUpperCase();
+        if (status == 'PAYMENT_PENDING' || status == 'PENDING' || status == 'FAILED') {
+          return false;
+        }
+      }
+      return true;
+    }).toList();
   }
 
   /// Fetches details for a single order. Corrected to return `Order`.

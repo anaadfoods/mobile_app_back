@@ -1,6 +1,7 @@
-﻿import 'dart:ui';
+import 'dart:ui';
 
 import 'package:flutter/material.dart';
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
@@ -15,7 +16,8 @@ class PanchangFestivalsScreen extends StatefulWidget {
   const PanchangFestivalsScreen({super.key});
 
   @override
-  State<PanchangFestivalsScreen> createState() => _PanchangFestivalsScreenState();
+  State<PanchangFestivalsScreen> createState() =>
+      _PanchangFestivalsScreenState();
 }
 
 class _PanchangFestivalsScreenState extends State<PanchangFestivalsScreen>
@@ -25,10 +27,10 @@ class _PanchangFestivalsScreenState extends State<PanchangFestivalsScreen>
   late final AnimationController _searchController;
   late final Animation<double> _fadeAnimation;
   late final Animation<double> _slideAnimation;
-  
+
   final TextEditingController _searchTextController = TextEditingController();
   final FocusNode _searchFocusNode = FocusNode();
-  
+
   bool _isSearchMode = false;
   FestivalType _selectedFilter = FestivalType.all;
   DateRangeMode _dateRangeMode = DateRangeMode.currentMonth;
@@ -131,7 +133,8 @@ class _PanchangFestivalsScreenState extends State<PanchangFestivalsScreen>
     return BlocProvider.value(
       value: _cubit,
       child: Scaffold(
-        backgroundColor: isDark ? const Color(0xFF070C09) : const Color(0xFFF4F8F4),
+        backgroundColor:
+            isDark ? const Color(0xFF070C09) : const Color(0xFFF4F8F4),
         body: Stack(
           children: [
             _buildAnimatedBackground(isDark),
@@ -155,7 +158,10 @@ class _PanchangFestivalsScreenState extends State<PanchangFestivalsScreen>
                           ),
                         );
                       },
-                      child: BlocBuilder<PanchangFestivalsCubit, PanchangFestivalsState>(
+                      child: BlocBuilder<
+                        PanchangFestivalsCubit,
+                        PanchangFestivalsState
+                      >(
                         builder: (context, state) {
                           if (state is PanchangFestivalsLoading ||
                               state is PanchangFestivalsSearching ||
@@ -202,17 +208,18 @@ class _PanchangFestivalsScreenState extends State<PanchangFestivalsScreen>
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: isDark
-                ? [
-                    const Color(0xFF070C09),
-                    const Color(0xFF0D150E),
-                    const Color(0xFF0A1510),
-                  ]
-                : [
-                    const Color(0xFFF4F8F4),
-                    const Color(0xFFDCEEDF),
-                    const Color(0xFFDCEEDF),
-                  ],
+            colors:
+                isDark
+                    ? [
+                      const Color(0xFF070C09),
+                      const Color(0xFF0D150E),
+                      const Color(0xFF0A1510),
+                    ]
+                    : [
+                      const Color(0xFFF4F8F4),
+                      const Color(0xFFDCEEDF),
+                      const Color(0xFFDCEEDF),
+                    ],
           ),
         ),
       ),
@@ -229,9 +236,10 @@ class _PanchangFestivalsScreenState extends State<PanchangFestivalsScreen>
               // Back button
               Container(
                 decoration: BoxDecoration(
-                  color: isDark
-                      ? Colors.white.withOpacity(0.1)
-                      : Colors.black.withOpacity(0.05),
+                  color:
+                      isDark
+                          ? Colors.white.withOpacity(0.1)
+                          : Colors.black.withOpacity(0.05),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Material(
@@ -255,7 +263,7 @@ class _PanchangFestivalsScreenState extends State<PanchangFestivalsScreen>
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
+                    AutoSizeText(
                       'Festivals',
                       style: TextStyle(
                         fontSize: 24,
@@ -263,7 +271,7 @@ class _PanchangFestivalsScreenState extends State<PanchangFestivalsScreen>
                         color: isDark ? Colors.white : Colors.black87,
                       ),
                     ),
-                    Text(
+                    AutoSizeText(
                       'Hindu Calendar Festivals',
                       style: TextStyle(
                         fontSize: 13,
@@ -276,11 +284,12 @@ class _PanchangFestivalsScreenState extends State<PanchangFestivalsScreen>
               // Search button
               Container(
                 decoration: BoxDecoration(
-                  color: _isSearchMode
-                      ? const Color(0xFF3F5E46).withOpacity(0.2)
-                      : (isDark
-                          ? Colors.white.withOpacity(0.1)
-                          : Colors.black.withOpacity(0.05)),
+                  color:
+                      _isSearchMode
+                          ? const Color(0xFF3F5E46).withOpacity(0.2)
+                          : (isDark
+                              ? Colors.white.withOpacity(0.1)
+                              : Colors.black.withOpacity(0.05)),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Material(
@@ -291,10 +300,13 @@ class _PanchangFestivalsScreenState extends State<PanchangFestivalsScreen>
                     child: Padding(
                       padding: const EdgeInsets.all(12),
                       child: Icon(
-                        _isSearchMode ? Icons.close_rounded : Icons.search_rounded,
-                        color: _isSearchMode
-                            ? const Color(0xFF3F5E46)
-                            : (isDark ? Colors.white : Colors.black87),
+                        _isSearchMode
+                            ? Icons.close_rounded
+                            : Icons.search_rounded,
+                        color:
+                            _isSearchMode
+                                ? const Color(0xFF3F5E46)
+                                : (isDark ? Colors.white : Colors.black87),
                       ),
                     ),
                   ),
@@ -306,12 +318,13 @@ class _PanchangFestivalsScreenState extends State<PanchangFestivalsScreen>
           AnimatedSize(
             duration: const Duration(milliseconds: 300),
             curve: Curves.easeInOut,
-            child: _isSearchMode
-                ? Padding(
-                    padding: const EdgeInsets.only(top: 16),
-                    child: _buildSearchBar(isDark),
-                  )
-                : const SizedBox.shrink(),
+            child:
+                _isSearchMode
+                    ? Padding(
+                      padding: const EdgeInsets.only(top: 16),
+                      child: _buildSearchBar(isDark),
+                    )
+                    : const SizedBox.shrink(),
           ),
         ],
       ),
@@ -321,14 +334,16 @@ class _PanchangFestivalsScreenState extends State<PanchangFestivalsScreen>
   Widget _buildSearchBar(bool isDark) {
     return Container(
       decoration: BoxDecoration(
-        color: isDark
-            ? Colors.white.withOpacity(0.1)
-            : Colors.white.withOpacity(0.7),
+        color:
+            isDark
+                ? Colors.white.withOpacity(0.1)
+                : Colors.white.withOpacity(0.7),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: isDark
-              ? Colors.white.withOpacity(0.1)
-              : Colors.black.withOpacity(0.1),
+          color:
+              isDark
+                  ? Colors.white.withOpacity(0.1)
+                  : Colors.black.withOpacity(0.1),
         ),
       ),
       child: TextField(
@@ -341,25 +356,24 @@ class _PanchangFestivalsScreenState extends State<PanchangFestivalsScreen>
         ),
         decoration: InputDecoration(
           hintText: 'Search festivals...',
-          hintStyle: TextStyle(
-            color: isDark ? Colors.white54 : Colors.black54,
-          ),
+          hintStyle: TextStyle(color: isDark ? Colors.white54 : Colors.black54),
           prefixIcon: Icon(
             Icons.search_rounded,
             color: isDark ? Colors.white54 : Colors.black54,
           ),
-          suffixIcon: _searchTextController.text.isNotEmpty
-              ? IconButton(
-                  icon: Icon(
-                    Icons.clear_rounded,
-                    color: isDark ? Colors.white54 : Colors.black54,
-                  ),
-                  onPressed: () {
-                    _searchTextController.clear();
-                    _cubit.clearSearch();
-                  },
-                )
-              : null,
+          suffixIcon:
+              _searchTextController.text.isNotEmpty
+                  ? IconButton(
+                    icon: Icon(
+                      Icons.clear_rounded,
+                      color: isDark ? Colors.white54 : Colors.black54,
+                    ),
+                    onPressed: () {
+                      _searchTextController.clear();
+                      _cubit.clearSearch();
+                    },
+                  )
+                  : null,
           border: InputBorder.none,
           contentPadding: const EdgeInsets.symmetric(
             horizontal: 16,
@@ -415,23 +429,26 @@ class _PanchangFestivalsScreenState extends State<PanchangFestivalsScreen>
         duration: const Duration(milliseconds: 200),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
         decoration: BoxDecoration(
-          gradient: isSelected
-              ? const LinearGradient(
-                  colors: [Color(0xFF3F5E46), Color(0xFF3A8C54)],
-                )
-              : null,
-          color: isSelected
-              ? null
-              : (isDark
-                  ? Colors.white.withOpacity(0.1)
-                  : Colors.white.withOpacity(0.7)),
+          gradient:
+              isSelected
+                  ? const LinearGradient(
+                    colors: [Color(0xFF3F5E46), Color(0xFF3A8C54)],
+                  )
+                  : null,
+          color:
+              isSelected
+                  ? null
+                  : (isDark
+                      ? Colors.white.withOpacity(0.1)
+                      : Colors.white.withOpacity(0.7)),
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: isSelected
-                ? const Color(0xFF3F5E46)
-                : (isDark
-                    ? Colors.white.withOpacity(0.1)
-                    : Colors.black.withOpacity(0.1)),
+            color:
+                isSelected
+                    ? const Color(0xFF3F5E46)
+                    : (isDark
+                        ? Colors.white.withOpacity(0.1)
+                        : Colors.black.withOpacity(0.1)),
             width: isSelected ? 2 : 1,
           ),
         ),
@@ -441,19 +458,21 @@ class _PanchangFestivalsScreenState extends State<PanchangFestivalsScreen>
             Icon(
               icon,
               size: 18,
-              color: isSelected
-                  ? Colors.white
-                  : (isDark ? Colors.white70 : Colors.black87),
+              color:
+                  isSelected
+                      ? Colors.white
+                      : (isDark ? Colors.white70 : Colors.black87),
             ),
             const SizedBox(width: 6),
-            Text(
+            AutoSizeText(
               label,
               style: TextStyle(
                 fontSize: 14,
                 fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-                color: isSelected
-                    ? Colors.white
-                    : (isDark ? Colors.white70 : Colors.black87),
+                color:
+                    isSelected
+                        ? Colors.white
+                        : (isDark ? Colors.white70 : Colors.black87),
               ),
             ),
           ],
@@ -468,60 +487,70 @@ class _PanchangFestivalsScreenState extends State<PanchangFestivalsScreen>
       margin: const EdgeInsets.only(left: 20, right: 20, bottom: 12),
       child: ListView(
         scrollDirection: Axis.horizontal,
-        children: FestivalType.values.map((type) {
-          final isSelected = _selectedFilter == type;
-          return Padding(
-            padding: const EdgeInsets.only(right: 8),
-            child: GestureDetector(
-              onTap: () => _onFilterChanged(type),
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 200),
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                decoration: BoxDecoration(
-                  color: isSelected
-                      ? Color(type.colorValue).withOpacity(0.2)
-                      : (isDark
-                          ? Colors.white.withOpacity(0.08)
-                          : Colors.white.withOpacity(0.6)),
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(
-                    color: isSelected
-                        ? Color(type.colorValue)
-                        : (isDark
-                            ? Colors.white.withOpacity(0.1)
-                            : Colors.black.withOpacity(0.1)),
-                    width: isSelected ? 1.5 : 1,
-                  ),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    if (isSelected)
-                      Container(
-                        width: 8,
-                        height: 8,
-                        margin: const EdgeInsets.only(right: 6),
-                        decoration: BoxDecoration(
-                          color: Color(type.colorValue),
-                          shape: BoxShape.circle,
-                        ),
-                      ),
-                    Text(
-                      type.label,
-                      style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-                        color: isSelected
-                            ? Color(type.colorValue)
-                            : (isDark ? Colors.white70 : Colors.black87),
+        children:
+            FestivalType.values.map((type) {
+              final isSelected = _selectedFilter == type;
+              return Padding(
+                padding: const EdgeInsets.only(right: 8),
+                child: GestureDetector(
+                  onTap: () => _onFilterChanged(type),
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 200),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 14,
+                      vertical: 8,
+                    ),
+                    decoration: BoxDecoration(
+                      color:
+                          isSelected
+                              ? Color(type.colorValue).withOpacity(0.2)
+                              : (isDark
+                                  ? Colors.white.withOpacity(0.08)
+                                  : Colors.white.withOpacity(0.6)),
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(
+                        color:
+                            isSelected
+                                ? Color(type.colorValue)
+                                : (isDark
+                                    ? Colors.white.withOpacity(0.1)
+                                    : Colors.black.withOpacity(0.1)),
+                        width: isSelected ? 1.5 : 1,
                       ),
                     ),
-                  ],
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        if (isSelected)
+                          Container(
+                            width: 8,
+                            height: 8,
+                            margin: const EdgeInsets.only(right: 6),
+                            decoration: BoxDecoration(
+                              color: Color(type.colorValue),
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                        AutoSizeText(
+                          type.label,
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight:
+                                isSelected ? FontWeight.w600 : FontWeight.w500,
+                            color:
+                                isSelected
+                                    ? Color(type.colorValue)
+                                    : (isDark
+                                        ? Colors.white70
+                                        : Colors.black87),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
-              ),
-            ),
-          );
-        }).toList(),
+              );
+            }).toList(),
       ),
     );
   }
@@ -534,9 +563,10 @@ class _PanchangFestivalsScreenState extends State<PanchangFestivalsScreen>
           Container(
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
-              color: isDark
-                  ? Colors.white.withOpacity(0.1)
-                  : Colors.white.withOpacity(0.7),
+              color:
+                  isDark
+                      ? Colors.white.withOpacity(0.1)
+                      : Colors.white.withOpacity(0.7),
               shape: BoxShape.circle,
             ),
             child: const CircularProgressIndicator(
@@ -545,7 +575,7 @@ class _PanchangFestivalsScreenState extends State<PanchangFestivalsScreen>
             ),
           ),
           const SizedBox(height: 20),
-          Text(
+          AutoSizeText(
             'Loading festivals...',
             style: TextStyle(
               fontSize: 15,
@@ -621,7 +651,7 @@ class _PanchangFestivalsScreenState extends State<PanchangFestivalsScreen>
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
+                    AutoSizeText(
                       '${metadata.totalFestivals} Festivals',
                       style: const TextStyle(
                         fontSize: 22,
@@ -629,7 +659,7 @@ class _PanchangFestivalsScreenState extends State<PanchangFestivalsScreen>
                         color: Colors.white,
                       ),
                     ),
-                    Text(
+                    AutoSizeText(
                       'Across ${metadata.totalDays} days',
                       style: TextStyle(
                         fontSize: 13,
@@ -659,7 +689,7 @@ class _PanchangFestivalsScreenState extends State<PanchangFestivalsScreen>
                     size: 16,
                   ),
                   const SizedBox(width: 6),
-                  Text(
+                  AutoSizeText(
                     '${_formatDateShort(metadata.startDate!)} - ${_formatDateShort(metadata.endDate!)}',
                     style: const TextStyle(
                       fontSize: 13,
@@ -680,14 +710,16 @@ class _PanchangFestivalsScreenState extends State<PanchangFestivalsScreen>
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
-        color: isDark
-            ? Colors.white.withOpacity(0.05)
-            : Colors.white.withOpacity(0.8),
+        color:
+            isDark
+                ? Colors.white.withOpacity(0.05)
+                : Colors.white.withOpacity(0.8),
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: isDark
-              ? Colors.white.withOpacity(0.1)
-              : Colors.black.withOpacity(0.05),
+          color:
+              isDark
+                  ? Colors.white.withOpacity(0.1)
+                  : Colors.black.withOpacity(0.05),
         ),
       ),
       child: ClipRRect(
@@ -702,15 +734,16 @@ class _PanchangFestivalsScreenState extends State<PanchangFestivalsScreen>
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
-                    colors: isDark
-                        ? [
-                            Colors.white.withOpacity(0.1),
-                            Colors.white.withOpacity(0.05),
-                          ]
-                        : [
-                            Colors.black.withOpacity(0.05),
-                            Colors.black.withOpacity(0.02),
-                          ],
+                    colors:
+                        isDark
+                            ? [
+                              Colors.white.withOpacity(0.1),
+                              Colors.white.withOpacity(0.05),
+                            ]
+                            : [
+                              Colors.black.withOpacity(0.05),
+                              Colors.black.withOpacity(0.02),
+                            ],
                   ),
                 ),
                 child: Row(
@@ -732,7 +765,7 @@ class _PanchangFestivalsScreenState extends State<PanchangFestivalsScreen>
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
+                          AutoSizeText(
                             _formatDateHeader(dateGroup.date),
                             style: TextStyle(
                               fontSize: 16,
@@ -740,8 +773,9 @@ class _PanchangFestivalsScreenState extends State<PanchangFestivalsScreen>
                               color: isDark ? Colors.white : Colors.black87,
                             ),
                           ),
-                          if (dateGroup.dayOfWeek.isNotEmpty || dateGroup.tithi.isNotEmpty)
-                            Text(
+                          if (dateGroup.dayOfWeek.isNotEmpty ||
+                              dateGroup.tithi.isNotEmpty)
+                            AutoSizeText(
                               '${dateGroup.dayOfWeek}${dateGroup.dayOfWeek.isNotEmpty && dateGroup.tithi.isNotEmpty ? " • " : ""}${dateGroup.tithi}',
                               style: TextStyle(
                                 fontSize: 12,
@@ -760,7 +794,7 @@ class _PanchangFestivalsScreenState extends State<PanchangFestivalsScreen>
                         color: const Color(0xFFFF9933).withOpacity(0.2),
                         borderRadius: BorderRadius.circular(8),
                       ),
-                      child: Text(
+                      child: AutoSizeText(
                         '${dateGroup.festivals.length}',
                         style: const TextStyle(
                           fontSize: 14,
@@ -775,7 +809,7 @@ class _PanchangFestivalsScreenState extends State<PanchangFestivalsScreen>
               // Festivals list
               ...dateGroup.festivals.map((festival) {
                 return _buildFestivalItem(festival, isDark);
-              }).toList(),
+              }),
             ],
           ),
         ),
@@ -785,15 +819,16 @@ class _PanchangFestivalsScreenState extends State<PanchangFestivalsScreen>
 
   Widget _buildFestivalItem(FestivalEntry festival, bool isDark) {
     final typeColor = Color(FestivalType.fromString(festival.type).colorValue);
-    
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         border: Border(
           bottom: BorderSide(
-            color: isDark
-                ? Colors.white.withOpacity(0.05)
-                : Colors.black.withOpacity(0.05),
+            color:
+                isDark
+                    ? Colors.white.withOpacity(0.05)
+                    : Colors.black.withOpacity(0.05),
           ),
         ),
       ),
@@ -812,12 +847,15 @@ class _PanchangFestivalsScreenState extends State<PanchangFestivalsScreen>
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
+                AutoSizeText(
                   festival.name,
                   style: TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.w600,
-                    color: isDark ? Colors.white.withOpacity(0.95) : Colors.black87,
+                    color:
+                        isDark
+                            ? Colors.white.withOpacity(0.95)
+                            : Colors.black87,
                   ),
                 ),
                 const SizedBox(height: 4),
@@ -832,7 +870,7 @@ class _PanchangFestivalsScreenState extends State<PanchangFestivalsScreen>
                         color: typeColor.withOpacity(0.2),
                         borderRadius: BorderRadius.circular(6),
                       ),
-                      child: Text(
+                      child: AutoSizeText(
                         festival.type.toUpperCase(),
                         style: TextStyle(
                           fontSize: 10,
@@ -862,7 +900,7 @@ class _PanchangFestivalsScreenState extends State<PanchangFestivalsScreen>
                               color: Color(0xFF138808),
                             ),
                             SizedBox(width: 3),
-                            Text(
+                            AutoSizeText(
                               'HOLIDAY',
                               style: TextStyle(
                                 fontSize: 9,
@@ -879,7 +917,7 @@ class _PanchangFestivalsScreenState extends State<PanchangFestivalsScreen>
                 ),
                 if (festival.description != null) ...[
                   const SizedBox(height: 6),
-                  Text(
+                  AutoSizeText(
                     festival.description!,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
@@ -901,7 +939,10 @@ class _PanchangFestivalsScreenState extends State<PanchangFestivalsScreen>
     );
   }
 
-  Widget _buildSearchResults(PanchangFestivalsSearchSuccess state, bool isDark) {
+  Widget _buildSearchResults(
+    PanchangFestivalsSearchSuccess state,
+    bool isDark,
+  ) {
     if (state.response.results.isEmpty) {
       return _buildEmptySearchState(isDark);
     }
@@ -919,28 +960,29 @@ class _PanchangFestivalsScreenState extends State<PanchangFestivalsScreen>
     );
   }
 
-  Widget _buildSearchStatsCard(PanchangFestivalsSearchSuccess state, bool isDark) {
+  Widget _buildSearchStatsCard(
+    PanchangFestivalsSearchSuccess state,
+    bool isDark,
+  ) {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: isDark
-            ? Colors.white.withOpacity(0.08)
-            : Colors.white.withOpacity(0.8),
+        color:
+            isDark
+                ? Colors.white.withOpacity(0.08)
+                : Colors.white.withOpacity(0.8),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: isDark
-              ? Colors.white.withOpacity(0.1)
-              : Colors.black.withOpacity(0.05),
+          color:
+              isDark
+                  ? Colors.white.withOpacity(0.1)
+                  : Colors.black.withOpacity(0.05),
         ),
       ),
       child: Row(
         children: [
-          const Icon(
-            Icons.search_rounded,
-            color: Color(0xFF3F5E46),
-            size: 20,
-          ),
+          const Icon(Icons.search_rounded, color: Color(0xFF3F5E46), size: 20),
           const SizedBox(width: 10),
           Expanded(
             child: Text.rich(
@@ -961,9 +1003,7 @@ class _PanchangFestivalsScreenState extends State<PanchangFestivalsScreen>
                   const TextSpan(text: ' for '),
                   TextSpan(
                     text: '"${state.query}"',
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                    ),
+                    style: const TextStyle(fontWeight: FontWeight.bold),
                   ),
                 ],
               ),
@@ -977,18 +1017,20 @@ class _PanchangFestivalsScreenState extends State<PanchangFestivalsScreen>
   Widget _buildSearchResultCard(FestivalSearchResult result, bool isDark) {
     final typeColor = Color(FestivalType.fromString(result.type).colorValue);
     final DateTime? festivalDate = result.dateTime;
-    
+
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
-        color: isDark
-            ? Colors.white.withOpacity(0.05)
-            : Colors.white.withOpacity(0.8),
+        color:
+            isDark
+                ? Colors.white.withOpacity(0.05)
+                : Colors.white.withOpacity(0.8),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: isDark
-              ? Colors.white.withOpacity(0.1)
-              : Colors.black.withOpacity(0.05),
+          color:
+              isDark
+                  ? Colors.white.withOpacity(0.1)
+                  : Colors.black.withOpacity(0.05),
         ),
       ),
       child: ClipRRect(
@@ -1024,8 +1066,10 @@ class _PanchangFestivalsScreenState extends State<PanchangFestivalsScreen>
                         ),
                         child: Column(
                           children: [
-                            Text(
-                              DateFormat('MMM').format(festivalDate).toUpperCase(),
+                            AutoSizeText(
+                              DateFormat(
+                                'MMM',
+                              ).format(festivalDate).toUpperCase(),
                               style: const TextStyle(
                                 fontSize: 10,
                                 fontWeight: FontWeight.bold,
@@ -1033,7 +1077,7 @@ class _PanchangFestivalsScreenState extends State<PanchangFestivalsScreen>
                                 letterSpacing: 0.5,
                               ),
                             ),
-                            Text(
+                            AutoSizeText(
                               DateFormat('d').format(festivalDate),
                               style: const TextStyle(
                                 fontSize: 22,
@@ -1042,7 +1086,7 @@ class _PanchangFestivalsScreenState extends State<PanchangFestivalsScreen>
                                 height: 1,
                               ),
                             ),
-                            Text(
+                            AutoSizeText(
                               DateFormat('y').format(festivalDate),
                               style: const TextStyle(
                                 fontSize: 9,
@@ -1058,7 +1102,7 @@ class _PanchangFestivalsScreenState extends State<PanchangFestivalsScreen>
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
+                          AutoSizeText(
                             result.name,
                             style: TextStyle(
                               fontSize: 17,
@@ -1078,7 +1122,7 @@ class _PanchangFestivalsScreenState extends State<PanchangFestivalsScreen>
                                   color: typeColor.withOpacity(0.2),
                                   borderRadius: BorderRadius.circular(6),
                                 ),
-                                child: Text(
+                                child: AutoSizeText(
                                   result.type.toUpperCase(),
                                   style: TextStyle(
                                     fontSize: 10,
@@ -1095,9 +1139,10 @@ class _PanchangFestivalsScreenState extends State<PanchangFestivalsScreen>
                                   vertical: 3,
                                 ),
                                 decoration: BoxDecoration(
-                                  color: isDark
-                                      ? Colors.white.withOpacity(0.1)
-                                      : Colors.black.withOpacity(0.05),
+                                  color:
+                                      isDark
+                                          ? Colors.white.withOpacity(0.1)
+                                          : Colors.black.withOpacity(0.05),
                                   borderRadius: BorderRadius.circular(6),
                                 ),
                                 child: Row(
@@ -1106,14 +1151,20 @@ class _PanchangFestivalsScreenState extends State<PanchangFestivalsScreen>
                                     Icon(
                                       Icons.source_rounded,
                                       size: 10,
-                                      color: isDark ? Colors.white60 : Colors.black54,
+                                      color:
+                                          isDark
+                                              ? Colors.white60
+                                              : Colors.black54,
                                     ),
                                     const SizedBox(width: 4),
-                                    Text(
+                                    AutoSizeText(
                                       result.source,
                                       style: TextStyle(
                                         fontSize: 10,
-                                        color: isDark ? Colors.white60 : Colors.black54,
+                                        color:
+                                            isDark
+                                                ? Colors.white60
+                                                : Colors.black54,
                                       ),
                                     ),
                                   ],
@@ -1128,14 +1179,20 @@ class _PanchangFestivalsScreenState extends State<PanchangFestivalsScreen>
                                 Icon(
                                   Icons.calendar_today_rounded,
                                   size: 13,
-                                  color: isDark ? Colors.white60 : Colors.black54,
+                                  color:
+                                      isDark ? Colors.white60 : Colors.black54,
                                 ),
                                 const SizedBox(width: 6),
-                                Text(
-                                  DateFormat('EEEE, MMMM d, y').format(festivalDate),
+                                AutoSizeText(
+                                  DateFormat(
+                                    'EEEE, MMMM d, y',
+                                  ).format(festivalDate),
                                   style: TextStyle(
                                     fontSize: 12,
-                                    color: isDark ? Colors.white70 : Colors.black87,
+                                    color:
+                                        isDark
+                                            ? Colors.white70
+                                            : Colors.black87,
                                   ),
                                 ),
                               ],
@@ -1146,10 +1203,11 @@ class _PanchangFestivalsScreenState extends State<PanchangFestivalsScreen>
                                 Icon(
                                   Icons.event_available_rounded,
                                   size: 13,
-                                  color: isDark ? Colors.white60 : Colors.black54,
+                                  color:
+                                      isDark ? Colors.white60 : Colors.black54,
                                 ),
                                 const SizedBox(width: 6),
-                                Text(
+                                AutoSizeText(
                                   _getDaysUntil(festivalDate),
                                   style: TextStyle(
                                     fontSize: 12,
@@ -1168,16 +1226,21 @@ class _PanchangFestivalsScreenState extends State<PanchangFestivalsScreen>
                 if (result.code != null) ...[
                   const SizedBox(height: 12),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 6,
+                    ),
                     decoration: BoxDecoration(
-                      color: isDark
-                          ? Colors.white.withOpacity(0.05)
-                          : Colors.black.withOpacity(0.03),
+                      color:
+                          isDark
+                              ? Colors.white.withOpacity(0.05)
+                              : Colors.black.withOpacity(0.03),
                       borderRadius: BorderRadius.circular(8),
                       border: Border.all(
-                        color: isDark
-                            ? Colors.white.withOpacity(0.1)
-                            : Colors.black.withOpacity(0.05),
+                        color:
+                            isDark
+                                ? Colors.white.withOpacity(0.1)
+                                : Colors.black.withOpacity(0.05),
                       ),
                     ),
                     child: Row(
@@ -1189,7 +1252,7 @@ class _PanchangFestivalsScreenState extends State<PanchangFestivalsScreen>
                           color: isDark ? Colors.white60 : Colors.black54,
                         ),
                         const SizedBox(width: 6),
-                        Text(
+                        AutoSizeText(
                           result.code!,
                           style: TextStyle(
                             fontSize: 11,
@@ -1217,9 +1280,10 @@ class _PanchangFestivalsScreenState extends State<PanchangFestivalsScreen>
           Container(
             padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
-              color: isDark
-                  ? Colors.white.withOpacity(0.05)
-                  : Colors.black.withOpacity(0.05),
+              color:
+                  isDark
+                      ? Colors.white.withOpacity(0.05)
+                      : Colors.black.withOpacity(0.05),
               shape: BoxShape.circle,
             ),
             child: Icon(
@@ -1229,7 +1293,7 @@ class _PanchangFestivalsScreenState extends State<PanchangFestivalsScreen>
             ),
           ),
           const SizedBox(height: 20),
-          Text(
+          AutoSizeText(
             'No Festivals Found',
             style: TextStyle(
               fontSize: 18,
@@ -1238,7 +1302,7 @@ class _PanchangFestivalsScreenState extends State<PanchangFestivalsScreen>
             ),
           ),
           const SizedBox(height: 8),
-          Text(
+          AutoSizeText(
             'Try selecting a different date range',
             style: TextStyle(
               fontSize: 14,
@@ -1258,9 +1322,10 @@ class _PanchangFestivalsScreenState extends State<PanchangFestivalsScreen>
           Container(
             padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
-              color: isDark
-                  ? Colors.white.withOpacity(0.05)
-                  : Colors.black.withOpacity(0.05),
+              color:
+                  isDark
+                      ? Colors.white.withOpacity(0.05)
+                      : Colors.black.withOpacity(0.05),
               shape: BoxShape.circle,
             ),
             child: Icon(
@@ -1270,7 +1335,7 @@ class _PanchangFestivalsScreenState extends State<PanchangFestivalsScreen>
             ),
           ),
           const SizedBox(height: 20),
-          Text(
+          AutoSizeText(
             'No Results Found',
             style: TextStyle(
               fontSize: 18,
@@ -1279,7 +1344,7 @@ class _PanchangFestivalsScreenState extends State<PanchangFestivalsScreen>
             ),
           ),
           const SizedBox(height: 8),
-          Text(
+          AutoSizeText(
             'Try a different search term',
             style: TextStyle(
               fontSize: 14,
@@ -1324,7 +1389,11 @@ class _PanchangFestivalsScreenState extends State<PanchangFestivalsScreen>
   String _getDaysUntil(DateTime festivalDate) {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
-    final festival = DateTime(festivalDate.year, festivalDate.month, festivalDate.day);
+    final festival = DateTime(
+      festivalDate.year,
+      festivalDate.month,
+      festivalDate.day,
+    );
     final difference = festival.difference(today).inDays;
 
     if (difference == 0) {
@@ -1347,8 +1416,4 @@ class _PanchangFestivalsScreenState extends State<PanchangFestivalsScreen>
   }
 }
 
-enum DateRangeMode {
-  currentMonth,
-  upcoming,
-  currentYear,
-}
+enum DateRangeMode { currentMonth, upcoming, currentYear }

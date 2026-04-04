@@ -1,12 +1,7 @@
-﻿import 'dart:ui';
+import 'dart:ui';
 
-import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:grocery_app/common_widgets/global_import.dart';
-import 'package:intl/intl.dart';
 
-import '../../../common_widgets/error_state_widget.dart';
 import '../../../cubits/panchang/panchang_home_cubit.dart';
 import '../../../cubits/panchang/panchang_home_state.dart';
 import '../../../repositories/panchang_repository.dart';
@@ -251,7 +246,7 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
-                Text(
+                AutoSizeText(
                   'Panchang Calendar',
                   style: TextStyle(
                     fontSize: 28,
@@ -283,9 +278,10 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
           ),
           boxShadow: [
             BoxShadow(
-              color: (isDark ? const Color(0xFF3F5E46) : const Color(0xFF2D5A3D)).withOpacity(
-                0.1,
-              ),
+              color: (isDark
+                      ? const Color(0xFF3F5E46)
+                      : const Color(0xFF2D5A3D))
+                  .withOpacity(0.1),
               blurRadius: 8,
               offset: const Offset(0, 2),
             ),
@@ -300,7 +296,7 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
               color: isDark ? Colors.white : Colors.black87,
             ),
             const SizedBox(width: 10),
-            Text(
+            AutoSizeText(
               DateFormat('EEEE, d MMMM yyyy').format(selectedDate),
               style: TextStyle(
                 fontSize: 15,
@@ -498,15 +494,17 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                     borderRadius: BorderRadius.circular(24),
                     boxShadow: [
                       BoxShadow(
-                        color: const Color(0xFFFFD700)
-                            .withOpacity(0.45 * _shimmerAnimation.value),
+                        color: const Color(
+                          0xFFFFD700,
+                        ).withOpacity(0.45 * _shimmerAnimation.value),
                         blurRadius: 18 + (12 * _shimmerAnimation.value),
                         spreadRadius: 2 + (3 * _shimmerAnimation.value),
                         offset: const Offset(-4, 0),
                       ),
                       BoxShadow(
-                        color: Colors.white
-                            .withOpacity(0.12 * _shimmerAnimation.value),
+                        color: Colors.white.withOpacity(
+                          0.12 * _shimmerAnimation.value,
+                        ),
                         blurRadius: 20 + (10 * _shimmerAnimation.value),
                         spreadRadius: 1 + (2 * _shimmerAnimation.value),
                         offset: const Offset(4, 0),
@@ -575,15 +573,27 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                 ),
               ),
               // ── Stars (right half) ─────────────────────────────
-              Positioned(top: 10, right: 28,  child: _buildStarDot(3.0, 0.90)),
-              Positioned(top: 22, right: 62,  child: _buildStarDot(1.8, 0.60)),
-              Positioned(top:  6, right: 90,  child: _buildStarDot(1.5, 0.50)),
-              Positioned(top: 42, right: 48,  child: _buildStarDot(2.2, 0.75)),
+              Positioned(top: 10, right: 28, child: _buildStarDot(3.0, 0.90)),
+              Positioned(top: 22, right: 62, child: _buildStarDot(1.8, 0.60)),
+              Positioned(top: 6, right: 90, child: _buildStarDot(1.5, 0.50)),
+              Positioned(top: 42, right: 48, child: _buildStarDot(2.2, 0.75)),
               Positioned(top: 18, right: 115, child: _buildStarDot(1.2, 0.40)),
-              Positioned(bottom: 18, right: 32, child: _buildStarDot(2.5, 0.85)),
-              Positioned(bottom: 30, right: 70, child: _buildStarDot(1.5, 0.55)),
-              Positioned(bottom: 10, right: 95, child: _buildStarDot(1.0, 0.40)),
-              Positioned(top: 35,    right: 20, child: _buildStarDot(1.2, 0.45)),
+              Positioned(
+                bottom: 18,
+                right: 32,
+                child: _buildStarDot(2.5, 0.85),
+              ),
+              Positioned(
+                bottom: 30,
+                right: 70,
+                child: _buildStarDot(1.5, 0.55),
+              ),
+              Positioned(
+                bottom: 10,
+                right: 95,
+                child: _buildStarDot(1.0, 0.40),
+              ),
+              Positioned(top: 35, right: 20, child: _buildStarDot(1.2, 0.45)),
               // ── Content ────────────────────────────────────────
               Padding(
                 padding: const EdgeInsets.all(24),
@@ -615,7 +625,7 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                               ),
                             ),
                             const SizedBox(height: 4),
-                            const Text(
+                            AutoSizeText(
                               '☀️🌙',
                               style: TextStyle(fontSize: 10),
                             ),
@@ -647,9 +657,13 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                           mainAxisSize: MainAxisSize.min,
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            const Icon(Icons.wb_sunny, color: Color(0xFFFFD700), size: 18),
+                            const Icon(
+                              Icons.wb_sunny,
+                              color: Color(0xFFFFD700),
+                              size: 18,
+                            ),
                             const SizedBox(width: 8),
-                            Text(
+                            AutoSizeText(
                               'Solar Noon: ${formatTime(timings.solarNoon)}',
                               style: const TextStyle(
                                 color: Colors.white,
@@ -690,7 +704,7 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
         children: [
           Icon(icon, color: Colors.white, size: 32),
           const SizedBox(height: 8),
-          Text(
+          AutoSizeText(
             label,
             style: const TextStyle(
               color: Colors.white70,
@@ -699,7 +713,7 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
             ),
           ),
           const SizedBox(height: 4),
-          Text(
+          AutoSizeText(
             time,
             style: const TextStyle(
               color: Colors.white,
@@ -908,7 +922,7 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                                   ),
                                 ],
                               ),
-                              child: const Text(
+                              child: AutoSizeText(
                                 '🕉️',
                                 style: TextStyle(fontSize: 24),
                               ),
@@ -920,7 +934,7 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(
+                              AutoSizeText(
                                 dateText,
                                 style: TextStyle(
                                   fontSize: 22,
@@ -973,7 +987,7 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                                         child: Row(
                                           mainAxisSize: MainAxisSize.min,
                                           children: [
-                                            Text(
+                                            AutoSizeText(
                                               '📅 ${lunar.masa}',
                                               style: TextStyle(
                                                 fontSize: 12,
@@ -1054,7 +1068,7 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                                         child: Row(
                                           mainAxisSize: MainAxisSize.min,
                                           children: [
-                                            Text(
+                                            AutoSizeText(
                                               lunar.paksha
                                                       .toLowerCase()
                                                       .contains('krishna')
@@ -1144,14 +1158,14 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                       ],
                     ),
                     const SizedBox(height: 24),
-                    // Panchang Grid - 3 columns
+                    // Panchang Grid - 2 columns
                     GridView.builder(
                       gridDelegate:
                           const SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: 3,
-                            mainAxisSpacing: 12,
-                            crossAxisSpacing: 12,
-                            childAspectRatio: 0.85,
+                            crossAxisCount: 2,
+                            mainAxisSpacing: 16,
+                            crossAxisSpacing: 16,
+                            childAspectRatio: 1.35,
                           ),
                       shrinkWrap: true,
                       physics: const NeverScrollableScrollPhysics(),
@@ -1232,48 +1246,58 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                   ),
                 ),
                 Expanded(
-                  child: Text(
-                    item.secondaryLabel,
-                    textAlign: TextAlign.right,
-                    style: TextStyle(
-                      fontSize: 9,
-                      fontWeight: FontWeight.w600,
-                      color:
-                          isDark
-                              ? item.color.withOpacity(0.8)
-                              : item.color.withOpacity(0.9),
+                  child: Padding(
+                    padding: const EdgeInsets.only(left: 6),
+                    child: AutoSizeText(
+                      item.secondaryLabel,
+                      textAlign: TextAlign.right,
+                      maxLines: 2,
+                      minFontSize: 8,
+                      style: TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w600,
+                        color:
+                            isDark
+                                ? item.color.withOpacity(0.8)
+                                : item.color.withOpacity(0.9),
+                      ),
                     ),
                   ),
                 ),
               ],
             ),
-            const Spacer(),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  item.label,
-                  style: TextStyle(
-                    fontSize: 11,
-                    color: (isDark ? Colors.white : Colors.black).withOpacity(
-                      0.5,
+            const SizedBox(height: 8),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  AutoSizeText(
+                    item.label,
+                    maxLines: 1,
+                    minFontSize: 9,
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: (isDark ? Colors.white : Colors.black).withOpacity(
+                        0.6,
+                      ),
+                      fontWeight: FontWeight.w500,
                     ),
-                    fontWeight: FontWeight.w500,
                   ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  item.value.isEmpty ? '—' : item.value,
-                  style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.bold,
-                    color: isDark ? Colors.white : const Color(0xFF0D1A10),
-                    height: 1.2,
+                  const SizedBox(height: 4),
+                  AutoSizeText(
+                    item.value.isEmpty ? '—' : item.value,
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w800,
+                      color: isDark ? Colors.white : const Color(0xFF0D1A10),
+                    ),
+                    maxLines: 2,
+                    minFontSize: 10,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
+                ],
+              ),
             ),
           ],
         ),
@@ -1311,7 +1335,7 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                   ),
                 ),
                 const SizedBox(width: 10),
-                Text(
+                AutoSizeText(
                   'Upcoming Festivals',
                   style: TextStyle(
                     fontSize: 17,
@@ -1340,7 +1364,7 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                   color: const Color(0xFF3A8C54).withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: const Text(
+                child: AutoSizeText(
                   'View All',
                   style: TextStyle(
                     fontSize: 12,
@@ -1425,7 +1449,7 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                     ),
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: Text(
+                  child: AutoSizeText(
                     day,
                     style: const TextStyle(
                       fontSize: 14,
@@ -1435,7 +1459,7 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                   ),
                 ),
                 const SizedBox(width: 6),
-                Text(
+                AutoSizeText(
                   month,
                   style: TextStyle(
                     fontSize: 11,
@@ -1447,7 +1471,7 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
             ),
             const SizedBox(height: 8),
             Expanded(
-              child: Text(
+              child: AutoSizeText(
                 highlight.name,
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
@@ -1455,7 +1479,6 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                   fontSize: 12,
                   fontWeight: FontWeight.w700,
                   color: isDark ? Colors.white : Colors.black87,
-                  height: 1.2,
                 ),
               ),
             ),
@@ -1480,7 +1503,7 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
               ),
             ),
             const SizedBox(width: 10),
-            Text(
+            AutoSizeText(
               'Quick Navigation',
               style: TextStyle(
                 fontSize: 17,
@@ -1623,13 +1646,20 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                 ),
               ],
             ),
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 15,
-                fontWeight: FontWeight.bold,
-                color: isDark ? Colors.white : Colors.black87,
-                height: 1.2,
+            const SizedBox(height: 4),
+            Expanded(
+              child: Align(
+                alignment: Alignment.bottomLeft,
+                child: AutoSizeText(
+                  label,
+                  maxLines: 2,
+                  minFontSize: 9,
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.bold,
+                    color: isDark ? Colors.white : Colors.black87,
+                  ),
+                ),
               ),
             ),
           ],
@@ -1648,9 +1678,7 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
       builder: (context, child) {
         return Theme(
           data: Theme.of(context).copyWith(
-            colorScheme: ColorScheme.fromSwatch(
-              primarySwatch: Colors.green,
-            ),
+            colorScheme: ColorScheme.fromSwatch(primarySwatch: Colors.green),
           ),
           child: child!,
         );
@@ -1736,7 +1764,7 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                     ),
                     const SizedBox(width: 12),
                     Expanded(
-                      child: Text(
+                      child: AutoSizeText(
                         'Inauspicious Timings ⚠️',
                         style: TextStyle(
                           fontSize: 18,
@@ -1766,7 +1794,7 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                   ],
                 ),
                 const SizedBox(height: 4),
-                Text(
+                AutoSizeText(
                   'Tap ℹ️ to learn more • Avoid starting new work',
                   style: TextStyle(
                     fontSize: 12,
@@ -1828,7 +1856,7 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
         ),
         const SizedBox(width: 8),
         Expanded(
-          child: Text(
+          child: AutoSizeText(
             title,
             style: TextStyle(
               fontSize: 15,
@@ -1837,7 +1865,7 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
             ),
           ),
         ),
-        Text(
+        AutoSizeText(
           '$startTime - $endTime',
           style: TextStyle(
             fontSize: 14,
@@ -1916,7 +1944,7 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
+                      AutoSizeText(
                         'Rahu Kaal ⚠️',
                         style: TextStyle(
                           fontSize: 18,
@@ -1925,7 +1953,7 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                         ),
                       ),
                       const SizedBox(height: 4),
-                      Text(
+                      AutoSizeText(
                         'Avoid starting new work',
                         style: TextStyle(
                           fontSize: 12,
@@ -1934,7 +1962,7 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                         ),
                       ),
                       const SizedBox(height: 8),
-                      Text(
+                      AutoSizeText(
                         '${formatTime(rahuKaal.start)} - ${formatTime(rahuKaal.end)}',
                         style: TextStyle(
                           fontSize: 16,
@@ -2002,7 +2030,7 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
               ),
               const SizedBox(width: 12),
               Expanded(
-                child: Text(
+                child: AutoSizeText(
                   'Auspicious Times',
                   style: TextStyle(
                     fontSize: 18,
@@ -2021,7 +2049,10 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                   ),
                   child: Icon(
                     Icons.info_outline_rounded,
-                    color: isDark ? const Color(0xFF7BC48F) : const Color(0xFF2D5A3D),
+                    color:
+                        isDark
+                            ? const Color(0xFF7BC48F)
+                            : const Color(0xFF2D5A3D),
                     size: 20,
                   ),
                 ),
@@ -2029,7 +2060,7 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
             ],
           ),
           const SizedBox(height: 4),
-          Text(
+          AutoSizeText(
             'Tap ℹ️ to learn more about auspicious muhurats',
             style: TextStyle(
               fontSize: 12,
@@ -2088,7 +2119,7 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
+                AutoSizeText(
                   title,
                   style: TextStyle(
                     fontSize: 14,
@@ -2096,7 +2127,7 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                     color: isDark ? Colors.white : Colors.black87,
                   ),
                 ),
-                Text(
+                AutoSizeText(
                   subtitle,
                   style: TextStyle(
                     fontSize: 11,
@@ -2108,7 +2139,7 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
               ],
             ),
           ),
-          Text(
+          AutoSizeText(
             '$startTime - $endTime',
             style: TextStyle(
               fontSize: 13,
@@ -2174,7 +2205,7 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
               ),
               const SizedBox(width: 12),
               Expanded(
-                child: Text(
+                child: AutoSizeText(
                   'Moon & Rashi Details',
                   style: TextStyle(
                     fontSize: 18,
@@ -2193,7 +2224,10 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                   ),
                   child: Icon(
                     Icons.info_outline_rounded,
-                    color: isDark ? const Color(0xFF7BC48F) : const Color(0xFF2D5A3D),
+                    color:
+                        isDark
+                            ? const Color(0xFF7BC48F)
+                            : const Color(0xFF2D5A3D),
                     size: 20,
                   ),
                 ),
@@ -2201,7 +2235,7 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
             ],
           ),
           const SizedBox(height: 4),
-          Text(
+          AutoSizeText(
             'Tap ℹ️ to learn about Moon phases & Rashi',
             style: TextStyle(
               fontSize: 12,
@@ -2266,14 +2300,16 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: (isDark ? Colors.white : const Color(0xFF3F5E46)).withOpacity(0.1),
+        color: (isDark ? Colors.white : const Color(0xFF3F5E46)).withOpacity(
+          0.1,
+        ),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Column(
         children: [
           Icon(icon, color: const Color(0xFF7BC48F), size: 20),
           const SizedBox(height: 4),
-          Text(
+          AutoSizeText(
             label,
             style: TextStyle(
               fontSize: 11,
@@ -2281,7 +2317,7 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
             ),
           ),
           const SizedBox(height: 2),
-          Text(
+          AutoSizeText(
             value,
             style: TextStyle(
               fontSize: 14,
@@ -2370,7 +2406,7 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
+                      AutoSizeText(
                         'Today\'s Guidance',
                         style: TextStyle(
                           fontSize: 18,
@@ -2379,7 +2415,7 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                               isDark ? Colors.white : const Color(0xFF2D5A3D),
                         ),
                       ),
-                      Text(
+                      AutoSizeText(
                         'Personalized recommendations',
                         style: TextStyle(
                           fontSize: 12,
@@ -2410,7 +2446,7 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
+                        AutoSizeText(
                           activeRec.title,
                           style: TextStyle(
                             fontSize: 15,
@@ -2419,7 +2455,7 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                           ),
                         ),
                         const SizedBox(height: 4),
-                        Text(
+                        AutoSizeText(
                           activeRec.verdict,
                           style: TextStyle(
                             fontSize: 13,
@@ -2513,7 +2549,7 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
+                  AutoSizeText(
                     'View Advanced Timings',
                     style: TextStyle(
                       fontSize: 16,
@@ -2522,7 +2558,7 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                     ),
                   ),
                   SizedBox(height: 4),
-                  Text(
+                  AutoSizeText(
                     'Hora, Choghadiya & Transitions',
                     style: TextStyle(fontSize: 12, color: Colors.white70),
                   ),
@@ -2604,7 +2640,7 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(
+                                AutoSizeText(
                                   'Inauspicious Timings',
                                   style: TextStyle(
                                     fontSize: 20,
@@ -2613,7 +2649,7 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                                   ),
                                 ),
                                 SizedBox(height: 4),
-                                Text(
+                                AutoSizeText(
                                   'Understanding unfavorable periods',
                                   style: TextStyle(
                                     fontSize: 13,
@@ -2702,7 +2738,7 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                                 ),
                                 const SizedBox(width: 12),
                                 Expanded(
-                                  child: Text(
+                                  child: AutoSizeText(
                                     'Tip: Routine activities and ongoing work can continue during these periods. Only avoid starting new important tasks.',
                                     style: TextStyle(
                                       fontSize: 13,
@@ -2710,7 +2746,6 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                                           isDark
                                               ? Colors.amber.shade200
                                               : Colors.amber.shade800,
-                                      height: 1.4,
                                     ),
                                   ),
                                 ),
@@ -2795,7 +2830,7 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(
+                                AutoSizeText(
                                   'Auspicious Timings',
                                   style: TextStyle(
                                     fontSize: 20,
@@ -2804,7 +2839,7 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                                   ),
                                 ),
                                 SizedBox(height: 4),
-                                Text(
+                                AutoSizeText(
                                   'Sacred windows of opportunity',
                                   style: TextStyle(
                                     fontSize: 13,
@@ -3017,14 +3052,17 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                           color: Colors.white.withOpacity(0.2),
                           borderRadius: BorderRadius.circular(12),
                         ),
-                        child: const Text('📅', style: TextStyle(fontSize: 28)),
+                        child: AutoSizeText(
+                          '📅',
+                          style: TextStyle(fontSize: 28),
+                        ),
                       ),
                       const SizedBox(width: 16),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(
+                            AutoSizeText(
                               '$currentMasa Masa',
                               style: const TextStyle(
                                 fontSize: 22,
@@ -3032,7 +3070,7 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                                 color: Colors.white,
                               ),
                             ),
-                            Text(
+                            AutoSizeText(
                               'Hindu Lunar Month (मास)',
                               style: TextStyle(
                                 fontSize: 13,
@@ -3091,7 +3129,7 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(
+                              AutoSizeText(
                                 '💡 What is Masa?',
                                 style: TextStyle(
                                   fontSize: 16,
@@ -3100,11 +3138,11 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                                 ),
                               ),
                               const SizedBox(height: 8),
-                              Text(
+                              AutoSizeText(
                                 'Masa (मास) is the Hindu lunar month. There are 12 months in a lunar year, each named after the Nakshatra in which the full moon occurs. The Hindu calendar follows either Amanta (month ends on New Moon) or Purnimanta (month ends on Full Moon) system.',
                                 style: TextStyle(
                                   fontSize: 14,
-                                  height: 1.5,
+
                                   color:
                                       isDark ? Colors.white70 : Colors.black54,
                                 ),
@@ -3185,7 +3223,7 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                           color: Colors.white.withOpacity(0.2),
                           borderRadius: BorderRadius.circular(12),
                         ),
-                        child: Text(
+                        child: AutoSizeText(
                           isKrishna ? '🌑' : '🌕',
                           style: const TextStyle(fontSize: 28),
                         ),
@@ -3195,7 +3233,7 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(
+                            AutoSizeText(
                               '$currentPaksha Paksha',
                               style: TextStyle(
                                 fontSize: 22,
@@ -3204,7 +3242,7 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                                     isKrishna ? Colors.white : Colors.black87,
                               ),
                             ),
-                            Text(
+                            AutoSizeText(
                               isKrishna
                                   ? 'Dark Fortnight (कृष्ण पक्ष)'
                                   : 'Bright Fortnight (शुक्ल पक्ष)',
@@ -3388,7 +3426,7 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(
+                              AutoSizeText(
                                 isKrishna
                                     ? '🌙 Krishna Paksha Activities'
                                     : '☀️ Shukla Paksha Activities',
@@ -3420,7 +3458,7 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                                   .map(
                                     (text) => Padding(
                                       padding: const EdgeInsets.only(bottom: 8),
-                                      child: Text(
+                                      child: AutoSizeText(
                                         text,
                                         style: TextStyle(
                                           fontSize: 14,
@@ -3448,9 +3486,9 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
   Widget _buildMoonPhase(String emoji, String label, String day, bool isDark) {
     return Column(
       children: [
-        Text(emoji, style: const TextStyle(fontSize: 24)),
+        AutoSizeText(emoji, style: const TextStyle(fontSize: 24)),
         const SizedBox(height: 4),
-        Text(
+        AutoSizeText(
           label,
           style: TextStyle(
             fontSize: 10,
@@ -3458,7 +3496,7 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
             color: isDark ? Colors.white70 : Colors.black54,
           ),
         ),
-        Text(
+        AutoSizeText(
           day,
           style: TextStyle(
             fontSize: 9,
@@ -3493,7 +3531,7 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
+              AutoSizeText(
                 label,
                 style: TextStyle(
                   fontSize: 12,
@@ -3501,7 +3539,7 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                 ),
               ),
               const SizedBox(height: 2),
-              Text(
+              AutoSizeText(
                 value,
                 style: TextStyle(
                   fontSize: 15,
@@ -3580,7 +3618,7 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(
+                                AutoSizeText(
                                   'Understanding Panchang',
                                   style: TextStyle(
                                     fontSize: 20,
@@ -3589,7 +3627,7 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                                   ),
                                 ),
                                 SizedBox(height: 4),
-                                Text(
+                                AutoSizeText(
                                   'The five limbs of Vedic time',
                                   style: TextStyle(
                                     fontSize: 13,
@@ -3624,11 +3662,11 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                                 color: const Color(0xFF3A8C54).withOpacity(0.2),
                               ),
                             ),
-                            child: Text(
+                            child: AutoSizeText(
                               'Panchang (पञ्चाङ्ग) literally means "five limbs" in Sanskrit. It is the ancient Vedic calendar system that tracks five essential elements of time that determine auspiciousness.',
                               style: TextStyle(
                                 fontSize: 14,
-                                height: 1.5,
+
                                 color: isDark ? Colors.white70 : Colors.black54,
                               ),
                             ),
@@ -3777,7 +3815,7 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(
+                                AutoSizeText(
                                   'Moon & Rashi',
                                   style: TextStyle(
                                     fontSize: 20,
@@ -3786,7 +3824,7 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                                   ),
                                 ),
                                 SizedBox(height: 4),
-                                Text(
+                                AutoSizeText(
                                   'Lunar influence on daily life',
                                   style: TextStyle(
                                     fontSize: 13,
@@ -3871,8 +3909,12 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                             decoration: BoxDecoration(
                               gradient: LinearGradient(
                                 colors: [
-                                  const Color(0xFF3F5E46).withOpacity(isDark ? 0.2 : 0.1),
-                                  const Color(0xFF1A3D24).withOpacity(isDark ? 0.2 : 0.1),
+                                  const Color(
+                                    0xFF3F5E46,
+                                  ).withOpacity(isDark ? 0.2 : 0.1),
+                                  const Color(
+                                    0xFF1A3D24,
+                                  ).withOpacity(isDark ? 0.2 : 0.1),
                                 ],
                               ),
                               borderRadius: BorderRadius.circular(16),
@@ -3887,12 +3929,14 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                                     Icon(
                                       Icons.lightbulb_outline,
                                       color:
-                                          isDark ? const Color(0xFF7BC48F) : const Color(0xFF2D5A3D),
+                                          isDark
+                                              ? const Color(0xFF7BC48F)
+                                              : const Color(0xFF2D5A3D),
                                       size: 24,
                                     ),
                                     const SizedBox(width: 12),
                                     Expanded(
-                                      child: Text(
+                                      child: AutoSizeText(
                                         'The 12 Rashis (Zodiac Signs)',
                                         style: TextStyle(
                                           fontSize: 14,
@@ -3933,11 +3977,15 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                                                     vertical: 6,
                                                   ),
                                               decoration: BoxDecoration(
-                                                color: const Color(0xFF3F5E46).withOpacity(isDark ? 0.2 : 0.15),
+                                                color: const Color(
+                                                  0xFF3F5E46,
+                                                ).withOpacity(
+                                                  isDark ? 0.2 : 0.15,
+                                                ),
                                                 borderRadius:
                                                     BorderRadius.circular(20),
                                               ),
-                                              child: Text(
+                                              child: AutoSizeText(
                                                 rashi,
                                                 style: TextStyle(
                                                   fontSize: 11,
@@ -3945,7 +3993,9 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                                                   color:
                                                       isDark
                                                           ? Colors.white70
-                                                          : const Color(0xFF1A3D24),
+                                                          : const Color(
+                                                            0xFF1A3D24,
+                                                          ),
                                                 ),
                                               ),
                                             ),
@@ -3995,7 +4045,7 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                 child: Icon(icon, color: color, size: 22),
               ),
               const SizedBox(width: 12),
-              Text(
+              AutoSizeText(
                 title,
                 style: TextStyle(
                   fontSize: 17,
@@ -4006,11 +4056,11 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
             ],
           ),
           const SizedBox(height: 12),
-          Text(
+          AutoSizeText(
             description,
             style: TextStyle(
               fontSize: 13,
-              height: 1.5,
+
               color: isDark ? Colors.white70 : Colors.black54,
             ),
           ),
@@ -4036,7 +4086,7 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                             Icon(Icons.check_circle, color: color, size: 14),
                             const SizedBox(width: 6),
                             Flexible(
-                              child: Text(
+                              child: AutoSizeText(
                                 tip,
                                 style: TextStyle(
                                   fontSize: 11,
@@ -4091,7 +4141,7 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
+                    AutoSizeText(
                       title,
                       style: TextStyle(
                         fontSize: 16,
@@ -4099,7 +4149,7 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                         color: isDark ? Colors.white : Colors.black87,
                       ),
                     ),
-                    Text(
+                    AutoSizeText(
                       subtitle,
                       style: TextStyle(
                         fontSize: 12,
@@ -4113,11 +4163,11 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
             ],
           ),
           const SizedBox(height: 12),
-          Text(
+          AutoSizeText(
             description,
             style: TextStyle(
               fontSize: 13,
-              height: 1.5,
+
               color: isDark ? Colors.white70 : Colors.black54,
             ),
           ),
@@ -4133,7 +4183,7 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                 Icon(Icons.format_list_bulleted, color: color, size: 16),
                 const SizedBox(width: 8),
                 Expanded(
-                  child: Text(
+                  child: AutoSizeText(
                     examples,
                     style: TextStyle(
                       fontSize: 12,
@@ -4180,7 +4230,7 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
               ),
               const SizedBox(width: 12),
               Expanded(
-                child: Text(
+                child: AutoSizeText(
                   title,
                   style: TextStyle(
                     fontSize: 16,
@@ -4192,11 +4242,11 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
             ],
           ),
           const SizedBox(height: 12),
-          Text(
+          AutoSizeText(
             description,
             style: TextStyle(
               fontSize: 13,
-              height: 1.5,
+
               color: isDark ? Colors.white70 : Colors.black54,
             ),
           ),
@@ -4210,7 +4260,7 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                   Icon(Icons.check_circle, color: color, size: 16),
                   const SizedBox(width: 8),
                   Expanded(
-                    child: Text(
+                    child: AutoSizeText(
                       item,
                       style: TextStyle(
                         fontSize: 12,

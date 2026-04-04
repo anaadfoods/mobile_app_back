@@ -1,6 +1,7 @@
-﻿import 'dart:ui';
+import 'dart:ui';
 
 import 'package:flutter/material.dart';
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
@@ -102,7 +103,7 @@ class _PanchangMonthScreenState extends State<PanchangMonthScreen>
       final month = int.tryParse(dateParts[1]) ?? DateTime.now().month;
       final dayNum = int.tryParse(dateParts[2]) ?? DateTime.now().day;
       final selectedDate = DateTime(year, month, dayNum);
-      
+
       // Pop back with the selected date
       Navigator.pop(context, selectedDate);
     }
@@ -116,7 +117,8 @@ class _PanchangMonthScreenState extends State<PanchangMonthScreen>
     return BlocProvider.value(
       value: _cubit,
       child: Scaffold(
-        backgroundColor: isDark ? const Color(0xFF070C09) : const Color(0xFFF4F8F4),
+        backgroundColor:
+            isDark ? const Color(0xFF070C09) : const Color(0xFFF4F8F4),
         body: GestureDetector(
           onHorizontalDragEnd: _onHorizontalDragEnd,
           child: Stack(
@@ -138,38 +140,40 @@ class _PanchangMonthScreenState extends State<PanchangMonthScreen>
                             ),
                           );
                         },
-                        child: BlocBuilder<PanchangMonthCubit, PanchangMonthState>(
-                          builder: (context, state) {
-                            if (state is PanchangMonthLoading ||
-                                state is PanchangMonthInitial) {
-                              return _buildLoadingState(theme, isDark);
-                            }
+                        child:
+                            BlocBuilder<PanchangMonthCubit, PanchangMonthState>(
+                              builder: (context, state) {
+                                if (state is PanchangMonthLoading ||
+                                    state is PanchangMonthInitial) {
+                                  return _buildLoadingState(theme, isDark);
+                                }
 
-                            if (state is PanchangMonthError) {
-                              return Center(
-                                child: ErrorStateWidget(
-                                  title: 'Unable to load calendar',
-                                  subtitle: state.message,
-                                  onRetry: () => _cubit.loadMonth(
-                                    state.year,
-                                    state.month,
-                                  ),
-                                ),
-                              );
-                            }
+                                if (state is PanchangMonthError) {
+                                  return Center(
+                                    child: ErrorStateWidget(
+                                      title: 'Unable to load calendar',
+                                      subtitle: state.message,
+                                      onRetry:
+                                          () => _cubit.loadMonth(
+                                            state.year,
+                                            state.month,
+                                          ),
+                                    ),
+                                  );
+                                }
 
-                            if (state is PanchangMonthSuccess) {
-                              return _buildCalendarContent(
-                                context,
-                                theme,
-                                isDark,
-                                state.data,
-                              );
-                            }
+                                if (state is PanchangMonthSuccess) {
+                                  return _buildCalendarContent(
+                                    context,
+                                    theme,
+                                    isDark,
+                                    state.data,
+                                  );
+                                }
 
-                            return const SizedBox.shrink();
-                          },
-                        ),
+                                return const SizedBox.shrink();
+                              },
+                            ),
                       ),
                     ),
                   ],
@@ -191,17 +195,18 @@ class _PanchangMonthScreenState extends State<PanchangMonthScreen>
             gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
-              colors: isDark
-                  ? [
-                      const Color(0xFF091309),
-                      const Color(0xFF070C09),
-                      const Color(0xFF091309),
-                    ]
-                  : [
-                      const Color(0xFFEDF4EE),
-                      const Color(0xFFF4F8F4),
-                      const Color(0xFFDCEEDF),
-                    ],
+              colors:
+                  isDark
+                      ? [
+                        const Color(0xFF091309),
+                        const Color(0xFF070C09),
+                        const Color(0xFF091309),
+                      ]
+                      : [
+                        const Color(0xFFEDF4EE),
+                        const Color(0xFFF4F8F4),
+                        const Color(0xFFDCEEDF),
+                      ],
             ),
           ),
         ),
@@ -210,9 +215,10 @@ class _PanchangMonthScreenState extends State<PanchangMonthScreen>
           top: -50,
           right: -50,
           child: _GlowingOrb(
-            color: isDark
-                ? const Color(0xFF3F5E46).withOpacity(0.3)
-                : const Color(0xFF3F5E46).withOpacity(0.15),
+            color:
+                isDark
+                    ? const Color(0xFF3F5E46).withOpacity(0.3)
+                    : const Color(0xFF3F5E46).withOpacity(0.15),
             size: 200,
           ),
         ),
@@ -220,9 +226,10 @@ class _PanchangMonthScreenState extends State<PanchangMonthScreen>
           bottom: 100,
           left: -80,
           child: _GlowingOrb(
-            color: isDark
-                ? const Color(0xFFFF6B9D).withOpacity(0.2)
-                : const Color(0xFFFF6B9D).withOpacity(0.1),
+            color:
+                isDark
+                    ? const Color(0xFFFF6B9D).withOpacity(0.2)
+                    : const Color(0xFFFF6B9D).withOpacity(0.1),
             size: 180,
           ),
         ),
@@ -248,7 +255,7 @@ class _PanchangMonthScreenState extends State<PanchangMonthScreen>
             ),
           ),
           const Spacer(),
-          Text(
+          AutoSizeText(
             'Month Calendar',
             style: theme.textTheme.titleLarge?.copyWith(
               fontWeight: FontWeight.bold,
@@ -289,11 +296,9 @@ class _PanchangMonthScreenState extends State<PanchangMonthScreen>
             ),
           ),
           const SizedBox(height: 16),
-          Text(
+          AutoSizeText(
             'Loading calendar...',
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: theme.hintColor,
-            ),
+            style: theme.textTheme.bodyMedium?.copyWith(color: theme.hintColor),
           ),
         ],
       ),
@@ -307,8 +312,10 @@ class _PanchangMonthScreenState extends State<PanchangMonthScreen>
     PanchangMonthResponse data,
   ) {
     // Analyze masa distribution
-    final masaAnalysis = PanchangMonthAnalyzer.analyzeMasaDistribution(data.grid);
-    
+    final masaAnalysis = PanchangMonthAnalyzer.analyzeMasaDistribution(
+      data.grid,
+    );
+
     return SingleChildScrollView(
       physics: const BouncingScrollPhysics(),
       padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -336,15 +343,16 @@ class _PanchangMonthScreenState extends State<PanchangMonthScreen>
                   gradient: LinearGradient(
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
-                    colors: isDark
-                        ? [
-                            const Color(0xFF0D1A10).withOpacity(0.8),
-                            const Color(0xFF080D09).withOpacity(0.9),
-                          ]
-                        : [
-                            Colors.white.withOpacity(0.95),
-                            const Color(0xFFF8F6FF).withOpacity(0.95),
-                          ],
+                    colors:
+                        isDark
+                            ? [
+                              const Color(0xFF0D1A10).withOpacity(0.8),
+                              const Color(0xFF080D09).withOpacity(0.9),
+                            ]
+                            : [
+                              Colors.white.withOpacity(0.95),
+                              const Color(0xFFF8F6FF).withOpacity(0.95),
+                            ],
                   ),
                   borderRadius: BorderRadius.circular(24),
                   border: Border.all(
@@ -354,7 +362,9 @@ class _PanchangMonthScreenState extends State<PanchangMonthScreen>
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: const Color(0xFF3F5E46).withOpacity(isDark ? 0.2 : 0.08),
+                      color: const Color(
+                        0xFF3F5E46,
+                      ).withOpacity(isDark ? 0.2 : 0.08),
                       blurRadius: 30,
                       offset: const Offset(0, 10),
                     ),
@@ -510,7 +520,7 @@ class _DualMonthNavigatorCard extends StatelessWidget {
     final indianMonths = IndianMonthHelper.getMonthsForGregorianMonth(month);
     final firstMasa = masaAnalysis.firstMasa;
     final lastMasa = masaAnalysis.lastMasa;
-    
+
     // Build Indian month display
     String indianMonthText = '';
     if (firstMasa != null && lastMasa != null) {
@@ -522,7 +532,8 @@ class _DualMonthNavigatorCard extends StatelessWidget {
     } else if (indianMonths.isNotEmpty) {
       // Fallback to expected months
       if (indianMonths.length == 2) {
-        indianMonthText = '${indianMonths[0].sanskritName} | ${indianMonths[1].sanskritName}';
+        indianMonthText =
+            '${indianMonths[0].sanskritName} | ${indianMonths[1].sanskritName}';
       } else {
         indianMonthText = indianMonths[0].sanskritName;
       }
@@ -538,15 +549,16 @@ class _DualMonthNavigatorCard extends StatelessWidget {
             gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
-              colors: isDark
-                  ? [
-                      const Color(0xFF112214).withOpacity(0.8),
-                      const Color(0xFF1A1030).withOpacity(0.8),
-                    ]
-                  : [
-                      Colors.white.withOpacity(0.9),
-                      const Color(0xFFEDF4EE).withOpacity(0.9),
-                    ],
+              colors:
+                  isDark
+                      ? [
+                        const Color(0xFF112214).withOpacity(0.8),
+                        const Color(0xFF1A1030).withOpacity(0.8),
+                      ]
+                      : [
+                        Colors.white.withOpacity(0.9),
+                        const Color(0xFFEDF4EE).withOpacity(0.9),
+                      ],
             ),
             borderRadius: BorderRadius.circular(24),
             border: Border.all(
@@ -572,7 +584,7 @@ class _DualMonthNavigatorCard extends StatelessWidget {
                 child: Column(
                   children: [
                     // Gregorian month (primary)
-                    Text(
+                    AutoSizeText(
                       monthName,
                       style: theme.textTheme.headlineSmall?.copyWith(
                         fontWeight: FontWeight.bold,
@@ -591,12 +603,13 @@ class _DualMonthNavigatorCard extends StatelessWidget {
                         color: const Color(0xFF3F5E46).withOpacity(0.2),
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      child: Text(
+                      child: AutoSizeText(
                         '$year',
                         style: theme.textTheme.bodyMedium?.copyWith(
-                          color: isDark
-                              ? const Color(0xFF7BC48F)
-                              : const Color(0xFF3F5E46),
+                          color:
+                              isDark
+                                  ? const Color(0xFF7BC48F)
+                                  : const Color(0xFF3F5E46),
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -615,7 +628,7 @@ class _DualMonthNavigatorCard extends StatelessWidget {
                           ),
                           const SizedBox(width: 6),
                           Flexible(
-                            child: Text(
+                            child: AutoSizeText(
                               indianMonthText,
                               style: theme.textTheme.bodySmall?.copyWith(
                                 color: (isDark ? Colors.white : Colors.black)
@@ -674,15 +687,16 @@ class _MonthNavigatorCard extends StatelessWidget {
             gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
-              colors: isDark
-                  ? [
-                      const Color(0xFF112214).withOpacity(0.8),
-                      const Color(0xFF1A1030).withOpacity(0.8),
-                    ]
-                  : [
-                      Colors.white.withOpacity(0.9),
-                      const Color(0xFFEDF4EE).withOpacity(0.9),
-                    ],
+              colors:
+                  isDark
+                      ? [
+                        const Color(0xFF112214).withOpacity(0.8),
+                        const Color(0xFF1A1030).withOpacity(0.8),
+                      ]
+                      : [
+                        Colors.white.withOpacity(0.9),
+                        const Color(0xFFEDF4EE).withOpacity(0.9),
+                      ],
             ),
             borderRadius: BorderRadius.circular(24),
             border: Border.all(
@@ -707,7 +721,7 @@ class _MonthNavigatorCard extends StatelessWidget {
               Expanded(
                 child: Column(
                   children: [
-                    Text(
+                    AutoSizeText(
                       monthName,
                       style: theme.textTheme.headlineSmall?.copyWith(
                         fontWeight: FontWeight.bold,
@@ -725,12 +739,13 @@ class _MonthNavigatorCard extends StatelessWidget {
                         color: const Color(0xFF3F5E46).withOpacity(0.2),
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      child: Text(
+                      child: AutoSizeText(
                         '$year',
                         style: theme.textTheme.bodyMedium?.copyWith(
-                          color: isDark
-                              ? const Color(0xFF7BC48F)
-                              : const Color(0xFF3F5E46),
+                          color:
+                              isDark
+                                  ? const Color(0xFF7BC48F)
+                                  : const Color(0xFF3F5E46),
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -857,14 +872,12 @@ class _IndianMonthStrip extends StatelessWidget {
           decoration: BoxDecoration(
             color: color.withOpacity(0.3),
             borderRadius: BorderRadius.circular(12),
-            border: isTransition
-                ? Border.all(color: color, width: 2)
-                : null,
+            border: isTransition ? Border.all(color: color, width: 2) : null,
           ),
           child: Center(
             child: RotatedBox(
               quarterTurns: 3,
-              child: Text(
+              child: AutoSizeText(
                 month?.abbreviation ?? masa.substring(0, 3).toUpperCase(),
                 style: TextStyle(
                   fontSize: 11,
@@ -891,23 +904,27 @@ class _WeekdayHeader extends StatelessWidget {
     final weekdays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
     return Row(
-      children: weekdays.asMap().entries.map((entry) {
-        final isSunday = entry.key == 0;
-        return Expanded(
-          child: Center(
-            child: Text(
-              entry.value,
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-                color: isSunday
-                    ? (isDark ? const Color(0xFFFF6B9D) : Colors.red.shade400)
-                    : (isDark ? Colors.white54 : Colors.black45),
+      children:
+          weekdays.asMap().entries.map((entry) {
+            final isSunday = entry.key == 0;
+            return Expanded(
+              child: Center(
+                child: AutoSizeText(
+                  entry.value,
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color:
+                        isSunday
+                            ? (isDark
+                                ? const Color(0xFFFF6B9D)
+                                : Colors.red.shade400)
+                            : (isDark ? Colors.white54 : Colors.black45),
+                  ),
+                ),
               ),
-            ),
-          ),
-        );
-      }).toList(),
+            );
+          }).toList(),
     );
   }
 }
@@ -926,28 +943,33 @@ class _CalendarGrid extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Column(
-      children: grid.asMap().entries.map((rowEntry) {
-        return Padding(
-          padding: const EdgeInsets.only(bottom: 8),
-          child: Row(
-            children: rowEntry.value.asMap().entries.map((cellEntry) {
-              final day = cellEntry.value;
-              return Expanded(
-                child: day == null
-                    ? const SizedBox(height: 80)
-                    : _DayCell(
-                        day: day,
-                        isDark: isDark,
-                        onTap: () => onDayTapped(day),
-                        animationDelay: Duration(
-                          milliseconds: (rowEntry.key * 50) + (cellEntry.key * 30),
-                        ),
-                      ),
-              );
-            }).toList(),
-          ),
-        );
-      }).toList(),
+      children:
+          grid.asMap().entries.map((rowEntry) {
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: Row(
+                children:
+                    rowEntry.value.asMap().entries.map((cellEntry) {
+                      final day = cellEntry.value;
+                      return Expanded(
+                        child:
+                            day == null
+                                ? const SizedBox(height: 80)
+                                : _DayCell(
+                                  day: day,
+                                  isDark: isDark,
+                                  onTap: () => onDayTapped(day),
+                                  animationDelay: Duration(
+                                    milliseconds:
+                                        (rowEntry.key * 50) +
+                                        (cellEntry.key * 30),
+                                  ),
+                                ),
+                      );
+                    }).toList(),
+              ),
+            );
+          }).toList(),
     );
   }
 }
@@ -968,46 +990,48 @@ class _CalendarGridWithMasa extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Column(
-      children: grid.asMap().entries.map((rowEntry) {
-        final rowIndex = rowEntry.key;
-        final isTransitionRow = masaAnalysis.transitionRows.contains(rowIndex);
-        final newMasa = isTransitionRow
-            ? masaAnalysis.rowMasaMap[rowIndex]
-            : null;
+      children:
+          grid.asMap().entries.map((rowEntry) {
+            final rowIndex = rowEntry.key;
+            final isTransitionRow = masaAnalysis.transitionRows.contains(
+              rowIndex,
+            );
+            final newMasa =
+                isTransitionRow ? masaAnalysis.rowMasaMap[rowIndex] : null;
 
-        return Column(
-          children: [
-            // Show transition banner if this row starts a new masa
-            if (isTransitionRow && newMasa != null)
-              _MasaTransitionBanner(
-                masaName: newMasa,
-                isDark: isDark,
-              ),
-            // Calendar row
-            Padding(
-              padding: const EdgeInsets.only(bottom: 8),
-              child: Row(
-                children: rowEntry.value.asMap().entries.map((cellEntry) {
-                  final day = cellEntry.value;
-                  return Expanded(
-                    child: day == null
-                        ? const SizedBox(height: 80)
-                        : _DayCellWithMasa(
-                            day: day,
-                            isDark: isDark,
-                            onTap: () => onDayTapped(day),
-                            animationDelay: Duration(
-                              milliseconds:
-                                  (rowEntry.key * 50) + (cellEntry.key * 30),
-                            ),
-                          ),
-                  );
-                }).toList(),
-              ),
-            ),
-          ],
-        );
-      }).toList(),
+            return Column(
+              children: [
+                // Show transition banner if this row starts a new masa
+                if (isTransitionRow && newMasa != null)
+                  _MasaTransitionBanner(masaName: newMasa, isDark: isDark),
+                // Calendar row
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: Row(
+                    children:
+                        rowEntry.value.asMap().entries.map((cellEntry) {
+                          final day = cellEntry.value;
+                          return Expanded(
+                            child:
+                                day == null
+                                    ? const SizedBox(height: 80)
+                                    : _DayCellWithMasa(
+                                      day: day,
+                                      isDark: isDark,
+                                      onTap: () => onDayTapped(day),
+                                      animationDelay: Duration(
+                                        milliseconds:
+                                            (rowEntry.key * 50) +
+                                            (cellEntry.key * 30),
+                                      ),
+                                    ),
+                          );
+                        }).toList(),
+                  ),
+                ),
+              ],
+            );
+          }).toList(),
     );
   }
 }
@@ -1016,10 +1040,7 @@ class _MasaTransitionBanner extends StatelessWidget {
   final String masaName;
   final bool isDark;
 
-  const _MasaTransitionBanner({
-    required this.masaName,
-    required this.isDark,
-  });
+  const _MasaTransitionBanner({required this.masaName, required this.isDark});
 
   @override
   Widget build(BuildContext context) {
@@ -1042,13 +1063,9 @@ class _MasaTransitionBanner extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(
-            Icons.celebration_rounded,
-            size: 14,
-            color: color,
-          ),
+          Icon(Icons.celebration_rounded, size: 14, color: color),
           const SizedBox(width: 8),
-          Text(
+          AutoSizeText(
             '${month?.sanskritName ?? masaName} begins',
             style: TextStyle(
               fontSize: 11,
@@ -1058,11 +1075,7 @@ class _MasaTransitionBanner extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 8),
-          Icon(
-            Icons.celebration_rounded,
-            size: 14,
-            color: color,
-          ),
+          Icon(Icons.celebration_rounded, size: 14, color: color),
         ],
       ),
     );
@@ -1100,13 +1113,15 @@ class _DayCellState extends State<_DayCell>
       vsync: this,
     );
 
-    _scaleAnimation = Tween<double>(begin: 0.5, end: 1.0).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeOutBack),
-    );
+    _scaleAnimation = Tween<double>(
+      begin: 0.5,
+      end: 1.0,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOutBack));
 
-    _opacityAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeOut),
-    );
+    _opacityAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOut));
 
     Future.delayed(widget.animationDelay, () {
       if (mounted) _controller.forward();
@@ -1125,13 +1140,11 @@ class _DayCellState extends State<_DayCell>
       context: context,
       barrierDismissible: true,
       barrierColor: Colors.black.withOpacity(0.5),
-      builder: (context) => BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-        child: _DayDetailsDialog(
-          day: widget.day,
-          isDark: widget.isDark,
-        ),
-      ),
+      builder:
+          (context) => BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+            child: _DayDetailsDialog(day: widget.day, isDark: widget.isDark),
+          ),
     );
   }
 
@@ -1147,11 +1160,14 @@ class _DayCellState extends State<_DayCell>
     if (day.isToday) {
       cellColor = const Color(0xFF3F5E46);
     } else if (hasFestival) {
-      cellColor = widget.isDark
-          ? const Color(0xFFFFAA33).withOpacity(0.2)
-          : const Color(0xFFFFAA33).withOpacity(0.15);
+      cellColor =
+          widget.isDark
+              ? const Color(0xFFFFAA33).withOpacity(0.2)
+              : const Color(0xFFFFAA33).withOpacity(0.15);
     } else {
-      cellColor = (widget.isDark ? Colors.white : Colors.black).withOpacity(0.05);
+      cellColor = (widget.isDark ? Colors.white : Colors.black).withOpacity(
+        0.05,
+      );
     }
 
     return AnimatedBuilder(
@@ -1159,10 +1175,7 @@ class _DayCellState extends State<_DayCell>
       builder: (context, child) {
         return Transform.scale(
           scale: _scaleAnimation.value,
-          child: Opacity(
-            opacity: _opacityAnimation.value,
-            child: child,
-          ),
+          child: Opacity(opacity: _opacityAnimation.value, child: child),
         );
       },
       child: GestureDetector(
@@ -1174,21 +1187,23 @@ class _DayCellState extends State<_DayCell>
           decoration: BoxDecoration(
             color: cellColor,
             borderRadius: BorderRadius.circular(12),
-            border: day.isToday
-                ? null
-                : Border.all(
-                    color: (widget.isDark ? Colors.white : Colors.black)
-                        .withOpacity(0.08),
-                  ),
-            boxShadow: day.isToday
-                ? [
-                    BoxShadow(
-                      color: const Color(0xFF3F5E46).withOpacity(0.4),
-                      blurRadius: 12,
-                      offset: const Offset(0, 4),
+            border:
+                day.isToday
+                    ? null
+                    : Border.all(
+                      color: (widget.isDark ? Colors.white : Colors.black)
+                          .withOpacity(0.08),
                     ),
-                  ]
-                : null,
+            boxShadow:
+                day.isToday
+                    ? [
+                      BoxShadow(
+                        color: const Color(0xFF3F5E46).withOpacity(0.4),
+                        blurRadius: 12,
+                        offset: const Offset(0, 4),
+                      ),
+                    ]
+                    : null,
           ),
           child: Padding(
             padding: const EdgeInsets.all(6),
@@ -1199,18 +1214,21 @@ class _DayCellState extends State<_DayCell>
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(
+                    AutoSizeText(
                       '${day.dayNumber}',
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
-                        color: day.isToday
-                            ? Colors.white
-                            : isSunday
+                        color:
+                            day.isToday
+                                ? Colors.white
+                                : isSunday
                                 ? (widget.isDark
                                     ? const Color(0xFFFF6B9D)
                                     : Colors.red.shade400)
-                                : (widget.isDark ? Colors.white : Colors.black87),
+                                : (widget.isDark
+                                    ? Colors.white
+                                    : Colors.black87),
                       ),
                     ),
                     if (hasFestival)
@@ -1219,36 +1237,37 @@ class _DayCellState extends State<_DayCell>
                         height: 8,
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          color: day.isToday
-                              ? Colors.white
-                              : const Color(0xFFFFAA33),
+                          color:
+                              day.isToday
+                                  ? Colors.white
+                                  : const Color(0xFFFFAA33),
                         ),
                       ),
                   ],
                 ),
                 const Spacer(),
                 // Tithi (truncated)
-                Text(
+                AutoSizeText(
                   day.tithi,
                   style: TextStyle(
                     fontSize: 9,
-                    color: day.isToday
-                        ? Colors.white70
-                        : (widget.isDark ? Colors.white54 : Colors.black45),
+                    color:
+                        day.isToday
+                            ? Colors.white70
+                            : (widget.isDark ? Colors.white54 : Colors.black45),
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
                 // Festival indicator
                 if (hasFestival && day.festivals.isNotEmpty)
-                  Text(
+                  AutoSizeText(
                     day.festivals.first.name,
                     style: TextStyle(
                       fontSize: 8,
                       fontWeight: FontWeight.w600,
-                      color: day.isToday
-                          ? Colors.white
-                          : const Color(0xFFFFAA33),
+                      color:
+                          day.isToday ? Colors.white : const Color(0xFFFFAA33),
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
@@ -1260,22 +1279,24 @@ class _DayCellState extends State<_DayCell>
                       Icon(
                         Icons.brightness_3,
                         size: 8,
-                        color: day.isToday
-                            ? Colors.white70
-                            : (widget.isDark
-                                ? const Color(0xFF88DDFF)
-                                : Colors.blue.shade300),
+                        color:
+                            day.isToday
+                                ? Colors.white70
+                                : (widget.isDark
+                                    ? const Color(0xFF88DDFF)
+                                    : Colors.blue.shade300),
                       ),
                       const SizedBox(width: 2),
-                      Text(
+                      AutoSizeText(
                         'Vrat',
                         style: TextStyle(
                           fontSize: 8,
-                          color: day.isToday
-                              ? Colors.white70
-                              : (widget.isDark
-                                  ? const Color(0xFF88DDFF)
-                                  : Colors.blue.shade300),
+                          color:
+                              day.isToday
+                                  ? Colors.white70
+                                  : (widget.isDark
+                                      ? const Color(0xFF88DDFF)
+                                      : Colors.blue.shade300),
                         ),
                       ),
                     ],
@@ -1320,13 +1341,15 @@ class _DayCellWithMasaState extends State<_DayCellWithMasa>
       vsync: this,
     );
 
-    _scaleAnimation = Tween<double>(begin: 0.5, end: 1.0).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeOutBack),
-    );
+    _scaleAnimation = Tween<double>(
+      begin: 0.5,
+      end: 1.0,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOutBack));
 
-    _opacityAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeOut),
-    );
+    _opacityAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOut));
 
     Future.delayed(widget.animationDelay, () {
       if (mounted) _controller.forward();
@@ -1345,13 +1368,11 @@ class _DayCellWithMasaState extends State<_DayCellWithMasa>
       context: context,
       barrierDismissible: true,
       barrierColor: Colors.black.withOpacity(0.5),
-      builder: (context) => BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-        child: _DayDetailsDialog(
-          day: widget.day,
-          isDark: widget.isDark,
-        ),
-      ),
+      builder:
+          (context) => BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+            child: _DayDetailsDialog(day: widget.day, isDark: widget.isDark),
+          ),
     );
   }
 
@@ -1374,9 +1395,10 @@ class _DayCellWithMasaState extends State<_DayCellWithMasa>
     if (day.isToday) {
       cellColor = const Color(0xFF3F5E46);
     } else if (hasFestival) {
-      cellColor = widget.isDark
-          ? const Color(0xFFFFAA33).withOpacity(0.25)
-          : const Color(0xFFFFAA33).withOpacity(0.2);
+      cellColor =
+          widget.isDark
+              ? const Color(0xFFFFAA33).withOpacity(0.25)
+              : const Color(0xFFFFAA33).withOpacity(0.2);
     } else {
       // Use masa color as base
       cellColor = masaColor;
@@ -1387,10 +1409,7 @@ class _DayCellWithMasaState extends State<_DayCellWithMasa>
       builder: (context, child) {
         return Transform.scale(
           scale: _scaleAnimation.value,
-          child: Opacity(
-            opacity: _opacityAnimation.value,
-            child: child,
-          ),
+          child: Opacity(opacity: _opacityAnimation.value, child: child),
         );
       },
       child: GestureDetector(
@@ -1402,21 +1421,23 @@ class _DayCellWithMasaState extends State<_DayCellWithMasa>
           decoration: BoxDecoration(
             color: cellColor,
             borderRadius: BorderRadius.circular(12),
-            border: day.isToday
-                ? null
-                : Border.all(
-                    color: (widget.isDark ? Colors.white : Colors.black)
-                        .withOpacity(0.08),
-                  ),
-            boxShadow: day.isToday
-                ? [
-                    BoxShadow(
-                      color: const Color(0xFF3F5E46).withOpacity(0.4),
-                      blurRadius: 12,
-                      offset: const Offset(0, 4),
+            border:
+                day.isToday
+                    ? null
+                    : Border.all(
+                      color: (widget.isDark ? Colors.white : Colors.black)
+                          .withOpacity(0.08),
                     ),
-                  ]
-                : null,
+            boxShadow:
+                day.isToday
+                    ? [
+                      BoxShadow(
+                        color: const Color(0xFF3F5E46).withOpacity(0.4),
+                        blurRadius: 12,
+                        offset: const Offset(0, 4),
+                      ),
+                    ]
+                    : null,
           ),
           child: Padding(
             padding: const EdgeInsets.all(6),
@@ -1427,18 +1448,21 @@ class _DayCellWithMasaState extends State<_DayCellWithMasa>
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(
+                    AutoSizeText(
                       '${day.dayNumber}',
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
-                        color: day.isToday
-                            ? Colors.white
-                            : isSunday
+                        color:
+                            day.isToday
+                                ? Colors.white
+                                : isSunday
                                 ? (widget.isDark
                                     ? const Color(0xFFFF6B9D)
                                     : Colors.red.shade400)
-                                : (widget.isDark ? Colors.white : Colors.black87),
+                                : (widget.isDark
+                                    ? Colors.white
+                                    : Colors.black87),
                       ),
                     ),
                     if (hasFestival)
@@ -1447,36 +1471,37 @@ class _DayCellWithMasaState extends State<_DayCellWithMasa>
                         height: 8,
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          color: day.isToday
-                              ? Colors.white
-                              : const Color(0xFFFFAA33),
+                          color:
+                              day.isToday
+                                  ? Colors.white
+                                  : const Color(0xFFFFAA33),
                         ),
                       ),
                   ],
                 ),
                 const Spacer(),
                 // Tithi (truncated)
-                Text(
+                AutoSizeText(
                   day.tithi,
                   style: TextStyle(
                     fontSize: 9,
-                    color: day.isToday
-                        ? Colors.white70
-                        : (widget.isDark ? Colors.white54 : Colors.black45),
+                    color:
+                        day.isToday
+                            ? Colors.white70
+                            : (widget.isDark ? Colors.white54 : Colors.black45),
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
                 // Festival indicator
                 if (hasFestival && day.festivals.isNotEmpty)
-                  Text(
+                  AutoSizeText(
                     day.festivals.first.name,
                     style: TextStyle(
                       fontSize: 8,
                       fontWeight: FontWeight.w600,
-                      color: day.isToday
-                          ? Colors.white
-                          : const Color(0xFFFFAA33),
+                      color:
+                          day.isToday ? Colors.white : const Color(0xFFFFAA33),
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
@@ -1488,22 +1513,24 @@ class _DayCellWithMasaState extends State<_DayCellWithMasa>
                       Icon(
                         Icons.brightness_3,
                         size: 8,
-                        color: day.isToday
-                            ? Colors.white70
-                            : (widget.isDark
-                                ? const Color(0xFF88DDFF)
-                                : Colors.blue.shade300),
+                        color:
+                            day.isToday
+                                ? Colors.white70
+                                : (widget.isDark
+                                    ? const Color(0xFF88DDFF)
+                                    : Colors.blue.shade300),
                       ),
                       const SizedBox(width: 2),
-                      Text(
+                      AutoSizeText(
                         'Vrat',
                         style: TextStyle(
                           fontSize: 8,
-                          color: day.isToday
-                              ? Colors.white70
-                              : (widget.isDark
-                                  ? const Color(0xFF88DDFF)
-                                  : Colors.blue.shade300),
+                          color:
+                              day.isToday
+                                  ? Colors.white70
+                                  : (widget.isDark
+                                      ? const Color(0xFF88DDFF)
+                                      : Colors.blue.shade300),
                         ),
                       ),
                     ],
@@ -1542,7 +1569,7 @@ class _LegendCard extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
+              AutoSizeText(
                 'Legend',
                 style: theme.textTheme.titleSmall?.copyWith(
                   fontWeight: FontWeight.bold,
@@ -1565,9 +1592,8 @@ class _LegendCard extends StatelessWidget {
                   ),
                   const SizedBox(width: 20),
                   _LegendItem(
-                    color: isDark
-                        ? const Color(0xFF88DDFF)
-                        : Colors.blue.shade300,
+                    color:
+                        isDark ? const Color(0xFF88DDFF) : Colors.blue.shade300,
                     label: 'Vrat',
                     isDark: isDark,
                     icon: Icons.brightness_3,
@@ -1603,15 +1629,15 @@ class _LegendItem extends StatelessWidget {
         icon != null
             ? Icon(icon, size: 12, color: color)
             : Container(
-                width: 12,
-                height: 12,
-                decoration: BoxDecoration(
-                  color: color,
-                  borderRadius: BorderRadius.circular(4),
-                ),
+              width: 12,
+              height: 12,
+              decoration: BoxDecoration(
+                color: color,
+                borderRadius: BorderRadius.circular(4),
               ),
+            ),
         const SizedBox(width: 6),
-        Text(
+        AutoSizeText(
           label,
           style: TextStyle(
             fontSize: 12,
@@ -1627,10 +1653,7 @@ class _EnhancedLegendCard extends StatelessWidget {
   final bool isDark;
   final List<String> presentMasas;
 
-  const _EnhancedLegendCard({
-    required this.isDark,
-    required this.presentMasas,
-  });
+  const _EnhancedLegendCard({required this.isDark, required this.presentMasas});
 
   @override
   Widget build(BuildContext context) {
@@ -1652,7 +1675,7 @@ class _EnhancedLegendCard extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
+              AutoSizeText(
                 'Legend',
                 style: theme.textTheme.titleSmall?.copyWith(
                   fontWeight: FontWeight.bold,
@@ -1676,9 +1699,8 @@ class _EnhancedLegendCard extends StatelessWidget {
                   ),
                   const SizedBox(width: 20),
                   _LegendItem(
-                    color: isDark
-                        ? const Color(0xFF88DDFF)
-                        : Colors.blue.shade300,
+                    color:
+                        isDark ? const Color(0xFF88DDFF) : Colors.blue.shade300,
                     label: 'Vrat',
                     isDark: isDark,
                     icon: Icons.brightness_3,
@@ -1687,7 +1709,7 @@ class _EnhancedLegendCard extends StatelessWidget {
               ),
               const SizedBox(height: 16),
               // Indian months section
-              Text(
+              AutoSizeText(
                 'Indian Months',
                 style: theme.textTheme.bodySmall?.copyWith(
                   fontWeight: FontWeight.w600,
@@ -1699,44 +1721,48 @@ class _EnhancedLegendCard extends StatelessWidget {
               Wrap(
                 spacing: 8,
                 runSpacing: 8,
-                children: presentMasas.map((masa) {
-                  final month = IndianMonthHelper.getBySanskritName(masa);
-                  final color = IndianMonthHelper.getBaseColorForMasa(masa, isDark);
-                  
-                  return Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 6,
-                    ),
-                    decoration: BoxDecoration(
-                      color: color.withOpacity(0.2),
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: color.withOpacity(0.4)),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Container(
-                          width: 10,
-                          height: 10,
-                          decoration: BoxDecoration(
-                            color: color,
-                            shape: BoxShape.circle,
-                          ),
+                children:
+                    presentMasas.map((masa) {
+                      final month = IndianMonthHelper.getBySanskritName(masa);
+                      final color = IndianMonthHelper.getBaseColorForMasa(
+                        masa,
+                        isDark,
+                      );
+
+                      return Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 6,
                         ),
-                        const SizedBox(width: 6),
-                        Text(
-                          month?.sanskritName ?? masa,
-                          style: TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w600,
-                            color: isDark ? Colors.white : Colors.black87,
-                          ),
+                        decoration: BoxDecoration(
+                          color: color.withOpacity(0.2),
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: color.withOpacity(0.4)),
                         ),
-                      ],
-                    ),
-                  );
-                }).toList(),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Container(
+                              width: 10,
+                              height: 10,
+                              decoration: BoxDecoration(
+                                color: color,
+                                shape: BoxShape.circle,
+                              ),
+                            ),
+                            const SizedBox(width: 6),
+                            AutoSizeText(
+                              month?.sanskritName ?? masa,
+                              style: TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w600,
+                                color: isDark ? Colors.white : Colors.black87,
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    }).toList(),
               ),
             ],
           ),
@@ -1750,10 +1776,7 @@ class _DayDetailsDialog extends StatelessWidget {
   final PanchangDaySummary day;
   final bool isDark;
 
-  const _DayDetailsDialog({
-    required this.day,
-    required this.isDark,
-  });
+  const _DayDetailsDialog({required this.day, required this.isDark});
 
   @override
   Widget build(BuildContext context) {
@@ -1773,21 +1796,13 @@ class _DayDetailsDialog extends StatelessWidget {
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: isDark
-                ? [
-                    const Color(0xFF0D1A10),
-                    const Color(0xFF080D09),
-                  ]
-                : [
-                    Colors.white,
-                    const Color(0xFFF8F6FF),
-                  ],
+            colors:
+                isDark
+                    ? [const Color(0xFF0D1A10), const Color(0xFF080D09)]
+                    : [Colors.white, const Color(0xFFF8F6FF)],
           ),
           borderRadius: BorderRadius.circular(28),
-          border: Border.all(
-            color: masaColor.withOpacity(0.3),
-            width: 1.5,
-          ),
+          border: Border.all(color: masaColor.withOpacity(0.3), width: 1.5),
           boxShadow: [
             BoxShadow(
               color: masaColor.withOpacity(0.2),
@@ -1808,10 +1823,7 @@ class _DayDetailsDialog extends StatelessWidget {
             Container(
               decoration: BoxDecoration(
                 gradient: LinearGradient(
-                  colors: [
-                    masaColor.withOpacity(0.15),
-                    Colors.transparent,
-                  ],
+                  colors: [masaColor.withOpacity(0.15), Colors.transparent],
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
                 ),
@@ -1830,13 +1842,15 @@ class _DayDetailsDialog extends StatelessWidget {
                       icon: Container(
                         padding: const EdgeInsets.all(6),
                         decoration: BoxDecoration(
-                          color: (isDark ? Colors.white : Colors.black).withOpacity(0.1),
+                          color: (isDark ? Colors.white : Colors.black)
+                              .withOpacity(0.1),
                           shape: BoxShape.circle,
                         ),
                         child: Icon(
                           Icons.close_rounded,
                           size: 18,
-                          color: (isDark ? Colors.white : Colors.black).withOpacity(0.6),
+                          color: (isDark ? Colors.white : Colors.black)
+                              .withOpacity(0.6),
                         ),
                       ),
                       onPressed: () => Navigator.of(context).pop(),
@@ -1855,10 +1869,7 @@ class _DayDetailsDialog extends StatelessWidget {
                             gradient: LinearGradient(
                               begin: Alignment.topLeft,
                               end: Alignment.bottomRight,
-                              colors: [
-                                masaColor,
-                                masaColor.withOpacity(0.7),
-                              ],
+                              colors: [masaColor, masaColor.withOpacity(0.7)],
                             ),
                             borderRadius: BorderRadius.circular(20),
                             boxShadow: [
@@ -1872,7 +1883,7 @@ class _DayDetailsDialog extends StatelessWidget {
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Text(
+                              AutoSizeText(
                                 '${day.dayNumber}',
                                 style: theme.textTheme.headlineMedium?.copyWith(
                                   color: Colors.white,
@@ -1880,8 +1891,10 @@ class _DayDetailsDialog extends StatelessWidget {
                                   height: 1,
                                 ),
                               ),
-                              Text(
-                                DateFormat('EEE').format(DateTime.parse(day.date)).toUpperCase(),
+                              AutoSizeText(
+                                DateFormat('EEE')
+                                    .format(DateTime.parse(day.date))
+                                    .toUpperCase(),
                                 style: TextStyle(
                                   color: Colors.white.withOpacity(0.9),
                                   fontSize: 11,
@@ -1898,8 +1911,10 @@ class _DayDetailsDialog extends StatelessWidget {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(
-                                DateFormat('MMMM yyyy').format(DateTime.parse(day.date)),
+                              AutoSizeText(
+                                DateFormat(
+                                  'MMMM yyyy',
+                                ).format(DateTime.parse(day.date)),
                                 style: theme.textTheme.titleMedium?.copyWith(
                                   fontWeight: FontWeight.bold,
                                   color: isDark ? Colors.white : Colors.black87,
@@ -1907,7 +1922,10 @@ class _DayDetailsDialog extends StatelessWidget {
                               ),
                               const SizedBox(height: 4),
                               Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 10,
+                                  vertical: 4,
+                                ),
                                 decoration: BoxDecoration(
                                   color: masaColor.withOpacity(0.15),
                                   borderRadius: BorderRadius.circular(20),
@@ -1915,7 +1933,7 @@ class _DayDetailsDialog extends StatelessWidget {
                                     color: masaColor.withOpacity(0.3),
                                   ),
                                 ),
-                                child: Text(
+                                child: AutoSizeText(
                                   month?.sanskritName ?? day.masa,
                                   style: TextStyle(
                                     fontSize: 12,
@@ -1933,7 +1951,7 @@ class _DayDetailsDialog extends StatelessWidget {
                 ],
               ),
             ),
-            
+
             // Tithi Banner
             Container(
               margin: const EdgeInsets.symmetric(horizontal: 20),
@@ -1961,7 +1979,10 @@ class _DayDetailsDialog extends StatelessWidget {
                     child: Icon(
                       Icons.nightlight_round,
                       size: 18,
-                      color: isDark ? const Color(0xFFB59EFF) : const Color(0xFF3F5E46),
+                      color:
+                          isDark
+                              ? const Color(0xFFB59EFF)
+                              : const Color(0xFF3F5E46),
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -1969,15 +1990,16 @@ class _DayDetailsDialog extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
+                        AutoSizeText(
                           'Tithi',
                           style: TextStyle(
                             fontSize: 11,
-                            color: (isDark ? Colors.white : Colors.black).withOpacity(0.5),
+                            color: (isDark ? Colors.white : Colors.black)
+                                .withOpacity(0.5),
                             fontWeight: FontWeight.w500,
                           ),
                         ),
-                        Text(
+                        AutoSizeText(
                           day.tithi,
                           style: theme.textTheme.titleSmall?.copyWith(
                             fontWeight: FontWeight.w600,
@@ -1990,9 +2012,9 @@ class _DayDetailsDialog extends StatelessWidget {
                 ],
               ),
             ),
-            
+
             const SizedBox(height: 16),
-            
+
             // Quick Info Row (Sun/Moon)
             if (day.sunrise != null || day.moonrise != null)
               Padding(
@@ -2004,7 +2026,9 @@ class _DayDetailsDialog extends StatelessWidget {
                         child: _CompactTimingTile(
                           icon: Icons.wb_sunny_rounded,
                           label: 'Sunrise',
-                          time: DateFormat('h:mm a').format(day.sunrise!.toLocal()),
+                          time: DateFormat(
+                            'h:mm a',
+                          ).format(day.sunrise!.toLocal()),
                           color: const Color(0xFFFFB347),
                           isDark: isDark,
                         ),
@@ -2016,7 +2040,9 @@ class _DayDetailsDialog extends StatelessWidget {
                         child: _CompactTimingTile(
                           icon: Icons.nights_stay_rounded,
                           label: 'Sunset',
-                          time: DateFormat('h:mm a').format(day.sunset!.toLocal()),
+                          time: DateFormat(
+                            'h:mm a',
+                          ).format(day.sunset!.toLocal()),
                           color: const Color(0xFFFF7B54),
                           isDark: isDark,
                         ),
@@ -2024,7 +2050,7 @@ class _DayDetailsDialog extends StatelessWidget {
                   ],
                 ),
               ),
-            
+
             // Festivals Section
             if (hasFestival) ...[
               const SizedBox(height: 16),
@@ -2036,8 +2062,12 @@ class _DayDetailsDialog extends StatelessWidget {
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
                       colors: [
-                        const Color(0xFFFFAA33).withOpacity(isDark ? 0.15 : 0.1),
-                        const Color(0xFFFF8833).withOpacity(isDark ? 0.1 : 0.05),
+                        const Color(
+                          0xFFFFAA33,
+                        ).withOpacity(isDark ? 0.15 : 0.1),
+                        const Color(
+                          0xFFFF8833,
+                        ).withOpacity(isDark ? 0.1 : 0.05),
                       ],
                     ),
                     borderRadius: BorderRadius.circular(16),
@@ -2056,7 +2086,7 @@ class _DayDetailsDialog extends StatelessWidget {
                             color: const Color(0xFFFFAA33),
                           ),
                           const SizedBox(width: 8),
-                          Text(
+                          AutoSizeText(
                             'Festivals',
                             style: TextStyle(
                               fontSize: 12,
@@ -2066,12 +2096,15 @@ class _DayDetailsDialog extends StatelessWidget {
                           ),
                           const Spacer(),
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 2,
+                            ),
                             decoration: BoxDecoration(
                               color: const Color(0xFFFFAA33).withOpacity(0.2),
                               borderRadius: BorderRadius.circular(10),
                             ),
-                            child: Text(
+                            child: AutoSizeText(
                               '${day.festivals.length}',
                               style: TextStyle(
                                 fontSize: 11,
@@ -2083,37 +2116,45 @@ class _DayDetailsDialog extends StatelessWidget {
                         ],
                       ),
                       const SizedBox(height: 10),
-                      ...day.festivals.take(3).map((festival) => Padding(
-                        padding: const EdgeInsets.only(bottom: 6),
-                        child: Row(
-                          children: [
-                            Container(
-                              width: 6,
-                              height: 6,
-                              decoration: BoxDecoration(
-                                color: const Color(0xFFFFAA33),
-                                shape: BoxShape.circle,
+                      ...day.festivals
+                          .take(3)
+                          .map(
+                            (festival) => Padding(
+                              padding: const EdgeInsets.only(bottom: 6),
+                              child: Row(
+                                children: [
+                                  Container(
+                                    width: 6,
+                                    height: 6,
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFFFFAA33),
+                                      shape: BoxShape.circle,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 10),
+                                  Expanded(
+                                    child: AutoSizeText(
+                                      festival.name,
+                                      style: theme.textTheme.bodyMedium
+                                          ?.copyWith(
+                                            color:
+                                                isDark
+                                                    ? Colors.white
+                                                    : Colors.black87,
+                                            fontWeight: FontWeight.w500,
+                                          ),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
-                            const SizedBox(width: 10),
-                            Expanded(
-                              child: Text(
-                                festival.name,
-                                style: theme.textTheme.bodyMedium?.copyWith(
-                                  color: isDark ? Colors.white : Colors.black87,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                          ],
-                        ),
-                      )),
+                          ),
                       if (day.festivals.length > 3)
                         Padding(
                           padding: const EdgeInsets.only(top: 4),
-                          child: Text(
+                          child: AutoSizeText(
                             '+${day.festivals.length - 3} more',
                             style: TextStyle(
                               fontSize: 12,
@@ -2127,19 +2168,26 @@ class _DayDetailsDialog extends StatelessWidget {
                 ),
               ),
             ],
-            
+
             // Vrats indicator
             if (hasVrat) ...[
               const SizedBox(height: 12),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
+                  ),
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
                       colors: [
-                        const Color(0xFF66D9FF).withOpacity(isDark ? 0.15 : 0.1),
-                        const Color(0xFF33BBFF).withOpacity(isDark ? 0.1 : 0.05),
+                        const Color(
+                          0xFF66D9FF,
+                        ).withOpacity(isDark ? 0.15 : 0.1),
+                        const Color(
+                          0xFF33BBFF,
+                        ).withOpacity(isDark ? 0.1 : 0.05),
                       ],
                     ),
                     borderRadius: BorderRadius.circular(16),
@@ -2155,7 +2203,7 @@ class _DayDetailsDialog extends StatelessWidget {
                         color: const Color(0xFF66D9FF),
                       ),
                       const SizedBox(width: 12),
-                      Text(
+                      AutoSizeText(
                         '${day.vratsCount} Vrat${day.vratsCount > 1 ? 's' : ''}',
                         style: theme.textTheme.bodyMedium?.copyWith(
                           color: isDark ? Colors.white : Colors.black87,
@@ -2167,7 +2215,7 @@ class _DayDetailsDialog extends StatelessWidget {
                 ),
               ),
             ],
-            
+
             const SizedBox(height: 20),
           ],
         ),
@@ -2198,9 +2246,7 @@ class _CompactTimingTile extends StatelessWidget {
       decoration: BoxDecoration(
         color: color.withOpacity(isDark ? 0.15 : 0.1),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: color.withOpacity(0.2),
-        ),
+        border: Border.all(color: color.withOpacity(0.2)),
       ),
       child: Row(
         children: [
@@ -2209,14 +2255,16 @@ class _CompactTimingTile extends StatelessWidget {
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
+              AutoSizeText(
                 label,
                 style: TextStyle(
                   fontSize: 10,
-                  color: (isDark ? Colors.white : Colors.black).withOpacity(0.5),
+                  color: (isDark ? Colors.white : Colors.black).withOpacity(
+                    0.5,
+                  ),
                 ),
               ),
-              Text(
+              AutoSizeText(
                 time,
                 style: TextStyle(
                   fontSize: 13,
@@ -2250,7 +2298,7 @@ class _DetailCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    
+
     return ClipRRect(
       borderRadius: BorderRadius.circular(16),
       child: BackdropFilter(
@@ -2260,10 +2308,7 @@ class _DetailCard extends StatelessWidget {
           decoration: BoxDecoration(
             color: (isDark ? Colors.white : Colors.black).withOpacity(0.05),
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(
-              color: color.withOpacity(0.3),
-              width: 1,
-            ),
+            border: Border.all(color: color.withOpacity(0.3), width: 1),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -2272,10 +2317,12 @@ class _DetailCard extends StatelessWidget {
                 children: [
                   Icon(icon, size: 18, color: color),
                   const SizedBox(width: 8),
-                  Text(
+                  AutoSizeText(
                     title,
                     style: theme.textTheme.labelLarge?.copyWith(
-                      color: (isDark ? Colors.white : Colors.black).withOpacity(0.6),
+                      color: (isDark ? Colors.white : Colors.black).withOpacity(
+                        0.6,
+                      ),
                       fontWeight: FontWeight.w600,
                     ),
                   ),
@@ -2307,7 +2354,7 @@ class _TimingItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    
+
     return Column(
       children: [
         Icon(
@@ -2316,14 +2363,14 @@ class _TimingItem extends StatelessWidget {
           color: (isDark ? Colors.white : Colors.black).withOpacity(0.7),
         ),
         const SizedBox(height: 4),
-        Text(
+        AutoSizeText(
           label,
           style: theme.textTheme.bodySmall?.copyWith(
             color: (isDark ? Colors.white : Colors.black).withOpacity(0.5),
           ),
         ),
         const SizedBox(height: 2),
-        Text(
+        AutoSizeText(
           time,
           style: theme.textTheme.bodyMedium?.copyWith(
             fontWeight: FontWeight.w600,
@@ -2360,16 +2407,18 @@ class _BeautifulMonthNavigator extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final monthName = DateFormat('MMMM').format(DateTime(year, month));
-    
+
     // Get Indian months info
     final firstMasa = masaAnalysis.firstMasa;
     final lastMasa = masaAnalysis.lastMasa;
-    final firstMasaMonth = firstMasa != null 
-        ? IndianMonthHelper.getBySanskritName(firstMasa) 
-        : null;
-    final lastMasaMonth = lastMasa != null && lastMasa != firstMasa
-        ? IndianMonthHelper.getBySanskritName(lastMasa) 
-        : null;
+    final firstMasaMonth =
+        firstMasa != null
+            ? IndianMonthHelper.getBySanskritName(firstMasa)
+            : null;
+    final lastMasaMonth =
+        lastMasa != null && lastMasa != firstMasa
+            ? IndianMonthHelper.getBySanskritName(lastMasa)
+            : null;
 
     return Container(
       padding: const EdgeInsets.all(4),
@@ -2377,19 +2426,22 @@ class _BeautifulMonthNavigator extends StatelessWidget {
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: isDark
-              ? [
-                  const Color(0xFF112214).withOpacity(0.6),
-                  const Color(0xFF1A1030).withOpacity(0.8),
-                ]
-              : [
-                  Colors.white.withOpacity(0.95),
-                  const Color(0xFFEDF4EE).withOpacity(0.95),
-                ],
+          colors:
+              isDark
+                  ? [
+                    const Color(0xFF112214).withOpacity(0.6),
+                    const Color(0xFF1A1030).withOpacity(0.8),
+                  ]
+                  : [
+                    Colors.white.withOpacity(0.95),
+                    const Color(0xFFEDF4EE).withOpacity(0.95),
+                  ],
         ),
         borderRadius: BorderRadius.circular(28),
         border: Border.all(
-          color: (isDark ? const Color(0xFF3F5E46) : Colors.black).withOpacity(0.1),
+          color: (isDark ? const Color(0xFF3F5E46) : Colors.black).withOpacity(
+            0.1,
+          ),
         ),
         boxShadow: [
           BoxShadow(
@@ -2407,7 +2459,7 @@ class _BeautifulMonthNavigator extends StatelessWidget {
             onTap: onPrevious,
             isDark: isDark,
           ),
-          
+
           // Center content
           Expanded(
             child: Column(
@@ -2416,7 +2468,7 @@ class _BeautifulMonthNavigator extends StatelessWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Text(
+                    AutoSizeText(
                       monthName,
                       style: theme.textTheme.headlineSmall?.copyWith(
                         fontWeight: FontWeight.bold,
@@ -2426,7 +2478,10 @@ class _BeautifulMonthNavigator extends StatelessWidget {
                     ),
                     const SizedBox(width: 10),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 6,
+                      ),
                       decoration: BoxDecoration(
                         gradient: LinearGradient(
                           colors: [
@@ -2436,10 +2491,13 @@ class _BeautifulMonthNavigator extends StatelessWidget {
                         ),
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      child: Text(
+                      child: AutoSizeText(
                         '$year',
                         style: theme.textTheme.bodyMedium?.copyWith(
-                          color: isDark ? const Color(0xFF7BC48F) : const Color(0xFF3F5E46),
+                          color:
+                              isDark
+                                  ? const Color(0xFF7BC48F)
+                                  : const Color(0xFF3F5E46),
                           fontWeight: FontWeight.w700,
                         ),
                       ),
@@ -2447,36 +2505,31 @@ class _BeautifulMonthNavigator extends StatelessWidget {
                   ],
                 ),
                 const SizedBox(height: 10),
-                
+
                 // Indian Months Pills
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     if (firstMasaMonth != null)
-                      _MasaPill(
-                        month: firstMasaMonth,
-                        isDark: isDark,
-                      ),
+                      _MasaPill(month: firstMasaMonth, isDark: isDark),
                     if (lastMasaMonth != null) ...[
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 8),
                         child: Icon(
                           Icons.arrow_forward_rounded,
                           size: 14,
-                          color: (isDark ? Colors.white : Colors.black).withOpacity(0.3),
+                          color: (isDark ? Colors.white : Colors.black)
+                              .withOpacity(0.3),
                         ),
                       ),
-                      _MasaPill(
-                        month: lastMasaMonth,
-                        isDark: isDark,
-                      ),
+                      _MasaPill(month: lastMasaMonth, isDark: isDark),
                     ],
                   ],
                 ),
               ],
             ),
           ),
-          
+
           // Next button
           _AnimatedNavButton(
             icon: Icons.chevron_right_rounded,
@@ -2493,24 +2546,18 @@ class _MasaPill extends StatelessWidget {
   final IndianMonth month;
   final bool isDark;
 
-  const _MasaPill({
-    required this.month,
-    required this.isDark,
-  });
+  const _MasaPill({required this.month, required this.isDark});
 
   @override
   Widget build(BuildContext context) {
     final color = isDark ? month.lightColor : month.darkColor;
-    
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
       decoration: BoxDecoration(
         color: color.withOpacity(0.15),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: color.withOpacity(0.4),
-          width: 1,
-        ),
+        border: Border.all(color: color.withOpacity(0.4), width: 1),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -2522,15 +2569,12 @@ class _MasaPill extends StatelessWidget {
               color: color,
               shape: BoxShape.circle,
               boxShadow: [
-                BoxShadow(
-                  color: color.withOpacity(0.5),
-                  blurRadius: 6,
-                ),
+                BoxShadow(color: color.withOpacity(0.5), blurRadius: 6),
               ],
             ),
           ),
           const SizedBox(width: 8),
-          Text(
+          AutoSizeText(
             month.sanskritName,
             style: TextStyle(
               fontSize: 12,
@@ -2571,9 +2615,10 @@ class _AnimatedNavButtonState extends State<_AnimatedNavButton>
       duration: const Duration(milliseconds: 100),
       vsync: this,
     );
-    _scaleAnimation = Tween<double>(begin: 1.0, end: 0.85).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeOut),
-    );
+    _scaleAnimation = Tween<double>(
+      begin: 1.0,
+      end: 0.85,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOut));
   }
 
   @override
@@ -2604,15 +2649,16 @@ class _AnimatedNavButtonState extends State<_AnimatedNavButton>
                 gradient: LinearGradient(
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
-                  colors: widget.isDark
-                      ? [
-                          const Color(0xFF3F5E46).withOpacity(0.3),
-                          const Color(0xFF3F5E46).withOpacity(0.1),
-                        ]
-                      : [
-                          const Color(0xFF3F5E46).withOpacity(0.15),
-                          const Color(0xFF3F5E46).withOpacity(0.05),
-                        ],
+                  colors:
+                      widget.isDark
+                          ? [
+                            const Color(0xFF3F5E46).withOpacity(0.3),
+                            const Color(0xFF3F5E46).withOpacity(0.1),
+                          ]
+                          : [
+                            const Color(0xFF3F5E46).withOpacity(0.15),
+                            const Color(0xFF3F5E46).withOpacity(0.05),
+                          ],
                 ),
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(
@@ -2643,43 +2689,54 @@ class _BeautifulWeekdayHeader extends StatelessWidget {
     final fullNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
     return Row(
-      children: weekdays.asMap().entries.map((entry) {
-        final isSunday = entry.key == 0;
-        final isSaturday = entry.key == 6;
-        
-        return Expanded(
-          child: Tooltip(
-            message: fullNames[entry.key],
-            child: Container(
-              padding: const EdgeInsets.symmetric(vertical: 10),
-              margin: const EdgeInsets.symmetric(horizontal: 2),
-              decoration: BoxDecoration(
-                color: isSunday
-                    ? const Color(0xFFFF6B9D).withOpacity(isDark ? 0.15 : 0.1)
-                    : isSaturday
-                        ? const Color(0xFF3F5E46).withOpacity(isDark ? 0.15 : 0.1)
-                        : Colors.transparent,
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Center(
-                child: Text(
-                  entry.value,
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w700,
-                    color: isSunday
-                        ? (isDark ? const Color(0xFFFF6B9D) : Colors.red.shade400)
-                        : isSaturday
-                            ? (isDark ? const Color(0xFF7BC48F) : const Color(0xFF3F5E46))
-                            : (isDark ? Colors.white60 : Colors.black54),
-                    letterSpacing: 0.5,
+      children:
+          weekdays.asMap().entries.map((entry) {
+            final isSunday = entry.key == 0;
+            final isSaturday = entry.key == 6;
+
+            return Expanded(
+              child: Tooltip(
+                message: fullNames[entry.key],
+                child: Container(
+                  padding: const EdgeInsets.symmetric(vertical: 10),
+                  margin: const EdgeInsets.symmetric(horizontal: 2),
+                  decoration: BoxDecoration(
+                    color:
+                        isSunday
+                            ? const Color(
+                              0xFFFF6B9D,
+                            ).withOpacity(isDark ? 0.15 : 0.1)
+                            : isSaturday
+                            ? const Color(
+                              0xFF3F5E46,
+                            ).withOpacity(isDark ? 0.15 : 0.1)
+                            : Colors.transparent,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Center(
+                    child: AutoSizeText(
+                      entry.value,
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
+                        color:
+                            isSunday
+                                ? (isDark
+                                    ? const Color(0xFFFF6B9D)
+                                    : Colors.red.shade400)
+                                : isSaturday
+                                ? (isDark
+                                    ? const Color(0xFF7BC48F)
+                                    : const Color(0xFF3F5E46))
+                                : (isDark ? Colors.white60 : Colors.black54),
+                        letterSpacing: 0.5,
+                      ),
+                    ),
                   ),
                 ),
               ),
-            ),
-          ),
-        );
-      }).toList(),
+            );
+          }).toList(),
     );
   }
 }
@@ -2701,28 +2758,33 @@ class _RichCalendarGrid extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Column(
-      children: grid.asMap().entries.map((rowEntry) {
-        return Padding(
-          padding: const EdgeInsets.only(bottom: 6),
-          child: Row(
-            children: rowEntry.value.asMap().entries.map((cellEntry) {
-              final day = cellEntry.value;
-              return Expanded(
-                child: day == null
-                    ? const SizedBox(height: 74)
-                    : _RichDayCell(
-                        day: day,
-                        isDark: isDark,
-                        onTap: () => onDayTapped(day),
-                        animationDelay: Duration(
-                          milliseconds: (rowEntry.key * 40) + (cellEntry.key * 20),
-                        ),
-                      ),
-              );
-            }).toList(),
-          ),
-        );
-      }).toList(),
+      children:
+          grid.asMap().entries.map((rowEntry) {
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 6),
+              child: Row(
+                children:
+                    rowEntry.value.asMap().entries.map((cellEntry) {
+                      final day = cellEntry.value;
+                      return Expanded(
+                        child:
+                            day == null
+                                ? const SizedBox(height: 74)
+                                : _RichDayCell(
+                                  day: day,
+                                  isDark: isDark,
+                                  onTap: () => onDayTapped(day),
+                                  animationDelay: Duration(
+                                    milliseconds:
+                                        (rowEntry.key * 40) +
+                                        (cellEntry.key * 20),
+                                  ),
+                                ),
+                      );
+                    }).toList(),
+              ),
+            );
+          }).toList(),
     );
   }
 }
@@ -2758,13 +2820,15 @@ class _RichDayCellState extends State<_RichDayCell>
       vsync: this,
     );
 
-    _scaleAnimation = Tween<double>(begin: 0.6, end: 1.0).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeOutBack),
-    );
+    _scaleAnimation = Tween<double>(
+      begin: 0.6,
+      end: 1.0,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOutBack));
 
-    _opacityAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeOut),
-    );
+    _opacityAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOut));
 
     Future.delayed(widget.animationDelay, () {
       if (mounted) _controller.forward();
@@ -2783,13 +2847,11 @@ class _RichDayCellState extends State<_RichDayCell>
       context: context,
       barrierDismissible: true,
       barrierColor: Colors.black.withOpacity(0.5),
-      builder: (context) => BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-        child: _DayDetailsDialog(
-          day: widget.day,
-          isDark: widget.isDark,
-        ),
-      ),
+      builder:
+          (context) => BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+            child: _DayDetailsDialog(day: widget.day, isDark: widget.isDark),
+          ),
     );
   }
 
@@ -2803,15 +2865,21 @@ class _RichDayCellState extends State<_RichDayCell>
 
     // Determine cell color based on events
     Color cellColor;
-    
+
     if (day.isToday) {
       cellColor = const Color(0xFF3F5E46);
     } else if (hasFestival) {
-      cellColor = const Color(0xFFFFAA33).withOpacity(widget.isDark ? 0.15 : 0.1);
+      cellColor = const Color(
+        0xFFFFAA33,
+      ).withOpacity(widget.isDark ? 0.15 : 0.1);
     } else if (hasVrat) {
-      cellColor = const Color(0xFF66D9FF).withOpacity(widget.isDark ? 0.1 : 0.06);
+      cellColor = const Color(
+        0xFF66D9FF,
+      ).withOpacity(widget.isDark ? 0.1 : 0.06);
     } else {
-      cellColor = (widget.isDark ? Colors.white : Colors.black).withOpacity(0.04);
+      cellColor = (widget.isDark ? Colors.white : Colors.black).withOpacity(
+        0.04,
+      );
     }
 
     return AnimatedBuilder(
@@ -2819,10 +2887,7 @@ class _RichDayCellState extends State<_RichDayCell>
       builder: (context, child) {
         return Transform.scale(
           scale: _scaleAnimation.value,
-          child: Opacity(
-            opacity: _opacityAnimation.value,
-            child: child,
-          ),
+          child: Opacity(opacity: _opacityAnimation.value, child: child),
         );
       },
       child: GestureDetector(
@@ -2832,49 +2897,55 @@ class _RichDayCellState extends State<_RichDayCell>
           height: 74,
           margin: const EdgeInsets.symmetric(horizontal: 2),
           decoration: BoxDecoration(
-            gradient: day.isToday
-                ? LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [
-                      const Color(0xFF3F5E46),
-                      const Color(0xFF3A8C54),
-                    ],
-                  )
-                : hasFestival
+            gradient:
+                day.isToday
                     ? LinearGradient(
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                        colors: [
-                          const Color(0xFFFFAA33).withOpacity(widget.isDark ? 0.2 : 0.15),
-                          const Color(0xFFFF8800).withOpacity(widget.isDark ? 0.08 : 0.05),
-                        ],
-                      )
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [
+                        const Color(0xFF3F5E46),
+                        const Color(0xFF3A8C54),
+                      ],
+                    )
+                    : hasFestival
+                    ? LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        const Color(
+                          0xFFFFAA33,
+                        ).withOpacity(widget.isDark ? 0.2 : 0.15),
+                        const Color(
+                          0xFFFF8800,
+                        ).withOpacity(widget.isDark ? 0.08 : 0.05),
+                      ],
+                    )
                     : null,
             color: (day.isToday || hasFestival) ? null : cellColor,
             borderRadius: BorderRadius.circular(12),
-            boxShadow: day.isToday
-                ? [
-                    BoxShadow(
-                      color: const Color(0xFF3F5E46).withOpacity(0.5),
-                      blurRadius: 12,
-                      offset: const Offset(0, 4),
-                    ),
-                  ]
-                : hasFestival
+            boxShadow:
+                day.isToday
                     ? [
-                        // Burning/glow effect for festivals
-                        BoxShadow(
-                          color: const Color(0xFFFFAA33).withOpacity(0.4),
-                          blurRadius: 8,
-                          spreadRadius: 0,
-                        ),
-                        BoxShadow(
-                          color: const Color(0xFFFF6600).withOpacity(0.2),
-                          blurRadius: 12,
-                          spreadRadius: -2,
-                        ),
-                      ]
+                      BoxShadow(
+                        color: const Color(0xFF3F5E46).withOpacity(0.5),
+                        blurRadius: 12,
+                        offset: const Offset(0, 4),
+                      ),
+                    ]
+                    : hasFestival
+                    ? [
+                      // Burning/glow effect for festivals
+                      BoxShadow(
+                        color: const Color(0xFFFFAA33).withOpacity(0.4),
+                        blurRadius: 8,
+                        spreadRadius: 0,
+                      ),
+                      BoxShadow(
+                        color: const Color(0xFFFF6600).withOpacity(0.2),
+                        blurRadius: 12,
+                        spreadRadius: -2,
+                      ),
+                    ]
                     : null,
           ),
           child: Padding(
@@ -2886,18 +2957,25 @@ class _RichDayCellState extends State<_RichDayCell>
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(
+                    AutoSizeText(
                       '${day.dayNumber}',
                       style: TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.bold,
-                        color: day.isToday
-                            ? Colors.white
-                            : isSunday
-                                ? (widget.isDark ? const Color(0xFFFF6B9D) : Colors.red.shade400)
+                        color:
+                            day.isToday
+                                ? Colors.white
+                                : isSunday
+                                ? (widget.isDark
+                                    ? const Color(0xFFFF6B9D)
+                                    : Colors.red.shade400)
                                 : isSaturday
-                                    ? (widget.isDark ? const Color(0xFF7BC48F) : const Color(0xFF3F5E46))
-                                    : (widget.isDark ? Colors.white : Colors.black87),
+                                ? (widget.isDark
+                                    ? const Color(0xFF7BC48F)
+                                    : const Color(0xFF3F5E46))
+                                : (widget.isDark
+                                    ? Colors.white
+                                    : Colors.black87),
                       ),
                     ),
                     // Event indicators
@@ -2909,11 +2987,16 @@ class _RichDayCellState extends State<_RichDayCell>
                             width: 6,
                             height: 6,
                             decoration: BoxDecoration(
-                              color: day.isToday ? Colors.white : const Color(0xFFFFAA33),
+                              color:
+                                  day.isToday
+                                      ? Colors.white
+                                      : const Color(0xFFFFAA33),
                               shape: BoxShape.circle,
                               boxShadow: [
                                 BoxShadow(
-                                  color: (day.isToday ? Colors.white : const Color(0xFFFFAA33))
+                                  color: (day.isToday
+                                          ? Colors.white
+                                          : const Color(0xFFFFAA33))
                                       .withOpacity(0.6),
                                   blurRadius: 4,
                                 ),
@@ -2926,11 +3009,16 @@ class _RichDayCellState extends State<_RichDayCell>
                             width: 6,
                             height: 6,
                             decoration: BoxDecoration(
-                              color: day.isToday ? Colors.white70 : const Color(0xFF66D9FF),
+                              color:
+                                  day.isToday
+                                      ? Colors.white70
+                                      : const Color(0xFF66D9FF),
                               shape: BoxShape.circle,
                               boxShadow: [
                                 BoxShadow(
-                                  color: (day.isToday ? Colors.white70 : const Color(0xFF66D9FF))
+                                  color: (day.isToday
+                                          ? Colors.white70
+                                          : const Color(0xFF66D9FF))
                                       .withOpacity(0.5),
                                   blurRadius: 4,
                                 ),
@@ -2944,13 +3032,14 @@ class _RichDayCellState extends State<_RichDayCell>
                 ),
                 const Spacer(),
                 // Tithi
-                Text(
+                AutoSizeText(
                   day.tithi,
                   style: TextStyle(
                     fontSize: 8,
-                    color: day.isToday
-                        ? Colors.white.withOpacity(0.8)
-                        : (widget.isDark ? Colors.white54 : Colors.black45),
+                    color:
+                        day.isToday
+                            ? Colors.white.withOpacity(0.8)
+                            : (widget.isDark ? Colors.white54 : Colors.black45),
                     fontWeight: FontWeight.w500,
                   ),
                   maxLines: 1,
@@ -2959,14 +3048,13 @@ class _RichDayCellState extends State<_RichDayCell>
                 const SizedBox(height: 1),
                 // Festival name (if any)
                 if (hasFestival && day.festivals.isNotEmpty)
-                  Text(
+                  AutoSizeText(
                     day.festivals.first.name,
                     style: TextStyle(
                       fontSize: 7,
                       fontWeight: FontWeight.w600,
-                      color: day.isToday
-                          ? Colors.white
-                          : const Color(0xFFFFAA33),
+                      color:
+                          day.isToday ? Colors.white : const Color(0xFFFFAA33),
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
@@ -2977,19 +3065,21 @@ class _RichDayCellState extends State<_RichDayCell>
                       Icon(
                         Icons.brightness_3,
                         size: 7,
-                        color: day.isToday
-                            ? Colors.white70
-                            : const Color(0xFF66D9FF),
+                        color:
+                            day.isToday
+                                ? Colors.white70
+                                : const Color(0xFF66D9FF),
                       ),
                       const SizedBox(width: 2),
-                      Text(
+                      AutoSizeText(
                         'Vrat',
                         style: TextStyle(
                           fontSize: 7,
                           fontWeight: FontWeight.w500,
-                          color: day.isToday
-                              ? Colors.white70
-                              : const Color(0xFF66D9FF),
+                          color:
+                              day.isToday
+                                  ? Colors.white70
+                                  : const Color(0xFF66D9FF),
                         ),
                       ),
                     ],
@@ -3021,28 +3111,33 @@ class _BeautifulCalendarGrid extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Column(
-      children: grid.asMap().entries.map((rowEntry) {
-        return Padding(
-          padding: const EdgeInsets.only(bottom: 6),
-          child: Row(
-            children: rowEntry.value.asMap().entries.map((cellEntry) {
-              final day = cellEntry.value;
-              return Expanded(
-                child: day == null
-                    ? const SizedBox(height: 62)
-                    : _BeautifulDayCell(
-                        day: day,
-                        isDark: isDark,
-                        onTap: () => onDayTapped(day),
-                        animationDelay: Duration(
-                          milliseconds: (rowEntry.key * 40) + (cellEntry.key * 20),
-                        ),
-                      ),
-              );
-            }).toList(),
-          ),
-        );
-      }).toList(),
+      children:
+          grid.asMap().entries.map((rowEntry) {
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 6),
+              child: Row(
+                children:
+                    rowEntry.value.asMap().entries.map((cellEntry) {
+                      final day = cellEntry.value;
+                      return Expanded(
+                        child:
+                            day == null
+                                ? const SizedBox(height: 62)
+                                : _BeautifulDayCell(
+                                  day: day,
+                                  isDark: isDark,
+                                  onTap: () => onDayTapped(day),
+                                  animationDelay: Duration(
+                                    milliseconds:
+                                        (rowEntry.key * 40) +
+                                        (cellEntry.key * 20),
+                                  ),
+                                ),
+                      );
+                    }).toList(),
+              ),
+            );
+          }).toList(),
     );
   }
 }
@@ -3078,13 +3173,15 @@ class _BeautifulDayCellState extends State<_BeautifulDayCell>
       vsync: this,
     );
 
-    _scaleAnimation = Tween<double>(begin: 0.6, end: 1.0).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeOutBack),
-    );
+    _scaleAnimation = Tween<double>(
+      begin: 0.6,
+      end: 1.0,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOutBack));
 
-    _opacityAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeOut),
-    );
+    _opacityAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOut));
 
     Future.delayed(widget.animationDelay, () {
       if (mounted) _controller.forward();
@@ -3103,13 +3200,11 @@ class _BeautifulDayCellState extends State<_BeautifulDayCell>
       context: context,
       barrierDismissible: true,
       barrierColor: Colors.black.withOpacity(0.5),
-      builder: (context) => BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-        child: _DayDetailsDialog(
-          day: widget.day,
-          isDark: widget.isDark,
-        ),
-      ),
+      builder:
+          (context) => BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+            child: _DayDetailsDialog(day: widget.day, isDark: widget.isDark),
+          ),
     );
   }
 
@@ -3120,17 +3215,17 @@ class _BeautifulDayCellState extends State<_BeautifulDayCell>
     final hasVrat = day.vratsCount > 0;
     final isSunday = day.weekday == 0;
     final isSaturday = day.weekday == 6;
-    final masaColor = IndianMonthHelper.getBaseColorForMasa(day.masa, widget.isDark);
+    final masaColor = IndianMonthHelper.getBaseColorForMasa(
+      day.masa,
+      widget.isDark,
+    );
 
     return AnimatedBuilder(
       animation: _controller,
       builder: (context, child) {
         return Transform.scale(
           scale: _scaleAnimation.value,
-          child: Opacity(
-            opacity: _opacityAnimation.value,
-            child: child,
-          ),
+          child: Opacity(opacity: _opacityAnimation.value, child: child),
         );
       },
       child: GestureDetector(
@@ -3140,39 +3235,49 @@ class _BeautifulDayCellState extends State<_BeautifulDayCell>
           height: 62,
           margin: const EdgeInsets.symmetric(horizontal: 2),
           decoration: BoxDecoration(
-            gradient: day.isToday
-                ? LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [
-                      const Color(0xFF3F5E46),
-                      const Color(0xFF3A8C54),
-                    ],
-                  )
-                : null,
-            color: day.isToday
-                ? null
-                : hasFestival
-                    ? const Color(0xFFFFAA33).withOpacity(widget.isDark ? 0.12 : 0.1)
-                    : (widget.isDark ? Colors.white : Colors.black).withOpacity(0.03),
-            borderRadius: BorderRadius.circular(14),
-            border: day.isToday
-                ? null
-                : Border.all(
-                    color: hasFestival
-                        ? const Color(0xFFFFAA33).withOpacity(0.3)
-                        : (widget.isDark ? Colors.white : Colors.black).withOpacity(0.06),
-                    width: 1,
-                  ),
-            boxShadow: day.isToday
-                ? [
-                    BoxShadow(
-                      color: const Color(0xFF3F5E46).withOpacity(0.4),
-                      blurRadius: 12,
-                      offset: const Offset(0, 4),
+            gradient:
+                day.isToday
+                    ? LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [
+                        const Color(0xFF3F5E46),
+                        const Color(0xFF3A8C54),
+                      ],
+                    )
+                    : null,
+            color:
+                day.isToday
+                    ? null
+                    : hasFestival
+                    ? const Color(
+                      0xFFFFAA33,
+                    ).withOpacity(widget.isDark ? 0.12 : 0.1)
+                    : (widget.isDark ? Colors.white : Colors.black).withOpacity(
+                      0.03,
                     ),
-                  ]
-                : null,
+            borderRadius: BorderRadius.circular(14),
+            border:
+                day.isToday
+                    ? null
+                    : Border.all(
+                      color:
+                          hasFestival
+                              ? const Color(0xFFFFAA33).withOpacity(0.3)
+                              : (widget.isDark ? Colors.white : Colors.black)
+                                  .withOpacity(0.06),
+                      width: 1,
+                    ),
+            boxShadow:
+                day.isToday
+                    ? [
+                      BoxShadow(
+                        color: const Color(0xFF3F5E46).withOpacity(0.4),
+                        blurRadius: 12,
+                        offset: const Offset(0, 4),
+                      ),
+                    ]
+                    : null,
           ),
           child: Stack(
             children: [
@@ -3201,19 +3306,25 @@ class _BeautifulDayCellState extends State<_BeautifulDayCell>
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     // Day number
-                    Text(
+                    AutoSizeText(
                       '${day.dayNumber}',
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
-                        color: day.isToday
-                            ? Colors.white
-                            : isSunday
-                                ? (widget.isDark ? const Color(0xFFFF6B9D) : Colors.red.shade400)
+                        color:
+                            day.isToday
+                                ? Colors.white
+                                : isSunday
+                                ? (widget.isDark
+                                    ? const Color(0xFFFF6B9D)
+                                    : Colors.red.shade400)
                                 : isSaturday
-                                    ? (widget.isDark ? const Color(0xFF7BC48F) : const Color(0xFF3F5E46))
-                                    : (widget.isDark ? Colors.white : Colors.black87),
-                        height: 1.1,
+                                ? (widget.isDark
+                                    ? const Color(0xFF7BC48F)
+                                    : const Color(0xFF3F5E46))
+                                : (widget.isDark
+                                    ? Colors.white
+                                    : Colors.black87),
                       ),
                     ),
                     const SizedBox(height: 2),
@@ -3227,29 +3338,38 @@ class _BeautifulDayCellState extends State<_BeautifulDayCell>
                               width: 6,
                               height: 6,
                               decoration: BoxDecoration(
-                                color: day.isToday ? Colors.white : const Color(0xFFFFAA33),
+                                color:
+                                    day.isToday
+                                        ? Colors.white
+                                        : const Color(0xFFFFAA33),
                                 shape: BoxShape.circle,
                                 boxShadow: [
                                   BoxShadow(
-                                    color: (day.isToday ? Colors.white : const Color(0xFFFFAA33))
+                                    color: (day.isToday
+                                            ? Colors.white
+                                            : const Color(0xFFFFAA33))
                                         .withOpacity(0.5),
                                     blurRadius: 4,
                                   ),
                                 ],
                               ),
                             ),
-                          if (hasFestival && hasVrat)
-                            const SizedBox(width: 4),
+                          if (hasFestival && hasVrat) const SizedBox(width: 4),
                           if (hasVrat)
                             Container(
                               width: 6,
                               height: 6,
                               decoration: BoxDecoration(
-                                color: day.isToday ? Colors.white70 : const Color(0xFF66D9FF),
+                                color:
+                                    day.isToday
+                                        ? Colors.white70
+                                        : const Color(0xFF66D9FF),
                                 shape: BoxShape.circle,
                                 boxShadow: [
                                   BoxShadow(
-                                    color: (day.isToday ? Colors.white70 : const Color(0xFF66D9FF))
+                                    color: (day.isToday
+                                            ? Colors.white70
+                                            : const Color(0xFF66D9FF))
                                         .withOpacity(0.5),
                                     blurRadius: 4,
                                   ),
@@ -3281,7 +3401,7 @@ class _BeautifulLegendCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    
+
     return ClipRRect(
       borderRadius: BorderRadius.circular(20),
       child: BackdropFilter(
@@ -3293,15 +3413,16 @@ class _BeautifulLegendCard extends StatelessWidget {
             gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
-              colors: isDark
-                  ? [
-                      const Color(0xFF0D1A10).withOpacity(0.7),
-                      const Color(0xFF080D09).withOpacity(0.8),
-                    ]
-                  : [
-                      Colors.white.withOpacity(0.9),
-                      const Color(0xFFF8F6FF).withOpacity(0.9),
-                    ],
+              colors:
+                  isDark
+                      ? [
+                        const Color(0xFF0D1A10).withOpacity(0.7),
+                        const Color(0xFF080D09).withOpacity(0.8),
+                      ]
+                      : [
+                        Colors.white.withOpacity(0.9),
+                        const Color(0xFFF8F6FF).withOpacity(0.9),
+                      ],
             ),
             borderRadius: BorderRadius.circular(20),
             border: Border.all(
@@ -3323,11 +3444,14 @@ class _BeautifulLegendCard extends StatelessWidget {
                     child: Icon(
                       Icons.palette_outlined,
                       size: 18,
-                      color: isDark ? const Color(0xFF7BC48F) : const Color(0xFF3F5E46),
+                      color:
+                          isDark
+                              ? const Color(0xFF7BC48F)
+                              : const Color(0xFF3F5E46),
                     ),
                   ),
                   const SizedBox(width: 12),
-                  Text(
+                  AutoSizeText(
                     'Legend',
                     style: theme.textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.bold,
@@ -3337,7 +3461,7 @@ class _BeautifulLegendCard extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 16),
-              
+
               // Indicator Row
               Row(
                 children: [
@@ -3360,7 +3484,7 @@ class _BeautifulLegendCard extends StatelessWidget {
                   ),
                 ],
               ),
-              
+
               // Indian Months (if present)
               if (presentMasas.isNotEmpty) ...[
                 const SizedBox(height: 16),
@@ -3377,10 +3501,12 @@ class _BeautifulLegendCard extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 16),
-                Text(
+                AutoSizeText(
                   'Indian Months',
                   style: theme.textTheme.bodySmall?.copyWith(
-                    color: (isDark ? Colors.white : Colors.black).withOpacity(0.5),
+                    color: (isDark ? Colors.white : Colors.black).withOpacity(
+                      0.5,
+                    ),
                     fontWeight: FontWeight.w600,
                     letterSpacing: 0.5,
                   ),
@@ -3389,43 +3515,48 @@ class _BeautifulLegendCard extends StatelessWidget {
                 Wrap(
                   spacing: 8,
                   runSpacing: 8,
-                  children: presentMasas.map((masa) {
-                    final month = IndianMonthHelper.getBySanskritName(masa);
-                    final color = IndianMonthHelper.getBaseColorForMasa(masa, isDark);
-                    
-                    return Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                      decoration: BoxDecoration(
-                        color: color.withOpacity(0.12),
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(
-                          color: color.withOpacity(0.3),
-                        ),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Container(
-                            width: 8,
-                            height: 8,
-                            decoration: BoxDecoration(
-                              color: color,
-                              shape: BoxShape.circle,
-                            ),
+                  children:
+                      presentMasas.map((masa) {
+                        final month = IndianMonthHelper.getBySanskritName(masa);
+                        final color = IndianMonthHelper.getBaseColorForMasa(
+                          masa,
+                          isDark,
+                        );
+
+                        return Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 6,
                           ),
-                          const SizedBox(width: 6),
-                          Text(
-                            month?.sanskritName ?? masa,
-                            style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
-                              color: isDark ? Colors.white : Colors.black87,
-                            ),
+                          decoration: BoxDecoration(
+                            color: color.withOpacity(0.12),
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(color: color.withOpacity(0.3)),
                           ),
-                        ],
-                      ),
-                    );
-                  }).toList(),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Container(
+                                width: 8,
+                                height: 8,
+                                decoration: BoxDecoration(
+                                  color: color,
+                                  shape: BoxShape.circle,
+                                ),
+                              ),
+                              const SizedBox(width: 6),
+                              AutoSizeText(
+                                month?.sanskritName ?? masa,
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                  color: isDark ? Colors.white : Colors.black87,
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      }).toList(),
                 ),
               ],
             ],
@@ -3435,5 +3566,3 @@ class _BeautifulLegendCard extends StatelessWidget {
     );
   }
 }
-
-

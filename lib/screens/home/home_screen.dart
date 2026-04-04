@@ -157,9 +157,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     return SafeArea(
       top: false,
       child: SingleChildScrollView(
-        physics: const BouncingScrollPhysics(
-          parent: AlwaysScrollableScrollPhysics(),
-        ),
+        // physics: const BouncingScrollPhysics(
+        //   parent: AlwaysScrollableScrollPhysics(),
+        // ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -167,264 +167,274 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
             AnimatedBuilder(
               animation: _headerController,
               builder: (context, child) {
-                return Transform.scale(
-                  scale: _headerScale.value,
-                  child: child,
-                );
+                return Transform.scale(scale: _headerScale.value, child: child);
               },
               child: FadeTransition(
                 opacity: _headerFade,
                 child: Stack(
-                children: [
-                  // Dynamic color header background with blur effect
-                  Positioned.fill(
-                    child: AnimatedContainer(
-                      duration: const Duration(milliseconds: 500),
-                      curve: Curves.easeInOut,
-                      width: double.infinity,
-                      child: ClipRRect(
-                        borderRadius: const BorderRadius.only(
-                          bottomLeft: Radius.circular(30),
-                          bottomRight: Radius.circular(30),
-                        ),
-                        child: Stack(
-                          fit: StackFit.expand,
-                          children: [
-                            // Base image
-                            Image.asset(
-                              "assets/images/OnBoarding/background_home.png",
-                              fit: BoxFit.cover,
-                            ),
-                            // Dynamic color overlay with blur
-                            ValueListenableBuilder<Color?>(
-                              valueListenable: _bgColorNotifier,
-                              builder: (context, dynamicColor, _) {
-                                if (dynamicColor == null) return const SizedBox.shrink();
-                                return BackdropFilter(
-                                  filter: ImageFilter.blur(
-                                    sigmaX: 12,
-                                    sigmaY: 12,
-                                  ),
-                                  child: AnimatedContainer(
-                                    duration: const Duration(milliseconds: 500),
-                                    curve: Curves.easeInOut,
-                                    decoration: BoxDecoration(
-                                      gradient: LinearGradient(
-                                        begin: Alignment.topCenter,
-                                        end: Alignment.bottomCenter,
-                                        colors: [
-                                          dynamicColor.withValues(alpha: 0.7),
-                                          dynamicColor.withValues(alpha: 0.5),
-                                        ],
-                                      ),
+                  children: [
+                    // Dynamic color header background with blur effect
+                    Positioned.fill(
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 500),
+                        curve: Curves.easeInOut,
+                        width: double.infinity,
+                        child: ClipRRect(
+                          borderRadius: const BorderRadius.only(
+                            bottomLeft: Radius.circular(30),
+                            bottomRight: Radius.circular(30),
+                          ),
+                          child: Stack(
+                            fit: StackFit.expand,
+                            children: [
+                              // Base image
+                              Image.asset(
+                                "assets/images/OnBoarding/background_home.png",
+                                fit: BoxFit.cover,
+                              ),
+                              // Dynamic color overlay with blur
+                              ValueListenableBuilder<Color?>(
+                                valueListenable: _bgColorNotifier,
+                                builder: (context, dynamicColor, _) {
+                                  if (dynamicColor == null)
+                                    return const SizedBox.shrink();
+                                  return BackdropFilter(
+                                    filter: ImageFilter.blur(
+                                      sigmaX: 12,
+                                      sigmaY: 12,
                                     ),
-                                  ),
-                                );
-                              },
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                  Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Padding(
-                        padding: EdgeInsets.only(
-                          left: screenWidth * 0.05,
-                          right: screenWidth * 0.05,
-                          top: MediaQuery.paddingOf(context).top + 12,
-                          bottom: 12,
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            // Modern Welcome Section with Avatar
-                            Expanded(
-                              child: BlocBuilder<AuthCubit, AuthState>(
-                                buildWhen: (prev, curr) => prev != curr,
-                                builder: (context, state) {
-                                  String name = "User";
-                                  String? profilePicture;
-                                  if (state is Authenticated) {
-                                    name =
-                                        state.user.firstName[0].toUpperCase() +
-                                        state.user.firstName.substring(1);
-                                    profilePicture = state.user.profilePicture;
-                                  }
-
-                                  return GestureDetector(
-                                    onTap: () {
-                                      context.go(AppRoute.profile.path);
-                                    },
-                                    child: Row(
-                                      children: [
-                                        // Animated Avatar with glow
-                                        Container(
-                                          padding: const EdgeInsets.all(2),
-                                          decoration: BoxDecoration(
-                                            shape: BoxShape.circle,
-                                            gradient: LinearGradient(
-                                              colors: [
-                                                theme.colorScheme.primary,
-                                                theme.colorScheme.secondary,
-                                              ],
-                                            ),
-                                            boxShadow: [
-                                              BoxShadow(
-                                                color: theme.colorScheme.primary
-                                                    .withValues(alpha: 0.4),
-                                                blurRadius: 8,
-                                                spreadRadius: 1,
-                                              ),
-                                            ],
-                                          ),
-                                          child: CircleAvatar(
-                                            radius: 20,
-                                            backgroundColor: theme.cardColor,
-                                            backgroundImage:
-                                                profilePicture != null &&
-                                                        profilePicture
-                                                            .isNotEmpty
-                                                    ? CachedNetworkImageProvider(
-                                                      profilePicture,
-                                                    )
-                                                    : null,
-                                            child:
-                                                profilePicture == null ||
-                                                        profilePicture.isEmpty
-                                                    ? Text(
-                                                      name[0].toUpperCase(),
-                                                      style: textTheme
-                                                          .titleMedium
-                                                          ?.copyWith(
-                                                            fontWeight:
-                                                                FontWeight.bold,
-                                                            color:
-                                                                theme
-                                                                    .colorScheme
-                                                                    .primary,
-                                                          ),
-                                                    )
-                                                    : null,
-                                          ),
+                                    child: AnimatedContainer(
+                                      duration: const Duration(
+                                        milliseconds: 500,
+                                      ),
+                                      curve: Curves.easeInOut,
+                                      decoration: BoxDecoration(
+                                        gradient: LinearGradient(
+                                          begin: Alignment.topCenter,
+                                          end: Alignment.bottomCenter,
+                                          colors: [
+                                            dynamicColor.withValues(alpha: 0.7),
+                                            dynamicColor.withValues(alpha: 0.5),
+                                          ],
                                         ),
-                                        const SizedBox(width: 12),
-                                        // Greeting Text Column
-                                        Expanded(
-                                          child: Column(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
-                                            mainAxisSize: MainAxisSize.min,
-                                            children: [
-                                              // Time-based greeting with live emoji at end
-                                              Row(
-                                                children: [
-                                                  Text(
-                                                    _greetingText,
-                                                    style: textTheme.bodySmall
-                                                        ?.copyWith(
-                                                          color: theme
-                                                              .colorScheme
-                                                              .onPrimary
-                                                              .withValues(
-                                                                alpha: 0.8,
-                                                              ),
-                                                          fontWeight:
-                                                              FontWeight.w500,
-                                                          letterSpacing: 0.3,
-                                                        ),
-                                                  ),
-                                                  const SizedBox(width: 5),
-                                                  // Animated greeting emoji
-                                                  RepaintBoundary(
-                                                    child: _AnimatedGreetingEmoji(
-                                                      emoji: _greetingEmoji,
-                                                      hour: _greetingHour,
-                                                    ),
-                                                  ),
-                                                ],
-                                              ),
-                                              const SizedBox(height: 2),
-                                              // Name with wave animation
-                                              Row(
-                                                children: [
-                                                  Flexible(
-                                                    child: Text(
-                                                      name,
-                                                      style: textTheme
-                                                          .titleMedium
-                                                          ?.copyWith(
-                                                            color:
-                                                                theme
-                                                                    .colorScheme
-                                                                    .onPrimary,
-                                                            fontWeight:
-                                                                FontWeight.bold,
-                                                            letterSpacing: 0.2,
-                                                          ),
-                                                      overflow:
-                                                          TextOverflow.ellipsis,
-                                                    ),
-                                                  ),
-                                                  const SizedBox(width: 6),
-                                                  // Waving hand emoji
-                                                  const RepaintBoundary(
-                                                    child: _WavingHandEmoji(),
-                                                  ),
-                                                ],
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                      ],
+                                      ),
                                     ),
                                   );
                                 },
                               ),
-                            ),
-                            // Modern Animated Notification Bell
-                            Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                _PanchangChakraButton(
-                                  theme: theme,
-                                  onTap: () {
-                                    HapticFeedback.lightImpact();
-                                    context.push(AppRoute.panchang.path);
-                                  },
-                                ),
-                                const SizedBox(width: 8),
-                                _buildModernIconButton(
-                                  icon: Icons.notifications_rounded,
-                                  onTap: () {
-                                    HapticFeedback.lightImpact();
-                                    context.push(AppRoute.notifications.path);
-                                  },
-                                  theme: theme,
-                                  hasBadge: true,
-                                ),
-                              ],
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                       ),
-                      HomeSearchBar(
-                        controller: _searchController,
-                        focusNode: _focusNode,
-                        onChanged: _performSearch,
-                        onClear: () {
-                          _searchController.clear();
-                          setState(() => _searchResults = []);
-                        },
-                        isSearching: _isSearching,
-                      ),
-                      const SizedBox(height: 20), // Bottom padding for header
-                    ],
-                  ),
-                ],
-              ),
+                    ),
+                    Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Padding(
+                          padding: EdgeInsets.only(
+                            left: screenWidth * 0.05,
+                            right: screenWidth * 0.05,
+                            top: MediaQuery.paddingOf(context).top + 12,
+                            bottom: 12,
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              // Modern Welcome Section with Avatar
+                              Expanded(
+                                child: BlocBuilder<AuthCubit, AuthState>(
+                                  buildWhen: (prev, curr) => prev != curr,
+                                  builder: (context, state) {
+                                    String name = "User";
+                                    String? profilePicture;
+                                    if (state is Authenticated) {
+                                      name =
+                                          state.user.firstName[0]
+                                              .toUpperCase() +
+                                          state.user.firstName.substring(1);
+                                      profilePicture =
+                                          state.user.profilePicture;
+                                    }
+
+                                    return GestureDetector(
+                                      onTap: () {
+                                        context.go(AppRoute.profile.path);
+                                      },
+                                      child: Row(
+                                        children: [
+                                          // Animated Avatar with glow
+                                          Container(
+                                            padding: const EdgeInsets.all(2),
+                                            decoration: BoxDecoration(
+                                              shape: BoxShape.circle,
+                                              gradient: LinearGradient(
+                                                colors: [
+                                                  theme.colorScheme.primary,
+                                                  theme.colorScheme.secondary,
+                                                ],
+                                              ),
+                                              boxShadow: [
+                                                BoxShadow(
+                                                  color: theme
+                                                      .colorScheme
+                                                      .primary
+                                                      .withValues(alpha: 0.4),
+                                                  blurRadius: 8,
+                                                  spreadRadius: 1,
+                                                ),
+                                              ],
+                                            ),
+                                            child: CircleAvatar(
+                                              radius: 20,
+                                              backgroundColor: theme.cardColor,
+                                              backgroundImage:
+                                                  profilePicture != null &&
+                                                          profilePicture
+                                                              .isNotEmpty
+                                                      ? CachedNetworkImageProvider(
+                                                        profilePicture,
+                                                      )
+                                                      : null,
+                                              child:
+                                                  profilePicture == null ||
+                                                          profilePicture.isEmpty
+                                                      ? Text(
+                                                        name[0].toUpperCase(),
+                                                        style: textTheme
+                                                            .titleMedium
+                                                            ?.copyWith(
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .bold,
+                                                              color:
+                                                                  theme
+                                                                      .colorScheme
+                                                                      .primary,
+                                                            ),
+                                                      )
+                                                      : null,
+                                            ),
+                                          ),
+                                          const SizedBox(width: 12),
+                                          // Greeting Text Column
+                                          Expanded(
+                                            child: Column(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: [
+                                                // Time-based greeting with live emoji at end
+                                                Row(
+                                                  children: [
+                                                    Text(
+                                                      _greetingText,
+                                                      style: textTheme.bodySmall
+                                                          ?.copyWith(
+                                                            color: theme
+                                                                .colorScheme
+                                                                .onPrimary
+                                                                .withValues(
+                                                                  alpha: 0.8,
+                                                                ),
+                                                            fontWeight:
+                                                                FontWeight.w500,
+                                                            letterSpacing: 0.3,
+                                                          ),
+                                                    ),
+                                                    const SizedBox(width: 5),
+                                                    // Animated greeting emoji
+                                                    RepaintBoundary(
+                                                      child:
+                                                          _AnimatedGreetingEmoji(
+                                                            emoji:
+                                                                _greetingEmoji,
+                                                            hour: _greetingHour,
+                                                          ),
+                                                    ),
+                                                  ],
+                                                ),
+                                                const SizedBox(height: 2),
+                                                // Name with wave animation
+                                                Row(
+                                                  children: [
+                                                    Flexible(
+                                                      child: Text(
+                                                        name,
+                                                        style: textTheme
+                                                            .titleMedium
+                                                            ?.copyWith(
+                                                              color:
+                                                                  theme
+                                                                      .colorScheme
+                                                                      .onPrimary,
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .bold,
+                                                              letterSpacing:
+                                                                  0.2,
+                                                            ),
+                                                        overflow:
+                                                            TextOverflow
+                                                                .ellipsis,
+                                                      ),
+                                                    ),
+                                                    const SizedBox(width: 6),
+                                                    // Waving hand emoji
+                                                    const RepaintBoundary(
+                                                      child: _WavingHandEmoji(),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    );
+                                  },
+                                ),
+                              ),
+                              // Modern Animated Notification Bell
+                              Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  _PanchangChakraButton(
+                                    theme: theme,
+                                    onTap: () {
+                                      HapticFeedback.lightImpact();
+                                      context.push(AppRoute.panchang.path);
+                                    },
+                                  ),
+                                  const SizedBox(width: 8),
+                                  _buildModernIconButton(
+                                    icon: Icons.notifications_rounded,
+                                    onTap: () {
+                                      HapticFeedback.lightImpact();
+                                      context.push(AppRoute.notifications.path);
+                                    },
+                                    theme: theme,
+                                    hasBadge: true,
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                        HomeSearchBar(
+                          controller: _searchController,
+                          focusNode: _focusNode,
+                          onChanged: _performSearch,
+                          onClear: () {
+                            _searchController.clear();
+                            setState(() => _searchResults = []);
+                          },
+                          isSearching: _isSearching,
+                        ),
+                        const SizedBox(height: 20), // Bottom padding for header
+                      ],
+                    ),
+                  ],
+                ),
               ),
             ),
 
@@ -456,10 +466,14 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                     ),
                     const SizedBox(height: 12),
                     const RepaintBoundary(child: AllProductsList()),
-                    padded(const RepaintBoundary(child: SubscriptionCarousel())),
+                    padded(
+                      const RepaintBoundary(child: SubscriptionCarousel()),
+                    ),
                     _heading(context, "Subscription Plans", "", () {}),
                     RepaintBoundary(child: _subscriptionSection(context)),
-                    padded(const RepaintBoundary(child: HomeCategoryShowcase())),
+                    padded(
+                      const RepaintBoundary(child: HomeCategoryShowcase()),
+                    ),
                     RepaintBoundary(child: _buildFeaturedProducts()),
                     const SizedBox(height: 4),
                     RepaintBoundary(
@@ -623,31 +637,36 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                           vertical: AppColors.spacingXS,
                         ),
                         decoration: BoxDecoration(
-                          color: theme.colorScheme.primary.withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(AppColors.radiusRound),
+                          color: theme.colorScheme.primary.withValues(
+                            alpha: 0.1,
+                          ),
+                          borderRadius: BorderRadius.circular(
+                            AppColors.radiusRound,
+                          ),
                         ),
-                        child: _isNavigatingToFeatured
-                            ? SizedBox(
-                                width: 58,
-                                height: 16,
-                                child: ShimmerLoading(
-                                  isLoading: true,
-                                  child: Container(
-                                    decoration: BoxDecoration(
-                                      color: theme.colorScheme.primary
-                                          .withValues(alpha: 0.4),
-                                      borderRadius: BorderRadius.circular(8),
+                        child:
+                            _isNavigatingToFeatured
+                                ? SizedBox(
+                                  width: 58,
+                                  height: 16,
+                                  child: ShimmerLoading(
+                                    isLoading: true,
+                                    child: Container(
+                                      decoration: BoxDecoration(
+                                        color: theme.colorScheme.primary
+                                            .withValues(alpha: 0.4),
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
                                     ),
                                   ),
+                                )
+                                : Text(
+                                  'See All →',
+                                  style: theme.textTheme.labelMedium?.copyWith(
+                                    color: theme.colorScheme.primary,
+                                    fontWeight: FontWeight.w600,
+                                  ),
                                 ),
-                              )
-                            : Text(
-                                'See All →',
-                                style: theme.textTheme.labelMedium?.copyWith(
-                                  color: theme.colorScheme.primary,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
                       ),
                     ),
                   ],
@@ -862,6 +881,7 @@ class _WavingHandEmojiState extends State<_WavingHandEmoji>
     );
   }
 }
+
 class _PanchangChakraButton extends StatefulWidget {
   final ThemeData theme;
   final VoidCallback onTap;
@@ -1511,15 +1531,30 @@ class _StarDot {
   final double xf, yf, r, baseOp, freq, phase;
   final bool twinkles;
   final Color tint;
-  const _StarDot(this.xf, this.yf, this.r, this.baseOp, this.twinkles,
-      this.freq, this.phase, this.tint);
+  const _StarDot(
+    this.xf,
+    this.yf,
+    this.r,
+    this.baseOp,
+    this.twinkles,
+    this.freq,
+    this.phase,
+    this.tint,
+  );
 }
 
 class _BrightStar {
   final double xf, yf, r, baseOp, freq, phase;
   final Color tint;
   const _BrightStar(
-      this.xf, this.yf, this.r, this.baseOp, this.freq, this.phase, this.tint);
+    this.xf,
+    this.yf,
+    this.r,
+    this.baseOp,
+    this.freq,
+    this.phase,
+    this.tint,
+  );
 }
 
 class _BeltDot {
@@ -1537,49 +1572,81 @@ class _PopupStarData {
 
 final _popupStarData = () {
   const tints = <Color>[
-    Color(0xFFFFFFFF), Color(0xFFFFE8C8), Color(0xFFC8D8FF),
-    Color(0xFFFFCCCC), Color(0xFFD0F0FF), Color(0xFFFFF0B0),
+    Color(0xFFFFFFFF),
+    Color(0xFFFFE8C8),
+    Color(0xFFC8D8FF),
+    Color(0xFFFFCCCC),
+    Color(0xFFD0F0FF),
+    Color(0xFFFFF0B0),
   ];
   final rng = math.Random(77);
   // Layer 1 - 180 tiny stars (mirrors exact RNG sequence in original paint())
   final l1 = List<_StarDot>.generate(180, (_) {
     final xf = rng.nextDouble();
     final yf = rng.nextDouble();
-    final r  = rng.nextDouble() * 0.7 + 0.15;
+    final r = rng.nextDouble() * 0.7 + 0.15;
     final op = rng.nextDouble() * 0.35 + 0.08;
     final tw = rng.nextBool();
-    final freq  = tw ? rng.nextDouble() * 2.0 + 0.3 : 0.0;
+    final freq = tw ? rng.nextDouble() * 2.0 + 0.3 : 0.0;
     final phase = tw ? rng.nextDouble() * 6.28 : 0.0;
-    return _StarDot(xf, yf, r, op, tw, freq, phase, tints[rng.nextInt(tints.length)]);
+    return _StarDot(
+      xf,
+      yf,
+      r,
+      op,
+      tw,
+      freq,
+      phase,
+      tints[rng.nextInt(tints.length)],
+    );
   });
   // Layer 2 - 40 medium glowing stars (continues same RNG from layer 1)
   final l2 = List<_BrightStar>.generate(40, (_) {
     final xf = rng.nextDouble();
     final yf = rng.nextDouble();
-    final r  = rng.nextDouble() * 1.0 + 0.8;
+    final r = rng.nextDouble() * 1.0 + 0.8;
     final op = rng.nextDouble() * 0.40 + 0.25;
-    final freq  = rng.nextDouble() * 1.8 + 0.4;
+    final freq = rng.nextDouble() * 1.8 + 0.4;
     final phase = rng.nextDouble() * 6.28;
-    return _BrightStar(xf, yf, r, op, freq, phase, tints[rng.nextInt(tints.length)]);
+    return _BrightStar(
+      xf,
+      yf,
+      r,
+      op,
+      freq,
+      phase,
+      tints[rng.nextInt(tints.length)],
+    );
   });
   // Layer 3 - 12 bright cross-flare stars (continues same RNG)
   final l3 = List<_BrightStar>.generate(12, (_) {
     final xf = rng.nextDouble();
     final yf = rng.nextDouble();
-    final r  = rng.nextDouble() * 0.8 + 1.2;
+    final r = rng.nextDouble() * 0.8 + 1.2;
     final op = rng.nextDouble() * 0.30 + 0.45;
-    final freq  = rng.nextDouble() * 2.5 + 0.5;
+    final freq = rng.nextDouble() * 2.5 + 0.5;
     final phase = rng.nextDouble() * 6.28;
-    return _BrightStar(xf, yf, r, op, freq, phase, tints[rng.nextInt(tints.length)]);
+    return _BrightStar(
+      xf,
+      yf,
+      r,
+      op,
+      freq,
+      phase,
+      tints[rng.nextInt(tints.length)],
+    );
   });
   // Asteroid belt - independent seed 31
   final arng = math.Random(31);
-  final belt = List<_BeltDot>.generate(55, (_) => _BeltDot(
-    arng.nextDouble() * math.pi * 2,
-    0.340 + (arng.nextDouble() - 0.5) * 0.032,
-    arng.nextDouble() * 0.7 + 0.15,
-    arng.nextDouble() * 0.10 + 0.03,
-  ));
+  final belt = List<_BeltDot>.generate(
+    55,
+    (_) => _BeltDot(
+      arng.nextDouble() * math.pi * 2,
+      0.340 + (arng.nextDouble() - 0.5) * 0.032,
+      arng.nextDouble() * 0.7 + 0.15,
+      arng.nextDouble() * 0.10 + 0.03,
+    ),
+  );
   return _PopupStarData(l1, l2, l3, belt);
 }();
 
@@ -1711,13 +1778,13 @@ class _RealisticPopupPainter extends CustomPainter {
     final _sh = size.height;
     // Layer 1: Dense tiny stars
     for (final s in _popupStarData.layer1) {
-      final twinkle = s.twinkles
-          ? (0.5 + 0.5 * math.sin(t * s.freq + s.phase))
-          : 1.0;
+      final twinkle =
+          s.twinkles ? (0.5 + 0.5 * math.sin(t * s.freq + s.phase)) : 1.0;
       canvas.drawCircle(
         Offset(s.xf * _sw, s.yf * _sh),
         s.r,
-        Paint()..color = s.tint.withOpacity((s.baseOp * twinkle).clamp(0.03, 0.50)),
+        Paint()
+          ..color = s.tint.withOpacity((s.baseOp * twinkle).clamp(0.03, 0.50)),
       );
     }
 
@@ -1753,17 +1820,18 @@ class _RealisticPopupPainter extends CustomPainter {
       );
       canvas.drawCircle(pos, s.r, Paint()..color = s.tint.withOpacity(op));
       if (op > 0.40) {
-        final fl = Paint()
-          ..color = s.tint.withOpacity(op * 0.22)
-          ..strokeWidth = 0.4
-          ..strokeCap = StrokeCap.round;
+        final fl =
+            Paint()
+              ..color = s.tint.withOpacity(op * 0.22)
+              ..strokeWidth = 0.4
+              ..strokeCap = StrokeCap.round;
         final len = s.r * 3.5;
         canvas.drawLine(pos - Offset(len, 0), pos + Offset(len, 0), fl);
         canvas.drawLine(pos - Offset(0, len), pos + Offset(0, len), fl);
       }
     }
 
-        final gridPaint =
+    final gridPaint =
         Paint()
           ..style = PaintingStyle.stroke
           ..strokeWidth = 0.3;
@@ -1818,8 +1886,8 @@ class _RealisticPopupPainter extends CustomPainter {
     // -- Asteroid belt (3D) - uses pre-computed data -------------------------
     for (final a in _popupStarData.belt) {
       final angle = a.baseAngle + t * 0.008;
-      final rOff  = a.rFrac * maxOrbit;
-      final zN    = math.sin(angle);
+      final rOff = a.rFrac * maxOrbit;
+      final zN = math.sin(angle);
       final depthOp = (0.5 + zN * 0.5).clamp(0.15, 1.0);
       canvas.drawCircle(
         Offset(
@@ -1827,13 +1895,14 @@ class _RealisticPopupPainter extends CustomPainter {
           cy + rOff * math.sin(angle) * _popupTilt,
         ),
         a.dotBase * (1.0 + zN * 0.15),
-        Paint()..color = Colors.white.withOpacity(
-          (a.opBase * depthOp).clamp(0.0, 1.0),
-        ),
+        Paint()
+          ..color = Colors.white.withOpacity(
+            (a.opBase * depthOp).clamp(0.0, 1.0),
+          ),
       );
     }
 
-        final positions = <_PPos>[];
+    final positions = <_PPos>[];
     for (int i = 0; i < _pPlanets.length; i++) {
       positions.add(_project(i, center, maxOrbit));
     }

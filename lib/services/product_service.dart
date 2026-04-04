@@ -24,7 +24,31 @@ class CategoryService {
 
       if (response.statusCode == 200) {
         final List<dynamic> data = json.decode(response.body);
-        return data.map((item) => Category.fromJson(item)).toList();
+        List<Category> categories = data.map((item) => Category.fromJson(item)).toList();
+
+        // Fallback: Calculate true active products locally to ensure UI counts exactly match catalog items
+        try {
+          final products = await fetchAllProducts();
+          final categoryCounts = <String, int>{};
+          for (var p in products) {
+            if (p.isActive) {
+              final catName = p.productCategory.toLowerCase();
+              categoryCounts[catName] = (categoryCounts[catName] ?? 0) + 1;
+            }
+          }
+          categories = categories.map((c) => Category(
+            id: c.id,
+            name: c.name,
+            description: c.description,
+            image: c.image,
+            isActive: c.isActive,
+            productsCount: categoryCounts[c.name.toLowerCase()] ?? 0,
+          )).toList();
+        } catch (_) {
+          // If fetching all products fails, degrade gracefully to backend counts
+        }
+
+        return categories;
       } else {
         throw Exception('Failed to load categories');
       }

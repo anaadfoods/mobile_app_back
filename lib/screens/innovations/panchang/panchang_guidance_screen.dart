@@ -1,4 +1,5 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 
@@ -53,7 +54,8 @@ class _PanchangGuidanceScreenState extends State<PanchangGuidanceScreen>
     return BlocProvider.value(
       value: _cubit,
       child: Scaffold(
-        backgroundColor: isDark ? const Color(0xFF070C08) : const Color(0xFFF5F5F5),
+        backgroundColor:
+            isDark ? const Color(0xFF070C08) : const Color(0xFFF5F5F5),
         body: BlocBuilder<PanchangGuidanceCubit, PanchangGuidanceState>(
           builder: (context, state) {
             if (state is PanchangGuidanceLoading) {
@@ -94,7 +96,7 @@ class _PanchangGuidanceScreenState extends State<PanchangGuidanceScreen>
             ),
           ),
           const SizedBox(height: 24),
-          Text(
+          AutoSizeText(
             'Loading Today\'s Guidance...',
             style: TextStyle(
               fontSize: 16,
@@ -114,13 +116,9 @@ class _PanchangGuidanceScreenState extends State<PanchangGuidanceScreen>
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              Icons.error_outline,
-              size: 64,
-              color: Colors.red.shade400,
-            ),
+            Icon(Icons.error_outline, size: 64, color: Colors.red.shade400),
             const SizedBox(height: 16),
-            Text(
+            AutoSizeText(
               'Unable to load guidance',
               style: TextStyle(
                 fontSize: 20,
@@ -129,7 +127,7 @@ class _PanchangGuidanceScreenState extends State<PanchangGuidanceScreen>
               ),
             ),
             const SizedBox(height: 8),
-            Text(
+            AutoSizeText(
               message,
               textAlign: TextAlign.center,
               style: TextStyle(
@@ -141,11 +139,14 @@ class _PanchangGuidanceScreenState extends State<PanchangGuidanceScreen>
             ElevatedButton.icon(
               onPressed: () => _cubit.loadTodayGuidance(),
               icon: const Icon(Icons.refresh),
-              label: const Text('Retry'),
+              label: AutoSizeText('Retry'),
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF3F5E46),
                 foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24,
+                  vertical: 12,
+                ),
               ),
             ),
           ],
@@ -174,9 +175,16 @@ class _PanchangGuidanceScreenState extends State<PanchangGuidanceScreen>
                     ...guidance.recommendations.asMap().entries.map((entry) {
                       return Padding(
                         padding: EdgeInsets.only(
-                          bottom: entry.key < guidance.recommendations.length - 1 ? 16 : 0,
+                          bottom:
+                              entry.key < guidance.recommendations.length - 1
+                                  ? 16
+                                  : 0,
                         ),
-                        child: _buildRecommendationCard(entry.value, isDark, entry.key),
+                        child: _buildRecommendationCard(
+                          entry.value,
+                          isDark,
+                          entry.key,
+                        ),
                       );
                     }),
                   ],
@@ -213,10 +221,11 @@ class _PanchangGuidanceScreenState extends State<PanchangGuidanceScreen>
             await Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (_) => BlocProvider.value(
-                  value: _cubit,
-                  child: const PanchangGuidanceProfileScreen(),
-                ),
+                builder:
+                    (_) => BlocProvider.value(
+                      value: _cubit,
+                      child: const PanchangGuidanceProfileScreen(),
+                    ),
               ),
             );
             // Reload guidance after returning from settings
@@ -229,7 +238,7 @@ class _PanchangGuidanceScreenState extends State<PanchangGuidanceScreen>
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
+            AutoSizeText(
               'Today\'s Guidance',
               style: TextStyle(
                 fontSize: 18,
@@ -237,7 +246,7 @@ class _PanchangGuidanceScreenState extends State<PanchangGuidanceScreen>
                 color: isDark ? Colors.white : Colors.black87,
               ),
             ),
-            Text(
+            AutoSizeText(
               DateFormat('EEEE, d MMMM yyyy').format(DateTime.now()),
               style: TextStyle(
                 fontSize: 11,
@@ -253,9 +262,10 @@ class _PanchangGuidanceScreenState extends State<PanchangGuidanceScreen>
             gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
-              colors: isDark
-                  ? [const Color(0xFF0D150E), const Color(0xFF0A1510)]
-                  : [Colors.white, const Color(0xFFEDF4EE)],
+              colors:
+                  isDark
+                      ? [const Color(0xFF0D150E), const Color(0xFF0A1510)]
+                      : [Colors.white, const Color(0xFFEDF4EE)],
             ),
           ),
         ),
@@ -268,14 +278,13 @@ class _PanchangGuidanceScreenState extends State<PanchangGuidanceScreen>
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: isDark
-              ? [const Color(0xFF0D1A10), const Color(0xFF0D1A0F)]
-              : [const Color(0xFFEDF4EE), const Color(0xFFF4F8F4)],
+          colors:
+              isDark
+                  ? [const Color(0xFF0D1A10), const Color(0xFF0D1A0F)]
+                  : [const Color(0xFFEDF4EE), const Color(0xFFF4F8F4)],
         ),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: const Color(0xFF3F5E46).withOpacity(0.3),
-        ),
+        border: Border.all(color: const Color(0xFF3F5E46).withOpacity(0.3)),
       ),
       child: Row(
         children: [
@@ -285,9 +294,13 @@ class _PanchangGuidanceScreenState extends State<PanchangGuidanceScreen>
               children: [
                 Row(
                   children: [
-                    Icon(Icons.calendar_today, size: 16, color: const Color(0xFF3A8C54)),
+                    Icon(
+                      Icons.calendar_today,
+                      size: 16,
+                      color: const Color(0xFF3A8C54),
+                    ),
                     const SizedBox(width: 8),
-                    Text(
+                    AutoSizeText(
                       source.tithi,
                       style: TextStyle(
                         fontSize: 14,
@@ -300,9 +313,13 @@ class _PanchangGuidanceScreenState extends State<PanchangGuidanceScreen>
                 const SizedBox(height: 8),
                 Row(
                   children: [
-                    Icon(Icons.wb_sunny_outlined, size: 16, color: Colors.orange.shade400),
+                    Icon(
+                      Icons.wb_sunny_outlined,
+                      size: 16,
+                      color: Colors.orange.shade400,
+                    ),
                     const SizedBox(width: 8),
-                    Text(
+                    AutoSizeText(
                       source.vara,
                       style: TextStyle(
                         fontSize: 14,
@@ -326,9 +343,9 @@ class _PanchangGuidanceScreenState extends State<PanchangGuidanceScreen>
                 Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Text('🌅', style: TextStyle(fontSize: 14)),
+                    AutoSizeText('🌅', style: TextStyle(fontSize: 14)),
                     const SizedBox(width: 6),
-                    Text(
+                    AutoSizeText(
                       source.formattedSunrise,
                       style: TextStyle(
                         fontSize: 13,
@@ -342,9 +359,9 @@ class _PanchangGuidanceScreenState extends State<PanchangGuidanceScreen>
                 Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Text('🌇', style: TextStyle(fontSize: 14)),
+                    AutoSizeText('🌇', style: TextStyle(fontSize: 14)),
                     const SizedBox(width: 6),
-                    Text(
+                    AutoSizeText(
                       source.formattedSunset,
                       style: TextStyle(
                         fontSize: 13,
@@ -362,7 +379,11 @@ class _PanchangGuidanceScreenState extends State<PanchangGuidanceScreen>
     );
   }
 
-  Widget _buildRecommendationCard(GuidanceRecommendation rec, bool isDark, int index) {
+  Widget _buildRecommendationCard(
+    GuidanceRecommendation rec,
+    bool isDark,
+    int index,
+  ) {
     final verdictData = _getVerdictData(rec.verdict);
 
     return TweenAnimationBuilder<double>(
@@ -404,7 +425,9 @@ class _PanchangGuidanceScreenState extends State<PanchangGuidanceScreen>
                     verdictData.color.withOpacity(isDark ? 0.1 : 0.05),
                   ],
                 ),
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(18)),
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(18),
+                ),
               ),
               child: Row(
                 children: [
@@ -414,7 +437,7 @@ class _PanchangGuidanceScreenState extends State<PanchangGuidanceScreen>
                       color: verdictData.color.withOpacity(0.2),
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    child: Text(
+                    child: AutoSizeText(
                       _getTypeEmoji(rec.type),
                       style: const TextStyle(fontSize: 22),
                     ),
@@ -424,7 +447,7 @@ class _PanchangGuidanceScreenState extends State<PanchangGuidanceScreen>
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
+                        AutoSizeText(
                           rec.title,
                           style: TextStyle(
                             fontSize: 17,
@@ -434,12 +457,15 @@ class _PanchangGuidanceScreenState extends State<PanchangGuidanceScreen>
                         ),
                         const SizedBox(height: 4),
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 4,
+                          ),
                           decoration: BoxDecoration(
                             color: verdictData.color,
                             borderRadius: BorderRadius.circular(8),
                           ),
-                          child: Text(
+                          child: AutoSizeText(
                             verdictData.label,
                             style: const TextStyle(
                               fontSize: 11,
@@ -494,15 +520,18 @@ class _PanchangGuidanceScreenState extends State<PanchangGuidanceScreen>
                       child: Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text('💡', style: TextStyle(fontSize: 16)),
+                          AutoSizeText('💡', style: TextStyle(fontSize: 16)),
                           const SizedBox(width: 8),
                           Expanded(
-                            child: Text(
+                            child: AutoSizeText(
                               rec.notesList.join('\n'),
                               style: TextStyle(
                                 fontSize: 13,
-                                height: 1.4,
-                                color: isDark ? Colors.amber.shade200 : Colors.amber.shade800,
+
+                                color:
+                                    isDark
+                                        ? Colors.amber.shade200
+                                        : Colors.amber.shade800,
                               ),
                             ),
                           ),
@@ -527,7 +556,7 @@ class _PanchangGuidanceScreenState extends State<PanchangGuidanceScreen>
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
+        AutoSizeText(
           title,
           style: TextStyle(
             fontSize: 14,
@@ -536,21 +565,28 @@ class _PanchangGuidanceScreenState extends State<PanchangGuidanceScreen>
           ),
         ),
         const SizedBox(height: 8),
-        ...windows.map((window) => Padding(
-              padding: const EdgeInsets.only(bottom: 8),
-              child: _buildTimeWindowItem(window, color, isDark),
-            )),
+        ...windows.map(
+          (window) => Padding(
+            padding: const EdgeInsets.only(bottom: 8),
+            child: _buildTimeWindowItem(window, color, isDark),
+          ),
+        ),
       ],
     );
   }
 
-  Widget _buildTimeWindowItem(GuidanceTimeWindow window, Color color, bool isDark) {
+  Widget _buildTimeWindowItem(
+    GuidanceTimeWindow window,
+    Color color,
+    bool isDark,
+  ) {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: window.isCurrent
-            ? color.withOpacity(isDark ? 0.25 : 0.15)
-            : color.withOpacity(isDark ? 0.1 : 0.05),
+        color:
+            window.isCurrent
+                ? color.withOpacity(isDark ? 0.25 : 0.15)
+                : color.withOpacity(isDark ? 0.1 : 0.05),
         borderRadius: BorderRadius.circular(10),
         border: Border.all(
           color: window.isCurrent ? color : color.withOpacity(0.2),
@@ -566,7 +602,7 @@ class _PanchangGuidanceScreenState extends State<PanchangGuidanceScreen>
                 Row(
                   children: [
                     Flexible(
-                      child: Text(
+                      child: AutoSizeText(
                         window.label,
                         style: TextStyle(
                           fontSize: 13,
@@ -578,12 +614,15 @@ class _PanchangGuidanceScreenState extends State<PanchangGuidanceScreen>
                     if (window.isCurrent) ...[
                       const SizedBox(width: 8),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 2,
+                        ),
                         decoration: BoxDecoration(
                           color: color,
                           borderRadius: BorderRadius.circular(6),
                         ),
-                        child: const Text(
+                        child: AutoSizeText(
                           'NOW',
                           style: TextStyle(
                             fontSize: 10,
@@ -598,7 +637,7 @@ class _PanchangGuidanceScreenState extends State<PanchangGuidanceScreen>
               ],
             ),
           ),
-          Text(
+          AutoSizeText(
             window.formattedTimeRange,
             style: TextStyle(
               fontSize: 12,
@@ -658,5 +697,3 @@ class _VerdictData {
 
   _VerdictData(this.label, this.color);
 }
-
-

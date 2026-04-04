@@ -1,4 +1,5 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../cubits/panchang/panchang_guidance_cubit.dart';
@@ -83,7 +84,11 @@ class _PanchangGuidanceProfileScreenState
   void _updateFromProfile(GuidanceProfileResponse profile) {
     setState(() {
       _dietStyle = _validateOption(profile.dietStyle, dietOptions, 'normal');
-      _fastingPreference = _validateOption(profile.fastingPreference, fastingOptions, 'none');
+      _fastingPreference = _validateOption(
+        profile.fastingPreference,
+        fastingOptions,
+        'none',
+      );
       _devata = _validateOption(profile.devata, devataOptions, 'other');
       _profile = _validateOption(profile.profile, profileOptions, 'default');
       _locale = _validateOption(profile.locale, localeOptions, 'en');
@@ -91,7 +96,11 @@ class _PanchangGuidanceProfileScreenState
     });
   }
 
-  String _validateOption(String value, List<_SelectOption> options, String defaultValue) {
+  String _validateOption(
+    String value,
+    List<_SelectOption> options,
+    String defaultValue,
+  ) {
     return options.any((opt) => opt.value == value) ? value : defaultValue;
   }
 
@@ -112,11 +121,12 @@ class _PanchangGuidanceProfileScreenState
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: isDark ? const Color(0xFF070C08) : const Color(0xFFF5F5F5),
+      backgroundColor:
+          isDark ? const Color(0xFF070C08) : const Color(0xFFF5F5F5),
       appBar: AppBar(
         backgroundColor: isDark ? const Color(0xFF0D150E) : Colors.white,
         elevation: 0,
-        title: Text(
+        title: AutoSizeText(
           'Guidance Preferences',
           style: TextStyle(
             fontSize: 20,
@@ -139,14 +149,15 @@ class _PanchangGuidanceProfileScreenState
                 padding: const EdgeInsets.only(right: 8),
                 child: TextButton.icon(
                   onPressed: isLoading ? null : _saveProfile,
-                  icon: isLoading
-                      ? const SizedBox(
-                          width: 16,
-                          height: 16,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
-                      : const Icon(Icons.save_rounded),
-                  label: const Text('Save'),
+                  icon:
+                      isLoading
+                          ? const SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                          : const Icon(Icons.save_rounded),
+                  label: AutoSizeText('Save'),
                   style: TextButton.styleFrom(
                     foregroundColor: const Color(0xFF3F5E46),
                   ),
@@ -163,7 +174,7 @@ class _PanchangGuidanceProfileScreenState
           } else if (state is PanchangProfileSaved) {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
-                content: Text('Preferences saved successfully!'),
+                content: AutoSizeText('Preferences saved successfully!'),
                 backgroundColor: Colors.green,
               ),
             );
@@ -175,15 +186,16 @@ class _PanchangGuidanceProfileScreenState
             });
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: Text('Error: ${state.message}'),
+                content: AutoSizeText('Error: ${state.message}'),
                 backgroundColor: Colors.red,
               ),
             );
           }
         },
-        child: _isLoading
-            ? const Center(child: CircularProgressIndicator())
-            : _errorMessage != null
+        child:
+            _isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : _errorMessage != null
                 ? _buildErrorState(isDark)
                 : _buildContent(isDark),
       ),
@@ -197,7 +209,7 @@ class _PanchangGuidanceProfileScreenState
         children: [
           Icon(Icons.error_outline, size: 64, color: Colors.red.shade400),
           const SizedBox(height: 16),
-          Text(
+          AutoSizeText(
             'Error loading preferences',
             style: TextStyle(
               fontSize: 18,
@@ -208,7 +220,7 @@ class _PanchangGuidanceProfileScreenState
           const SizedBox(height: 8),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 32),
-            child: Text(
+            child: AutoSizeText(
               _errorMessage ?? 'Unknown error',
               textAlign: TextAlign.center,
               style: TextStyle(
@@ -221,7 +233,7 @@ class _PanchangGuidanceProfileScreenState
           ElevatedButton.icon(
             onPressed: _loadProfile,
             icon: const Icon(Icons.refresh),
-            label: const Text('Retry'),
+            label: AutoSizeText('Retry'),
           ),
         ],
       ),
@@ -321,9 +333,7 @@ class _PanchangGuidanceProfileScreenState
       decoration: BoxDecoration(
         color: isDark ? const Color(0xFF0D150E) : Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: color.withOpacity(0.3),
-        ),
+        border: Border.all(color: color.withOpacity(0.3)),
         boxShadow: [
           BoxShadow(
             color: color.withOpacity(0.1),
@@ -344,7 +354,9 @@ class _PanchangGuidanceProfileScreenState
                   color.withOpacity(isDark ? 0.1 : 0.05),
                 ],
               ),
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(15)),
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(15),
+              ),
             ),
             child: Row(
               children: [
@@ -360,7 +372,7 @@ class _PanchangGuidanceProfileScreenState
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
+                    AutoSizeText(
                       title,
                       style: TextStyle(
                         fontSize: 16,
@@ -368,11 +380,12 @@ class _PanchangGuidanceProfileScreenState
                         color: isDark ? Colors.white : Colors.black87,
                       ),
                     ),
-                    Text(
+                    AutoSizeText(
                       subtitle,
                       style: TextStyle(
                         fontSize: 12,
-                        color: (isDark ? Colors.white : Colors.black).withOpacity(0.6),
+                        color: (isDark ? Colors.white : Colors.black)
+                            .withOpacity(0.6),
                       ),
                     ),
                   ],
@@ -380,10 +393,7 @@ class _PanchangGuidanceProfileScreenState
               ],
             ),
           ),
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: child,
-          ),
+          Padding(padding: const EdgeInsets.all(16), child: child),
         ],
       ),
     );
@@ -398,54 +408,75 @@ class _PanchangGuidanceProfileScreenState
     return Wrap(
       spacing: 10,
       runSpacing: 10,
-      children: options.map((option) {
-        final isSelected = option.value == selectedValue;
-        return GestureDetector(
-          onTap: () => onChanged(option.value),
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 200),
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-            decoration: BoxDecoration(
-              color: isSelected
-                  ? const Color(0xFF3F5E46).withOpacity(isDark ? 0.3 : 0.15)
-                  : (isDark ? Colors.white.withOpacity(0.05) : Colors.grey.shade100),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: isSelected
-                    ? const Color(0xFF3F5E46)
-                    : (isDark ? Colors.white.withOpacity(0.1) : Colors.grey.shade300),
-                width: isSelected ? 2 : 1,
-              ),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(option.emoji, style: const TextStyle(fontSize: 18)),
-                const SizedBox(width: 8),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      option.label,
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                        color: isSelected
+      children:
+          options.map((option) {
+            final isSelected = option.value == selectedValue;
+            return GestureDetector(
+              onTap: () => onChanged(option.value),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 10,
+                ),
+                decoration: BoxDecoration(
+                  color:
+                      isSelected
+                          ? const Color(
+                            0xFF3F5E46,
+                          ).withOpacity(isDark ? 0.3 : 0.15)
+                          : (isDark
+                              ? Colors.white.withOpacity(0.05)
+                              : Colors.grey.shade100),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color:
+                        isSelected
                             ? const Color(0xFF3F5E46)
-                            : (isDark ? Colors.white : Colors.black87),
-                      ),
+                            : (isDark
+                                ? Colors.white.withOpacity(0.1)
+                                : Colors.grey.shade300),
+                    width: isSelected ? 2 : 1,
+                  ),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    AutoSizeText(
+                      option.emoji,
+                      style: const TextStyle(fontSize: 18),
                     ),
+                    const SizedBox(width: 8),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        AutoSizeText(
+                          option.label,
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight:
+                                isSelected ? FontWeight.bold : FontWeight.w500,
+                            color:
+                                isSelected
+                                    ? const Color(0xFF3F5E46)
+                                    : (isDark ? Colors.white : Colors.black87),
+                          ),
+                        ),
+                      ],
+                    ),
+                    if (isSelected) ...[
+                      const SizedBox(width: 8),
+                      const Icon(
+                        Icons.check_circle,
+                        color: Color(0xFF3F5E46),
+                        size: 18,
+                      ),
+                    ],
                   ],
                 ),
-                if (isSelected) ...[
-                  const SizedBox(width: 8),
-                  const Icon(Icons.check_circle, color: const Color(0xFF3F5E46), size: 18),
-                ],
-              ],
-            ),
-          ),
-        );
-      }).toList(),
+              ),
+            );
+          }).toList(),
     );
   }
 }
@@ -458,5 +489,3 @@ class _SelectOption {
 
   const _SelectOption(this.value, this.label, this.emoji, this.description);
 }
-
-

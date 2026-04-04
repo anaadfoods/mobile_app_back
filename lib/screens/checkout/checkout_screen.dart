@@ -260,10 +260,10 @@ class _CheckoutScreenState extends State<CheckoutScreen>
         if (result['payment_links']['web'] != null) {
           await _launchSubscriptionWebView(result);
         } else {
-          await _handleSuccessfulSubscription(result);
+          _showSubscriptionFailedDialog({'message': 'We couldn\'t start the payment process. Please check your connection and try again.'});
         }
       } else {
-        await _handleSuccessfulSubscription(result);
+        _showSubscriptionFailedDialog({'message': 'We couldn\'t start the payment process. Please check your connection and try again.'});
       }
     } else {
       _showSubscriptionFailedDialog(result);
@@ -375,23 +375,11 @@ class _CheckoutScreenState extends State<CheckoutScreen>
         response.success &&
         response.paymentLinks?.web != null) {
       await _launchOrderWebView(response);
-    } else if (response is Order) {
-      _navigateToOrderAccepted(response);
-
-      NotificationHelper.showNotification(
-        title: 'Order Created!',
-        body:
-            'Order ID: ${response.orderNumber}\n'
-            'Payment Mode: Cash on Delivery\n'
-            'Status: Pending Payment',
-        payload: json.encode({
-          'screen': 'order_tracking',
-          'order_id': response.id,
-          'type': 'order',
-        }),
-      );
+    } else if (response is OrderCreateResponse && !response.success) {
+      _showOrderFailedDialog(_parseServerError(response.message ?? 'Payment initiation failed.'));
     } else {
-      _showOrderFailedDialog(_parseServerError(response));
+      // Missing payment_links means the third party gateway failed to initialize.
+      _showOrderFailedDialog('We couldn\'t start the payment process. Please check your connection and try again.');
     }
   }
 
@@ -436,8 +424,8 @@ class _CheckoutScreenState extends State<CheckoutScreen>
       deliveryPhone: _shippingDetails!.phone ?? "",
       paymentType: _selectedPaymentType,
       paymentMethod: _selectedPaymentMethod,
-      deliveryFee: currentDeliveryCharge,
-      expectedDeliveryDate: widget.expectedDeliveryDate,
+      // deliveryFee: currentDeliveryCharge,
+      // expectedDeliveryDate: widget.expectedDeliveryDate,
       items: [
         SubscriptionCreateItem(
           productVariantId: widget.singleProduct!.id,
@@ -453,8 +441,8 @@ class _CheckoutScreenState extends State<CheckoutScreen>
     return OrderModel.fromShippingDetails(
       paymentMethod: _selectedPaymentMethod,
       shippingDetails: _shippingDetails!,
-      expectedDeliveryDate: widget.expectedDeliveryDate,
-      deliveryFee: currentDeliveryCharge,
+      // expectedDeliveryDate: widget.expectedDeliveryDate,
+      // deliveryFee: currentDeliveryCharge,
       items: _getOrderItems(),
       notes: null,
     );

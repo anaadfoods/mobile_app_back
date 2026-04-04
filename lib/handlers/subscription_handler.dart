@@ -27,8 +27,8 @@ class SubscriptionHandler {
           // Case 1: A payment link exists, open WebView
           await _launchSubscriptionWebView(paymentLink, result['subscription_id']);
         } else {
-          // Case 2: No payment link, payment was processed directly
-          await _fetchDetailsAndNavigate(result['subscription_id']);
+          // Case 2: No payment link
+          _showSubscriptionFailedDialog({'message': 'We couldn\'t start the payment process. Please check your connection and try again.'});
         }
       } else {
         _showSubscriptionFailedDialog(result);
