@@ -184,45 +184,17 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                             bottomLeft: Radius.circular(30),
                             bottomRight: Radius.circular(30),
                           ),
-                          child: Stack(
-                            fit: StackFit.expand,
-                            children: [
-                              // Base image
-                              Image.asset(
-                                "assets/images/OnBoarding/background_home.png",
-                                fit: BoxFit.cover,
+                          child: Container(
+                            decoration: const BoxDecoration(
+                              gradient: LinearGradient(
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                                colors: [
+                                  AppColors.deepSoilGreen,
+                                  Color(0xFF3D6B28),
+                                ],
                               ),
-                              // Dynamic color overlay with blur
-                              ValueListenableBuilder<Color?>(
-                                valueListenable: _bgColorNotifier,
-                                builder: (context, dynamicColor, _) {
-                                  if (dynamicColor == null)
-                                    return const SizedBox.shrink();
-                                  return BackdropFilter(
-                                    filter: ImageFilter.blur(
-                                      sigmaX: 12,
-                                      sigmaY: 12,
-                                    ),
-                                    child: AnimatedContainer(
-                                      duration: const Duration(
-                                        milliseconds: 500,
-                                      ),
-                                      curve: Curves.easeInOut,
-                                      decoration: BoxDecoration(
-                                        gradient: LinearGradient(
-                                          begin: Alignment.topCenter,
-                                          end: Alignment.bottomCenter,
-                                          colors: [
-                                            dynamicColor.withValues(alpha: 0.7),
-                                            dynamicColor.withValues(alpha: 0.5),
-                                          ],
-                                        ),
-                                      ),
-                                    ),
-                                  );
-                                },
-                              ),
-                            ],
+                            ),
                           ),
                         ),
                       ),
@@ -241,6 +213,13 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               // Modern Welcome Section with Avatar
+                              const AnaadLogoMark(
+                                size: 42,
+                                logoSize: 30,
+                                backgroundOpacity: 0.18,
+                                showShadow: false,
+                              ),
+                              const SizedBox(width: 10),
                               Expanded(
                                 child: BlocBuilder<AuthCubit, AuthState>(
                                   buildWhen: (prev, curr) => prev != curr,
@@ -263,58 +242,58 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                       child: Row(
                                         children: [
                                           // Animated Avatar with glow
-                                          Container(
-                                            padding: const EdgeInsets.all(2),
-                                            decoration: BoxDecoration(
-                                              shape: BoxShape.circle,
-                                              gradient: LinearGradient(
-                                                colors: [
-                                                  theme.colorScheme.primary,
-                                                  theme.colorScheme.secondary,
-                                                ],
-                                              ),
-                                              boxShadow: [
-                                                BoxShadow(
-                                                  color: theme
-                                                      .colorScheme
-                                                      .primary
-                                                      .withValues(alpha: 0.4),
-                                                  blurRadius: 8,
-                                                  spreadRadius: 1,
-                                                ),
-                                              ],
-                                            ),
-                                            child: CircleAvatar(
-                                              radius: 20,
-                                              backgroundColor: theme.cardColor,
-                                              backgroundImage:
-                                                  profilePicture != null &&
-                                                          profilePicture
-                                                              .isNotEmpty
-                                                      ? CachedNetworkImageProvider(
-                                                        profilePicture,
-                                                      )
-                                                      : null,
-                                              child:
-                                                  profilePicture == null ||
-                                                          profilePicture.isEmpty
-                                                      ? Text(
-                                                        name[0].toUpperCase(),
-                                                        style: textTheme
-                                                            .titleMedium
-                                                            ?.copyWith(
-                                                              fontWeight:
-                                                                  FontWeight
-                                                                      .bold,
-                                                              color:
-                                                                  theme
-                                                                      .colorScheme
-                                                                      .primary,
-                                                            ),
-                                                      )
-                                                      : null,
-                                            ),
-                                          ),
+                                          // Container(
+                                          //   padding: const EdgeInsets.all(2),
+                                          //   decoration: BoxDecoration(
+                                          //     shape: BoxShape.circle,
+                                          //     gradient: LinearGradient(
+                                          //       colors: [
+                                          //         theme.colorScheme.primary,
+                                          //         theme.colorScheme.secondary,
+                                          //       ],
+                                          //     ),
+                                          //     boxShadow: [
+                                          //       BoxShadow(
+                                          //         color: theme
+                                          //             .colorScheme
+                                          //             .primary
+                                          //             .withValues(alpha: 0.4),
+                                          //         blurRadius: 8,
+                                          //         spreadRadius: 1,
+                                          //       ),
+                                          //     ],
+                                          //   ),
+                                          //   child: CircleAvatar(
+                                          //     radius: 20,
+                                          //     backgroundColor: theme.cardColor,
+                                          //     // backgroundImage:
+                                          //     //     profilePicture != null &&
+                                          //     //             profilePicture
+                                          //     //                 .isNotEmpty
+                                          //     //         ? CachedNetworkImageProvider(
+                                          //     //           profilePicture,
+                                          //     //         )
+                                          //     //         : null,
+                                          //     child:
+                                          //         profilePicture == null ||
+                                          //                 profilePicture.isEmpty
+                                          //             ? Text(
+                                          //               name[0].toUpperCase(),
+                                          //               style: textTheme
+                                          //                   .titleMedium
+                                          //                   ?.copyWith(
+                                          //                     fontWeight:
+                                          //                         FontWeight
+                                          //                             .bold,
+                                          //                     color:
+                                          //                         theme
+                                          //                             .colorScheme
+                                          //                             .primary,
+                                          //                   ),
+                                          //             )
+                                          //             : null,
+                                          //   ),
+                                          // ),
                                           const SizedBox(width: 12),
                                           // Greeting Text Column
                                           Expanded(

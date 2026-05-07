@@ -1,5 +1,7 @@
+import 'package:grocery_app/core/theme/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:grocery_app/common_widgets/shimmer_loading.dart';
+import 'package:grocery_app/core/theme/theme.dart';
 
 class SkeletonContainer extends StatelessWidget {
   final double width;
@@ -45,7 +47,7 @@ class SkeletonContainer extends StatelessWidget {
         width: width,
         height: height,
         decoration: BoxDecoration(
-          color: isDark ? Colors.grey[800] : Colors.grey[300],
+          color: isDark ? AppColors.charcoal87 : AppColors.rawEarth12,
           borderRadius: borderRadius ?? BorderRadius.circular(8),
         ),
       ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:grocery_app/core/theme/app_colors.dart';
 
 class HomeSearchBar extends StatelessWidget {
   final TextEditingController controller;
@@ -30,7 +31,7 @@ class HomeSearchBar extends StatelessWidget {
         height: 54,
         decoration: BoxDecoration(
           // Use a consistent solid color for dark mode
-          color: isDark ? const Color(0xFF2A2A2A) : Colors.white,
+          color: isDark ? AppColors.darkSurfaceElevated : AppColors.parchment,
           borderRadius: BorderRadius.circular(27),
           boxShadow:
               focusNode.hasFocus
@@ -54,8 +55,8 @@ class HomeSearchBar extends StatelessWidget {
                     focusNode.hasFocus
                         ? colorScheme.primary
                         : (isDark
-                            ? Colors.grey.shade400
-                            : Colors.grey.shade600),
+                            ? AppColors.parchment.withValues(alpha: 0.7)
+                            : AppColors.rawEarth70),
                 size: 22,
               ),
               const SizedBox(width: 12),
@@ -66,9 +67,12 @@ class HomeSearchBar extends StatelessWidget {
                   style: theme.textTheme.bodyLarge,
                   decoration: InputDecoration(
                     hintText: "Search products...",
+                    filled: false,
                     hintStyle: TextStyle(
                       color:
-                          isDark ? Colors.grey.shade400 : Colors.grey.shade500,
+                          isDark
+                              ? AppColors.parchment.withValues(alpha: 0.5)
+                              : AppColors.rawEarth54,
                       fontWeight: FontWeight.w400,
                     ),
                     border: InputBorder.none,
@@ -105,16 +109,16 @@ class HomeSearchBar extends StatelessWidget {
                       decoration: BoxDecoration(
                         color:
                             isDark
-                                ? Colors.grey.shade800
-                                : Colors.grey.shade300,
+                                ? AppColors.charcoal87
+                                : AppColors.rawEarth12,
                         shape: BoxShape.circle,
                       ),
                       child: Icon(
                         Icons.close_rounded,
                         color:
                             isDark
-                                ? Colors.grey.shade400
-                                : Colors.grey.shade600,
+                                ? AppColors.rawEarth26
+                                : AppColors.rawEarth70,
                         size: 16,
                       ),
                     ),

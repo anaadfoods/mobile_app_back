@@ -1,6 +1,8 @@
+import 'package:grocery_app/core/theme/app_colors.dart';
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:grocery_app/common_widgets/anaad_logo_mark.dart';
 import 'package:grocery_app/models/rfp_plan_model.dart';
 import 'package:grocery_app/screens/RFP/plan_deliveries_screen.dart';
 import 'package:grocery_app/services/rfp_services.dart';
@@ -126,7 +128,7 @@ class _DeliveryScreenState extends State<DeliveryScreen>
                               const Icon(
                                 Icons.error_outline,
                                 size: 48,
-                                color: Colors.red,
+                                color: AppColors.rawEarth,
                               ),
                               const SizedBox(height: 12),
                               Text(
@@ -220,9 +222,9 @@ class _DeliveryScreenState extends State<DeliveryScreen>
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
               colors: [
-                const Color(0xff2d4a3e),
-                theme.colorScheme.primary.withOpacity(0.85),
-                isDark ? const Color(0xff1a3a2a) : Colors.green.shade600,
+                AppColors.parchment,
+                theme.colorScheme.primary.withValues(alpha: 0.85),
+                isDark ? AppColors.parchment : AppColors.deepSoilGreen,
               ],
             ),
             borderRadius: const BorderRadius.only(
@@ -231,7 +233,7 @@ class _DeliveryScreenState extends State<DeliveryScreen>
             ),
             boxShadow: [
               BoxShadow(
-                color: theme.colorScheme.primary.withOpacity(0.3),
+                color: theme.colorScheme.primary.withValues(alpha: 0.3),
                 blurRadius: 20,
                 offset: const Offset(0, 10),
               ),
@@ -248,7 +250,7 @@ class _DeliveryScreenState extends State<DeliveryScreen>
                   height: 150,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: Colors.white.withOpacity(0.08),
+                    color: AppColors.parchment.withValues(alpha: 0.08),
                   ),
                 ),
               ),
@@ -260,7 +262,7 @@ class _DeliveryScreenState extends State<DeliveryScreen>
                   height: 100,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: Colors.white.withOpacity(0.06),
+                    color: AppColors.parchment.withValues(alpha: 0.06),
                   ),
                 ),
               ),
@@ -287,7 +289,7 @@ class _DeliveryScreenState extends State<DeliveryScreen>
                               },
                             )
                           else
-                            const SizedBox(width: 44),
+                            const AnaadLogoMark(),
                           _buildGlassButton(
                             icon: Icons.refresh_rounded,
                             onTap: _handleRefresh,
@@ -301,7 +303,7 @@ class _DeliveryScreenState extends State<DeliveryScreen>
                         children: [
                           const Icon(
                             Icons.eco_rounded,
-                            color: Colors.white,
+                            color: AppColors.parchment,
                             size: 30,
                           ),
                           const SizedBox(width: 12),
@@ -309,7 +311,7 @@ class _DeliveryScreenState extends State<DeliveryScreen>
                             child: Text(
                               "Your Farm Plans",
                               style: theme.textTheme.headlineMedium?.copyWith(
-                                color: Colors.white,
+                                color: AppColors.parchment,
                                 fontWeight: FontWeight.bold,
                               ),
                               overflow: TextOverflow.ellipsis,
@@ -321,7 +323,7 @@ class _DeliveryScreenState extends State<DeliveryScreen>
                       Text(
                         "Track your seasonal harvest plans and weekly deliveries",
                         style: theme.textTheme.bodyMedium?.copyWith(
-                          color: Colors.white.withOpacity(0.85),
+                          color: AppColors.parchment.withValues(alpha: 0.85),
                         ),
                       ),
                     ],
@@ -345,11 +347,11 @@ class _DeliveryScreenState extends State<DeliveryScreen>
         width: 40,
         height: 40,
         decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.15),
+          color: AppColors.parchment.withValues(alpha: 0.15),
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: Colors.white.withOpacity(0.2)),
+          border: Border.all(color: AppColors.parchment.withValues(alpha: 0.2)),
         ),
-        child: Icon(icon, color: Colors.white, size: 20),
+        child: Icon(icon, color: AppColors.parchment, size: 20),
       ),
     );
   }
@@ -400,10 +402,7 @@ class _DeliveryScreenState extends State<DeliveryScreen>
                   height: 24,
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
-                      colors: [
-                        Colors.orange.shade400,
-                        Colors.deepOrange.shade400,
-                      ],
+                      colors: [AppColors.harvestAmber, AppColors.rawEarth],
                       begin: Alignment.topCenter,
                       end: Alignment.bottomCenter,
                     ),
@@ -438,15 +437,15 @@ class _DeliveryScreenState extends State<DeliveryScreen>
           gradient: LinearGradient(
             colors:
                 isDark
-                    ? [const Color(0xff1e3a2f), const Color(0xff142a20)]
-                    : [const Color(0xff2d4a3e), const Color(0xff1a3a2a)],
+                    ? [AppColors.darkSurface, AppColors.darkSurfaceElevated]
+                    : [AppColors.deepSoilGreen, AppColors.deepSoilGreen],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
           borderRadius: BorderRadius.circular(20),
           boxShadow: [
             BoxShadow(
-              color: const Color(0xff2d4a3e).withOpacity(0.4),
+              color: AppColors.parchment.withValues(alpha: 0.4),
               blurRadius: 16,
               offset: const Offset(0, 8),
             ),
@@ -464,7 +463,7 @@ class _DeliveryScreenState extends State<DeliveryScreen>
                   child: Text(
                     plan.name,
                     style: theme.textTheme.headlineSmall?.copyWith(
-                      color: Colors.white,
+                      color: AppColors.parchment,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -475,13 +474,16 @@ class _DeliveryScreenState extends State<DeliveryScreen>
                     vertical: 4,
                   ),
                   decoration: BoxDecoration(
-                    color: plan.isActive ? AppColors.success : Colors.grey,
+                    color:
+                        plan.isActive
+                            ? AppColors.deepSoilGreen
+                            : AppColors.rawEarth54,
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Text(
                     plan.status,
                     style: theme.textTheme.labelSmall?.copyWith(
-                      color: Colors.white,
+                      color: AppColors.parchment,
                     ),
                   ),
                 ),
@@ -492,7 +494,7 @@ class _DeliveryScreenState extends State<DeliveryScreen>
             // Text(
             //   plan.customerNumber,
             //   style: theme.textTheme.bodySmall?.copyWith(
-            //     color: Colors.white.withOpacity(0.6),
+            //     color: AppColors.parchment.withValues(alpha: 0.6),
             //   ),
             // ),
             if (plan.desc.isNotEmpty) ...[
@@ -500,7 +502,7 @@ class _DeliveryScreenState extends State<DeliveryScreen>
               Text(
                 plan.desc,
                 style: theme.textTheme.bodyMedium?.copyWith(
-                  color: Colors.white.withOpacity(0.85),
+                  color: AppColors.parchment.withValues(alpha: 0.85),
                 ),
               ),
             ],
@@ -514,7 +516,7 @@ class _DeliveryScreenState extends State<DeliveryScreen>
                 Text(
                   "${plan.daysRemaining} days remaining",
                   style: const TextStyle(
-                    color: Colors.white70,
+                    color: AppColors.parchment70,
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
                   ),
@@ -522,7 +524,7 @@ class _DeliveryScreenState extends State<DeliveryScreen>
                 Text(
                   "${(plan.progress * 100).toInt()}%",
                   style: const TextStyle(
-                    color: Colors.white70,
+                    color: AppColors.parchment70,
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
                   ),
@@ -535,8 +537,10 @@ class _DeliveryScreenState extends State<DeliveryScreen>
               child: LinearProgressIndicator(
                 value: plan.progress,
                 minHeight: 8,
-                backgroundColor: Colors.white.withOpacity(0.15),
-                valueColor: const AlwaysStoppedAnimation<Color>(Colors.white),
+                backgroundColor: AppColors.parchment.withValues(alpha: 0.15),
+                valueColor: const AlwaysStoppedAnimation<Color>(
+                  AppColors.parchment,
+                ),
               ),
             ),
 
@@ -546,7 +550,7 @@ class _DeliveryScreenState extends State<DeliveryScreen>
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.1),
+                color: AppColors.parchment.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Row(
@@ -557,7 +561,7 @@ class _DeliveryScreenState extends State<DeliveryScreen>
                   Container(
                     width: 1,
                     height: 32,
-                    color: Colors.white.withOpacity(0.2),
+                    color: AppColors.parchment.withValues(alpha: 0.2),
                   ),
                   Expanded(
                     child: _buildDateInfo("End", _formatDate(plan.endDate)),
@@ -565,7 +569,7 @@ class _DeliveryScreenState extends State<DeliveryScreen>
                   Container(
                     width: 1,
                     height: 32,
-                    color: Colors.white.withOpacity(0.2),
+                    color: AppColors.parchment.withValues(alpha: 0.2),
                   ),
                   Expanded(
                     child: _buildDateInfo("Duration", "${plan.duration} days"),
@@ -584,13 +588,13 @@ class _DeliveryScreenState extends State<DeliveryScreen>
                   Icon(
                     Icons.touch_app_rounded,
                     size: 16,
-                    color: Colors.white.withOpacity(0.5),
+                    color: AppColors.parchment.withValues(alpha: 0.5),
                   ),
                   const SizedBox(width: 6),
                   Text(
                     "Tap to view deliveries",
                     style: TextStyle(
-                      color: Colors.white.withOpacity(0.5),
+                      color: AppColors.parchment.withValues(alpha: 0.5),
                       fontSize: 12,
                     ),
                   ),
@@ -608,14 +612,17 @@ class _DeliveryScreenState extends State<DeliveryScreen>
       children: [
         Text(
           label,
-          style: TextStyle(color: Colors.white.withOpacity(0.6), fontSize: 10),
+          style: TextStyle(
+            color: AppColors.parchment.withValues(alpha: 0.6),
+            fontSize: 10,
+          ),
         ),
         const SizedBox(height: 3),
         Text(
           value,
           textAlign: TextAlign.center,
           style: const TextStyle(
-            color: Colors.white,
+            color: AppColors.parchment,
             fontSize: 12,
             fontWeight: FontWeight.bold,
           ),
@@ -632,14 +639,14 @@ class _DeliveryScreenState extends State<DeliveryScreen>
       child: Container(
         margin: const EdgeInsets.only(bottom: 12),
         decoration: BoxDecoration(
-          color: isDark ? const Color(0xff1e2a24) : const Color(0xfff5f8f6),
+          color: theme.cardColor,
           borderRadius: BorderRadius.circular(14),
           border: Border.all(
-            color: theme.colorScheme.primary.withOpacity(0.15),
+            color: theme.colorScheme.primary.withValues(alpha: 0.15),
           ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(isDark ? 0.2 : 0.04),
+              color: AppColors.charcoal.withValues(alpha: isDark ? 0.2 : 0.04),
               blurRadius: 8,
               offset: const Offset(0, 2),
             ),
@@ -666,13 +673,16 @@ class _DeliveryScreenState extends State<DeliveryScreen>
                     vertical: 3,
                   ),
                   decoration: BoxDecoration(
-                    color: plan.isActive ? AppColors.success : Colors.grey,
+                    color:
+                        plan.isActive
+                            ? AppColors.deepSoilGreen
+                            : AppColors.rawEarth54,
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Text(
                     plan.status,
                     style: const TextStyle(
-                      color: Colors.white,
+                      color: AppColors.parchment,
                       fontSize: 10,
                       fontWeight: FontWeight.w600,
                     ),
@@ -715,9 +725,11 @@ class _DeliveryScreenState extends State<DeliveryScreen>
                 child: LinearProgressIndicator(
                   value: plan.progress,
                   minHeight: 5,
-                  backgroundColor: theme.colorScheme.primary.withOpacity(0.1),
+                  backgroundColor: theme.colorScheme.primary.withValues(
+                    alpha: 0.1,
+                  ),
                   valueColor: AlwaysStoppedAnimation<Color>(
-                    AppColors.primaryColor,
+                    AppColors.deepSoilGreen,
                   ),
                 ),
               ),

@@ -209,9 +209,12 @@ class _WebViewPageState extends State<WebViewPage> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.title ?? 'Payment Gateway'),
+        title: Text(widget.title ?? 'Secure Payment'),
         leading: IconButton(
           icon: Icon(Icons.arrow_back),
           onPressed: () {
@@ -247,31 +250,137 @@ class _WebViewPageState extends State<WebViewPage> {
                     padding: EdgeInsets.all(16.0),
                     child: CircularProgressIndicator(
                       strokeWidth: 2,
-                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                      valueColor: AlwaysStoppedAnimation<Color>(
+                        AppColors.parchment,
+                      ),
                     ),
                   ),
                 ]
                 : [],
       ),
-      body: Stack(
+      body: Column(
         children: [
-          WebViewWidget(controller: _controller),
-          if (_isLoading)
-            Center(
-              child: Card(
-                child: Padding(
-                  padding: EdgeInsets.all(16),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      CircularProgressIndicator(),
-                      SizedBox(height: 16),
-                      Text('Loading payment gateway...'),
-                    ],
-                  ),
+          // Merchant Info Banner — shows Legal/DBA name & payment URL
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+            decoration: BoxDecoration(
+              color: isDark ? AppColors.parchment : AppColors.parchment,
+              border: Border(
+                bottom: BorderSide(
+                  color:
+                      isDark
+                          ? AppColors.deepSoilGreen
+                          : AppColors.deepSoilGreen,
+                  width: 1,
                 ),
               ),
             ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Icon(
+                      Icons.verified_rounded,
+                      size: 16,
+                      color: AppColors.deepSoilGreen,
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      'Anaad Foods Pvt. Ltd.',
+                      style: theme.textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color:
+                            isDark
+                                ? AppColors.deepSoilGreen
+                                : AppColors.deepSoilGreen,
+                      ),
+                    ),
+                    const Spacer(),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 3,
+                      ),
+                      decoration: BoxDecoration(
+                        color: AppColors.deepSoilGreen,
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(
+                            Icons.lock_rounded,
+                            size: 12,
+                            color: AppColors.parchment,
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            'Secure',
+                            style: theme.textTheme.labelSmall?.copyWith(
+                              color: AppColors.parchment,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 4),
+                Row(
+                  children: [
+                    Icon(
+                      Icons.link_rounded,
+                      size: 14,
+                      color:
+                          isDark ? AppColors.rawEarth26 : AppColors.rawEarth70,
+                    ),
+                    const SizedBox(width: 6),
+                    Expanded(
+                      child: Text(
+                        widget.url,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color:
+                              isDark
+                                  ? AppColors.rawEarth26
+                                  : AppColors.rawEarth70,
+                          fontSize: 11,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          // WebView content
+          Expanded(
+            child: Stack(
+              children: [
+                WebViewWidget(controller: _controller),
+                if (_isLoading)
+                  Center(
+                    child: Card(
+                      child: Padding(
+                        padding: EdgeInsets.all(16),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            CircularProgressIndicator(),
+                            SizedBox(height: 16),
+                            Text('Loading payment gateway...'),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
         ],
       ),
     );
@@ -291,7 +400,7 @@ class _SuccessDialog extends StatelessWidget {
     final isDark = theme.brightness == Brightness.dark;
 
     return Dialog(
-      backgroundColor: Colors.transparent,
+      backgroundColor: AppColors.transparent,
       elevation: 0,
       child: TweenAnimationBuilder<double>(
         tween: Tween(begin: 0.0, end: 1.0),
@@ -307,11 +416,13 @@ class _SuccessDialog extends StatelessWidget {
           constraints: const BoxConstraints(maxWidth: 340),
           padding: const EdgeInsets.all(24),
           decoration: BoxDecoration(
-            color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+            color: isDark ? AppColors.parchment : AppColors.parchment,
             borderRadius: BorderRadius.circular(20),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(isDark ? 0.4 : 0.15),
+                color: AppColors.charcoal.withValues(
+                  alpha: isDark ? 0.4 : 0.15,
+                ),
                 blurRadius: 24,
                 offset: const Offset(0, 8),
               ),
@@ -326,10 +437,10 @@ class _SuccessDialog extends StatelessWidget {
                 height: 80,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: AppColors.success.withOpacity(0.15),
+                  color: AppColors.deepSoilGreen.withValues(alpha: 0.15),
                   boxShadow: [
                     BoxShadow(
-                      color: AppColors.success.withOpacity(0.3),
+                      color: AppColors.deepSoilGreen.withValues(alpha: 0.3),
                       blurRadius: 20,
                       spreadRadius: 2,
                     ),
@@ -338,7 +449,7 @@ class _SuccessDialog extends StatelessWidget {
                 child: const Icon(
                   Icons.check_circle_rounded,
                   size: 48,
-                  color: AppColors.success,
+                  color: AppColors.deepSoilGreen,
                 ),
               ),
               const SizedBox(height: 20),
@@ -348,7 +459,7 @@ class _SuccessDialog extends StatelessWidget {
                 'Payment Successful!',
                 style: theme.textTheme.titleLarge?.copyWith(
                   fontWeight: FontWeight.bold,
-                  color: AppColors.success,
+                  color: AppColors.deepSoilGreen,
                 ),
                 textAlign: TextAlign.center,
               ),
@@ -358,7 +469,7 @@ class _SuccessDialog extends StatelessWidget {
               Text(
                 message,
                 style: theme.textTheme.bodyMedium?.copyWith(
-                  color: isDark ? Colors.grey[400] : AppColors.textSecondary,
+                  color: isDark ? AppColors.rawEarth26 : AppColors.charcoal70,
                   height: 1.5,
                 ),
                 textAlign: TextAlign.center,
@@ -371,8 +482,8 @@ class _SuccessDialog extends StatelessWidget {
                 child: ElevatedButton(
                   onPressed: onDismiss,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.success,
-                    foregroundColor: Colors.white,
+                    backgroundColor: AppColors.deepSoilGreen,
+                    foregroundColor: AppColors.parchment,
                     padding: const EdgeInsets.symmetric(vertical: 14),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),

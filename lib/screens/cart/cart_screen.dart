@@ -100,7 +100,7 @@ class _CartScreenState extends State<CartScreen> with TickerProviderStateMixin {
                           state is CartSuccess
                               ? "${state.cart.totalItems} items ready for checkout"
                               : "Your cart is empty",
-                      icon: Icons.shopping_cart_rounded,
+                      // icon: Icons.shopping_cart_rounded,
                       showBack: true,
                       hasParticles: true,
                       height: 200,
@@ -232,7 +232,7 @@ class _CartScreenState extends State<CartScreen> with TickerProviderStateMixin {
         },
         child: Container(
           decoration: BoxDecoration(
-            color: isDark ? theme.cardColor : Colors.white,
+            color: isDark ? theme.cardColor : AppColors.parchment,
             borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
             boxShadow: [
               BoxShadow(
@@ -255,7 +255,8 @@ class _CartScreenState extends State<CartScreen> with TickerProviderStateMixin {
                     height: 4,
                     margin: const EdgeInsets.only(bottom: 16),
                     decoration: BoxDecoration(
-                      color: isDark ? Colors.grey[700] : Colors.grey[300],
+                      color:
+                          isDark ? AppColors.charcoal60 : AppColors.rawEarth12,
                       borderRadius: BorderRadius.circular(2),
                     ),
                   ),
@@ -335,7 +336,7 @@ class _CartScreenState extends State<CartScreen> with TickerProviderStateMixin {
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: theme.colorScheme.primary,
-                        foregroundColor: Colors.white,
+                        foregroundColor: AppColors.parchment,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(16),
                         ),
@@ -355,7 +356,7 @@ class _CartScreenState extends State<CartScreen> with TickerProviderStateMixin {
                           Container(
                             padding: const EdgeInsets.all(4),
                             decoration: BoxDecoration(
-                              color: Colors.white.withValues(alpha: 0.2),
+                              color: AppColors.parchment.withValues(alpha: 0.2),
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: const Icon(
@@ -419,7 +420,7 @@ class _CartScreenState extends State<CartScreen> with TickerProviderStateMixin {
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: theme.colorScheme.error,
-                  foregroundColor: Colors.white,
+                  foregroundColor: AppColors.parchment,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
@@ -579,10 +580,10 @@ class _AnimatedCartItemState extends State<_AnimatedCartItem> {
             border: Border.all(
               color:
                   _isPressed
-                      ? theme.colorScheme.primary.withOpacity(0.5)
+                      ? theme.colorScheme.primary.withValues(alpha: 0.5)
                       : isDark
-                      ? Colors.grey.shade800
-                      : Colors.grey.shade200,
+                      ? AppColors.darkSurfaceElevated
+                      : AppColors.parchment,
               width: _isPressed ? 2 : 1,
             ),
             boxShadow: [
@@ -605,7 +606,7 @@ class _AnimatedCartItemState extends State<_AnimatedCartItem> {
                   height: 80,
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(16),
-                    color: isDark ? Colors.grey.shade900 : Colors.grey.shade50,
+                    color: isDark ? AppColors.darkSurfaceElevated : AppColors.parchment,
                   ),
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(16),
@@ -669,7 +670,9 @@ class _AnimatedCartItemState extends State<_AnimatedCartItem> {
                               vertical: 4,
                             ),
                             decoration: BoxDecoration(
-                              color: theme.colorScheme.primary.withOpacity(0.1),
+                              color: theme.colorScheme.primary.withValues(
+                                alpha: 0.1,
+                              ),
                               borderRadius: BorderRadius.circular(10),
                             ),
                             child: Text(
@@ -688,8 +691,8 @@ class _AnimatedCartItemState extends State<_AnimatedCartItem> {
                           decoration: BoxDecoration(
                             color:
                                 isDark
-                                    ? Colors.grey.shade800
-                                    : Colors.grey.shade100,
+                                    ? AppColors.darkSurfaceElevated
+                                    : AppColors.parchment,
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: FittedBox(
@@ -733,7 +736,7 @@ class _AnimatedCartItemState extends State<_AnimatedCartItem> {
 
               // Delete Button
               Material(
-                color: theme.colorScheme.error.withOpacity(0.1),
+                color: theme.colorScheme.error.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
                 child: InkWell(
                   onTap: () => _showRemoveDialog(context, theme),
@@ -761,7 +764,7 @@ class _AnimatedCartItemState extends State<_AnimatedCartItem> {
     VoidCallback onTap,
   ) {
     return Material(
-      color: Colors.transparent,
+      color: AppColors.transparent,
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(8),
@@ -798,7 +801,7 @@ class _AnimatedCartItemState extends State<_AnimatedCartItem> {
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: theme.colorScheme.error,
-                  foregroundColor: Colors.white,
+                  foregroundColor: AppColors.parchment,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),

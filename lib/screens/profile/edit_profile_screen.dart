@@ -154,9 +154,9 @@ class _EditProfileScreenState extends State<EditProfileScreen>
   }
 
   Color _getCompletionColor(double completion) {
-    if (completion >= 0.9) return Colors.green;
-    if (completion >= 0.6) return Colors.amber;
-    return Colors.orange;
+    if (completion >= 0.9) return AppColors.deepSoilGreen;
+    if (completion >= 0.6) return AppColors.harvestAmber;
+    return AppColors.harvestAmber;
   }
 
   Future<void> _pickImage() async {
@@ -166,7 +166,7 @@ class _EditProfileScreenState extends State<EditProfileScreen>
 
     showModalBottomSheet(
       context: context,
-      backgroundColor: Colors.transparent,
+      backgroundColor: AppColors.transparent,
       builder:
           (context) => Container(
             padding: const EdgeInsets.all(20),
@@ -224,7 +224,7 @@ class _EditProfileScreenState extends State<EditProfileScreen>
                       theme: theme,
                       icon: Icons.photo_library_rounded,
                       label: 'Gallery',
-                      color: Colors.purple,
+                      color: AppColors.harvestAmber,
                       onTap: () {
                         Navigator.pop(context);
                         _pickFromSource(ImageSource.gallery);
@@ -365,7 +365,7 @@ class _EditProfileScreenState extends State<EditProfileScreen>
       },
       child: AnnotatedRegion<SystemUiOverlayStyle>(
         value: SystemUiOverlayStyle.light.copyWith(
-          statusBarColor: Colors.transparent,
+          statusBarColor: AppColors.transparent,
           statusBarIconBrightness: Brightness.light,
           statusBarBrightness: Brightness.dark,
         ),
@@ -542,36 +542,18 @@ class _EditProfileScreenState extends State<EditProfileScreen>
                   _buildShimmerOverlay(),
                   // Floating circles
                   ..._buildFloatingCircles(),
-                  // Back button
+                  // ANAAD Logo
                   Positioned(
                     top: statusBarHeight + 8,
                     left: 8,
-                    child: Material(
-                      color: Colors.white.withAlpha(25),
-                      borderRadius: BorderRadius.circular(12),
-                      child: InkWell(
-                        onTap: () {
-                          _triggerHaptic();
-                          context.go("/profile");
-                        },
-                        borderRadius: BorderRadius.circular(12),
-                        child: const Padding(
-                          padding: EdgeInsets.all(10),
-                          child: Icon(
-                            Icons.arrow_back_ios_new_rounded,
-                            color: Colors.white,
-                            size: 20,
-                          ),
-                        ),
-                      ),
-                    ),
+                    child: const AnaadLogoMark(),
                   ),
                   // Menu button
                   Positioned(
                     top: statusBarHeight + 8,
                     right: 8,
                     child: Material(
-                      color: Colors.white.withAlpha(25),
+                      color: AppColors.parchment.withAlpha(25),
                       borderRadius: BorderRadius.circular(12),
                       child: Theme(
                         data: Theme.of(
@@ -587,7 +569,7 @@ class _EditProfileScreenState extends State<EditProfileScreen>
                           },
                           icon: const Icon(
                             Icons.more_vert_rounded,
-                            color: Colors.white,
+                            color: AppColors.parchment,
                             size: 24,
                           ),
                           offset: const Offset(0, 45),
@@ -602,13 +584,15 @@ class _EditProfileScreenState extends State<EditProfileScreen>
                                     children: [
                                       Icon(
                                         Icons.logout_rounded,
-                                        color: Colors.red,
+                                        color: AppColors.rawEarth,
                                         size: 20,
                                       ),
                                       SizedBox(width: 12),
                                       Text(
                                         'Log Out',
-                                        style: TextStyle(color: Colors.red),
+                                        style: TextStyle(
+                                          color: AppColors.rawEarth,
+                                        ),
                                       ),
                                     ],
                                   ),
@@ -619,13 +603,15 @@ class _EditProfileScreenState extends State<EditProfileScreen>
                                     children: [
                                       Icon(
                                         Icons.delete_forever_rounded,
-                                        color: Colors.red,
+                                        color: AppColors.rawEarth,
                                         size: 20,
                                       ),
                                       SizedBox(width: 12),
                                       Text(
                                         'Deactivate Account',
-                                        style: TextStyle(color: Colors.red),
+                                        style: TextStyle(
+                                          color: AppColors.rawEarth,
+                                        ),
                                       ),
                                     ],
                                   ),
@@ -644,7 +630,7 @@ class _EditProfileScreenState extends State<EditProfileScreen>
                       child: Text(
                         '@$userHandle',
                         style: const TextStyle(
-                          color: Colors.white,
+                          color: AppColors.parchment,
                           fontSize: 18,
                           fontWeight: FontWeight.w600,
                           letterSpacing: 0.5,
@@ -693,9 +679,9 @@ class _EditProfileScreenState extends State<EditProfileScreen>
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
               colors: [
-                Colors.white.withAlpha(0),
-                Colors.white.withAlpha(25),
-                Colors.white.withAlpha(0),
+                AppColors.parchment.withAlpha(0),
+                AppColors.parchment.withAlpha(25),
+                AppColors.parchment.withAlpha(0),
               ],
               stops: [
                 (shimmerValue - 0.3).clamp(0.0, 1.0),
@@ -739,7 +725,7 @@ class _EditProfileScreenState extends State<EditProfileScreen>
               width: pos['size'] as double,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: Colors.white.withAlpha(pos['alpha'] as int),
+                color: AppColors.parchment.withAlpha(pos['alpha'] as int),
               ),
             ),
           );
@@ -766,7 +752,7 @@ class _EditProfileScreenState extends State<EditProfileScreen>
                     colors: [
                       colorScheme.primary,
                       colorScheme.primary.withAlpha(128),
-                      Colors.white.withAlpha(128),
+                      AppColors.parchment.withAlpha(128),
                       colorScheme.primary,
                     ],
                   ),
@@ -841,7 +827,7 @@ class _EditProfileScreenState extends State<EditProfileScreen>
                     ),
                     child: const Icon(
                       Icons.camera_alt_rounded,
-                      color: Colors.white,
+                      color: AppColors.parchment,
                       size: 18,
                     ),
                   ),
@@ -891,7 +877,7 @@ class _EditProfileScreenState extends State<EditProfileScreen>
                     spreadRadius: -4,
                   ),
                   BoxShadow(
-                    color: Colors.black.withAlpha(isDark ? 40 : 15),
+                    color: AppColors.charcoal.withAlpha(isDark ? 40 : 15),
                     blurRadius: 12,
                     offset: const Offset(0, 4),
                   ),
@@ -955,7 +941,7 @@ class _EditProfileScreenState extends State<EditProfileScreen>
                                 ),
                                 child: Icon(
                                   icon,
-                                  color: Colors.white,
+                                  color: AppColors.parchment,
                                   size: 22,
                                 ),
                               ),
@@ -1178,10 +1164,16 @@ class _EditProfileScreenState extends State<EditProfileScreen>
         vertical: 4,
       ), // Reduced padding
       decoration: BoxDecoration(
-        color: isComplete ? color.withAlpha(40) : Colors.grey.withAlpha(30),
+        color:
+            isComplete
+                ? color.withAlpha(40)
+                : AppColors.rawEarth54.withAlpha(30),
         borderRadius: BorderRadius.circular(8),
         border: Border.all(
-          color: isComplete ? color.withAlpha(100) : Colors.grey.withAlpha(50),
+          color:
+              isComplete
+                  ? color.withAlpha(100)
+                  : AppColors.rawEarth54.withAlpha(50),
         ),
       ),
       child: Row(
@@ -1193,7 +1185,7 @@ class _EditProfileScreenState extends State<EditProfileScreen>
                 ? Icons.check_circle_rounded
                 : Icons.radio_button_unchecked,
             size: 12,
-            color: isComplete ? color : Colors.grey,
+            color: isComplete ? color : AppColors.rawEarth54,
           ),
           const SizedBox(width: 4),
           Flexible(
@@ -1204,7 +1196,7 @@ class _EditProfileScreenState extends State<EditProfileScreen>
                 style: TextStyle(
                   fontSize: 10,
                   fontWeight: FontWeight.w600,
-                  color: isComplete ? color : Colors.grey,
+                  color: isComplete ? color : AppColors.rawEarth54,
                 ),
               ),
             ),
@@ -1298,9 +1290,11 @@ class _EditProfileScreenState extends State<EditProfileScreen>
               fillColor:
                   readOnly
                       ? (isDark
-                          ? Colors.white.withAlpha(8)
-                          : Colors.grey.withAlpha(20))
-                      : (isDark ? Colors.white.withAlpha(5) : Colors.white),
+                          ? AppColors.parchment.withAlpha(8)
+                          : AppColors.rawEarth54.withAlpha(20))
+                      : (isDark
+                          ? AppColors.parchment.withAlpha(5)
+                          : AppColors.parchment),
               contentPadding: const EdgeInsets.symmetric(
                 horizontal: 16,
                 vertical: 14,
@@ -1340,7 +1334,7 @@ class _EditProfileScreenState extends State<EditProfileScreen>
       context: context,
       barrierDismissible: true,
       barrierLabel: 'Logout Dialog',
-      barrierColor: Colors.black54,
+      barrierColor: AppColors.charcoal54,
       transitionDuration: const Duration(milliseconds: 300),
       pageBuilder: (context, anim1, anim2) => Container(),
       transitionBuilder: (dialogContext, anim1, anim2, child) {
@@ -1357,12 +1351,12 @@ class _EditProfileScreenState extends State<EditProfileScreen>
                   Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: Colors.red.withAlpha(25),
+                      color: AppColors.rawEarth.withAlpha(25),
                       shape: BoxShape.circle,
                     ),
                     child: Icon(
                       Icons.logout_rounded,
-                      color: Colors.red.shade600,
+                      color: AppColors.rawEarth,
                       size: 24,
                     ),
                   ),
@@ -1392,8 +1386,8 @@ class _EditProfileScreenState extends State<EditProfileScreen>
                     _handleLogout(context);
                   },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.red.shade600,
-                    foregroundColor: Colors.white,
+                    backgroundColor: AppColors.rawEarth,
+                    foregroundColor: AppColors.parchment,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
@@ -1455,12 +1449,14 @@ class _EditProfileScreenState extends State<EditProfileScreen>
                                   Container(
                                     padding: const EdgeInsets.all(8),
                                     decoration: BoxDecoration(
-                                      color: Colors.red.withOpacity(0.1),
+                                      color: AppColors.rawEarth.withValues(
+                                        alpha: 0.1,
+                                      ),
                                       shape: BoxShape.circle,
                                     ),
                                     child: Icon(
                                       Icons.warning_amber_rounded,
-                                      color: Colors.red[700],
+                                      color: AppColors.rawEarth,
                                       size: 28,
                                     ),
                                   ),
@@ -1478,7 +1474,7 @@ class _EditProfileScreenState extends State<EditProfileScreen>
                               Text(
                                 'To continue, please enter your password. This will send an OTP to your email and phone.',
                                 style: TextStyle(
-                                  color: Colors.grey[700],
+                                  color: AppColors.charcoal60,
                                   fontSize: 14,
                                 ),
                               ),
@@ -1533,8 +1529,8 @@ class _EditProfileScreenState extends State<EditProfileScreen>
                                       style: TextStyle(
                                         color:
                                             isLoading
-                                                ? Colors.grey[400]
-                                                : Colors.grey[700],
+                                                ? AppColors.rawEarth26
+                                                : AppColors.charcoal60,
                                       ),
                                     ),
                                   ),
@@ -1575,7 +1571,7 @@ class _EditProfileScreenState extends State<EditProfileScreen>
                                               }
                                             },
                                     style: ElevatedButton.styleFrom(
-                                      backgroundColor: Colors.red,
+                                      backgroundColor: AppColors.rawEarth,
                                       shape: RoundedRectangleBorder(
                                         borderRadius: BorderRadius.circular(12),
                                       ),
@@ -1587,13 +1583,13 @@ class _EditProfileScreenState extends State<EditProfileScreen>
                                               height: 20,
                                               child: CircularProgressIndicator(
                                                 strokeWidth: 2,
-                                                color: Colors.white,
+                                                color: AppColors.parchment,
                                               ),
                                             )
                                             : const Text(
                                               'Confirm Password',
                                               style: TextStyle(
-                                                color: Colors.white,
+                                                color: AppColors.parchment,
                                               ),
                                             ),
                                   ),
@@ -1617,12 +1613,14 @@ class _EditProfileScreenState extends State<EditProfileScreen>
                                   Container(
                                     padding: const EdgeInsets.all(8),
                                     decoration: BoxDecoration(
-                                      color: Colors.blue.withOpacity(0.1),
+                                      color: AppColors.deepSoilGreen.withValues(
+                                        alpha: 0.1,
+                                      ),
                                       shape: BoxShape.circle,
                                     ),
                                     child: Icon(
                                       Icons.security_rounded,
-                                      color: Colors.blue[700],
+                                      color: AppColors.deepSoilGreen,
                                       size: 28,
                                     ),
                                   ),
@@ -1640,7 +1638,7 @@ class _EditProfileScreenState extends State<EditProfileScreen>
                               Text(
                                 'An OTP has been sent to your email and phone. Please enter it below to complete deactivation.',
                                 style: TextStyle(
-                                  color: Colors.grey[700],
+                                  color: AppColors.charcoal60,
                                   fontSize: 14,
                                 ),
                               ),
@@ -1686,8 +1684,8 @@ class _EditProfileScreenState extends State<EditProfileScreen>
                                       style: TextStyle(
                                         color:
                                             isLoading
-                                                ? Colors.grey[400]
-                                                : Colors.grey[700],
+                                                ? AppColors.rawEarth26
+                                                : AppColors.charcoal60,
                                       ),
                                     ),
                                   ),
@@ -1730,7 +1728,7 @@ class _EditProfileScreenState extends State<EditProfileScreen>
                                               }
                                             },
                                     style: ElevatedButton.styleFrom(
-                                      backgroundColor: Colors.red,
+                                      backgroundColor: AppColors.rawEarth,
                                       shape: RoundedRectangleBorder(
                                         borderRadius: BorderRadius.circular(12),
                                       ),
@@ -1742,13 +1740,13 @@ class _EditProfileScreenState extends State<EditProfileScreen>
                                               height: 20,
                                               child: CircularProgressIndicator(
                                                 strokeWidth: 2,
-                                                color: Colors.white,
+                                                color: AppColors.parchment,
                                               ),
                                             )
                                             : const Text(
                                               'Final Deactivation',
                                               style: TextStyle(
-                                                color: Colors.white,
+                                                color: AppColors.parchment,
                                               ),
                                             ),
                                   ),
@@ -1779,7 +1777,7 @@ class _EditProfileScreenState extends State<EditProfileScreen>
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withAlpha(15),
+            color: AppColors.charcoal.withAlpha(15),
             blurRadius: 20,
             offset: const Offset(0, -5),
           ),
@@ -1829,7 +1827,7 @@ class _EditProfileScreenState extends State<EditProfileScreen>
               child: SizedBox(
                 height: 52,
                 child: Material(
-                  color: Colors.transparent,
+                  color: AppColors.transparent,
                   borderRadius: BorderRadius.circular(16),
                   child: InkWell(
                     onTap: _isLoading ? null : _updateProfile,
@@ -1859,7 +1857,7 @@ class _EditProfileScreenState extends State<EditProfileScreen>
                                   width: 20,
                                   child: CircularProgressIndicator(
                                     strokeWidth: 2,
-                                    color: Colors.white,
+                                    color: AppColors.parchment,
                                   ),
                                 )
                                 : const Row(
@@ -1868,7 +1866,7 @@ class _EditProfileScreenState extends State<EditProfileScreen>
                                   children: [
                                     Icon(
                                       Icons.check_rounded,
-                                      color: Colors.white,
+                                      color: AppColors.parchment,
                                       size: 20,
                                     ),
                                     SizedBox(width: 8),
@@ -1877,7 +1875,7 @@ class _EditProfileScreenState extends State<EditProfileScreen>
                                       style: TextStyle(
                                         fontSize: 15,
                                         fontWeight: FontWeight.w600,
-                                        color: Colors.white,
+                                        color: AppColors.parchment,
                                       ),
                                     ),
                                   ],

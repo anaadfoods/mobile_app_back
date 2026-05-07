@@ -1,4 +1,5 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
+import 'package:grocery_app/core/theme/app_colors.dart';
 
 /// Reusable titled card section for account menu items.
 /// Supports optional trailing value badges on each item (e.g. "3 active").
@@ -38,32 +39,33 @@ class AccountMenuSection extends StatelessWidget {
             borderRadius: BorderRadius.circular(16),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withAlpha(8),
+                color: AppColors.charcoal.withAlpha(8),
                 blurRadius: 12,
                 offset: const Offset(0, 4),
               ),
             ],
           ),
           child: Column(
-            children: items.asMap().entries.map((entry) {
-              final index = entry.key;
-              final item = entry.value;
-              final isLast = index == items.length - 1;
+            children:
+                items.asMap().entries.map((entry) {
+                  final index = entry.key;
+                  final item = entry.value;
+                  final isLast = index == items.length - 1;
 
-              return Column(
-                children: [
-                  _buildMenuItem(theme, item),
-                  if (!isLast)
-                    Padding(
-                      padding: const EdgeInsets.only(left: 56),
-                      child: Divider(
-                        height: 1,
-                        color: theme.dividerColor.withAlpha(38),
-                      ),
-                    ),
-                ],
-              );
-            }).toList(),
+                  return Column(
+                    children: [
+                      _buildMenuItem(theme, item),
+                      if (!isLast)
+                        Padding(
+                          padding: const EdgeInsets.only(left: 56),
+                          child: Divider(
+                            height: 1,
+                            color: theme.dividerColor.withAlpha(38),
+                          ),
+                        ),
+                    ],
+                  );
+                }).toList(),
           ),
         ),
       ],
@@ -72,7 +74,7 @@ class AccountMenuSection extends StatelessWidget {
 
   Widget _buildMenuItem(ThemeData theme, AccountMenuItem item) {
     return Material(
-      color: Colors.transparent,
+      color: AppColors.transparent,
       child: InkWell(
         onTap: item.onTap,
         borderRadius: BorderRadius.circular(16),
@@ -109,8 +111,9 @@ class AccountMenuSection extends StatelessWidget {
                         item.subtitle,
                         style: TextStyle(
                           fontSize: 12,
-                          color: theme.textTheme.bodyMedium?.color
-                              ?.withAlpha(120),
+                          color: theme.textTheme.bodyMedium?.color?.withAlpha(
+                            120,
+                          ),
                         ),
                       ),
                     ],
@@ -119,8 +122,10 @@ class AccountMenuSection extends StatelessWidget {
               ),
               if (item.trailing != null) ...[
                 Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 3,
+                  ),
                   decoration: BoxDecoration(
                     color: item.iconColor.withAlpha(20),
                     borderRadius: BorderRadius.circular(8),

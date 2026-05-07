@@ -151,8 +151,8 @@ class _SubscriptionCarouselState extends State<SubscriptionCarousel>
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Container(width: 150, height: 24, color: Colors.white),
-                Container(width: 80, height: 24, color: Colors.white),
+                Container(width: 150, height: 24, color: AppColors.parchment),
+                Container(width: 80, height: 24, color: AppColors.parchment),
               ],
             ),
           ),
@@ -175,7 +175,7 @@ class _SubscriptionCarouselState extends State<SubscriptionCarousel>
     if (isCurrentlyPaused) {
       showModalBottomSheet(
         context: context,
-        backgroundColor: Colors.transparent,
+        backgroundColor: AppColors.transparent,
         builder:
             (context) => ResumeSubscriptionSheet(
               onConfirm: () {
@@ -193,7 +193,7 @@ class _SubscriptionCarouselState extends State<SubscriptionCarousel>
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: Colors.transparent,
+      backgroundColor: AppColors.transparent,
       builder:
           (context) => PauseDatePickerSheet(
             maxPausesLeft: subscription.remainingPauseTimes,
@@ -275,8 +275,8 @@ class _SubscriptionCardState extends State<SubscriptionCard> {
             gradient: LinearGradient(
               colors:
                   isDark
-                      ? [const Color(0xFF1A1A2E), const Color(0xFF16213E)]
-                      : [Colors.white, const Color(0xFFFAFBFC)],
+                      ? [AppColors.darkSurfaceElevated, AppColors.darkSurfaceElevated]
+                      : [AppColors.parchment, AppColors.parchment],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
@@ -284,19 +284,23 @@ class _SubscriptionCardState extends State<SubscriptionCard> {
             border: Border.all(
               color:
                   isDark
-                      ? Colors.white.withOpacity(0.08)
-                      : AppColors.primaryColor.withOpacity(0.15),
+                      ? AppColors.parchment.withValues(alpha: 0.1)
+                      : AppColors.deepSoilGreen.withValues(alpha: 0.15),
               width: 1.5,
             ),
             boxShadow: [
               BoxShadow(
-                color: AppColors.primaryColor.withOpacity(isDark ? 0.15 : 0.08),
+                color: AppColors.deepSoilGreen.withValues(
+                  alpha: isDark ? 0.15 : 0.08,
+                ),
                 blurRadius: 20,
                 offset: const Offset(0, 8),
                 spreadRadius: 0,
               ),
               BoxShadow(
-                color: Colors.black.withOpacity(isDark ? 0.3 : 0.04),
+                color: AppColors.charcoal.withValues(
+                  alpha: isDark ? 0.3 : 0.04,
+                ),
                 blurRadius: 10,
                 offset: const Offset(0, 4),
               ),
@@ -317,8 +321,8 @@ class _SubscriptionCardState extends State<SubscriptionCard> {
                       shape: BoxShape.circle,
                       gradient: RadialGradient(
                         colors: [
-                          AppColors.primaryColor.withOpacity(0.15),
-                          AppColors.primaryColor.withOpacity(0.0),
+                          AppColors.deepSoilGreen.withValues(alpha: 0.15),
+                          AppColors.deepSoilGreen.withValues(alpha: 0.0),
                         ],
                       ),
                     ),
@@ -334,8 +338,8 @@ class _SubscriptionCardState extends State<SubscriptionCard> {
                       shape: BoxShape.circle,
                       gradient: RadialGradient(
                         colors: [
-                          AppColors.primaryLight.withOpacity(0.1),
-                          AppColors.primaryLight.withOpacity(0.0),
+                          AppColors.deepSoilGreen.withValues(alpha: 0.1),
+                          AppColors.deepSoilGreen.withValues(alpha: 0.0),
                         ],
                       ),
                     ),
@@ -364,21 +368,23 @@ class _SubscriptionCardState extends State<SubscriptionCard> {
                                 colors:
                                     isPaused
                                         ? [
-                                          AppColors.warning,
-                                          AppColors.warning.withOpacity(0.8),
+                                          AppColors.harvestAmber,
+                                          AppColors.harvestAmber.withValues(
+                                            alpha: 0.8,
+                                          ),
                                         ]
                                         : [
-                                          AppColors.primaryColor,
-                                          AppColors.primaryDark,
+                                          AppColors.deepSoilGreen,
+                                          AppColors.deepSoilGreen,
                                         ],
                               ),
                               borderRadius: BorderRadius.circular(30),
                               boxShadow: [
                                 BoxShadow(
                                   color: (isPaused
-                                          ? AppColors.warning
-                                          : AppColors.primaryColor)
-                                      .withOpacity(0.4),
+                                          ? AppColors.harvestAmber
+                                          : AppColors.deepSoilGreen)
+                                      .withValues(alpha: 0.4),
                                   blurRadius: 8,
                                   offset: const Offset(0, 3),
                                 ),
@@ -391,14 +397,14 @@ class _SubscriptionCardState extends State<SubscriptionCard> {
                                   isPaused
                                       ? Icons.pause_circle_rounded
                                       : Icons.autorenew_rounded,
-                                  color: Colors.white,
+                                  color: AppColors.parchment,
                                   size: 16,
                                 ),
                                 const SizedBox(width: 6),
                                 Text(
                                   isPaused ? 'Paused' : subscription.planName,
                                   style: theme.textTheme.labelMedium?.copyWith(
-                                    color: Colors.white,
+                                    color: AppColors.parchment,
                                     fontWeight: FontWeight.bold,
                                   ),
                                 ),
@@ -414,13 +420,15 @@ class _SubscriptionCardState extends State<SubscriptionCard> {
                             decoration: BoxDecoration(
                               color:
                                   isDark
-                                      ? Colors.white.withOpacity(0.1)
-                                      : AppColors.primaryColor.withOpacity(
-                                        0.08,
+                                      ? AppColors.darkCanvas
+                                      : AppColors.deepSoilGreen.withValues(
+                                        alpha: 0.08,
                                       ),
                               borderRadius: BorderRadius.circular(12),
                               border: Border.all(
-                                color: AppColors.primaryColor.withOpacity(0.2),
+                                color: AppColors.deepSoilGreen.withValues(
+                                  alpha: 0.2,
+                                ),
                               ),
                             ),
                             child: Row(
@@ -428,14 +436,14 @@ class _SubscriptionCardState extends State<SubscriptionCard> {
                               children: [
                                 Icon(
                                   Icons.local_shipping_rounded,
-                                  color: AppColors.primaryColor,
+                                  color: AppColors.deepSoilGreen,
                                   size: 14,
                                 ),
                                 const SizedBox(width: 6),
                                 Text(
                                   _formatDate(subscription.nextDeliveryDate),
                                   style: theme.textTheme.labelSmall?.copyWith(
-                                    color: AppColors.primaryColor,
+                                    color: AppColors.deepSoilGreen,
                                     fontWeight: FontWeight.bold,
                                   ),
                                 ),
@@ -463,8 +471,8 @@ class _SubscriptionCardState extends State<SubscriptionCard> {
                               borderRadius: BorderRadius.circular(18),
                               boxShadow: [
                                 BoxShadow(
-                                  color: Colors.black.withOpacity(
-                                    isDark ? 0.4 : 0.12,
+                                  color: AppColors.charcoal.withValues(
+                                    alpha: isDark ? 0.4 : 0.12,
                                   ),
                                   blurRadius: 15,
                                   offset: const Offset(0, 6),
@@ -484,13 +492,13 @@ class _SubscriptionCardState extends State<SubscriptionCard> {
                                         (context, url) => Container(
                                           color:
                                               isDark
-                                                  ? Colors.grey[850]
-                                                  : Colors.grey[100],
+                                                  ? AppColors.darkCanvas
+                                                  : AppColors.parchment,
                                           child: Center(
                                             child: CircularProgressIndicator(
                                               strokeWidth: 2,
-                                              color: AppColors.primaryColor
-                                                  .withOpacity(0.5),
+                                              color: AppColors.deepSoilGreen
+                                                  .withValues(alpha: 0.5),
                                             ),
                                           ),
                                         ),
@@ -498,8 +506,8 @@ class _SubscriptionCardState extends State<SubscriptionCard> {
                                         (context, url, error) => Container(
                                           color:
                                               isDark
-                                                  ? Colors.grey[850]
-                                                  : Colors.grey[100],
+                                                  ? AppColors.darkCanvas
+                                                  : AppColors.parchment,
                                           child: Icon(
                                             Icons.image_rounded,
                                             color: theme.hintColor,
@@ -520,10 +528,9 @@ class _SubscriptionCardState extends State<SubscriptionCard> {
                                         decoration: BoxDecoration(
                                           gradient: LinearGradient(
                                             colors: [
-                                              AppColors.success,
-                                              AppColors.success.withOpacity(
-                                                0.85,
-                                              ),
+                                              AppColors.deepSoilGreen,
+                                              AppColors.deepSoilGreen
+                                                  .withValues(alpha: 0.85),
                                             ],
                                           ),
                                           borderRadius: BorderRadius.circular(
@@ -533,7 +540,7 @@ class _SubscriptionCardState extends State<SubscriptionCard> {
                                         child: Text(
                                           '${discountPercent.toStringAsFixed(0)}%',
                                           style: const TextStyle(
-                                            color: Colors.white,
+                                            color: AppColors.parchment,
                                             fontSize: 10,
                                             fontWeight: FontWeight.bold,
                                           ),
@@ -574,7 +581,7 @@ class _SubscriptionCardState extends State<SubscriptionCard> {
                                       style: theme.textTheme.titleLarge
                                           ?.copyWith(
                                             fontWeight: FontWeight.bold,
-                                            color: AppColors.primaryColor,
+                                            color: AppColors.deepSoilGreen,
                                           ),
                                     ),
                                     const SizedBox(width: 8),
@@ -601,11 +608,15 @@ class _SubscriptionCardState extends State<SubscriptionCard> {
                         decoration: BoxDecoration(
                           color:
                               isDark
-                                  ? Colors.white.withOpacity(0.05)
-                                  : AppColors.primaryColor.withOpacity(0.04),
+                                  ? AppColors.darkCanvas
+                                  : AppColors.deepSoilGreen.withValues(
+                                    alpha: 0.04,
+                                  ),
                           borderRadius: BorderRadius.circular(16),
                           border: Border.all(
-                            color: AppColors.primaryColor.withOpacity(0.1),
+                            color: AppColors.deepSoilGreen.withValues(
+                              alpha: 0.1,
+                            ),
                           ),
                         ),
                         child: Row(
@@ -622,10 +633,10 @@ class _SubscriptionCardState extends State<SubscriptionCard> {
                                     strokeWidth: 4,
                                     backgroundColor:
                                         isDark
-                                            ? Colors.grey[800]
-                                            : Colors.grey[200],
+                                            ? AppColors.darkSurfaceElevated
+                                            : AppColors.parchment,
                                     valueColor: AlwaysStoppedAnimation<Color>(
-                                      AppColors.primaryColor,
+                                      AppColors.deepSoilGreen,
                                     ),
                                   ),
                                 ),
@@ -674,13 +685,13 @@ class _SubscriptionCardState extends State<SubscriptionCard> {
                                 border: Border.all(
                                   color:
                                       isPaused
-                                          ? AppColors.success
-                                          : AppColors.warning,
+                                          ? AppColors.deepSoilGreen
+                                          : AppColors.harvestAmber,
                                   width: 1.5,
                                 ),
                               ),
                               child: Material(
-                                color: Colors.transparent,
+                                color: AppColors.transparent,
                                 child: InkWell(
                                   onTap: widget.onTogglePause,
                                   borderRadius: BorderRadius.circular(14),
@@ -700,8 +711,8 @@ class _SubscriptionCardState extends State<SubscriptionCard> {
                                                 : Icons.pause_circle_rounded,
                                             color:
                                                 isPaused
-                                                    ? AppColors.success
-                                                    : AppColors.warning,
+                                                    ? AppColors.deepSoilGreen
+                                                    : AppColors.harvestAmber,
                                             size: 20,
                                           ),
                                           const SizedBox(width: 8),
@@ -711,8 +722,10 @@ class _SubscriptionCardState extends State<SubscriptionCard> {
                                                 ?.copyWith(
                                                   color:
                                                       isPaused
-                                                          ? AppColors.success
-                                                          : AppColors.warning,
+                                                          ? AppColors
+                                                              .deepSoilGreen
+                                                          : AppColors
+                                                              .harvestAmber,
                                                   fontWeight: FontWeight.bold,
                                                 ),
                                           ),
@@ -744,15 +757,15 @@ class _SubscriptionCardState extends State<SubscriptionCard> {
                               decoration: BoxDecoration(
                                 gradient: LinearGradient(
                                   colors: [
-                                    AppColors.primaryColor,
-                                    AppColors.primaryDark,
+                                    AppColors.deepSoilGreen,
+                                    AppColors.deepSoilGreen,
                                   ],
                                 ),
                                 borderRadius: BorderRadius.circular(14),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: AppColors.primaryColor.withOpacity(
-                                      0.35,
+                                    color: AppColors.deepSoilGreen.withValues(
+                                      alpha: 0.35,
                                     ),
                                     blurRadius: 10,
                                     offset: const Offset(0, 4),
@@ -760,7 +773,7 @@ class _SubscriptionCardState extends State<SubscriptionCard> {
                                 ],
                               ),
                               child: Material(
-                                color: Colors.transparent,
+                                color: AppColors.transparent,
                                 child: InkWell(
                                   onTap:
                                       () => _navigateToDetails(
@@ -780,7 +793,7 @@ class _SubscriptionCardState extends State<SubscriptionCard> {
                                         children: [
                                           const Icon(
                                             Icons.visibility_rounded,
-                                            color: Colors.white,
+                                            color: AppColors.parchment,
                                             size: 20,
                                           ),
                                           const SizedBox(width: 8),
@@ -788,7 +801,7 @@ class _SubscriptionCardState extends State<SubscriptionCard> {
                                             'Details',
                                             style: theme.textTheme.labelLarge
                                                 ?.copyWith(
-                                                  color: Colors.white,
+                                                  color: AppColors.parchment,
                                                   fontWeight: FontWeight.bold,
                                                 ),
                                           ),
@@ -848,14 +861,14 @@ class SubscriptionCardSkeleton extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Container(width: 140, height: 24, color: Colors.white),
+            Container(width: 140, height: 24, color: AppColors.parchment),
             Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 Container(
                   height: responsive.value(mobile: 80, tablet: 100),
                   width: responsive.value(mobile: 80, tablet: 100),
-                  color: Colors.white,
+                  color: AppColors.parchment,
                 ),
                 SizedBox(width: responsive.S),
                 Expanded(
@@ -865,12 +878,20 @@ class SubscriptionCardSkeleton extends StatelessWidget {
                       Container(
                         width: double.infinity,
                         height: 16,
-                        color: Colors.white,
+                        color: AppColors.parchment,
                       ),
                       SizedBox(height: responsive.S / 2),
-                      Container(width: 100, height: 14, color: Colors.white),
+                      Container(
+                        width: 100,
+                        height: 14,
+                        color: AppColors.parchment,
+                      ),
                       SizedBox(height: responsive.S),
-                      Container(width: 120, height: 20, color: Colors.white),
+                      Container(
+                        width: 120,
+                        height: 20,
+                        color: AppColors.parchment,
+                      ),
                     ],
                   ),
                 ),
@@ -881,13 +902,21 @@ class SubscriptionCardSkeleton extends StatelessWidget {
               children: [
                 Row(
                   children: [
-                    Container(width: 100, height: 40, color: Colors.white),
+                    Container(
+                      width: 100,
+                      height: 40,
+                      color: AppColors.parchment,
+                    ),
                     SizedBox(width: responsive.S),
-                    Container(width: 150, height: 16, color: Colors.white),
+                    Container(
+                      width: 150,
+                      height: 16,
+                      color: AppColors.parchment,
+                    ),
                   ],
                 ),
                 SizedBox(height: responsive.S),
-                Container(width: 200, height: 14, color: Colors.white),
+                Container(width: 200, height: 14, color: AppColors.parchment),
               ],
             ),
           ],

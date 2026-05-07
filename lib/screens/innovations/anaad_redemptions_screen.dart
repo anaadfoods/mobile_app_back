@@ -18,11 +18,23 @@ class _AnaadRedemptionsScreenState extends State<AnaadRedemptionsScreen>
 
   // Demo rewards data
   final List<Map<String, dynamic>> _rewards = [
-    {'name': 'Free Organic Honey (250g)', 'points': 100, 'image': Icons.fastfood_rounded},
-    {'name': 'Ghee Pack (500ml)', 'points': 200, 'image': Icons.local_cafe_rounded},
+    {
+      'name': 'Free Organic Honey (250g)',
+      'points': 100,
+      'image': Icons.fastfood_rounded,
+    },
+    {
+      'name': 'Ghee Pack (500ml)',
+      'points': 200,
+      'image': Icons.local_cafe_rounded,
+    },
     {'name': 'Premium Spice Bundle', 'points': 150, 'image': Icons.spa_rounded},
     {'name': 'Fresh Vegetables Box', 'points': 80, 'image': Icons.eco_rounded},
-    {'name': 'Natural Cold-Pressed Oil', 'points': 250, 'image': Icons.water_drop_rounded},
+    {
+      'name': 'Natural Cold-Pressed Oil',
+      'points': 250,
+      'image': Icons.water_drop_rounded,
+    },
   ];
 
   @override
@@ -49,12 +61,15 @@ class _AnaadRedemptionsScreenState extends State<AnaadRedemptionsScreen>
     final isDark = theme.brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: isDark ? const Color(0xFF0F0F1A) : const Color(0xFFF8F9FE),
+      backgroundColor: isDark ? AppColors.parchment : AppColors.parchment,
       appBar: AppBar(
-        backgroundColor: Colors.transparent,
+        backgroundColor: AppColors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back_rounded, color: isDark ? Colors.white : Colors.black87),
+          icon: Icon(
+            Icons.arrow_back_rounded,
+            color: isDark ? AppColors.parchment : AppColors.charcoal87,
+          ),
           onPressed: () {
             HapticFeedback.lightImpact();
             Navigator.pop(context);
@@ -64,7 +79,7 @@ class _AnaadRedemptionsScreenState extends State<AnaadRedemptionsScreen>
           'Anaad Redemptions',
           style: theme.textTheme.titleLarge?.copyWith(
             fontWeight: FontWeight.bold,
-            color: isDark ? Colors.white : Colors.black87,
+            color: isDark ? AppColors.parchment : AppColors.charcoal87,
           ),
         ),
         centerTitle: true,
@@ -86,7 +101,9 @@ class _AnaadRedemptionsScreenState extends State<AnaadRedemptionsScreen>
             // Available Rewards
             Text(
               'Redeem Your Points',
-              style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+              style: theme.textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
             ),
             const SizedBox(height: 16),
 
@@ -113,12 +130,12 @@ class _AnaadRedemptionsScreenState extends State<AnaadRedemptionsScreen>
           padding: const EdgeInsets.all(24),
           decoration: BoxDecoration(
             gradient: const LinearGradient(
-              colors: [Color(0xFF10B981), Color(0xFF059669)],
+              colors: [AppColors.parchment, AppColors.parchment],
             ),
             borderRadius: BorderRadius.circular(24),
             boxShadow: [
               BoxShadow(
-                color: const Color(0xFF10B981).withOpacity(0.4),
+                color: AppColors.parchment.withValues(alpha: 0.4),
                 blurRadius: 20,
                 offset: const Offset(0, 8),
               ),
@@ -135,9 +152,9 @@ class _AnaadRedemptionsScreenState extends State<AnaadRedemptionsScreen>
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                       colors: [
-                        Colors.transparent,
-                        Colors.white.withOpacity(0.1),
-                        Colors.transparent,
+                        AppColors.transparent,
+                        AppColors.parchment.withValues(alpha: 0.1),
+                        AppColors.transparent,
                       ],
                       stops: [
                         (_shimmerAnimation.value - 0.3).clamp(0.0, 1.0),
@@ -156,22 +173,29 @@ class _AnaadRedemptionsScreenState extends State<AnaadRedemptionsScreen>
                       Container(
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.2),
+                          color: AppColors.parchment.withValues(alpha: 0.2),
                           borderRadius: BorderRadius.circular(14),
                         ),
-                        child: const Icon(Icons.wallet_giftcard_rounded, color: Colors.white, size: 28),
+                        child: const Icon(
+                          Icons.wallet_giftcard_rounded,
+                          color: AppColors.parchment,
+                          size: 28,
+                        ),
                       ),
                       const Spacer(),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 6,
+                        ),
                         decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.2),
+                          color: AppColors.parchment.withValues(alpha: 0.2),
                           borderRadius: BorderRadius.circular(20),
                         ),
                         child: Text(
                           'Available Balance',
                           style: theme.textTheme.labelSmall?.copyWith(
-                            color: Colors.white,
+                            color: AppColors.parchment,
                             fontWeight: FontWeight.w600,
                           ),
                         ),
@@ -182,7 +206,7 @@ class _AnaadRedemptionsScreenState extends State<AnaadRedemptionsScreen>
                   Text(
                     '$_pointsBalance Points',
                     style: theme.textTheme.headlineLarge?.copyWith(
-                      color: Colors.white,
+                      color: AppColors.parchment,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -190,7 +214,7 @@ class _AnaadRedemptionsScreenState extends State<AnaadRedemptionsScreen>
                   Text(
                     '= ₹${(_pointsBalance * 0.5).toStringAsFixed(0)} value',
                     style: theme.textTheme.bodyMedium?.copyWith(
-                      color: Colors.white.withOpacity(0.8),
+                      color: AppColors.parchment.withValues(alpha: 0.8),
                     ),
                   ),
                 ],
@@ -204,19 +228,27 @@ class _AnaadRedemptionsScreenState extends State<AnaadRedemptionsScreen>
 
   Widget _buildHowToEarnSection(ThemeData theme, bool isDark) {
     final earnWays = [
-      {'icon': Icons.shopping_bag_rounded, 'title': 'Order', 'desc': '1 point per ₹10'},
+      {
+        'icon': Icons.shopping_bag_rounded,
+        'title': 'Order',
+        'desc': '1 point per ₹10',
+      },
       {'icon': Icons.share_rounded, 'title': 'Refer', 'desc': '50 points each'},
-      {'icon': Icons.rate_review_rounded, 'title': 'Review', 'desc': '10 points each'},
+      {
+        'icon': Icons.rate_review_rounded,
+        'title': 'Review',
+        'desc': '10 points each',
+      },
     ];
 
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1E1E2E) : Colors.white,
+        color: isDark ? AppColors.parchment : AppColors.parchment,
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: AppColors.charcoal.withValues(alpha: 0.05),
             blurRadius: 15,
             offset: const Offset(0, 5),
           ),
@@ -227,43 +259,60 @@ class _AnaadRedemptionsScreenState extends State<AnaadRedemptionsScreen>
         children: [
           Text(
             'How to Earn Points',
-            style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+            style: theme.textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.bold,
+            ),
           ),
           const SizedBox(height: 16),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: earnWays.map((way) {
-              return Column(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF10B981).withOpacity(0.15),
-                      borderRadius: BorderRadius.circular(14),
-                    ),
-                    child: Icon(way['icon'] as IconData, color: const Color(0xFF10B981), size: 24),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    way['title'] as String,
-                    style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
-                  ),
-                  Text(
-                    way['desc'] as String,
-                    style: theme.textTheme.labelSmall?.copyWith(
-                      color: isDark ? Colors.grey[400] : Colors.grey[600],
-                    ),
-                  ),
-                ],
-              );
-            }).toList(),
+            children:
+                earnWays.map((way) {
+                  return Column(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: AppColors.parchment.withValues(alpha: 0.15),
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                        child: Icon(
+                          way['icon'] as IconData,
+                          color: AppColors.parchment,
+                          size: 24,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        way['title'] as String,
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      Text(
+                        way['desc'] as String,
+                        style: theme.textTheme.labelSmall?.copyWith(
+                          color:
+                              isDark
+                                  ? AppColors.rawEarth26
+                                  : AppColors.rawEarth70,
+                        ),
+                      ),
+                    ],
+                  );
+                }).toList(),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildRewardCard(ThemeData theme, bool isDark, Map<String, dynamic> reward, int index) {
+  Widget _buildRewardCard(
+    ThemeData theme,
+    bool isDark,
+    Map<String, dynamic> reward,
+    int index,
+  ) {
     final canRedeem = _pointsBalance >= (reward['points'] as int);
 
     return TweenAnimationBuilder<double>(
@@ -278,18 +327,20 @@ class _AnaadRedemptionsScreenState extends State<AnaadRedemptionsScreen>
             child: Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: isDark ? const Color(0xFF1E1E2E) : Colors.white,
+                color: isDark ? AppColors.parchment : AppColors.parchment,
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(
-                  color: canRedeem
-                      ? const Color(0xFF10B981).withOpacity(0.3)
-                      : Colors.grey.withOpacity(0.2),
+                  color:
+                      canRedeem
+                          ? AppColors.parchment.withValues(alpha: 0.3)
+                          : AppColors.rawEarth54.withValues(alpha: 0.2),
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: canRedeem
-                        ? const Color(0xFF10B981).withOpacity(0.1)
-                        : Colors.black.withOpacity(0.05),
+                    color:
+                        canRedeem
+                            ? AppColors.parchment.withValues(alpha: 0.1)
+                            : AppColors.charcoal.withValues(alpha: 0.05),
                     blurRadius: 12,
                     offset: const Offset(0, 4),
                   ),
@@ -300,12 +351,18 @@ class _AnaadRedemptionsScreenState extends State<AnaadRedemptionsScreen>
                   Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: (canRedeem ? const Color(0xFF10B981) : Colors.grey).withOpacity(0.15),
+                      color: (canRedeem
+                              ? AppColors.parchment
+                              : AppColors.rawEarth54)
+                          .withValues(alpha: 0.15),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Icon(
                       reward['image'] as IconData,
-                      color: canRedeem ? const Color(0xFF10B981) : Colors.grey,
+                      color:
+                          canRedeem
+                              ? AppColors.parchment
+                              : AppColors.rawEarth54,
                       size: 24,
                     ),
                   ),
@@ -316,13 +373,18 @@ class _AnaadRedemptionsScreenState extends State<AnaadRedemptionsScreen>
                       children: [
                         Text(
                           reward['name'] as String,
-                          style: theme.textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w600),
+                          style: theme.textTheme.bodyLarge?.copyWith(
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
                         const SizedBox(height: 4),
                         Text(
                           '${reward['points']} points',
                           style: theme.textTheme.bodySmall?.copyWith(
-                            color: canRedeem ? const Color(0xFF10B981) : Colors.grey,
+                            color:
+                                canRedeem
+                                    ? AppColors.parchment
+                                    : AppColors.rawEarth54,
                             fontWeight: FontWeight.w500,
                           ),
                         ),
@@ -330,22 +392,32 @@ class _AnaadRedemptionsScreenState extends State<AnaadRedemptionsScreen>
                     ),
                   ),
                   GestureDetector(
-                    onTap: canRedeem
-                        ? () {
-                            HapticFeedback.mediumImpact();
-                            SnackBarHelper.showSuccess(context, "Woohoo! ${reward['name']} redeemed! 🎁");
-                          }
-                        : null,
+                    onTap:
+                        canRedeem
+                            ? () {
+                              HapticFeedback.mediumImpact();
+                              SnackBarHelper.showSuccess(
+                                context,
+                                "Woohoo! ${reward['name']} redeemed! 🎁",
+                              );
+                            }
+                            : null,
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 10,
+                      ),
                       decoration: BoxDecoration(
-                        color: canRedeem ? const Color(0xFF10B981) : Colors.grey.withOpacity(0.3),
+                        color:
+                            canRedeem
+                                ? AppColors.parchment
+                                : AppColors.rawEarth54.withValues(alpha: 0.3),
                         borderRadius: BorderRadius.circular(10),
                       ),
                       child: Text(
                         canRedeem ? 'Redeem' : 'Locked',
                         style: theme.textTheme.labelMedium?.copyWith(
-                          color: Colors.white,
+                          color: AppColors.parchment,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -360,4 +432,3 @@ class _AnaadRedemptionsScreenState extends State<AnaadRedemptionsScreen>
     );
   }
 }
-

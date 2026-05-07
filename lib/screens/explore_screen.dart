@@ -265,10 +265,10 @@ class _ExploreScreenState extends State<ExploreScreen>
               end: Alignment.bottomRight,
               colors: [
                 theme.colorScheme.primary,
-                theme.colorScheme.primary.withOpacity(0.8),
+                theme.colorScheme.primary.withValues(alpha: 0.8),
                 isDark
-                    ? theme.colorScheme.primary.withOpacity(0.6)
-                    : Colors.green.shade400,
+                    ? theme.colorScheme.primary.withValues(alpha: 0.6)
+                    : AppColors.deepSoilGreen,
               ],
             ),
             borderRadius: const BorderRadius.only(
@@ -277,7 +277,7 @@ class _ExploreScreenState extends State<ExploreScreen>
             ),
             boxShadow: [
               BoxShadow(
-                color: theme.colorScheme.primary.withOpacity(0.3),
+                color: theme.colorScheme.primary.withValues(alpha: 0.3),
                 blurRadius: 20,
                 offset: const Offset(0, 10),
               ),
@@ -311,7 +311,7 @@ class _ExploreScreenState extends State<ExploreScreen>
                     height: 150,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: Colors.white.withOpacity(0.1),
+                      color: AppColors.parchment.withValues(alpha: 0.1),
                     ),
                   ),
                 ),
@@ -324,7 +324,7 @@ class _ExploreScreenState extends State<ExploreScreen>
                   height: 100,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: Colors.white.withOpacity(0.08),
+                    color: AppColors.parchment.withValues(alpha: 0.08),
                   ),
                 ),
               ),
@@ -351,7 +351,7 @@ class _ExploreScreenState extends State<ExploreScreen>
                               },
                             )
                           else
-                            const SizedBox(width: 44),
+                            const AnaadLogoMark(),
                           GlassmorphicIconButton(
                             icon: Icons.refresh_rounded,
                             onTap: _handleRefresh,
@@ -362,17 +362,16 @@ class _ExploreScreenState extends State<ExploreScreen>
                       // Title
                       Row(
                         children: [
-                          Icon(
-                            Icons.grid_view_rounded,
-                            color: Colors.white,
-                            size: 32,
-                          ),
-                          const SizedBox(width: 12),
+                          // Icon(
+                          //   Icons.grid_view_rounded,
+                          //   color: AppColors.parchment,
+                          //   size: 32,
+                          // ),
                           Expanded(
                             child: Text(
                               "The Earth’s Catalog",
                               style: theme.textTheme.headlineMedium?.copyWith(
-                                color: Colors.white,
+                                color: AppColors.parchment,
                                 fontWeight: FontWeight.bold,
                               ),
                               overflow: TextOverflow.ellipsis,
@@ -384,7 +383,7 @@ class _ExploreScreenState extends State<ExploreScreen>
                       Text(
                         "Seasonally curated. Harvested at the perfect moment. Processed to retain nutrition",
                         style: theme.textTheme.bodyMedium?.copyWith(
-                          color: Colors.white.withOpacity(0.9),
+                          color: AppColors.parchment.withValues(alpha: 0.9),
                         ),
                       ),
                       const SizedBox(height: 8),
@@ -424,18 +423,18 @@ class _ExploreScreenState extends State<ExploreScreen>
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.2),
+        color: AppColors.parchment.withValues(alpha: 0.2),
         borderRadius: BorderRadius.circular(20),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, color: Colors.white, size: 16),
+          Icon(icon, color: AppColors.parchment, size: 16),
           const SizedBox(width: 6),
           Text(
             '$value $label',
             style: const TextStyle(
-              color: Colors.white,
+              color: AppColors.parchment,
               fontSize: 12,
               fontWeight: FontWeight.w600,
             ),
@@ -450,11 +449,11 @@ class _ExploreScreenState extends State<ExploreScreen>
       padding: const EdgeInsets.all(16),
       child: Container(
         decoration: BoxDecoration(
-          color: theme.cardColor,
+          color: isDark ? AppColors.darkSurfaceElevated : AppColors.parchment,
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: theme.shadowColor.withOpacity(0.08),
+              color: theme.shadowColor.withValues(alpha: 0.08),
               blurRadius: 20,
               offset: const Offset(0, 4),
             ),
@@ -464,7 +463,12 @@ class _ExploreScreenState extends State<ExploreScreen>
           onChanged: _filterCategories,
           decoration: InputDecoration(
             hintText: 'Search categories...',
-            hintStyle: TextStyle(color: theme.hintColor.withOpacity(0.6)),
+            filled: false,
+            hintStyle: TextStyle(
+              color: isDark
+                  ? AppColors.parchment.withValues(alpha: 0.5)
+                  : theme.hintColor.withValues(alpha: 0.6),
+            ),
             prefixIcon: Icon(
               Icons.search_rounded,
               color: theme.colorScheme.primary,
@@ -568,7 +572,7 @@ class _ExploreScreenState extends State<ExploreScreen>
                 height: 24,
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
-                    colors: [Colors.orange.shade400, Colors.red.shade400],
+                    colors: [AppColors.harvestAmber, AppColors.rawEarth],
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
                   ),
@@ -590,7 +594,7 @@ class _ExploreScreenState extends State<ExploreScreen>
                     scale: 1.0 + (_pulseController.value * 0.2),
                     child: Icon(
                       Icons.local_fire_department_rounded,
-                      color: Colors.orange.shade400,
+                      color: AppColors.harvestAmber,
                       size: 24,
                     ),
                   );
@@ -660,7 +664,7 @@ class _ExploreScreenState extends State<ExploreScreen>
 
   Widget _buildSkeletonLoader(ThemeData theme) {
     return Shimmer.fromColors(
-      baseColor: theme.colorScheme.surface.withOpacity(0.5),
+      baseColor: theme.colorScheme.surface.withValues(alpha: 0.5),
       highlightColor: theme.colorScheme.surface,
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -749,7 +753,7 @@ class _ExploreScreenState extends State<ExploreScreen>
       width: width,
       height: height,
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.parchment,
         borderRadius: BorderRadius.circular(borderRadius),
       ),
     );
@@ -862,8 +866,8 @@ class _AnimatedCategoryCardState extends State<_AnimatedCategoryCard>
                   borderRadius: BorderRadius.circular(20),
                   boxShadow: [
                     BoxShadow(
-                      color: theme.colorScheme.primary.withOpacity(
-                        _isPressed ? 0.15 : 0.1,
+                      color: theme.colorScheme.primary.withValues(
+                        alpha: _isPressed ? 0.15 : 0.1,
                       ),
                       blurRadius: _elevationAnimation.value,
                       offset: Offset(0, _elevationAnimation.value / 2),
@@ -888,8 +892,8 @@ class _AnimatedCategoryCardState extends State<_AnimatedCategoryCard>
                             (context, url) => Container(
                               color:
                                   isDark
-                                      ? Colors.grey.shade900
-                                      : Colors.grey.shade100,
+                                      ? AppColors.darkSurface
+                                      : AppColors.parchment,
                               child: Center(
                                 child: CircularProgressIndicator(
                                   strokeWidth: 2,
@@ -901,8 +905,8 @@ class _AnimatedCategoryCardState extends State<_AnimatedCategoryCard>
                             (context, url, error) => Container(
                               color:
                                   isDark
-                                      ? Colors.grey.shade900
-                                      : Colors.grey.shade100,
+                                      ? AppColors.darkSurface
+                                      : AppColors.parchment,
                               child: Icon(
                                 Icons.image_not_supported_rounded,
                                 color: theme.disabledColor,
@@ -920,9 +924,9 @@ class _AnimatedCategoryCardState extends State<_AnimatedCategoryCard>
                             begin: Alignment.topCenter,
                             end: Alignment.bottomCenter,
                             colors: [
-                              Colors.transparent,
-                              Colors.black.withOpacity(0.3),
-                              Colors.black.withOpacity(0.7),
+                              AppColors.transparent,
+                              AppColors.charcoal.withValues(alpha: 0.3),
+                              AppColors.charcoal.withValues(alpha: 0.7),
                             ],
                             stops: const [0.3, 0.6, 1.0],
                           ),
@@ -941,11 +945,13 @@ class _AnimatedCategoryCardState extends State<_AnimatedCategoryCard>
                           Text(
                             widget.category.name,
                             style: theme.textTheme.titleMedium?.copyWith(
-                              color: Colors.white,
+                              color: AppColors.parchment,
                               fontWeight: FontWeight.bold,
                               shadows: [
                                 Shadow(
-                                  color: Colors.black.withOpacity(0.5),
+                                  color: AppColors.charcoal.withValues(
+                                    alpha: 0.5,
+                                  ),
                                   blurRadius: 4,
                                 ),
                               ],
@@ -961,15 +967,15 @@ class _AnimatedCategoryCardState extends State<_AnimatedCategoryCard>
                                 vertical: 4,
                               ),
                               decoration: BoxDecoration(
-                                color: theme.colorScheme.primary.withOpacity(
-                                  0.9,
+                                color: theme.colorScheme.primary.withValues(
+                                  alpha: 0.9,
                                 ),
                                 borderRadius: BorderRadius.circular(12),
                               ),
                               child: Text(
                                 '${widget.category.productsCount} items',
                                 style: const TextStyle(
-                                  color: Colors.white,
+                                  color: AppColors.parchment,
                                   fontSize: 11,
                                   fontWeight: FontWeight.w600,
                                 ),
@@ -991,13 +997,13 @@ class _AnimatedCategoryCardState extends State<_AnimatedCategoryCard>
                             vertical: 4,
                           ),
                           decoration: BoxDecoration(
-                            color: Colors.grey.shade700,
+                            color: AppColors.charcoal60,
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: const Text(
                             'Coming Soon',
                             style: TextStyle(
-                              color: Colors.white,
+                              color: AppColors.parchment,
                               fontSize: 10,
                               fontWeight: FontWeight.w600,
                             ),
@@ -1075,16 +1081,16 @@ class _AnimatedProductCardState extends State<_AnimatedProductCard> {
               border: Border.all(
                 color:
                     _isPressed
-                        ? theme.colorScheme.primary.withOpacity(0.5)
+                        ? theme.colorScheme.primary.withValues(alpha: 0.5)
                         : isDark
-                        ? Colors.grey.shade800
-                        : Colors.grey.shade200,
+                        ? AppColors.darkSurfaceElevated
+                        : AppColors.parchment,
                 width: _isPressed ? 2 : 1,
               ),
               boxShadow: [
                 BoxShadow(
-                  color: theme.shadowColor.withOpacity(
-                    _isPressed ? 0.15 : 0.08,
+                  color: theme.shadowColor.withValues(
+                    alpha: _isPressed ? 0.15 : 0.08,
                   ),
                   blurRadius: _isPressed ? 16 : 8,
                   offset: Offset(0, _isPressed ? 8 : 4),
@@ -1104,9 +1110,7 @@ class _AnimatedProductCardState extends State<_AnimatedProductCard> {
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(12),
                         color:
-                            isDark
-                                ? Colors.grey.shade900
-                                : Colors.grey.shade100,
+                            isDark ? AppColors.darkSurface : AppColors.parchment,
                       ),
                       child: ClipRRect(
                         borderRadius: BorderRadius.circular(12),
@@ -1167,8 +1171,8 @@ class _AnimatedProductCardState extends State<_AnimatedProductCard> {
                                 vertical: 4,
                               ),
                               decoration: BoxDecoration(
-                                color: theme.colorScheme.primary.withOpacity(
-                                  0.1,
+                                color: theme.colorScheme.primary.withValues(
+                                  alpha: 0.1,
                                 ),
                                 borderRadius: BorderRadius.circular(8),
                               ),
@@ -1189,13 +1193,13 @@ class _AnimatedProductCardState extends State<_AnimatedProductCard> {
                                   vertical: 4,
                                 ),
                                 decoration: BoxDecoration(
-                                  color: Colors.red.shade100,
+                                  color: AppColors.rawEarth,
                                   borderRadius: BorderRadius.circular(8),
                                 ),
-                                child: Text(
+                                child: const Text(
                                   'Out of Stock',
                                   style: TextStyle(
-                                    color: Colors.red.shade700,
+                                    color: AppColors.parchment,
                                     fontSize: 11,
                                     fontWeight: FontWeight.w600,
                                   ),
@@ -1213,7 +1217,7 @@ class _AnimatedProductCardState extends State<_AnimatedProductCard> {
                     Icon(
                       Icons.arrow_forward_ios_rounded,
                       size: 16,
-                      color: theme.colorScheme.primary.withOpacity(0.7),
+                      color: theme.colorScheme.primary.withValues(alpha: 0.7),
                     ),
                   ],
                 ],

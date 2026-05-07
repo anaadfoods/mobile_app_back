@@ -1,4 +1,5 @@
-﻿import 'package:flutter/material.dart';
+import 'package:grocery_app/core/theme/app_colors.dart';
+import 'package:flutter/material.dart';
 import 'package:grocery_app/models/subscription_invoice_model.dart';
 import 'package:grocery_app/styles/colors.dart';
 
@@ -32,12 +33,12 @@ class InvoiceTrackerWidget extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: AppColors.primaryColor.withOpacity(0.12),
+                  color: AppColors.deepSoilGreen.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: const Icon(
                   Icons.receipt_long_rounded,
-                  color: AppColors.primaryColor,
+                  color: AppColors.deepSoilGreen,
                   size: 20,
                 ),
               ),
@@ -54,13 +55,13 @@ class InvoiceTrackerWidget extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                   decoration: BoxDecoration(
-                    color: AppColors.primaryColor,
+                    color: AppColors.deepSoilGreen,
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Text(
                     '${invoices.length}',
                     style: const TextStyle(
-                      color: Colors.white,
+                      color: AppColors.parchment,
                       fontSize: 11,
                       fontWeight: FontWeight.bold,
                     ),
@@ -74,8 +75,8 @@ class InvoiceTrackerWidget extends StatelessWidget {
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     colors: [
-                      AppColors.primaryColor.withOpacity(0.6),
-                      Colors.transparent,
+                      AppColors.deepSoilGreen.withValues(alpha: 0.6),
+                      AppColors.transparent,
                     ],
                   ),
                   borderRadius: BorderRadius.circular(2),
@@ -100,13 +101,13 @@ class InvoiceTrackerWidget extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 32),
       decoration: BoxDecoration(
         color: isDark
-            ? Colors.white.withOpacity(0.05)
-            : AppColors.primaryColor.withOpacity(0.04),
+            ? AppColors.parchment.withValues(alpha: 0.05)
+            : AppColors.deepSoilGreen.withValues(alpha: 0.04),
         borderRadius: BorderRadius.circular(16),
       ),
       child: const Center(
         child: CircularProgressIndicator(
-          color: AppColors.primaryColor,
+          color: AppColors.deepSoilGreen,
           strokeWidth: 2.5,
         ),
       ),
@@ -118,18 +119,18 @@ class InvoiceTrackerWidget extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 28, horizontal: 20),
       decoration: BoxDecoration(
         color: isDark
-            ? Colors.white.withOpacity(0.05)
-            : AppColors.primaryColor.withOpacity(0.04),
+            ? AppColors.parchment.withValues(alpha: 0.05)
+            : AppColors.deepSoilGreen.withValues(alpha: 0.04),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
           color: isDark
-              ? Colors.white.withOpacity(0.08)
-              : AppColors.primaryColor.withOpacity(0.12),
+              ? AppColors.parchment.withValues(alpha: 0.08)
+              : AppColors.deepSoilGreen.withValues(alpha: 0.12),
         ),
       ),
       child: Row(
         children: [
-          Icon(Icons.inbox_rounded, size: 32, color: AppColors.primaryColor.withOpacity(0.5)),
+          Icon(Icons.inbox_rounded, size: 32, color: AppColors.deepSoilGreen.withValues(alpha: 0.5)),
           const SizedBox(width: 14),
           Expanded(
             child: Column(
@@ -146,7 +147,7 @@ class InvoiceTrackerWidget extends StatelessWidget {
                 Text(
                   'Invoices will appear here once generated.',
                   style: theme.textTheme.bodySmall?.copyWith(
-                    color: theme.colorScheme.onSurface.withOpacity(0.55),
+                    color: theme.colorScheme.onSurface.withValues(alpha: 0.55),
                   ),
                 ),
               ],
@@ -170,26 +171,26 @@ class InvoiceTrackerWidget extends StatelessWidget {
 
   Widget _buildInvoiceCard(Invoice invoice, int index, ThemeData theme, bool isDark) {
     return Material(
-      color: Colors.transparent,
+      color: AppColors.transparent,
       child: InkWell(
         onTap: () => onInvoiceTap(invoice),
         borderRadius: BorderRadius.circular(14),
-        splashColor: AppColors.primaryColor.withOpacity(0.08),
-        highlightColor: AppColors.primaryColor.withOpacity(0.04),
+        splashColor: AppColors.deepSoilGreen.withValues(alpha: 0.08),
+        highlightColor: AppColors.deepSoilGreen.withValues(alpha: 0.04),
         child: Ink(
           decoration: BoxDecoration(
-            color: isDark ? Colors.white.withOpacity(0.06) : theme.cardColor,
+            color: isDark ? AppColors.parchment.withValues(alpha: 0.06) : theme.cardColor,
             borderRadius: BorderRadius.circular(14),
             border: Border.all(
               color: isDark
-                  ? Colors.white.withOpacity(0.09)
-                  : AppColors.primaryColor.withOpacity(0.13),
+                  ? AppColors.parchment.withValues(alpha: 0.09)
+                  : AppColors.deepSoilGreen.withValues(alpha: 0.13),
             ),
             boxShadow: isDark
                 ? null
                 : [
                     BoxShadow(
-                      color: AppColors.primaryColor.withOpacity(0.06),
+                      color: AppColors.deepSoilGreen.withValues(alpha: 0.06),
                       blurRadius: 8,
                       offset: const Offset(0, 2),
                     ),
@@ -207,7 +208,7 @@ class InvoiceTrackerWidget extends StatelessWidget {
                     gradient: const LinearGradient(
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
-                      colors: [AppColors.primaryColor, AppColors.primaryDark],
+                      colors: [AppColors.deepSoilGreen, AppColors.deepSoilGreen],
                     ),
                     borderRadius: BorderRadius.circular(10),
                   ),
@@ -215,7 +216,7 @@ class InvoiceTrackerWidget extends StatelessWidget {
                     child: Text(
                       '${index + 1}',
                       style: const TextStyle(
-                        color: Colors.white,
+                        color: AppColors.parchment,
                         fontSize: 13,
                         fontWeight: FontWeight.bold,
                       ),
@@ -243,13 +244,13 @@ class InvoiceTrackerWidget extends StatelessWidget {
                           Icon(
                             Icons.tag_rounded,
                             size: 11,
-                            color: AppColors.primaryColor.withOpacity(0.7),
+                            color: AppColors.deepSoilGreen.withValues(alpha: 0.7),
                           ),
                           const SizedBox(width: 3),
                           Text(
                             invoice.odooInvoiceNumber,
                             style: theme.textTheme.bodySmall?.copyWith(
-                              color: theme.colorScheme.onSurface.withOpacity(0.5),
+                              color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
                               fontSize: 11,
                               letterSpacing: 0.3,
                             ),
@@ -263,12 +264,12 @@ class InvoiceTrackerWidget extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: AppColors.primaryColor.withOpacity(0.1),
+                    color: AppColors.deepSoilGreen.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: const Icon(
                     Icons.download_rounded,
-                    color: AppColors.primaryColor,
+                    color: AppColors.deepSoilGreen,
                     size: 18,
                   ),
                 ),

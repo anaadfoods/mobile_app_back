@@ -1,3 +1,5 @@
+import 'package:grocery_app/core/theme/app_colors.dart';
+import 'package:grocery_app/common_widgets/anaad_logo_mark.dart';
 import 'package:flutter/material.dart';
 import 'package:grocery_app/models/rfp_delivery_model.dart';
 import 'package:grocery_app/services/rfp_services.dart';
@@ -73,7 +75,7 @@ class _PlanDeliveriesScreenState extends State<PlanDeliveriesScreen> {
                           const Icon(
                             Icons.error_outline,
                             size: 48,
-                            color: Colors.red,
+                            color: AppColors.rawEarth,
                           ),
                           const SizedBox(height: 12),
                           Text(
@@ -146,6 +148,7 @@ class _PlanDeliveriesScreenState extends State<PlanDeliveriesScreen> {
   }
 
   Widget _buildHeader(ThemeData theme, RfpPlan plan) {
+    final isDark = theme.brightness == Brightness.dark;
     return SliverToBoxAdapter(
       child: Container(
         decoration: BoxDecoration(
@@ -153,9 +156,9 @@ class _PlanDeliveriesScreenState extends State<PlanDeliveriesScreen> {
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              const Color(0xff2d4a3e),
-              theme.colorScheme.primary.withOpacity(0.85),
-              const Color(0xff1a3a2a),
+              AppColors.parchment,
+              theme.colorScheme.primary.withValues(alpha: 0.85),
+              isDark ? AppColors.parchment : AppColors.deepSoilGreen,
             ],
           ),
           borderRadius: const BorderRadius.only(
@@ -164,7 +167,7 @@ class _PlanDeliveriesScreenState extends State<PlanDeliveriesScreen> {
           ),
           boxShadow: [
             BoxShadow(
-              color: theme.colorScheme.primary.withOpacity(0.3),
+              color: theme.colorScheme.primary.withValues(alpha: 0.3),
               blurRadius: 20,
               offset: const Offset(0, 10),
             ),
@@ -180,10 +183,7 @@ class _PlanDeliveriesScreenState extends State<PlanDeliveriesScreen> {
                 // Back button
                 Row(
                   children: [
-                    _buildGlassButton(
-                      icon: Icons.arrow_back_ios_new_rounded,
-                      onTap: () => Navigator.pop(context),
-                    ),
+                    const AnaadLogoMark(),
                     const Spacer(),
                     _buildGlassButton(
                       icon: Icons.refresh_rounded,
@@ -203,7 +203,7 @@ class _PlanDeliveriesScreenState extends State<PlanDeliveriesScreen> {
                   children: [
                     const Icon(
                       Icons.local_shipping_rounded,
-                      color: Colors.white,
+                      color: AppColors.parchment,
                       size: 28,
                     ),
                     const SizedBox(width: 12),
@@ -211,7 +211,7 @@ class _PlanDeliveriesScreenState extends State<PlanDeliveriesScreen> {
                       child: Text(
                         plan.name,
                         style: theme.textTheme.headlineMedium?.copyWith(
-                          color: Colors.white,
+                          color: AppColors.parchment,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -222,13 +222,16 @@ class _PlanDeliveriesScreenState extends State<PlanDeliveriesScreen> {
                         vertical: 4,
                       ),
                       decoration: BoxDecoration(
-                        color: plan.isActive ? AppColors.success : Colors.grey,
+                        color:
+                            plan.isActive
+                                ? AppColors.deepSoilGreen
+                                : AppColors.rawEarth54,
                         borderRadius: BorderRadius.circular(20),
                       ),
                       child: Text(
                         plan.status,
                         style: theme.textTheme.labelSmall?.copyWith(
-                          color: Colors.white,
+                          color: AppColors.parchment,
                         ),
                       ),
                     ),
@@ -238,7 +241,7 @@ class _PlanDeliveriesScreenState extends State<PlanDeliveriesScreen> {
                 // Text(
                 //   plan.customerNumber,
                 //   style: theme.textTheme.bodySmall?.copyWith(
-                //     color: Colors.white.withOpacity(0.7),
+                //     color: AppColors.parchment.withValues(alpha: 0.7),
                 //   ),
                 // ),
                 const SizedBox(height: 16),
@@ -250,7 +253,7 @@ class _PlanDeliveriesScreenState extends State<PlanDeliveriesScreen> {
                     Text(
                       "${plan.daysRemaining} days remaining",
                       style: const TextStyle(
-                        color: Colors.white70,
+                        color: AppColors.parchment70,
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
                       ),
@@ -258,7 +261,7 @@ class _PlanDeliveriesScreenState extends State<PlanDeliveriesScreen> {
                     Text(
                       "${(plan.progress * 100).toInt()}% complete",
                       style: const TextStyle(
-                        color: Colors.white70,
+                        color: AppColors.parchment70,
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
                       ),
@@ -271,9 +274,9 @@ class _PlanDeliveriesScreenState extends State<PlanDeliveriesScreen> {
                   child: LinearProgressIndicator(
                     value: plan.progress,
                     minHeight: 6,
-                    backgroundColor: Colors.white.withOpacity(0.2),
+                    backgroundColor: AppColors.parchment.withValues(alpha: 0.2),
                     valueColor: const AlwaysStoppedAnimation<Color>(
-                      Colors.white,
+                      AppColors.parchment,
                     ),
                   ),
                 ),
@@ -322,11 +325,11 @@ class _PlanDeliveriesScreenState extends State<PlanDeliveriesScreen> {
         width: 40,
         height: 40,
         decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.15),
+          color: AppColors.parchment.withValues(alpha: 0.15),
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: Colors.white.withOpacity(0.2)),
+          border: Border.all(color: AppColors.parchment.withValues(alpha: 0.2)),
         ),
-        child: Icon(icon, color: Colors.white, size: 20),
+        child: Icon(icon, color: AppColors.parchment, size: 20),
       ),
     );
   }
@@ -335,18 +338,18 @@ class _PlanDeliveriesScreenState extends State<PlanDeliveriesScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.15),
+        color: AppColors.parchment.withValues(alpha: 0.15),
         borderRadius: BorderRadius.circular(20),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, color: Colors.white, size: 14),
+          Icon(icon, color: AppColors.parchment, size: 14),
           const SizedBox(width: 6),
           Text(
             '$value $label',
             style: const TextStyle(
-              color: Colors.white,
+              color: AppColors.parchment,
               fontSize: 11,
               fontWeight: FontWeight.w600,
             ),
@@ -410,8 +413,10 @@ class _PlanDeliveriesScreenState extends State<PlanDeliveriesScreen> {
           decoration: BoxDecoration(
             gradient: LinearGradient(
               colors: [
-                theme.colorScheme.primary.withOpacity(isDark ? 0.3 : 0.1),
-                theme.colorScheme.primary.withOpacity(isDark ? 0.15 : 0.03),
+                theme.colorScheme.primary.withValues(alpha: isDark ? 0.3 : 0.1),
+                theme.colorScheme.primary.withValues(
+                  alpha: isDark ? 0.15 : 0.03,
+                ),
               ],
             ),
             borderRadius: BorderRadius.circular(12),
@@ -428,8 +433,8 @@ class _PlanDeliveriesScreenState extends State<PlanDeliveriesScreen> {
                 child: Center(
                   child: Text(
                     'W$weekNumber',
-                    style: const TextStyle(
-                      color: Colors.white,
+                    style: TextStyle(
+                      color: theme.colorScheme.onPrimary,
                       fontSize: 12,
                       fontWeight: FontWeight.bold,
                     ),
@@ -447,7 +452,7 @@ class _PlanDeliveriesScreenState extends State<PlanDeliveriesScreen> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(
-                  color: theme.colorScheme.primary.withOpacity(0.15),
+                  color: theme.colorScheme.primary.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Text(
@@ -478,12 +483,12 @@ class _PlanDeliveriesScreenState extends State<PlanDeliveriesScreen> {
     return Container(
       margin: const EdgeInsets.only(left: 16, bottom: 8),
       decoration: BoxDecoration(
-        color: isDark ? theme.cardColor : Colors.white,
+        color: theme.cardColor,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: statusColor.withOpacity(0.3), width: 1),
+        border: Border.all(color: statusColor.withValues(alpha: 0.3), width: 1),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(isDark ? 0.2 : 0.04),
+            color: AppColors.charcoal.withValues(alpha: isDark ? 0.2 : 0.04),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -515,7 +520,7 @@ class _PlanDeliveriesScreenState extends State<PlanDeliveriesScreen> {
                       width: 40,
                       height: 40,
                       decoration: BoxDecoration(
-                        color: statusColor.withOpacity(0.12),
+                        color: statusColor.withValues(alpha: 0.12),
                         borderRadius: BorderRadius.circular(10),
                       ),
                       child: Center(
@@ -580,7 +585,7 @@ class _PlanDeliveriesScreenState extends State<PlanDeliveriesScreen> {
                           child: Text(
                             delivery.status,
                             style: const TextStyle(
-                              color: Colors.white,
+                              color: AppColors.parchment,
                               fontSize: 10,
                               fontWeight: FontWeight.w600,
                             ),
@@ -608,15 +613,15 @@ class _PlanDeliveriesScreenState extends State<PlanDeliveriesScreen> {
   Color _getStatusColor(String status) {
     switch (status.toUpperCase()) {
       case 'DELIVERED':
-        return AppColors.success;
+        return AppColors.deepSoilGreen;
       case 'PENDING':
-        return Colors.orange;
+        return AppColors.harvestAmber;
       case 'IN_TRANSIT':
-        return AppColors.info;
+        return AppColors.deepSoilGreen;
       case 'CANCELLED':
-        return Colors.red;
+        return AppColors.rawEarth;
       default:
-        return Colors.grey;
+        return AppColors.rawEarth54;
     }
   }
 

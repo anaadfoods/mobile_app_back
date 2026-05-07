@@ -1,3 +1,4 @@
+import 'package:grocery_app/core/theme/app_colors.dart';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -109,15 +110,15 @@ class MessageUtility {
   static Color getMessageColor(String messageType) {
     switch (messageType) {
       case messageTypeOrder:
-        return Colors.blue;
+        return AppColors.deepSoilGreen;
       case messageTypeProduct:
-        return Colors.green;
+        return AppColors.deepSoilGreen;
       case messageTypeSubscription:
-        return Colors.orange;
+        return AppColors.harvestAmber;
       case messageTypePromo:
-        return Colors.red;
+        return AppColors.rawEarth;
       default:
-        return Colors.grey;
+        return AppColors.rawEarth54;
     }
   }
 
@@ -125,15 +126,15 @@ class MessageUtility {
   static Color getMessageBackgroundColor(String messageType) {
     switch (messageType) {
       case messageTypeOrder:
-        return Colors.blue.withOpacity(0.1);
+        return AppColors.deepSoilGreen.withValues(alpha: 0.1);
       case messageTypeProduct:
-        return Colors.green.withOpacity(0.1);
+        return AppColors.deepSoilGreen.withValues(alpha: 0.1);
       case messageTypeSubscription:
-        return Colors.orange.withOpacity(0.1);
+        return AppColors.harvestAmber.withValues(alpha: 0.1);
       case messageTypePromo:
-        return Colors.red.withOpacity(0.1);
+        return AppColors.rawEarth.withValues(alpha: 0.1);
       default:
-        return Colors.grey.withOpacity(0.1);
+        return AppColors.rawEarth54.withValues(alpha: 0.1);
     }
   }
 

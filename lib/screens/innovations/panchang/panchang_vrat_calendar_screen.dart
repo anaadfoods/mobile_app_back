@@ -1,3 +1,5 @@
+import '../../../core/theme/app_theme.dart';
+import 'package:grocery_app/core/theme/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/services.dart';
@@ -52,8 +54,8 @@ class _PanchangVratCalendarScreenState extends State<PanchangVratCalendarScreen>
   Map<String, List<VratItem>> _cachedItemsByDate = <String, List<VratItem>>{};
 
   // Theme colors
-  static const _gradientStart = Color(0xFF3F5E46);
-  static const _gradientEnd = Color(0xFF3A8C54);
+  static const _gradientStart = AppColors.deepSoilGreen;
+  static const _gradientEnd = Color(0xFF3D6B28); // successGreen variant
 
   static final DateFormat _dateKeyFormat = DateFormat('yyyy-MM-dd');
 
@@ -85,7 +87,7 @@ class _PanchangVratCalendarScreenState extends State<PanchangVratCalendarScreen>
       value: _cubit,
       child: Scaffold(
         backgroundColor:
-            isDark ? const Color(0xFF070C08) : const Color(0xFFF4F8F4),
+            isDark ? AppColors.pureBlack : AppColors.parchment,
         body: BlocConsumer<PanchangVratCubit, PanchangVratState>(
           listener: (context, state) {
             if (state is PanchangVratSuccess) {
@@ -136,8 +138,9 @@ class _PanchangVratCalendarScreenState extends State<PanchangVratCalendarScreen>
       expandedHeight: expandedHeight,
       pinned: true,
       stretch: true,
-      backgroundColor: isDark ? const Color(0xFF070C08) : Colors.white,
-      foregroundColor: Colors.white,
+      backgroundColor:
+          AppColors.deepSoilGreen,
+      foregroundColor: AppColors.parchment,
       flexibleSpace: FlexibleSpaceBar(
         stretchModes: const [StretchMode.zoomBackground],
         background: LayoutBuilder(
@@ -151,7 +154,7 @@ class _PanchangVratCalendarScreenState extends State<PanchangVratCalendarScreen>
             final topPadding = 14 + (56 - 14) * t;
 
             return Container(
-              decoration: const BoxDecoration(
+              decoration: BoxDecoration(
                 gradient: LinearGradient(
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
@@ -169,7 +172,7 @@ class _PanchangVratCalendarScreenState extends State<PanchangVratCalendarScreen>
                       height: 200,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        color: Colors.white.withValues(alpha: 0.1),
+                        color: AppColors.parchment.withValues(alpha: 0.1),
                       ),
                     ),
                   ),
@@ -181,7 +184,7 @@ class _PanchangVratCalendarScreenState extends State<PanchangVratCalendarScreen>
                       height: 120,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        color: Colors.white.withValues(alpha: 0.08),
+                        color: AppColors.parchment.withValues(alpha: 0.08),
                       ),
                     ),
                   ),
@@ -197,12 +200,14 @@ class _PanchangVratCalendarScreenState extends State<PanchangVratCalendarScreen>
                               Container(
                                 padding: const EdgeInsets.all(10),
                                 decoration: BoxDecoration(
-                                  color: Colors.white.withValues(alpha: 0.2),
+                                  color: AppColors.parchment.withValues(
+                                    alpha: 0.2,
+                                  ),
                                   borderRadius: BorderRadius.circular(12),
                                 ),
-                                child: const Icon(
+                                child: Icon(
                                   Icons.self_improvement_rounded,
-                                  color: Colors.white,
+                                  color: isDark ? AppColors.pureWhite : AppColors.parchment,
                                   size: 28,
                                 ),
                               ),
@@ -218,8 +223,8 @@ class _PanchangVratCalendarScreenState extends State<PanchangVratCalendarScreen>
                                           : 'Vrat Calendar',
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
-                                      style: const TextStyle(
-                                        color: Colors.white,
+                                      style:       TextStyle(
+                                        color: isDark ? AppColors.pureWhite : AppColors.parchment,
                                         fontSize: 24,
                                         fontWeight: FontWeight.w800,
                                         letterSpacing: -0.5,
@@ -232,7 +237,7 @@ class _PanchangVratCalendarScreenState extends State<PanchangVratCalendarScreen>
                                         maxLines: 1,
                                         overflow: TextOverflow.ellipsis,
                                         style: TextStyle(
-                                          color: Colors.white.withValues(
+                                          color: AppColors.parchment.withValues(
                                             alpha: 0.85,
                                           ),
                                           fontSize: 13,
@@ -263,7 +268,7 @@ class _PanchangVratCalendarScreenState extends State<PanchangVratCalendarScreen>
         Container(
           margin: const EdgeInsets.only(right: 4),
           decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.2),
+            color: AppColors.parchment.withValues(alpha: 0.2),
             borderRadius: BorderRadius.circular(8),
           ),
           child: InkWell(
@@ -276,8 +281,8 @@ class _PanchangVratCalendarScreenState extends State<PanchangVratCalendarScreen>
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
               child: AutoSizeText(
                 _isHindi ? 'अ' : 'EN',
-                style: const TextStyle(
-                  color: Colors.white,
+                style:       TextStyle(
+                  color: isDark ? AppColors.pureWhite : AppColors.parchment,
                   fontSize: 14,
                   fontWeight: FontWeight.w800,
                 ),
@@ -288,7 +293,7 @@ class _PanchangVratCalendarScreenState extends State<PanchangVratCalendarScreen>
         IconButton(
           onPressed: () => _pickDateRange(isDark),
           tooltip: 'Choose date range',
-          icon: const Icon(Icons.date_range_rounded),
+          icon: Icon(Icons.date_range_rounded),
         ),
         IconButton(
           onPressed: () {
@@ -296,7 +301,7 @@ class _PanchangVratCalendarScreenState extends State<PanchangVratCalendarScreen>
             _loadNextDays(90);
           },
           tooltip: 'Next 90 days',
-          icon: const Icon(Icons.refresh_rounded),
+          icon: Icon(Icons.refresh_rounded),
         ),
       ],
     );
@@ -334,14 +339,14 @@ class _PanchangVratCalendarScreenState extends State<PanchangVratCalendarScreen>
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.18),
+        color: AppColors.parchment.withValues(alpha: 0.18),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.25)),
+        border: Border.all(color: AppColors.parchment.withValues(alpha: 0.25)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, color: Colors.white, size: 18),
+          Icon(icon, color: Theme.of(context).brightness == Brightness.dark ? AppColors.pureWhite : AppColors.parchment, size: 18),
           const SizedBox(width: 8),
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -349,8 +354,8 @@ class _PanchangVratCalendarScreenState extends State<PanchangVratCalendarScreen>
             children: [
               AutoSizeText(
                 label,
-                style: const TextStyle(
-                  color: Colors.white,
+                style:       TextStyle(
+                  color: Theme.of(context).brightness == Brightness.dark ? AppColors.pureWhite : AppColors.parchment,
                   fontSize: 16,
                   fontWeight: FontWeight.w800,
                 ),
@@ -358,7 +363,7 @@ class _PanchangVratCalendarScreenState extends State<PanchangVratCalendarScreen>
               AutoSizeText(
                 subtitle,
                 style: TextStyle(
-                  color: Colors.white.withValues(alpha: 0.7),
+                  color: AppColors.parchment.withValues(alpha: 0.7),
                   fontSize: 11,
                   fontWeight: FontWeight.w500,
                 ),
@@ -452,7 +457,10 @@ class _PanchangVratCalendarScreenState extends State<PanchangVratCalendarScreen>
         child: SizedBox(
           height: 76,
           child: Container(
-            color: isDark ? const Color(0xFF070C08) : const Color(0xFFF4F8F4),
+            color:
+                (isDark
+                    ? AppColors.charcoal
+                    : AppColors.parchment),
             padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
             child: Row(
               children: [
@@ -476,13 +484,16 @@ class _PanchangVratCalendarScreenState extends State<PanchangVratCalendarScreen>
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       decoration: BoxDecoration(
-        color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.white,
+        color:
+            isDark
+                ? AppColors.parchment.withValues(alpha: 0.05)
+                : AppColors.parchment,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
           color:
               isDark
-                  ? Colors.white.withValues(alpha: 0.08)
-                  : Colors.black.withValues(alpha: 0.05),
+                  ? AppColors.parchment.withValues(alpha: 0.08)
+                  : AppColors.charcoal.withValues(alpha: 0.05),
         ),
       ),
       child: Row(
@@ -490,14 +501,14 @@ class _PanchangVratCalendarScreenState extends State<PanchangVratCalendarScreen>
           Icon(
             Icons.calendar_month_rounded,
             size: 18,
-            color: isDark ? Colors.white70 : Colors.black54,
+            color: isDark ? AppColors.pureWhite.withValues(alpha: 0.54) : AppColors.charcoal54,
           ),
           const SizedBox(width: 10),
           Expanded(
             child: AutoSizeText(
               _isHindi ? 'दिन चुनें — व्रत देखें' : 'Pick a day to see vrats',
               style: TextStyle(
-                color: isDark ? Colors.white70 : Colors.black54,
+                color: isDark ? AppColors.pureWhite.withValues(alpha: 0.54) : AppColors.charcoal54,
                 fontSize: 13,
                 fontWeight: FontWeight.w600,
               ),
@@ -529,7 +540,7 @@ class _PanchangVratCalendarScreenState extends State<PanchangVratCalendarScreen>
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
         decoration: BoxDecoration(
-          gradient: const LinearGradient(
+          gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [_gradientStart, _gradientEnd],
@@ -546,16 +557,16 @@ class _PanchangVratCalendarScreenState extends State<PanchangVratCalendarScreen>
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(
+            Icon(
               Icons.my_location_rounded,
               size: 18,
-              color: Colors.white,
+              color: isDark ? AppColors.pureWhite : AppColors.parchment,
             ),
             const SizedBox(width: 8),
             AutoSizeText(
               _isHindi ? 'आज' : 'Today',
-              style: const TextStyle(
-                color: Colors.white,
+              style:       TextStyle(
+                color: isDark ? AppColors.pureWhite : AppColors.parchment,
                 fontSize: 13,
                 fontWeight: FontWeight.w800,
               ),
@@ -585,13 +596,16 @@ class _PanchangVratCalendarScreenState extends State<PanchangVratCalendarScreen>
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
         decoration: BoxDecoration(
-          color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.white,
+          color:
+              isDark
+                  ? AppColors.parchment.withValues(alpha: 0.05)
+                  : AppColors.parchment,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
             color:
                 isDark
-                    ? Colors.white.withValues(alpha: 0.08)
-                    : Colors.black.withValues(alpha: 0.05),
+                    ? AppColors.parchment.withValues(alpha: 0.08)
+                    : AppColors.charcoal.withValues(alpha: 0.05),
           ),
         ),
         child: Row(
@@ -615,7 +629,8 @@ class _PanchangVratCalendarScreenState extends State<PanchangVratCalendarScreen>
                     style: TextStyle(
                       fontSize: 11,
                       fontWeight: FontWeight.w800,
-                      color: isDark ? Colors.white60 : Colors.black45,
+                      color:
+                          isDark ? AppColors.pureWhite.withValues(alpha: 0.60) : AppColors.charcoal45,
                       letterSpacing: 0.2,
                     ),
                   ),
@@ -627,7 +642,10 @@ class _PanchangVratCalendarScreenState extends State<PanchangVratCalendarScreen>
                     style: TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.w800,
-                      color: isDark ? Colors.white : const Color(0xFF0D150E),
+                      color:
+                          (isDark
+                              ? AppColors.charcoal
+                              : AppColors.parchment),
                     ),
                   ),
                 ],
@@ -639,14 +657,14 @@ class _PanchangVratCalendarScreenState extends State<PanchangVratCalendarScreen>
               style: TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w700,
-                color: isDark ? Colors.white70 : Colors.black54,
+                color: isDark ? AppColors.pureWhite.withValues(alpha: 0.54) : AppColors.charcoal54,
               ),
             ),
             const SizedBox(width: 6),
             Icon(
               Icons.chevron_right_rounded,
               size: 18,
-              color: isDark ? Colors.white54 : Colors.black45,
+              color: isDark ? AppColors.pureWhite.withValues(alpha: 0.54) : AppColors.charcoal45,
             ),
           ],
         ),
@@ -663,20 +681,23 @@ class _PanchangVratCalendarScreenState extends State<PanchangVratCalendarScreen>
 
     return Container(
       decoration: BoxDecoration(
-        color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.white,
+        color:
+            isDark
+                ? AppColors.parchment.withValues(alpha: 0.05)
+                : AppColors.parchment,
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
           color:
               isDark
-                  ? Colors.white.withValues(alpha: 0.08)
-                  : Colors.black.withValues(alpha: 0.05),
+                  ? AppColors.parchment.withValues(alpha: 0.08)
+                  : AppColors.charcoal.withValues(alpha: 0.05),
         ),
         boxShadow:
             isDark
                 ? null
                 : [
                   BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.04),
+                    color: AppColors.charcoal.withValues(alpha: 0.04),
                     blurRadius: 14,
                     offset: const Offset(0, 6),
                   ),
@@ -701,7 +722,8 @@ class _PanchangVratCalendarScreenState extends State<PanchangVratCalendarScreen>
                   },
                   icon: Icon(
                     Icons.chevron_left_rounded,
-                    color: isDark ? Colors.white70 : Colors.black54,
+                    color:
+                        isDark ? AppColors.pureWhite.withValues(alpha: 0.54) : AppColors.charcoal54,
                   ),
                 ),
                 Expanded(
@@ -711,7 +733,10 @@ class _PanchangVratCalendarScreenState extends State<PanchangVratCalendarScreen>
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w900,
-                      color: isDark ? Colors.white : const Color(0xFF0D150E),
+                      color:
+                          (isDark
+                              ? AppColors.charcoal
+                              : AppColors.parchment),
                       letterSpacing: -0.2,
                     ),
                   ),
@@ -729,7 +754,8 @@ class _PanchangVratCalendarScreenState extends State<PanchangVratCalendarScreen>
                   },
                   icon: Icon(
                     Icons.chevron_right_rounded,
-                    color: isDark ? Colors.white70 : Colors.black54,
+                    color:
+                        isDark ? AppColors.pureWhite.withValues(alpha: 0.54) : AppColors.charcoal54,
                   ),
                 ),
               ],
@@ -775,7 +801,7 @@ class _PanchangVratCalendarScreenState extends State<PanchangVratCalendarScreen>
                       borderRadius: BorderRadius.circular(14),
                       gradient:
                           isSelected
-                              ? const LinearGradient(
+                              ? LinearGradient(
                                 begin: Alignment.topLeft,
                                 end: Alignment.bottomRight,
                                 colors: [_gradientStart, _gradientEnd],
@@ -784,18 +810,24 @@ class _PanchangVratCalendarScreenState extends State<PanchangVratCalendarScreen>
                       color:
                           !isSelected
                               ? (isDark
-                                  ? Colors.white.withValues(alpha: 0.03)
-                                  : const Color(0xFFF4F8F4))
+                                  ? AppColors.parchment.withValues(alpha: 0.03)
+                                  : AppColors.parchment)
                               : null,
                       border: Border.all(
                         color:
                             isToday
                                 ? (isSelected
-                                    ? Colors.white.withValues(alpha: 0.65)
+                                    ? AppColors.parchment.withValues(
+                                      alpha: 0.65,
+                                    )
                                     : _gradientStart.withValues(alpha: 0.55))
                                 : (isDark
-                                    ? Colors.white.withValues(alpha: 0.06)
-                                    : Colors.black.withValues(alpha: 0.04)),
+                                    ? AppColors.parchment.withValues(
+                                      alpha: 0.06,
+                                    )
+                                    : AppColors.charcoal.withValues(
+                                      alpha: 0.04,
+                                    )),
                         width: isToday ? 1.4 : 1,
                       ),
                     ),
@@ -811,10 +843,10 @@ class _PanchangVratCalendarScreenState extends State<PanchangVratCalendarScreen>
                               fontWeight: FontWeight.w900,
                               color:
                                   isSelected
-                                      ? Colors.white
+                                      ? AppColors.parchment
                                       : (isDark
-                                          ? Colors.white70
-                                          : const Color(0xFF0D150E)),
+                                          ? AppColors.parchment54
+                                          : AppColors.parchment),
                             ),
                           ),
                           const SizedBox(height: 4),
@@ -828,8 +860,8 @@ class _PanchangVratCalendarScreenState extends State<PanchangVratCalendarScreen>
                                   decoration: BoxDecoration(
                                     color:
                                         isSelected
-                                            ? Colors.white
-                                            : AppColors.warning,
+                                            ? AppColors.parchment
+                                            : AppColors.harvestAmber,
                                     shape: BoxShape.circle,
                                   ),
                                 ),
@@ -859,7 +891,7 @@ class _PanchangVratCalendarScreenState extends State<PanchangVratCalendarScreen>
               style: TextStyle(
                 fontSize: 11,
                 fontWeight: FontWeight.w800,
-                color: isDark ? Colors.white54 : Colors.black45,
+                color: isDark ? AppColors.pureWhite.withValues(alpha: 0.54) : AppColors.charcoal45,
               ),
             ),
           ),
@@ -878,13 +910,16 @@ class _PanchangVratCalendarScreenState extends State<PanchangVratCalendarScreen>
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       decoration: BoxDecoration(
-        color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.white,
+        color:
+            isDark
+                ? AppColors.parchment.withValues(alpha: 0.05)
+                : AppColors.parchment,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
           color:
               isDark
-                  ? Colors.white.withValues(alpha: 0.08)
-                  : Colors.black.withValues(alpha: 0.05),
+                  ? AppColors.parchment.withValues(alpha: 0.08)
+                  : AppColors.charcoal.withValues(alpha: 0.05),
         ),
       ),
       child: Row(
@@ -899,7 +934,8 @@ class _PanchangVratCalendarScreenState extends State<PanchangVratCalendarScreen>
                   style: TextStyle(
                     fontSize: 11,
                     fontWeight: FontWeight.w800,
-                    color: isDark ? Colors.white60 : Colors.black45,
+                    color:
+                        isDark ? AppColors.pureWhite.withValues(alpha: 0.60) : AppColors.charcoal45,
                   ),
                 ),
                 const SizedBox(height: 2),
@@ -908,7 +944,10 @@ class _PanchangVratCalendarScreenState extends State<PanchangVratCalendarScreen>
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w900,
-                    color: isDark ? Colors.white : const Color(0xFF0D150E),
+                    color:
+                        (isDark
+                            ? AppColors.charcoal
+                            : AppColors.parchment),
                   ),
                 ),
               ],
@@ -918,7 +957,9 @@ class _PanchangVratCalendarScreenState extends State<PanchangVratCalendarScreen>
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
             decoration: BoxDecoration(
-              color: AppColors.warning.withValues(alpha: isDark ? 0.15 : 0.10),
+              color: AppColors.harvestAmber.withValues(
+                alpha: isDark ? 0.15 : 0.10,
+              ),
               borderRadius: BorderRadius.circular(10),
             ),
             child: AutoSizeText(
@@ -926,7 +967,7 @@ class _PanchangVratCalendarScreenState extends State<PanchangVratCalendarScreen>
               style: TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w800,
-                color: isDark ? Colors.white70 : AppColors.warning,
+                color: isDark ? AppColors.pureWhite.withValues(alpha: 0.54) : AppColors.harvestAmber,
               ),
             ),
           ),
@@ -942,14 +983,14 @@ class _PanchangVratCalendarScreenState extends State<PanchangVratCalendarScreen>
               decoration: BoxDecoration(
                 color:
                     isDark
-                        ? Colors.white.withValues(alpha: 0.06)
-                        : const Color(0xFFF4F8F4),
+                        ? AppColors.parchment.withValues(alpha: 0.06)
+                        : AppColors.parchment,
                 borderRadius: BorderRadius.circular(10),
               ),
               child: Icon(
                 Icons.close_rounded,
                 size: 18,
-                color: isDark ? Colors.white60 : Colors.black45,
+                color: isDark ? AppColors.pureWhite.withValues(alpha: 0.60) : AppColors.charcoal45,
               ),
             ),
           ),
@@ -963,14 +1004,17 @@ class _PanchangVratCalendarScreenState extends State<PanchangVratCalendarScreen>
       margin: const EdgeInsets.fromLTRB(16, 16, 16, 16),
       padding: const EdgeInsets.all(6),
       decoration: BoxDecoration(
-        color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.white,
+        color:
+            isDark
+                ? AppColors.parchment.withValues(alpha: 0.05)
+                : AppColors.parchment,
         borderRadius: BorderRadius.circular(16),
         boxShadow:
             isDark
                 ? null
                 : [
                   BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.04),
+                    color: AppColors.charcoal.withValues(alpha: 0.04),
                     blurRadius: 10,
                     offset: const Offset(0, 2),
                   ),
@@ -991,7 +1035,7 @@ class _PanchangVratCalendarScreenState extends State<PanchangVratCalendarScreen>
             selected: state.selectedImportance == 'high',
             onTap: () => _cubit.filterByImportance('high'),
             isDark: isDark,
-            color: AppColors.error,
+            color: AppColors.rawEarth,
           ),
           _buildFilterChip(
             label: _isHindi ? 'मध्यम' : 'Medium',
@@ -999,7 +1043,7 @@ class _PanchangVratCalendarScreenState extends State<PanchangVratCalendarScreen>
             selected: state.selectedImportance == 'medium',
             onTap: () => _cubit.filterByImportance('medium'),
             isDark: isDark,
-            color: AppColors.warning,
+            color: AppColors.harvestAmber,
           ),
           _buildFilterChip(
             label: _isHindi ? 'निम्न' : 'Low',
@@ -1007,7 +1051,7 @@ class _PanchangVratCalendarScreenState extends State<PanchangVratCalendarScreen>
             selected: state.selectedImportance == 'low',
             onTap: () => _cubit.filterByImportance('low'),
             isDark: isDark,
-            color: AppColors.success,
+            color: AppColors.deepSoilGreen,
           ),
         ],
       ),
@@ -1034,7 +1078,7 @@ class _PanchangVratCalendarScreenState extends State<PanchangVratCalendarScreen>
           duration: const Duration(milliseconds: 200),
           padding: const EdgeInsets.symmetric(vertical: 12),
           decoration: BoxDecoration(
-            color: selected ? chipColor : Colors.transparent,
+            color: selected ? chipColor : AppColors.transparent,
             borderRadius: BorderRadius.circular(12),
           ),
           child: Column(
@@ -1045,8 +1089,10 @@ class _PanchangVratCalendarScreenState extends State<PanchangVratCalendarScreen>
                 size: 20,
                 color:
                     selected
-                        ? Colors.white
-                        : (isDark ? Colors.white54 : Colors.black45),
+                        ? AppColors.parchment
+                        : (isDark
+                            ? AppColors.parchment54
+                            : AppColors.charcoal45),
               ),
               const SizedBox(height: 4),
               AutoSizeText(
@@ -1056,8 +1102,8 @@ class _PanchangVratCalendarScreenState extends State<PanchangVratCalendarScreen>
                   fontWeight: selected ? FontWeight.w700 : FontWeight.w600,
                   color:
                       selected
-                          ? Colors.white
-                          : (isDark ? Colors.white54 : Colors.black54),
+                          ? AppColors.parchment
+                          : (isDark ? AppColors.pureWhite.withValues(alpha: 0.54) : AppColors.charcoal54),
                 ),
               ),
             ],
@@ -1081,7 +1127,10 @@ class _PanchangVratCalendarScreenState extends State<PanchangVratCalendarScreen>
         margin: const EdgeInsets.only(bottom: 16),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(20),
-          color: isDark ? const Color(0xFF0D150F) : Colors.white,
+          color:
+              (isDark
+                  ? AppColors.charcoal
+                  : AppColors.parchment),
           boxShadow: [
             BoxShadow(
               color: importanceColor.withValues(alpha: isDark ? 0.15 : 0.08),
@@ -1090,7 +1139,7 @@ class _PanchangVratCalendarScreenState extends State<PanchangVratCalendarScreen>
             ),
             if (!isDark)
               BoxShadow(
-                color: Colors.black.withValues(alpha: 0.03),
+                color: AppColors.charcoal.withValues(alpha: 0.03),
                 blurRadius: 10,
                 offset: const Offset(0, 2),
               ),
@@ -1145,7 +1194,10 @@ class _PanchangVratCalendarScreenState extends State<PanchangVratCalendarScreen>
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.w800,
-                        color: isDark ? Colors.white : const Color(0xFF0D150E),
+                        color:
+                            (isDark
+                                ? AppColors.charcoal
+                                : AppColors.parchment),
                         letterSpacing: -0.3,
                       ),
                     ),
@@ -1155,7 +1207,10 @@ class _PanchangVratCalendarScreenState extends State<PanchangVratCalendarScreen>
                         _metaLine(details),
                         style: TextStyle(
                           fontSize: 13,
-                          color: isDark ? Colors.white54 : Colors.black45,
+                          color:
+                              isDark
+                                  ? AppColors.parchment54
+                                  : AppColors.charcoal45,
                           fontWeight: FontWeight.w500,
                         ),
                       ),
@@ -1169,7 +1224,8 @@ class _PanchangVratCalendarScreenState extends State<PanchangVratCalendarScreen>
                         style: TextStyle(
                           fontSize: 14,
 
-                          color: isDark ? Colors.white70 : Colors.black54,
+                          color:
+                              isDark ? AppColors.pureWhite.withValues(alpha: 0.54) : AppColors.charcoal54,
                         ),
                       ),
                     ],
@@ -1181,7 +1237,7 @@ class _PanchangVratCalendarScreenState extends State<PanchangVratCalendarScreen>
                             Icons.wb_sunny_rounded,
                             'Sunrise',
                             _formatTime(details.sunrise),
-                            const Color(0xFFFF9500),
+                            AppColors.parchment,
                             isDark,
                           ),
                           const SizedBox(width: 10),
@@ -1189,7 +1245,7 @@ class _PanchangVratCalendarScreenState extends State<PanchangVratCalendarScreen>
                             Icons.nightlight_round,
                             'Sunset',
                             _formatTime(details.sunset),
-                            const Color(0xFF5856D6),
+                            AppColors.parchment,
                             isDark,
                           ),
                           const Spacer(),
@@ -1240,8 +1296,8 @@ class _PanchangVratCalendarScreenState extends State<PanchangVratCalendarScreen>
         children: [
           AutoSizeText(
             DateFormat('d').format(date),
-            style: const TextStyle(
-              color: Colors.white,
+            style:       TextStyle(
+              color: isDark ? AppColors.pureWhite : AppColors.parchment,
               fontSize: 18,
               fontWeight: FontWeight.w900,
               height: 1,
@@ -1254,7 +1310,7 @@ class _PanchangVratCalendarScreenState extends State<PanchangVratCalendarScreen>
                 ? (_isHindi ? 'कल' : 'TMRW')
                 : DateFormat('MMM').format(date).toUpperCase(),
             style: TextStyle(
-              color: Colors.white.withValues(alpha: 0.9),
+              color: AppColors.parchment.withValues(alpha: 0.9),
               fontSize: 10,
               fontWeight: FontWeight.w700,
               letterSpacing: 0.5,
@@ -1271,16 +1327,16 @@ class _PanchangVratCalendarScreenState extends State<PanchangVratCalendarScreen>
 
     if (daysUntil == 0) {
       text = _isHindi ? '🎯 आज' : '🎯 Today';
-      bgColor = const Color(0xFF34C759);
+      bgColor = AppColors.parchment;
     } else if (daysUntil == 1) {
       text = _isHindi ? '⏰ कल' : '⏰ Tomorrow';
-      bgColor = const Color(0xFFFF9500);
+      bgColor = AppColors.parchment;
     } else if (daysUntil <= 7) {
       text = _isHindi ? '📅 $daysUntil दिन' : '📅 $daysUntil days';
-      bgColor = const Color(0xFF5856D6);
+      bgColor = AppColors.parchment;
     } else {
       text = _isHindi ? '$daysUntil दिन' : '$daysUntil days';
-      bgColor = isDark ? Colors.white12 : Colors.black12;
+      bgColor = isDark ? AppColors.pureWhite : AppColors.charcoal12;
     }
 
     return Container(
@@ -1295,7 +1351,7 @@ class _PanchangVratCalendarScreenState extends State<PanchangVratCalendarScreen>
         style: TextStyle(
           fontSize: 11,
           fontWeight: FontWeight.w700,
-          color: isDark ? Colors.white : bgColor,
+          color: isDark ? AppColors.pureWhite : bgColor,
         ),
       ),
     );
@@ -1344,7 +1400,7 @@ class _PanchangVratCalendarScreenState extends State<PanchangVratCalendarScreen>
             style: TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.w700,
-              color: isDark ? Colors.white70 : color,
+              color: isDark ? AppColors.pureWhite.withValues(alpha: 0.54) : color,
             ),
           ),
         ],
@@ -1375,7 +1431,7 @@ class _PanchangVratCalendarScreenState extends State<PanchangVratCalendarScreen>
             style: TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.w700,
-              color: isDark ? Colors.white : AppColors.textPrimary,
+              color: isDark ? AppColors.pureWhite : AppColors.charcoal,
             ),
           ),
           const SizedBox(height: 8),
@@ -1385,13 +1441,13 @@ class _PanchangVratCalendarScreenState extends State<PanchangVratCalendarScreen>
                 : 'Try adjusting your filters or date range',
             style: TextStyle(
               fontSize: 14,
-              color: isDark ? Colors.white54 : AppColors.textSecondary,
+              color: isDark ? AppColors.pureWhite.withValues(alpha: 0.54) : AppColors.charcoal70,
             ),
           ),
           const SizedBox(height: 24),
           TextButton.icon(
             onPressed: () => _loadNextDays(90),
-            icon: const Icon(Icons.refresh_rounded),
+            icon: Icon(Icons.refresh_rounded),
             label: AutoSizeText(_isHindi ? 'रीसेट करें' : 'Reset Filters'),
             style: TextButton.styleFrom(foregroundColor: _gradientStart),
           ),
@@ -1404,7 +1460,7 @@ class _PanchangVratCalendarScreenState extends State<PanchangVratCalendarScreen>
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: Colors.transparent,
+      backgroundColor: AppColors.transparent,
       builder: (context) => _detailsSheet(vrat, isDark),
     );
   }
@@ -1422,7 +1478,10 @@ class _PanchangVratCalendarScreenState extends State<PanchangVratCalendarScreen>
       builder: (context, controller) {
         return Container(
           decoration: BoxDecoration(
-            color: isDark ? const Color(0xFF0D150F) : Colors.white,
+            color:
+                (isDark
+                    ? AppColors.charcoal
+                    : AppColors.parchment),
             borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
           ),
           child: Column(
@@ -1449,7 +1508,7 @@ class _PanchangVratCalendarScreenState extends State<PanchangVratCalendarScreen>
                       width: 40,
                       height: 4,
                       decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.4),
+                        color: AppColors.parchment.withValues(alpha: 0.4),
                         borderRadius: BorderRadius.circular(2),
                       ),
                     ),
@@ -1459,12 +1518,12 @@ class _PanchangVratCalendarScreenState extends State<PanchangVratCalendarScreen>
                         Container(
                           padding: const EdgeInsets.all(12),
                           decoration: BoxDecoration(
-                            color: Colors.white.withValues(alpha: 0.2),
+                            color: AppColors.parchment.withValues(alpha: 0.2),
                             borderRadius: BorderRadius.circular(14),
                           ),
-                          child: const Icon(
+                          child: Icon(
                             Icons.self_improvement_rounded,
-                            color: Colors.white,
+                            color: isDark ? AppColors.pureWhite : AppColors.parchment,
                             size: 28,
                           ),
                         ),
@@ -1475,8 +1534,8 @@ class _PanchangVratCalendarScreenState extends State<PanchangVratCalendarScreen>
                             children: [
                               AutoSizeText(
                                 _getVratName(vrat),
-                                style: const TextStyle(
-                                  color: Colors.white,
+                                style:       TextStyle(
+                                  color: isDark ? AppColors.pureWhite : AppColors.parchment,
                                   fontSize: 20,
                                   fontWeight: FontWeight.w800,
                                 ),
@@ -1487,7 +1546,9 @@ class _PanchangVratCalendarScreenState extends State<PanchangVratCalendarScreen>
                                   'EEEE, MMMM d, y',
                                 ).format(vrat.dateTime),
                                 style: TextStyle(
-                                  color: Colors.white.withValues(alpha: 0.85),
+                                  color: AppColors.parchment.withValues(
+                                    alpha: 0.85,
+                                  ),
                                   fontSize: 13,
                                   fontWeight: FontWeight.w500,
                                 ),
@@ -1565,7 +1626,7 @@ class _PanchangVratCalendarScreenState extends State<PanchangVratCalendarScreen>
                         icon: Icons.do_not_disturb_alt_rounded,
                         title: _isHindi ? 'क्या न करें' : 'Things to Avoid',
                         items: _getAvoidList(observance),
-                        color: AppColors.error,
+                        color: AppColors.rawEarth,
                         isDark: isDark,
                       ),
                       const SizedBox(height: 12),
@@ -1576,7 +1637,7 @@ class _PanchangVratCalendarScreenState extends State<PanchangVratCalendarScreen>
                         title:
                             _isHindi ? 'क्या कर सकते हैं' : 'What\'s Allowed',
                         items: _getAllowedList(observance),
-                        color: AppColors.success,
+                        color: AppColors.deepSoilGreen,
                         isDark: isDark,
                       ),
                       const SizedBox(height: 12),
@@ -1587,7 +1648,7 @@ class _PanchangVratCalendarScreenState extends State<PanchangVratCalendarScreen>
                         title: _isHindi ? 'पारण नियम' : 'Paran Rules',
                         content: _getParanNotes(info?.paranRules),
                         isDark: isDark,
-                        accentColor: const Color(0xFFFF9500),
+                        accentColor: AppColors.parchment,
                       ),
                       const SizedBox(height: 12),
                     ],
@@ -1607,18 +1668,18 @@ class _PanchangVratCalendarScreenState extends State<PanchangVratCalendarScreen>
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
         decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.15),
+          color: AppColors.parchment.withValues(alpha: 0.15),
           borderRadius: BorderRadius.circular(12),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, color: Colors.white, size: 18),
+            Icon(icon, color: Theme.of(context).brightness == Brightness.dark ? AppColors.pureWhite : AppColors.parchment, size: 18),
             const SizedBox(width: 8),
             AutoSizeText(
               value,
-              style: const TextStyle(
-                color: Colors.white,
+              style:       TextStyle(
+                color: Theme.of(context).brightness == Brightness.dark ? AppColors.pureWhite : AppColors.parchment,
                 fontSize: 14,
                 fontWeight: FontWeight.w700,
               ),
@@ -1643,14 +1704,14 @@ class _PanchangVratCalendarScreenState extends State<PanchangVratCalendarScreen>
       decoration: BoxDecoration(
         color:
             isDark
-                ? Colors.white.withValues(alpha: 0.05)
-                : const Color(0xFFF4F8F4),
+                ? AppColors.parchment.withValues(alpha: 0.05)
+                : AppColors.parchment,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
           color:
               isDark
-                  ? Colors.white.withValues(alpha: 0.08)
-                  : Colors.black.withValues(alpha: 0.04),
+                  ? AppColors.parchment.withValues(alpha: 0.08)
+                  : AppColors.charcoal.withValues(alpha: 0.04),
         ),
       ),
       child: Column(
@@ -1672,7 +1733,10 @@ class _PanchangVratCalendarScreenState extends State<PanchangVratCalendarScreen>
                 style: TextStyle(
                   fontSize: 15,
                   fontWeight: FontWeight.w700,
-                  color: isDark ? Colors.white : const Color(0xFF0D150E),
+                  color:
+                      (isDark
+                          ? AppColors.charcoal
+                          : AppColors.parchment),
                 ),
               ),
             ],
@@ -1683,7 +1747,7 @@ class _PanchangVratCalendarScreenState extends State<PanchangVratCalendarScreen>
             style: TextStyle(
               fontSize: 14,
 
-              color: isDark ? Colors.white70 : Colors.black54,
+              color: isDark ? AppColors.pureWhite.withValues(alpha: 0.54) : AppColors.charcoal54,
             ),
           ),
         ],
@@ -1703,14 +1767,14 @@ class _PanchangVratCalendarScreenState extends State<PanchangVratCalendarScreen>
       decoration: BoxDecoration(
         color:
             isDark
-                ? Colors.white.withValues(alpha: 0.05)
-                : const Color(0xFFF4F8F4),
+                ? AppColors.parchment.withValues(alpha: 0.05)
+                : AppColors.parchment,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
           color:
               isDark
-                  ? Colors.white.withValues(alpha: 0.08)
-                  : Colors.black.withValues(alpha: 0.04),
+                  ? AppColors.parchment.withValues(alpha: 0.08)
+                  : AppColors.charcoal.withValues(alpha: 0.04),
         ),
       ),
       child: Column(
@@ -1732,7 +1796,10 @@ class _PanchangVratCalendarScreenState extends State<PanchangVratCalendarScreen>
                 style: TextStyle(
                   fontSize: 15,
                   fontWeight: FontWeight.w700,
-                  color: isDark ? Colors.white : const Color(0xFF0D150E),
+                  color:
+                      (isDark
+                          ? AppColors.charcoal
+                          : AppColors.parchment),
                 ),
               ),
             ],
@@ -1760,7 +1827,8 @@ class _PanchangVratCalendarScreenState extends State<PanchangVratCalendarScreen>
                       style: TextStyle(
                         fontSize: 14,
 
-                        color: isDark ? Colors.white70 : Colors.black54,
+                        color:
+                            isDark ? AppColors.pureWhite.withValues(alpha: 0.54) : AppColors.charcoal54,
                       ),
                     ),
                   ),
@@ -1823,8 +1891,9 @@ class _PanchangVratCalendarScreenState extends State<PanchangVratCalendarScreen>
           data: base.copyWith(
             colorScheme: base.colorScheme.copyWith(
               primary: _gradientStart,
-              onPrimary: Colors.white,
-              surface: isDark ? const Color(0xFF0D150F) : Colors.white,
+              onPrimary: AppColors.parchment,
+              surface:
+                  isDark ? AppColors.pureWhite : AppColors.charcoal,
             ),
           ),
           child: child ?? const SizedBox.shrink(),
@@ -1992,12 +2061,12 @@ class _PanchangVratCalendarScreenState extends State<PanchangVratCalendarScreen>
   Color _importanceColor(String importanceLower) {
     switch (importanceLower) {
       case 'high':
-        return AppColors.error;
+        return AppColors.rawEarth;
       case 'low':
-        return AppColors.success;
+        return AppColors.deepSoilGreen;
       case 'medium':
       default:
-        return AppColors.warning;
+        return AppColors.harvestAmber;
     }
   }
 
@@ -2008,8 +2077,9 @@ class _PanchangVratCalendarScreenState extends State<PanchangVratCalendarScreen>
 
   String _metaLine(VratDetails details) {
     final parts = <String>[];
-    if ((details.paksha ?? '').isNotEmpty)
+    if ((details.paksha ?? '').isNotEmpty) {
       parts.add('${details.paksha} Paksha');
+    }
     if ((details.masa ?? '').isNotEmpty) parts.add(details.masa ?? '');
     if ((details.tithi ?? '').isNotEmpty) parts.add(details.tithi ?? '');
     return parts.join(' • ');
@@ -2053,15 +2123,17 @@ class _PanchangVratCalendarScreenState extends State<PanchangVratCalendarScreen>
 
   List<String> _getAllowedList(VratObservance? observance) {
     if (observance == null) return [];
-    if (_isHindi && observance.allowedHi.isNotEmpty)
+    if (_isHindi && observance.allowedHi.isNotEmpty) {
       return observance.allowedHi;
+    }
     return observance.allowedEn;
   }
 
   String _getParanNotes(VratParanRules? rules) {
     if (rules == null) return '';
-    if (_isHindi && (rules.notesHi ?? '').isNotEmpty)
+    if (_isHindi && (rules.notesHi ?? '').isNotEmpty) {
       return rules.notesHi ?? '';
+    }
     return rules.notesEn ?? '';
   }
 }

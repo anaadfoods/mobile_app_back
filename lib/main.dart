@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:grocery_app/common_widgets/global_import.dart';
 
@@ -7,7 +9,22 @@ import 'firebase_options.dart';
 import 'package:device_preview/device_preview.dart';
 // import 'package:grocery_app/services/deep_link_service.dart'; // Deprecated - Handled by GoRouter
 
+/// AUDIT ONLY: Bypasses SSL certificate verification for HDFC Bank security audit.
+/// TODO: REMOVE this class before production/Play Store release!
+class AuditHttpOverrides extends HttpOverrides {
+  @override
+  HttpClient createHttpClient(SecurityContext? context) {
+    return super.createHttpClient(context)
+      ..badCertificateCallback =
+          (X509Certificate cert, String host, int port) => true;
+  }
+}
+
 Future<void> main() async {
+  // AUDIT ONLY: Accept all SSL certificates for proxy interception.
+  // TODO: REMOVE this line before production/Play Store release!
+  HttpOverrides.global = AuditHttpOverrides();
+
   await dotenv.load(fileName: ".env");
 
   WidgetsFlutterBinding.ensureInitialized();
@@ -35,8 +52,8 @@ Future<void> main() async {
   SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(
-      statusBarColor: Colors.transparent,
-      systemNavigationBarColor: Colors.transparent,
+      statusBarColor: AppColors.transparent,
+      systemNavigationBarColor: AppColors.transparent,
       statusBarIconBrightness: Brightness.dark,
       systemNavigationBarIconBrightness: Brightness.dark,
     ),

@@ -1,6 +1,8 @@
+import '../../../core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:grocery_app/core/theme/app_colors.dart';
 import 'package:intl/intl.dart';
 
 import '../../../common_widgets/error_state_widget.dart';
@@ -33,8 +35,8 @@ class _PanchangAdvancedTimingsScreenState
       sanskrit: 'सूर्य (Surya)',
       symbol: '☉',
       emoji: '☀️',
-      color: Color(0xFFFF6B00),
-      gradientColors: [Color(0xFFFF8C00), Color(0xFFFF4500)],
+      color: AppColors.harvestAmber,
+      gradientColors: [AppColors.harvestAmber, AppColors.warmGold],
       deity: 'Surya Dev',
       day: 'Sunday',
       nature: 'Malefic (Krura)',
@@ -45,8 +47,8 @@ class _PanchangAdvancedTimingsScreenState
       sanskrit: 'चन्द्र (Chandra)',
       symbol: '☽',
       emoji: '🌙',
-      color: Color(0xFFE8E8E8),
-      gradientColors: [Color(0xFFFFFFFF), Color(0xFFB8C6DB)],
+      color: AppColors.parchment,
+      gradientColors: [AppColors.parchment, AppColors.softCream],
       deity: 'Chandra Dev',
       day: 'Monday',
       nature: 'Benefic (Saumya)',
@@ -57,8 +59,8 @@ class _PanchangAdvancedTimingsScreenState
       sanskrit: 'मंगल (Mangal)',
       symbol: '♂',
       emoji: '🔴',
-      color: Color(0xFFDC143C),
-      gradientColors: [Color(0xFFFF4444), Color(0xFFB22222)],
+      color: AppColors.rawEarth,
+      gradientColors: [AppColors.rawEarth, AppColors.softRed],
       deity: 'Mangal Dev',
       day: 'Tuesday',
       nature: 'Malefic (Krura)',
@@ -69,8 +71,8 @@ class _PanchangAdvancedTimingsScreenState
       sanskrit: 'बुध (Budha)',
       symbol: '☿',
       emoji: '🟢',
-      color: Color(0xFF228B22),
-      gradientColors: [Color(0xFF32CD32), Color(0xFF006400)],
+      color: AppColors.successGreen,
+      gradientColors: [AppColors.successGreen, AppColors.mintGreen],
       deity: 'Budha Dev',
       day: 'Wednesday',
       nature: 'Neutral (Mishra)',
@@ -81,8 +83,8 @@ class _PanchangAdvancedTimingsScreenState
       sanskrit: 'गुरु (Guru)',
       symbol: '♃',
       emoji: '🟡',
-      color: Color(0xFFFFD700),
-      gradientColors: [Color(0xFFFFD700), Color(0xFFDAA520)],
+      color: AppColors.warmGold,
+      gradientColors: [AppColors.warmGold, AppColors.harvestAmber],
       deity: 'Brihaspati',
       day: 'Thursday',
       nature: 'Benefic (Saumya)',
@@ -93,8 +95,8 @@ class _PanchangAdvancedTimingsScreenState
       sanskrit: 'शुक्र (Shukra)',
       symbol: '♀',
       emoji: '💎',
-      color: Color(0xFFFFB6C1),
-      gradientColors: [Color(0xFFFFDAB9), Color(0xFFFF69B4)],
+      color: AppColors.parchment,
+      gradientColors: [AppColors.parchment, AppColors.softCream],
       deity: 'Shukra Dev',
       day: 'Friday',
       nature: 'Benefic (Saumya)',
@@ -105,8 +107,8 @@ class _PanchangAdvancedTimingsScreenState
       sanskrit: 'शनि (Shani)',
       symbol: '♄',
       emoji: '🔵',
-      color: Color(0xFF191970),
-      gradientColors: [Color(0xFF4169E1), Color(0xFF000080)],
+      color: AppColors.charcoal,
+      gradientColors: [AppColors.charcoal, const Color(0xFF3A3A3A)],
       deity: 'Shani Dev',
       day: 'Saturday',
       nature: 'Malefic (Krura)',
@@ -175,11 +177,12 @@ class _PanchangAdvancedTimingsScreenState
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
       backgroundColor:
-          isDark ? const Color(0xFF080D0A) : const Color(0xFFF4F8F4),
+          isDark ? AppColors.pureBlack : AppColors.parchment,
       body: BlocBuilder<PanchangHomeCubit, PanchangHomeState>(
         builder: (context, state) {
-          if (state is PanchangMuhuratsLoading)
+          if (state is PanchangMuhuratsLoading) {
             return _buildLoadingState(isDark);
+          }
           if (state is PanchangHomeError) {
             return ErrorStateWidget(
               subtitle: state.message,
@@ -190,8 +193,9 @@ class _PanchangAdvancedTimingsScreenState
                   ),
             );
           }
-          if (state is! PanchangMuhuratsSuccess)
+          if (state is! PanchangMuhuratsSuccess) {
             return const Center(child: AutoSizeText('No data available'));
+          }
           final muhurats = state.muhurats;
           return CustomScrollView(
             slivers: [
@@ -237,20 +241,36 @@ class _PanchangAdvancedTimingsScreenState
               gradient: LinearGradient(
                 colors:
                     isDark
-                        ? [const Color(0xFF6366F1), const Color(0xFF8B5CF6)]
-                        : [const Color(0xFF8B5CF6), const Color(0xFF6366F1)],
+                        ? [
+                          (isDark
+                                  ? AppColors.parchment
+                                  : AppColors.deepSoilGreen)
+                              .withAlpha(200),
+                          (isDark
+                              ? AppColors.parchment
+                              : AppColors.deepSoilGreen),
+                        ]
+                        : [
+                          (isDark
+                              ? AppColors.parchment
+                              : AppColors.deepSoilGreen),
+                          (isDark
+                                  ? AppColors.parchment
+                                  : AppColors.deepSoilGreen)
+                              .withAlpha(200),
+                        ],
               ),
               boxShadow: [
                 BoxShadow(
-                  color: const Color(0xFF6366F1).withOpacity(0.4),
+                  color: AppColors.parchment.withValues(alpha: 0.4),
                   blurRadius: 30,
                   spreadRadius: 5,
                 ),
               ],
             ),
-            child: const Icon(
+            child: Icon(
               Icons.schedule_rounded,
-              color: Colors.white,
+              color: AppColors.parchment,
               size: 40,
             ),
           ),
@@ -260,7 +280,7 @@ class _PanchangAdvancedTimingsScreenState
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w600,
-              color: isDark ? Colors.white70 : Colors.black54,
+              color: isDark ? AppColors.pureWhite.withValues(alpha: 0.54) : AppColors.charcoal54,
             ),
           ),
         ],
@@ -273,18 +293,21 @@ class _PanchangAdvancedTimingsScreenState
       expandedHeight: 180,
       floating: false,
       pinned: true,
-      backgroundColor: isDark ? const Color(0xFF080D0A) : Colors.white,
+      backgroundColor:
+          AppColors.deepSoilGreen,
       elevation: 0,
       leading: Container(
         margin: const EdgeInsets.all(8),
         decoration: BoxDecoration(
-          color: (isDark ? Colors.white : Colors.black).withOpacity(0.1),
+          color: (isDark ? AppColors.pureWhite : AppColors.charcoal).withValues(
+            alpha: 0.1,
+          ),
           borderRadius: BorderRadius.circular(12),
         ),
         child: IconButton(
           icon: Icon(
             Icons.arrow_back_rounded,
-            color: isDark ? Colors.white : Colors.black87,
+            color: AppColors.parchment,
           ),
           onPressed: () => Navigator.pop(context),
         ),
@@ -293,13 +316,15 @@ class _PanchangAdvancedTimingsScreenState
         Container(
           margin: const EdgeInsets.all(8),
           decoration: BoxDecoration(
-            color: (isDark ? Colors.white : Colors.black).withOpacity(0.1),
+            color: (isDark ? AppColors.pureWhite : AppColors.charcoal)
+                .withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(12),
           ),
           child: IconButton(
             icon: Icon(
               Icons.info_outline_rounded,
-              color: isDark ? Colors.white : Colors.black87,
+              color:
+                  isDark ? AppColors.parchment : AppColors.charcoal,
             ),
             onPressed: () => _showHoraInfoDialog(context, isDark),
           ),
@@ -315,7 +340,8 @@ class _PanchangAdvancedTimingsScreenState
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
-                color: isDark ? Colors.white : Colors.black87,
+                color:
+                    isDark ? AppColors.parchment : AppColors.charcoal,
               ),
             ),
             AutoSizeText(
@@ -323,7 +349,8 @@ class _PanchangAdvancedTimingsScreenState
               style: TextStyle(
                 fontSize: 11,
                 fontWeight: FontWeight.w500,
-                color: (isDark ? Colors.white : Colors.black).withOpacity(0.6),
+                color: (isDark ? AppColors.pureWhite : AppColors.charcoal)
+                    .withValues(alpha: 0.6),
               ),
             ),
           ],
@@ -337,8 +364,24 @@ class _PanchangAdvancedTimingsScreenState
               end: Alignment.bottomRight,
               colors:
                   isDark
-                      ? [const Color(0xFF0D1A0F), const Color(0xFF080D0A)]
-                      : [const Color(0xFFEDF4EE), const Color(0xFFF4F8F4)],
+                      ? [
+                        (isDark
+                                ? AppColors.parchment
+                                : AppColors.deepSoilGreen)
+                            .withAlpha(200),
+                        (isDark
+                            ? AppColors.parchment
+                            : AppColors.deepSoilGreen),
+                      ]
+                      : [
+                        (isDark
+                            ? AppColors.parchment
+                            : AppColors.deepSoilGreen),
+                        (isDark
+                                ? AppColors.parchment
+                                : AppColors.deepSoilGreen)
+                            .withAlpha(200),
+                      ],
             ),
           ),
           child: Stack(
@@ -346,27 +389,27 @@ class _PanchangAdvancedTimingsScreenState
               Positioned(
                 top: 30,
                 right: 20,
-                child: _buildDecorativePlanet('☉', const Color(0xFFFF6B00), 50),
+                child: _buildDecorativePlanet('☉', AppColors.parchment, 50),
               ),
               Positioned(
                 top: 60,
                 right: 90,
-                child: _buildDecorativePlanet('☽', const Color(0xFFB8C6DB), 35),
+                child: _buildDecorativePlanet('☽', AppColors.parchment, 35),
               ),
               Positioned(
                 top: 40,
                 right: 150,
-                child: _buildDecorativePlanet('♂', const Color(0xFFDC143C), 28),
+                child: _buildDecorativePlanet('♂', AppColors.parchment, 28),
               ),
               Positioned(
                 bottom: 60,
                 right: 40,
-                child: _buildDecorativePlanet('♃', const Color(0xFFFFD700), 32),
+                child: _buildDecorativePlanet('♃', AppColors.parchment, 32),
               ),
               Positioned(
                 bottom: 70,
                 right: 100,
-                child: _buildDecorativePlanet('♀', const Color(0xFFFFB6C1), 25),
+                child: _buildDecorativePlanet('♀', AppColors.parchment, 25),
               ),
             ],
           ),
@@ -381,8 +424,8 @@ class _PanchangAdvancedTimingsScreenState
       height: size,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        color: color.withOpacity(0.2),
-        border: Border.all(color: color.withOpacity(0.5), width: 1),
+        color: color.withValues(alpha: 0.2),
+        border: Border.all(color: color.withValues(alpha: 0.5), width: 1),
       ),
       child: Center(
         child: AutoSizeText(
@@ -402,13 +445,29 @@ class _PanchangAdvancedTimingsScreenState
           end: Alignment.bottomRight,
           colors:
               isDark
-                  ? [const Color(0xFF0D1A10), const Color(0xFF143318)]
-                  : [Colors.white, const Color(0xFFF5F3FF)],
+                  ? [
+                    (isDark
+                            ? AppColors.parchment
+                            : AppColors.deepSoilGreen)
+                        .withAlpha(200),
+                    (isDark
+                        ? AppColors.parchment
+                        : AppColors.deepSoilGreen),
+                  ]
+                  : [
+                    (isDark
+                        ? AppColors.parchment
+                        : AppColors.deepSoilGreen),
+                    (isDark
+                            ? AppColors.parchment
+                            : AppColors.deepSoilGreen)
+                        .withAlpha(200),
+                  ],
         ),
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF6366F1).withOpacity(isDark ? 0.3 : 0.15),
+            color: AppColors.parchment.withValues(alpha: isDark ? 0.3 : 0.15),
             blurRadius: 20,
             offset: const Offset(0, 8),
           ),
@@ -422,19 +481,27 @@ class _PanchangAdvancedTimingsScreenState
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFF6366F1), Color(0xFF8B5CF6)],
+                  gradient: LinearGradient(
+                    colors: [
+                      (isDark
+                          ? AppColors.parchment
+                          : AppColors.deepSoilGreen),
+                      (isDark
+                              ? AppColors.parchment
+                              : AppColors.deepSoilGreen)
+                          .withAlpha(200),
+                    ],
                   ),
                   borderRadius: BorderRadius.circular(14),
                   boxShadow: [
                     BoxShadow(
-                      color: const Color(0xFF6366F1).withOpacity(0.4),
+                      color: AppColors.parchment.withValues(alpha: 0.4),
                       blurRadius: 12,
                       offset: const Offset(0, 4),
                     ),
                   ],
                 ),
-                child: const Icon(Icons.public, color: Colors.white, size: 24),
+                child: Icon(Icons.public, color: AppColors.parchment, size: 24),
               ),
               const SizedBox(width: 16),
               Expanded(
@@ -446,15 +513,22 @@ class _PanchangAdvancedTimingsScreenState
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
-                        color: isDark ? Colors.white : Colors.black87,
+                        color:
+                            (isDark
+                                ? AppColors.parchment
+                                : AppTheme
+                                    .lightTheme
+                                    .textTheme
+                                    .bodyLarge
+                                    ?.color),
                       ),
                     ),
                     AutoSizeText(
                       'Vedic planetary rulers of time',
                       style: TextStyle(
                         fontSize: 12,
-                        color: (isDark ? Colors.white : Colors.black)
-                            .withOpacity(0.6),
+                        color: (isDark ? AppColors.pureWhite : AppColors.charcoal)
+                            .withValues(alpha: 0.6),
                       ),
                     ),
                   ],
@@ -484,12 +558,15 @@ class _PanchangAdvancedTimingsScreenState
         decoration: BoxDecoration(
           gradient: LinearGradient(
             colors: [
-              planet.gradientColors[0].withOpacity(isDark ? 0.3 : 0.2),
-              planet.gradientColors[1].withOpacity(isDark ? 0.2 : 0.1),
+              planet.gradientColors[0].withValues(alpha: isDark ? 0.3 : 0.2),
+              planet.gradientColors[1].withValues(alpha: isDark ? 0.2 : 0.1),
             ],
           ),
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: planet.color.withOpacity(0.5), width: 1.5),
+          border: Border.all(
+            color: planet.color.withValues(alpha: 0.5),
+            width: 1.5,
+          ),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
@@ -502,7 +579,7 @@ class _PanchangAdvancedTimingsScreenState
                 gradient: LinearGradient(colors: planet.gradientColors),
                 boxShadow: [
                   BoxShadow(
-                    color: planet.color.withOpacity(0.5),
+                    color: planet.color.withValues(alpha: 0.5),
                     blurRadius: 8,
                     spreadRadius: 1,
                   ),
@@ -516,8 +593,8 @@ class _PanchangAdvancedTimingsScreenState
                     fontWeight: FontWeight.bold,
                     color:
                         planet.name == 'Moon' || planet.name == 'Venus'
-                            ? Colors.black87
-                            : Colors.white,
+                            ? AppColors.charcoal
+                            : AppColors.parchment,
                   ),
                 ),
               ),
@@ -528,7 +605,8 @@ class _PanchangAdvancedTimingsScreenState
               style: TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.w600,
-                color: isDark ? Colors.white : Colors.black87,
+                color:
+                    isDark ? AppColors.parchment : AppColors.charcoal,
               ),
             ),
           ],
@@ -548,17 +626,33 @@ class _PanchangAdvancedTimingsScreenState
           end: Alignment.bottomRight,
           colors:
               isDark
-                  ? [const Color(0xFF0D150E), const Color(0xFF0A1510)]
-                  : [Colors.white, const Color(0xFFFFFBEB)],
+                  ? [
+                    (isDark
+                            ? AppColors.parchment
+                            : AppColors.deepSoilGreen)
+                        .withAlpha(200),
+                    (isDark
+                        ? AppColors.parchment
+                        : AppColors.deepSoilGreen),
+                  ]
+                  : [
+                    (isDark
+                        ? AppColors.parchment
+                        : AppColors.deepSoilGreen),
+                    (isDark
+                            ? AppColors.parchment
+                            : AppColors.deepSoilGreen)
+                        .withAlpha(200),
+                  ],
         ),
         borderRadius: BorderRadius.circular(24),
         border: Border.all(
-          color: const Color(0xFFFFD700).withOpacity(0.4),
+          color: AppColors.parchment.withValues(alpha: 0.4),
           width: 2,
         ),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFFFFD700).withOpacity(isDark ? 0.2 : 0.15),
+            color: AppColors.parchment.withValues(alpha: isDark ? 0.2 : 0.15),
             blurRadius: 25,
             offset: const Offset(0, 8),
           ),
@@ -572,8 +666,8 @@ class _PanchangAdvancedTimingsScreenState
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: [
-                  const Color(0xFFFFD700).withOpacity(isDark ? 0.2 : 0.15),
-                  const Color(0xFFF59E0B).withOpacity(isDark ? 0.1 : 0.05),
+                  AppColors.parchment.withValues(alpha: isDark ? 0.2 : 0.15),
+                  AppColors.parchment.withValues(alpha: isDark ? 0.1 : 0.05),
                 ],
               ),
               borderRadius: const BorderRadius.vertical(
@@ -585,13 +679,21 @@ class _PanchangAdvancedTimingsScreenState
                 Container(
                   padding: const EdgeInsets.all(14),
                   decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      colors: [Color(0xFFFFD700), Color(0xFFF59E0B)],
+                    gradient: LinearGradient(
+                      colors: [
+                        (isDark
+                            ? AppColors.parchment
+                            : AppColors.deepSoilGreen),
+                        (isDark
+                                ? AppColors.parchment
+                                : AppColors.deepSoilGreen)
+                            .withAlpha(200),
+                      ],
                     ),
                     borderRadius: BorderRadius.circular(16),
                     boxShadow: [
                       BoxShadow(
-                        color: const Color(0xFFFFD700).withOpacity(0.5),
+                        color: AppColors.parchment.withValues(alpha: 0.5),
                         blurRadius: 15,
                         offset: const Offset(0, 5),
                       ),
@@ -609,15 +711,26 @@ class _PanchangAdvancedTimingsScreenState
                         style: TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
-                          color: isDark ? Colors.white : Colors.black87,
+                          color:
+                              (isDark
+                                  ? AppTheme
+                                      .darkTheme
+                                      .textTheme
+                                      .bodyLarge
+                                      ?.color
+                                  : AppTheme
+                                      .lightTheme
+                                      .textTheme
+                                      .bodyLarge
+                                      ?.color),
                         ),
                       ),
                       AutoSizeText(
                         '${horas.length} planetary hours • Each ~1 hour',
                         style: TextStyle(
                           fontSize: 12,
-                          color: (isDark ? Colors.white : Colors.black)
-                              .withOpacity(0.6),
+                          color: (isDark ? AppColors.pureWhite : AppColors.charcoal)
+                              .withValues(alpha: 0.6),
                         ),
                       ),
                     ],
@@ -669,24 +782,28 @@ class _PanchangAdvancedTimingsScreenState
           colors:
               isCurrent
                   ? [
-                    planet.gradientColors[0].withOpacity(isDark ? 0.4 : 0.25),
-                    planet.gradientColors[1].withOpacity(isDark ? 0.2 : 0.1),
+                    planet.gradientColors[0].withValues(
+                      alpha: isDark ? 0.4 : 0.25,
+                    ),
+                    planet.gradientColors[1].withValues(
+                      alpha: isDark ? 0.2 : 0.1,
+                    ),
                   ]
                   : [
-                    planet.color.withOpacity(isDark ? 0.15 : 0.08),
-                    planet.color.withOpacity(isDark ? 0.05 : 0.02),
+                    planet.color.withValues(alpha: isDark ? 0.15 : 0.08),
+                    planet.color.withValues(alpha: isDark ? 0.05 : 0.02),
                   ],
         ),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: isCurrent ? planet.color : planet.color.withOpacity(0.3),
+          color: isCurrent ? planet.color : planet.color.withValues(alpha: 0.3),
           width: isCurrent ? 2.5 : 1.5,
         ),
         boxShadow:
             isCurrent
                 ? [
                   BoxShadow(
-                    color: planet.color.withOpacity(0.4),
+                    color: planet.color.withValues(alpha: 0.4),
                     blurRadius: 15,
                     offset: const Offset(0, 4),
                   ),
@@ -707,7 +824,7 @@ class _PanchangAdvancedTimingsScreenState
               ),
               boxShadow: [
                 BoxShadow(
-                  color: planet.color.withOpacity(isCurrent ? 0.6 : 0.3),
+                  color: planet.color.withValues(alpha: isCurrent ? 0.6 : 0.3),
                   blurRadius: isCurrent ? 15 : 8,
                   spreadRadius: isCurrent ? 2 : 0,
                 ),
@@ -721,8 +838,8 @@ class _PanchangAdvancedTimingsScreenState
                   fontWeight: FontWeight.bold,
                   color:
                       planet.name == 'Moon' || planet.name == 'Venus'
-                          ? Colors.black87
-                          : Colors.white,
+                          ? AppColors.charcoal
+                          : AppColors.parchment,
                 ),
               ),
             ),
@@ -739,7 +856,14 @@ class _PanchangAdvancedTimingsScreenState
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
-                        color: isDark ? Colors.white : Colors.black87,
+                        color:
+                            (isDark
+                                ? AppColors.parchment
+                                : AppTheme
+                                    .lightTheme
+                                    .textTheme
+                                    .bodyLarge
+                                    ?.color),
                       ),
                     ),
                     const SizedBox(width: 8),
@@ -763,7 +887,7 @@ class _PanchangAdvancedTimingsScreenState
                           style: TextStyle(
                             fontSize: 10,
                             fontWeight: FontWeight.bold,
-                            color: Colors.white,
+                            color: AppColors.parchment,
                           ),
                         ),
                       ),
@@ -791,7 +915,7 @@ class _PanchangAdvancedTimingsScreenState
                   vertical: 6,
                 ),
                 decoration: BoxDecoration(
-                  color: planet.color.withOpacity(isDark ? 0.3 : 0.15),
+                  color: planet.color.withValues(alpha: isDark ? 0.3 : 0.15),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: AutoSizeText(
@@ -799,7 +923,7 @@ class _PanchangAdvancedTimingsScreenState
                   style: TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.bold,
-                    color: isDark ? Colors.white : planet.color,
+                    color: isDark ? AppColors.parchment : planet.color,
                   ),
                 ),
               ),
@@ -808,9 +932,8 @@ class _PanchangAdvancedTimingsScreenState
                 'to ${formatTime(horaSlot.end)}',
                 style: TextStyle(
                   fontSize: 11,
-                  color: (isDark ? Colors.white : Colors.black).withOpacity(
-                    0.6,
-                  ),
+                  color: (isDark ? AppColors.pureWhite : AppColors.charcoal)
+                      .withValues(alpha: 0.6),
                 ),
               ),
             ],
@@ -831,17 +954,33 @@ class _PanchangAdvancedTimingsScreenState
           end: Alignment.bottomRight,
           colors:
               isDark
-                  ? [const Color(0xFF1A2E1A), const Color(0xFF0A1510)]
-                  : [Colors.white, const Color(0xFFF0FFF4)],
+                  ? [
+                    (isDark
+                            ? AppColors.parchment
+                            : AppColors.deepSoilGreen)
+                        .withAlpha(200),
+                    (isDark
+                        ? AppColors.parchment
+                        : AppColors.deepSoilGreen),
+                  ]
+                  : [
+                    (isDark
+                        ? AppColors.parchment
+                        : AppColors.deepSoilGreen),
+                    (isDark
+                            ? AppColors.parchment
+                            : AppColors.deepSoilGreen)
+                        .withAlpha(200),
+                  ],
         ),
         borderRadius: BorderRadius.circular(24),
         border: Border.all(
-          color: const Color(0xFF10B981).withOpacity(0.4),
+          color: AppColors.parchment.withValues(alpha: 0.4),
           width: 2,
         ),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF10B981).withOpacity(isDark ? 0.2 : 0.15),
+            color: AppColors.parchment.withValues(alpha: isDark ? 0.2 : 0.15),
             blurRadius: 25,
             offset: const Offset(0, 8),
           ),
@@ -855,8 +994,8 @@ class _PanchangAdvancedTimingsScreenState
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: [
-                  const Color(0xFF10B981).withOpacity(isDark ? 0.2 : 0.15),
-                  const Color(0xFF059669).withOpacity(isDark ? 0.1 : 0.05),
+                  AppColors.parchment.withValues(alpha: isDark ? 0.2 : 0.15),
+                  AppColors.parchment.withValues(alpha: isDark ? 0.1 : 0.05),
                 ],
               ),
               borderRadius: const BorderRadius.vertical(
@@ -868,13 +1007,21 @@ class _PanchangAdvancedTimingsScreenState
                 Container(
                   padding: const EdgeInsets.all(14),
                   decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      colors: [Color(0xFF10B981), Color(0xFF059669)],
+                    gradient: LinearGradient(
+                      colors: [
+                        (isDark
+                            ? AppColors.parchment
+                            : AppColors.deepSoilGreen),
+                        (isDark
+                                ? AppColors.parchment
+                                : AppColors.deepSoilGreen)
+                            .withAlpha(200),
+                      ],
                     ),
                     borderRadius: BorderRadius.circular(16),
                     boxShadow: [
                       BoxShadow(
-                        color: const Color(0xFF10B981).withOpacity(0.5),
+                        color: AppColors.parchment.withValues(alpha: 0.5),
                         blurRadius: 15,
                         offset: const Offset(0, 5),
                       ),
@@ -892,15 +1039,26 @@ class _PanchangAdvancedTimingsScreenState
                         style: TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
-                          color: isDark ? Colors.white : Colors.black87,
+                          color:
+                              (isDark
+                                  ? AppTheme
+                                      .darkTheme
+                                      .textTheme
+                                      .bodyLarge
+                                      ?.color
+                                  : AppTheme
+                                      .lightTheme
+                                      .textTheme
+                                      .bodyLarge
+                                      ?.color),
                         ),
                       ),
                       AutoSizeText(
                         'Auspicious muhurat periods',
                         style: TextStyle(
                           fontSize: 12,
-                          color: (isDark ? Colors.white : Colors.black)
-                              .withOpacity(0.6),
+                          color: (isDark ? AppColors.pureWhite : AppColors.charcoal)
+                              .withValues(alpha: 0.6),
                         ),
                       ),
                     ],
@@ -911,15 +1069,15 @@ class _PanchangAdvancedTimingsScreenState
                   child: Container(
                     padding: const EdgeInsets.all(10),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF10B981).withOpacity(0.2),
+                      color: AppColors.parchment.withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Icon(
                       Icons.info_outline_rounded,
                       color:
                           isDark
-                              ? Colors.green.shade200
-                              : Colors.green.shade700,
+                              ? AppColors.deepSoilGreen
+                              : AppColors.deepSoilGreen,
                       size: 22,
                     ),
                   ),
@@ -935,8 +1093,16 @@ class _PanchangAdvancedTimingsScreenState
                   Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      gradient: const LinearGradient(
-                        colors: [Color(0xFFFBBF24), Color(0xFFF59E0B)],
+                      gradient: LinearGradient(
+                        colors: [
+                          (isDark
+                              ? AppColors.parchment
+                              : AppColors.deepSoilGreen),
+                          (isDark
+                                  ? AppColors.parchment
+                                  : AppColors.deepSoilGreen)
+                              .withAlpha(200),
+                        ],
                       ),
                       borderRadius: BorderRadius.circular(10),
                     ),
@@ -948,10 +1114,7 @@ class _PanchangAdvancedTimingsScreenState
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
-                      color:
-                          isDark
-                              ? const Color(0xFFFBBF24)
-                              : const Color(0xFFD97706),
+                      color: isDark ? AppColors.pureWhite : AppColors.parchment,
                     ),
                   ),
                 ],
@@ -990,8 +1153,16 @@ class _PanchangAdvancedTimingsScreenState
                   Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      gradient: const LinearGradient(
-                        colors: [Color(0xFF60A5FA), Color(0xFF3B82F6)],
+                      gradient: LinearGradient(
+                        colors: [
+                          (isDark
+                              ? AppColors.parchment
+                              : AppColors.deepSoilGreen),
+                          (isDark
+                                  ? AppColors.parchment
+                                  : AppColors.deepSoilGreen)
+                              .withAlpha(200),
+                        ],
                       ),
                       borderRadius: BorderRadius.circular(10),
                     ),
@@ -1003,10 +1174,7 @@ class _PanchangAdvancedTimingsScreenState
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
-                      color:
-                          isDark
-                              ? const Color(0xFF93C5FD)
-                              : const Color(0xFF3B82F6),
+                      color: isDark ? AppColors.pureWhite : AppColors.parchment,
                     ),
                   ),
                 ],
@@ -1050,49 +1218,43 @@ class _PanchangAdvancedTimingsScreenState
       'Amrit': _ChoghadiyaData(
         'Amrit',
         '🍯',
-        const Color(0xFF10B981),
+        AppColors.parchment,
         true,
         'Most auspicious',
       ),
       'Shubh': _ChoghadiyaData(
         'Shubh',
         '✨',
-        const Color(0xFF059669),
+        AppColors.parchment,
         true,
         'Auspicious',
       ),
       'Labh': _ChoghadiyaData(
         'Labh',
         '💰',
-        const Color(0xFF14B8A6),
+        AppColors.parchment,
         true,
         'Profitable',
       ),
       'Char': _ChoghadiyaData(
         'Char',
         '🚶',
-        const Color(0xFF0EA5E9),
+        AppColors.parchment,
         true,
         'Good for travel',
       ),
       'Rog': _ChoghadiyaData(
         'Rog',
         '🤒',
-        const Color(0xFFEF4444),
+        AppColors.parchment,
         false,
         'Inauspicious',
       ),
-      'Kaal': _ChoghadiyaData(
-        'Kaal',
-        '⚫',
-        const Color(0xFF6B7280),
-        false,
-        'Avoid',
-      ),
+      'Kaal': _ChoghadiyaData('Kaal', '⚫', AppColors.parchment, false, 'Avoid'),
       'Udveg': _ChoghadiyaData(
         'Udveg',
         '😰',
-        const Color(0xFFF97316),
+        AppColors.parchment,
         false,
         'Stressful',
       ),
@@ -1108,7 +1270,7 @@ class _PanchangAdvancedTimingsScreenState
     data ??= _ChoghadiyaData(
       choghadiyaSlot.name,
       '⏱️',
-      const Color(0xFF9CA3AF),
+      AppColors.parchment,
       false,
       '',
     );
@@ -1122,24 +1284,24 @@ class _PanchangAdvancedTimingsScreenState
           colors:
               isCurrent
                   ? [
-                    data.color.withOpacity(isDark ? 0.4 : 0.25),
-                    data.color.withOpacity(isDark ? 0.2 : 0.1),
+                    data.color.withValues(alpha: isDark ? 0.4 : 0.25),
+                    data.color.withValues(alpha: isDark ? 0.2 : 0.1),
                   ]
                   : [
-                    data.color.withOpacity(isDark ? 0.15 : 0.08),
-                    data.color.withOpacity(isDark ? 0.05 : 0.02),
+                    data.color.withValues(alpha: isDark ? 0.15 : 0.08),
+                    data.color.withValues(alpha: isDark ? 0.05 : 0.02),
                   ],
         ),
         borderRadius: BorderRadius.circular(14),
         border: Border.all(
-          color: isCurrent ? data.color : data.color.withOpacity(0.3),
+          color: isCurrent ? data.color : data.color.withValues(alpha: 0.3),
           width: isCurrent ? 2.5 : 1.5,
         ),
         boxShadow:
             isCurrent
                 ? [
                   BoxShadow(
-                    color: data.color.withOpacity(0.4),
+                    color: data.color.withValues(alpha: 0.4),
                     blurRadius: 12,
                     offset: const Offset(0, 4),
                   ),
@@ -1153,7 +1315,7 @@ class _PanchangAdvancedTimingsScreenState
             height: 44,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: data.color.withOpacity(isDark ? 0.3 : 0.2),
+              color: data.color.withValues(alpha: isDark ? 0.3 : 0.2),
               border: Border.all(color: data.color, width: 2),
             ),
             child: Center(
@@ -1175,7 +1337,14 @@ class _PanchangAdvancedTimingsScreenState
                       style: TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.bold,
-                        color: isDark ? Colors.white : Colors.black87,
+                        color:
+                            (isDark
+                                ? AppColors.parchment
+                                : AppTheme
+                                    .lightTheme
+                                    .textTheme
+                                    .bodyLarge
+                                    ?.color),
                       ),
                     ),
                     const SizedBox(width: 8),
@@ -1187,8 +1356,12 @@ class _PanchangAdvancedTimingsScreenState
                       decoration: BoxDecoration(
                         color:
                             data.isAuspicious
-                                ? Colors.green.withOpacity(isDark ? 0.3 : 0.15)
-                                : Colors.red.withOpacity(isDark ? 0.3 : 0.15),
+                                ? AppColors.deepSoilGreen.withValues(
+                                  alpha: isDark ? 0.3 : 0.15,
+                                )
+                                : AppColors.rawEarth.withValues(
+                                  alpha: isDark ? 0.3 : 0.15,
+                                ),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: AutoSizeText(
@@ -1199,11 +1372,11 @@ class _PanchangAdvancedTimingsScreenState
                           color:
                               data.isAuspicious
                                   ? (isDark
-                                      ? Colors.green.shade200
-                                      : Colors.green.shade700)
+                                      ? AppColors.deepSoilGreen
+                                      : AppColors.deepSoilGreen)
                                   : (isDark
-                                      ? Colors.red.shade200
-                                      : Colors.red.shade700),
+                                      ? AppColors.rawEarth
+                                      : AppColors.rawEarth),
                         ),
                       ),
                     ),
@@ -1223,7 +1396,7 @@ class _PanchangAdvancedTimingsScreenState
                           style: TextStyle(
                             fontSize: 10,
                             fontWeight: FontWeight.bold,
-                            color: Colors.white,
+                            color: AppColors.parchment,
                           ),
                         ),
                       ),
@@ -1236,9 +1409,8 @@ class _PanchangAdvancedTimingsScreenState
                     data.description,
                     style: TextStyle(
                       fontSize: 11,
-                      color: (isDark ? Colors.white : Colors.black).withOpacity(
-                        0.6,
-                      ),
+                      color: (isDark ? AppColors.pureWhite : AppColors.charcoal)
+                          .withValues(alpha: 0.6),
                     ),
                   ),
                 ],
@@ -1253,16 +1425,15 @@ class _PanchangAdvancedTimingsScreenState
                 style: TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.bold,
-                  color: isDark ? Colors.white : data.color,
+                  color: isDark ? AppColors.parchment : data.color,
                 ),
               ),
               AutoSizeText(
                 'to ${formatTime(choghadiyaSlot.end)}',
                 style: TextStyle(
                   fontSize: 11,
-                  color: (isDark ? Colors.white : Colors.black).withOpacity(
-                    0.6,
-                  ),
+                  color: (isDark ? AppColors.pureWhite : AppColors.charcoal)
+                      .withValues(alpha: 0.6),
                 ),
               ),
             ],
@@ -1281,7 +1452,7 @@ class _PanchangAdvancedTimingsScreenState
       context: context,
       builder:
           (context) => Dialog(
-            backgroundColor: Colors.transparent,
+            backgroundColor: AppColors.transparent,
             insetPadding: const EdgeInsets.all(24),
             child: Container(
               constraints: const BoxConstraints(maxWidth: 350),
@@ -1291,17 +1462,33 @@ class _PanchangAdvancedTimingsScreenState
                   end: Alignment.bottomRight,
                   colors:
                       isDark
-                          ? [const Color(0xFF0D1A10), const Color(0xFF070C08)]
-                          : [Colors.white, const Color(0xFFF5F3FF)],
+                          ? [
+                            (isDark
+                                    ? AppColors.parchment
+                                    : AppColors.deepSoilGreen)
+                                .withAlpha(200),
+                            (isDark
+                                ? AppColors.parchment
+                                : AppColors.deepSoilGreen),
+                          ]
+                          : [
+                            (isDark
+                                ? AppColors.parchment
+                                : AppColors.deepSoilGreen),
+                            (isDark
+                                    ? AppColors.parchment
+                                    : AppColors.deepSoilGreen)
+                                .withAlpha(200),
+                          ],
                 ),
                 borderRadius: BorderRadius.circular(24),
                 border: Border.all(
-                  color: planet.color.withOpacity(0.5),
+                  color: planet.color.withValues(alpha: 0.5),
                   width: 2,
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: planet.color.withOpacity(0.3),
+                    color: planet.color.withValues(alpha: 0.3),
                     blurRadius: 30,
                     spreadRadius: 5,
                   ),
@@ -1325,10 +1512,12 @@ class _PanchangAdvancedTimingsScreenState
                           height: 80,
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
-                            color: Colors.white.withOpacity(0.2),
+                            color: AppColors.parchment.withValues(alpha: 0.2),
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.black.withOpacity(0.2),
+                                color: AppColors.charcoal.withValues(
+                                  alpha: 0.2,
+                                ),
                                 blurRadius: 15,
                                 offset: const Offset(0, 5),
                               ),
@@ -1342,8 +1531,8 @@ class _PanchangAdvancedTimingsScreenState
                                 color:
                                     planet.name == 'Moon' ||
                                             planet.name == 'Venus'
-                                        ? Colors.black87
-                                        : Colors.white,
+                                        ? AppColors.charcoal
+                                        : AppColors.parchment,
                               ),
                             ),
                           ),
@@ -1356,8 +1545,8 @@ class _PanchangAdvancedTimingsScreenState
                             fontWeight: FontWeight.bold,
                             color:
                                 planet.name == 'Moon' || planet.name == 'Venus'
-                                    ? Colors.black87
-                                    : Colors.white,
+                                    ? AppColors.charcoal
+                                    : AppColors.parchment,
                           ),
                         ),
                         AutoSizeText(
@@ -1366,9 +1555,9 @@ class _PanchangAdvancedTimingsScreenState
                             fontSize: 14,
                             color: (planet.name == 'Moon' ||
                                         planet.name == 'Venus'
-                                    ? Colors.black
-                                    : Colors.white)
-                                .withOpacity(0.8),
+                                    ? AppColors.charcoal
+                                    : AppColors.parchment)
+                                .withValues(alpha: 0.8),
                           ),
                         ),
                       ],
@@ -1422,8 +1611,8 @@ class _PanchangAdvancedTimingsScreenState
                           backgroundColor: planet.color,
                           foregroundColor:
                               planet.name == 'Moon' || planet.name == 'Venus'
-                                  ? Colors.black87
-                                  : Colors.white,
+                                  ? AppColors.charcoal
+                                  : AppColors.parchment,
                           padding: const EdgeInsets.symmetric(vertical: 14),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
@@ -1455,7 +1644,7 @@ class _PanchangAdvancedTimingsScreenState
         Container(
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
-            color: color.withOpacity(0.15),
+            color: color.withValues(alpha: 0.15),
             borderRadius: BorderRadius.circular(10),
           ),
           child: Icon(icon, color: color, size: 20),
@@ -1469,9 +1658,8 @@ class _PanchangAdvancedTimingsScreenState
                 label,
                 style: TextStyle(
                   fontSize: 11,
-                  color: (isDark ? Colors.white : Colors.black).withOpacity(
-                    0.6,
-                  ),
+                  color: (isDark ? AppColors.pureWhite : AppColors.charcoal)
+                      .withValues(alpha: 0.6),
                 ),
               ),
               AutoSizeText(
@@ -1479,7 +1667,8 @@ class _PanchangAdvancedTimingsScreenState
                 style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
-                  color: isDark ? Colors.white : Colors.black87,
+                  color:
+                      isDark ? AppColors.parchment : AppColors.charcoal,
                 ),
               ),
             ],
@@ -1494,7 +1683,7 @@ class _PanchangAdvancedTimingsScreenState
       context: context,
       builder:
           (context) => Dialog(
-            backgroundColor: Colors.transparent,
+            backgroundColor: AppColors.transparent,
             insetPadding: const EdgeInsets.all(20),
             child: Container(
               constraints: const BoxConstraints(maxWidth: 400),
@@ -1504,13 +1693,29 @@ class _PanchangAdvancedTimingsScreenState
                   end: Alignment.bottomRight,
                   colors:
                       isDark
-                          ? [const Color(0xFF0D1A10), const Color(0xFF070C08)]
-                          : [Colors.white, const Color(0xFFFFFBEB)],
+                          ? [
+                            (isDark
+                                    ? AppColors.parchment
+                                    : AppColors.deepSoilGreen)
+                                .withAlpha(200),
+                            (isDark
+                                ? AppColors.parchment
+                                : AppColors.deepSoilGreen),
+                          ]
+                          : [
+                            (isDark
+                                ? AppColors.parchment
+                                : AppColors.deepSoilGreen),
+                            (isDark
+                                    ? AppColors.parchment
+                                    : AppColors.deepSoilGreen)
+                                .withAlpha(200),
+                          ],
                 ),
                 borderRadius: BorderRadius.circular(24),
                 boxShadow: [
                   BoxShadow(
-                    color: const Color(0xFFFFD700).withOpacity(0.3),
+                    color: AppColors.parchment.withValues(alpha: 0.3),
                     blurRadius: 30,
                     spreadRadius: 5,
                   ),
@@ -1523,8 +1728,16 @@ class _PanchangAdvancedTimingsScreenState
                     Container(
                       padding: const EdgeInsets.all(24),
                       decoration: BoxDecoration(
-                        gradient: const LinearGradient(
-                          colors: [Color(0xFFFFD700), Color(0xFFF59E0B)],
+                        gradient: LinearGradient(
+                          colors: [
+                            (isDark
+                                ? AppColors.parchment
+                                : AppColors.deepSoilGreen),
+                            (isDark
+                                    ? AppColors.parchment
+                                    : AppColors.deepSoilGreen)
+                                .withAlpha(200),
+                          ],
                         ),
                         borderRadius: const BorderRadius.vertical(
                           top: Radius.circular(24),
@@ -1543,14 +1756,16 @@ class _PanchangAdvancedTimingsScreenState
                                   style: TextStyle(
                                     fontSize: 20,
                                     fontWeight: FontWeight.bold,
-                                    color: Colors.black87,
+                                    color: AppColors.charcoal,
                                   ),
                                 ),
                                 AutoSizeText(
                                   'Planetary hours in Vedic astrology',
                                   style: TextStyle(
                                     fontSize: 13,
-                                    color: Colors.black.withOpacity(0.7),
+                                    color: AppColors.charcoal.withValues(
+                                      alpha: 0.7,
+                                    ),
                                   ),
                                 ),
                               ],
@@ -1558,9 +1773,9 @@ class _PanchangAdvancedTimingsScreenState
                           ),
                           IconButton(
                             onPressed: () => Navigator.pop(context),
-                            icon: const Icon(
+                            icon: Icon(
                               Icons.close,
-                              color: Colors.black54,
+                              color: AppColors.charcoal54,
                             ),
                           ),
                         ],
@@ -1575,7 +1790,8 @@ class _PanchangAdvancedTimingsScreenState
                             'Hora divides each day into 24 planetary hours, with each hour ruled by one of the seven Vedic planets. The first hora of the day is ruled by the planet that rules that day.',
                             style: TextStyle(
                               fontSize: 14,
-                              color: isDark ? Colors.white70 : Colors.black54,
+                              color:
+                                  isDark ? AppColors.pureWhite.withValues(alpha: 0.54) : AppColors.charcoal54,
                             ),
                           ),
                           const SizedBox(height: 20),
@@ -1584,50 +1800,61 @@ class _PanchangAdvancedTimingsScreenState
                             style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
-                              color: isDark ? Colors.white : Colors.black87,
+                              color:
+                                  (isDark
+                                      ? AppTheme
+                                          .darkTheme
+                                          .textTheme
+                                          .bodyLarge
+                                          ?.color
+                                      : AppTheme
+                                          .lightTheme
+                                          .textTheme
+                                          .bodyLarge
+                                          ?.color),
                             ),
                           ),
                           const SizedBox(height: 12),
                           _buildHoraActivityItem(
                             '☉ Sun',
                             'Government work, authority',
-                            const Color(0xFFFF6B00),
+                            AppColors.parchment,
                             isDark,
                           ),
                           _buildHoraActivityItem(
                             '☽ Moon',
                             'Creative work, travel',
-                            const Color(0xFFB8C6DB),
+                            AppColors.parchment,
                             isDark,
                           ),
                           _buildHoraActivityItem(
                             '♂ Mars',
                             'Property, machinery',
-                            const Color(0xFFDC143C),
+                            AppColors.parchment,
                             isDark,
                           ),
                           _buildHoraActivityItem(
                             '☿ Mercury',
                             'Business, studies',
-                            const Color(0xFF228B22),
+                            AppColors.parchment,
                             isDark,
                           ),
                           _buildHoraActivityItem(
                             '♃ Jupiter',
                             'Religious, education',
-                            const Color(0xFFFFD700),
+                            AppColors.parchment,
                             isDark,
                           ),
                           _buildHoraActivityItem(
                             '♀ Venus',
                             'Love, arts, luxury',
-                            const Color(0xFFFFB6C1),
+                            AppColors.parchment,
                             isDark,
                           ),
                           _buildHoraActivityItem(
                             '♄ Saturn',
                             'Agriculture, real estate',
-                            const Color(0xFF191970),
+                            AppColors.parchment,
                             isDark,
                           ),
                         ],
@@ -1657,7 +1884,7 @@ class _PanchangAdvancedTimingsScreenState
             height: 32,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: color.withOpacity(0.2),
+              color: color.withValues(alpha: 0.2),
               border: Border.all(color: color, width: 1.5),
             ),
             child: Center(
@@ -1677,16 +1904,16 @@ class _PanchangAdvancedTimingsScreenState
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.bold,
-                    color: isDark ? Colors.white : Colors.black87,
+                    color:
+                        isDark ? AppColors.parchment : AppColors.charcoal,
                   ),
                 ),
                 AutoSizeText(
                   activities,
                   style: TextStyle(
                     fontSize: 12,
-                    color: (isDark ? Colors.white : Colors.black).withOpacity(
-                      0.6,
-                    ),
+                    color: (isDark ? AppColors.pureWhite : AppColors.charcoal)
+                        .withValues(alpha: 0.6),
                   ),
                 ),
               ],
@@ -1702,7 +1929,7 @@ class _PanchangAdvancedTimingsScreenState
       context: context,
       builder:
           (context) => Dialog(
-            backgroundColor: Colors.transparent,
+            backgroundColor: AppColors.transparent,
             insetPadding: const EdgeInsets.all(20),
             child: Container(
               constraints: const BoxConstraints(maxWidth: 400),
@@ -1712,13 +1939,29 @@ class _PanchangAdvancedTimingsScreenState
                   end: Alignment.bottomRight,
                   colors:
                       isDark
-                          ? [const Color(0xFF1A2E1A), const Color(0xFF070C08)]
-                          : [Colors.white, const Color(0xFFF0FFF4)],
+                          ? [
+                            (isDark
+                                    ? AppColors.parchment
+                                    : AppColors.deepSoilGreen)
+                                .withAlpha(200),
+                            (isDark
+                                ? AppColors.parchment
+                                : AppColors.deepSoilGreen),
+                          ]
+                          : [
+                            (isDark
+                                ? AppColors.parchment
+                                : AppColors.deepSoilGreen),
+                            (isDark
+                                    ? AppColors.parchment
+                                    : AppColors.deepSoilGreen)
+                                .withAlpha(200),
+                          ],
                 ),
                 borderRadius: BorderRadius.circular(24),
                 boxShadow: [
                   BoxShadow(
-                    color: const Color(0xFF10B981).withOpacity(0.3),
+                    color: AppColors.parchment.withValues(alpha: 0.3),
                     blurRadius: 30,
                     spreadRadius: 5,
                   ),
@@ -1731,8 +1974,16 @@ class _PanchangAdvancedTimingsScreenState
                     Container(
                       padding: const EdgeInsets.all(24),
                       decoration: BoxDecoration(
-                        gradient: const LinearGradient(
-                          colors: [Color(0xFF10B981), Color(0xFF059669)],
+                        gradient: LinearGradient(
+                          colors: [
+                            (isDark
+                                ? AppColors.parchment
+                                : AppColors.deepSoilGreen),
+                            (isDark
+                                    ? AppColors.parchment
+                                    : AppColors.deepSoilGreen)
+                                .withAlpha(200),
+                          ],
                         ),
                         borderRadius: const BorderRadius.vertical(
                           top: Radius.circular(24),
@@ -1742,7 +1993,7 @@ class _PanchangAdvancedTimingsScreenState
                         children: [
                           AutoSizeText('🕐', style: TextStyle(fontSize: 32)),
                           const SizedBox(width: 16),
-                          const Expanded(
+                                Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
@@ -1751,14 +2002,14 @@ class _PanchangAdvancedTimingsScreenState
                                   style: TextStyle(
                                     fontSize: 20,
                                     fontWeight: FontWeight.bold,
-                                    color: Colors.white,
+                                    color: AppColors.parchment,
                                   ),
                                 ),
                                 AutoSizeText(
                                   'Quick muhurat selection',
                                   style: TextStyle(
                                     fontSize: 13,
-                                    color: Colors.white70,
+                                    color: (isDark) ? AppColors.pureWhite.withValues(alpha: 0.7) : AppColors.parchment.withValues(alpha: 0.7),
                                   ),
                                 ),
                               ],
@@ -1766,9 +2017,9 @@ class _PanchangAdvancedTimingsScreenState
                           ),
                           IconButton(
                             onPressed: () => Navigator.pop(context),
-                            icon: const Icon(
+                            icon: Icon(
                               Icons.close,
-                              color: Colors.white70,
+                              color: (isDark) ? AppColors.pureWhite.withValues(alpha: 0.7) : AppColors.parchment.withValues(alpha: 0.7),
                             ),
                           ),
                         ],
@@ -1783,7 +2034,8 @@ class _PanchangAdvancedTimingsScreenState
                             'Choghadiya divides day and night into 8 periods each, totaling 16 muhurats. It\'s a quick way to check auspicious times.',
                             style: TextStyle(
                               fontSize: 14,
-                              color: isDark ? Colors.white70 : Colors.black54,
+                              color:
+                                  isDark ? AppColors.pureWhite.withValues(alpha: 0.54) : AppColors.charcoal54,
                             ),
                           ),
                           const SizedBox(height: 20),
@@ -1792,56 +2044,67 @@ class _PanchangAdvancedTimingsScreenState
                             style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
-                              color: isDark ? Colors.white : Colors.black87,
+                              color:
+                                  (isDark
+                                      ? AppTheme
+                                          .darkTheme
+                                          .textTheme
+                                          .bodyLarge
+                                          ?.color
+                                      : AppTheme
+                                          .lightTheme
+                                          .textTheme
+                                          .bodyLarge
+                                          ?.color),
                             ),
                           ),
                           const SizedBox(height: 12),
                           _buildChoghadiyaTypeItem(
                             '🍯 Amrit',
                             'Best for all activities',
-                            const Color(0xFF10B981),
+                            AppColors.parchment,
                             true,
                             isDark,
                           ),
                           _buildChoghadiyaTypeItem(
                             '✨ Shubh',
                             'Auspicious for most work',
-                            const Color(0xFF059669),
+                            AppColors.parchment,
                             true,
                             isDark,
                           ),
                           _buildChoghadiyaTypeItem(
                             '💰 Labh',
                             'Profitable, good for business',
-                            const Color(0xFF14B8A6),
+                            AppColors.parchment,
                             true,
                             isDark,
                           ),
                           _buildChoghadiyaTypeItem(
                             '🚶 Char',
                             'Good for travel',
-                            const Color(0xFF0EA5E9),
+                            AppColors.parchment,
                             true,
                             isDark,
                           ),
                           _buildChoghadiyaTypeItem(
                             '🤒 Rog',
                             'Inauspicious',
-                            const Color(0xFFEF4444),
+                            AppColors.parchment,
                             false,
                             isDark,
                           ),
                           _buildChoghadiyaTypeItem(
                             '⚫ Kaal',
                             'Very inauspicious',
-                            const Color(0xFF6B7280),
+                            AppColors.parchment,
                             false,
                             isDark,
                           ),
                           _buildChoghadiyaTypeItem(
                             '😰 Udveg',
                             'Causes anxiety',
-                            const Color(0xFFF97316),
+                            AppColors.parchment,
                             false,
                             isDark,
                           ),
@@ -1868,9 +2131,9 @@ class _PanchangAdvancedTimingsScreenState
       child: Container(
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: color.withOpacity(isDark ? 0.15 : 0.1),
+          color: color.withValues(alpha: isDark ? 0.15 : 0.1),
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: color.withOpacity(0.3)),
+          border: Border.all(color: color.withValues(alpha: 0.3)),
         ),
         child: Row(
           children: [
@@ -1890,7 +2153,18 @@ class _PanchangAdvancedTimingsScreenState
                         style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.bold,
-                          color: isDark ? Colors.white : Colors.black87,
+                          color:
+                              (isDark
+                                  ? AppTheme
+                                      .darkTheme
+                                      .textTheme
+                                      .bodyLarge
+                                      ?.color
+                                  : AppTheme
+                                      .lightTheme
+                                      .textTheme
+                                      .bodyLarge
+                                      ?.color),
                         ),
                       ),
                       const SizedBox(width: 8),
@@ -1900,15 +2174,18 @@ class _PanchangAdvancedTimingsScreenState
                           vertical: 2,
                         ),
                         decoration: BoxDecoration(
-                          color: isGood ? Colors.green : Colors.red,
+                          color:
+                              isGood
+                                  ? AppColors.deepSoilGreen
+                                  : AppColors.rawEarth,
                           borderRadius: BorderRadius.circular(6),
                         ),
                         child: AutoSizeText(
                           isGood ? '✓' : '✗',
-                          style: const TextStyle(
+                          style:       TextStyle(
                             fontSize: 10,
                             fontWeight: FontWeight.bold,
-                            color: Colors.white,
+                            color: AppColors.parchment,
                           ),
                         ),
                       ),
@@ -1918,9 +2195,8 @@ class _PanchangAdvancedTimingsScreenState
                     desc,
                     style: TextStyle(
                       fontSize: 12,
-                      color: (isDark ? Colors.white : Colors.black).withOpacity(
-                        0.6,
-                      ),
+                      color: (isDark ? AppColors.pureWhite : AppColors.charcoal)
+                          .withValues(alpha: 0.6),
                     ),
                   ),
                 ],

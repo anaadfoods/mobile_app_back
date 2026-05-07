@@ -1,14 +1,16 @@
+import 'package:grocery_app/core/theme/app_colors.dart';
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:grocery_app/core/theme/theme.dart';
 
 /// A reusable glassmorphic container with backdrop blur effect.
-/// 
+///
 /// Consolidates the common BackdropFilter + Container pattern used in:
 /// - App bars
 /// - Cards
 /// - Overlays
 /// - Badges
-/// 
+///
 /// Usage:
 /// ```dart
 /// GlassmorphicContainer(
@@ -18,37 +20,37 @@ import 'package:flutter/material.dart';
 class GlassmorphicContainer extends StatelessWidget {
   /// The child widget
   final Widget child;
-  
+
   /// Blur sigma value (default: 10)
   final double blurSigma;
-  
+
   /// Background color opacity (default: 0.2)
   final double opacity;
-  
+
   /// Border radius (default: 20)
   final double borderRadius;
-  
+
   /// Padding inside the container
   final EdgeInsetsGeometry? padding;
-  
+
   /// Margin around the container
   final EdgeInsetsGeometry? margin;
-  
+
   /// Border color (default: white with 0.3 opacity)
   final Color? borderColor;
-  
+
   /// Border width (default: 1.5)
   final double borderWidth;
-  
+
   /// Background color (will be applied with opacity)
   final Color? backgroundColor;
-  
+
   /// Custom decoration to merge with glassmorphic effect
   final BoxDecoration? decoration;
-  
+
   /// Width of the container
   final double? width;
-  
+
   /// Height of the container
   final double? height;
 
@@ -71,9 +73,10 @@ class GlassmorphicContainer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final bgColor = backgroundColor ?? (isDark ? Colors.white : Colors.black);
-    final border = borderColor ?? Colors.white.withOpacity(0.3);
-    
+    final bgColor =
+        backgroundColor ?? (isDark ? AppColors.parchment : AppColors.charcoal);
+    final border = borderColor ?? AppColors.parchment.withValues(alpha: 0.3);
+
     return ClipRRect(
       borderRadius: BorderRadius.circular(borderRadius),
       child: BackdropFilter(
@@ -84,12 +87,9 @@ class GlassmorphicContainer extends StatelessWidget {
           margin: margin,
           padding: padding,
           decoration: BoxDecoration(
-            color: bgColor.withOpacity(opacity),
+            color: bgColor.withValues(alpha: opacity),
             borderRadius: BorderRadius.circular(borderRadius),
-            border: Border.all(
-              color: border,
-              width: borderWidth,
-            ),
+            border: Border.all(color: border, width: borderWidth),
           ).copyWith(
             gradient: decoration?.gradient,
             boxShadow: decoration?.boxShadow,
@@ -110,7 +110,7 @@ class GlassmorphicLight extends StatelessWidget {
   const GlassmorphicLight({
     super.key,
     required this.child,
-    this.borderRadius = 16,
+    this.borderRadius = AppColors.radiusL,
     this.padding,
   });
 
@@ -121,8 +121,8 @@ class GlassmorphicLight extends StatelessWidget {
       blurSigma: 8,
       borderRadius: borderRadius,
       padding: padding,
-      backgroundColor: Colors.white,
-      borderColor: Colors.white.withOpacity(0.2),
+      backgroundColor: AppColors.parchment,
+      borderColor: AppColors.parchment.withValues(alpha: 0.2),
       child: child,
     );
   }
@@ -137,7 +137,7 @@ class GlassmorphicDark extends StatelessWidget {
   const GlassmorphicDark({
     super.key,
     required this.child,
-    this.borderRadius = 16,
+    this.borderRadius = AppColors.radiusL,
     this.padding,
   });
 
@@ -148,8 +148,8 @@ class GlassmorphicDark extends StatelessWidget {
       blurSigma: 15,
       borderRadius: borderRadius,
       padding: padding,
-      backgroundColor: Colors.black,
-      borderColor: Colors.white.withOpacity(0.1),
+      backgroundColor: AppColors.charcoal,
+      borderColor: AppColors.parchment.withValues(alpha: 0.1),
       child: child,
     );
   }

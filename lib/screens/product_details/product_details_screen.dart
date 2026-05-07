@@ -200,7 +200,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
             : 'https://via.placeholder.com/400';
 
     return Scaffold(
-      backgroundColor: isDark ? const Color(0xFF0F0F1A) : Colors.white,
+      backgroundColor: isDark ? AppColors.darkCanvas : AppColors.parchment,
       body: Stack(
         children: [
           // Blurred Background with shimmer
@@ -224,11 +224,11 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
                         colors: [
                           // Ensure high contrast overlay for readability
                           isDark
-                              ? Colors.black.withValues(alpha: 0.7)
-                              : Colors.white.withValues(alpha: 0.85),
+                              ? AppColors.darkCanvas.withValues(alpha: 0.7)
+                              : AppColors.parchment.withValues(alpha: 0.85),
                           isDark
-                              ? Colors.black.withValues(alpha: 0.85)
-                              : Colors.white.withValues(alpha: 0.95),
+                              ? AppColors.darkCanvas.withValues(alpha: 0.85)
+                              : AppColors.parchment.withValues(alpha: 0.95),
                         ],
                       ),
                     ),
@@ -239,11 +239,10 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
                           begin: Alignment.topLeft,
                           end: Alignment.bottomRight,
                           colors: [
-                            Colors.transparent,
-                            (isDark ? Colors.white : Colors.black).withValues(
-                              alpha: 0.02,
-                            ),
-                            Colors.transparent,
+                            AppColors.transparent,
+                            (isDark ? AppColors.parchment : AppColors.darkSurface)
+                                .withValues(alpha: 0.02),
+                            AppColors.transparent,
                           ],
                           stops: [
                             (_shimmerAnimation.value - 0.3).clamp(0.0, 1.0),
@@ -314,7 +313,10 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
                                 style: TextStyle(
                                   fontSize: 18,
                                   fontWeight: FontWeight.bold,
-                                  color: isDark ? Colors.white : Colors.black,
+                                  color:
+                                      isDark
+                                          ? AppColors.parchment
+                                          : AppColors.charcoal,
                                 ),
                               ),
                               const SizedBox(height: 12),
@@ -355,25 +357,8 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          // Back Button
-          GestureDetector(
-            onTap: () {
-              _triggerHaptic();
-              context.safePop();
-            },
-            child: Container(
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                color: isDark ? Colors.grey[800] : Colors.grey[100],
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Icon(
-                Icons.arrow_back_ios_new,
-                color: isDark ? Colors.white : Colors.black,
-                size: 20,
-              ),
-            ),
-          ),
+          // ANAAD Logo
+          AnaadLogoMark(onTap: () => context.pop()),
 
           // Actions
           Row(
@@ -389,12 +374,12 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
                 child: Container(
                   padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
-                    color: isDark ? Colors.grey[800] : Colors.grey[100],
+                    color: isDark ? AppColors.darkSurfaceElevated : AppColors.parchment,
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Icon(
                     Icons.share_outlined,
-                    color: isDark ? Colors.white : Colors.black,
+                    color: isDark ? AppColors.parchment : AppColors.pureBlack,
                     size: 20,
                   ),
                 ),
@@ -421,8 +406,19 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
                     child: Container(
                       padding: const EdgeInsets.all(10),
                       decoration: BoxDecoration(
-                        color: isDark ? Colors.grey[800] : Colors.grey[100],
+                        color:
+                            isFavorite
+                                ? AppColors.softRed.withValues(alpha: 0.1)
+                                : (isDark
+                                    ? AppColors.darkSurfaceElevated
+                                    : AppColors.pureWhite),
                         borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color:
+                              isFavorite
+                                  ? AppColors.softRed.withValues(alpha: 0.3)
+                                  : AppColors.darkSurface.withValues(alpha: 0.08),
+                        ),
                       ),
                       child: Icon(
                         isFavorite
@@ -430,8 +426,10 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
                             : Icons.favorite_border_rounded,
                         color:
                             isFavorite
-                                ? const Color(0xFFE53935)
-                                : (isDark ? Colors.white : Colors.black),
+                                ? AppColors.softRed
+                                : (isDark
+                                    ? AppColors.parchment
+                                    : AppColors.pureBlack),
                         size: 20,
                       ),
                     ),
@@ -478,16 +476,19 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
   // ... (All other _build... widgets from _buildBestsellerTag to _buildProductCard remain the same)
 
   Widget _buildProductTitle(ThemeData theme) {
+    final isDark = theme.brightness == Brightness.dark;
     return Text(
       '${widget.product.productName} - ${widget.product.weight}',
       style: theme.textTheme.headlineSmall?.copyWith(
         fontWeight: FontWeight.bold,
+        color: isDark ? AppColors.parchment : AppColors.charcoal,
         height: 1.2,
       ),
     );
   }
 
   Widget _buildPriceBox(ThemeData theme) {
+    final isDark = theme.brightness == Brightness.dark;
     double discount =
         ((widget.product.price - widget.product.finalPrice) /
             widget.product.price) *
@@ -500,7 +501,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
           '₹${widget.product.finalPrice.toStringAsFixed(0)}',
           style: theme.textTheme.headlineMedium?.copyWith(
             fontWeight: FontWeight.bold,
-            color: const Color(0xFFB9A06D),
+            color: isDark ? AppColors.parchment : AppColors.charcoal,
           ),
         ),
         const SizedBox(width: 12),
@@ -510,7 +511,9 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
             '₹${widget.product.price.toStringAsFixed(0)}',
             style: theme.textTheme.bodyLarge?.copyWith(
               decoration: TextDecoration.lineThrough,
-              color: Colors.grey,
+              color: isDark
+                  ? AppColors.parchment.withValues(alpha: 0.5)
+                  : AppColors.rawEarth54,
             ),
           ),
         ),
@@ -519,14 +522,14 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
             decoration: BoxDecoration(
-              color: Colors.green.withOpacity(0.1),
+              color: AppColors.harvestAmber.withValues(alpha: 0.15),
               borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: Colors.green),
+              border: Border.all(color: AppColors.harvestAmber),
             ),
             child: Text(
               '${discount.toStringAsFixed(0)}% OFF',
               style: const TextStyle(
-                color: Colors.green,
+                color: AppColors.harvestAmber,
                 fontWeight: FontWeight.bold,
                 fontSize: 12,
               ),
@@ -543,18 +546,18 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
         height: 250,
         margin: const EdgeInsets.symmetric(horizontal: 20),
         decoration: BoxDecoration(
-          color: Colors.grey.withValues(alpha: 0.1),
+          color: AppColors.rawEarth54.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(16),
         ),
         child: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.image_outlined, color: Colors.grey[400], size: 48),
+              Icon(Icons.image_outlined, color: AppColors.rawEarth26, size: 48),
               const SizedBox(height: 8),
               Text(
                 'No Images Available',
-                style: TextStyle(color: Colors.grey[400], fontSize: 14),
+                style: TextStyle(color: AppColors.rawEarth26, fontSize: 14),
               ),
             ],
           ),
@@ -577,7 +580,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
               // Simple shadow for depth
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.05),
+                  color: AppColors.charcoal.withValues(alpha: 0.05),
                   blurRadius: 10,
                   offset: const Offset(0, 4),
                 ),
@@ -588,18 +591,21 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
               child: CachedNetworkImage(
                 imageUrl: productImages[index].image,
                 fit: BoxFit.cover,
-                placeholder: (context, url) => Shimmer.fromColors(
-                  baseColor: Colors.grey[300]!,
-                  highlightColor: Colors.grey[100]!,
-                  child: Container(
-                    color: Colors.grey[300],
-                  ),
-                ),
-                errorWidget: (context, url, error) => Container(
-                  color: Colors.grey[200],
-                  child: const Icon(Icons.broken_image_outlined,
-                      color: Colors.grey, size: 40),
-                ),
+                placeholder:
+                    (context, url) => Shimmer.fromColors(
+                      baseColor: AppColors.rawEarth12!,
+                      highlightColor: AppColors.parchment!,
+                      child: Container(color: AppColors.rawEarth12),
+                    ),
+                errorWidget:
+                    (context, url, error) => Container(
+                      color: AppColors.parchment,
+                      child: const Icon(
+                        Icons.broken_image_outlined,
+                        color: AppColors.rawEarth54,
+                        size: 40,
+                      ),
+                    ),
               ),
             ),
           );
@@ -632,10 +638,13 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
               gradient:
                   isActive
                       ? const LinearGradient(
-                        colors: [Color(0xFFB9A06D), Color(0xFFD4B98E)],
+                        colors: [
+                          AppColors.deepSoilGreen,
+                          AppColors.deepSoilGreen,
+                        ],
                       )
                       : null,
-              color: isActive ? null : Colors.grey[600],
+              color: isActive ? null : AppColors.rawEarth70,
               borderRadius: BorderRadius.circular(12),
             ),
           ),
@@ -662,7 +671,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
-              color: isDark ? Colors.white : Colors.black,
+              color: isDark ? AppColors.parchment : AppColors.charcoal,
             ),
           ),
           const SizedBox(height: 16),
@@ -722,32 +731,35 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
                               ? const LinearGradient(
                                 begin: Alignment.topLeft,
                                 end: Alignment.bottomRight,
-                                colors: [Color(0xFFB9A06D), Color(0xFFCEB77E)],
+                                colors: [
+                                  AppColors.deepSoilGreen,
+                                  AppColors.successGreen,
+                                ],
                               )
                               : null,
                       color:
                           isSelected
                               ? null
                               : (isDark
-                                  ? const Color(0xFF2A2520)
-                                  : const Color(0xFFFAF7F0)),
+                                  ? AppColors.darkSurfaceElevated
+                                  : AppColors.pureWhite),
                       borderRadius: BorderRadius.circular(16),
                       border: Border.all(
                         color:
                             isSelected
-                                ? const Color(0xFFB9A06D)
+                                ? AppColors.deepSoilGreen
                                 : (isDark
-                                    ? const Color(0xFF5C4D3C)
-                                    : const Color(0xFFE5D9C3)),
+                                    ? AppColors.parchment.withValues(alpha: 0.1)
+                                    : AppColors.charcoal12),
                         width: isSelected ? 2.5 : 1.5,
                       ),
                       boxShadow:
                           isSelected
                               ? [
                                 BoxShadow(
-                                  color: const Color(
-                                    0xFFB9A06D,
-                                  ).withOpacity(0.3),
+                                  color: AppColors.deepSoilGreen.withValues(
+                                    alpha: 0.3,
+                                  ),
                                   blurRadius: 12,
                                   offset: const Offset(0, 4),
                                 ),
@@ -765,10 +777,10 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
                               fontSize: 13,
                               color:
                                   isSelected
-                                      ? Colors.white
+                                      ? AppColors.pureWhite
                                       : (isDark
-                                          ? const Color(0xFFE5D9C3)
-                                          : const Color(0xFF5C4D3C)),
+                                          ? AppColors.parchment
+                                          : AppColors.charcoal),
                             ),
                           ),
                           const SizedBox(height: 8),
@@ -780,10 +792,10 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
                                   fontSize: 15,
                                   color:
                                       isSelected
-                                          ? Colors.white
+                                          ? AppColors.pureWhite
                                           : (isDark
-                                              ? Colors.white
-                                              : const Color(0xFF3D3426)),
+                                              ? AppColors.parchment
+                                              : AppColors.charcoal),
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
@@ -796,10 +808,12 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
                                 decoration: BoxDecoration(
                                   color:
                                       isSelected
-                                          ? Colors.white.withOpacity(0.25)
-                                          : const Color(
-                                            0xFFB9A06D,
-                                          ).withOpacity(0.15),
+                                          ? AppColors.pureWhite.withValues(
+                                            alpha: 0.2,
+                                          )
+                                          : AppColors.harvestAmber.withValues(
+                                            alpha: 0.12,
+                                          ),
                                   borderRadius: BorderRadius.circular(8),
                                 ),
                                 child: Text(
@@ -808,8 +822,8 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
                                     fontSize: 10,
                                     color:
                                         isSelected
-                                            ? Colors.white
-                                            : const Color(0xFFB9A06D),
+                                            ? AppColors.pureWhite
+                                            : AppColors.harvestAmber,
                                     fontWeight: FontWeight.bold,
                                   ),
                                 ),
@@ -861,7 +875,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
-                color: isDark ? Colors.white : Colors.black,
+                color: isDark ? AppColors.parchment : AppColors.charcoal,
               ),
             ),
             TextButton(
@@ -877,9 +891,13 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
               },
               child: const Row(
                 children: [
-                  Text("See All", style: TextStyle(color: Color(0xFFB9A06D))),
+                  Text("See All", style: TextStyle(color: AppColors.parchment)),
                   SizedBox(width: 4),
-                  Icon(Icons.arrow_forward, color: Color(0xFFB9A06D), size: 16),
+                  Icon(
+                    Icons.arrow_forward,
+                    color: AppColors.parchment,
+                    size: 16,
+                  ),
                 ],
               ),
             ),
@@ -921,8 +939,8 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
   // --- NEW: Skeleton widget for the plans section ---
   Widget _buildPlansSkeleton() {
     return Shimmer.fromColors(
-      baseColor: Colors.grey[300]!,
-      highlightColor: Colors.grey[100]!,
+      baseColor: AppColors.rawEarth12!,
+      highlightColor: AppColors.parchment!,
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 5),
         child: Column(
@@ -932,7 +950,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
               width: 180,
               height: 24,
               decoration: BoxDecoration(
-                color: Colors.grey[300],
+                color: AppColors.rawEarth12,
                 borderRadius: BorderRadius.circular(6),
               ),
             ),
@@ -945,7 +963,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
                     height: 80,
                     margin: const EdgeInsets.symmetric(horizontal: 4),
                     decoration: BoxDecoration(
-                      color: Colors.grey[300],
+                      color: AppColors.rawEarth12,
                       borderRadius: BorderRadius.circular(10),
                     ),
                   ),
@@ -960,8 +978,8 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
 
   Widget _buildSimilarProductsSkeleton() {
     return Shimmer.fromColors(
-      baseColor: Colors.grey[300]!,
-      highlightColor: Colors.grey[100]!,
+      baseColor: AppColors.rawEarth12!,
+      highlightColor: AppColors.parchment!,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -969,27 +987,31 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
             width: 160,
             height: 22,
             decoration: BoxDecoration(
-              color: Colors.grey[300],
+              color: AppColors.rawEarth12,
               borderRadius: BorderRadius.circular(6),
             ),
           ),
           const SizedBox(height: 16),
-          ...List.generate(3, (i) => Padding(
-            padding: const EdgeInsets.only(bottom: 12),
-            child: Container(
-              height: 90,
-              decoration: BoxDecoration(
-                color: Colors.grey[300],
-                borderRadius: BorderRadius.circular(12),
+          ...List.generate(
+            3,
+            (i) => Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: Container(
+                height: 90,
+                decoration: BoxDecoration(
+                  color: AppColors.rawEarth12,
+                  borderRadius: BorderRadius.circular(12),
+                ),
               ),
             ),
-          )),
+          ),
         ],
       ),
     );
   }
 
   Widget _buildBottomActionBar() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final bottomPadding = MediaQuery.of(context).padding.bottom;
     return Container(
       padding: EdgeInsets.fromLTRB(
@@ -999,10 +1021,10 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
         bottomPadding > 0 ? bottomPadding : 12,
       ),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? AppColors.darkSurfaceElevated : AppColors.parchment,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.08),
+            color: AppColors.charcoal.withValues(alpha: 0.08),
             blurRadius: 8,
             offset: const Offset(0, -2),
           ),
@@ -1031,7 +1053,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
                         child: Container(
                           height: 50,
                           decoration: BoxDecoration(
-                            color: Colors.grey.withValues(alpha: 0.2),
+                            color: isDark ? AppColors.darkCanvas : AppColors.rawEarth54.withValues(alpha: 0.2),
                             borderRadius: BorderRadius.circular(12),
                           ),
                         ),
@@ -1041,7 +1063,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
                         child: Container(
                           height: 50,
                           decoration: BoxDecoration(
-                            color: Colors.grey.withValues(alpha: 0.2),
+                            color: isDark ? AppColors.darkCanvas : AppColors.rawEarth54.withValues(alpha: 0.2),
                             borderRadius: BorderRadius.circular(12),
                           ),
                         ),
@@ -1087,6 +1109,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
   }
 
   Widget _buildAddToCartBar({required Key key}) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Row(
       key: key,
       children: [
@@ -1100,8 +1123,8 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
             ),
             style: OutlinedButton.styleFrom(
               padding: const EdgeInsets.symmetric(vertical: 16),
-              foregroundColor: AppColors.buttonBackgroundColor,
-              side: BorderSide(color: AppColors.buttonBackgroundColor),
+              foregroundColor: isDark ? AppColors.harvestAmber : AppColors.deepSoilGreen,
+              side: BorderSide(color: isDark ? AppColors.harvestAmber : AppColors.deepSoilGreen),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
               ),
@@ -1140,21 +1163,21 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
             icon: const Icon(
               Icons.shopping_bag_rounded,
               size: 20,
-              color: Colors.white,
+              color: AppColors.parchment,
             ),
             label: const Text(
               "Buy Now",
               style: TextStyle(
                 fontWeight: FontWeight.w800,
                 fontSize: 16,
-                color: Colors.white,
+                color: AppColors.parchment,
                 letterSpacing: 0.5,
               ),
             ),
             style: ElevatedButton.styleFrom(
               padding: const EdgeInsets.symmetric(vertical: 16),
-              backgroundColor: const Color(0xFF2E7D32),
-              shadowColor: const Color(0xFF2E7D32).withOpacity(0.5),
+              backgroundColor: AppColors.harvestAmber,
+              shadowColor: AppColors.harvestAmber.withValues(alpha: 0.4),
               elevation: 6,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
@@ -1167,6 +1190,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
   }
 
   Widget _buildQuantitySelectorBar({required Key key, required int quantity}) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final theme = Theme.of(context);
     return Row(
       key: key,
@@ -1189,8 +1213,8 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
             ),
             style: OutlinedButton.styleFrom(
               padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
-              side: BorderSide(color: AppColors.buttonBackgroundColor),
-              foregroundColor: AppColors.buttonBackgroundColor,
+              side: BorderSide(color: isDark ? AppColors.harvestAmber : AppColors.deepSoilGreen),
+              foregroundColor: isDark ? AppColors.harvestAmber : AppColors.deepSoilGreen,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
               ),
@@ -1200,7 +1224,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
         const SizedBox(width: 8),
         // Delete Button
         Material(
-          color: theme.colorScheme.error.withOpacity(0.1),
+          color: theme.colorScheme.error.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(12),
           child: InkWell(
             onTap: () => _handleQuantityChanged(0),
@@ -1326,8 +1350,8 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
   // PASTE THIS ENTIRE BLOCK INTO YOUR _ProductDetailsScreenState CLASS
 
   Widget _buildPlanFeaturesRow(SubscriptionPlan plan, bool isSelected) {
-    Color textColor = isSelected ? Colors.white70 : Colors.black54;
-    Color iconColor = isSelected ? Colors.white : const Color(0xFF388E3C);
+    Color textColor = isSelected ? AppColors.parchment70 : AppColors.charcoal54;
+    Color iconColor = isSelected ? AppColors.parchment : AppColors.parchment;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -1348,8 +1372,8 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
   }
 
   Widget _buildPlanFeaturesRow2(SubscriptionPlan plan, bool isSelected) {
-    Color textColor = isSelected ? Colors.white70 : Colors.black54;
-    Color iconColor = isSelected ? Colors.white : const Color(0xFF388E3C);
+    Color textColor = isSelected ? AppColors.parchment70 : AppColors.charcoal54;
+    Color iconColor = isSelected ? AppColors.parchment : AppColors.parchment;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -1407,8 +1431,8 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      barrierColor: Colors.black.withValues(alpha: 0.5),
+      backgroundColor: AppColors.transparent,
+      barrierColor: AppColors.charcoal.withValues(alpha: 0.5),
       builder: (context) {
         return StatefulBuilder(
           builder: (BuildContext context, StateSetter setModalState) {
@@ -1467,13 +1491,10 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
       curve: Curves.easeInOut,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: isSelected ? AppColors.buttonBackgroundColor : Colors.white,
+        color: isSelected ? AppColors.deepSoilGreen : AppColors.parchment,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color:
-              isSelected
-                  ? AppColors.buttonBackgroundColor
-                  : Colors.grey.shade300,
+          color: isSelected ? AppColors.deepSoilGreen : AppColors.rawEarth12,
           width: 1.5,
         ),
       ),
@@ -1489,8 +1510,8 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
                       : Icons.check_box_outline_blank_rounded,
                   color:
                       isSelected
-                          ? Colors.white
-                          : Colors.grey.withValues(alpha: 0.9),
+                          ? AppColors.parchment
+                          : AppColors.rawEarth54.withValues(alpha: 0.9),
                   size: 24,
                 ),
                 const SizedBox(width: 12),
@@ -1499,7 +1520,8 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 16,
-                    color: isSelected ? Colors.white : Colors.black,
+                    color:
+                        isSelected ? AppColors.parchment : AppColors.charcoal,
                   ),
                 ),
                 const Spacer(),
@@ -1508,7 +1530,8 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
-                    color: isSelected ? Colors.white : Colors.black,
+                    color:
+                        isSelected ? AppColors.parchment : AppColors.charcoal,
                   ),
                 ),
               ],
@@ -1530,7 +1553,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
       padding: const EdgeInsets.only(top: 12.0),
       child: Column(
         children: [
-          const Divider(color: Colors.white54),
+          const Divider(color: AppColors.parchment54),
           const SizedBox(height: 8),
           // ... (The total/monthly price rows are unchanged)
           Container(
@@ -1542,13 +1565,13 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
                   children: [
                     const Text(
                       'Total',
-                      style: TextStyle(color: Colors.white70),
+                      style: TextStyle(color: AppColors.parchment70),
                     ),
                     Text(
                       '₹${(planData.discountedPrice * plan.durationMonths).toStringAsFixed(0)}',
                       style: const TextStyle(
                         fontWeight: FontWeight.bold,
-                        color: Colors.white,
+                        color: AppColors.parchment,
                       ),
                     ),
                   ],
@@ -1559,7 +1582,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
                   children: [
                     const Text(
                       'Monthly',
-                      style: TextStyle(color: Colors.white70),
+                      style: TextStyle(color: AppColors.parchment70),
                     ),
                     Row(
                       children: [
@@ -1567,7 +1590,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
                           '₹${planData.discountedPrice.toStringAsFixed(0)}',
                           style: const TextStyle(
                             fontWeight: FontWeight.bold,
-                            color: Colors.white,
+                            color: AppColors.parchment,
                           ),
                         ),
                       ],
@@ -1584,7 +1607,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
               const Text(
                 'Payment Options:',
                 style: TextStyle(
-                  color: Colors.white,
+                  color: AppColors.parchment,
                   fontSize: 14,
                   fontWeight: FontWeight.w500,
                 ),
@@ -1629,8 +1652,8 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
         decoration: BoxDecoration(
           color:
               isSelected
-                  ? Colors.white.withValues(alpha: 0.2)
-                  : Colors.transparent,
+                  ? AppColors.parchment.withValues(alpha: 0.2)
+                  : AppColors.transparent,
           borderRadius: BorderRadius.circular(8),
         ),
         child: Row(
@@ -1639,13 +1662,13 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
               isSelected
                   ? Icons.radio_button_checked
                   : Icons.radio_button_unchecked,
-              color: Colors.white,
+              color: AppColors.parchment,
               size: 16,
             ),
             const SizedBox(width: 6),
             Text(
               text,
-              style: const TextStyle(color: Colors.white, fontSize: 12),
+              style: const TextStyle(color: AppColors.parchment, fontSize: 12),
             ),
           ],
         ),
@@ -1659,12 +1682,12 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(title, style: TextStyle(color: Colors.white)),
+          Text(title, style: TextStyle(color: AppColors.parchment)),
           Text(
             value,
             style: const TextStyle(
               fontWeight: FontWeight.w600,
-              color: Colors.white,
+              color: AppColors.parchment,
             ),
           ),
         ],
@@ -1696,13 +1719,17 @@ class _ExpandableDescriptionState extends State<ExpandableDescription> {
           child: Text(
             widget.text.trim(),
             style: TextStyle(
-              color: isDark ? Colors.grey[300] : Colors.grey[800],
+              color:
+                  isDark
+                      ? AppColors.parchment.withValues(alpha: 0.8)
+                      : AppColors.charcoal87,
               fontSize: 14,
               height: 1.6,
             ),
             textAlign: TextAlign.justify,
             maxLines: _isExpanded ? null : 3,
-            overflow: _isExpanded ? TextOverflow.visible : TextOverflow.ellipsis,
+            overflow:
+                _isExpanded ? TextOverflow.visible : TextOverflow.ellipsis,
           ),
         ),
         const SizedBox(height: 6),
@@ -1710,8 +1737,8 @@ class _ExpandableDescriptionState extends State<ExpandableDescription> {
           onTap: () => setState(() => _isExpanded = !_isExpanded),
           child: Text(
             _isExpanded ? "less" : "more",
-            style: const TextStyle(
-              color: Color(0xFFB9A06D),
+            style: TextStyle(
+              color: isDark ? AppColors.harvestAmber : AppColors.rawEarth,
               fontWeight: FontWeight.bold,
             ),
           ),
@@ -1813,7 +1840,7 @@ class _ModernSubscriptionSheetState extends State<_ModernSubscriptionSheet>
             maxHeight: MediaQuery.of(context).size.height * 0.85,
           ),
           decoration: BoxDecoration(
-            color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+            color: isDark ? AppColors.darkSurfaceElevated : AppColors.parchment,
             borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
             boxShadow: [
               BoxShadow(
@@ -1848,7 +1875,7 @@ class _ModernSubscriptionSheetState extends State<_ModernSubscriptionSheet>
                               accentColor.withValues(
                                 alpha: _glowAnimation.value * 0.1,
                               ),
-                              Colors.transparent,
+                              AppColors.transparent,
                             ],
                           ),
                         ),
@@ -1907,8 +1934,8 @@ class _ModernSubscriptionSheetState extends State<_ModernSubscriptionSheet>
                                 decoration: BoxDecoration(
                                   gradient: const LinearGradient(
                                     colors: [
-                                      Color(0xFF2E7D32),
-                                      Color(0xFF388E3C),
+                                      AppColors.deepSoilGreen,
+                                      AppColors.successGreen,
                                     ],
                                     begin: Alignment.topLeft,
                                     end: Alignment.bottomRight,
@@ -1916,17 +1943,17 @@ class _ModernSubscriptionSheetState extends State<_ModernSubscriptionSheet>
                                   borderRadius: BorderRadius.circular(14),
                                   boxShadow: [
                                     BoxShadow(
-                                      color: const Color(
-                                        0xFF2E7D32,
-                                      ).withValues(alpha: 0.4),
+                                      color: AppColors.deepSoilGreen.withValues(
+                                        alpha: 0.4,
+                                      ),
                                       blurRadius: 10,
                                       spreadRadius: 1,
                                     ),
                                   ],
                                 ),
-                                child: Icon(
+                                child: const Icon(
                                   Icons.sell_rounded,
-                                  color: Colors.white,
+                                  color: AppColors.pureWhite,
                                   size: 24,
                                 ),
                               ),
@@ -1988,12 +2015,12 @@ class _ModernSubscriptionSheetState extends State<_ModernSubscriptionSheet>
                                     decoration: BoxDecoration(
                                       gradient: LinearGradient(
                                         colors: [
-                                          Colors.transparent,
+                                          AppColors.transparent,
                                           isDark
-                                              ? Colors.white.withValues(
+                                              ? AppColors.parchment.withValues(
                                                 alpha: 0.12,
                                               )
-                                              : const Color(0xFFC5DFC9),
+                                              : AppColors.charcoal12,
                                         ],
                                       ),
                                     ),
@@ -2009,7 +2036,7 @@ class _ModernSubscriptionSheetState extends State<_ModernSubscriptionSheet>
                                       Icon(
                                         Icons.workspace_premium_rounded,
                                         size: 13,
-                                        color: Color(0xFF2E7D32),
+                                        color: AppColors.harvestAmber,
                                       ),
                                       SizedBox(width: 6),
                                       Text(
@@ -2017,7 +2044,7 @@ class _ModernSubscriptionSheetState extends State<_ModernSubscriptionSheet>
                                         style: TextStyle(
                                           fontSize: 10,
                                           fontWeight: FontWeight.w700,
-                                          color: Color(0xFF2E7D32),
+                                          color: AppColors.harvestAmber,
                                           letterSpacing: 1.2,
                                         ),
                                       ),
@@ -2025,7 +2052,7 @@ class _ModernSubscriptionSheetState extends State<_ModernSubscriptionSheet>
                                       Icon(
                                         Icons.workspace_premium_rounded,
                                         size: 13,
-                                        color: Color(0xFF2E7D32),
+                                        color: AppColors.harvestAmber,
                                       ),
                                     ],
                                   ),
@@ -2037,11 +2064,11 @@ class _ModernSubscriptionSheetState extends State<_ModernSubscriptionSheet>
                                       gradient: LinearGradient(
                                         colors: [
                                           isDark
-                                              ? Colors.white.withValues(
+                                              ? AppColors.parchment.withValues(
                                                 alpha: 0.12,
                                               )
-                                              : const Color(0xFFC5DFC9),
-                                          Colors.transparent,
+                                              : AppColors.charcoal12,
+                                          AppColors.transparent,
                                         ],
                                       ),
                                     ),
@@ -2092,13 +2119,16 @@ class _ModernSubscriptionSheetState extends State<_ModernSubscriptionSheet>
                     // --- FIXED FOOTER SECTION ---
                     Container(
                       decoration: BoxDecoration(
-                        color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+                        color:
+                            isDark ? AppColors.darkSurface : AppColors.parchment,
                         border: Border(
                           top: BorderSide(
                             color:
                                 isDark
-                                    ? Colors.white.withOpacity(0.08)
-                                    : const Color(0xFFD6EADA),
+                                    ? AppColors.parchment.withValues(
+                                      alpha: 0.08,
+                                    )
+                                    : AppColors.charcoal12,
                             width: 1.5,
                           ),
                         ),
@@ -2113,14 +2143,14 @@ class _ModernSubscriptionSheetState extends State<_ModernSubscriptionSheet>
                               decoration: BoxDecoration(
                                 color:
                                     isDark
-                                        ? const Color(0xFF1A2B1D)
-                                        : const Color(0xFFF1F8F2),
+                                        ? AppColors.charcoal87
+                                        : AppColors.pureWhite,
                                 borderRadius: BorderRadius.circular(16),
                                 border: Border.all(
                                   color:
                                       isDark
-                                          ? const Color(0xFF2D4A31)
-                                          : const Color(0xFFC5DFC9),
+                                          ? AppColors.rawEarth26
+                                          : AppColors.charcoal12,
                                   width: 1.5,
                                 ),
                               ),
@@ -2228,17 +2258,13 @@ class _ModernSubscriptionSheetState extends State<_ModernSubscriptionSheet>
           color:
               isSelected
                   ? null
-                  : (isDark
-                      ? const Color(0xFF1A2B1D)
-                      : const Color(0xFFF1F8F2)),
+                  : (isDark ? AppColors.darkSurfaceElevated : AppColors.pureWhite),
           borderRadius: BorderRadius.circular(18),
           border: Border.all(
             color:
                 isSelected
                     ? accentColor.withValues(alpha: 0.5)
-                    : (isDark
-                        ? const Color(0xFF2D4A31)
-                        : const Color(0xFFC5DFC9)),
+                    : (isDark ? AppColors.rawEarth26 : AppColors.charcoal12),
             width: isSelected ? 2 : 1.5,
           ),
           boxShadow:
@@ -2252,7 +2278,7 @@ class _ModernSubscriptionSheetState extends State<_ModernSubscriptionSheet>
                   ]
                   : [
                     BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.06),
+                      color: AppColors.charcoal.withValues(alpha: 0.06),
                       blurRadius: 8,
                       offset: const Offset(0, 3),
                     ),
@@ -2274,15 +2300,15 @@ class _ModernSubscriptionSheetState extends State<_ModernSubscriptionSheet>
                       shape: BoxShape.circle,
                       color:
                           isSelected
-                              ? Colors.white.withValues(alpha: 0.2)
-                              : Colors.transparent,
+                              ? AppColors.pureWhite.withValues(alpha: 0.2)
+                              : AppColors.transparent,
                       border: Border.all(
                         color:
                             isSelected
-                                ? Colors.white
+                                ? AppColors.pureWhite
                                 : (isDark
-                                    ? const Color(0xFF4CAF50)
-                                    : const Color(0xFF81C784)),
+                                    ? AppColors.parchment54
+                                    : AppColors.charcoal38),
                         width: 2,
                       ),
                     ),
@@ -2291,7 +2317,7 @@ class _ModernSubscriptionSheetState extends State<_ModernSubscriptionSheet>
                             ? const Icon(
                               Icons.check,
                               size: 16,
-                              color: Colors.white,
+                              color: AppColors.pureWhite,
                             )
                             : null,
                   ),
@@ -2306,7 +2332,7 @@ class _ModernSubscriptionSheetState extends State<_ModernSubscriptionSheet>
                           plan.name,
                           style: theme.textTheme.titleMedium?.copyWith(
                             fontWeight: FontWeight.bold,
-                            color: isSelected ? Colors.white : null,
+                            color: isSelected ? AppColors.pureWhite : null,
                           ),
                         ),
                         const SizedBox(height: 2),
@@ -2315,7 +2341,7 @@ class _ModernSubscriptionSheetState extends State<_ModernSubscriptionSheet>
                           style: theme.textTheme.bodySmall?.copyWith(
                             color:
                                 isSelected
-                                    ? Colors.white.withValues(alpha: 0.8)
+                                    ? AppColors.pureWhite.withValues(alpha: 0.7)
                                     : theme.hintColor,
                           ),
                         ),
@@ -2331,7 +2357,7 @@ class _ModernSubscriptionSheetState extends State<_ModernSubscriptionSheet>
                         '₹${planData.discountedPrice.toStringAsFixed(0)}',
                         style: theme.textTheme.titleMedium?.copyWith(
                           fontWeight: FontWeight.bold,
-                          color: isSelected ? Colors.white : accentColor,
+                          color: isSelected ? AppColors.pureWhite : accentColor,
                         ),
                       ),
                       Text(
@@ -2339,7 +2365,7 @@ class _ModernSubscriptionSheetState extends State<_ModernSubscriptionSheet>
                         style: theme.textTheme.bodySmall?.copyWith(
                           color:
                               isSelected
-                                  ? Colors.white.withValues(alpha: 0.7)
+                                  ? AppColors.pureWhite.withValues(alpha: 0.6)
                                   : theme.hintColor,
                         ),
                       ),
@@ -2354,7 +2380,7 @@ class _ModernSubscriptionSheetState extends State<_ModernSubscriptionSheet>
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.15),
+                    color: AppColors.pureWhite.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Column(
@@ -2395,7 +2421,10 @@ class _ModernSubscriptionSheetState extends State<_ModernSubscriptionSheet>
                   children: [
                     const Text(
                       'Payment:',
-                      style: TextStyle(color: Colors.white70, fontSize: 13),
+                      style: TextStyle(
+                        color: AppColors.parchment70,
+                        fontSize: 13,
+                      ),
                     ),
                     _buildPaymentChip('One Time', 0),
                     if (plan.allowsInstallments)
@@ -2417,7 +2446,7 @@ class _ModernSubscriptionSheetState extends State<_ModernSubscriptionSheet>
         Flexible(
           child: Text(
             label,
-            style: const TextStyle(color: Colors.white70, fontSize: 13),
+            style: const TextStyle(color: AppColors.parchment70, fontSize: 13),
             overflow: TextOverflow.ellipsis,
           ),
         ),
@@ -2425,7 +2454,7 @@ class _ModernSubscriptionSheetState extends State<_ModernSubscriptionSheet>
         Text(
           value,
           style: const TextStyle(
-            color: Colors.white,
+            color: AppColors.parchment,
             fontWeight: FontWeight.bold,
             fontSize: 14,
           ),
@@ -2441,7 +2470,7 @@ class _ModernSubscriptionSheetState extends State<_ModernSubscriptionSheet>
         Flexible(
           child: Text(
             label,
-            style: const TextStyle(color: Colors.white70, fontSize: 12),
+            style: const TextStyle(color: AppColors.charcoal26, fontSize: 12),
             overflow: TextOverflow.ellipsis,
           ),
         ),
@@ -2449,7 +2478,7 @@ class _ModernSubscriptionSheetState extends State<_ModernSubscriptionSheet>
         Text(
           '₹${amount.toStringAsFixed(0)}',
           style: const TextStyle(
-            color: Colors.white,
+            color: AppColors.charcoal,
             fontWeight: FontWeight.bold,
             fontSize: 14,
           ),
@@ -2472,11 +2501,13 @@ class _ModernSubscriptionSheetState extends State<_ModernSubscriptionSheet>
         decoration: BoxDecoration(
           color:
               isSelected
-                  ? Colors.white.withValues(alpha: 0.25)
-                  : Colors.transparent,
+                  ? AppColors.pureWhite.withValues(alpha: 0.25)
+                  : AppColors.transparent,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color: Colors.white.withValues(alpha: isSelected ? 0.5 : 0.3),
+            color: AppColors.pureWhite.withValues(
+              alpha: isSelected ? 0.5 : 0.3,
+            ),
           ),
         ),
         child: Row(
@@ -2486,13 +2517,13 @@ class _ModernSubscriptionSheetState extends State<_ModernSubscriptionSheet>
               isSelected
                   ? Icons.radio_button_checked
                   : Icons.radio_button_unchecked,
-              color: Colors.white,
+              color: AppColors.pureWhite,
               size: 16,
             ),
             const SizedBox(width: 6),
             Text(
               label,
-              style: const TextStyle(color: Colors.white, fontSize: 12),
+              style: const TextStyle(color: AppColors.pureWhite, fontSize: 12),
             ),
           ],
         ),
@@ -2529,17 +2560,15 @@ class _ModernSubscriptionSheetState extends State<_ModernSubscriptionSheet>
           color:
               isSelected
                   ? null
-                  : (isDark
-                      ? const Color(0xFF1A2B1D)
-                      : const Color(0xFFF1F8F2)),
+                  : (isDark ? AppColors.darkSurfaceElevated : AppColors.pureWhite),
           borderRadius: BorderRadius.circular(18),
           border: Border.all(
             color:
                 isSelected
                     ? accentColor.withValues(alpha: 0.5)
                     : (isDark
-                        ? const Color(0xFF2D4A31)
-                        : const Color(0xFFC5DFC9)),
+                        ? AppColors.parchment.withValues(alpha: 0.1)
+                        : AppColors.charcoal12),
             width: isSelected ? 2 : 1.5,
           ),
           boxShadow:
@@ -2553,7 +2582,7 @@ class _ModernSubscriptionSheetState extends State<_ModernSubscriptionSheet>
                   ]
                   : [
                     BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.06),
+                      color: AppColors.charcoal.withValues(alpha: 0.06),
                       blurRadius: 8,
                       offset: const Offset(0, 3),
                     ),
@@ -2572,15 +2601,15 @@ class _ModernSubscriptionSheetState extends State<_ModernSubscriptionSheet>
                     shape: BoxShape.circle,
                     color:
                         isSelected
-                            ? Colors.white.withValues(alpha: 0.2)
-                            : Colors.transparent,
+                            ? AppColors.pureWhite.withValues(alpha: 0.2)
+                            : AppColors.transparent,
                     border: Border.all(
                       color:
                           isSelected
-                              ? Colors.white
+                              ? AppColors.pureWhite
                               : (isDark
-                                  ? const Color(0xFF4CAF50)
-                                  : const Color(0xFF81C784)),
+                                  ? AppColors.parchment54
+                                  : AppColors.charcoal38),
                       width: 2,
                     ),
                   ),
@@ -2589,7 +2618,7 @@ class _ModernSubscriptionSheetState extends State<_ModernSubscriptionSheet>
                           ? const Icon(
                             Icons.check,
                             size: 16,
-                            color: Colors.white,
+                            color: AppColors.pureWhite,
                           )
                           : null,
                 ),
@@ -2604,7 +2633,7 @@ class _ModernSubscriptionSheetState extends State<_ModernSubscriptionSheet>
                         'One-Time Purchase',
                         style: theme.textTheme.titleMedium?.copyWith(
                           fontWeight: FontWeight.bold,
-                          color: isSelected ? Colors.white : null,
+                          color: isSelected ? AppColors.pureWhite : null,
                         ),
                       ),
                       const SizedBox(height: 2),
@@ -2613,7 +2642,7 @@ class _ModernSubscriptionSheetState extends State<_ModernSubscriptionSheet>
                         style: theme.textTheme.bodySmall?.copyWith(
                           color:
                               isSelected
-                                  ? Colors.white.withValues(alpha: 0.8)
+                                  ? AppColors.pureWhite.withValues(alpha: 0.7)
                                   : theme.hintColor,
                         ),
                       ),
@@ -2626,7 +2655,7 @@ class _ModernSubscriptionSheetState extends State<_ModernSubscriptionSheet>
                   '₹${widget.product.finalPrice.toStringAsFixed(0)}',
                   style: theme.textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.bold,
-                    color: isSelected ? Colors.white : accentColor,
+                    color: isSelected ? AppColors.pureWhite : accentColor,
                   ),
                 ),
               ],
@@ -2636,7 +2665,7 @@ class _ModernSubscriptionSheetState extends State<_ModernSubscriptionSheet>
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.15),
+                  color: AppColors.pureWhite.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: _buildPriceRowWithQuantity(

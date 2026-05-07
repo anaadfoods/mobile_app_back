@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:grocery_app/core/theme/app_colors.dart';
 
 enum _RefreshState { idle, pulling, refreshing, done }
 
@@ -16,7 +17,7 @@ class ShortPullToRefresh extends StatefulWidget {
     Key? key,
     required this.child,
     required this.onRefresh,
-    this.headerColor = Colors.black,
+    this.headerColor = AppColors.charcoal,
     this.triggerHeight = 60.0,
     this.loaderSize = 24.0,
   }) : super(key: key);

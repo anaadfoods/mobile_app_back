@@ -1,3 +1,4 @@
+import 'package:grocery_app/core/theme/app_colors.dart';
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_html/flutter_html.dart';
@@ -30,12 +31,12 @@ class LegalContentScreen extends StatelessWidget {
               icon: Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.2),
+                  color: AppColors.parchment.withValues(alpha: 0.2),
                   shape: BoxShape.circle,
                 ),
                 child: const Icon(
                   Icons.arrow_back,
-                  color: Colors.white,
+                  color: AppColors.parchment,
                   size: 20,
                 ),
               ),
@@ -46,7 +47,7 @@ class LegalContentScreen extends StatelessWidget {
               title: Text(
                 document.typeDisplay,
                 style: theme.textTheme.titleMedium?.copyWith(
-                  color: Colors.white,
+                  color: AppColors.parchment,
                   fontWeight: FontWeight.bold,
                 ),
               ),
@@ -57,7 +58,7 @@ class LegalContentScreen extends StatelessWidget {
                     end: Alignment.bottomRight,
                     colors: [
                       colorScheme.primary,
-                      colorScheme.primary.withOpacity(0.8),
+                      colorScheme.primary.withValues(alpha: 0.8),
                     ],
                   ),
                 ),
@@ -72,7 +73,7 @@ class LegalContentScreen extends StatelessWidget {
                         height: 120,
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          color: Colors.white.withOpacity(0.1),
+                          color: AppColors.parchment.withValues(alpha: 0.1),
                         ),
                       ),
                     ),
@@ -84,7 +85,7 @@ class LegalContentScreen extends StatelessWidget {
                         height: 80,
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          color: Colors.white.withOpacity(0.08),
+                          color: AppColors.parchment.withValues(alpha: 0.08),
                         ),
                       ),
                     ),
@@ -100,9 +101,11 @@ class LegalContentScreen extends StatelessWidget {
               margin: const EdgeInsets.all(16),
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               decoration: BoxDecoration(
-                color: colorScheme.primary.withOpacity(0.1),
+                color: colorScheme.primary.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: colorScheme.primary.withOpacity(0.2)),
+                border: Border.all(
+                  color: colorScheme.primary.withValues(alpha: 0.2),
+                ),
               ),
               child: Row(
                 children: [
@@ -147,7 +150,7 @@ class LegalContentScreen extends StatelessWidget {
                 borderRadius: BorderRadius.circular(16),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
+                    color: AppColors.charcoal.withValues(alpha: 0.05),
                     blurRadius: 10,
                     offset: const Offset(0, 4),
                   ),
@@ -178,7 +181,7 @@ class LegalContentScreen extends StatelessWidget {
                   "p": Style(margin: Margins.zero),
                   "strong": Style(fontWeight: FontWeight.w600),
                   "a": Style(
-                    color: AppColors.buttonBackgroundColor,
+                    color: AppColors.deepSoilGreen,
                     textDecoration: TextDecoration.underline,
                   ),
                 },
@@ -204,4 +207,3 @@ class LegalContentScreen extends StatelessWidget {
     return formatted;
   }
 }
-

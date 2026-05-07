@@ -139,7 +139,7 @@ class _AboutScreenState extends State<AboutScreen>
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle.light.copyWith(
-        statusBarColor: Colors.transparent,
+        statusBarColor: AppColors.transparent,
         statusBarIconBrightness: Brightness.light,
       ),
       child: Scaffold(
@@ -237,29 +237,11 @@ class _AboutScreenState extends State<AboutScreen>
                 ),
                 // Floating particles
                 ..._buildFloatingParticles(),
-                // Back button
+                // ANAAD Logo
                 Positioned(
                   top: statusBarHeight + 8,
                   left: 12,
-                  child: Material(
-                    color: Colors.white.withAlpha(30),
-                    borderRadius: BorderRadius.circular(12),
-                    child: InkWell(
-                      onTap: () {
-                        _triggerHaptic();
-                        Navigator.pop(context);
-                      },
-                      borderRadius: BorderRadius.circular(12),
-                      child: const Padding(
-                        padding: EdgeInsets.all(10),
-                        child: Icon(
-                          Icons.arrow_back_ios_new_rounded,
-                          color: Colors.white,
-                          size: 20,
-                        ),
-                      ),
-                    ),
-                  ),
+                  child: const AnaadLogoMark(),
                 ),
                 // Logo and title
                 Positioned(
@@ -283,10 +265,10 @@ class _AboutScreenState extends State<AboutScreen>
                             child: Container(
                               padding: const EdgeInsets.all(20),
                               decoration: BoxDecoration(
-                                color: Colors.white.withAlpha(30),
+                                color: AppColors.parchment.withAlpha(30),
                                 shape: BoxShape.circle,
                                 border: Border.all(
-                                  color: Colors.white.withAlpha(50),
+                                  color: AppColors.parchment.withAlpha(50),
                                   width: 2,
                                 ),
                               ),
@@ -298,7 +280,7 @@ class _AboutScreenState extends State<AboutScreen>
                                     'A',
                                     style: TextStyle(
                                       fontSize: 40,
-                                      color: Colors.white,
+                                      color: AppColors.parchment,
                                       fontWeight: FontWeight.bold,
                                     ),
                                   );
@@ -312,7 +294,7 @@ class _AboutScreenState extends State<AboutScreen>
                       const Text(
                         'ANAAD FOODS',
                         style: TextStyle(
-                          color: Colors.white,
+                          color: AppColors.parchment,
                           fontSize: 24,
                           fontWeight: FontWeight.bold,
                           letterSpacing: 3,
@@ -322,7 +304,7 @@ class _AboutScreenState extends State<AboutScreen>
                       Text(
                         ' Not a Brand. A Commitment',
                         style: TextStyle(
-                          color: Colors.white.withAlpha(200),
+                          color: AppColors.parchment.withAlpha(200),
                           fontSize: 14,
                           fontWeight: FontWeight.w400,
                           letterSpacing: 1,
@@ -390,7 +372,7 @@ class _AboutScreenState extends State<AboutScreen>
               child: Icon(
                 p['icon'] as IconData,
                 size: p['size'] as double,
-                color: Colors.white.withAlpha(35),
+                color: AppColors.parchment.withAlpha(35),
               ),
             ),
           );
@@ -488,25 +470,25 @@ class _AboutScreenState extends State<AboutScreen>
         'icon': Icons.eco_rounded,
         'title': 'Radical Purity',
         'subtitle': "If nature didn't make it, we don't sell it",
-        'color': Colors.green,
+        'color': AppColors.deepSoilGreen,
       },
       {
         'icon': Icons.agriculture_rounded,
         'title': 'Zero Distance',
         'subtitle': 'From the harvest directly to your hands',
-        'color': Colors.orange,
+        'color': AppColors.harvestAmber,
       },
       {
         'icon': Icons.favorite_rounded,
         'title': 'Healthy',
         'subtitle': 'Nutrient rich',
-        'color': Colors.red,
+        'color': AppColors.rawEarth,
       },
       {
         'icon': Icons.verified_rounded,
         'title': 'Quality',
         'subtitle': 'Premium grade',
-        'color': Colors.blue,
+        'color': AppColors.deepSoilGreen,
       },
     ];
 
@@ -648,7 +630,7 @@ class _AboutScreenState extends State<AboutScreen>
           const Text(
             'Join the Conversation',
             style: TextStyle(
-              color: Colors.white,
+              color: AppColors.parchment,
               fontSize: 20,
               fontWeight: FontWeight.bold,
             ),
@@ -656,7 +638,10 @@ class _AboutScreenState extends State<AboutScreen>
           const SizedBox(height: 8),
           Text(
             "We don't hide behind logos. Talk to us.",
-            style: TextStyle(color: Colors.white.withAlpha(180), fontSize: 14),
+            style: TextStyle(
+              color: AppColors.parchment.withAlpha(180),
+              fontSize: 14,
+            ),
           ),
           const SizedBox(height: 20),
           // Social icons
@@ -692,7 +677,7 @@ class _AboutScreenState extends State<AboutScreen>
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: Colors.white.withAlpha(20),
+              color: AppColors.parchment.withAlpha(20),
               borderRadius: BorderRadius.circular(16),
             ),
             child: Column(
@@ -723,7 +708,10 @@ class _AboutScreenState extends State<AboutScreen>
           const SizedBox(height: 20),
           Text(
             '© 2025 Anaad Foods. All rights reserved.',
-            style: TextStyle(color: Colors.white.withAlpha(150), fontSize: 12),
+            style: TextStyle(
+              color: AppColors.parchment.withAlpha(150),
+              fontSize: 12,
+            ),
           ),
         ],
       ),
@@ -739,10 +727,10 @@ class _AboutScreenState extends State<AboutScreen>
       child: Container(
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: Colors.white.withAlpha(30),
+          color: AppColors.parchment.withAlpha(30),
           shape: BoxShape.circle,
         ),
-        child: Icon(icon, color: Colors.white, size: 18),
+        child: Icon(icon, color: AppColors.parchment, size: 18),
       ),
     );
   }
@@ -750,13 +738,13 @@ class _AboutScreenState extends State<AboutScreen>
   Widget _buildContactRow(IconData icon, String text) {
     return Row(
       children: [
-        Icon(icon, color: Colors.white.withAlpha(200), size: 18),
+        Icon(icon, color: AppColors.parchment.withAlpha(200), size: 18),
         const SizedBox(width: 12),
         Expanded(
           child: Text(
             text,
             style: TextStyle(
-              color: Colors.white.withAlpha(220),
+              color: AppColors.parchment.withAlpha(220),
               fontSize: 13,
               height: 1.4,
             ),
@@ -805,13 +793,13 @@ class _BenefitItem extends StatelessWidget {
               padding: const EdgeInsets.all(4),
               decoration: BoxDecoration(
                 gradient: LinearGradient(
-                  colors: [Colors.green.shade400, Colors.green.shade600],
+                  colors: [AppColors.deepSoilGreen, AppColors.deepSoilGreen],
                 ),
                 shape: BoxShape.circle,
               ),
               child: const Icon(
                 Icons.check_rounded,
-                color: Colors.white,
+                color: AppColors.parchment,
                 size: 14,
               ),
             ),

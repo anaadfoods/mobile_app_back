@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:grocery_app/core/theme/app_colors.dart';
 import '../common_widgets/short_pull_to_refresh.dart';
 
 class ExampleRefreshScreen extends StatefulWidget {
@@ -10,7 +11,7 @@ class ExampleRefreshScreen extends StatefulWidget {
 
 class _ExampleRefreshScreenState extends State<ExampleRefreshScreen> {
   final List<String> _items = List.generate(20, (index) => "Item $index");
-  Color _headerColor = Colors.deepPurple;
+  Color _headerColor = AppColors.harvestAmber;
 
   Future<void> _refresh() async {
     // Simulate network delay
@@ -21,9 +22,9 @@ class _ExampleRefreshScreenState extends State<ExampleRefreshScreen> {
         _items.insert(0, "New Item ${DateTime.now().toIso8601String()}");
         // Change color to demonstrate dynamic styling
         _headerColor =
-            _headerColor == Colors.deepPurple
-                ? Colors.orange
-                : Colors.deepPurple;
+            _headerColor == AppColors.harvestAmber
+                ? AppColors.harvestAmber
+                : AppColors.harvestAmber;
       });
     }
   }
@@ -36,7 +37,7 @@ class _ExampleRefreshScreenState extends State<ExampleRefreshScreen> {
         backgroundColor: _headerColor,
       ),
       body: Container(
-        color: Colors.grey[50],
+        color: AppColors.parchment,
         child: ShortPullToRefresh(
           headerColor: _headerColor,
           onRefresh: _refresh,
@@ -47,11 +48,11 @@ class _ExampleRefreshScreenState extends State<ExampleRefreshScreen> {
             itemBuilder: (context, index) {
               return Container(
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: AppColors.parchment,
                   borderRadius: BorderRadius.circular(8),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.05),
+                      color: AppColors.charcoal.withValues(alpha: 0.05),
                       blurRadius: 4,
                       offset: const Offset(0, 2),
                     ),
@@ -59,7 +60,7 @@ class _ExampleRefreshScreenState extends State<ExampleRefreshScreen> {
                 ),
                 child: ListTile(
                   leading: CircleAvatar(
-                    backgroundColor: _headerColor.withOpacity(0.1),
+                    backgroundColor: _headerColor.withValues(alpha: 0.1),
                     child: Text("${index + 1}"),
                   ),
                   title: Text(
@@ -76,4 +77,3 @@ class _ExampleRefreshScreenState extends State<ExampleRefreshScreen> {
     );
   }
 }
-

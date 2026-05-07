@@ -1,4 +1,4 @@
-﻿import 'package:grocery_app/common_widgets/global_import.dart';
+import 'package:grocery_app/common_widgets/global_import.dart';
 
 /// Inline quick-action toggles for haptic feedback and dark mode.
 /// Displayed as a horizontal row of pill-shaped toggle chips.
@@ -38,7 +38,7 @@ class AccountPreferencesSection extends StatelessWidget {
             borderRadius: BorderRadius.circular(16),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withAlpha(8),
+                color: AppColors.charcoal.withAlpha(8),
                 blurRadius: 12,
                 offset: const Offset(0, 4),
               ),
@@ -53,7 +53,7 @@ class AccountPreferencesSection extends StatelessWidget {
                 icon: Icons.vibration_rounded,
                 label: 'Haptic',
                 isActive: vibrationEnabled,
-                activeColor: Colors.deepPurple,
+                activeColor: AppColors.harvestAmber,
                 onTap: () {
                   if (!vibrationEnabled) {
                     HapticFeedback.mediumImpact();
@@ -65,7 +65,8 @@ class AccountPreferencesSection extends StatelessWidget {
               // Dark mode toggle
               BlocBuilder<ThemeCubit, ThemeMode>(
                 builder: (context, themeMode) {
-                  final isDarkMode = themeMode == ThemeMode.dark ||
+                  final isDarkMode =
+                      themeMode == ThemeMode.dark ||
                       (themeMode == ThemeMode.system &&
                           MediaQuery.of(context).platformBrightness ==
                               Brightness.dark);
@@ -73,12 +74,13 @@ class AccountPreferencesSection extends StatelessWidget {
                   return _buildQuickToggle(
                     theme,
                     context,
-                    icon: isDarkMode
-                        ? Icons.dark_mode_rounded
-                        : Icons.light_mode_rounded,
+                    icon:
+                        isDarkMode
+                            ? Icons.dark_mode_rounded
+                            : Icons.light_mode_rounded,
                     label: isDarkMode ? 'Dark' : 'Light',
                     isActive: isDarkMode,
-                    activeColor: Colors.blueGrey,
+                    activeColor: AppColors.deepSoilGreen,
                     onTap: () {
                       if (vibrationEnabled) {
                         HapticFeedback.lightImpact();
@@ -111,13 +113,13 @@ class AccountPreferencesSection extends StatelessWidget {
         curve: Curves.easeInOut,
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
         decoration: BoxDecoration(
-          color: isActive
-              ? activeColor.withAlpha(25)
-              : theme.dividerColor.withAlpha(40),
+          color:
+              isActive
+                  ? activeColor.withAlpha(25)
+                  : theme.dividerColor.withAlpha(40),
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color:
-                isActive ? activeColor.withAlpha(80) : Colors.transparent,
+            color: isActive ? activeColor.withAlpha(80) : AppColors.transparent,
             width: 1.5,
           ),
         ),
@@ -133,9 +135,10 @@ class AccountPreferencesSection extends StatelessWidget {
                 icon,
                 key: ValueKey('$icon-$isActive'),
                 size: 20,
-                color: isActive
-                    ? activeColor
-                    : theme.textTheme.bodyMedium?.color?.withAlpha(140),
+                color:
+                    isActive
+                        ? activeColor
+                        : theme.textTheme.bodyMedium?.color?.withAlpha(140),
               ),
             ),
             const SizedBox(width: 8),
@@ -144,9 +147,10 @@ class AccountPreferencesSection extends StatelessWidget {
               style: TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.w600,
-                color: isActive
-                    ? activeColor
-                    : theme.textTheme.bodyMedium?.color?.withAlpha(140),
+                color:
+                    isActive
+                        ? activeColor
+                        : theme.textTheme.bodyMedium?.color?.withAlpha(140),
               ),
             ),
           ],

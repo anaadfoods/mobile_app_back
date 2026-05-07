@@ -3,6 +3,8 @@ import 'package:flutter/services.dart';
 import 'dart:math' as math;
 import 'package:grocery_app/common_widgets/floating_particle.dart';
 import 'package:grocery_app/common_widgets/glassmorphic_icon_button.dart';
+import 'package:grocery_app/common_widgets/anaad_logo_mark.dart';
+import 'package:grocery_app/core/theme/app_colors.dart';
 
 class AnimatedScreenHeader extends StatefulWidget {
   final String title;
@@ -15,6 +17,7 @@ class AnimatedScreenHeader extends StatefulWidget {
   final double? height;
   final AnimationController? animationController;
   final bool centerTitle;
+  final bool showLogo;
 
   const AnimatedScreenHeader({
     super.key,
@@ -28,6 +31,7 @@ class AnimatedScreenHeader extends StatefulWidget {
     this.height,
     this.animationController,
     this.centerTitle = false,
+    this.showLogo = true,
   });
 
   @override
@@ -128,10 +132,10 @@ class _AnimatedScreenHeaderState extends State<AnimatedScreenHeader>
             end: Alignment.bottomRight,
             colors: [
               theme.colorScheme.primary,
-              theme.colorScheme.primary.withOpacity(0.85),
+              theme.colorScheme.primary.withValues(alpha: 0.85),
               isDark
-                  ? theme.colorScheme.primary.withOpacity(0.7)
-                  : Colors.green.shade400,
+                  ? theme.colorScheme.primary.withValues(alpha: 0.7)
+                  : AppColors.deepSoilGreen,
             ],
           ),
           borderRadius: const BorderRadius.only(
@@ -140,7 +144,7 @@ class _AnimatedScreenHeaderState extends State<AnimatedScreenHeader>
           ),
           boxShadow: [
             BoxShadow(
-              color: theme.colorScheme.primary.withOpacity(0.3),
+              color: theme.colorScheme.primary.withValues(alpha: 0.3),
               blurRadius: 20,
               offset: const Offset(0, 10),
             ),
@@ -179,7 +183,7 @@ class _AnimatedScreenHeaderState extends State<AnimatedScreenHeader>
                   height: 120,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: Colors.white.withOpacity(0.1),
+                    color: AppColors.parchment.withValues(alpha: 0.1),
                   ),
                 ),
               ),
@@ -192,7 +196,7 @@ class _AnimatedScreenHeaderState extends State<AnimatedScreenHeader>
                 height: 100,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: Colors.white.withOpacity(0.08),
+                  color: AppColors.parchment.withValues(alpha: 0.08),
                 ),
               ),
             ),
@@ -219,6 +223,8 @@ class _AnimatedScreenHeaderState extends State<AnimatedScreenHeader>
                                   Navigator.pop(context);
                                 },
                           )
+                        else if (widget.showLogo)
+                          const AnaadLogoMark()
                         else
                           const SizedBox(width: 44),
 
@@ -228,7 +234,7 @@ class _AnimatedScreenHeaderState extends State<AnimatedScreenHeader>
                               widget.title,
                               textAlign: TextAlign.center,
                               style: theme.textTheme.titleLarge?.copyWith(
-                                color: Colors.white,
+                                color: AppColors.parchment,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
@@ -254,12 +260,14 @@ class _AnimatedScreenHeaderState extends State<AnimatedScreenHeader>
                             Container(
                               padding: const EdgeInsets.all(12),
                               decoration: BoxDecoration(
-                                color: Colors.white.withOpacity(0.2),
+                                color: AppColors.parchment.withValues(
+                                  alpha: 0.2,
+                                ),
                                 borderRadius: BorderRadius.circular(16),
                               ),
                               child: Icon(
                                 widget.icon,
-                                color: Colors.white,
+                                color: AppColors.parchment,
                                 size: 28,
                               ),
                             ),
@@ -273,7 +281,7 @@ class _AnimatedScreenHeaderState extends State<AnimatedScreenHeader>
                                   widget.title,
                                   style: theme.textTheme.headlineMedium
                                       ?.copyWith(
-                                        color: Colors.white,
+                                        color: AppColors.parchment,
                                         fontWeight: FontWeight.bold,
                                       ),
                                 ),
@@ -282,7 +290,9 @@ class _AnimatedScreenHeaderState extends State<AnimatedScreenHeader>
                                   Text(
                                     widget.subtitle!,
                                     style: theme.textTheme.bodyMedium?.copyWith(
-                                      color: Colors.white.withOpacity(0.9),
+                                      color: AppColors.parchment.withValues(
+                                        alpha: 0.9,
+                                      ),
                                     ),
                                   ),
                                 ],

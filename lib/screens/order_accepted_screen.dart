@@ -80,7 +80,7 @@ class _OrderAcceptedScreenState extends State<OrderAcceptedScreen> {
         decoration: BoxDecoration(
           gradient: LinearGradient(
             colors: [
-              AppColors.success.withOpacity(0.1),
+              AppColors.deepSoilGreen.withValues(alpha: 0.1),
               theme.scaffoldBackgroundColor,
             ],
             begin: Alignment.topCenter,
@@ -98,11 +98,11 @@ class _OrderAcceptedScreenState extends State<OrderAcceptedScreen> {
                   Container(
                     padding: const EdgeInsets.all(AppColors.spacingXL),
                     decoration: BoxDecoration(
-                      color: AppColors.success.withOpacity(0.1),
+                      color: AppColors.deepSoilGreen.withValues(alpha: 0.1),
                       shape: BoxShape.circle,
                       boxShadow: [
                         BoxShadow(
-                          color: AppColors.success.withOpacity(0.2),
+                          color: AppColors.deepSoilGreen.withValues(alpha: 0.2),
                           blurRadius: 24,
                           spreadRadius: 8,
                         ),
@@ -111,7 +111,7 @@ class _OrderAcceptedScreenState extends State<OrderAcceptedScreen> {
                     child: Icon(
                       Icons.check_circle,
                       size: 80,
-                      color: AppColors.success,
+                      color: AppColors.deepSoilGreen,
                     ),
                   ),
                   const SizedBox(height: AppColors.spacingXL),
@@ -135,14 +135,12 @@ class _OrderAcceptedScreenState extends State<OrderAcceptedScreen> {
                       borderRadius: BorderRadius.circular(AppColors.radiusL),
                       border: Border.all(
                         color:
-                            isDark
-                                ? Colors.grey.shade800
-                                : Colors.grey.shade200,
+                            isDark ? AppColors.charcoal87 : AppColors.parchment,
                       ),
                       boxShadow: [
                         BoxShadow(
-                          color: theme.shadowColor.withOpacity(
-                            AppColors.shadowOpacityLight,
+                          color: theme.shadowColor.withValues(
+                            alpha: AppColors.shadowOpacityLight,
                           ),
                           blurRadius: 8,
                           offset: const Offset(0, 2),
@@ -163,8 +161,8 @@ class _OrderAcceptedScreenState extends State<OrderAcceptedScreen> {
                             height: AppColors.spacingXL * 2,
                             color:
                                 isDark
-                                    ? Colors.grey.shade800
-                                    : Colors.grey.shade200,
+                                    ? AppColors.charcoal87
+                                    : AppColors.parchment,
                           ),
                           _buildDetailRow(
                             context,
@@ -177,8 +175,8 @@ class _OrderAcceptedScreenState extends State<OrderAcceptedScreen> {
                           height: AppColors.spacingXL * 2,
                           color:
                               isDark
-                                  ? Colors.grey.shade800
-                                  : Colors.grey.shade200,
+                                  ? AppColors.charcoal87
+                                  : AppColors.parchment,
                         ),
                         _buildDetailRow(
                           context,
@@ -215,7 +213,7 @@ class _OrderAcceptedScreenState extends State<OrderAcceptedScreen> {
                         ).popUntil((route) => route.isFirst);
                       },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.success,
+                        backgroundColor: AppColors.deepSoilGreen,
                         padding: const EdgeInsets.symmetric(
                           vertical: AppColors.spacingL,
                         ),
@@ -246,13 +244,16 @@ class _OrderAcceptedScreenState extends State<OrderAcceptedScreen> {
         Container(
           padding: const EdgeInsets.all(AppColors.spacingS),
           decoration: BoxDecoration(
-            color: (isPrimary ? theme.colorScheme.primary : AppColors.success)
-                .withOpacity(0.1),
+            color: (isPrimary
+                    ? theme.colorScheme.primary
+                    : AppColors.deepSoilGreen)
+                .withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(AppColors.radiusS),
           ),
           child: Icon(
             icon,
-            color: isPrimary ? theme.colorScheme.primary : AppColors.success,
+            color:
+                isPrimary ? theme.colorScheme.primary : AppColors.deepSoilGreen,
             size: 20,
           ),
         ),

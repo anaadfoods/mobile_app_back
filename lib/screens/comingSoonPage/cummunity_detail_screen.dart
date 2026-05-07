@@ -90,25 +90,21 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen>
   Color get _accentColor {
     final name = widget.community.name.toLowerCase();
     if (name.contains('grinity') || name.contains('green')) {
-      return const Color(0xFF69F0AE);
+      return AppColors.deepSoilGreen;
     }
-    return const Color(0xFFFFAB91);
+    return AppColors.rawEarth;
   }
 
   List<Color> get _gradientColors {
     final name = widget.community.name.toLowerCase();
     if (name.contains('grinity') || name.contains('green')) {
       return [
-        const Color(0xFF1B5E20),
-        const Color(0xFF2E7D32),
-        const Color(0xFF43A047),
+        AppColors.deepSoilGreen,
+        AppColors.deepSoilGreen,
+        AppColors.deepSoilGreen,
       ];
     }
-    return [
-      const Color(0xFF3E2723),
-      const Color(0xFF5D4037),
-      const Color(0xFF795548),
-    ];
+    return [AppColors.rawEarth, AppColors.rawEarth, AppColors.rawEarth];
   }
 
   @override
@@ -118,7 +114,7 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen>
     final isDark = theme.brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: isDark ? const Color(0xFF121212) : Colors.grey.shade50,
+      backgroundColor: isDark ? AppColors.charcoal : AppColors.parchment,
       body: AnimatedBuilder(
         animation: _entranceController,
         builder: (context, child) {
@@ -180,7 +176,7 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen>
                           child: Icon(
                             Icons.eco_rounded,
                             size: 100,
-                            color: Colors.white.withOpacity(0.2),
+                            color: AppColors.parchment.withValues(alpha: 0.2),
                           ),
                         ),
                   ),
@@ -191,9 +187,9 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen>
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
                       colors: [
-                        _gradientColors[0].withOpacity(0.7),
-                        _gradientColors[1].withOpacity(0.5),
-                        Colors.transparent,
+                        _gradientColors[0].withValues(alpha: 0.7),
+                        _gradientColors[1].withValues(alpha: 0.5),
+                        AppColors.transparent,
                       ],
                       begin: Alignment.centerLeft,
                       end: Alignment.centerRight,
@@ -204,8 +200,8 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen>
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
                       colors: [
-                        Colors.transparent,
-                        Colors.black.withOpacity(0.6),
+                        AppColors.transparent,
+                        AppColors.charcoal.withValues(alpha: 0.6),
                       ],
                       begin: Alignment.topCenter,
                       end: Alignment.bottomCenter,
@@ -234,10 +230,14 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen>
                                 horizontal: 14,
                               ),
                               decoration: BoxDecoration(
-                                color: Colors.white.withOpacity(0.2),
+                                color: AppColors.parchment.withValues(
+                                  alpha: 0.2,
+                                ),
                                 borderRadius: BorderRadius.circular(20),
                                 border: Border.all(
-                                  color: Colors.white.withOpacity(0.3),
+                                  color: AppColors.parchment.withValues(
+                                    alpha: 0.3,
+                                  ),
                                 ),
                               ),
                               child: Row(
@@ -246,20 +246,22 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen>
                                   Container(
                                     padding: const EdgeInsets.all(4),
                                     decoration: BoxDecoration(
-                                      color: _accentColor.withOpacity(0.4),
+                                      color: _accentColor.withValues(
+                                        alpha: 0.4,
+                                      ),
                                       shape: BoxShape.circle,
                                     ),
                                     child: const Icon(
                                       Icons.auto_awesome,
                                       size: 12,
-                                      color: Colors.white,
+                                      color: AppColors.parchment,
                                     ),
                                   ),
                                   const SizedBox(width: 8),
                                   Text(
                                     "Coming Soon",
                                     style: textTheme.labelSmall?.copyWith(
-                                      color: Colors.white,
+                                      color: AppColors.parchment,
                                       fontWeight: FontWeight.w700,
                                     ),
                                   ),
@@ -301,13 +303,13 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen>
     return Text(
       widget.community.name,
       style: textTheme.headlineLarge?.copyWith(
-        color: Colors.white,
+        color: AppColors.parchment,
         fontWeight: FontWeight.w800,
         letterSpacing: -0.5,
         shadows: [
           Shadow(
             blurRadius: 20,
-            color: Colors.black.withOpacity(0.5),
+            color: AppColors.charcoal.withValues(alpha: 0.5),
             offset: const Offset(0, 4),
           ),
         ],
@@ -342,7 +344,7 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen>
                     style: textTheme.bodyLarge?.copyWith(
                       height: 1.7,
                       color:
-                          isDark ? Colors.grey.shade300 : Colors.grey.shade700,
+                          isDark ? AppColors.parchment70 : AppColors.charcoal60,
                     ),
                   ),
                 ),
@@ -354,7 +356,7 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen>
                   theme: theme,
                   isDark: isDark,
                   icon: Icons.star_outline_rounded,
-                  iconColor: const Color(0xFFFFD700),
+                  iconColor: AppColors.parchment,
                   title: 'Benefits',
                   child: Column(
                     children: _buildBenefitsList(
@@ -393,14 +395,16 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen>
         child: Container(
           padding: const EdgeInsets.all(24),
           decoration: BoxDecoration(
-            color: (isDark ? Colors.white : Colors.black).withOpacity(0.08),
+            color: (isDark ? AppColors.parchment : AppColors.charcoal)
+                .withValues(alpha: 0.08),
             borderRadius: BorderRadius.circular(24),
             border: Border.all(
-              color: (isDark ? Colors.white : Colors.black).withOpacity(0.1),
+              color: (isDark ? AppColors.parchment : AppColors.charcoal)
+                  .withValues(alpha: 0.1),
             ),
             boxShadow: [
               BoxShadow(
-                color: _accentColor.withOpacity(0.1),
+                color: _accentColor.withValues(alpha: 0.1),
                 blurRadius: 20,
                 offset: const Offset(0, 8),
               ),
@@ -414,7 +418,7 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen>
                   Container(
                     padding: const EdgeInsets.all(10),
                     decoration: BoxDecoration(
-                      color: (iconColor ?? _accentColor).withOpacity(0.2),
+                      color: (iconColor ?? _accentColor).withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Icon(
@@ -462,7 +466,7 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen>
               borderRadius: BorderRadius.circular(20),
               boxShadow: [
                 BoxShadow(
-                  color: _gradientColors[1].withOpacity(0.4),
+                  color: _gradientColors[1].withValues(alpha: 0.4),
                   blurRadius: 20,
                   offset: const Offset(0, 8),
                 ),
@@ -480,9 +484,9 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen>
                           begin: Alignment.topLeft,
                           end: Alignment.bottomRight,
                           colors: [
-                            Colors.transparent,
-                            Colors.white.withOpacity(0.15),
-                            Colors.transparent,
+                            AppColors.transparent,
+                            AppColors.parchment.withValues(alpha: 0.15),
+                            AppColors.transparent,
                           ],
                           stops: [
                             (_shimmerAnimation.value - 0.3).clamp(0.0, 1.0),
@@ -501,14 +505,14 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen>
                     children: [
                       const Icon(
                         Icons.notifications_active_outlined,
-                        color: Colors.white,
+                        color: AppColors.parchment,
                         size: 22,
                       ),
                       const SizedBox(width: 12),
                       Text(
                         'Notify Me When Available',
                         style: textTheme.titleMedium?.copyWith(
-                          color: Colors.white,
+                          color: AppColors.parchment,
                           fontWeight: FontWeight.w700,
                           letterSpacing: 0.3,
                         ),
@@ -557,9 +561,9 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen>
       height: size,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        color: _accentColor.withOpacity(0.5),
+        color: _accentColor.withValues(alpha: 0.5),
         boxShadow: [
-          BoxShadow(color: _accentColor.withOpacity(0.3), blurRadius: 6),
+          BoxShadow(color: _accentColor.withValues(alpha: 0.3), blurRadius: 6),
         ],
       ),
     );
@@ -583,13 +587,15 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen>
               child: Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: Colors.black.withOpacity(0.3),
+                  color: AppColors.charcoal.withValues(alpha: 0.3),
                   borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: Colors.white.withOpacity(0.2)),
+                  border: Border.all(
+                    color: AppColors.parchment.withValues(alpha: 0.2),
+                  ),
                 ),
                 child: const Icon(
                   Icons.arrow_back_rounded,
-                  color: Colors.white,
+                  color: AppColors.parchment,
                   size: 22,
                 ),
               ),
@@ -618,7 +624,7 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen>
           benefits,
           style: textTheme.bodyMedium?.copyWith(
             height: 1.6,
-            color: isDark ? Colors.grey.shade300 : Colors.grey.shade700,
+            color: isDark ? AppColors.parchment70 : AppColors.charcoal60,
           ),
         ),
       ];
@@ -641,7 +647,7 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen>
                 shape: BoxShape.circle,
                 boxShadow: [
                   BoxShadow(
-                    color: _accentColor.withOpacity(0.4),
+                    color: _accentColor.withValues(alpha: 0.4),
                     blurRadius: 4,
                   ),
                 ],
@@ -653,7 +659,7 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen>
                 item,
                 style: textTheme.bodyMedium?.copyWith(
                   height: 1.5,
-                  color: isDark ? Colors.grey.shade300 : Colors.grey.shade700,
+                  color: isDark ? AppColors.parchment70 : AppColors.charcoal60,
                 ),
               ),
             ),
@@ -693,7 +699,7 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen>
       context: context,
       barrierDismissible: true,
       barrierLabel: 'Dismiss',
-      barrierColor: Colors.black.withOpacity(0.6),
+      barrierColor: AppColors.charcoal.withValues(alpha: 0.6),
       transitionDuration: const Duration(milliseconds: 300),
       pageBuilder: (context, animation, secondaryAnimation) => const SizedBox(),
       transitionBuilder: (context, animation, secondaryAnimation, child) {
@@ -714,7 +720,7 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen>
                       child: BackdropFilter(
                         filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
                         child: Material(
-                          color: Colors.transparent,
+                          color: AppColors.transparent,
                           child: Container(
                             decoration: BoxDecoration(
                               gradient: LinearGradient(
@@ -723,22 +729,26 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen>
                                 colors:
                                     isDark
                                         ? [
-                                          _gradientColors[0].withOpacity(0.95),
-                                          _gradientColors[1].withOpacity(0.9),
-                                        ]
+                                            AppColors.charcoal,
+                                            AppColors.charcoal,
+                                          ]
                                         : [
-                                          Colors.white,
-                                          _gradientColors[0].withOpacity(0.1),
-                                        ],
+                                            AppColors.parchment,
+                                            AppColors.parchment,
+                                          ],
                               ),
                               borderRadius: BorderRadius.circular(24),
                               border: Border.all(
-                                color: Colors.white.withOpacity(0.2),
+                                color: AppColors.parchment.withValues(
+                                  alpha: 0.2,
+                                ),
                                 width: 1,
                               ),
                               boxShadow: [
                                 BoxShadow(
-                                  color: _gradientColors[0].withOpacity(0.2),
+                                  color: _gradientColors[0].withValues(
+                                    alpha: 0.2,
+                                  ),
                                   blurRadius: 30,
                                   offset: const Offset(0, 10),
                                 ),
@@ -758,8 +768,10 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen>
                                         decoration: BoxDecoration(
                                           gradient: LinearGradient(
                                             colors: [
-                                              _accentColor,
-                                              _accentColor.withOpacity(0.8),
+                                              AppColors.deepSoilGreen,
+                                              AppColors.deepSoilGreen.withValues(
+                                                alpha: 0.8,
+                                              ),
                                             ],
                                           ),
                                           borderRadius: BorderRadius.circular(
@@ -768,7 +780,7 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen>
                                         ),
                                         child: const Icon(
                                           Icons.notifications_active_rounded,
-                                          color: Colors.white,
+                                          color: AppColors.parchment,
                                           size: 32,
                                         ),
                                       ),
@@ -783,7 +795,7 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen>
                                       Text(
                                         'Be the first to know when we launch!',
                                         style: textTheme.bodyMedium?.copyWith(
-                                          color: Colors.grey[600],
+                                          color: AppColors.rawEarth70,
                                         ),
                                       ),
                                       const SizedBox(height: 24),
@@ -874,16 +886,16 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen>
                                             vertical: 16,
                                           ),
                                           decoration: BoxDecoration(
-                                            gradient: LinearGradient(
-                                              colors: _gradientColors,
+                                            gradient: const LinearGradient(
+                                              colors: [AppColors.deepSoilGreen, AppColors.deepSoilGreen],
                                             ),
                                             borderRadius: BorderRadius.circular(
                                               16,
                                             ),
                                             boxShadow: [
                                               BoxShadow(
-                                                color: _gradientColors[0]
-                                                    .withOpacity(0.4),
+                                                color: AppColors.deepSoilGreen
+                                                    .withValues(alpha: 0.4),
                                                 blurRadius: 10,
                                                 offset: const Offset(0, 4),
                                               ),
@@ -894,7 +906,7 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen>
                                               'Notify Me',
                                               style: textTheme.titleMedium
                                                   ?.copyWith(
-                                                    color: Colors.white,
+                                                    color: AppColors.parchment,
                                                     fontWeight: FontWeight.bold,
                                                   ),
                                             ),
@@ -908,7 +920,7 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen>
                                         child: Text(
                                           'Maybe Later',
                                           style: textTheme.bodyMedium?.copyWith(
-                                            color: Colors.grey[600],
+                                            color: AppColors.rawEarth70,
                                           ),
                                         ),
                                       ),
@@ -940,16 +952,20 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen>
   }) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.grey.withOpacity(0.1),
+        color: AppColors.rawEarth54.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: AppColors.rawEarth54.withValues(alpha: 0.2),
+        ),
       ),
       child: TextFormField(
         controller: controller,
         keyboardType: keyboardType,
         validator: validator,
+        style: const TextStyle(fontWeight: FontWeight.w500),
         decoration: InputDecoration(
           hintText: hint,
-          prefixIcon: Icon(icon, color: Colors.grey),
+          prefixIcon: Icon(icon, color: AppColors.rawEarth),
           border: InputBorder.none,
           contentPadding: const EdgeInsets.symmetric(
             horizontal: 16,

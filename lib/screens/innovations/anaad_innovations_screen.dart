@@ -73,8 +73,7 @@ class _AnaadInnovationsScreenState extends State<AnaadInnovationsScreen>
     final isDark = theme.brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor:
-          isDark ? const Color(0xFF0F0F1A) : const Color(0xFFF8F9FE),
+      backgroundColor: isDark ? AppColors.parchment : AppColors.parchment,
       body: Stack(
         children: [
           // Background gradient
@@ -105,8 +104,8 @@ class _AnaadInnovationsScreenState extends State<AnaadInnovationsScreen>
             end: Alignment.bottomRight,
             colors:
                 isDark
-                    ? [const Color(0xFF1A0F2E), const Color(0xFF0F0F1A)]
-                    : [const Color(0xFFF0EBFF), const Color(0xFFF8F9FE)],
+                    ? [AppColors.parchment, AppColors.parchment]
+                    : [AppColors.parchment, AppColors.parchment],
           ),
         ),
       ),
@@ -122,22 +121,22 @@ class _AnaadInnovationsScreenState extends State<AnaadInnovationsScreen>
             Positioned(
               top: 100 + (_floatAnimation.value * 15),
               right: 30,
-              child: _buildParticle(8, const Color(0xFF8B5CF6)),
+              child: _buildParticle(8, AppColors.parchment),
             ),
             Positioned(
               top: 200 + (_floatAnimation.value * -10),
               left: 40,
-              child: _buildParticle(6, const Color(0xFF3B82F6)),
+              child: _buildParticle(6, AppColors.parchment),
             ),
             Positioned(
               top: 350 + (_floatAnimation.value * 12),
               right: 60,
-              child: _buildParticle(5, const Color(0xFFF59E0B)),
+              child: _buildParticle(5, AppColors.parchment),
             ),
             Positioned(
               bottom: 200 + (_floatAnimation.value * -8),
               left: 50,
-              child: _buildParticle(7, const Color(0xFF10B981)),
+              child: _buildParticle(7, AppColors.parchment),
             ),
           ],
         );
@@ -163,7 +162,7 @@ class _AnaadInnovationsScreenState extends State<AnaadInnovationsScreen>
     return SliverAppBar(
       expandedHeight: 120,
       pinned: true,
-      backgroundColor: Colors.transparent,
+      backgroundColor: AppColors.transparent,
       elevation: 0,
       leading: Padding(
         padding: const EdgeInsets.all(8),
@@ -178,14 +177,13 @@ class _AnaadInnovationsScreenState extends State<AnaadInnovationsScreen>
               },
               child: Container(
                 decoration: BoxDecoration(
-                  color: (isDark ? Colors.white : Colors.black).withValues(
-                    alpha: 0.1,
-                  ),
+                  color: (isDark ? AppColors.parchment : AppColors.charcoal)
+                      .withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Icon(
                   Icons.arrow_back_rounded,
-                  color: isDark ? Colors.white : Colors.black87,
+                  color: isDark ? AppColors.parchment : AppColors.charcoal87,
                 ),
               ),
             ),
@@ -197,7 +195,7 @@ class _AnaadInnovationsScreenState extends State<AnaadInnovationsScreen>
           'Anaad Innovations',
           style: theme.textTheme.titleLarge?.copyWith(
             fontWeight: FontWeight.bold,
-            color: isDark ? Colors.white : Colors.black87,
+            color: isDark ? AppColors.parchment : AppColors.charcoal87,
           ),
         ),
         centerTitle: true,
@@ -235,7 +233,7 @@ class _AnaadInnovationsScreenState extends State<AnaadInnovationsScreen>
                 icon: Icons.card_giftcard_rounded,
                 title: 'Anaad Redemptions',
                 subtitle: 'Turn your points into pure produce.',
-                gradient: [const Color(0xFF10B981), const Color(0xFF059669)],
+                gradient: [AppColors.parchment, AppColors.parchment],
                 isComingSoon: true,
                 delay: 0,
                 onTap:
@@ -250,7 +248,7 @@ class _AnaadInnovationsScreenState extends State<AnaadInnovationsScreen>
                 icon: Icons.smart_toy_rounded,
                 title: 'Anaad Robots',
                 subtitle: 'Technology that serves the soil.',
-                gradient: [const Color(0xFF8B5CF6), const Color(0xFF6D28D9)],
+                gradient: [AppColors.parchment, AppColors.parchment],
                 isComingSoon: true,
                 delay: 1,
                 onTap: () => _navigateTo(context, const AnaadRobotsScreen()),
@@ -264,7 +262,7 @@ class _AnaadInnovationsScreenState extends State<AnaadInnovationsScreen>
                 icon: Icons.sports_esports_rounded,
                 title: 'Anaad Games',
                 subtitle: 'Learn the art of natural farming.',
-                gradient: [const Color(0xFF3B82F6), const Color(0xFF1D4ED8)],
+                gradient: [AppColors.parchment, AppColors.parchment],
                 isComingSoon: true,
                 delay: 2,
                 onTap: () => _navigateTo(context, const AnaadGamesScreen()),
@@ -278,7 +276,7 @@ class _AnaadInnovationsScreenState extends State<AnaadInnovationsScreen>
                 icon: Icons.share_rounded,
                 title: 'Refer & Earn',
                 subtitle: 'Grow our community, reap the rewards',
-                gradient: [const Color(0xFFF59E0B), const Color(0xFFD97706)],
+                gradient: [AppColors.parchment, AppColors.parchment],
                 isComingSoon: false,
                 delay: 3,
                 onTap: () => _navigateTo(context, const ReferEarnScreen()),
@@ -292,7 +290,7 @@ class _AnaadInnovationsScreenState extends State<AnaadInnovationsScreen>
                 icon: Icons.calendar_month_rounded,
                 title: 'Panchang Calendar',
                 subtitle: 'Today\'s Panchang & calendar view',
-                gradient: [const Color(0xFF6B21A8), const Color(0xFF7C3AED)],
+                gradient: [AppColors.parchment, AppColors.parchment],
                 isComingSoon: false,
                 delay: 4,
                 onTap: () => _navigateTo(context, const PanchangHomeScreen()),
@@ -327,17 +325,17 @@ class _AnaadInnovationsScreenState extends State<AnaadInnovationsScreen>
                   end: Alignment.bottomRight,
                   colors:
                       isDark
-                          ? [const Color(0xFF6B21A8), const Color(0xFF4C1D95)]
-                          : [const Color(0xFF7C3AED), const Color(0xFF8B5CF6)],
+                          ? [AppColors.parchment, AppColors.parchment]
+                          : [AppColors.parchment, AppColors.parchment],
                 ),
                 borderRadius: BorderRadius.circular(24),
                 border: Border.all(
-                  color: Colors.white.withValues(alpha: 0.15),
+                  color: AppColors.parchment.withValues(alpha: 0.15),
                   width: 1.5,
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: const Color(0xFF6B21A8).withValues(alpha: 0.2),
+                    color: AppColors.parchment.withValues(alpha: 0.2),
                     blurRadius: 25,
                     offset: const Offset(0, 10),
                   ),
@@ -354,12 +352,14 @@ class _AnaadInnovationsScreenState extends State<AnaadInnovationsScreen>
                           Container(
                             padding: const EdgeInsets.all(12),
                             decoration: BoxDecoration(
-                              color: Colors.white.withValues(alpha: 0.15),
+                              color: AppColors.parchment.withValues(
+                                alpha: 0.15,
+                              ),
                               borderRadius: BorderRadius.circular(14),
                             ),
                             child: const Icon(
                               Icons.stars_rounded,
-                              color: Colors.white70,
+                              color: AppColors.parchment70,
                               size: 24,
                             ),
                           ),
@@ -370,7 +370,9 @@ class _AnaadInnovationsScreenState extends State<AnaadInnovationsScreen>
                               Text(
                                 'Anaad Points',
                                 style: theme.textTheme.titleMedium?.copyWith(
-                                  color: Colors.white.withValues(alpha: 0.6),
+                                  color: AppColors.parchment.withValues(
+                                    alpha: 0.6,
+                                  ),
                                   fontWeight: FontWeight.w500,
                                 ),
                               ),
@@ -381,7 +383,7 @@ class _AnaadInnovationsScreenState extends State<AnaadInnovationsScreen>
                                     '$_pointsBalance',
                                     style: theme.textTheme.headlineMedium
                                         ?.copyWith(
-                                          color: Colors.white70,
+                                          color: AppColors.parchment70,
                                           fontWeight: FontWeight.bold,
                                         ),
                                   ),
@@ -401,7 +403,7 @@ class _AnaadInnovationsScreenState extends State<AnaadInnovationsScreen>
                                       children: [
                                         const Icon(
                                           Icons.trending_up,
-                                          color: Color(0xFF6EE7B7),
+                                          color: AppColors.parchment,
                                           size: 14,
                                         ),
                                         const SizedBox(width: 4),
@@ -431,7 +433,7 @@ class _AnaadInnovationsScreenState extends State<AnaadInnovationsScreen>
                           vertical: 10,
                         ),
                         decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.1),
+                          color: AppColors.parchment.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Row(
@@ -439,14 +441,16 @@ class _AnaadInnovationsScreenState extends State<AnaadInnovationsScreen>
                           children: [
                             const Icon(
                               Icons.hourglass_top_rounded,
-                              color: Colors.white54,
+                              color: AppColors.parchment54,
                               size: 16,
                             ),
                             const SizedBox(width: 8),
                             Text(
                               'Coming Soon - Earn points with orders!',
                               style: theme.textTheme.bodySmall?.copyWith(
-                                color: Colors.white.withValues(alpha: 0.6),
+                                color: AppColors.parchment.withValues(
+                                  alpha: 0.6,
+                                ),
                               ),
                             ),
                           ],
@@ -464,11 +468,13 @@ class _AnaadInnovationsScreenState extends State<AnaadInnovationsScreen>
                         vertical: 5,
                       ),
                       decoration: BoxDecoration(
-                        color: Colors.orange.withValues(alpha: 0.9),
+                        color: AppColors.harvestAmber.withValues(alpha: 0.9),
                         borderRadius: BorderRadius.circular(12),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.orange.withValues(alpha: 0.4),
+                            color: AppColors.harvestAmber.withValues(
+                              alpha: 0.4,
+                            ),
                             blurRadius: 8,
                             offset: const Offset(0, 2),
                           ),
@@ -480,13 +486,13 @@ class _AnaadInnovationsScreenState extends State<AnaadInnovationsScreen>
                           const Icon(
                             Icons.rocket_launch_rounded,
                             size: 12,
-                            color: Colors.white,
+                            color: AppColors.parchment,
                           ),
                           const SizedBox(width: 4),
                           Text(
                             'COMING SOON',
                             style: theme.textTheme.labelSmall?.copyWith(
-                              color: Colors.white,
+                              color: AppColors.parchment,
                               fontWeight: FontWeight.bold,
                               fontSize: 9,
                             ),
@@ -616,7 +622,7 @@ class _FeatureCardContentState extends State<_FeatureCardContent>
           duration: const Duration(milliseconds: 150),
           padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
-            color: widget.isDark ? const Color(0xFF1E1E2E) : Colors.white,
+            color: widget.isDark ? AppColors.parchment : AppColors.parchment,
             borderRadius: BorderRadius.circular(20),
             border: Border.all(
               color: widget.gradient[0].withValues(
@@ -656,7 +662,11 @@ class _FeatureCardContentState extends State<_FeatureCardContent>
                             ),
                           ],
                         ),
-                        child: Icon(widget.icon, color: Colors.white, size: 26),
+                        child: Icon(
+                          widget.icon,
+                          color: AppColors.parchment,
+                          size: 26,
+                        ),
                       ),
                       // Lock overlay for coming soon
                       if (widget.isComingSoon)
@@ -666,11 +676,13 @@ class _FeatureCardContentState extends State<_FeatureCardContent>
                           child: Container(
                             padding: const EdgeInsets.all(4),
                             decoration: BoxDecoration(
-                              color: Colors.white,
+                              color: AppColors.parchment,
                               shape: BoxShape.circle,
                               boxShadow: [
                                 BoxShadow(
-                                  color: Colors.black.withValues(alpha: 0.2),
+                                  color: AppColors.charcoal.withValues(
+                                    alpha: 0.2,
+                                  ),
                                   blurRadius: 4,
                                 ),
                               ],
@@ -701,8 +713,8 @@ class _FeatureCardContentState extends State<_FeatureCardContent>
                           style: widget.theme.textTheme.bodySmall?.copyWith(
                             color:
                                 widget.isDark
-                                    ? Colors.grey[400]
-                                    : Colors.grey[600],
+                                    ? AppColors.rawEarth26
+                                    : AppColors.rawEarth70,
                           ),
                         ),
                       ],
@@ -767,7 +779,7 @@ class _FeatureCardContentState extends State<_FeatureCardContent>
                               Icon(
                                 Icons.rocket_launch_rounded,
                                 size: iconSize,
-                                color: Colors.white,
+                                color: AppColors.parchment,
                               ),
                               SizedBox(width: spacing),
                               Text(
@@ -775,7 +787,7 @@ class _FeatureCardContentState extends State<_FeatureCardContent>
                                 style: TextStyle(
                                   fontSize: fontSize,
                                   fontWeight: FontWeight.bold,
-                                  color: Colors.white,
+                                  color: AppColors.parchment,
                                   letterSpacing: 0.3,
                                 ),
                               ),

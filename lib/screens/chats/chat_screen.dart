@@ -11,7 +11,8 @@ class ChatScreen extends StatefulWidget {
   State<ChatScreen> createState() => _ChatScreenState();
 }
 
-class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateMixin {
+class _ChatScreenState extends State<ChatScreen>
+    with SingleTickerProviderStateMixin {
   final TextEditingController _controller = TextEditingController();
   final ScrollController _scrollController = ScrollController();
 
@@ -76,39 +77,47 @@ class _ChatScreenState extends State<ChatScreen> with SingleTickerProviderStateM
           ),
         ),
       ),
-drawer: Drawer(
-  child: ListView(
-    padding: EdgeInsets.zero,
-    children: <Widget>[
-      DrawerHeader(
-        decoration: BoxDecoration(
-          color: color.primary,
+      drawer: Drawer(
+        child: ListView(
+          padding: EdgeInsets.zero,
+          children: <Widget>[
+            DrawerHeader(
+              decoration: BoxDecoration(color: color.primary),
+              child: Text(
+                'Menu',
+                style: theme.textTheme.headlineSmall?.copyWith(
+                  color: color.onPrimary,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+            ListTile(
+              leading: Icon(Icons.chat, color: color.onSurface),
+              title: Text(
+                'chat1',
+                style: theme.textTheme.bodyLarge?.copyWith(
+                  color: color.onSurface,
+                ),
+              ),
+              onTap: () {
+                // Navigate to home
+              },
+            ),
+            ListTile(
+              leading: Icon(Icons.chat, color: color.onSurface),
+              title: Text(
+                'chat2',
+                style: theme.textTheme.bodyLarge?.copyWith(
+                  color: color.onSurface,
+                ),
+              ),
+              onTap: () {
+                // Navigate to settings
+              },
+            ),
+          ],
         ),
-        child: Text(
-          'Menu',
-          style: theme.textTheme.headlineSmall?.copyWith(
-            color: color.onPrimary,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
       ),
-      ListTile(
-        leading: Icon(Icons.chat, color: color.onSurface),
-        title: Text('chat1', style: theme.textTheme.bodyLarge?.copyWith(color: color.onSurface)),
-        onTap: () {
-          // Navigate to home
-        },
-      ),
-      ListTile(
-        leading: Icon(Icons.chat, color: color.onSurface),
-        title: Text('chat2', style: theme.textTheme.bodyLarge?.copyWith(color: color.onSurface)),
-        onTap: () {
-          // Navigate to settings
-        },
-      ),
-    ],
-  ),
-),
       body: Column(
         children: [
           Expanded(
@@ -122,9 +131,7 @@ drawer: Drawer(
                 if (state.messages.isEmpty) {
                   if (state.status == ChatStatus.loading) {
                     return Center(
-                      child: CircularProgressIndicator(
-                        color: color.primary,
-                      ),
+                      child: CircularProgressIndicator(color: color.primary),
                     );
                   }
                   return _buildEmptyState(theme);
@@ -135,7 +142,7 @@ drawer: Drawer(
                     if (state.status == ChatStatus.loading)
                       LinearProgressIndicator(
                         color: color.primary,
-                        backgroundColor: color.secondary.withOpacity(0.3),
+                        backgroundColor: color.secondary.withValues(alpha: 0.3),
                       ),
 
                     Expanded(
@@ -148,35 +155,54 @@ drawer: Drawer(
                           final isUser = msg.isUser;
 
                           return Align(
-                            alignment: isUser ? Alignment.centerRight : Alignment.centerLeft,
+                            alignment:
+                                isUser
+                                    ? Alignment.centerRight
+                                    : Alignment.centerLeft,
                             child: Container(
                               margin: const EdgeInsets.symmetric(vertical: 4),
-                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 12,
+                              ),
                               constraints: BoxConstraints(
-                                maxWidth: MediaQuery.of(context).size.width * 0.75,
+                                maxWidth:
+                                    MediaQuery.of(context).size.width * 0.75,
                               ),
                               decoration: BoxDecoration(
-                                color: isUser
-                                    ? color.primary
-                                    : color.surface.withOpacity(0.9),
+                                color:
+                                    isUser
+                                        ? color.primary
+                                        : color.surface.withValues(alpha: 0.9),
                                 borderRadius: BorderRadius.only(
                                   topLeft: const Radius.circular(16),
                                   topRight: const Radius.circular(16),
-                                  bottomLeft: isUser ? const Radius.circular(16) : const Radius.circular(0),
-                                  bottomRight: isUser ? const Radius.circular(0) : const Radius.circular(16),
+                                  bottomLeft:
+                                      isUser
+                                          ? const Radius.circular(16)
+                                          : const Radius.circular(0),
+                                  bottomRight:
+                                      isUser
+                                          ? const Radius.circular(0)
+                                          : const Radius.circular(16),
                                 ),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: Colors.black.withOpacity(0.05),
+                                    color: AppColors.charcoal.withValues(
+                                      alpha: 0.05,
+                                    ),
                                     blurRadius: 5,
                                     offset: const Offset(0, 2),
-                                  )
+                                  ),
                                 ],
                               ),
                               child: Text(
                                 msg.text,
                                 style: theme.textTheme.bodyLarge?.copyWith(
-                                  color: isUser ? color.onPrimary : color.onSurface,
+                                  color:
+                                      isUser
+                                          ? color.onPrimary
+                                          : color.onSurface,
                                 ),
                               ),
                             ),
@@ -197,7 +223,7 @@ drawer: Drawer(
               color: color.surface,
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.06),
+                  color: AppColors.charcoal.withValues(alpha: 0.06),
                   offset: const Offset(0, -4),
                   blurRadius: 10,
                 ),
@@ -212,12 +238,18 @@ drawer: Drawer(
                     decoration: InputDecoration(
                       hintText: "Ask about organic wheat...",
                       filled: true,
-                      fillColor: color.secondary.withOpacity(0.25),
+                      fillColor: color.secondary.withValues(alpha: 0.25),
                       hintStyle: theme.textTheme.bodyMedium,
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 20,
+                        vertical: 14,
+                      ),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(30),
-                        borderSide: BorderSide(color: color.primary, width: 0.4),
+                        borderSide: BorderSide(
+                          color: color.primary,
+                          width: 0.4,
+                        ),
                       ),
                     ),
                     onSubmitted: (_) => _sendMessage(),
@@ -230,12 +262,8 @@ drawer: Drawer(
                   backgroundColor: color.primary,
                   elevation: 1,
                   mini: true,
-                  child: Icon(
-                    Icons.send,
-                    size: 18,
-                    color: color.onPrimary,
-                  ),
-                )
+                  child: Icon(Icons.send, size: 18, color: color.onPrimary),
+                ),
               ],
             ),
           ),
@@ -258,14 +286,10 @@ drawer: Drawer(
             child: Container(
               padding: const EdgeInsets.all(24),
               decoration: BoxDecoration(
-                color: color.primary.withOpacity(0.15),
+                color: color.primary.withValues(alpha: 0.15),
                 shape: BoxShape.circle,
               ),
-              child: Icon(
-                Icons.eco,
-                size: 60,
-                color: color.primary,
-              ),
+              child: Icon(Icons.eco, size: 60, color: color.primary),
             ),
           ),
           const SizedBox(height: 24),
@@ -283,7 +307,7 @@ drawer: Drawer(
           Text(
             "Ask me anything about our organic products.",
             style: theme.textTheme.bodyMedium?.copyWith(
-              color: color.onSurface.withOpacity(0.6),
+              color: color.onSurface.withValues(alpha: 0.6),
             ),
           ),
         ],
@@ -291,4 +315,3 @@ drawer: Drawer(
     );
   }
 }
-

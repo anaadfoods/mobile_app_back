@@ -1,3 +1,4 @@
+import 'package:grocery_app/core/theme/app_colors.dart';
 import 'package:flutter/material.dart';
 
 /// Indian lunar month information
@@ -30,108 +31,108 @@ class IndianMonthHelper {
       sanskritName: 'Chaitra',
       hindiName: 'Chait',
       gregorianPeriod: 'March – April',
-      color: Color(0xFFFF9066),
-      lightColor: Color(0xFFFFDCC2),
-      darkColor: Color(0xFFFF6B35),
+      color: AppColors.parchment,
+      lightColor: AppColors.parchment,
+      darkColor: AppColors.parchment,
     ),
     IndianMonth(
       index: 2,
       sanskritName: 'Vaishakha',
       hindiName: 'Baisakh',
       gregorianPeriod: 'April – May',
-      color: Color(0xFF66D9A6),
-      lightColor: Color(0xFFC2F5DD),
-      darkColor: Color(0xFF35B87A),
+      color: AppColors.parchment,
+      lightColor: AppColors.parchment,
+      darkColor: AppColors.parchment,
     ),
     IndianMonth(
       index: 3,
       sanskritName: 'Jyeshtha',
       hindiName: 'Jeth',
       gregorianPeriod: 'May – June',
-      color: Color(0xFF66C2FF),
-      lightColor: Color(0xFFC2E8FF),
-      darkColor: Color(0xFF3597D9),
+      color: AppColors.parchment,
+      lightColor: AppColors.parchment,
+      darkColor: AppColors.parchment,
     ),
     IndianMonth(
       index: 4,
       sanskritName: 'Ashadha',
       hindiName: 'Ashadh',
       gregorianPeriod: 'June – July',
-      color: Color(0xFF66D9CC),
-      lightColor: Color(0xFFC2F5F0),
-      darkColor: Color(0xFF35B8AA),
+      color: AppColors.parchment,
+      lightColor: AppColors.parchment,
+      darkColor: AppColors.parchment,
     ),
     IndianMonth(
       index: 5,
       sanskritName: 'Shravana',
       hindiName: 'Sawan',
       gregorianPeriod: 'July – August',
-      color: Color(0xFF9966FF),
-      lightColor: Color(0xFFDCC2FF),
-      darkColor: Color(0xFF7035D9),
+      color: AppColors.parchment,
+      lightColor: AppColors.parchment,
+      darkColor: AppColors.parchment,
     ),
     IndianMonth(
       index: 6,
       sanskritName: 'Bhadrapada',
       hindiName: 'Bhado',
       gregorianPeriod: 'August – September',
-      color: Color(0xFFFFCC66),
-      lightColor: Color(0xFFFFF0C2),
-      darkColor: Color(0xFFD9A835),
+      color: AppColors.parchment,
+      lightColor: AppColors.parchment,
+      darkColor: AppColors.parchment,
     ),
     IndianMonth(
       index: 7,
       sanskritName: 'Ashvina',
       hindiName: 'Ashwin',
       gregorianPeriod: 'September – October',
-      color: Color(0xFFFF66A3),
-      lightColor: Color(0xFFFFB8D6),
-      darkColor: Color(0xFFD93575),
+      color: AppColors.parchment,
+      lightColor: AppColors.parchment,
+      darkColor: AppColors.parchment,
     ),
     IndianMonth(
       index: 8,
       sanskritName: 'Kartika',
       hindiName: 'Kartik',
       gregorianPeriod: 'October – November',
-      color: Color(0xFFFF8C66),
-      lightColor: Color(0xFFFFD4C2),
-      darkColor: Color(0xFFD96235),
+      color: AppColors.parchment,
+      lightColor: AppColors.parchment,
+      darkColor: AppColors.parchment,
     ),
     IndianMonth(
       index: 9,
       sanskritName: 'Margashirsha',
       hindiName: 'Agahan',
       gregorianPeriod: 'November – December',
-      color: Color(0xFF66FFB8),
-      lightColor: Color(0xFFC2FFE3),
-      darkColor: Color(0xFF35D98C),
+      color: AppColors.parchment,
+      lightColor: AppColors.parchment,
+      darkColor: AppColors.parchment,
     ),
     IndianMonth(
       index: 10,
       sanskritName: 'Pausha',
       hindiName: 'Poos',
       gregorianPeriod: 'December – January',
-      color: Color(0xFF66E0FF),
-      lightColor: Color(0xFFC2F5FF),
-      darkColor: Color(0xFF35BBD9),
+      color: AppColors.parchment,
+      lightColor: AppColors.parchment,
+      darkColor: AppColors.parchment,
     ),
     IndianMonth(
       index: 11,
       sanskritName: 'Magha',
       hindiName: 'Magh',
       gregorianPeriod: 'January – February',
-      color: Color(0xFFB366FF),
-      lightColor: Color(0xFFE3C2FF),
-      darkColor: Color(0xFF8935D9),
+      color: AppColors.parchment,
+      lightColor: AppColors.parchment,
+      darkColor: AppColors.parchment,
     ),
     IndianMonth(
       index: 12,
       sanskritName: 'Phalguna',
       hindiName: 'Phagun',
       gregorianPeriod: 'February – March',
-      color: Color(0xFFFFB366),
-      lightColor: Color(0xFFFFE3C2),
-      darkColor: Color(0xFFD98935),
+      color: AppColors.parchment,
+      lightColor: AppColors.parchment,
+      darkColor: AppColors.parchment,
     ),
   ];
 
@@ -173,17 +174,17 @@ class IndianMonthHelper {
     final month = getBySanskritName(masaName) ?? getByHindiName(masaName);
     if (month == null) {
       // Default fallback color
-      return (isDark ? const Color(0xFF6B4EFF) : const Color(0xFFB4A0FF))
-          .withOpacity(opacity);
+      return (isDark ? AppColors.parchment : AppColors.parchment)
+          .withValues(alpha: opacity);
     }
-    return (isDark ? month.darkColor : month.lightColor).withOpacity(opacity);
+    return (isDark ? month.darkColor : month.lightColor).withValues(alpha: opacity);
   }
 
   /// Get base color (without opacity) for masa
   static Color getBaseColorForMasa(String masaName, bool isDark) {
     final month = getBySanskritName(masaName) ?? getByHindiName(masaName);
     if (month == null) {
-      return isDark ? const Color(0xFF6B4EFF) : const Color(0xFFB4A0FF);
+      return isDark ? AppColors.parchment : AppColors.parchment;
     }
     return isDark ? month.darkColor : month.lightColor;
   }

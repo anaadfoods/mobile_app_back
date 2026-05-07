@@ -126,7 +126,7 @@ class _AllProductsScreenState extends State<AllProductsScreen> {
                 Icon(
                   Icons.inventory_2_outlined,
                   size: 80,
-                  color: theme.disabledColor.withOpacity(0.5),
+                  color: theme.disabledColor.withValues(alpha: 0.5),
                 ),
                 const SizedBox(height: AppColors.spacingL),
                 Text(
@@ -148,8 +148,7 @@ class _AllProductsScreenState extends State<AllProductsScreen> {
     }
 
     return Scaffold(
-      backgroundColor:
-          isDark ? const Color(0xFF121212) : const Color(0xFFF5F5F5),
+      backgroundColor: isDark ? AppColors.darkCanvas : AppColors.parchment,
       body: CustomScrollView(
         slivers: [
           // App Bar
@@ -158,7 +157,7 @@ class _AllProductsScreenState extends State<AllProductsScreen> {
             floating: false,
             pinned: true,
             backgroundColor:
-                isDark ? const Color(0xFF1A1A1A) : AppColors.primaryColor,
+                isDark ? AppColors.charcoal : AppColors.deepSoilGreen,
             flexibleSpace: FlexibleSpaceBar(
               background: Container(
                 decoration: BoxDecoration(
@@ -167,10 +166,13 @@ class _AllProductsScreenState extends State<AllProductsScreen> {
                     end: Alignment.bottomRight,
                     colors:
                         isDark
-                            ? [const Color(0xFF2D2D2D), const Color(0xFF1A1A1A)]
+                            ? [
+                              AppColors.deepSoilGreen,
+                              AppColors.deepSoilGreen.withValues(alpha: 0.8),
+                            ]
                             : [
-                              AppColors.primaryColor,
-                              AppColors.primaryColor.withOpacity(0.8),
+                              AppColors.deepSoilGreen,
+                              AppColors.deepSoilGreen.withValues(alpha: 0.8),
                             ],
                   ),
                 ),
@@ -185,7 +187,7 @@ class _AllProductsScreenState extends State<AllProductsScreen> {
                         Text(
                           'Product Categories',
                           style: theme.textTheme.headlineSmall?.copyWith(
-                            color: Colors.white,
+                            color: AppColors.parchment,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
@@ -193,7 +195,7 @@ class _AllProductsScreenState extends State<AllProductsScreen> {
                         Text(
                           '${_products.length} products available',
                           style: theme.textTheme.bodyMedium?.copyWith(
-                            color: Colors.white.withOpacity(0.8),
+                            color: AppColors.parchment.withValues(alpha: 0.8),
                           ),
                         ),
                       ],
@@ -202,24 +204,16 @@ class _AllProductsScreenState extends State<AllProductsScreen> {
                 ),
               ),
             ),
-            leading: IconButton(
-              icon: Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.15),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: const Icon(Icons.arrow_back_ios_new, size: 18),
-              ),
-              color: Colors.white,
-              onPressed: () => context.pop(),
+            leading: Padding(
+              padding: const EdgeInsets.all(4),
+              child: const AnaadLogoMark(),
             ),
             actions: [
               IconButton(
                 icon: Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.15),
+                    color: AppColors.parchment.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Icon(
@@ -229,7 +223,7 @@ class _AllProductsScreenState extends State<AllProductsScreen> {
                     size: 20,
                   ),
                 ),
-                color: Colors.white,
+                color: AppColors.parchment,
                 onPressed: () => setState(() => _isGridView = !_isGridView),
               ),
               const SizedBox(width: 8),
@@ -301,19 +295,18 @@ class _AllProductsScreenState extends State<AllProductsScreen> {
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
           decoration: BoxDecoration(
             color:
-                isSelected
-                    ? AppColors.primaryColor
-                    : (isDark ? Colors.grey[850] : Colors.white),
+                (isDark ? AppColors.darkSurfaceElevated : AppColors.parchment),
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
-              color: isSelected ? AppColors.primaryColor : Colors.transparent,
+              color:
+                  isSelected ? AppColors.deepSoilGreen : AppColors.transparent,
             ),
             boxShadow:
                 isSelected
                     ? null
                     : [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.05),
+                        color: AppColors.charcoal.withValues(alpha: 0.05),
                         blurRadius: 4,
                         offset: const Offset(0, 2),
                       ),
@@ -327,8 +320,10 @@ class _AllProductsScreenState extends State<AllProductsScreen> {
                 size: 16,
                 color:
                     isSelected
-                        ? Colors.white
-                        : (isDark ? Colors.white70 : Colors.black54),
+                        ? AppColors.parchment
+                        : (isDark
+                            ? AppColors.parchment70
+                            : AppColors.charcoal54),
               ),
               const SizedBox(width: 6),
               Text(
@@ -338,8 +333,10 @@ class _AllProductsScreenState extends State<AllProductsScreen> {
                   fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
                   color:
                       isSelected
-                          ? Colors.white
-                          : (isDark ? Colors.white70 : Colors.black87),
+                          ? AppColors.parchment
+                          : (isDark
+                              ? AppColors.parchment70
+                              : AppColors.charcoal87),
                 ),
               ),
             ],
@@ -432,14 +429,17 @@ class _FeaturedProductCard extends StatelessWidget {
           children: [
             Container(
               decoration: BoxDecoration(
-                color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+                color:
+                    isDark
+                        ? AppColors.darkSurfaceElevated
+                        : AppColors.parchment,
                 borderRadius: BorderRadius.circular(20),
                 boxShadow: [
                   BoxShadow(
                     color:
                         isDark
-                            ? Colors.black26
-                            : Colors.black.withOpacity(0.06),
+                            ? AppColors.charcoal26
+                            : AppColors.charcoal.withValues(alpha: 0.08),
                     blurRadius: 12,
                     offset: const Offset(0, 4),
                   ),
@@ -459,7 +459,15 @@ class _FeaturedProductCard extends StatelessWidget {
                             borderRadius: const BorderRadius.vertical(
                               top: Radius.circular(20),
                             ),
-                            gradient: _getDummyGradient(index),
+                            gradient:
+                                isDark
+                                    ? LinearGradient(
+                                      colors: [
+                                        AppColors.darkCanvas,
+                                        AppColors.darkCanvas,
+                                      ],
+                                    )
+                                    : _getDummyGradient(index, isDark),
                           ),
                           child: ClipRRect(
                             borderRadius: const BorderRadius.vertical(
@@ -479,13 +487,22 @@ class _FeaturedProductCard extends StatelessWidget {
                                 vertical: 4,
                               ),
                               decoration: BoxDecoration(
-                                color: AppColors.error,
+                                color: AppColors.harvestAmber,
                                 borderRadius: BorderRadius.circular(8),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: AppColors.harvestAmber.withValues(
+                                      alpha: 0.3,
+                                    ),
+                                    blurRadius: 6,
+                                    offset: const Offset(0, 2),
+                                  ),
+                                ],
                               ),
                               child: Text(
                                 '${product.discountPercentage.toInt()}% OFF',
                                 style: const TextStyle(
-                                  color: Colors.white,
+                                  color: AppColors.pureWhite,
                                   fontSize: 10,
                                   fontWeight: FontWeight.bold,
                                 ),
@@ -499,13 +516,16 @@ class _FeaturedProductCard extends StatelessWidget {
                           child: Container(
                             padding: const EdgeInsets.all(6),
                             decoration: BoxDecoration(
-                              color: Colors.white.withOpacity(0.9),
+                              color: AppColors.parchment.withValues(alpha: 0.9),
                               shape: BoxShape.circle,
                             ),
                             child: Icon(
                               Icons.favorite_border,
                               size: 18,
-                              color: isDark ? Colors.black54 : Colors.black45,
+                              color:
+                                  isDark
+                                      ? AppColors.parchment54
+                                      : AppColors.charcoal45,
                             ),
                           ),
                         ),
@@ -545,7 +565,10 @@ class _FeaturedProductCard extends StatelessWidget {
                                 '₹${product.finalPrice.toStringAsFixed(0)}',
                                 style: theme.textTheme.titleMedium?.copyWith(
                                   fontWeight: FontWeight.bold,
-                                  color: AppColors.primaryColor,
+                                  color:
+                                      isDark
+                                          ? AppColors.harvestAmber
+                                          : AppColors.deepSoilGreen,
                                 ),
                                 overflow: TextOverflow.ellipsis,
                               ),
@@ -580,14 +603,18 @@ class _FeaturedProductCard extends StatelessWidget {
     );
   }
 
-  LinearGradient _getDummyGradient(int index) {
+  LinearGradient _getDummyGradient(int index, bool isDark) {
+    if (isDark) {
+      return LinearGradient(
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+        colors: [AppColors.darkSurface, AppColors.darkSurface],
+      );
+    }
     final gradients = [
-      [const Color(0xFFFFF3E0), const Color(0xFFFFE0B2)], // Orange light
-      [const Color(0xFFE8F5E9), const Color(0xFFC8E6C9)], // Green light
-      [const Color(0xFFFCE4EC), const Color(0xFFF8BBD0)], // Pink light
-      [const Color(0xFFE3F2FD), const Color(0xFFBBDEFB)], // Blue light
-      [const Color(0xFFF3E5F5), const Color(0xFFE1BEE7)], // Purple light
-      [const Color(0xFFFFFDE7), const Color(0xFFFFF9C4)], // Yellow light
+      [AppColors.parchment, AppColors.parchment],
+      [AppColors.snowWhite, AppColors.snowWhite],
+      [AppColors.softCream, AppColors.softCream],
     ];
     final colors = gradients[index % gradients.length];
     return LinearGradient(
@@ -619,18 +646,18 @@ class _FeaturedProductCard extends StatelessWidget {
       Icons.breakfast_dining_rounded,
     ];
     final colors = [
-      const Color(0xFFE65100),
-      const Color(0xFF2E7D32),
-      const Color(0xFFD32F2F),
-      const Color(0xFF7B1FA2),
-      const Color(0xFFF9A825),
-      const Color(0xFF795548),
+      AppColors.parchment,
+      AppColors.parchment,
+      AppColors.parchment,
+      AppColors.parchment,
+      AppColors.parchment,
+      AppColors.parchment,
     ];
     return Center(
       child: Icon(
         icons[index % icons.length],
         size: 56,
-        color: colors[index % colors.length].withOpacity(0.6),
+        color: colors[index % colors.length].withValues(alpha: 0.6),
       ),
     );
   }
@@ -660,7 +687,7 @@ class _AddToCartButton extends StatelessWidget {
         if (quantity > 0) {
           return Container(
             decoration: BoxDecoration(
-              color: AppColors.primaryColor.withOpacity(0.1),
+              color: AppColors.deepSoilGreen.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(10),
             ),
             child: Row(
@@ -673,7 +700,7 @@ class _AddToCartButton extends StatelessWidget {
                     child: Icon(
                       Icons.remove,
                       size: 16,
-                      color: AppColors.primaryColor,
+                      color: AppColors.deepSoilGreen,
                     ),
                   ),
                 ),
@@ -683,7 +710,7 @@ class _AddToCartButton extends StatelessWidget {
                     '$quantity',
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
-                      color: AppColors.primaryColor,
+                      color: AppColors.deepSoilGreen,
                     ),
                   ),
                 ),
@@ -694,7 +721,7 @@ class _AddToCartButton extends StatelessWidget {
                     child: Icon(
                       Icons.add,
                       size: 16,
-                      color: AppColors.primaryColor,
+                      color: AppColors.deepSoilGreen,
                     ),
                   ),
                 ),
@@ -716,10 +743,10 @@ class _AddToCartButton extends StatelessWidget {
           child: Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: AppColors.primaryColor,
+              color: AppColors.deepSoilGreen,
               borderRadius: BorderRadius.circular(10),
             ),
-            child: const Icon(Icons.add, size: 18, color: Colors.white),
+            child: const Icon(Icons.add, size: 18, color: AppColors.parchment),
           ),
         );
       },

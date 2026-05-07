@@ -49,8 +49,7 @@ class _CombinedScreenState extends State<CombinedScreen>
     final isDark = theme.brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor:
-          isDark ? const Color(0xFF0F0F1A) : const Color(0xFFF8F9FE),
+      backgroundColor: theme.scaffoldBackgroundColor,
       body: CustomScrollView(
         controller: _scrollController,
         physics: const BouncingScrollPhysics(),
@@ -87,24 +86,10 @@ class _CombinedScreenState extends State<CombinedScreen>
       floating: false,
       pinned: true,
       stretch: true,
-      backgroundColor: isDark ? const Color(0xFF1E1E2E) : Colors.white,
-      leading: GestureDetector(
-        onTap: () {
-          _triggerHaptic();
-          context.pop();
-        },
-        child: Container(
-          margin: const EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            color: Colors.black.withOpacity(0.3),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: const Icon(
-            Icons.arrow_back_ios_new,
-            color: Colors.white,
-            size: 20,
-          ),
-        ),
+      backgroundColor: theme.scaffoldBackgroundColor,
+      leading: const Padding(
+        padding: EdgeInsets.all(4),
+        child: AnaadLogoMark(),
       ),
       flexibleSpace: FlexibleSpaceBar(
         stretchModes: const [StretchMode.zoomBackground, StretchMode.fadeTitle],
@@ -126,9 +111,9 @@ class _CombinedScreenState extends State<CombinedScreen>
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
                   colors: [
-                    Colors.black.withOpacity(0.1),
-                    Colors.transparent,
-                    Colors.black.withOpacity(0.9),
+                    AppColors.charcoal.withValues(alpha: 0.1),
+                    AppColors.transparent,
+                    AppColors.charcoal.withValues(alpha: 0.9),
                   ],
                   stops: const [0.0, 0.4, 1.0],
                 ),
@@ -143,17 +128,17 @@ class _CombinedScreenState extends State<CombinedScreen>
                     Positioned(
                       top: 60 + (_floatController.value * 10),
                       right: 30,
-                      child: _buildParticle(8, const Color(0xFF4CAF50)),
+                      child: _buildParticle(8, AppColors.parchment),
                     ),
                     Positioned(
                       top: 150 + (_floatController.value * -8),
                       left: 40,
-                      child: _buildParticle(6, Colors.white),
+                      child: _buildParticle(6, AppColors.parchment),
                     ),
                     Positioned(
                       bottom: 80 + (_floatController.value * 12),
                       right: 60,
-                      child: _buildParticle(5, const Color(0xFF4CAF50)),
+                      child: _buildParticle(5, AppColors.parchment),
                     ),
                   ],
                 );
@@ -174,19 +159,26 @@ class _CombinedScreenState extends State<CombinedScreen>
                     ),
                     decoration: BoxDecoration(
                       gradient: const LinearGradient(
-                        colors: [Color(0xFF4CAF50), Color(0xFF388E3C)],
+                        colors: [
+                          AppColors.deepSoilGreen,
+                          AppColors.deepSoilGreen,
+                        ],
                       ),
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: const Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(Icons.eco_rounded, color: Colors.white, size: 14),
+                        Icon(
+                          Icons.eco_rounded,
+                          color: AppColors.parchment,
+                          size: 14,
+                        ),
                         SizedBox(width: 4),
                         Text(
                           '100% Natural',
                           style: TextStyle(
-                            color: Colors.white,
+                            color: AppColors.parchment,
                             fontSize: 12,
                             fontWeight: FontWeight.bold,
                           ),
@@ -198,7 +190,7 @@ class _CombinedScreenState extends State<CombinedScreen>
                   Text(
                     ' Remote Farming Program',
                     style: theme.textTheme.headlineMedium?.copyWith(
-                      color: Colors.white,
+                      color: AppColors.parchment,
                       fontWeight: FontWeight.bold,
                       letterSpacing: 0.5,
                     ),
@@ -207,7 +199,7 @@ class _CombinedScreenState extends State<CombinedScreen>
                   Text(
                     'Certified toxin-free ICBN agriculture with complete traceability',
                     style: theme.textTheme.bodyLarge?.copyWith(
-                      color: Colors.white.withOpacity(0.9),
+                      color: AppColors.parchment.withValues(alpha: 0.9),
                     ),
                   ),
                 ],
@@ -225,13 +217,16 @@ class _CombinedScreenState extends State<CombinedScreen>
       height: size,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        color: color.withOpacity(0.6),
-        boxShadow: [BoxShadow(color: color.withOpacity(0.4), blurRadius: 8)],
+        color: color.withValues(alpha: 0.6),
+        boxShadow: [
+          BoxShadow(color: color.withValues(alpha: 0.4), blurRadius: 8),
+        ],
       ),
     );
   }
 
   Widget _buildHeroSection(ThemeData theme, bool isDark) {
+    final accentColor = isDark ? AppColors.parchment : AppColors.deepSoilGreen;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
       child: ClipRRect(
@@ -241,11 +236,10 @@ class _CombinedScreenState extends State<CombinedScreen>
           child: Container(
             padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
-              color: (isDark ? Colors.white : const Color(0xFF4CAF50))
-                  .withOpacity(0.1),
+              color: theme.cardColor.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(24),
               border: Border.all(
-                color: const Color(0xFF4CAF50).withOpacity(0.3),
+                color: accentColor.withValues(alpha: 0.3),
                 width: 1.5,
               ),
             ),
@@ -256,16 +250,16 @@ class _CombinedScreenState extends State<CombinedScreen>
                     Container(
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF4CAF50).withOpacity(0.15),
+                        color: accentColor.withValues(alpha: 0.15),
                         borderRadius: BorderRadius.circular(16),
                         border: Border.all(
-                          color: const Color(0xFF4CAF50).withOpacity(0.5),
+                          color: accentColor.withValues(alpha: 0.5),
                           width: 2,
                         ),
                       ),
-                      child: const Icon(
+                      child: Icon(
                         Icons.spa_rounded,
-                        color: Color(0xFF4CAF50),
+                        color: accentColor,
                         size: 32,
                       ),
                     ),
@@ -285,7 +279,9 @@ class _CombinedScreenState extends State<CombinedScreen>
                             'Beyond organic - a toxin-free guarantee',
                             style: theme.textTheme.bodyMedium?.copyWith(
                               color:
-                                  isDark ? Colors.grey[400] : Colors.grey[600],
+                                  isDark
+                                      ? AppColors.rawEarth26
+                                      : AppColors.rawEarth70,
                             ),
                           ),
                         ],
@@ -297,7 +293,7 @@ class _CombinedScreenState extends State<CombinedScreen>
                 Text(
                   "We strictly adhere to natural(ICBN) farming protocols. This means no synthetic chemicals, toxins or pesticides and zero shortcuts. We grow crops that not only meet the highest Safety Standards but also redefine the Nutritional Standards. Here, you don't just buy produce; rather commit to the harvest",
                   style: theme.textTheme.bodyMedium?.copyWith(
-                    color: isDark ? Colors.grey[300] : Colors.grey[700],
+                    color: isDark ? AppColors.rawEarth12 : AppColors.charcoal60,
                     height: 1.6,
                   ),
                 ),
@@ -316,7 +312,7 @@ class _CombinedScreenState extends State<CombinedScreen>
         'title': 'Your Mini Farm',
         'desc':
             'Land allocated exclusively to grow your/your family’s seasonal vegetable requirements',
-        'color': const Color(0xFF4CAF50),
+        'color': AppColors.deepSoilGreen,
         'image':
             'https://images.unsplash.com/photo-1563203432-345337a36416?q=80&w=1964&auto=format&fit=crop',
       },
@@ -325,7 +321,7 @@ class _CombinedScreenState extends State<CombinedScreen>
         'title': 'Your Farm Manager',
         'desc':
             'Expert agronomists overseeing the entire crop lifecycle for you',
-        'color': const Color(0xFF2196F3),
+        'color': AppColors.harvestAmber,
         'image':
             'https://images.unsplash.com/photo-1599599810694-b5b37304c847?q=80&w=2070&auto=format&fit=crop',
       },
@@ -363,8 +359,8 @@ class _CombinedScreenState extends State<CombinedScreen>
                             ),
                             boxShadow: [
                               BoxShadow(
-                                color: (feature['color'] as Color).withOpacity(
-                                  0.3,
+                                color: (feature['color'] as Color).withValues(
+                                  alpha: 0.3,
                                 ),
                                 blurRadius: 15,
                                 offset: const Offset(0, 8),
@@ -378,8 +374,8 @@ class _CombinedScreenState extends State<CombinedScreen>
                                 begin: Alignment.topCenter,
                                 end: Alignment.bottomCenter,
                                 colors: [
-                                  Colors.transparent,
-                                  Colors.black.withOpacity(0.8),
+                                  AppColors.transparent,
+                                  AppColors.charcoal.withValues(alpha: 0.8),
                                 ],
                               ),
                             ),
@@ -392,12 +388,12 @@ class _CombinedScreenState extends State<CombinedScreen>
                                   padding: const EdgeInsets.all(8),
                                   decoration: BoxDecoration(
                                     color: (feature['color'] as Color)
-                                        .withOpacity(0.8),
+                                        .withValues(alpha: 0.8),
                                     borderRadius: BorderRadius.circular(10),
                                   ),
                                   child: Icon(
                                     feature['icon'] as IconData,
-                                    color: Colors.white,
+                                    color: AppColors.parchment,
                                     size: 20,
                                   ),
                                 ),
@@ -405,7 +401,7 @@ class _CombinedScreenState extends State<CombinedScreen>
                                 Text(
                                   feature['title'] as String,
                                   style: theme.textTheme.titleMedium?.copyWith(
-                                    color: Colors.white,
+                                    color: AppColors.parchment,
                                     fontWeight: FontWeight.bold,
                                   ),
                                 ),
@@ -413,7 +409,9 @@ class _CombinedScreenState extends State<CombinedScreen>
                                 Text(
                                   feature['desc'] as String,
                                   style: theme.textTheme.bodySmall?.copyWith(
-                                    color: Colors.white.withOpacity(0.8),
+                                    color: AppColors.parchment.withValues(
+                                      alpha: 0.8,
+                                    ),
                                   ),
                                 ),
                               ],
@@ -481,15 +479,15 @@ class _CombinedScreenState extends State<CombinedScreen>
                 margin: const EdgeInsets.only(right: 12),
                 padding: const EdgeInsets.all(14),
                 decoration: BoxDecoration(
-                  color: isDark ? const Color(0xFF1E1E2E) : Colors.white,
+                  color: isDark ? AppColors.charcoal : AppColors.parchment,
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(
-                    color: const Color(0xFF4CAF50).withOpacity(0.2),
+                    color: AppColors.parchment.withValues(alpha: 0.2),
                     width: 1,
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.05),
+                      color: AppColors.charcoal.withValues(alpha: 0.05),
                       blurRadius: 10,
                       offset: const Offset(0, 4),
                     ),
@@ -507,12 +505,12 @@ class _CombinedScreenState extends State<CombinedScreen>
                         Container(
                           padding: const EdgeInsets.all(8),
                           decoration: BoxDecoration(
-                            color: const Color(0xFF4CAF50).withOpacity(0.15),
+                            color: (isDark ? AppColors.parchment : AppColors.deepSoilGreen).withValues(alpha: 0.15),
                             borderRadius: BorderRadius.circular(10),
                           ),
                           child: Icon(
                             benefit['icon'] as IconData,
-                            color: const Color(0xFF4CAF50),
+                            color: isDark ? AppColors.parchment : AppColors.deepSoilGreen,
                             size: 20,
                           ),
                         ),
@@ -530,7 +528,10 @@ class _CombinedScreenState extends State<CombinedScreen>
                         Text(
                           benefit['desc'] as String,
                           style: theme.textTheme.bodySmall?.copyWith(
-                            color: isDark ? Colors.grey[400] : Colors.grey[600],
+                            color:
+                                isDark
+                                    ? AppColors.rawEarth26
+                                    : AppColors.rawEarth70,
                             height: 1.2,
                           ),
                           maxLines: 2,
@@ -559,13 +560,16 @@ class _CombinedScreenState extends State<CombinedScreen>
             end: Alignment.bottomRight,
             colors:
                 isDark
-                    ? [const Color(0xFF1E3A2F), const Color(0xFF0F1F1A)]
-                    : [const Color(0xFFE8F5E9), const Color(0xFFC8E6C9)],
+                    ? [
+                      AppColors.charcoal.withValues(alpha: 0.6),
+                      AppColors.charcoal.withValues(alpha: 0.4),
+                    ]
+                    : [AppColors.pureWhite, AppColors.pureWhite],
           ),
           borderRadius: BorderRadius.circular(24),
           boxShadow: [
             BoxShadow(
-              color: const Color(0xFF4CAF50).withOpacity(0.2),
+              color: AppColors.charcoal.withValues(alpha: 0.1),
               blurRadius: 20,
               offset: const Offset(0, 8),
             ),
@@ -579,12 +583,12 @@ class _CombinedScreenState extends State<CombinedScreen>
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF4CAF50),
+                    color: AppColors.deepSoilGreen,
                     borderRadius: BorderRadius.circular(14),
                   ),
                   child: const Icon(
                     Icons.handshake_outlined,
-                    color: Colors.white,
+                    color: AppColors.parchment,
                     size: 24,
                   ),
                 ),
@@ -602,7 +606,10 @@ class _CombinedScreenState extends State<CombinedScreen>
                       Text(
                         'A transparent, predictable supply chain for your business',
                         style: theme.textTheme.bodyMedium?.copyWith(
-                          color: isDark ? Colors.grey[400] : Colors.grey[600],
+                          color:
+                              isDark
+                                  ? AppColors.rawEarth26
+                                  : AppColors.rawEarth70,
                         ),
                       ),
                     ],
@@ -618,16 +625,19 @@ class _CombinedScreenState extends State<CombinedScreen>
             const SizedBox(height: 24),
             _buildAdvantageItem(
               theme,
+              isDark,
               'Seed-to-Scale Visibility',
               'Eliminate the "black box" of sourcing. Gain total visibility over your dedicated yield, from the sowing of Heirloom seeds to final logistics, ensuring your production lines never stop.',
             ),
             _buildAdvantageItem(
               theme,
+              isDark,
               'Standardized Purity',
               'Guarantee consistent nutritional density for your customers. We adhere to strict Toxin-Free ICBN Farming protocols certified by the Government of INDIA, protecting your brand from the liabilities of modern chemical farming.',
             ),
             _buildAdvantageItem(
               theme,
+              isDark,
               'Ethical Compliance',
               ' Turn your supply chain into a corporate asset. Partnering with ANAAD directly validates your commitment to Environmental Health and Farmer Economic Welfare, providing a verifiable impact story for your stakeholders',
             ),
@@ -637,7 +647,8 @@ class _CombinedScreenState extends State<CombinedScreen>
     );
   }
 
-  Widget _buildAdvantageItem(ThemeData theme, String title, String desc) {
+  Widget _buildAdvantageItem(ThemeData theme, bool isDark, String title, String desc) {
+    final iconColor = isDark ? AppColors.parchment : AppColors.deepSoilGreen;
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: Row(
@@ -646,10 +657,14 @@ class _CombinedScreenState extends State<CombinedScreen>
           Container(
             padding: const EdgeInsets.all(4),
             decoration: BoxDecoration(
-              color: const Color(0xFF4CAF50).withOpacity(0.2),
+              color: iconColor.withValues(alpha: 0.2),
               shape: BoxShape.circle,
             ),
-            child: const Icon(Icons.check, color: Color(0xFF4CAF50), size: 14),
+            child: Icon(
+              Icons.check,
+              color: iconColor,
+              size: 14,
+            ),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -665,7 +680,7 @@ class _CombinedScreenState extends State<CombinedScreen>
                 Text(
                   desc,
                   style: theme.textTheme.bodySmall?.copyWith(
-                    color: Colors.grey[600],
+                    color: AppColors.rawEarth70,
                   ),
                 ),
               ],
@@ -712,12 +727,17 @@ class _CombinedScreenState extends State<CombinedScreen>
                           padding: const EdgeInsets.all(14),
                           decoration: BoxDecoration(
                             gradient: const LinearGradient(
-                              colors: [Color(0xFF4CAF50), Color(0xFF388E3C)],
+                              colors: [
+                                AppColors.deepSoilGreen,
+                                AppColors.deepSoilGreen,
+                              ],
                             ),
                             borderRadius: BorderRadius.circular(14),
                             boxShadow: [
                               BoxShadow(
-                                color: const Color(0xFF4CAF50).withOpacity(0.3),
+                                color: AppColors.deepSoilGreen.withValues(
+                                  alpha: 0.3,
+                                ),
                                 blurRadius: 10,
                                 offset: const Offset(0, 4),
                               ),
@@ -725,7 +745,7 @@ class _CombinedScreenState extends State<CombinedScreen>
                           ),
                           child: Icon(
                             step['icon'] as IconData,
-                            color: Colors.white,
+                            color: AppColors.parchment,
                             size: 24,
                           ),
                         ),
@@ -760,12 +780,12 @@ class _CombinedScreenState extends State<CombinedScreen>
           padding: const EdgeInsets.symmetric(vertical: 18),
           decoration: BoxDecoration(
             gradient: const LinearGradient(
-              colors: [Color(0xFF4CAF50), Color(0xFF388E3C)],
+              colors: [AppColors.deepSoilGreen, AppColors.deepSoilGreen],
             ),
             borderRadius: BorderRadius.circular(16),
             boxShadow: [
               BoxShadow(
-                color: const Color(0xFF4CAF50).withOpacity(0.4),
+                color: AppColors.deepSoilGreen.withValues(alpha: 0.4),
                 blurRadius: 15,
                 offset: const Offset(0, 6),
               ),
@@ -774,12 +794,12 @@ class _CombinedScreenState extends State<CombinedScreen>
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(Icons.eco_rounded, color: Colors.white),
+              const Icon(Icons.eco_rounded, color: AppColors.parchment),
               const SizedBox(width: 12),
               Text(
                 'Register Your Interest',
                 style: theme.textTheme.titleMedium?.copyWith(
-                  color: Colors.white,
+                  color: AppColors.parchment,
                   fontWeight: FontWeight.bold,
                 ),
               ),
@@ -805,7 +825,7 @@ Future<void> _showNotificationForm(BuildContext outerContext) async {
     context: outerContext,
     barrierDismissible: true,
     barrierLabel: 'Dismiss',
-    barrierColor: Colors.black.withOpacity(0.6),
+    barrierColor: AppColors.charcoal.withValues(alpha: 0.6),
     transitionDuration: const Duration(milliseconds: 300),
     pageBuilder: (context, animation, secondaryAnimation) => const SizedBox(),
     transitionBuilder: (dialogContext, animation, secondaryAnimation, child) {
@@ -826,7 +846,7 @@ Future<void> _showNotificationForm(BuildContext outerContext) async {
                     child: BackdropFilter(
                       filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
                       child: Material(
-                        color: Colors.transparent,
+                        color: AppColors.transparent,
                         child: Container(
                           decoration: BoxDecoration(
                             gradient: LinearGradient(
@@ -835,24 +855,26 @@ Future<void> _showNotificationForm(BuildContext outerContext) async {
                               colors:
                                   isDark
                                       ? [
-                                        const Color(0xFF1E3A2F),
-                                        const Color(0xFF0F1F1A),
+                                        AppColors.parchment,
+                                        AppColors.parchment,
                                       ]
                                       : [
-                                        Colors.white,
+                                        AppColors.parchment,
                                         const Color(
                                           0xFF4CAF50,
-                                        ).withOpacity(0.1),
+                                        ).withValues(alpha: 0.1),
                                       ],
                             ),
                             borderRadius: BorderRadius.circular(24),
                             border: Border.all(
-                              color: Colors.white.withOpacity(0.2),
+                              color: AppColors.parchment.withValues(alpha: 0.2),
                               width: 1,
                             ),
                             boxShadow: [
                               BoxShadow(
-                                color: const Color(0xFF4CAF50).withOpacity(0.2),
+                                color: AppColors.parchment.withValues(
+                                  alpha: 0.2,
+                                ),
                                 blurRadius: 30,
                                 offset: const Offset(0, 10),
                               ),
@@ -873,14 +895,14 @@ Future<void> _showNotificationForm(BuildContext outerContext) async {
                                           colors: [
                                             theme.colorScheme.primary,
                                             theme.colorScheme.primary
-                                                .withOpacity(0.8),
+                                                .withValues(alpha: 0.8),
                                           ],
                                         ),
                                         borderRadius: BorderRadius.circular(16),
                                       ),
                                       child: const Icon(
                                         Icons.agriculture_rounded,
-                                        color: Colors.white,
+                                        color: AppColors.parchment,
                                         size: 32,
                                       ),
                                     ),
@@ -896,7 +918,9 @@ Future<void> _showNotificationForm(BuildContext outerContext) async {
                                     Text(
                                       'Join our natural farming program',
                                       style: theme.textTheme.bodyMedium
-                                          ?.copyWith(color: Colors.grey[600]),
+                                          ?.copyWith(
+                                            color: AppColors.rawEarth70,
+                                          ),
                                     ),
                                     const SizedBox(height: 24),
                                     _buildFormField(
@@ -934,12 +958,12 @@ Future<void> _showNotificationForm(BuildContext outerContext) async {
                                       decoration: BoxDecoration(
                                         color: const Color(
                                           0xFF4CAF50,
-                                        ).withOpacity(0.08),
+                                        ).withValues(alpha: 0.08),
                                         borderRadius: BorderRadius.circular(12),
                                         border: Border.all(
                                           color: const Color(
                                             0xFF4CAF50,
-                                          ).withOpacity(0.3),
+                                          ).withValues(alpha: 0.3),
                                           width: 1,
                                         ),
                                       ),
@@ -1028,7 +1052,7 @@ Future<void> _showNotificationForm(BuildContext outerContext) async {
                                             colors: [
                                               theme.colorScheme.primary,
                                               theme.colorScheme.primary
-                                                  .withOpacity(0.8),
+                                                  .withValues(alpha: 0.8),
                                             ],
                                           ),
                                           borderRadius: BorderRadius.circular(
@@ -1039,7 +1063,7 @@ Future<void> _showNotificationForm(BuildContext outerContext) async {
                                           child: Text(
                                             'Submit',
                                             style: TextStyle(
-                                              color: Colors.white,
+                                              color: AppColors.parchment,
                                               fontWeight: FontWeight.bold,
                                               fontSize: 16,
                                             ),
@@ -1075,10 +1099,10 @@ Widget _buildFormField(
 }) {
   return Container(
     decoration: BoxDecoration(
-      color: const Color(0xFF4CAF50).withOpacity(0.08),
+      color: AppColors.parchment.withValues(alpha: 0.08),
       borderRadius: BorderRadius.circular(12),
       border: Border.all(
-        color: const Color(0xFF4CAF50).withOpacity(0.3),
+        color: AppColors.parchment.withValues(alpha: 0.3),
         width: 1,
       ),
     ),
@@ -1088,7 +1112,10 @@ Widget _buildFormField(
       maxLines: maxLines,
       decoration: InputDecoration(
         hintText: hint,
-        prefixIcon: Icon(icon, color: const Color(0xFF4CAF50).withOpacity(0.7)),
+        prefixIcon: Icon(
+          icon,
+          color: AppColors.parchment.withValues(alpha: 0.7),
+        ),
         border: InputBorder.none,
         contentPadding: const EdgeInsets.symmetric(
           horizontal: 16,

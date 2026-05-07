@@ -144,7 +144,7 @@ class _SubscriptionPlanDetailScreenState
                 'Please provide media access to download the invoice.',
                 action: SnackBarAction(
                   label: 'Settings',
-                  textColor: Colors.white,
+                  textColor: AppColors.parchment,
                   onPressed: openAppSettings,
                 ),
               );
@@ -228,7 +228,7 @@ class _SubscriptionPlanDetailScreenState
       context: context,
       builder: (BuildContext dialogContext) {
         return Dialog(
-          backgroundColor: Colors.transparent,
+          backgroundColor: AppColors.transparent,
           elevation: 0,
           insetPadding: const EdgeInsets.symmetric(horizontal: 24),
           child: Container(
@@ -237,15 +237,17 @@ class _SubscriptionPlanDetailScreenState
               gradient: LinearGradient(
                 colors:
                     isDark
-                        ? [const Color(0xFF1E1E1E), const Color(0xFF252525)]
-                        : [Colors.white, Colors.grey[50]!],
+                        ? [AppColors.darkSurfaceElevated, AppColors.darkSurfaceElevated]
+                        : [AppColors.parchment, AppColors.parchment],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
               borderRadius: BorderRadius.circular(24),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(isDark ? 0.3 : 0.1),
+                  color: AppColors.charcoal.withValues(
+                    alpha: isDark ? 0.3 : 0.1,
+                  ),
                   blurRadius: 20,
                   offset: const Offset(0, 10),
                 ),
@@ -257,15 +259,20 @@ class _SubscriptionPlanDetailScreenState
                 Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: (isPause ? AppColors.warning : AppColors.success)
-                        .withOpacity(0.15),
+                    color: (isPause
+                            ? AppColors.harvestAmber
+                            : AppColors.deepSoilGreen)
+                        .withValues(alpha: 0.15),
                     shape: BoxShape.circle,
                   ),
                   child: Icon(
                     isPause
                         ? Icons.pause_circle_rounded
                         : Icons.play_circle_rounded,
-                    color: isPause ? AppColors.warning : AppColors.success,
+                    color:
+                        isPause
+                            ? AppColors.harvestAmber
+                            : AppColors.deepSoilGreen,
                     size: 40,
                   ),
                 ),
@@ -317,28 +324,32 @@ class _SubscriptionPlanDetailScreenState
                             colors:
                                 isPause
                                     ? [
-                                      AppColors.warning,
-                                      AppColors.warning.withOpacity(0.8),
+                                      AppColors.harvestAmber,
+                                      AppColors.harvestAmber.withValues(
+                                        alpha: 0.8,
+                                      ),
                                     ]
                                     : [
-                                      AppColors.success,
-                                      AppColors.success.withOpacity(0.8),
+                                      AppColors.deepSoilGreen,
+                                      AppColors.deepSoilGreen.withValues(
+                                        alpha: 0.8,
+                                      ),
                                     ],
                           ),
                           borderRadius: BorderRadius.circular(16),
                           boxShadow: [
                             BoxShadow(
                               color: (isPause
-                                      ? AppColors.warning
-                                      : AppColors.success)
-                                  .withOpacity(0.3),
+                                      ? AppColors.harvestAmber
+                                      : AppColors.deepSoilGreen)
+                                  .withValues(alpha: 0.3),
                               blurRadius: 12,
                               offset: const Offset(0, 6),
                             ),
                           ],
                         ),
                         child: Material(
-                          color: Colors.transparent,
+                          color: AppColors.transparent,
                           child: InkWell(
                             onTap: () {
                               Navigator.pop(dialogContext);
@@ -351,7 +362,7 @@ class _SubscriptionPlanDetailScreenState
                                 child: Text(
                                   isPause ? 'Pause' : 'Resume',
                                   style: theme.textTheme.titleMedium?.copyWith(
-                                    color: Colors.white,
+                                    color: AppColors.parchment,
                                     fontWeight: FontWeight.bold,
                                   ),
                                 ),
@@ -387,7 +398,7 @@ class _SubscriptionPlanDetailScreenState
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: Colors.transparent,
+      backgroundColor: AppColors.transparent,
       builder:
           (context) => PauseDatePickerSheet(
             maxPausesLeft: subscription.remainingPauseTimes,
@@ -536,8 +547,7 @@ class _SubscriptionPlanDetailScreenState
     final isDark = theme.brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor:
-          isDark ? const Color(0xFF0A0A0A) : const Color(0xFFF5F7FA),
+      backgroundColor: isDark ? AppColors.darkCanvas : AppColors.parchment,
       body: RefreshIndicator(
         onRefresh: () async {
           // Trigger a refresh of subscription details and invoices
@@ -585,8 +595,8 @@ class _SubscriptionPlanDetailScreenState
                               icon: Icons.description_rounded,
                               title: 'Invoices',
                               gradient: [
-                                AppColors.info,
-                                AppColors.info.withOpacity(0.7),
+                                AppColors.deepSoilGreen,
+                                AppColors.deepSoilGreen.withValues(alpha: 0.7),
                               ],
                               child: InvoiceTrackerWidget(
                                 isLoading: _isLoadingInvoices,
@@ -615,15 +625,18 @@ class _SubscriptionPlanDetailScreenState
 
     return SliverToBoxAdapter(
       child: Container(
-        height: 200,
+        constraints: const BoxConstraints(minHeight: 200),
         decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors:
                 isDark
-                    ? [const Color(0xFF1B3A24), const Color(0xFF122918)]
-                    : [AppColors.primaryColor, AppColors.primaryDark],
+                    ? [
+                      AppColors.charcoal,
+                      AppColors.charcoal.withValues(alpha: 0.8),
+                    ]
+                    : [AppColors.deepSoilGreen, AppColors.deepSoilGreen],
           ),
           borderRadius: const BorderRadius.only(
             bottomLeft: Radius.circular(32),
@@ -631,7 +644,7 @@ class _SubscriptionPlanDetailScreenState
           ),
           boxShadow: [
             BoxShadow(
-              color: AppColors.primaryColor.withOpacity(0.3),
+              color: AppColors.deepSoilGreen.withValues(alpha: 0.3),
               blurRadius: 20,
               offset: const Offset(0, 10),
             ),
@@ -648,7 +661,7 @@ class _SubscriptionPlanDetailScreenState
                 height: 120,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: Colors.white.withOpacity(0.1),
+                  color: AppColors.parchment.withValues(alpha: 0.1),
                 ),
               ),
             ),
@@ -660,7 +673,7 @@ class _SubscriptionPlanDetailScreenState
                 height: 80,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: Colors.white.withOpacity(0.08),
+                  color: AppColors.parchment.withValues(alpha: 0.08),
                 ),
               ),
             ),
@@ -673,27 +686,13 @@ class _SubscriptionPlanDetailScreenState
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     // Top Row with Back Button and Refresh
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    Wrap(
+                      alignment: WrapAlignment.spaceBetween,
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      spacing: 12,
+                      runSpacing: 8,
                       children: [
-                        GestureDetector(
-                          onTap:
-                              () => context.goNamed(
-                                AppRoute.subscriptionList.name,
-                              ),
-                          child: Container(
-                            padding: const EdgeInsets.all(10),
-                            decoration: BoxDecoration(
-                              color: Colors.white.withOpacity(0.2),
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: const Icon(
-                              Icons.arrow_back_ios_new_rounded,
-                              color: Colors.white,
-                              size: 20,
-                            ),
-                          ),
-                        ),
+                        const AnaadLogoMark(),
                         GestureDetector(
                           onTap: () async {
                             HapticFeedback.lightImpact();
@@ -721,19 +720,19 @@ class _SubscriptionPlanDetailScreenState
                           child: Container(
                             padding: const EdgeInsets.all(10),
                             decoration: BoxDecoration(
-                              color: Colors.white.withOpacity(0.2),
+                              color: AppColors.parchment.withValues(alpha: 0.2),
                               borderRadius: BorderRadius.circular(12),
                             ),
                             child: const Icon(
                               Icons.refresh_rounded,
-                              color: Colors.white,
+                              color: AppColors.parchment,
                               size: 20,
                             ),
                           ),
                         ),
                       ],
                     ),
-                    const Spacer(),
+                    const SizedBox(height: 24),
                     // Title and Status Badge
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.center,
@@ -743,7 +742,7 @@ class _SubscriptionPlanDetailScreenState
                           child: Text(
                             "Subscription Details",
                             style: theme.textTheme.titleLarge?.copyWith(
-                              color: Colors.white,
+                              color: AppColors.parchment,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
@@ -758,7 +757,7 @@ class _SubscriptionPlanDetailScreenState
                           ? item.productName
                           : "View your subscription",
                       style: theme.textTheme.bodySmall?.copyWith(
-                        color: Colors.white.withOpacity(0.9),
+                        color: AppColors.parchment.withValues(alpha: 0.9),
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
@@ -783,15 +782,15 @@ class _SubscriptionPlanDetailScreenState
     String statusText;
 
     if (isPaused) {
-      statusColor = AppColors.warning;
+      statusColor = AppColors.harvestAmber;
       statusIcon = Icons.pause_circle_rounded;
       statusText = 'Paused';
     } else if (isCancelled) {
-      statusColor = AppColors.error;
+      statusColor = AppColors.rawEarth;
       statusIcon = Icons.cancel_rounded;
       statusText = 'Cancelled';
     } else {
-      statusColor = AppColors.success;
+      statusColor = AppColors.deepSoilGreen;
       statusIcon = Icons.check_circle_rounded;
       statusText = 'Active';
     }
@@ -803,7 +802,7 @@ class _SubscriptionPlanDetailScreenState
         borderRadius: BorderRadius.circular(30),
         boxShadow: [
           BoxShadow(
-            color: statusColor.withOpacity(0.4),
+            color: statusColor.withValues(alpha: 0.4),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -812,12 +811,12 @@ class _SubscriptionPlanDetailScreenState
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(statusIcon, color: Colors.white, size: 16),
+          Icon(statusIcon, color: AppColors.parchment, size: 16),
           const SizedBox(width: 4),
           Text(
             statusText,
             style: theme.textTheme.labelMedium?.copyWith(
-              color: Colors.white,
+              color: AppColors.parchment,
               fontWeight: FontWeight.bold,
             ),
           ),
@@ -839,15 +838,15 @@ class _SubscriptionPlanDetailScreenState
         gradient: LinearGradient(
           colors:
               isDark
-                  ? [const Color(0xFF1E1E1E), const Color(0xFF252525)]
-                  : [Colors.white, Colors.grey[50]!],
+                  ? [AppColors.darkSurfaceElevated, AppColors.darkSurfaceElevated]
+                  : [AppColors.parchment, AppColors.parchment!],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(isDark ? 0.3 : 0.08),
+            color: AppColors.charcoal.withValues(alpha: isDark ? 0.3 : 0.08),
             blurRadius: 20,
             offset: const Offset(0, 8),
           ),
@@ -863,7 +862,9 @@ class _SubscriptionPlanDetailScreenState
               borderRadius: BorderRadius.circular(20),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(isDark ? 0.4 : 0.15),
+                  color: AppColors.charcoal.withValues(
+                    alpha: isDark ? 0.4 : 0.15,
+                  ),
                   blurRadius: 16,
                   offset: const Offset(0, 6),
                 ),
@@ -882,7 +883,9 @@ class _SubscriptionPlanDetailScreenState
                         placeholder:
                             (_, __) => Container(
                               color:
-                                  isDark ? Colors.grey[850] : Colors.grey[100],
+                                  isDark
+                                      ? AppColors.darkSurfaceElevated
+                                      : AppColors.parchment,
                               child: const Center(
                                 child: CircularProgressIndicator(
                                   strokeWidth: 2,
@@ -892,7 +895,9 @@ class _SubscriptionPlanDetailScreenState
                         errorWidget:
                             (_, __, ___) => Container(
                               color:
-                                  isDark ? Colors.grey[850] : Colors.grey[100],
+                                  isDark
+                                      ? AppColors.darkSurfaceElevated
+                                      : AppColors.parchment,
                               child: Icon(
                                 Icons.image_rounded,
                                 color: theme.hintColor,
@@ -900,7 +905,8 @@ class _SubscriptionPlanDetailScreenState
                             ),
                       )
                       : Container(
-                        color: isDark ? Colors.grey[850] : Colors.grey[100],
+                        color:
+                            isDark ? AppColors.darkSurfaceElevated : AppColors.parchment,
                         child: Icon(
                           Icons.image_rounded,
                           color: theme.hintColor,
@@ -920,14 +926,16 @@ class _SubscriptionPlanDetailScreenState
                         decoration: BoxDecoration(
                           gradient: LinearGradient(
                             colors: [
-                              AppColors.success,
-                              AppColors.success.withOpacity(0.8),
+                              AppColors.harvestAmber,
+                              AppColors.harvestAmber.withValues(alpha: 0.8),
                             ],
                           ),
                           borderRadius: BorderRadius.circular(10),
                           boxShadow: [
                             BoxShadow(
-                              color: AppColors.success.withOpacity(0.3),
+                              color: AppColors.harvestAmber.withValues(
+                                alpha: 0.3,
+                              ),
                               blurRadius: 6,
                               offset: const Offset(0, 2),
                             ),
@@ -935,8 +943,8 @@ class _SubscriptionPlanDetailScreenState
                         ),
                         child: Text(
                           '${discountPercent.toStringAsFixed(0)}% OFF',
-                          style: const TextStyle(
-                            color: Colors.white,
+                          style: TextStyle(
+                            color: isDark ? AppColors.parchment : AppColors.charcoal,
                             fontSize: 10,
                             fontWeight: FontWeight.bold,
                           ),
@@ -957,6 +965,7 @@ class _SubscriptionPlanDetailScreenState
                   item.productName,
                   style: theme.textTheme.titleLarge?.copyWith(
                     fontWeight: FontWeight.bold,
+                    color: isDark ? AppColors.parchment : AppColors.charcoal,
                     height: 1.2,
                   ),
                   maxLines: 2,
@@ -969,16 +978,16 @@ class _SubscriptionPlanDetailScreenState
                     vertical: 5,
                   ),
                   decoration: BoxDecoration(
-                    color: AppColors.primaryColor.withOpacity(0.1),
+                    color: AppColors.deepSoilGreen.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(8),
                     border: Border.all(
-                      color: AppColors.primaryColor.withOpacity(0.2),
+                      color: AppColors.deepSoilGreen.withValues(alpha: 0.2),
                     ),
                   ),
                   child: Text(
                     '${item.weightUnit} × ${item.quantity} units',
                     style: theme.textTheme.bodySmall?.copyWith(
-                      color: AppColors.primaryColor,
+                      color: AppColors.deepSoilGreen,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
@@ -990,7 +999,7 @@ class _SubscriptionPlanDetailScreenState
                       '₹${item.discountedPrice.toStringAsFixed(0)}',
                       style: theme.textTheme.headlineSmall?.copyWith(
                         fontWeight: FontWeight.bold,
-                        color: AppColors.primaryColor,
+                        color: isDark ? AppColors.parchment : AppColors.deepSoilGreen,
                       ),
                     ),
                     const SizedBox(width: 10),
@@ -1021,15 +1030,15 @@ class _SubscriptionPlanDetailScreenState
         gradient: LinearGradient(
           colors:
               isDark
-                  ? [const Color(0xFF1E1E1E), const Color(0xFF252525)]
-                  : [Colors.white, Colors.grey[50]!],
+                  ? [AppColors.darkSurfaceElevated, AppColors.darkSurfaceElevated]
+                  : [AppColors.parchment, AppColors.parchment!],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(isDark ? 0.3 : 0.08),
+            color: AppColors.charcoal.withValues(alpha: isDark ? 0.3 : 0.08),
             blurRadius: 20,
             offset: const Offset(0, 8),
           ),
@@ -1044,12 +1053,12 @@ class _SubscriptionPlanDetailScreenState
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
-                    colors: [AppColors.primaryColor, AppColors.primaryDark],
+                    colors: [AppColors.deepSoilGreen, AppColors.deepSoilGreen],
                   ),
                   borderRadius: BorderRadius.circular(14),
                   boxShadow: [
                     BoxShadow(
-                      color: AppColors.primaryColor.withOpacity(0.3),
+                      color: AppColors.deepSoilGreen.withValues(alpha: 0.3),
                       blurRadius: 8,
                       offset: const Offset(0, 3),
                     ),
@@ -1057,7 +1066,7 @@ class _SubscriptionPlanDetailScreenState
                 ),
                 child: const Icon(
                   Icons.card_membership_rounded,
-                  color: Colors.white,
+                  color: AppColors.parchment,
                   size: 24,
                 ),
               ),
@@ -1070,6 +1079,7 @@ class _SubscriptionPlanDetailScreenState
                       subscription.planName,
                       style: theme.textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.bold,
+                        color: isDark ? AppColors.parchment : AppColors.charcoal,
                       ),
                     ),
                     Text(
@@ -1092,21 +1102,21 @@ class _SubscriptionPlanDetailScreenState
                     colors:
                         isPaymentPending
                             ? [
-                              AppColors.error,
-                              AppColors.error.withOpacity(0.8),
+                              AppColors.rawEarth,
+                              AppColors.rawEarth.withValues(alpha: 0.8),
                             ]
                             : [
-                              AppColors.success,
-                              AppColors.success.withOpacity(0.8),
+                              AppColors.deepSoilGreen,
+                              AppColors.deepSoilGreen.withValues(alpha: 0.8),
                             ],
                   ),
                   borderRadius: BorderRadius.circular(12),
                   boxShadow: [
                     BoxShadow(
                       color: (isPaymentPending
-                              ? AppColors.error
-                              : AppColors.success)
-                          .withOpacity(0.3),
+                              ? AppColors.rawEarth
+                              : AppColors.deepSoilGreen)
+                          .withValues(alpha: 0.3),
                       blurRadius: 6,
                       offset: const Offset(0, 2),
                     ),
@@ -1115,7 +1125,7 @@ class _SubscriptionPlanDetailScreenState
                 child: Text(
                   isPaymentPending ? 'Unpaid' : 'Paid',
                   style: theme.textTheme.labelMedium?.copyWith(
-                    color: Colors.white,
+                    color: AppColors.parchment,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -1129,8 +1139,8 @@ class _SubscriptionPlanDetailScreenState
             decoration: BoxDecoration(
               color:
                   isDark
-                      ? Colors.white.withOpacity(0.05)
-                      : AppColors.primaryColor.withOpacity(0.04),
+                      ? AppColors.parchment.withValues(alpha: 0.05)
+                      : AppColors.deepSoilGreen.withValues(alpha: 0.04),
               borderRadius: BorderRadius.circular(16),
             ),
             child: Row(
@@ -1145,13 +1155,13 @@ class _SubscriptionPlanDetailScreenState
                       subscription.nextDeliveryDate,
                       format: 'MMM dd, yyyy',
                     ),
-                    AppColors.primaryColor,
+                    AppColors.deepSoilGreen,
                   ),
                 ),
                 Container(
                   width: 1,
                   height: 50,
-                  color: isDark ? Colors.grey[800] : Colors.grey[300],
+                  color: isDark ? AppColors.darkSurfaceElevated : AppColors.rawEarth12,
                 ),
                 Expanded(
                   child: _buildInfoItem(
@@ -1160,7 +1170,7 @@ class _SubscriptionPlanDetailScreenState
                     Icons.date_range_rounded,
                     'Valid Till',
                     _formatDate(subscription.endDate, format: 'MMM dd, yyyy'),
-                    AppColors.info,
+                    AppColors.deepSoilGreen,
                   ),
                 ),
               ],
@@ -1185,7 +1195,7 @@ class _SubscriptionPlanDetailScreenState
         Container(
           padding: const EdgeInsets.all(10),
           decoration: BoxDecoration(
-            color: color.withOpacity(0.15),
+            color: color.withValues(alpha: 0.15),
             borderRadius: BorderRadius.circular(12),
           ),
           child: Icon(icon, color: color, size: 22),
@@ -1221,15 +1231,15 @@ class _SubscriptionPlanDetailScreenState
         gradient: LinearGradient(
           colors:
               isDark
-                  ? [const Color(0xFF1E1E1E), const Color(0xFF252525)]
-                  : [Colors.white, Colors.grey[50]!],
+                  ? [AppColors.darkSurfaceElevated, AppColors.darkSurfaceElevated]
+                  : [AppColors.parchment, AppColors.parchment!],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(isDark ? 0.3 : 0.08),
+            color: AppColors.charcoal.withValues(alpha: isDark ? 0.3 : 0.08),
             blurRadius: 20,
             offset: const Offset(0, 8),
           ),
@@ -1244,12 +1254,15 @@ class _SubscriptionPlanDetailScreenState
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
-                    colors: [AppColors.info, AppColors.info.withOpacity(0.7)],
+                    colors: [
+                      AppColors.deepSoilGreen,
+                      AppColors.deepSoilGreen.withValues(alpha: 0.7),
+                    ],
                   ),
                   borderRadius: BorderRadius.circular(14),
                   boxShadow: [
                     BoxShadow(
-                      color: AppColors.info.withOpacity(0.3),
+                      color: AppColors.deepSoilGreen.withValues(alpha: 0.3),
                       blurRadius: 8,
                       offset: const Offset(0, 3),
                     ),
@@ -1257,7 +1270,7 @@ class _SubscriptionPlanDetailScreenState
                 ),
                 child: const Icon(
                   Icons.local_shipping_rounded,
-                  color: Colors.white,
+                  color: AppColors.parchment,
                   size: 24,
                 ),
               ),
@@ -1270,6 +1283,7 @@ class _SubscriptionPlanDetailScreenState
                       'Delivery Progress',
                       style: theme.textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.bold,
+                        color: isDark ? AppColors.parchment : AppColors.charcoal,
                       ),
                     ),
                     Text(
@@ -1291,9 +1305,9 @@ class _SubscriptionPlanDetailScreenState
                       value: progress,
                       strokeWidth: 5,
                       backgroundColor:
-                          isDark ? Colors.grey[800] : Colors.grey[200],
+                          isDark ? AppColors.darkSurfaceElevated : AppColors.parchment,
                       valueColor: const AlwaysStoppedAnimation<Color>(
-                        AppColors.primaryColor,
+                        AppColors.deepSoilGreen,
                       ),
                     ),
                   ),
@@ -1301,6 +1315,7 @@ class _SubscriptionPlanDetailScreenState
                     '${(progress * 100).toInt()}%',
                     style: theme.textTheme.labelMedium?.copyWith(
                       fontWeight: FontWeight.bold,
+                      color: isDark ? AppColors.parchment : AppColors.charcoal,
                     ),
                   ),
                 ],
@@ -1314,9 +1329,10 @@ class _SubscriptionPlanDetailScreenState
             child: LinearProgressIndicator(
               value: progress,
               minHeight: 10,
-              backgroundColor: isDark ? Colors.grey[800] : Colors.grey[200],
+              backgroundColor:
+                  isDark ? AppColors.darkSurfaceElevated : AppColors.parchment,
               valueColor: const AlwaysStoppedAnimation<Color>(
-                AppColors.primaryColor,
+                AppColors.deepSoilGreen,
               ),
             ),
           ),
@@ -1328,19 +1344,19 @@ class _SubscriptionPlanDetailScreenState
                 theme,
                 '${subscription.totalDeliveries}',
                 'Total',
-                AppColors.info,
+                AppColors.deepSoilGreen,
               ),
               _buildProgressStat(
                 theme,
                 '${subscription.completedDeliveries}',
                 'Completed',
-                AppColors.success,
+                AppColors.deepSoilGreen,
               ),
               _buildProgressStat(
                 theme,
                 '$deliveriesLeft',
                 'Remaining',
-                AppColors.warning,
+                AppColors.harvestAmber,
               ),
             ],
           ),
@@ -1383,13 +1399,13 @@ class _SubscriptionPlanDetailScreenState
       margin: const EdgeInsets.only(bottom: 20),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.error.withOpacity(0.1),
+        color: AppColors.rawEarth.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.error.withOpacity(0.3)),
+        border: Border.all(color: AppColors.rawEarth.withValues(alpha: 0.3)),
       ),
       child: Row(
         children: [
-          Icon(Icons.warning_rounded, color: AppColors.error, size: 24),
+          Icon(Icons.warning_rounded, color: AppColors.rawEarth, size: 24),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
@@ -1397,14 +1413,14 @@ class _SubscriptionPlanDetailScreenState
                 Text(
                   'Payment Pending',
                   style: theme.textTheme.titleMedium?.copyWith(
-                    color: AppColors.error,
+                    color: AppColors.rawEarth,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
                 Text(
                   '${_currentOrder!.lastPaymentDate}',
                   style: theme.textTheme.bodySmall?.copyWith(
-                    color: AppColors.error,
+                    color: AppColors.rawEarth,
                   ),
                 ),
               ],
@@ -1431,12 +1447,12 @@ class _SubscriptionPlanDetailScreenState
           colors:
               isPaused
                   ? [
-                    AppColors.warning.withOpacity(0.15),
-                    AppColors.warning.withOpacity(0.08),
+                    AppColors.harvestAmber.withValues(alpha: 0.15),
+                    AppColors.harvestAmber.withValues(alpha: 0.08),
                   ]
                   : isDark
-                  ? [const Color(0xFF1E1E1E), const Color(0xFF252525)]
-                  : [Colors.white, Colors.grey[50]!],
+                  ? [AppColors.darkSurfaceElevated, AppColors.darkSurfaceElevated]
+                  : [AppColors.parchment, AppColors.parchment!],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
@@ -1444,15 +1460,14 @@ class _SubscriptionPlanDetailScreenState
         border:
             isPaused
                 ? Border.all(
-                  color: AppColors.warning.withOpacity(0.3),
+                  color: AppColors.harvestAmber.withValues(alpha: 0.3),
                   width: 1.5,
                 )
                 : null,
         boxShadow: [
           BoxShadow(
-            color: (isPaused ? AppColors.warning : Colors.black).withOpacity(
-              isDark ? 0.3 : 0.08,
-            ),
+            color: (isPaused ? AppColors.harvestAmber : AppColors.charcoal)
+                .withValues(alpha: isDark ? 0.3 : 0.08),
             blurRadius: 20,
             offset: const Offset(0, 8),
           ),
@@ -1469,18 +1484,21 @@ class _SubscriptionPlanDetailScreenState
                     colors:
                         isPaused
                             ? [
-                              AppColors.warning,
-                              AppColors.warning.withOpacity(0.8),
+                              AppColors.harvestAmber,
+                              AppColors.harvestAmber.withValues(alpha: 0.8),
                             ]
-                            : [AppColors.primaryColor, AppColors.primaryDark],
+                            : [
+                              AppColors.deepSoilGreen,
+                              AppColors.deepSoilGreen,
+                            ],
                   ),
                   borderRadius: BorderRadius.circular(14),
                   boxShadow: [
                     BoxShadow(
                       color: (isPaused
-                              ? AppColors.warning
-                              : AppColors.primaryColor)
-                          .withOpacity(0.3),
+                              ? AppColors.harvestAmber
+                              : AppColors.deepSoilGreen)
+                          .withValues(alpha: 0.3),
                       blurRadius: 8,
                       offset: const Offset(0, 3),
                     ),
@@ -1490,7 +1508,7 @@ class _SubscriptionPlanDetailScreenState
                   isPaused
                       ? Icons.pause_circle_rounded
                       : Icons.schedule_rounded,
-                  color: Colors.white,
+                  color: AppColors.parchment,
                   size: 24,
                 ),
               ),
@@ -1503,6 +1521,7 @@ class _SubscriptionPlanDetailScreenState
                       isPaused ? 'Subscription Paused' : 'Pause Controls',
                       style: theme.textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.bold,
+                        color: isDark ? AppColors.parchment : AppColors.charcoal,
                       ),
                     ),
                     Text(
@@ -1523,7 +1542,9 @@ class _SubscriptionPlanDetailScreenState
                 ),
                 decoration: BoxDecoration(
                   color:
-                      isDark ? Colors.white.withOpacity(0.1) : Colors.grey[100],
+                      isDark
+                          ? AppColors.parchment.withValues(alpha: 0.1)
+                          : AppColors.parchment,
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Text(
@@ -1543,26 +1564,28 @@ class _SubscriptionPlanDetailScreenState
                 colors:
                     isPaused
                         ? [
-                          AppColors.success,
-                          AppColors.success.withOpacity(0.85),
+                          AppColors.deepSoilGreen,
+                          AppColors.deepSoilGreen.withValues(alpha: 0.85),
                         ]
                         : [
-                          AppColors.warning,
-                          AppColors.warning.withOpacity(0.85),
+                          AppColors.harvestAmber,
+                          AppColors.harvestAmber.withValues(alpha: 0.85),
                         ],
               ),
               borderRadius: BorderRadius.circular(16),
               boxShadow: [
                 BoxShadow(
-                  color: (isPaused ? AppColors.success : AppColors.warning)
-                      .withOpacity(0.35),
+                  color: (isPaused
+                          ? AppColors.deepSoilGreen
+                          : AppColors.harvestAmber)
+                      .withValues(alpha: 0.35),
                   blurRadius: 12,
                   offset: const Offset(0, 5),
                 ),
               ],
             ),
             child: Material(
-              color: Colors.transparent,
+              color: AppColors.transparent,
               child: InkWell(
                 onTap: () => _showToggleConfirmation(subscription),
                 borderRadius: BorderRadius.circular(16),
@@ -1575,14 +1598,14 @@ class _SubscriptionPlanDetailScreenState
                         isPaused
                             ? Icons.play_circle_rounded
                             : Icons.pause_circle_rounded,
-                        color: Colors.white,
+                        color: AppColors.parchment,
                         size: 24,
                       ),
                       const SizedBox(width: 10),
                       Text(
                         isPaused ? 'Resume Subscription' : 'Pause Subscription',
                         style: theme.textTheme.titleMedium?.copyWith(
-                          color: Colors.white,
+                          color: AppColors.parchment,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -1611,15 +1634,15 @@ class _SubscriptionPlanDetailScreenState
         gradient: LinearGradient(
           colors:
               isDark
-                  ? [const Color(0xFF1E1E1E), const Color(0xFF252525)]
-                  : [Colors.white, Colors.grey[50]!],
+                  ? [AppColors.darkSurfaceElevated, AppColors.darkSurfaceElevated]
+                  : [AppColors.parchment, AppColors.parchment!],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(isDark ? 0.3 : 0.08),
+            color: AppColors.charcoal.withValues(alpha: isDark ? 0.3 : 0.08),
             blurRadius: 20,
             offset: const Offset(0, 8),
           ),
@@ -1637,13 +1660,13 @@ class _SubscriptionPlanDetailScreenState
                   borderRadius: BorderRadius.circular(14),
                   boxShadow: [
                     BoxShadow(
-                      color: gradient.first.withOpacity(0.3),
+                      color: gradient.first.withValues(alpha: 0.3),
                       blurRadius: 8,
                       offset: const Offset(0, 3),
                     ),
                   ],
                 ),
-                child: Icon(icon, color: Colors.white, size: 24),
+                child: Icon(icon, color: AppColors.parchment, size: 24),
               ),
               const SizedBox(width: 14),
               Text(
@@ -1667,11 +1690,11 @@ class _SubscriptionPlanDetailScreenState
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1A1A1A) : Colors.white,
+        color: isDark ? AppColors.darkSurfaceElevated : AppColors.parchment,
         borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(isDark ? 0.3 : 0.1),
+            color: AppColors.charcoal.withValues(alpha: isDark ? 0.3 : 0.1),
             blurRadius: 20,
             offset: const Offset(0, -5),
           ),
@@ -1684,10 +1707,10 @@ class _SubscriptionPlanDetailScreenState
               child: Container(
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: AppColors.primaryColor, width: 2),
+                  border: Border.all(color: AppColors.deepSoilGreen, width: 2),
                 ),
                 child: Material(
-                  color: Colors.transparent,
+                  color: AppColors.transparent,
                   child: InkWell(
                     onTap: _loadInvoices,
                     borderRadius: BorderRadius.circular(16),
@@ -1698,15 +1721,15 @@ class _SubscriptionPlanDetailScreenState
                         children: [
                           Icon(
                             Icons.refresh_rounded,
-                            color: AppColors.primaryColor,
+                            color: AppColors.deepSoilGreen,
                             size: 22,
                           ),
                           const SizedBox(width: 8),
                           Text(
                             'Refresh',
                             style: theme.textTheme.titleMedium?.copyWith(
-                              color: AppColors.primaryColor,
                               fontWeight: FontWeight.bold,
+                              color: isDark ? AppColors.parchment : AppColors.charcoal,
                             ),
                           ),
                         ],
@@ -1722,19 +1745,19 @@ class _SubscriptionPlanDetailScreenState
             //   child: Container(
             //     decoration: BoxDecoration(
             //       gradient: LinearGradient(
-            //         colors: [AppColors.primaryColor, AppColors.primaryDark],
+            //         colors: [AppColors.deepSoilGreen, AppColors.deepSoilGreen],
             //       ),
             //       borderRadius: BorderRadius.circular(16),
             //       boxShadow: [
             //         BoxShadow(
-            //           color: AppColors.primaryColor.withOpacity(0.4),
+            //           color: AppColors.deepSoilGreen.withValues(alpha: 0.4),
             //           blurRadius: 12,
             //           offset: const Offset(0, 5),
             //         ),
             //       ],
             //     ),
             //     child: Material(
-            //       color: Colors.transparent,
+            //       color: AppColors.transparent,
             //       child: InkWell(
             //         onTap: () async {
             //           final product = await CategoryService.fetchProductById(
@@ -1762,14 +1785,14 @@ class _SubscriptionPlanDetailScreenState
             //             children: [
             //               const Icon(
             //                 Icons.replay_rounded,
-            //                 color: Colors.white,
+            //                 color: AppColors.parchment,
             //                 size: 22,
             //               ),
             //               const SizedBox(width: 8),
             //               Text(
             //                 'Subscribe Again',
             //                 style: theme.textTheme.titleMedium?.copyWith(
-            //                   color: Colors.white,
+            //                   color: AppColors.parchment,
             //                   fontWeight: FontWeight.bold,
             //                 ),
             //               ),
@@ -1797,11 +1820,11 @@ class _SubscriptionPlanDetailScreenState
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+        color: isDark ? AppColors.darkSurfaceElevated : AppColors.parchment,
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(isDark ? 0.3 : 0.08),
+            color: AppColors.charcoal.withValues(alpha: isDark ? 0.3 : 0.08),
             blurRadius: 20,
             offset: const Offset(0, 8),
           ),
@@ -1815,12 +1838,12 @@ class _SubscriptionPlanDetailScreenState
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: AppColors.primaryColor.withOpacity(0.1),
+                  color: AppColors.deepSoilGreen.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(14),
                 ),
                 child: Icon(
                   Icons.location_on_rounded,
-                  color: AppColors.primaryColor,
+                  color: AppColors.deepSoilGreen,
                   size: 24,
                 ),
               ),
@@ -1829,6 +1852,7 @@ class _SubscriptionPlanDetailScreenState
                 'Delivery Address',
                 style: theme.textTheme.titleMedium?.copyWith(
                   fontWeight: FontWeight.bold,
+                  color: isDark ? AppColors.parchment : AppColors.charcoal,
                 ),
               ),
             ],

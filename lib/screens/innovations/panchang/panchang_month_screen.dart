@@ -1,9 +1,11 @@
+import '../../../core/theme/app_theme.dart';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:grocery_app/core/theme/app_colors.dart';
 import 'package:intl/intl.dart';
 
 import '../../../common_widgets/error_state_widget.dart';
@@ -118,7 +120,7 @@ class _PanchangMonthScreenState extends State<PanchangMonthScreen>
       value: _cubit,
       child: Scaffold(
         backgroundColor:
-            isDark ? const Color(0xFF070C09) : const Color(0xFFF4F8F4),
+            isDark ? AppColors.pureBlack : AppColors.parchment,
         body: GestureDetector(
           onHorizontalDragEnd: _onHorizontalDragEnd,
           child: Stack(
@@ -198,14 +200,14 @@ class _PanchangMonthScreenState extends State<PanchangMonthScreen>
               colors:
                   isDark
                       ? [
-                        const Color(0xFF091309),
-                        const Color(0xFF070C09),
-                        const Color(0xFF091309),
+                        AppColors.deepSoilGreen,
+                        AppColors.deepSoilGreen,
+                        AppColors.deepSoilGreen,
                       ]
                       : [
-                        const Color(0xFFEDF4EE),
-                        const Color(0xFFF4F8F4),
-                        const Color(0xFFDCEEDF),
+                        AppColors.parchment,
+                        AppColors.parchment,
+                        AppColors.parchment,
                       ],
             ),
           ),
@@ -217,8 +219,8 @@ class _PanchangMonthScreenState extends State<PanchangMonthScreen>
           child: _GlowingOrb(
             color:
                 isDark
-                    ? const Color(0xFF3F5E46).withOpacity(0.3)
-                    : const Color(0xFF3F5E46).withOpacity(0.15),
+                    ? AppColors.parchment.withValues(alpha: 0.3)
+                    : AppColors.harvestAmber.withValues(alpha: 0.15),
             size: 200,
           ),
         ),
@@ -228,8 +230,8 @@ class _PanchangMonthScreenState extends State<PanchangMonthScreen>
           child: _GlowingOrb(
             color:
                 isDark
-                    ? const Color(0xFFFF6B9D).withOpacity(0.2)
-                    : const Color(0xFFFF6B9D).withOpacity(0.1),
+                    ? AppColors.parchment.withValues(alpha: 0.2)
+                    : AppColors.deepSoilGreen.withValues(alpha: 0.12),
             size: 180,
           ),
         ),
@@ -251,7 +253,8 @@ class _PanchangMonthScreenState extends State<PanchangMonthScreen>
             isDark: isDark,
             child: Icon(
               Icons.arrow_back_rounded,
-              color: isDark ? Colors.white : Colors.black87,
+              color:
+                  isDark ? AppColors.pureWhite : AppColors.charcoal,
             ),
           ),
           const Spacer(),
@@ -259,7 +262,8 @@ class _PanchangMonthScreenState extends State<PanchangMonthScreen>
             'Month Calendar',
             style: theme.textTheme.titleLarge?.copyWith(
               fontWeight: FontWeight.bold,
-              color: isDark ? Colors.white : Colors.black87,
+              color:
+                  isDark ? AppColors.pureWhite : AppColors.charcoal,
             ),
           ),
           const Spacer(),
@@ -272,7 +276,8 @@ class _PanchangMonthScreenState extends State<PanchangMonthScreen>
             isDark: isDark,
             child: Icon(
               Icons.today_rounded,
-              color: isDark ? Colors.white : Colors.black87,
+              color:
+                  isDark ? AppColors.pureWhite : AppColors.charcoal,
             ),
           ),
         ],
@@ -291,7 +296,7 @@ class _PanchangMonthScreenState extends State<PanchangMonthScreen>
             child: CircularProgressIndicator(
               strokeWidth: 3,
               valueColor: AlwaysStoppedAnimation(
-                isDark ? const Color(0xFF3F5E46) : theme.primaryColor,
+                isDark ? AppColors.pureWhite : theme.primaryColor,
               ),
             ),
           ),
@@ -346,25 +351,25 @@ class _PanchangMonthScreenState extends State<PanchangMonthScreen>
                     colors:
                         isDark
                             ? [
-                              const Color(0xFF0D1A10).withOpacity(0.8),
-                              const Color(0xFF080D09).withOpacity(0.9),
+                              AppColors.deepSoilGreen.withValues(alpha: 0.95),
+                              const Color(0xFF3D6B28).withValues(alpha: 0.95),
                             ]
                             : [
-                              Colors.white.withOpacity(0.95),
-                              const Color(0xFFF8F6FF).withOpacity(0.95),
+                              AppColors.pureWhite.withValues(alpha: 0.98),
+                              AppColors.pureWhite.withValues(alpha: 0.98),
                             ],
                   ),
                   borderRadius: BorderRadius.circular(24),
                   border: Border.all(
-                    color: (isDark ? Colors.white : const Color(0xFF3F5E46))
-                        .withOpacity(0.1),
+                    color: (isDark ? AppColors.pureWhite : AppColors.charcoal)
+                        .withValues(alpha: 0.1),
                     width: 1.5,
                   ),
                   boxShadow: [
                     BoxShadow(
                       color: const Color(
                         0xFF3F5E46,
-                      ).withOpacity(isDark ? 0.2 : 0.08),
+                      ).withValues(alpha: isDark ? 0.2 : 0.08),
                       blurRadius: 30,
                       offset: const Offset(0, 10),
                     ),
@@ -480,10 +485,12 @@ class _GlassButton extends StatelessWidget {
             width: 44,
             height: 44,
             decoration: BoxDecoration(
-              color: (isDark ? Colors.white : Colors.black).withOpacity(0.1),
+              color: (isDark ? AppColors.pureWhite : AppColors.charcoal)
+                  .withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
-                color: (isDark ? Colors.white : Colors.black).withOpacity(0.1),
+                color: (isDark ? AppColors.pureWhite : AppColors.charcoal)
+                    .withValues(alpha: 0.1),
               ),
             ),
             child: Center(child: child),
@@ -552,21 +559,24 @@ class _DualMonthNavigatorCard extends StatelessWidget {
               colors:
                   isDark
                       ? [
-                        const Color(0xFF112214).withOpacity(0.8),
-                        const Color(0xFF1A1030).withOpacity(0.8),
+                        AppColors.parchment.withValues(alpha: 0.8),
+                        AppColors.parchment.withValues(alpha: 0.8),
                       ]
                       : [
-                        Colors.white.withOpacity(0.9),
-                        const Color(0xFFEDF4EE).withOpacity(0.9),
+                        AppColors.parchment.withValues(alpha: 0.9),
+                        AppColors.parchment.withValues(alpha: 0.9),
                       ],
             ),
             borderRadius: BorderRadius.circular(24),
             border: Border.all(
-              color: (isDark ? Colors.white : Colors.black).withOpacity(0.1),
+              color: (isDark ? AppColors.pureWhite : AppColors.charcoal)
+                  .withValues(alpha: 0.1),
             ),
             boxShadow: [
               BoxShadow(
-                color: const Color(0xFF3F5E46).withOpacity(isDark ? 0.3 : 0.1),
+                color: AppColors.parchment.withValues(
+                  alpha: isDark ? 0.3 : 0.1,
+                ),
                 blurRadius: 20,
                 offset: const Offset(0, 4),
               ),
@@ -588,7 +598,14 @@ class _DualMonthNavigatorCard extends StatelessWidget {
                       monthName,
                       style: theme.textTheme.headlineSmall?.copyWith(
                         fontWeight: FontWeight.bold,
-                        color: isDark ? Colors.white : Colors.black87,
+                        color:
+                            (isDark
+                                ? AppColors.parchment
+                                : AppTheme
+                                    .lightTheme
+                                    .textTheme
+                                    .bodyLarge
+                                    ?.color),
                         letterSpacing: 1.2,
                       ),
                     ),
@@ -600,7 +617,7 @@ class _DualMonthNavigatorCard extends StatelessWidget {
                         vertical: 4,
                       ),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF3F5E46).withOpacity(0.2),
+                        color: AppColors.parchment.withValues(alpha: 0.2),
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: AutoSizeText(
@@ -608,8 +625,8 @@ class _DualMonthNavigatorCard extends StatelessWidget {
                         style: theme.textTheme.bodyMedium?.copyWith(
                           color:
                               isDark
-                                  ? const Color(0xFF7BC48F)
-                                  : const Color(0xFF3F5E46),
+                                  ? AppColors.parchment
+                                  : AppColors.parchment,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -623,16 +640,16 @@ class _DualMonthNavigatorCard extends StatelessWidget {
                           Icon(
                             Icons.brightness_3,
                             size: 12,
-                            color: (isDark ? Colors.white : Colors.black)
-                                .withOpacity(0.5),
+                            color: (isDark ? AppColors.pureWhite : AppColors.charcoal)
+                                .withValues(alpha: 0.5),
                           ),
                           const SizedBox(width: 6),
                           Flexible(
                             child: AutoSizeText(
                               indianMonthText,
                               style: theme.textTheme.bodySmall?.copyWith(
-                                color: (isDark ? Colors.white : Colors.black)
-                                    .withOpacity(0.6),
+                                color: (isDark ? AppColors.pureWhite : AppColors.charcoal)
+                                    .withValues(alpha: 0.6),
                                 fontWeight: FontWeight.w500,
                                 letterSpacing: 0.5,
                               ),
@@ -690,21 +707,24 @@ class _MonthNavigatorCard extends StatelessWidget {
               colors:
                   isDark
                       ? [
-                        const Color(0xFF112214).withOpacity(0.8),
-                        const Color(0xFF1A1030).withOpacity(0.8),
+                        AppColors.parchment.withValues(alpha: 0.8),
+                        AppColors.parchment.withValues(alpha: 0.8),
                       ]
                       : [
-                        Colors.white.withOpacity(0.9),
-                        const Color(0xFFEDF4EE).withOpacity(0.9),
+                        AppColors.parchment.withValues(alpha: 0.9),
+                        AppColors.parchment.withValues(alpha: 0.9),
                       ],
             ),
             borderRadius: BorderRadius.circular(24),
             border: Border.all(
-              color: (isDark ? Colors.white : Colors.black).withOpacity(0.1),
+              color: (isDark ? AppColors.pureWhite : AppColors.charcoal)
+                  .withValues(alpha: 0.1),
             ),
             boxShadow: [
               BoxShadow(
-                color: const Color(0xFF3F5E46).withOpacity(isDark ? 0.3 : 0.1),
+                color: AppColors.parchment.withValues(
+                  alpha: isDark ? 0.3 : 0.1,
+                ),
                 blurRadius: 20,
                 offset: const Offset(0, 4),
               ),
@@ -725,7 +745,14 @@ class _MonthNavigatorCard extends StatelessWidget {
                       monthName,
                       style: theme.textTheme.headlineSmall?.copyWith(
                         fontWeight: FontWeight.bold,
-                        color: isDark ? Colors.white : Colors.black87,
+                        color:
+                            (isDark
+                                ? AppColors.parchment
+                                : AppTheme
+                                    .lightTheme
+                                    .textTheme
+                                    .bodyLarge
+                                    ?.color),
                         letterSpacing: 1.2,
                       ),
                     ),
@@ -736,7 +763,7 @@ class _MonthNavigatorCard extends StatelessWidget {
                         vertical: 4,
                       ),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF3F5E46).withOpacity(0.2),
+                        color: AppColors.parchment.withValues(alpha: 0.2),
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: AutoSizeText(
@@ -744,8 +771,8 @@ class _MonthNavigatorCard extends StatelessWidget {
                         style: theme.textTheme.bodyMedium?.copyWith(
                           color:
                               isDark
-                                  ? const Color(0xFF7BC48F)
-                                  : const Color(0xFF3F5E46),
+                                  ? AppColors.parchment
+                                  : AppColors.parchment,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -820,14 +847,15 @@ class _NavArrowButtonState extends State<_NavArrowButton>
               width: 48,
               height: 48,
               decoration: BoxDecoration(
-                color: (widget.isDark ? Colors.white : Colors.black)
-                    .withOpacity(0.1),
+                color: (widget.isDark ? AppColors.pureWhite : AppColors.charcoal)
+                    .withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(14),
               ),
               child: Icon(
                 widget.icon,
                 size: 28,
-                color: widget.isDark ? Colors.white70 : Colors.black54,
+                color:
+                    widget.isDark ? AppColors.pureWhite.withValues(alpha: 0.54) : AppColors.charcoal54,
               ),
             ),
           );
@@ -870,7 +898,7 @@ class _IndianMonthStrip extends StatelessWidget {
           width: 40,
           margin: const EdgeInsets.only(bottom: 8),
           decoration: BoxDecoration(
-            color: color.withOpacity(0.3),
+            color: color.withValues(alpha: 0.3),
             borderRadius: BorderRadius.circular(12),
             border: isTransition ? Border.all(color: color, width: 2) : null,
           ),
@@ -882,7 +910,8 @@ class _IndianMonthStrip extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 11,
                   fontWeight: isTransition ? FontWeight.bold : FontWeight.w600,
-                  color: isDark ? Colors.white : Colors.black87,
+                  color:
+                      isDark ? AppColors.pureWhite : AppColors.charcoal,
                   letterSpacing: 1.5,
                 ),
               ),
@@ -917,9 +946,11 @@ class _WeekdayHeader extends StatelessWidget {
                     color:
                         isSunday
                             ? (isDark
-                                ? const Color(0xFFFF6B9D)
-                                : Colors.red.shade400)
-                            : (isDark ? Colors.white54 : Colors.black45),
+                                ? AppColors.parchment
+                                : AppColors.rawEarth)
+                            : (isDark
+                                ? AppColors.parchment54
+                                : AppColors.charcoal45),
                   ),
                 ),
               ),
@@ -1053,9 +1084,9 @@ class _MasaTransitionBanner extends StatelessWidget {
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
-            color.withOpacity(0.0),
-            color.withOpacity(0.3),
-            color.withOpacity(0.0),
+            color.withValues(alpha: 0.0),
+            color.withValues(alpha: 0.3),
+            color.withValues(alpha: 0.0),
           ],
         ),
         borderRadius: BorderRadius.circular(8),
@@ -1070,7 +1101,7 @@ class _MasaTransitionBanner extends StatelessWidget {
             style: TextStyle(
               fontSize: 11,
               fontWeight: FontWeight.w600,
-              color: isDark ? Colors.white70 : Colors.black54,
+              color: isDark ? AppColors.pureWhite.withValues(alpha: 0.54) : AppColors.charcoal54,
               letterSpacing: 0.5,
             ),
           ),
@@ -1139,7 +1170,7 @@ class _DayCellState extends State<_DayCell>
     showDialog(
       context: context,
       barrierDismissible: true,
-      barrierColor: Colors.black.withOpacity(0.5),
+      barrierColor: AppColors.charcoal.withValues(alpha: 0.5),
       builder:
           (context) => BackdropFilter(
             filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
@@ -1158,16 +1189,15 @@ class _DayCellState extends State<_DayCell>
     // Determine cell color
     Color cellColor;
     if (day.isToday) {
-      cellColor = const Color(0xFF3F5E46);
+      cellColor = AppColors.parchment;
     } else if (hasFestival) {
       cellColor =
           widget.isDark
-              ? const Color(0xFFFFAA33).withOpacity(0.2)
-              : const Color(0xFFFFAA33).withOpacity(0.15);
+              ? AppColors.parchment.withValues(alpha: 0.2)
+              : AppColors.parchment.withValues(alpha: 0.15);
     } else {
-      cellColor = (widget.isDark ? Colors.white : Colors.black).withOpacity(
-        0.05,
-      );
+      cellColor = (widget.isDark ? AppColors.pureWhite : AppColors.charcoal)
+          .withValues(alpha: 0.05);
     }
 
     return AnimatedBuilder(
@@ -1191,14 +1221,14 @@ class _DayCellState extends State<_DayCell>
                 day.isToday
                     ? null
                     : Border.all(
-                      color: (widget.isDark ? Colors.white : Colors.black)
-                          .withOpacity(0.08),
+                      color: (widget.isDark ? AppColors.pureWhite : AppColors.charcoal)
+                          .withValues(alpha: 0.08),
                     ),
             boxShadow:
                 day.isToday
                     ? [
                       BoxShadow(
-                        color: const Color(0xFF3F5E46).withOpacity(0.4),
+                        color: AppColors.parchment.withValues(alpha: 0.4),
                         blurRadius: 12,
                         offset: const Offset(0, 4),
                       ),
@@ -1221,14 +1251,12 @@ class _DayCellState extends State<_DayCell>
                         fontWeight: FontWeight.bold,
                         color:
                             day.isToday
-                                ? Colors.white
+                                ? AppColors.parchment
                                 : isSunday
                                 ? (widget.isDark
-                                    ? const Color(0xFFFF6B9D)
-                                    : Colors.red.shade400)
-                                : (widget.isDark
-                                    ? Colors.white
-                                    : Colors.black87),
+                                    ? AppColors.parchment
+                                    : AppColors.rawEarth)
+                                : (widget.isDark ? AppColors.pureWhite : AppColors.charcoal),
                       ),
                     ),
                     if (hasFestival)
@@ -1239,8 +1267,8 @@ class _DayCellState extends State<_DayCell>
                           shape: BoxShape.circle,
                           color:
                               day.isToday
-                                  ? Colors.white
-                                  : const Color(0xFFFFAA33),
+                                  ? AppColors.parchment
+                                  : AppColors.parchment,
                         ),
                       ),
                   ],
@@ -1253,8 +1281,10 @@ class _DayCellState extends State<_DayCell>
                     fontSize: 9,
                     color:
                         day.isToday
-                            ? Colors.white70
-                            : (widget.isDark ? Colors.white54 : Colors.black45),
+                            ? AppColors.parchment54
+                            : (widget.isDark
+                                ? AppColors.parchment54
+                                : AppColors.charcoal45),
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -1267,7 +1297,9 @@ class _DayCellState extends State<_DayCell>
                       fontSize: 8,
                       fontWeight: FontWeight.w600,
                       color:
-                          day.isToday ? Colors.white : const Color(0xFFFFAA33),
+                          day.isToday
+                              ? AppColors.parchment
+                              : AppColors.parchment,
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
@@ -1281,10 +1313,10 @@ class _DayCellState extends State<_DayCell>
                         size: 8,
                         color:
                             day.isToday
-                                ? Colors.white70
+                                ? AppColors.parchment54
                                 : (widget.isDark
-                                    ? const Color(0xFF88DDFF)
-                                    : Colors.blue.shade300),
+                                    ? AppColors.parchment
+                                    : AppColors.deepSoilGreen),
                       ),
                       const SizedBox(width: 2),
                       AutoSizeText(
@@ -1293,10 +1325,10 @@ class _DayCellState extends State<_DayCell>
                           fontSize: 8,
                           color:
                               day.isToday
-                                  ? Colors.white70
+                                  ? AppColors.parchment54
                                   : (widget.isDark
-                                      ? const Color(0xFF88DDFF)
-                                      : Colors.blue.shade300),
+                                      ? AppColors.parchment
+                                      : AppColors.deepSoilGreen),
                         ),
                       ),
                     ],
@@ -1367,7 +1399,7 @@ class _DayCellWithMasaState extends State<_DayCellWithMasa>
     showDialog(
       context: context,
       barrierDismissible: true,
-      barrierColor: Colors.black.withOpacity(0.5),
+      barrierColor: AppColors.charcoal.withValues(alpha: 0.5),
       builder:
           (context) => BackdropFilter(
             filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
@@ -1393,12 +1425,12 @@ class _DayCellWithMasaState extends State<_DayCellWithMasa>
     // Determine cell color
     Color cellColor;
     if (day.isToday) {
-      cellColor = const Color(0xFF3F5E46);
+      cellColor = AppColors.parchment;
     } else if (hasFestival) {
       cellColor =
           widget.isDark
-              ? const Color(0xFFFFAA33).withOpacity(0.25)
-              : const Color(0xFFFFAA33).withOpacity(0.2);
+              ? AppColors.parchment.withValues(alpha: 0.25)
+              : AppColors.parchment.withValues(alpha: 0.2);
     } else {
       // Use masa color as base
       cellColor = masaColor;
@@ -1425,14 +1457,14 @@ class _DayCellWithMasaState extends State<_DayCellWithMasa>
                 day.isToday
                     ? null
                     : Border.all(
-                      color: (widget.isDark ? Colors.white : Colors.black)
-                          .withOpacity(0.08),
+                      color: (widget.isDark ? AppColors.pureWhite : AppColors.charcoal)
+                          .withValues(alpha: 0.08),
                     ),
             boxShadow:
                 day.isToday
                     ? [
                       BoxShadow(
-                        color: const Color(0xFF3F5E46).withOpacity(0.4),
+                        color: AppColors.parchment.withValues(alpha: 0.4),
                         blurRadius: 12,
                         offset: const Offset(0, 4),
                       ),
@@ -1455,14 +1487,12 @@ class _DayCellWithMasaState extends State<_DayCellWithMasa>
                         fontWeight: FontWeight.bold,
                         color:
                             day.isToday
-                                ? Colors.white
+                                ? AppColors.parchment
                                 : isSunday
                                 ? (widget.isDark
-                                    ? const Color(0xFFFF6B9D)
-                                    : Colors.red.shade400)
-                                : (widget.isDark
-                                    ? Colors.white
-                                    : Colors.black87),
+                                    ? AppColors.parchment
+                                    : AppColors.rawEarth)
+                                : (widget.isDark ? AppColors.pureWhite : AppColors.charcoal),
                       ),
                     ),
                     if (hasFestival)
@@ -1473,8 +1503,8 @@ class _DayCellWithMasaState extends State<_DayCellWithMasa>
                           shape: BoxShape.circle,
                           color:
                               day.isToday
-                                  ? Colors.white
-                                  : const Color(0xFFFFAA33),
+                                  ? AppColors.parchment
+                                  : AppColors.parchment,
                         ),
                       ),
                   ],
@@ -1487,8 +1517,10 @@ class _DayCellWithMasaState extends State<_DayCellWithMasa>
                     fontSize: 9,
                     color:
                         day.isToday
-                            ? Colors.white70
-                            : (widget.isDark ? Colors.white54 : Colors.black45),
+                            ? AppColors.parchment54
+                            : (widget.isDark
+                                ? AppColors.parchment54
+                                : AppColors.charcoal45),
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -1501,7 +1533,9 @@ class _DayCellWithMasaState extends State<_DayCellWithMasa>
                       fontSize: 8,
                       fontWeight: FontWeight.w600,
                       color:
-                          day.isToday ? Colors.white : const Color(0xFFFFAA33),
+                          day.isToday
+                              ? AppColors.parchment
+                              : AppColors.parchment,
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
@@ -1515,10 +1549,10 @@ class _DayCellWithMasaState extends State<_DayCellWithMasa>
                         size: 8,
                         color:
                             day.isToday
-                                ? Colors.white70
+                                ? AppColors.parchment54
                                 : (widget.isDark
-                                    ? const Color(0xFF88DDFF)
-                                    : Colors.blue.shade300),
+                                    ? AppColors.parchment
+                                    : AppColors.deepSoilGreen),
                       ),
                       const SizedBox(width: 2),
                       AutoSizeText(
@@ -1527,10 +1561,10 @@ class _DayCellWithMasaState extends State<_DayCellWithMasa>
                           fontSize: 8,
                           color:
                               day.isToday
-                                  ? Colors.white70
+                                  ? AppColors.parchment54
                                   : (widget.isDark
-                                      ? const Color(0xFF88DDFF)
-                                      : Colors.blue.shade300),
+                                      ? AppColors.parchment
+                                      : AppColors.deepSoilGreen),
                         ),
                       ),
                     ],
@@ -1560,10 +1594,12 @@ class _LegendCard extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: (isDark ? Colors.white : Colors.black).withOpacity(0.05),
+            color: (isDark ? AppColors.pureWhite : AppColors.charcoal)
+                .withValues(alpha: 0.05),
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
-              color: (isDark ? Colors.white : Colors.black).withOpacity(0.1),
+              color: (isDark ? AppColors.pureWhite : AppColors.charcoal)
+                  .withValues(alpha: 0.1),
             ),
           ),
           child: Column(
@@ -1573,27 +1609,27 @@ class _LegendCard extends StatelessWidget {
                 'Legend',
                 style: theme.textTheme.titleSmall?.copyWith(
                   fontWeight: FontWeight.bold,
-                  color: isDark ? Colors.white70 : Colors.black54,
+                  color: isDark ? AppColors.pureWhite.withValues(alpha: 0.54) : AppColors.charcoal54,
                 ),
               ),
               const SizedBox(height: 12),
               Row(
                 children: [
                   _LegendItem(
-                    color: const Color(0xFF3F5E46),
+                    color: isDark ? AppColors.pureWhite : AppColors.parchment,
                     label: 'Today',
                     isDark: isDark,
                   ),
                   const SizedBox(width: 20),
                   _LegendItem(
-                    color: const Color(0xFFFFAA33),
+                    color: isDark ? AppColors.pureWhite : AppColors.parchment,
                     label: 'Festival',
                     isDark: isDark,
                   ),
-                  const SizedBox(width: 20),
+                        SizedBox(width: 20),
                   _LegendItem(
                     color:
-                        isDark ? const Color(0xFF88DDFF) : Colors.blue.shade300,
+                        isDark ? AppColors.pureWhite : AppColors.deepSoilGreen,
                     label: 'Vrat',
                     isDark: isDark,
                     icon: Icons.brightness_3,
@@ -1641,7 +1677,7 @@ class _LegendItem extends StatelessWidget {
           label,
           style: TextStyle(
             fontSize: 12,
-            color: isDark ? Colors.white54 : Colors.black45,
+            color: isDark ? AppColors.pureWhite.withValues(alpha: 0.54) : AppColors.charcoal45,
           ),
         ),
       ],
@@ -1666,10 +1702,12 @@ class _EnhancedLegendCard extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: (isDark ? Colors.white : Colors.black).withOpacity(0.05),
+            color: (isDark ? AppColors.pureWhite : AppColors.charcoal)
+                .withValues(alpha: 0.05),
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
-              color: (isDark ? Colors.white : Colors.black).withOpacity(0.1),
+              color: (isDark ? AppColors.pureWhite : AppColors.charcoal)
+                  .withValues(alpha: 0.1),
             ),
           ),
           child: Column(
@@ -1679,7 +1717,7 @@ class _EnhancedLegendCard extends StatelessWidget {
                 'Legend',
                 style: theme.textTheme.titleSmall?.copyWith(
                   fontWeight: FontWeight.bold,
-                  color: isDark ? Colors.white70 : Colors.black54,
+                  color: isDark ? AppColors.pureWhite.withValues(alpha: 0.54) : AppColors.charcoal54,
                 ),
               ),
               const SizedBox(height: 12),
@@ -1687,20 +1725,20 @@ class _EnhancedLegendCard extends StatelessWidget {
               Row(
                 children: [
                   _LegendItem(
-                    color: const Color(0xFF3F5E46),
+                    color: isDark ? AppColors.pureWhite : AppColors.parchment,
                     label: 'Today',
                     isDark: isDark,
                   ),
                   const SizedBox(width: 20),
                   _LegendItem(
-                    color: const Color(0xFFFFAA33),
+                    color: isDark ? AppColors.pureWhite : AppColors.parchment,
                     label: 'Festival',
                     isDark: isDark,
                   ),
-                  const SizedBox(width: 20),
+                        SizedBox(width: 20),
                   _LegendItem(
                     color:
-                        isDark ? const Color(0xFF88DDFF) : Colors.blue.shade300,
+                        isDark ? AppColors.pureWhite : AppColors.deepSoilGreen,
                     label: 'Vrat',
                     isDark: isDark,
                     icon: Icons.brightness_3,
@@ -1713,7 +1751,7 @@ class _EnhancedLegendCard extends StatelessWidget {
                 'Indian Months',
                 style: theme.textTheme.bodySmall?.copyWith(
                   fontWeight: FontWeight.w600,
-                  color: isDark ? Colors.white60 : Colors.black45,
+                  color: isDark ? AppColors.pureWhite.withValues(alpha: 0.60) : AppColors.charcoal45,
                 ),
               ),
               const SizedBox(height: 8),
@@ -1735,9 +1773,11 @@ class _EnhancedLegendCard extends StatelessWidget {
                           vertical: 6,
                         ),
                         decoration: BoxDecoration(
-                          color: color.withOpacity(0.2),
+                          color: color.withValues(alpha: 0.2),
                           borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: color.withOpacity(0.4)),
+                          border: Border.all(
+                            color: color.withValues(alpha: 0.4),
+                          ),
                         ),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
@@ -1756,7 +1796,18 @@ class _EnhancedLegendCard extends StatelessWidget {
                               style: TextStyle(
                                 fontSize: 11,
                                 fontWeight: FontWeight.w600,
-                                color: isDark ? Colors.white : Colors.black87,
+                                color:
+                                    (isDark
+                                        ? AppTheme
+                                            .darkTheme
+                                            .textTheme
+                                            .bodyLarge
+                                            ?.color
+                                        : AppTheme
+                                            .lightTheme
+                                            .textTheme
+                                            .bodyLarge
+                                            ?.color),
                               ),
                             ),
                           ],
@@ -1787,7 +1838,7 @@ class _DayDetailsDialog extends StatelessWidget {
     final hasVrat = day.vratsCount > 0;
 
     return Dialog(
-      backgroundColor: Colors.transparent,
+      backgroundColor: AppColors.transparent,
       insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
       child: Container(
         width: double.infinity,
@@ -1798,19 +1849,38 @@ class _DayDetailsDialog extends StatelessWidget {
             end: Alignment.bottomRight,
             colors:
                 isDark
-                    ? [const Color(0xFF0D1A10), const Color(0xFF080D09)]
-                    : [Colors.white, const Color(0xFFF8F6FF)],
+                    ? [
+                      (isDark
+                              ? AppColors.parchment
+                              : AppColors.deepSoilGreen)
+                          .withAlpha(200),
+                      (isDark
+                          ? AppColors.parchment
+                          : AppColors.deepSoilGreen),
+                    ]
+                    : [
+                      (isDark
+                          ? AppColors.parchment
+                          : AppColors.deepSoilGreen),
+                      (isDark
+                              ? AppColors.parchment
+                              : AppColors.deepSoilGreen)
+                          .withAlpha(200),
+                    ],
           ),
           borderRadius: BorderRadius.circular(28),
-          border: Border.all(color: masaColor.withOpacity(0.3), width: 1.5),
+          border: Border.all(
+            color: masaColor.withValues(alpha: 0.3),
+            width: 1.5,
+          ),
           boxShadow: [
             BoxShadow(
-              color: masaColor.withOpacity(0.2),
+              color: masaColor.withValues(alpha: 0.2),
               blurRadius: 40,
               spreadRadius: 0,
             ),
             BoxShadow(
-              color: Colors.black.withOpacity(0.3),
+              color: AppColors.charcoal.withValues(alpha: 0.3),
               blurRadius: 30,
               offset: const Offset(0, 15),
             ),
@@ -1823,7 +1893,10 @@ class _DayDetailsDialog extends StatelessWidget {
             Container(
               decoration: BoxDecoration(
                 gradient: LinearGradient(
-                  colors: [masaColor.withOpacity(0.15), Colors.transparent],
+                  colors: [
+                    masaColor.withValues(alpha: 0.15),
+                    AppColors.transparent,
+                  ],
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
                 ),
@@ -1842,15 +1915,15 @@ class _DayDetailsDialog extends StatelessWidget {
                       icon: Container(
                         padding: const EdgeInsets.all(6),
                         decoration: BoxDecoration(
-                          color: (isDark ? Colors.white : Colors.black)
-                              .withOpacity(0.1),
+                          color: (isDark ? AppColors.pureWhite : AppColors.charcoal)
+                              .withValues(alpha: 0.1),
                           shape: BoxShape.circle,
                         ),
                         child: Icon(
                           Icons.close_rounded,
                           size: 18,
-                          color: (isDark ? Colors.white : Colors.black)
-                              .withOpacity(0.6),
+                          color: (isDark ? AppColors.pureWhite : AppColors.charcoal)
+                              .withValues(alpha: 0.6),
                         ),
                       ),
                       onPressed: () => Navigator.of(context).pop(),
@@ -1869,12 +1942,15 @@ class _DayDetailsDialog extends StatelessWidget {
                             gradient: LinearGradient(
                               begin: Alignment.topLeft,
                               end: Alignment.bottomRight,
-                              colors: [masaColor, masaColor.withOpacity(0.7)],
+                              colors: [
+                                masaColor,
+                                masaColor.withValues(alpha: 0.7),
+                              ],
                             ),
                             borderRadius: BorderRadius.circular(20),
                             boxShadow: [
                               BoxShadow(
-                                color: masaColor.withOpacity(0.5),
+                                color: masaColor.withValues(alpha: 0.5),
                                 blurRadius: 20,
                                 offset: const Offset(0, 8),
                               ),
@@ -1886,7 +1962,7 @@ class _DayDetailsDialog extends StatelessWidget {
                               AutoSizeText(
                                 '${day.dayNumber}',
                                 style: theme.textTheme.headlineMedium?.copyWith(
-                                  color: Colors.white,
+                                  color: isDark ? AppColors.pureWhite : AppColors.parchment,
                                   fontWeight: FontWeight.bold,
                                   height: 1,
                                 ),
@@ -1896,7 +1972,9 @@ class _DayDetailsDialog extends StatelessWidget {
                                     .format(DateTime.parse(day.date))
                                     .toUpperCase(),
                                 style: TextStyle(
-                                  color: Colors.white.withOpacity(0.9),
+                                  color: AppColors.parchment.withValues(
+                                    alpha: 0.9,
+                                  ),
                                   fontSize: 11,
                                   fontWeight: FontWeight.w600,
                                   letterSpacing: 1,
@@ -1917,7 +1995,18 @@ class _DayDetailsDialog extends StatelessWidget {
                                 ).format(DateTime.parse(day.date)),
                                 style: theme.textTheme.titleMedium?.copyWith(
                                   fontWeight: FontWeight.bold,
-                                  color: isDark ? Colors.white : Colors.black87,
+                                  color:
+                                      (isDark
+                                          ? AppTheme
+                                              .darkTheme
+                                              .textTheme
+                                              .bodyLarge
+                                              ?.color
+                                          : AppTheme
+                                              .lightTheme
+                                              .textTheme
+                                              .bodyLarge
+                                              ?.color),
                                 ),
                               ),
                               const SizedBox(height: 4),
@@ -1927,10 +2016,10 @@ class _DayDetailsDialog extends StatelessWidget {
                                   vertical: 4,
                                 ),
                                 decoration: BoxDecoration(
-                                  color: masaColor.withOpacity(0.15),
+                                  color: masaColor.withValues(alpha: 0.15),
                                   borderRadius: BorderRadius.circular(20),
                                   border: Border.all(
-                                    color: masaColor.withOpacity(0.3),
+                                    color: masaColor.withValues(alpha: 0.3),
                                   ),
                                 ),
                                 child: AutoSizeText(
@@ -1959,13 +2048,13 @@ class _DayDetailsDialog extends StatelessWidget {
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   colors: [
-                    const Color(0xFF3F5E46).withOpacity(isDark ? 0.2 : 0.1),
-                    const Color(0xFF3A8C54).withOpacity(isDark ? 0.2 : 0.1),
+                    AppColors.parchment.withValues(alpha: isDark ? 0.2 : 0.1),
+                    AppColors.parchment.withValues(alpha: isDark ? 0.2 : 0.1),
                   ],
                 ),
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(
-                  color: const Color(0xFF3F5E46).withOpacity(0.2),
+                  color: AppColors.parchment.withValues(alpha: 0.2),
                 ),
               ),
               child: Row(
@@ -1973,16 +2062,13 @@ class _DayDetailsDialog extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF3F5E46).withOpacity(0.2),
+                      color: AppColors.parchment.withValues(alpha: 0.2),
                       shape: BoxShape.circle,
                     ),
                     child: Icon(
                       Icons.nightlight_round,
                       size: 18,
-                      color:
-                          isDark
-                              ? const Color(0xFFB59EFF)
-                              : const Color(0xFF3F5E46),
+                      color: isDark ? AppColors.pureWhite : AppColors.parchment,
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -1994,8 +2080,8 @@ class _DayDetailsDialog extends StatelessWidget {
                           'Tithi',
                           style: TextStyle(
                             fontSize: 11,
-                            color: (isDark ? Colors.white : Colors.black)
-                                .withOpacity(0.5),
+                            color: (isDark ? AppColors.pureWhite : AppColors.charcoal)
+                                .withValues(alpha: 0.5),
                             fontWeight: FontWeight.w500,
                           ),
                         ),
@@ -2003,7 +2089,18 @@ class _DayDetailsDialog extends StatelessWidget {
                           day.tithi,
                           style: theme.textTheme.titleSmall?.copyWith(
                             fontWeight: FontWeight.w600,
-                            color: isDark ? Colors.white : Colors.black87,
+                            color:
+                                (isDark
+                                    ? AppTheme
+                                        .darkTheme
+                                        .textTheme
+                                        .bodyLarge
+                                        ?.color
+                                    : AppTheme
+                                        .lightTheme
+                                        .textTheme
+                                        .bodyLarge
+                                        ?.color),
                           ),
                         ),
                       ],
@@ -2029,7 +2126,7 @@ class _DayDetailsDialog extends StatelessWidget {
                           time: DateFormat(
                             'h:mm a',
                           ).format(day.sunrise!.toLocal()),
-                          color: const Color(0xFFFFB347),
+                          color: isDark ? AppColors.pureWhite : AppColors.parchment,
                           isDark: isDark,
                         ),
                       ),
@@ -2043,7 +2140,7 @@ class _DayDetailsDialog extends StatelessWidget {
                           time: DateFormat(
                             'h:mm a',
                           ).format(day.sunset!.toLocal()),
-                          color: const Color(0xFFFF7B54),
+                          color: isDark ? AppColors.pureWhite : AppColors.parchment,
                           isDark: isDark,
                         ),
                       ),
@@ -2058,21 +2155,21 @@ class _DayDetailsDialog extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 child: Container(
                   width: double.infinity,
-                  padding: const EdgeInsets.all(16),
+                  padding:       EdgeInsets.all(16),
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
                       colors: [
                         const Color(
                           0xFFFFAA33,
-                        ).withOpacity(isDark ? 0.15 : 0.1),
+                        ).withValues(alpha: isDark ? 0.15 : 0.1),
                         const Color(
                           0xFFFF8833,
-                        ).withOpacity(isDark ? 0.1 : 0.05),
+                        ).withValues(alpha: isDark ? 0.1 : 0.05),
                       ],
                     ),
                     borderRadius: BorderRadius.circular(16),
                     border: Border.all(
-                      color: const Color(0xFFFFAA33).withOpacity(0.2),
+                      color: AppColors.parchment.withValues(alpha: 0.2),
                     ),
                   ),
                   child: Column(
@@ -2083,7 +2180,7 @@ class _DayDetailsDialog extends StatelessWidget {
                           Icon(
                             Icons.celebration_rounded,
                             size: 16,
-                            color: const Color(0xFFFFAA33),
+                            color: isDark ? AppColors.pureWhite : AppColors.parchment,
                           ),
                           const SizedBox(width: 8),
                           AutoSizeText(
@@ -2091,17 +2188,17 @@ class _DayDetailsDialog extends StatelessWidget {
                             style: TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.w600,
-                              color: const Color(0xFFFFAA33),
+                              color: isDark ? AppColors.pureWhite : AppColors.parchment,
                             ),
                           ),
                           const Spacer(),
                           Container(
-                            padding: const EdgeInsets.symmetric(
+                            padding:       EdgeInsets.symmetric(
                               horizontal: 8,
                               vertical: 2,
                             ),
                             decoration: BoxDecoration(
-                              color: const Color(0xFFFFAA33).withOpacity(0.2),
+                              color: AppColors.parchment.withValues(alpha: 0.2),
                               borderRadius: BorderRadius.circular(10),
                             ),
                             child: AutoSizeText(
@@ -2109,7 +2206,7 @@ class _DayDetailsDialog extends StatelessWidget {
                               style: TextStyle(
                                 fontSize: 11,
                                 fontWeight: FontWeight.bold,
-                                color: const Color(0xFFFFAA33),
+                                color: isDark ? AppColors.pureWhite : AppColors.parchment,
                               ),
                             ),
                           ),
@@ -2120,14 +2217,14 @@ class _DayDetailsDialog extends StatelessWidget {
                           .take(3)
                           .map(
                             (festival) => Padding(
-                              padding: const EdgeInsets.only(bottom: 6),
+                              padding:       EdgeInsets.only(bottom: 6),
                               child: Row(
                                 children: [
                                   Container(
                                     width: 6,
                                     height: 6,
                                     decoration: BoxDecoration(
-                                      color: const Color(0xFFFFAA33),
+                                      color: isDark ? AppColors.pureWhite : AppColors.parchment,
                                       shape: BoxShape.circle,
                                     ),
                                   ),
@@ -2138,9 +2235,7 @@ class _DayDetailsDialog extends StatelessWidget {
                                       style: theme.textTheme.bodyMedium
                                           ?.copyWith(
                                             color:
-                                                isDark
-                                                    ? Colors.white
-                                                    : Colors.black87,
+                                                isDark ? AppColors.pureWhite : AppColors.charcoal,
                                             fontWeight: FontWeight.w500,
                                           ),
                                       maxLines: 1,
@@ -2158,7 +2253,7 @@ class _DayDetailsDialog extends StatelessWidget {
                             '+${day.festivals.length - 3} more',
                             style: TextStyle(
                               fontSize: 12,
-                              color: const Color(0xFFFFAA33),
+                              color: isDark ? AppColors.pureWhite : AppColors.parchment,
                               fontWeight: FontWeight.w500,
                             ),
                           ),
@@ -2175,7 +2270,7 @@ class _DayDetailsDialog extends StatelessWidget {
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 child: Container(
-                  padding: const EdgeInsets.symmetric(
+                  padding:       EdgeInsets.symmetric(
                     horizontal: 16,
                     vertical: 12,
                   ),
@@ -2184,15 +2279,15 @@ class _DayDetailsDialog extends StatelessWidget {
                       colors: [
                         const Color(
                           0xFF66D9FF,
-                        ).withOpacity(isDark ? 0.15 : 0.1),
+                        ).withValues(alpha: isDark ? 0.15 : 0.1),
                         const Color(
                           0xFF33BBFF,
-                        ).withOpacity(isDark ? 0.1 : 0.05),
+                        ).withValues(alpha: isDark ? 0.1 : 0.05),
                       ],
                     ),
                     borderRadius: BorderRadius.circular(16),
                     border: Border.all(
-                      color: const Color(0xFF66D9FF).withOpacity(0.2),
+                      color: AppColors.parchment.withValues(alpha: 0.2),
                     ),
                   ),
                   child: Row(
@@ -2200,13 +2295,24 @@ class _DayDetailsDialog extends StatelessWidget {
                       Icon(
                         Icons.self_improvement_rounded,
                         size: 20,
-                        color: const Color(0xFF66D9FF),
+                        color: isDark ? AppColors.pureWhite : AppColors.parchment,
                       ),
                       const SizedBox(width: 12),
                       AutoSizeText(
                         '${day.vratsCount} Vrat${day.vratsCount > 1 ? 's' : ''}',
                         style: theme.textTheme.bodyMedium?.copyWith(
-                          color: isDark ? Colors.white : Colors.black87,
+                          color:
+                              (isDark
+                                  ? AppTheme
+                                      .darkTheme
+                                      .textTheme
+                                      .bodyLarge
+                                      ?.color
+                                  : AppTheme
+                                      .lightTheme
+                                      .textTheme
+                                      .bodyLarge
+                                      ?.color),
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -2244,9 +2350,9 @@ class _CompactTimingTile extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       decoration: BoxDecoration(
-        color: color.withOpacity(isDark ? 0.15 : 0.1),
+        color: color.withValues(alpha: isDark ? 0.15 : 0.1),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: color.withOpacity(0.2)),
+        border: Border.all(color: color.withValues(alpha: 0.2)),
       ),
       child: Row(
         children: [
@@ -2259,9 +2365,8 @@ class _CompactTimingTile extends StatelessWidget {
                 label,
                 style: TextStyle(
                   fontSize: 10,
-                  color: (isDark ? Colors.white : Colors.black).withOpacity(
-                    0.5,
-                  ),
+                  color: (isDark ? AppColors.pureWhite : AppColors.charcoal)
+                      .withValues(alpha: 0.5),
                 ),
               ),
               AutoSizeText(
@@ -2269,7 +2374,8 @@ class _CompactTimingTile extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.w600,
-                  color: isDark ? Colors.white : Colors.black87,
+                  color:
+                      isDark ? AppColors.pureWhite : AppColors.charcoal,
                 ),
               ),
             ],
@@ -2306,9 +2412,10 @@ class _DetailCard extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: (isDark ? Colors.white : Colors.black).withOpacity(0.05),
+            color: (isDark ? AppColors.pureWhite : AppColors.charcoal)
+                .withValues(alpha: 0.05),
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: color.withOpacity(0.3), width: 1),
+            border: Border.all(color: color.withValues(alpha: 0.3), width: 1),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -2320,9 +2427,8 @@ class _DetailCard extends StatelessWidget {
                   AutoSizeText(
                     title,
                     style: theme.textTheme.labelLarge?.copyWith(
-                      color: (isDark ? Colors.white : Colors.black).withOpacity(
-                        0.6,
-                      ),
+                      color: (isDark ? AppColors.pureWhite : AppColors.charcoal)
+                          .withValues(alpha: 0.6),
                       fontWeight: FontWeight.w600,
                     ),
                   ),
@@ -2360,13 +2466,16 @@ class _TimingItem extends StatelessWidget {
         Icon(
           icon,
           size: 24,
-          color: (isDark ? Colors.white : Colors.black).withOpacity(0.7),
+          color: (isDark ? AppColors.pureWhite : AppColors.charcoal).withValues(
+            alpha: 0.7,
+          ),
         ),
         const SizedBox(height: 4),
         AutoSizeText(
           label,
           style: theme.textTheme.bodySmall?.copyWith(
-            color: (isDark ? Colors.white : Colors.black).withOpacity(0.5),
+            color: (isDark ? AppColors.pureWhite : AppColors.charcoal)
+                .withValues(alpha: 0.5),
           ),
         ),
         const SizedBox(height: 2),
@@ -2374,7 +2483,8 @@ class _TimingItem extends StatelessWidget {
           time,
           style: theme.textTheme.bodyMedium?.copyWith(
             fontWeight: FontWeight.w600,
-            color: isDark ? Colors.white : Colors.black87,
+            color:
+                isDark ? AppColors.pureWhite : AppColors.charcoal,
           ),
         ),
       ],
@@ -2429,23 +2539,23 @@ class _BeautifulMonthNavigator extends StatelessWidget {
           colors:
               isDark
                   ? [
-                    const Color(0xFF112214).withOpacity(0.6),
-                    const Color(0xFF1A1030).withOpacity(0.8),
+                    AppColors.parchment.withValues(alpha: 0.6),
+                    AppColors.parchment.withValues(alpha: 0.8),
                   ]
                   : [
-                    Colors.white.withOpacity(0.95),
-                    const Color(0xFFEDF4EE).withOpacity(0.95),
+                    AppColors.parchment.withValues(alpha: 0.95),
+                    AppColors.parchment.withValues(alpha: 0.95),
                   ],
         ),
         borderRadius: BorderRadius.circular(28),
         border: Border.all(
-          color: (isDark ? const Color(0xFF3F5E46) : Colors.black).withOpacity(
-            0.1,
+          color: (isDark ? AppColors.pureWhite : AppColors.charcoal).withValues(
+            alpha: 0.1,
           ),
         ),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF3F5E46).withOpacity(isDark ? 0.25 : 0.1),
+            color: AppColors.parchment.withValues(alpha: isDark ? 0.25 : 0.1),
             blurRadius: 25,
             offset: const Offset(0, 8),
           ),
@@ -2472,7 +2582,14 @@ class _BeautifulMonthNavigator extends StatelessWidget {
                       monthName,
                       style: theme.textTheme.headlineSmall?.copyWith(
                         fontWeight: FontWeight.bold,
-                        color: isDark ? Colors.white : Colors.black87,
+                        color:
+                            (isDark
+                                ? AppColors.parchment
+                                : AppTheme
+                                    .lightTheme
+                                    .textTheme
+                                    .bodyLarge
+                                    ?.color),
                         letterSpacing: 0.5,
                       ),
                     ),
@@ -2485,8 +2602,8 @@ class _BeautifulMonthNavigator extends StatelessWidget {
                       decoration: BoxDecoration(
                         gradient: LinearGradient(
                           colors: [
-                            const Color(0xFF3F5E46).withOpacity(0.2),
-                            const Color(0xFF3A8C54).withOpacity(0.2),
+                            AppColors.parchment.withValues(alpha: 0.2),
+                            AppColors.parchment.withValues(alpha: 0.2),
                           ],
                         ),
                         borderRadius: BorderRadius.circular(12),
@@ -2496,8 +2613,8 @@ class _BeautifulMonthNavigator extends StatelessWidget {
                         style: theme.textTheme.bodyMedium?.copyWith(
                           color:
                               isDark
-                                  ? const Color(0xFF7BC48F)
-                                  : const Color(0xFF3F5E46),
+                                  ? AppColors.parchment
+                                  : AppColors.parchment,
                           fontWeight: FontWeight.w700,
                         ),
                       ),
@@ -2518,8 +2635,8 @@ class _BeautifulMonthNavigator extends StatelessWidget {
                         child: Icon(
                           Icons.arrow_forward_rounded,
                           size: 14,
-                          color: (isDark ? Colors.white : Colors.black)
-                              .withOpacity(0.3),
+                          color: (isDark ? AppColors.pureWhite : AppColors.charcoal)
+                              .withValues(alpha: 0.3),
                         ),
                       ),
                       _MasaPill(month: lastMasaMonth, isDark: isDark),
@@ -2555,9 +2672,9 @@ class _MasaPill extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.15),
+        color: color.withValues(alpha: 0.15),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: color.withOpacity(0.4), width: 1),
+        border: Border.all(color: color.withValues(alpha: 0.4), width: 1),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -2569,7 +2686,7 @@ class _MasaPill extends StatelessWidget {
               color: color,
               shape: BoxShape.circle,
               boxShadow: [
-                BoxShadow(color: color.withOpacity(0.5), blurRadius: 6),
+                BoxShadow(color: color.withValues(alpha: 0.5), blurRadius: 6),
               ],
             ),
           ),
@@ -2652,23 +2769,26 @@ class _AnimatedNavButtonState extends State<_AnimatedNavButton>
                   colors:
                       widget.isDark
                           ? [
-                            const Color(0xFF3F5E46).withOpacity(0.3),
-                            const Color(0xFF3F5E46).withOpacity(0.1),
+                            AppColors.parchment.withValues(alpha: 0.3),
+                            AppColors.parchment.withValues(alpha: 0.1),
                           ]
                           : [
-                            const Color(0xFF3F5E46).withOpacity(0.15),
-                            const Color(0xFF3F5E46).withOpacity(0.05),
+                            AppColors.parchment.withValues(alpha: 0.15),
+                            AppColors.parchment.withValues(alpha: 0.05),
                           ],
                 ),
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(
-                  color: const Color(0xFF3F5E46).withOpacity(0.2),
+                  color: AppColors.parchment.withValues(alpha: 0.2),
                 ),
               ),
               child: Icon(
                 widget.icon,
                 size: 28,
-                color: widget.isDark ? Colors.white : const Color(0xFF3F5E46),
+                color:
+                    (widget.isDark
+                        ? AppColors.charcoal
+                        : AppColors.parchment),
               ),
             ),
           );
@@ -2705,12 +2825,12 @@ class _BeautifulWeekdayHeader extends StatelessWidget {
                         isSunday
                             ? const Color(
                               0xFFFF6B9D,
-                            ).withOpacity(isDark ? 0.15 : 0.1)
+                            ).withValues(alpha: isDark ? 0.15 : 0.1)
                             : isSaturday
                             ? const Color(
                               0xFF3F5E46,
-                            ).withOpacity(isDark ? 0.15 : 0.1)
-                            : Colors.transparent,
+                            ).withValues(alpha: isDark ? 0.15 : 0.1)
+                            : AppColors.transparent,
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: Center(
@@ -2722,13 +2842,15 @@ class _BeautifulWeekdayHeader extends StatelessWidget {
                         color:
                             isSunday
                                 ? (isDark
-                                    ? const Color(0xFFFF6B9D)
-                                    : Colors.red.shade400)
+                                    ? AppColors.parchment
+                                    : AppColors.rawEarth)
                                 : isSaturday
                                 ? (isDark
-                                    ? const Color(0xFF7BC48F)
-                                    : const Color(0xFF3F5E46))
-                                : (isDark ? Colors.white60 : Colors.black54),
+                                    ? AppColors.parchment
+                                    : AppColors.parchment)
+                                : (isDark
+                                    ? AppColors.parchment60
+                                    : AppColors.charcoal54),
                         letterSpacing: 0.5,
                       ),
                     ),
@@ -2846,7 +2968,7 @@ class _RichDayCellState extends State<_RichDayCell>
     showDialog(
       context: context,
       barrierDismissible: true,
-      barrierColor: Colors.black.withOpacity(0.5),
+      barrierColor: AppColors.charcoal.withValues(alpha: 0.5),
       builder:
           (context) => BackdropFilter(
             filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
@@ -2867,19 +2989,18 @@ class _RichDayCellState extends State<_RichDayCell>
     Color cellColor;
 
     if (day.isToday) {
-      cellColor = const Color(0xFF3F5E46);
+      cellColor = AppColors.parchment;
     } else if (hasFestival) {
       cellColor = const Color(
         0xFFFFAA33,
-      ).withOpacity(widget.isDark ? 0.15 : 0.1);
+      ).withValues(alpha: widget.isDark ? 0.15 : 0.1);
     } else if (hasVrat) {
       cellColor = const Color(
         0xFF66D9FF,
-      ).withOpacity(widget.isDark ? 0.1 : 0.06);
+      ).withValues(alpha: widget.isDark ? 0.1 : 0.06);
     } else {
-      cellColor = (widget.isDark ? Colors.white : Colors.black).withOpacity(
-        0.04,
-      );
+      cellColor = (widget.isDark ? AppColors.pureWhite : AppColors.charcoal)
+          .withValues(alpha: 0.04);
     }
 
     return AnimatedBuilder(
@@ -2902,10 +3023,7 @@ class _RichDayCellState extends State<_RichDayCell>
                     ? LinearGradient(
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
-                      colors: [
-                        const Color(0xFF3F5E46),
-                        const Color(0xFF3A8C54),
-                      ],
+                      colors: widget.isDark ? [AppColors.charcoal, const Color(0xFF222222)] : [AppColors.deepSoilGreen, const Color(0xFF3A6B24)],
                     )
                     : hasFestival
                     ? LinearGradient(
@@ -2914,10 +3032,10 @@ class _RichDayCellState extends State<_RichDayCell>
                       colors: [
                         const Color(
                           0xFFFFAA33,
-                        ).withOpacity(widget.isDark ? 0.2 : 0.15),
+                        ).withValues(alpha: widget.isDark ? 0.2 : 0.15),
                         const Color(
                           0xFFFF8800,
-                        ).withOpacity(widget.isDark ? 0.08 : 0.05),
+                        ).withValues(alpha: widget.isDark ? 0.08 : 0.05),
                       ],
                     )
                     : null,
@@ -2927,7 +3045,7 @@ class _RichDayCellState extends State<_RichDayCell>
                 day.isToday
                     ? [
                       BoxShadow(
-                        color: const Color(0xFF3F5E46).withOpacity(0.5),
+                        color: AppColors.parchment.withValues(alpha: 0.5),
                         blurRadius: 12,
                         offset: const Offset(0, 4),
                       ),
@@ -2936,12 +3054,12 @@ class _RichDayCellState extends State<_RichDayCell>
                     ? [
                       // Burning/glow effect for festivals
                       BoxShadow(
-                        color: const Color(0xFFFFAA33).withOpacity(0.4),
+                        color: AppColors.parchment.withValues(alpha: 0.4),
                         blurRadius: 8,
                         spreadRadius: 0,
                       ),
                       BoxShadow(
-                        color: const Color(0xFFFF6600).withOpacity(0.2),
+                        color: AppColors.parchment.withValues(alpha: 0.2),
                         blurRadius: 12,
                         spreadRadius: -2,
                       ),
@@ -2964,18 +3082,16 @@ class _RichDayCellState extends State<_RichDayCell>
                         fontWeight: FontWeight.bold,
                         color:
                             day.isToday
-                                ? Colors.white
+                                ? AppColors.parchment
                                 : isSunday
                                 ? (widget.isDark
-                                    ? const Color(0xFFFF6B9D)
-                                    : Colors.red.shade400)
+                                    ? AppColors.parchment
+                                    : AppColors.rawEarth)
                                 : isSaturday
                                 ? (widget.isDark
-                                    ? const Color(0xFF7BC48F)
-                                    : const Color(0xFF3F5E46))
-                                : (widget.isDark
-                                    ? Colors.white
-                                    : Colors.black87),
+                                    ? AppColors.parchment
+                                    : AppColors.parchment)
+                                : (widget.isDark ? AppColors.pureWhite : AppColors.charcoal),
                       ),
                     ),
                     // Event indicators
@@ -2989,15 +3105,15 @@ class _RichDayCellState extends State<_RichDayCell>
                             decoration: BoxDecoration(
                               color:
                                   day.isToday
-                                      ? Colors.white
-                                      : const Color(0xFFFFAA33),
+                                      ? AppColors.parchment
+                                      : AppColors.parchment,
                               shape: BoxShape.circle,
                               boxShadow: [
                                 BoxShadow(
                                   color: (day.isToday
-                                          ? Colors.white
-                                          : const Color(0xFFFFAA33))
-                                      .withOpacity(0.6),
+                                          ? AppColors.parchment
+                                          : AppColors.parchment)
+                                      .withValues(alpha: 0.6),
                                   blurRadius: 4,
                                 ),
                               ],
@@ -3011,15 +3127,15 @@ class _RichDayCellState extends State<_RichDayCell>
                             decoration: BoxDecoration(
                               color:
                                   day.isToday
-                                      ? Colors.white70
-                                      : const Color(0xFF66D9FF),
+                                      ? AppColors.parchment54
+                                      : AppColors.parchment,
                               shape: BoxShape.circle,
                               boxShadow: [
                                 BoxShadow(
                                   color: (day.isToday
-                                          ? Colors.white70
-                                          : const Color(0xFF66D9FF))
-                                      .withOpacity(0.5),
+                                          ? AppColors.parchment54
+                                          : AppColors.parchment)
+                                      .withValues(alpha: 0.5),
                                   blurRadius: 4,
                                 ),
                               ],
@@ -3038,8 +3154,10 @@ class _RichDayCellState extends State<_RichDayCell>
                     fontSize: 8,
                     color:
                         day.isToday
-                            ? Colors.white.withOpacity(0.8)
-                            : (widget.isDark ? Colors.white54 : Colors.black45),
+                            ? AppColors.parchment.withValues(alpha: 0.8)
+                            : (widget.isDark
+                                ? AppColors.parchment54
+                                : AppColors.charcoal45),
                     fontWeight: FontWeight.w500,
                   ),
                   maxLines: 1,
@@ -3054,7 +3172,9 @@ class _RichDayCellState extends State<_RichDayCell>
                       fontSize: 7,
                       fontWeight: FontWeight.w600,
                       color:
-                          day.isToday ? Colors.white : const Color(0xFFFFAA33),
+                          day.isToday
+                              ? AppColors.parchment
+                              : AppColors.parchment,
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
@@ -3067,8 +3187,8 @@ class _RichDayCellState extends State<_RichDayCell>
                         size: 7,
                         color:
                             day.isToday
-                                ? Colors.white70
-                                : const Color(0xFF66D9FF),
+                                ? AppColors.parchment54
+                                : AppColors.parchment,
                       ),
                       const SizedBox(width: 2),
                       AutoSizeText(
@@ -3078,8 +3198,8 @@ class _RichDayCellState extends State<_RichDayCell>
                           fontWeight: FontWeight.w500,
                           color:
                               day.isToday
-                                  ? Colors.white70
-                                  : const Color(0xFF66D9FF),
+                                  ? AppColors.parchment54
+                                  : AppColors.parchment,
                         ),
                       ),
                     ],
@@ -3199,7 +3319,7 @@ class _BeautifulDayCellState extends State<_BeautifulDayCell>
     showDialog(
       context: context,
       barrierDismissible: true,
-      barrierColor: Colors.black.withOpacity(0.5),
+      barrierColor: AppColors.charcoal.withValues(alpha: 0.5),
       builder:
           (context) => BackdropFilter(
             filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
@@ -3240,10 +3360,7 @@ class _BeautifulDayCellState extends State<_BeautifulDayCell>
                     ? LinearGradient(
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
-                      colors: [
-                        const Color(0xFF3F5E46),
-                        const Color(0xFF3A8C54),
-                      ],
+                      colors: widget.isDark ? [AppColors.charcoal, const Color(0xFF222222)] : [AppColors.deepSoilGreen, const Color(0xFF3A6B24)],
                     )
                     : null,
             color:
@@ -3252,10 +3369,9 @@ class _BeautifulDayCellState extends State<_BeautifulDayCell>
                     : hasFestival
                     ? const Color(
                       0xFFFFAA33,
-                    ).withOpacity(widget.isDark ? 0.12 : 0.1)
-                    : (widget.isDark ? Colors.white : Colors.black).withOpacity(
-                      0.03,
-                    ),
+                    ).withValues(alpha: widget.isDark ? 0.12 : 0.1)
+                    : (widget.isDark ? AppColors.pureWhite : AppColors.charcoal)
+                        .withValues(alpha: 0.03),
             borderRadius: BorderRadius.circular(14),
             border:
                 day.isToday
@@ -3263,16 +3379,16 @@ class _BeautifulDayCellState extends State<_BeautifulDayCell>
                     : Border.all(
                       color:
                           hasFestival
-                              ? const Color(0xFFFFAA33).withOpacity(0.3)
-                              : (widget.isDark ? Colors.white : Colors.black)
-                                  .withOpacity(0.06),
+                              ? AppColors.parchment.withValues(alpha: 0.3)
+                              : (widget.isDark ? AppColors.pureWhite : AppColors.charcoal)
+                                  .withValues(alpha: 0.06),
                       width: 1,
                     ),
             boxShadow:
                 day.isToday
                     ? [
                       BoxShadow(
-                        color: const Color(0xFF3F5E46).withOpacity(0.4),
+                        color: AppColors.parchment.withValues(alpha: 0.4),
                         blurRadius: 12,
                         offset: const Offset(0, 4),
                       ),
@@ -3290,7 +3406,7 @@ class _BeautifulDayCellState extends State<_BeautifulDayCell>
                     width: 4,
                     height: 20,
                     decoration: BoxDecoration(
-                      color: masaColor.withOpacity(0.7),
+                      color: masaColor.withValues(alpha: 0.7),
                       borderRadius: const BorderRadius.only(
                         topLeft: Radius.circular(14),
                         bottomRight: Radius.circular(8),
@@ -3313,18 +3429,16 @@ class _BeautifulDayCellState extends State<_BeautifulDayCell>
                         fontWeight: FontWeight.bold,
                         color:
                             day.isToday
-                                ? Colors.white
+                                ? AppColors.parchment
                                 : isSunday
                                 ? (widget.isDark
-                                    ? const Color(0xFFFF6B9D)
-                                    : Colors.red.shade400)
+                                    ? AppColors.parchment
+                                    : AppColors.rawEarth)
                                 : isSaturday
                                 ? (widget.isDark
-                                    ? const Color(0xFF7BC48F)
-                                    : const Color(0xFF3F5E46))
-                                : (widget.isDark
-                                    ? Colors.white
-                                    : Colors.black87),
+                                    ? AppColors.parchment
+                                    : AppColors.parchment)
+                                : (widget.isDark ? AppColors.pureWhite : AppColors.charcoal),
                       ),
                     ),
                     const SizedBox(height: 2),
@@ -3340,15 +3454,15 @@ class _BeautifulDayCellState extends State<_BeautifulDayCell>
                               decoration: BoxDecoration(
                                 color:
                                     day.isToday
-                                        ? Colors.white
-                                        : const Color(0xFFFFAA33),
+                                        ? AppColors.parchment
+                                        : AppColors.parchment,
                                 shape: BoxShape.circle,
                                 boxShadow: [
                                   BoxShadow(
                                     color: (day.isToday
-                                            ? Colors.white
-                                            : const Color(0xFFFFAA33))
-                                        .withOpacity(0.5),
+                                            ? AppColors.parchment
+                                            : AppColors.parchment)
+                                        .withValues(alpha: 0.5),
                                     blurRadius: 4,
                                   ),
                                 ],
@@ -3362,15 +3476,15 @@ class _BeautifulDayCellState extends State<_BeautifulDayCell>
                               decoration: BoxDecoration(
                                 color:
                                     day.isToday
-                                        ? Colors.white70
-                                        : const Color(0xFF66D9FF),
+                                        ? AppColors.parchment54
+                                        : AppColors.parchment,
                                 shape: BoxShape.circle,
                                 boxShadow: [
                                   BoxShadow(
                                     color: (day.isToday
-                                            ? Colors.white70
-                                            : const Color(0xFF66D9FF))
-                                        .withOpacity(0.5),
+                                            ? AppColors.parchment54
+                                            : AppColors.parchment)
+                                        .withValues(alpha: 0.5),
                                     blurRadius: 4,
                                   ),
                                 ],
@@ -3416,17 +3530,18 @@ class _BeautifulLegendCard extends StatelessWidget {
               colors:
                   isDark
                       ? [
-                        const Color(0xFF0D1A10).withOpacity(0.7),
-                        const Color(0xFF080D09).withOpacity(0.8),
+                        AppColors.parchment.withValues(alpha: 0.7),
+                        AppColors.parchment.withValues(alpha: 0.8),
                       ]
                       : [
-                        Colors.white.withOpacity(0.9),
-                        const Color(0xFFF8F6FF).withOpacity(0.9),
+                        AppColors.parchment.withValues(alpha: 0.9),
+                        AppColors.parchment.withValues(alpha: 0.9),
                       ],
             ),
             borderRadius: BorderRadius.circular(20),
             border: Border.all(
-              color: (isDark ? Colors.white : Colors.black).withOpacity(0.08),
+              color: (isDark ? AppColors.pureWhite : AppColors.charcoal)
+                  .withValues(alpha: 0.08),
             ),
           ),
           child: Column(
@@ -3438,16 +3553,13 @@ class _BeautifulLegendCard extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF3F5E46).withOpacity(0.15),
+                      color: AppColors.parchment.withValues(alpha: 0.15),
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: Icon(
                       Icons.palette_outlined,
                       size: 18,
-                      color:
-                          isDark
-                              ? const Color(0xFF7BC48F)
-                              : const Color(0xFF3F5E46),
+                      color: isDark ? AppColors.pureWhite : AppColors.parchment,
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -3455,7 +3567,8 @@ class _BeautifulLegendCard extends StatelessWidget {
                     'Legend',
                     style: theme.textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.bold,
-                      color: isDark ? Colors.white : Colors.black87,
+                      color:
+                          isDark ? AppColors.pureWhite : AppColors.charcoal,
                     ),
                   ),
                 ],
@@ -3466,19 +3579,19 @@ class _BeautifulLegendCard extends StatelessWidget {
               Row(
                 children: [
                   _LegendItem(
-                    color: const Color(0xFFFFAA33),
+                    color: isDark ? AppColors.pureWhite : AppColors.parchment,
                     label: 'Festival',
                     isDark: isDark,
                   ),
                   const SizedBox(width: 20),
                   _LegendItem(
-                    color: const Color(0xFF66D9FF),
+                    color: isDark ? AppColors.pureWhite : AppColors.parchment,
                     label: 'Vrat',
                     isDark: isDark,
                   ),
                   const SizedBox(width: 20),
                   _LegendItem(
-                    color: const Color(0xFF3F5E46),
+                    color: isDark ? AppColors.pureWhite : AppColors.parchment,
                     label: 'Today',
                     isDark: isDark,
                   ),
@@ -3487,26 +3600,26 @@ class _BeautifulLegendCard extends StatelessWidget {
 
               // Indian Months (if present)
               if (presentMasas.isNotEmpty) ...[
-                const SizedBox(height: 16),
+                      SizedBox(height: 16),
                 Container(
                   height: 1,
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
                       colors: [
-                        Colors.transparent,
-                        (isDark ? Colors.white : Colors.black).withOpacity(0.1),
-                        Colors.transparent,
+                        AppColors.transparent,
+                        (isDark ? AppColors.pureWhite : AppColors.charcoal)
+                            .withValues(alpha: 0.1),
+                        AppColors.transparent,
                       ],
                     ),
                   ),
                 ),
-                const SizedBox(height: 16),
+                      SizedBox(height: 16),
                 AutoSizeText(
                   'Indian Months',
                   style: theme.textTheme.bodySmall?.copyWith(
-                    color: (isDark ? Colors.white : Colors.black).withOpacity(
-                      0.5,
-                    ),
+                    color: (isDark ? AppColors.pureWhite : AppColors.charcoal)
+                        .withValues(alpha: 0.5),
                     fontWeight: FontWeight.w600,
                     letterSpacing: 0.5,
                   ),
@@ -3529,9 +3642,11 @@ class _BeautifulLegendCard extends StatelessWidget {
                             vertical: 6,
                           ),
                           decoration: BoxDecoration(
-                            color: color.withOpacity(0.12),
+                            color: color.withValues(alpha: 0.12),
                             borderRadius: BorderRadius.circular(20),
-                            border: Border.all(color: color.withOpacity(0.3)),
+                            border: Border.all(
+                              color: color.withValues(alpha: 0.3),
+                            ),
                           ),
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
@@ -3550,7 +3665,18 @@ class _BeautifulLegendCard extends StatelessWidget {
                                 style: TextStyle(
                                   fontSize: 12,
                                   fontWeight: FontWeight.w600,
-                                  color: isDark ? Colors.white : Colors.black87,
+                                  color:
+                                      (isDark
+                                          ? AppTheme
+                                              .darkTheme
+                                              .textTheme
+                                              .bodyLarge
+                                              ?.color
+                                          : AppTheme
+                                              .lightTheme
+                                              .textTheme
+                                              .bodyLarge
+                                              ?.color),
                                 ),
                               ),
                             ],

@@ -516,10 +516,10 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen>
               end: Alignment.bottomRight,
               colors: [
                 theme.colorScheme.primary,
-                theme.colorScheme.primary.withOpacity(0.85),
+                theme.colorScheme.primary.withValues(alpha: 0.85),
                 isDark
-                    ? theme.colorScheme.primary.withOpacity(0.7)
-                    : Colors.green.shade400,
+                    ? theme.colorScheme.primary.withValues(alpha: 0.7)
+                    : AppColors.deepSoilGreen,
               ],
             ),
             borderRadius: const BorderRadius.only(
@@ -528,7 +528,7 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen>
             ),
             boxShadow: [
               BoxShadow(
-                color: theme.colorScheme.primary.withOpacity(0.3),
+                color: theme.colorScheme.primary.withValues(alpha: 0.3),
                 blurRadius: 20,
                 offset: const Offset(0, 10),
               ),
@@ -548,7 +548,7 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen>
                   height: 120,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: Colors.white.withOpacity(0.1),
+                    color: AppColors.parchment.withValues(alpha: 0.1),
                   ),
                 ),
               ),
@@ -560,7 +560,7 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen>
                   height: 100,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: Colors.white.withOpacity(0.08),
+                    color: AppColors.parchment.withValues(alpha: 0.08),
                   ),
                 ),
               ),
@@ -574,11 +574,8 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen>
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      // Back Button
-                      _buildIconButton(Icons.arrow_back_ios_new_rounded, () {
-                        HapticFeedback.lightImpact();
-                        Navigator.pop(context);
-                      }),
+                      // ANAAD Logo
+                      const AnaadLogoMark(),
                       const SizedBox(height: 12),
                       // Title Row
                       Row(
@@ -586,12 +583,12 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen>
                           Container(
                             padding: const EdgeInsets.all(10),
                             decoration: BoxDecoration(
-                              color: Colors.white.withOpacity(0.2),
+                              color: AppColors.parchment.withValues(alpha: 0.2),
                               borderRadius: BorderRadius.circular(14),
                             ),
                             child: const Icon(
                               Icons.location_on_rounded,
-                              color: Colors.white,
+                              color: AppColors.parchment,
                               size: 24,
                             ),
                           ),
@@ -607,7 +604,7 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen>
                                     "Delivery Address",
                                     style: theme.textTheme.headlineSmall
                                         ?.copyWith(
-                                          color: Colors.white,
+                                          color: AppColors.parchment,
                                           fontWeight: FontWeight.bold,
                                         ),
                                   ),
@@ -616,7 +613,9 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen>
                                 Text(
                                   "Where should we deliver your order?",
                                   style: theme.textTheme.bodySmall?.copyWith(
-                                    color: Colors.white.withOpacity(0.9),
+                                    color: AppColors.parchment.withValues(
+                                      alpha: 0.9,
+                                    ),
                                   ),
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
@@ -660,7 +659,9 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen>
             height: size,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: Colors.white.withOpacity(opacity.clamp(0.05, 0.25)),
+              color: AppColors.parchment.withValues(
+                alpha: opacity.clamp(0.05, 0.25),
+              ),
             ),
           ),
         );
@@ -670,14 +671,14 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen>
 
   Widget _buildIconButton(IconData icon, VoidCallback onTap) {
     return Material(
-      color: Colors.white.withOpacity(0.2),
+      color: AppColors.parchment.withValues(alpha: 0.2),
       borderRadius: BorderRadius.circular(12),
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(12),
         child: Padding(
           padding: const EdgeInsets.all(10),
-          child: Icon(icon, color: Colors.white, size: 22),
+          child: Icon(icon, color: AppColors.parchment, size: 22),
         ),
       ),
     );
@@ -690,7 +691,7 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen>
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: theme.shadowColor.withOpacity(0.08),
+            color: theme.shadowColor.withValues(alpha: 0.08),
             blurRadius: 20,
             offset: const Offset(0, 4),
           ),
@@ -745,7 +746,7 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen>
         duration: const Duration(milliseconds: 200),
         padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 12),
         decoration: BoxDecoration(
-          color: isSelected ? theme.colorScheme.primary : Colors.transparent,
+          color: isSelected ? theme.colorScheme.primary : AppColors.transparent,
           borderRadius: BorderRadius.circular(12),
         ),
         child: Row(
@@ -754,14 +755,14 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen>
             Icon(
               icon,
               size: 20,
-              color: isSelected ? Colors.white : theme.hintColor,
+              color: isSelected ? AppColors.parchment : theme.hintColor,
             ),
             const SizedBox(width: 8),
             Flexible(
               child: Text(
                 label,
                 style: TextStyle(
-                  color: isSelected ? Colors.white : theme.hintColor,
+                  color: isSelected ? AppColors.parchment : theme.hintColor,
                   fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
                   fontSize: 13,
                 ),
@@ -798,16 +799,16 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen>
                 isSelected
                     ? theme.colorScheme.primary
                     : isDark
-                    ? Colors.grey.shade800
-                    : Colors.grey.shade200,
+                    ? AppColors.charcoal87
+                    : AppColors.parchment,
             width: isSelected ? 2 : 1,
           ),
           boxShadow: [
             BoxShadow(
               color:
                   isSelected
-                      ? theme.colorScheme.primary.withOpacity(0.15)
-                      : theme.shadowColor.withOpacity(0.06),
+                      ? theme.colorScheme.primary.withValues(alpha: 0.15)
+                      : theme.shadowColor.withValues(alpha: 0.06),
               blurRadius: isSelected ? 16 : 8,
               offset: Offset(0, isSelected ? 6 : 3),
             ),
@@ -823,18 +824,24 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen>
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 color:
-                    isSelected ? theme.colorScheme.primary : Colors.transparent,
+                    isSelected
+                        ? theme.colorScheme.primary
+                        : AppColors.transparent,
                 border: Border.all(
                   color:
                       isSelected
                           ? theme.colorScheme.primary
-                          : theme.hintColor.withOpacity(0.3),
+                          : theme.hintColor.withValues(alpha: 0.3),
                   width: 2,
                 ),
               ),
               child:
                   isSelected
-                      ? const Icon(Icons.check, color: Colors.white, size: 16)
+                      ? const Icon(
+                        Icons.check,
+                        color: AppColors.parchment,
+                        size: 16,
+                      )
                       : null,
             ),
             const SizedBox(width: 16),
@@ -842,7 +849,7 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen>
             Container(
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                color: theme.colorScheme.primary.withOpacity(0.1),
+                color: theme.colorScheme.primary.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Icon(
@@ -872,13 +879,13 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen>
                           vertical: 2,
                         ),
                         decoration: BoxDecoration(
-                          color: Colors.green.withOpacity(0.1),
+                          color: AppColors.deepSoilGreen.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Text(
                           'Default',
                           style: TextStyle(
-                            color: Colors.green.shade700,
+                            color: AppColors.deepSoilGreen,
                             fontSize: 10,
                             fontWeight: FontWeight.w600,
                           ),
@@ -937,16 +944,16 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen>
                 isSelected
                     ? theme.colorScheme.primary
                     : isDark
-                    ? Colors.grey.shade800
-                    : Colors.grey.shade200,
+                    ? AppColors.charcoal87
+                    : AppColors.parchment,
             width: isSelected ? 2 : 1,
           ),
           boxShadow: [
             BoxShadow(
               color:
                   isSelected
-                      ? theme.colorScheme.primary.withOpacity(0.15)
-                      : theme.shadowColor.withOpacity(0.06),
+                      ? theme.colorScheme.primary.withValues(alpha: 0.15)
+                      : theme.shadowColor.withValues(alpha: 0.06),
               blurRadius: isSelected ? 16 : 8,
               offset: Offset(0, isSelected ? 6 : 3),
             ),
@@ -962,18 +969,24 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen>
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 color:
-                    isSelected ? theme.colorScheme.primary : Colors.transparent,
+                    isSelected
+                        ? theme.colorScheme.primary
+                        : AppColors.transparent,
                 border: Border.all(
                   color:
                       isSelected
                           ? theme.colorScheme.primary
-                          : theme.hintColor.withOpacity(0.3),
+                          : theme.hintColor.withValues(alpha: 0.3),
                   width: 2,
                 ),
               ),
               child:
                   isSelected
-                      ? const Icon(Icons.check, color: Colors.white, size: 16)
+                      ? const Icon(
+                        Icons.check,
+                        color: AppColors.parchment,
+                        size: 16,
+                      )
                       : null,
             ),
             const SizedBox(width: 16),
@@ -981,7 +994,7 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen>
             Container(
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                color: theme.colorScheme.primary.withOpacity(0.1),
+                color: theme.colorScheme.primary.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Icon(
@@ -1025,7 +1038,7 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen>
           borderRadius: BorderRadius.circular(20),
           boxShadow: [
             BoxShadow(
-              color: theme.shadowColor.withOpacity(0.08),
+              color: theme.shadowColor.withValues(alpha: 0.08),
               blurRadius: 20,
               offset: const Offset(0, 4),
             ),
@@ -1153,14 +1166,14 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen>
           style: theme.textTheme.bodyLarge,
           decoration: InputDecoration(
             hintText: hint,
-            hintStyle: TextStyle(color: theme.hintColor.withOpacity(0.5)),
+            hintStyle: TextStyle(color: theme.hintColor.withValues(alpha: 0.5)),
             prefixIcon: Icon(
               icon,
-              color: theme.colorScheme.primary.withOpacity(0.7),
+              color: theme.colorScheme.primary.withValues(alpha: 0.7),
               size: 22,
             ),
             filled: true,
-            fillColor: isDark ? Colors.grey.shade900 : Colors.grey.shade50,
+            fillColor: isDark ? AppColors.charcoal : AppColors.parchment,
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(14),
               borderSide: BorderSide.none,
@@ -1168,7 +1181,7 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen>
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(14),
               borderSide: BorderSide(
-                color: isDark ? Colors.grey.shade800 : Colors.grey.shade200,
+                color: isDark ? AppColors.charcoal87 : AppColors.parchment,
               ),
             ),
             focusedBorder: OutlineInputBorder(
@@ -1197,9 +1210,11 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen>
       margin: const EdgeInsets.only(top: 12),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: theme.colorScheme.error.withOpacity(0.1),
+        color: theme.colorScheme.error.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: theme.colorScheme.error.withOpacity(0.3)),
+        border: Border.all(
+          color: theme.colorScheme.error.withValues(alpha: 0.3),
+        ),
       ),
       child: Row(
         children: [
@@ -1227,14 +1242,16 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen>
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
-            theme.colorScheme.primary.withOpacity(0.1),
-            theme.colorScheme.primary.withOpacity(0.05),
+            theme.colorScheme.primary.withValues(alpha: 0.1),
+            theme.colorScheme.primary.withValues(alpha: 0.05),
           ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: theme.colorScheme.primary.withOpacity(0.3)),
+        border: Border.all(
+          color: theme.colorScheme.primary.withValues(alpha: 0.3),
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1244,7 +1261,7 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen>
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: theme.colorScheme.primary.withOpacity(0.2),
+                  color: theme.colorScheme.primary.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Icon(
@@ -1269,7 +1286,7 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen>
               Container(
                 width: 1,
                 height: 50,
-                color: theme.colorScheme.primary.withOpacity(0.2),
+                color: theme.colorScheme.primary.withValues(alpha: 0.2),
               ),
               Expanded(
                 child: _buildDeliveryInfoItem(
@@ -1371,10 +1388,10 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen>
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: isDark ? theme.cardColor : Colors.white,
+          color: isDark ? theme.cardColor : AppColors.parchment,
           boxShadow: [
             BoxShadow(
-              color: theme.shadowColor.withOpacity(0.1),
+              color: theme.shadowColor.withValues(alpha: 0.1),
               blurRadius: 20,
               offset: const Offset(0, -5),
             ),
@@ -1388,7 +1405,7 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen>
               onPressed: _isLoading ? null : _onContinuePressed,
               style: ElevatedButton.styleFrom(
                 backgroundColor: theme.colorScheme.primary,
-                foregroundColor: Colors.white,
+                foregroundColor: AppColors.parchment,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(16),
                 ),
@@ -1410,7 +1427,7 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen>
                   Container(
                     padding: const EdgeInsets.all(4),
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.2),
+                      color: AppColors.parchment.withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: const Icon(Icons.arrow_forward_rounded, size: 18),
@@ -1426,7 +1443,7 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen>
 
   Widget _buildLoadingOverlay(ThemeData theme) {
     return Container(
-      color: Colors.black.withOpacity(0.3),
+      color: AppColors.charcoal.withValues(alpha: 0.3),
       child: Center(
         child: Container(
           padding: const EdgeInsets.all(24),

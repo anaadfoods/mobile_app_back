@@ -1,4 +1,4 @@
-﻿import 'dart:ui';
+import 'dart:ui';
 import 'package:flutter/services.dart';
 import 'package:grocery_app/common_widgets/global_import.dart';
 import 'package:share_plus/share_plus.dart';
@@ -80,15 +80,14 @@ class _ReferEarnScreenState extends State<ReferEarnScreen>
     final isDark = theme.brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor:
-          isDark ? const Color(0xFF0F0F1A) : const Color(0xFFF8F9FE),
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: Colors.transparent,
+        backgroundColor: AppColors.transparent,
         elevation: 0,
         leading: IconButton(
           icon: Icon(
             Icons.arrow_back_rounded,
-            color: isDark ? Colors.white : Colors.black87,
+            color: isDark ? AppColors.parchment : AppColors.charcoal,
           ),
           onPressed: () {
             HapticFeedback.lightImpact();
@@ -99,18 +98,21 @@ class _ReferEarnScreenState extends State<ReferEarnScreen>
           'Refer & Earn',
           style: theme.textTheme.titleLarge?.copyWith(
             fontWeight: FontWeight.bold,
-            color: isDark ? Colors.white : Colors.black87,
+            color: isDark ? AppColors.parchment : AppColors.charcoal,
           ),
         ),
         centerTitle: true,
       ),
       body:
           _isLoading
-              ? const Center(
-                child: CircularProgressIndicator(color: Color(0xFF4A7C59)),
+              ? Center(
+                child: CircularProgressIndicator(
+                  color: theme.colorScheme.primary,
+                ),
               )
               : RefreshIndicator(
-                color: const Color(0xFF4A7C59),
+                color: theme.colorScheme.primary,
+                backgroundColor: theme.cardColor,
                 onRefresh: _fetchReferralData,
                 child: SingleChildScrollView(
                   physics: const AlwaysScrollableScrollPhysics(),
@@ -158,13 +160,16 @@ class _ReferEarnScreenState extends State<ReferEarnScreen>
         Container(
           padding: const EdgeInsets.all(24),
           decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              colors: [Color(0xFF4A7C59), Color(0xFF3F5E46)],
+            gradient: LinearGradient(
+              colors: [
+                AppColors.harvestAmber,
+                AppColors.harvestAmber.withAlpha(200),
+              ],
             ),
             shape: BoxShape.circle,
             boxShadow: [
               BoxShadow(
-                color: const Color(0xFF4A7C59).withOpacity(0.4),
+                color: AppColors.harvestAmber.withAlpha(100),
                 blurRadius: 25,
                 offset: const Offset(0, 8),
               ),
@@ -172,7 +177,7 @@ class _ReferEarnScreenState extends State<ReferEarnScreen>
           ),
           child: const Icon(
             Icons.card_giftcard_rounded,
-            color: Colors.white,
+            color: AppColors.charcoal,
             size: 50,
           ),
         ),
@@ -181,14 +186,14 @@ class _ReferEarnScreenState extends State<ReferEarnScreen>
           'Sow the Seeds of Health.',
           style: theme.textTheme.headlineSmall?.copyWith(
             fontWeight: FontWeight.bold,
-            color: isDark ? Colors.white : Colors.black87,
+            color: isDark ? AppColors.parchment : AppColors.charcoal87,
           ),
         ),
         const SizedBox(height: 8),
         Text(
           'Invite your loved ones to Anaad. When your friend signs up and places their first order, you receive a surprise gift from the Anaad team! 🎁',
           style: theme.textTheme.bodyMedium?.copyWith(
-            color: isDark ? Colors.grey[400] : Colors.grey[600],
+            color: isDark ? AppColors.rawEarth26 : AppColors.rawEarth70,
           ),
           textAlign: TextAlign.center,
         ),
@@ -205,14 +210,14 @@ class _ReferEarnScreenState extends State<ReferEarnScreen>
           decoration: BoxDecoration(
             gradient: LinearGradient(
               colors: [
-                const Color(0xFF4A7C59).withOpacity(0.95),
-                const Color(0xFF3F5E46).withOpacity(0.9),
+                theme.colorScheme.primary,
+                theme.colorScheme.primary.withAlpha(200),
               ],
             ),
             borderRadius: BorderRadius.circular(24),
             boxShadow: [
               BoxShadow(
-                color: const Color(0xFF4A7C59).withOpacity(0.4),
+                color: theme.colorScheme.primary.withAlpha(100),
                 blurRadius: 20,
                 offset: const Offset(0, 8),
               ),
@@ -229,9 +234,9 @@ class _ReferEarnScreenState extends State<ReferEarnScreen>
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                       colors: [
-                        Colors.transparent,
-                        Colors.white.withOpacity(0.15),
-                        Colors.transparent,
+                        AppColors.transparent,
+                        AppColors.parchment.withValues(alpha: 0.15),
+                        AppColors.transparent,
                       ],
                       stops: [
                         (_shimmerAnimation.value - 0.3).clamp(0.0, 1.0),
@@ -247,7 +252,7 @@ class _ReferEarnScreenState extends State<ReferEarnScreen>
                   Text(
                     'Your Referral Code',
                     style: theme.textTheme.bodyMedium?.copyWith(
-                      color: Colors.white.withOpacity(0.8),
+                      color: AppColors.parchment.withValues(alpha: 0.8),
                     ),
                   ),
                   const SizedBox(height: 12),
@@ -257,9 +262,11 @@ class _ReferEarnScreenState extends State<ReferEarnScreen>
                       vertical: 16,
                     ),
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.2),
+                      color: AppColors.parchment.withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: Colors.white.withOpacity(0.3)),
+                      border: Border.all(
+                        color: AppColors.parchment.withValues(alpha: 0.3),
+                      ),
                     ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
@@ -270,7 +277,7 @@ class _ReferEarnScreenState extends State<ReferEarnScreen>
                             child: Text(
                               _referralCode,
                               style: theme.textTheme.headlineMedium?.copyWith(
-                                color: Colors.white,
+                                color: AppColors.parchment,
                                 fontWeight: FontWeight.bold,
                                 letterSpacing: 1,
                               ),
@@ -283,12 +290,12 @@ class _ReferEarnScreenState extends State<ReferEarnScreen>
                           child: Container(
                             padding: const EdgeInsets.all(8),
                             decoration: BoxDecoration(
-                              color: Colors.white.withOpacity(0.2),
+                              color: AppColors.parchment.withValues(alpha: 0.2),
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: const Icon(
                               Icons.copy_rounded,
-                              color: Colors.white,
+                              color: AppColors.parchment,
                               size: 20,
                             ),
                           ),
@@ -305,11 +312,11 @@ class _ReferEarnScreenState extends State<ReferEarnScreen>
                         vertical: 12,
                       ),
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: AppColors.parchment,
                         borderRadius: BorderRadius.circular(12),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withOpacity(0.15),
+                            color: AppColors.charcoal.withValues(alpha: 0.15),
                             blurRadius: 10,
                             offset: const Offset(0, 4),
                           ),
@@ -320,14 +327,14 @@ class _ReferEarnScreenState extends State<ReferEarnScreen>
                         children: [
                           Icon(
                             Icons.share_rounded,
-                            color: const Color(0xFF3F5E46),
+                            color: AppColors.parchment,
                             size: 20,
                           ),
                           const SizedBox(width: 8),
                           Text(
                             'Share Now',
                             style: theme.textTheme.titleSmall?.copyWith(
-                              color: const Color(0xFF3F5E46),
+                              color: AppColors.parchment,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
@@ -349,19 +356,23 @@ class _ReferEarnScreenState extends State<ReferEarnScreen>
       {
         'icon': Icons.message_rounded,
         'name': 'WhatsApp',
-        'color': const Color(0xFF25D366),
+        'color': AppColors.deepSoilGreen,
       },
       {
         'icon': Icons.telegram,
         'name': 'Telegram',
-        'color': const Color(0xFF0088CC),
+        'color': AppColors.deepSoilGreen,
       },
       {
         'icon': Icons.email_rounded,
         'name': 'Email',
-        'color': const Color(0xFFEA4335),
+        'color': AppColors.deepSoilGreen,
       },
-      {'icon': Icons.more_horiz_rounded, 'name': 'More', 'color': Colors.grey},
+      {
+        'icon': Icons.more_horiz_rounded,
+        'name': 'More',
+        'color': AppColors.rawEarth,
+      },
     ];
 
     return Column(
@@ -385,7 +396,7 @@ class _ReferEarnScreenState extends State<ReferEarnScreen>
                       Container(
                         padding: const EdgeInsets.all(14),
                         decoration: BoxDecoration(
-                          color: (p['color'] as Color).withOpacity(0.15),
+                          color: (p['color'] as Color).withValues(alpha: 0.15),
                           borderRadius: BorderRadius.circular(14),
                         ),
                         child: Icon(
@@ -398,7 +409,10 @@ class _ReferEarnScreenState extends State<ReferEarnScreen>
                       Text(
                         p['name'] as String,
                         style: theme.textTheme.labelSmall?.copyWith(
-                          color: isDark ? Colors.grey[400] : Colors.grey[600],
+                          color:
+                              isDark
+                                  ? AppColors.rawEarth26
+                                  : AppColors.rawEarth70,
                         ),
                       ),
                     ],
@@ -414,11 +428,11 @@ class _ReferEarnScreenState extends State<ReferEarnScreen>
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1E1E2E) : Colors.white,
+        color: theme.cardColor,
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: AppColors.charcoal.withAlpha(12),
             blurRadius: 15,
             offset: const Offset(0, 5),
           ),
@@ -443,7 +457,7 @@ class _ReferEarnScreenState extends State<ReferEarnScreen>
                 Icons.people_rounded,
                 '$_totalReferrals',
                 'Referrals',
-                const Color(0xFF3B82F6),
+                AppColors.harvestAmber,
               ),
               _buildStatItem(
                 theme,
@@ -451,7 +465,7 @@ class _ReferEarnScreenState extends State<ReferEarnScreen>
                 Icons.hourglass_top_rounded,
                 '$_pendingReferrals',
                 'Pending',
-                const Color(0xFF4A7C59),
+                AppColors.rawEarth,
               ),
               _buildStatItem(
                 theme,
@@ -459,7 +473,7 @@ class _ReferEarnScreenState extends State<ReferEarnScreen>
                 Icons.shopping_cart_checkout_rounded,
                 '$_acceptedReferrals',
                 'Ordered',
-                const Color(0xFF10B981),
+                AppColors.deepSoilGreen,
               ),
             ],
           ),
@@ -481,7 +495,7 @@ class _ReferEarnScreenState extends State<ReferEarnScreen>
         Container(
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
-            color: color.withOpacity(0.15),
+            color: color.withValues(alpha: 0.15),
             borderRadius: BorderRadius.circular(12),
           ),
           child: Icon(icon, color: color, size: 24),
@@ -491,13 +505,13 @@ class _ReferEarnScreenState extends State<ReferEarnScreen>
           value,
           style: theme.textTheme.titleLarge?.copyWith(
             fontWeight: FontWeight.bold,
-            color: isDark ? Colors.white : Colors.black87,
+            color: isDark ? AppColors.parchment : AppColors.charcoal87,
           ),
         ),
         Text(
           label,
           style: theme.textTheme.labelSmall?.copyWith(
-            color: isDark ? Colors.grey[400] : Colors.grey[600],
+            color: isDark ? AppColors.rawEarth26 : AppColors.rawEarth70,
           ),
         ),
       ],
@@ -508,11 +522,11 @@ class _ReferEarnScreenState extends State<ReferEarnScreen>
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1E1E2E) : Colors.white,
+        color: theme.cardColor,
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: AppColors.charcoal.withAlpha(12),
             blurRadius: 15,
             offset: const Offset(0, 5),
           ),
@@ -526,12 +540,12 @@ class _ReferEarnScreenState extends State<ReferEarnScreen>
               Container(
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF3B82F6).withOpacity(0.15),
+                  color: AppColors.deepSoilGreen.withAlpha(30),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: const Icon(
                   Icons.people_alt_rounded,
-                  color: Color(0xFF3B82F6),
+                  color: AppColors.deepSoilGreen,
                   size: 20,
                 ),
               ),
@@ -549,13 +563,13 @@ class _ReferEarnScreenState extends State<ReferEarnScreen>
                   vertical: 6,
                 ),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF4A7C59).withOpacity(0.15),
+                  color: AppColors.harvestAmber.withAlpha(30),
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Text(
                   '${_referralData!.referredUsers.length}',
                   style: theme.textTheme.labelLarge?.copyWith(
-                    color: const Color(0xFF4A7C59),
+                    color: AppColors.harvestAmber,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -574,8 +588,8 @@ class _ReferEarnScreenState extends State<ReferEarnScreen>
   Widget _buildUserCard(ThemeData theme, bool isDark, ReferredUser user) {
     final statusColor =
         user.status == 'PENDING'
-            ? const Color(0xFF4A7C59)
-            : const Color(0xFF10B981);
+            ? AppColors.harvestAmber
+            : AppColors.deepSoilGreen;
     final statusText = user.status ?? 'Active';
     final dateStr =
         '${user.dateJoined.day}/${user.dateJoined.month}/${user.dateJoined.year}';
@@ -584,10 +598,10 @@ class _ReferEarnScreenState extends State<ReferEarnScreen>
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF252536) : const Color(0xFFF8F9FE),
+        color: AppColors.transparent,
         borderRadius: BorderRadius.circular(14),
         border: Border.all(
-          color: isDark ? Colors.grey.shade800 : Colors.grey.shade200,
+          color: isDark ? AppColors.charcoal60 : AppColors.rawEarth12,
         ),
       ),
       child: Row(
@@ -599,8 +613,8 @@ class _ReferEarnScreenState extends State<ReferEarnScreen>
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: [
-                  const Color(0xFF4A7C59).withOpacity(0.8),
-                  const Color(0xFF3F5E46).withOpacity(0.9),
+                  theme.colorScheme.primary.withAlpha(200),
+                  theme.colorScheme.primary,
                 ],
               ),
               borderRadius: BorderRadius.circular(12),
@@ -611,7 +625,7 @@ class _ReferEarnScreenState extends State<ReferEarnScreen>
                     ? user.fullName[0].toUpperCase()
                     : user.username[0].toUpperCase(),
                 style: const TextStyle(
-                  color: Colors.white,
+                  color: AppColors.parchment,
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
                 ),
@@ -636,7 +650,7 @@ class _ReferEarnScreenState extends State<ReferEarnScreen>
                 Text(
                   'Joined $dateStr',
                   style: theme.textTheme.bodySmall?.copyWith(
-                    color: isDark ? Colors.grey[400] : Colors.grey[600],
+                    color: isDark ? AppColors.rawEarth26 : AppColors.rawEarth70,
                     fontSize: 11,
                   ),
                 ),
@@ -647,9 +661,9 @@ class _ReferEarnScreenState extends State<ReferEarnScreen>
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
             decoration: BoxDecoration(
-              color: statusColor.withOpacity(0.15),
+              color: statusColor.withValues(alpha: 0.15),
               borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: statusColor.withOpacity(0.3)),
+              border: Border.all(color: statusColor.withValues(alpha: 0.3)),
             ),
             child: Row(
               mainAxisSize: MainAxisSize.min,
@@ -706,9 +720,15 @@ class _ReferEarnScreenState extends State<ReferEarnScreen>
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: isDark ? const Color.fromARGB(255, 2, 2, 34) : Colors.white,
+        color: theme.cardColor,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: const Color(0xFF4A7C59).withOpacity(0.2)),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.charcoal.withAlpha(12),
+            blurRadius: 15,
+            offset: const Offset(0, 5),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -718,12 +738,12 @@ class _ReferEarnScreenState extends State<ReferEarnScreen>
               Container(
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF4A7C59).withOpacity(0.15),
+                  color: AppColors.deepSoilGreen.withAlpha(30),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: const Icon(
                   Icons.help_outline_rounded,
-                  color: Color(0xFF4A7C59),
+                  color: AppColors.deepSoilGreen,
                   size: 20,
                 ),
               ),
@@ -748,8 +768,11 @@ class _ReferEarnScreenState extends State<ReferEarnScreen>
                     width: 36,
                     height: 36,
                     decoration: BoxDecoration(
-                      gradient: const LinearGradient(
-                        colors: [Color(0xFF4A7C59), Color(0xFF3F5E46)],
+                      gradient: LinearGradient(
+                        colors: [
+                          theme.colorScheme.primary,
+                          theme.colorScheme.primary.withAlpha(200),
+                        ],
                       ),
                       borderRadius: BorderRadius.circular(10),
                     ),
@@ -757,7 +780,7 @@ class _ReferEarnScreenState extends State<ReferEarnScreen>
                       child: Text(
                         '${index + 1}',
                         style: theme.textTheme.titleSmall?.copyWith(
-                          color: Colors.white,
+                          color: AppColors.parchment,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -777,7 +800,10 @@ class _ReferEarnScreenState extends State<ReferEarnScreen>
                         Text(
                           step['desc'] as String,
                           style: theme.textTheme.bodySmall?.copyWith(
-                            color: isDark ? Colors.grey[400] : Colors.grey[600],
+                            color:
+                                isDark
+                                    ? AppColors.rawEarth26
+                                    : AppColors.rawEarth70,
                           ),
                         ),
                       ],
@@ -785,7 +811,7 @@ class _ReferEarnScreenState extends State<ReferEarnScreen>
                   ),
                   Icon(
                     step['icon'] as IconData,
-                    color: const Color(0xFF4A7C59),
+                    color: AppColors.harvestAmber,
                     size: 22,
                   ),
                 ],
@@ -797,5 +823,3 @@ class _ReferEarnScreenState extends State<ReferEarnScreen>
     );
   }
 }
-
-

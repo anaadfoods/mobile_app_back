@@ -4,11 +4,7 @@ class LiveStatusIcon extends StatefulWidget {
   final IconData icon;
   final Color color;
 
-  const LiveStatusIcon({
-    super.key,
-    required this.icon,
-    required this.color,
-  });
+  const LiveStatusIcon({super.key, required this.icon, required this.color});
 
   @override
   _LiveStatusIconState createState() => _LiveStatusIconState();
@@ -28,12 +24,10 @@ class _LiveStatusIconState extends State<LiveStatusIcon>
       duration: Duration(milliseconds: 800),
     )..repeat(reverse: true); // Repeats the animation back and forth
 
-    _animation = Tween<double>(begin: 0.9, end: 1.3).animate(
-      CurvedAnimation(
-        parent: _controller,
-        curve: Curves.easeInOut,
-      ),
-    );
+    _animation = Tween<double>(
+      begin: 0.9,
+      end: 1.3,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
   }
 
   @override
@@ -46,11 +40,7 @@ class _LiveStatusIconState extends State<LiveStatusIcon>
   Widget build(BuildContext context) {
     return ScaleTransition(
       scale: _animation,
-      child: Icon(
-        widget.icon,
-        color: widget.color,
-        size: 18,
-      ),
+      child: Icon(widget.icon, color: widget.color, size: 18),
     );
   }
 }

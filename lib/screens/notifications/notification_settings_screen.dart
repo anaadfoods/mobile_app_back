@@ -1,3 +1,4 @@
+import 'package:grocery_app/core/theme/app_colors.dart';
 // import 'package:flutter/material.dart';
 // import 'package:shared_preferences/shared_preferences.dart';
 // import '../../services/notification_service.dart';
@@ -154,7 +155,7 @@
 //               title: 'Push Notifications',
 //               subtitle: 'Receive notifications on your device',
 //               icon: Icons.notifications,
-//               color: Colors.blue,
+//               color: AppColors.deepSoilGreen,
 //               value: _pushNotifications,
 //               onChanged: (value) {
 //                 setState(() {
@@ -167,7 +168,7 @@
 //               title: 'Email Notifications',
 //               subtitle: 'Receive notifications via email',
 //               icon: Icons.email,
-//               color: Colors.green,
+//               color: AppColors.deepSoilGreen,
 //               value: _emailNotifications,
 //               onChanged: (value) {
 //                 setState(() {
@@ -180,7 +181,7 @@
 //               title: 'SMS Notifications',
 //               subtitle: 'Receive notifications via SMS',
 //               icon: Icons.sms,
-//               color: Colors.orange,
+//               color: AppColors.harvestAmber,
 //               value: _smsNotifications,
 //               onChanged: (value) {
 //                 setState(() {
@@ -195,11 +196,11 @@
 //             Container(
 //               padding: const EdgeInsets.all(16),
 //               decoration: BoxDecoration(
-//                 color: Colors.white,
+//                 color: AppColors.parchment,
 //                 borderRadius: BorderRadius.circular(12),
 //                 boxShadow: [
 //                   BoxShadow(
-//                     color: Colors.grey.withOpacity(0.1),
+//                     color: AppColors.rawEarth54.withValues(alpha: 0.1),
 //                     spreadRadius: 1,
 //                     blurRadius: 4,
 //                     offset: const Offset(0, 2),
@@ -214,12 +215,12 @@
 //                         width: 48,
 //                         height: 48,
 //                         decoration: BoxDecoration(
-//                           color: Colors.purple.withOpacity(0.1),
+//                           color: AppColors.harvestAmber.withValues(alpha: 0.1),
 //                           borderRadius: BorderRadius.circular(8),
 //                         ),
 //                         child: const Icon(
 //                           Icons.bedtime,
-//                           color: Colors.purple,
+//                           color: AppColors.harvestAmber,
 //                           size: 24,
 //                         ),
 //                       ),
@@ -238,7 +239,7 @@
 //                             const Text(
 //                               'Mute notifications during specified hours',
 //                               style: TextStyle(
-//                                 color: Colors.grey,
+//                                 color: AppColors.rawEarth54,
 //                                 fontSize: 14,
 //                               ),
 //                             ),
@@ -253,7 +254,7 @@
 //                           });
 //                           _saveNotificationSettings();
 //                         },
-//                         activeThumbColor: Colors.purple,
+//                         activeThumbColor: AppColors.harvestAmber,
 //                       ),
 //                     ],
 //                   ),
@@ -302,7 +303,7 @@
 //       style: const TextStyle(
 //         fontSize: 18,
 //         fontWeight: FontWeight.bold,
-//         color: Colors.black87,
+//         color: AppColors.charcoal87,
 //       ),
 //     );
 //   }
@@ -318,11 +319,11 @@
 //     return Container(
 //       margin: const EdgeInsets.only(bottom: 8),
 //       decoration: BoxDecoration(
-//         color: Colors.white,
+//         color: AppColors.parchment,
 //         borderRadius: BorderRadius.circular(12),
 //         boxShadow: [
 //           BoxShadow(
-//             color: Colors.grey.withOpacity(0.1),
+//             color: AppColors.rawEarth54.withValues(alpha: 0.1),
 //             spreadRadius: 1,
 //             blurRadius: 4,
 //             offset: const Offset(0, 2),
@@ -334,7 +335,7 @@
 //           width: 48,
 //           height: 48,
 //           decoration: BoxDecoration(
-//             color: color.withOpacity(0.1),
+//             color: color.withValues(alpha: 0.1),
 //             borderRadius: BorderRadius.circular(8),
 //           ),
 //           child: Icon(icon, color: color, size: 24),
@@ -345,7 +346,7 @@
 //         ),
 //         subtitle: Text(
 //           subtitle,
-//           style: const TextStyle(color: Colors.grey, fontSize: 14),
+//           style: const TextStyle(color: AppColors.rawEarth54, fontSize: 14),
 //         ),
 //         trailing: Switch(
 //           value: value,
@@ -366,16 +367,16 @@
 //       child: Container(
 //         padding: const EdgeInsets.all(12),
 //         decoration: BoxDecoration(
-//           color: Colors.grey.withOpacity(0.1),
+//           color: AppColors.rawEarth54.withValues(alpha: 0.1),
 //           borderRadius: BorderRadius.circular(8),
-//           border: Border.all(color: Colors.grey.withOpacity(0.3)),
+//           border: Border.all(color: AppColors.rawEarth54.withValues(alpha: 0.3)),
 //         ),
 //         child: Column(
 //           crossAxisAlignment: CrossAxisAlignment.start,
 //           children: [
 //             Text(
 //               label,
-//               style: const TextStyle(fontSize: 12, color: Colors.grey),
+//               style: const TextStyle(fontSize: 12, color: AppColors.rawEarth54),
 //             ),
 //             const SizedBox(height: 4),
 //             Text(
@@ -392,11 +393,11 @@
 //     return Container(
 //       padding: const EdgeInsets.all(16),
 //       decoration: BoxDecoration(
-//         color: Colors.white,
+//         color: AppColors.parchment,
 //         borderRadius: BorderRadius.circular(12),
 //         boxShadow: [
 //           BoxShadow(
-//             color: Colors.grey.withOpacity(0.1),
+//             color: AppColors.rawEarth54.withValues(alpha: 0.1),
 //             spreadRadius: 1,
 //             blurRadius: 4,
 //             offset: const Offset(0, 2),
@@ -411,12 +412,12 @@
 //                 width: 48,
 //                 height: 48,
 //                 decoration: BoxDecoration(
-//                   color: Colors.blue.withOpacity(0.1),
+//                   color: AppColors.deepSoilGreen.withValues(alpha: 0.1),
 //                   borderRadius: BorderRadius.circular(8),
 //                 ),
 //                 child: const Icon(
 //                   Icons.analytics,
-//                   color: Colors.blue,
+//                   color: AppColors.deepSoilGreen,
 //                   size: 24,
 //                 ),
 //               ),
@@ -434,7 +435,7 @@
 //                     ),
 //                     Text(
 //                       'View your notification activity',
-//                       style: TextStyle(color: Colors.grey, fontSize: 14),
+//                       style: TextStyle(color: AppColors.rawEarth54, fontSize: 14),
 //                     ),
 //                   ],
 //                 ),
@@ -463,10 +464,10 @@
 //           style: const TextStyle(
 //             fontSize: 24,
 //             fontWeight: FontWeight.bold,
-//             color: Colors.blue,
+//             color: AppColors.deepSoilGreen,
 //           ),
 //         ),
-//         Text(label, style: const TextStyle(fontSize: 12, color: Colors.grey)),
+//         Text(label, style: const TextStyle(fontSize: 12, color: AppColors.rawEarth54)),
 //       ],
 //     );
 //   }

@@ -1,5 +1,6 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:grocery_app/core/theme/app_colors.dart';
 import 'dart:math' as math;
 import 'package:grocery_app/models/user_model.dart';
 import 'package:go_router/go_router.dart';
@@ -61,11 +62,11 @@ class _AccountProfileCardState extends State<AccountProfileCard>
               Container(
                 padding: const EdgeInsets.all(6),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: AppColors.parchment,
                   shape: BoxShape.circle,
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withAlpha(40),
+                      color: AppColors.charcoal.withAlpha(40),
                       blurRadius: 8,
                       offset: const Offset(0, 2),
                     ),
@@ -87,7 +88,7 @@ class _AccountProfileCardState extends State<AccountProfileCard>
           style: const TextStyle(
             fontSize: 19,
             fontWeight: FontWeight.bold,
-            color: Colors.white,
+            color: AppColors.parchment,
             letterSpacing: 0.3,
           ),
           maxLines: 1,
@@ -99,7 +100,7 @@ class _AccountProfileCardState extends State<AccountProfileCard>
           widget.user.email,
           style: TextStyle(
             fontSize: 13,
-            color: Colors.white.withAlpha(200),
+            color: AppColors.parchment.withAlpha(200),
             letterSpacing: 0.2,
           ),
           maxLines: 1,
@@ -123,15 +124,15 @@ class _AccountProfileCardState extends State<AccountProfileCard>
             gradient: SweepGradient(
               startAngle: _shimmerController.value * math.pi * 2,
               colors: [
-                Colors.white,
-                Colors.white.withAlpha(100),
-                Colors.white,
+                AppColors.parchment,
+                AppColors.parchment.withAlpha(100),
+                AppColors.parchment,
               ],
             ),
           ),
           child: CircleAvatar(
             radius: 34,
-            backgroundColor: Colors.white.withAlpha(30),
+            backgroundColor: AppColors.parchment.withAlpha(30),
             child: CircleAvatar(
               radius: 31,
               backgroundColor: theme.colorScheme.primary.withAlpha(60),
@@ -144,10 +145,10 @@ class _AccountProfileCardState extends State<AccountProfileCard>
                   widget.user.profilePicture == null ||
                           widget.user.profilePicture!.isEmpty
                       ? const Icon(
-                          Icons.person_rounded,
-                          size: 32,
-                          color: Colors.white,
-                        )
+                        Icons.person_rounded,
+                        size: 32,
+                        color: AppColors.parchment,
+                      )
                       : null,
             ),
           ),
@@ -167,10 +168,10 @@ class _AccountProfileCardState extends State<AccountProfileCard>
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
             decoration: BoxDecoration(
-              color: Colors.white.withAlpha(30),
+              color: AppColors.parchment.withAlpha(30),
               borderRadius: BorderRadius.circular(20),
               border: Border.all(
-                color: Colors.white.withAlpha(60),
+                color: AppColors.parchment.withAlpha(60),
                 width: 1,
               ),
             ),
@@ -180,7 +181,7 @@ class _AccountProfileCardState extends State<AccountProfileCard>
                 const Icon(
                   Icons.verified_rounded,
                   size: 15,
-                  color: Colors.amberAccent,
+                  color: AppColors.harvestAmber,
                 ),
                 const SizedBox(width: 6),
                 Text(
@@ -188,7 +189,7 @@ class _AccountProfileCardState extends State<AccountProfileCard>
                   style: const TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
-                    color: Colors.white,
+                    color: AppColors.parchment,
                     letterSpacing: 0.3,
                   ),
                 ),

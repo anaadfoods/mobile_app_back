@@ -1,3 +1,4 @@
+import 'package:grocery_app/core/theme/app_colors.dart';
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:palette_generator/palette_generator.dart';
@@ -11,7 +12,7 @@ class ColorExtractor {
   /// Returns a fallback color if extraction fails
   static Future<Color> extractDominantColor(
     String imageUrl, {
-    Color fallbackColor = const Color(0xff3f5e46), // Default green
+    Color fallbackColor = AppColors.parchment, // Default green
   }) async {
     // Check cache first
     if (_colorCache.containsKey(imageUrl)) {
@@ -56,7 +57,7 @@ class ColorExtractor {
   /// Useful for pre-loading carousel image colors
   static Future<List<Color>> extractColorsFromUrls(
     List<String> imageUrls, {
-    Color fallbackColor = const Color(0xff3f5e46),
+    Color fallbackColor = AppColors.parchment,
   }) async {
     final List<Future<Color>> futures = imageUrls.map((url) {
       return extractDominantColor(url, fallbackColor: fallbackColor);
@@ -71,12 +72,12 @@ class ColorExtractor {
     // Convert to HSL to reduce saturation
     final HSLColor hsl = HSLColor.fromColor(color);
     final softened = hsl.withSaturation((hsl.saturation * 0.7).clamp(0.0, 1.0));
-    return softened.toColor().withOpacity(opacity);
+    return softened.toColor().withValues(alpha: opacity);
   }
 
   /// Creates a blurred overlay color with adjustable intensity
   static Color blurOverlayColor(Color color, {double intensity = 0.4}) {
-    return color.withOpacity(intensity);
+    return color.withValues(alpha: intensity);
   }
 
   /// Clears the color cache

@@ -1,5 +1,6 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:grocery_app/core/theme/app_colors.dart';
 import 'package:grocery_app/screens/dashboard/dashboard_screen.dart';
 import 'package:go_router/go_router.dart';
 import 'package:grocery_app/routes/app_routes.dart';
@@ -31,8 +32,11 @@ class AccountStatsRow extends StatelessWidget {
             count: totalOrders,
             label: 'Orders',
             icon: Icons.shopping_bag_outlined,
-            iconColor: Colors.amber,
-            gradient: [theme.colorScheme.primary, const Color(0xFF5A7D62)],
+            iconColor: AppColors.harvestAmber,
+            gradient: [
+              theme.colorScheme.primary,
+              theme.colorScheme.primary.withAlpha(200),
+            ],
             onTap: () {
               HapticFeedback.lightImpact();
               context.pushNamed(AppRoute.orderList.name);
@@ -47,8 +51,11 @@ class AccountStatsRow extends StatelessWidget {
             count: activeSubscriptions,
             label: 'Plans',
             icon: Icons.autorenew_rounded,
-            iconColor: const Color(0xFF42A5F5),
-            gradient: [theme.colorScheme.primary, const Color(0xFF5A7D62)],
+            iconColor: AppColors.parchment,
+            gradient: [
+              theme.colorScheme.primary,
+              theme.colorScheme.primary.withAlpha(200),
+            ],
             onTap: () {
               HapticFeedback.lightImpact();
               context.pushNamed(AppRoute.subscriptionList.name);
@@ -63,8 +70,11 @@ class AccountStatsRow extends StatelessWidget {
             count: favoriteCount,
             label: 'Wishlist',
             icon: Icons.favorite_rounded,
-            iconColor: const Color(0xFFEF5350),
-            gradient: [theme.colorScheme.primary, const Color(0xFF5A7D62)],
+            iconColor: AppColors.parchment,
+            gradient: [
+              theme.colorScheme.primary,
+              theme.colorScheme.primary.withAlpha(200),
+            ],
             onTap: () {
               HapticFeedback.lightImpact();
               context
@@ -83,7 +93,7 @@ class AccountStatsRow extends StatelessWidget {
     required int count,
     required String label,
     required IconData icon,
-    Color iconColor = Colors.white,
+    Color iconColor = AppColors.parchment,
     required List<Color> gradient,
     required VoidCallback onTap,
   }) {
@@ -94,16 +104,13 @@ class AccountStatsRow extends StatelessWidget {
       builder: (context, value, child) {
         return Transform.scale(
           scale: 0.8 + (0.2 * value),
-          child: Opacity(
-            opacity: value.clamp(0.0, 1.0),
-            child: child,
-          ),
+          child: Opacity(opacity: value.clamp(0.0, 1.0), child: child),
         );
       },
       child: Material(
         borderRadius: BorderRadius.circular(12),
         clipBehavior: Clip.antiAlias,
-        color: Colors.transparent,
+        color: AppColors.transparent,
         child: InkWell(
           onTap: onTap,
           child: Ink(
@@ -134,7 +141,7 @@ class AccountStatsRow extends StatelessWidget {
                     style: const TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.bold,
-                      color: Colors.white,
+                      color: AppColors.parchment,
                     ),
                   ),
                   const SizedBox(height: 2),
@@ -142,7 +149,7 @@ class AccountStatsRow extends StatelessWidget {
                     label,
                     style: TextStyle(
                       fontSize: 10,
-                      color: Colors.white.withAlpha(220),
+                      color: AppColors.parchment.withAlpha(220),
                       fontWeight: FontWeight.w500,
                     ),
                   ),

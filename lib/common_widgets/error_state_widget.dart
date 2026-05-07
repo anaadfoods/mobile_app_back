@@ -1,4 +1,6 @@
+import 'package:grocery_app/core/theme/app_colors.dart';
 import 'package:flutter/material.dart';
+import 'package:grocery_app/core/theme/theme.dart';
 
 /// A reusable error state widget for showing when something goes wrong.
 ///
@@ -81,8 +83,8 @@ class ErrorStateWidget extends StatelessWidget {
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                   colors: [
-                    (iconBackgroundColor ?? errorColor).withOpacity(0.15),
-                    (iconBackgroundColor ?? errorColor).withOpacity(0.05),
+                    (iconBackgroundColor ?? errorColor).withValues(alpha: 0.15),
+                    (iconBackgroundColor ?? errorColor).withValues(alpha: 0.05),
                   ],
                 ),
               ),
@@ -92,7 +94,7 @@ class ErrorStateWidget extends StatelessWidget {
                 color: iconColor ?? errorColor,
               ),
             ),
-            const SizedBox(height: 24),
+            AppSpacing.verticalXl,
 
             // Title
             Text(
@@ -124,10 +126,10 @@ class ErrorStateWidget extends StatelessWidget {
                 label: Text(retryText),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: errorColor,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 24,
-                    vertical: 12,
+                  foregroundColor: AppColors.parchment,
+                  padding: EdgeInsets.symmetric(
+                    horizontal: AppSpacing.xl,
+                    vertical: AppSpacing.md,
                   ),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
@@ -161,15 +163,15 @@ class ErrorStateWidget extends StatelessWidget {
   Color _getErrorColor(ColorScheme colorScheme) {
     switch (errorType) {
       case ErrorType.general:
-        return const Color(0xFF8B7355); // Warm mocha - friendly
+        return AppColors.rawEarth;
       case ErrorType.network:
-        return const Color(0xFF6B7B8A); // Cool slate grey
+        return AppColors.charcoal54;
       case ErrorType.server:
-        return const Color(0xFF8B7355); // Warm mocha
+        return AppColors.rawEarth;
       case ErrorType.notFound:
-        return const Color(0xFF5B8A9A); // Soft teal
+        return AppColors.deepSoilGreen;
       case ErrorType.permission:
-        return const Color(0xFFB8860B); // Dark golden
+        return AppColors.harvestAmber;
     }
   }
 
@@ -200,7 +202,8 @@ class ErrorStatePresets {
   static ErrorStateWidget network({VoidCallback? onRetry}) {
     return ErrorStateWidget(
       title: 'Oops! You\'re Offline 📶',
-      subtitle: 'Your internet took a coffee break.\nCheck your connection and try again.',
+      subtitle:
+          'Your internet took a coffee break.\nCheck your connection and try again.',
       errorType: ErrorType.network,
       onRetry: onRetry,
     );
@@ -220,7 +223,8 @@ class ErrorStatePresets {
   static ErrorStateWidget notFound({String? item}) {
     return ErrorStateWidget(
       title: '${item ?? 'Item'} Not Found 🔍',
-      subtitle: 'Hmm, we couldn\'t find that.\nIt might have moved or been removed.',
+      subtitle:
+          'Hmm, we couldn\'t find that.\nIt might have moved or been removed.',
       errorType: ErrorType.notFound,
     );
   }

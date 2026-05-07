@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:grocery_app/core/theme/theme.dart';
 
 /// A reusable empty state widget for showing when there's no data.
-/// 
+///
 /// Consolidates the various empty state implementations across the app.
-/// 
+///
 /// Usage:
 /// ```dart
 /// EmptyStateWidget(
@@ -15,31 +16,31 @@ import 'package:flutter/material.dart';
 class EmptyStateWidget extends StatelessWidget {
   /// The icon to display
   final IconData icon;
-  
+
   /// The title text
   final String title;
-  
+
   /// The subtitle/description text
   final String? subtitle;
-  
+
   /// Optional button text
   final String? buttonText;
-  
+
   /// Callback when button is pressed
   final VoidCallback? onButtonPressed;
-  
+
   /// Icon color (defaults to primary with opacity)
   final Color? iconColor;
-  
+
   /// Icon background color
   final Color? iconBackgroundColor;
-  
+
   /// Whether to animate the entrance
   final bool animated;
-  
+
   /// Icon size (default: 64)
   final double iconSize;
-  
+
   /// Icon container size (default: 120)
   final double iconContainerSize;
 
@@ -61,7 +62,7 @@ class EmptyStateWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    
+
     final content = Center(
       child: Padding(
         padding: const EdgeInsets.all(32),
@@ -75,16 +76,18 @@ class EmptyStateWidget extends StatelessWidget {
               height: iconContainerSize,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: iconBackgroundColor ?? colorScheme.primary.withOpacity(0.1),
+                color:
+                    iconBackgroundColor ??
+                    colorScheme.primary.withValues(alpha: 0.1),
               ),
               child: Icon(
                 icon,
                 size: iconSize,
-                color: iconColor ?? colorScheme.primary.withOpacity(0.5),
+                color: iconColor ?? colorScheme.primary.withValues(alpha: 0.5),
               ),
             ),
             const SizedBox(height: 24),
-            
+
             // Title
             Text(
               title,
@@ -93,7 +96,7 @@ class EmptyStateWidget extends StatelessWidget {
               ),
               textAlign: TextAlign.center,
             ),
-            
+
             // Subtitle
             if (subtitle != null) ...[
               const SizedBox(height: 8),
@@ -105,7 +108,7 @@ class EmptyStateWidget extends StatelessWidget {
                 textAlign: TextAlign.center,
               ),
             ],
-            
+
             // Action Button
             if (buttonText != null && onButtonPressed != null) ...[
               const SizedBox(height: 24),
@@ -127,7 +130,7 @@ class EmptyStateWidget extends StatelessWidget {
         ),
       ),
     );
-    
+
     if (animated) {
       return TweenAnimationBuilder<double>(
         tween: Tween(begin: 0.0, end: 1.0),
@@ -136,16 +139,13 @@ class EmptyStateWidget extends StatelessWidget {
         builder: (context, value, child) {
           return Opacity(
             opacity: value.clamp(0.0, 1.0),
-            child: Transform.scale(
-              scale: 0.8 + (0.2 * value),
-              child: child,
-            ),
+            child: Transform.scale(scale: 0.8 + (0.2 * value), child: child),
           );
         },
         child: content,
       );
     }
-    
+
     return content;
   }
 }
@@ -162,7 +162,7 @@ class EmptyStatePresets {
       onButtonPressed: onRefresh,
     );
   }
-  
+
   /// No orders empty state
   static EmptyStateWidget orders({VoidCallback? onBrowse}) {
     return EmptyStateWidget(
@@ -173,7 +173,7 @@ class EmptyStatePresets {
       onButtonPressed: onBrowse,
     );
   }
-  
+
   /// Empty cart
   static EmptyStateWidget cart({VoidCallback? onBrowse}) {
     return EmptyStateWidget(
@@ -184,18 +184,19 @@ class EmptyStatePresets {
       onButtonPressed: onBrowse,
     );
   }
-  
+
   /// No search results
   static EmptyStateWidget searchResults({String? query}) {
     return EmptyStateWidget(
       icon: Icons.search_off_rounded,
       title: 'No results found',
-      subtitle: query != null 
-          ? 'No results for "$query". Try a different search.'
-          : 'Try searching with different keywords.',
+      subtitle:
+          query != null
+              ? 'No results for "$query". Try a different search.'
+              : 'Try searching with different keywords.',
     );
   }
-  
+
   /// No favorites
   static EmptyStateWidget favorites({VoidCallback? onBrowse}) {
     return EmptyStateWidget(
@@ -206,7 +207,7 @@ class EmptyStatePresets {
       onButtonPressed: onBrowse,
     );
   }
-  
+
   /// No subscriptions
   static EmptyStateWidget subscriptions({VoidCallback? onExplore}) {
     return EmptyStateWidget(
@@ -218,4 +219,3 @@ class EmptyStatePresets {
     );
   }
 }
-

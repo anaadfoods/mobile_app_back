@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:grocery_app/core/theme/app_colors.dart';
 import 'package:grocery_app/helpers/responsive_helper.dart';
 
 class SkeletonContainer extends StatelessWidget {
@@ -19,7 +20,7 @@ class SkeletonContainer extends StatelessWidget {
       width: width,
       height: height,
       decoration: BoxDecoration(
-        color: Colors.grey[300],
+        color: AppColors.rawEarth12,
         borderRadius: borderRadius ?? BorderRadius.circular(8),
       ),
     );
@@ -55,9 +56,10 @@ class _SkeletonAnimationState extends State<SkeletonAnimation>
       duration: Duration(milliseconds: 1000),
     )..repeat(reverse: true);
 
-    _animation = Tween<double>(begin: 0.4, end: 1.0).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
-    );
+    _animation = Tween<double>(
+      begin: 0.4,
+      end: 1.0,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
   }
 
   @override
@@ -85,7 +87,10 @@ class _SkeletonAnimationState extends State<SkeletonAnimation>
 }
 
 class SubscriptionSkeletonLoader extends StatelessWidget {
-  const SubscriptionSkeletonLoader({super.key, required ResponsiveHelper responsive});
+  const SubscriptionSkeletonLoader({
+    super.key,
+    required ResponsiveHelper responsive,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -250,4 +255,4 @@ class FavoriteSkeletonLoader extends StatelessWidget {
       ),
     );
   }
-} 
+}

@@ -29,11 +29,11 @@ class HomeCategoryCard extends StatelessWidget {
       child: Container(
         height: 130,
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: AppColors.parchment,
           borderRadius: BorderRadius.circular(20),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.15),
+              color: AppColors.charcoal.withValues(alpha: 0.15),
               blurRadius: 15,
               offset: const Offset(0, 5),
             ),
@@ -58,8 +58,8 @@ class HomeCategoryCard extends StatelessWidget {
                       begin: Alignment.topCenter,
                       end: Alignment.bottomCenter,
                       colors: [
-                        Colors.black.withOpacity(0.1),
-                        Colors.black.withOpacity(0.6),
+                        AppColors.charcoal.withValues(alpha: 0.1),
+                        AppColors.charcoal.withValues(alpha: 0.6),
                       ],
                     ),
                   ),
@@ -76,10 +76,10 @@ class HomeCategoryCard extends StatelessWidget {
                     Container(
                       padding: const EdgeInsets.all(4),
                       decoration: BoxDecoration(
-                        color: theme.colorScheme.primary.withOpacity(0.9),
+                        color: theme.colorScheme.primary.withValues(alpha: 0.9),
                         borderRadius: BorderRadius.circular(6),
                       ),
-                      child: Icon(icon, color: Colors.white, size: 14),
+                      child: Icon(icon, color: AppColors.parchment, size: 14),
                     ),
                     const SizedBox(height: 6),
                     Column(
@@ -88,12 +88,14 @@ class HomeCategoryCard extends StatelessWidget {
                         Text(
                           title,
                           style: theme.textTheme.bodySmall?.copyWith(
-                            color: Colors.white,
+                            color: AppColors.parchment,
                             fontWeight: FontWeight.bold,
                             fontSize: 11,
                             shadows: [
                               Shadow(
-                                color: Colors.black.withOpacity(0.5),
+                                color: AppColors.charcoal.withValues(
+                                  alpha: 0.5,
+                                ),
                                 blurRadius: 4,
                               ),
                             ],
@@ -105,12 +107,14 @@ class HomeCategoryCard extends StatelessWidget {
                         Text(
                           subtitle,
                           style: theme.textTheme.labelSmall?.copyWith(
-                            color: Colors.white.withOpacity(0.9),
+                            color: AppColors.parchment.withValues(alpha: 0.9),
                             fontSize: 9,
                             fontWeight: FontWeight.w500,
                             shadows: [
                               Shadow(
-                                color: Colors.black.withOpacity(0.5),
+                                color: AppColors.charcoal.withValues(
+                                  alpha: 0.5,
+                                ),
                                 blurRadius: 4,
                               ),
                             ],
@@ -130,7 +134,7 @@ class HomeCategoryCard extends StatelessWidget {
                 child: Container(
                   padding: const EdgeInsets.all(6),
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.9),
+                    color: AppColors.parchment.withValues(alpha: 0.9),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Icon(

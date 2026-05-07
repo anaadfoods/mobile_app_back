@@ -255,20 +255,22 @@ class _PremiumBottomNavBar extends StatelessWidget {
                       colors:
                           isDark
                               ? [
-                                Colors.white.withOpacity(0.18),
-                                Colors.white.withOpacity(0.08),
+                                AppColors.darkSurface.withValues(alpha: 0.85),
+                                AppColors.darkSurfaceElevated.withValues(alpha: 0.95),
                               ]
                               : [
-                                Colors.white.withOpacity(0.85),
-                                Colors.white.withOpacity(0.65),
+                                AppColors.parchment.withValues(alpha: 0.85),
+                                AppColors.parchment.withValues(alpha: 0.65),
                               ],
                     ),
                     boxShadow: [
                       BoxShadow(
                         color:
                             isDark
-                                ? Colors.black.withOpacity(0.4)
-                                : AppColors.primaryColor.withOpacity(0.15),
+                                ? AppColors.charcoal.withValues(alpha: 0.4)
+                                : AppColors.deepSoilGreen.withValues(
+                                  alpha: 0.15,
+                                ),
                         blurRadius: 50,
                         offset: const Offset(0, 20),
                         spreadRadius: -5,
@@ -277,8 +279,8 @@ class _PremiumBottomNavBar extends StatelessWidget {
                       BoxShadow(
                         color:
                             isDark
-                                ? Colors.white.withOpacity(0.05)
-                                : Colors.white.withOpacity(0.8),
+                                ? AppColors.parchment.withValues(alpha: 0.05)
+                                : AppColors.parchment.withValues(alpha: 0.8),
                         blurRadius: 20,
                         offset: const Offset(0, -5),
                         spreadRadius: -10,
@@ -354,14 +356,14 @@ class _GlassBorderPainter extends CustomPainter {
             colors:
                 isDark
                     ? [
-                      Colors.white.withOpacity(0.3),
-                      Colors.white.withOpacity(0.1),
-                      Colors.white.withOpacity(0.05),
+                      AppColors.parchment.withValues(alpha: 0.15),
+                      AppColors.parchment.withValues(alpha: 0.05),
+                      AppColors.parchment.withValues(alpha: 0.02),
                     ]
                     : [
-                      Colors.white.withOpacity(0.9),
-                      Colors.white.withOpacity(0.5),
-                      Colors.white.withOpacity(0.3),
+                      AppColors.parchment.withValues(alpha: 0.9),
+                      AppColors.parchment.withValues(alpha: 0.5),
+                      AppColors.parchment.withValues(alpha: 0.3),
                     ],
           ).createShader(Rect.fromLTWH(0, 0, size.width, size.height));
 
@@ -427,17 +429,15 @@ class _FloatingCartFab extends StatelessWidget {
                     shape: BoxShape.circle,
                     boxShadow: [
                       BoxShadow(
-                        color: AppColors.buttonBackgroundColor.withOpacity(
-                          isActive ? 0.5 : 0.25,
+                        color: (isDark ? AppColors.harvestAmber : AppColors.deepSoilGreen).withValues(
+                          alpha: isActive ? 0.5 : 0.25,
                         ),
                         blurRadius: isActive ? 20 : 12,
                         spreadRadius: isActive ? 1 : 0,
                       ),
                       if (isActive)
                         BoxShadow(
-                          color: AppColors.buttonBackgroundColor.withOpacity(
-                            0.3,
-                          ),
+                        color: (isDark ? AppColors.harvestAmber : AppColors.deepSoilGreen).withValues(alpha: 0.3),
                           blurRadius: 30,
                           spreadRadius: 3,
                         ),
@@ -455,13 +455,18 @@ class _FloatingCartFab extends StatelessWidget {
                     gradient: LinearGradient(
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
-                      colors: [
-                        AppColors.buttonBackgroundColor,
-                        AppColors.buttonBackgroundColor.withOpacity(0.85),
-                      ],
+                      colors: isDark
+                          ? [
+                            AppColors.harvestAmber,
+                            AppColors.harvestAmber.withValues(alpha: 0.85),
+                          ]
+                          : [
+                            AppColors.deepSoilGreen,
+                            AppColors.deepSoilGreen.withValues(alpha: 0.85),
+                          ],
                     ),
                     border: Border.all(
-                      color: Colors.white.withOpacity(0.25),
+                      color: AppColors.parchment.withValues(alpha: 0.25),
                       width: 1.5,
                     ),
                   ),
@@ -471,7 +476,7 @@ class _FloatingCartFab extends StatelessWidget {
                     curve: Curves.easeOutBack,
                     child: Icon(
                       isActive ? item.activeIcon : item.icon,
-                      color: Colors.white,
+                      color: isDark && !isActive ? AppColors.charcoal : AppColors.parchment,
                       size: 24,
                     ),
                   ),
@@ -549,12 +554,12 @@ class _AnimatedBadgeState extends State<_AnimatedBadge>
           child: Container(
             padding: const EdgeInsets.all(4),
             decoration: BoxDecoration(
-              color: AppColors.error,
+              color: AppColors.rawEarth,
               shape: BoxShape.circle,
-              border: Border.all(color: Colors.white, width: 1.5),
+              border: Border.all(color: AppColors.parchment, width: 1.5),
               boxShadow: [
                 BoxShadow(
-                  color: AppColors.error.withOpacity(0.3),
+                  color: AppColors.rawEarth.withValues(alpha: 0.3),
                   blurRadius: 6,
                   spreadRadius: 0,
                 ),
@@ -564,7 +569,7 @@ class _AnimatedBadgeState extends State<_AnimatedBadge>
             child: Text(
               widget.count > 99 ? '99+' : widget.count.toString(),
               style: const TextStyle(
-                color: Colors.white,
+                color: AppColors.parchment,
                 fontSize: 9,
                 fontWeight: FontWeight.bold,
               ),
@@ -680,8 +685,8 @@ class _DockNavItemState extends State<_DockNavItem>
                       decoration: BoxDecoration(
                         color:
                             widget.isActive
-                                ? const Color(0xFFad5e46).withOpacity(0.12)
-                                : Colors.transparent,
+                                ? AppColors.parchment.withValues(alpha: 0.12)
+                                : AppColors.transparent,
                         borderRadius: BorderRadius.circular(10),
                       ),
                       child: Icon(
@@ -690,10 +695,12 @@ class _DockNavItemState extends State<_DockNavItem>
                             : widget.item.icon,
                         color:
                             widget.isActive
-                                ? const Color(0xFFad5e46)
+                                ? (widget.isDark
+                                    ? AppColors.harvestAmber
+                                    : AppColors.deepSoilGreen)
                                 : (widget.isDark
-                                    ? Colors.grey[400]
-                                    : Colors.grey[600]),
+                                    ? AppColors.parchment.withValues(alpha: 0.4)
+                                    : AppColors.rawEarth70),
                         size: 22,
                       ),
                     ),
@@ -712,10 +719,12 @@ class _DockNavItemState extends State<_DockNavItem>
                         widget.isActive ? FontWeight.w600 : FontWeight.w500,
                     color:
                         widget.isActive
-                            ? const Color(0xFFad5e46)
+                            ? (widget.isDark
+                                ? AppColors.harvestAmber
+                                : AppColors.deepSoilGreen)
                             : (widget.isDark
-                                ? Colors.grey[400]
-                                : Colors.grey[600]),
+                                ? AppColors.parchment.withValues(alpha: 0.4)
+                                : AppColors.rawEarth70),
                     letterSpacing: widget.isActive ? 0.3 : 0,
                   ),
                   child: Text(widget.item.label),

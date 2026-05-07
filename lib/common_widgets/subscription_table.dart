@@ -25,7 +25,6 @@ class _SubscriptionTableState extends State<SubscriptionTable>
 
   late PageController _pageController;
   late AnimationController _pulseController;
-  late AnimationController _shimmerController;
   Timer? _autoScrollTimer;
 
   @override
@@ -38,10 +37,7 @@ class _SubscriptionTableState extends State<SubscriptionTable>
       vsync: this,
       duration: const Duration(milliseconds: 2000),
     )..repeat(reverse: true);
-    _shimmerController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 2800),
-    )..repeat();
+
     _startAutoScroll();
   }
 
@@ -185,7 +181,7 @@ class _SubscriptionTableState extends State<SubscriptionTable>
     _autoScrollTimer?.cancel();
     _pageController.dispose();
     _pulseController.dispose();
-    _shimmerController.dispose();
+
     super.dispose();
   }
 
@@ -241,10 +237,7 @@ class _SubscriptionTableState extends State<SubscriptionTable>
                     }
 
                     return Center(
-                      child: Transform.scale(
-                        scale: scale,
-                        child: Opacity(opacity: opacity, child: child),
-                      ),
+                      child: Transform.scale(scale: scale, child: child),
                     );
                   },
                   child: _buildPlanCard(plan, isActive, theme, isDark),
@@ -273,7 +266,7 @@ class _SubscriptionTableState extends State<SubscriptionTable>
             ),
             child: CircularProgressIndicator(
               strokeWidth: 2.5,
-              color: AppColors.primaryColor,
+              color: AppColors.deepSoilGreen,
             ),
           ),
           const SizedBox(height: 12),
@@ -339,9 +332,8 @@ class _SubscriptionTableState extends State<SubscriptionTable>
   }
 
   Widget _buildPageIndicators(bool isDark) {
-    final bestValIdx = _plans.isEmpty
-        ? -1
-        : _plans.indexWhere((p) => p.durationMonths == 12);
+    final bestValIdx =
+        _plans.isEmpty ? -1 : _plans.indexWhere((p) => p.durationMonths == 12);
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: List.generate(_plans.length, (index) {
@@ -362,22 +354,25 @@ class _SubscriptionTableState extends State<SubscriptionTable>
             height: 8,
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(4),
-              color: isActive
-                  ? (isBest
-                      ? const Color(0xFFD4AF37)
-                      : AppColors.primaryColor)
-                  : (isDark ? Colors.white24 : Colors.black12),
-              boxShadow: isActive
-                  ? [
-                      BoxShadow(
-                        color: isBest
-                            ? const Color(0xFFD4AF37).withOpacity(0.6)
-                            : AppColors.primaryColor.withOpacity(0.5),
-                        blurRadius: 6,
-                        spreadRadius: 1,
-                      ),
-                    ]
-                  : null,
+              color:
+                  isActive
+                      ? (isBest
+                          ? const Color(0xFFD4AF37)
+                          : AppColors.deepSoilGreen)
+                      : (isDark ? Colors.white24 : Colors.black12),
+              boxShadow:
+                  isActive
+                      ? [
+                        BoxShadow(
+                          color:
+                              isBest
+                                  ? const Color(0xFFD4AF37).withOpacity(0.6)
+                                  : AppColors.deepSoilGreen.withOpacity(0.5),
+                          blurRadius: 6,
+                          spreadRadius: 1,
+                        ),
+                      ]
+                      : null,
             ),
           ),
         );
@@ -391,7 +386,7 @@ class _SubscriptionTableState extends State<SubscriptionTable>
     ThemeData theme,
     bool isDark,
   ) {
-    final cardColors = _getCardColors(plan, isDark);
+    final cardColors = _getCardColors(plan, isDark, isActive);
     final isBestValue = plan.durationMonths == 12;
 
     return GestureDetector(
@@ -414,7 +409,6 @@ class _SubscriptionTableState extends State<SubscriptionTable>
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: cardColors.gradient,
-            stops: const [0.0, 0.5, 1.0],
           ),
           boxShadow: [
             BoxShadow(
@@ -423,97 +417,12 @@ class _SubscriptionTableState extends State<SubscriptionTable>
               offset: const Offset(0, 10),
               spreadRadius: isActive ? 4 : 0,
             ),
-            if (isActive)
-              BoxShadow(
-                color: cardColors.shadow.withOpacity(0.18),
-                blurRadius: 60,
-                offset: const Offset(0, 24),
-                spreadRadius: -6,
-              ),
           ],
         ),
         child: ClipRRect(
           borderRadius: BorderRadius.circular(24),
           child: Stack(
             children: [
-              // Large radial circle top-right
-              Positioned(
-                right: -40,
-                top: -40,
-                child: Container(
-                  width: 180,
-                  height: 180,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    gradient: RadialGradient(
-                      colors: [
-                        Colors.white.withOpacity(0.13),
-                        Colors.white.withOpacity(0.0),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-              // Medium radial circle bottom-left
-              Positioned(
-                left: -20,
-                bottom: -30,
-                child: Container(
-                  width: 130,
-                  height: 130,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    gradient: RadialGradient(
-                      colors: [
-                        Colors.white.withOpacity(0.09),
-                        Colors.white.withOpacity(0.0),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-              // Diagonal texture
-              Positioned.fill(
-                child: CustomPaint(painter: _DiagonalLinesPainter()),
-              ),
-              // Shimmer sweep on active card
-              if (isActive)
-                Positioned.fill(
-                  child: IgnorePointer(
-                    child: AnimatedBuilder(
-                      animation: _shimmerController,
-                      builder: (context, _) {
-                        final pos = -0.4 + (_shimmerController.value * 1.8);
-                        return Container(
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                              colors: [
-                                Colors.transparent,
-                                Colors.transparent,
-                                Colors.white.withOpacity(0.08),
-                                Colors.white.withOpacity(0.18),
-                                Colors.white.withOpacity(0.08),
-                                Colors.transparent,
-                                Colors.transparent,
-                              ],
-                              stops: [
-                                0.0,
-                                (pos - 0.2).clamp(0.0, 1.0),
-                                (pos - 0.07).clamp(0.0, 1.0),
-                                pos.clamp(0.0, 1.0),
-                                (pos + 0.07).clamp(0.0, 1.0),
-                                (pos + 0.2).clamp(0.0, 1.0),
-                                1.0,
-                              ],
-                            ),
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-                ),
               // Card Content
               Padding(
                 padding: const EdgeInsets.fromLTRB(20, 20, 20, 20),
@@ -539,23 +448,26 @@ class _SubscriptionTableState extends State<SubscriptionTable>
                                     cardColors.goldAccent ? 0.12 : 0.18,
                                   ),
                                   borderRadius: BorderRadius.circular(20),
-                                  border: cardColors.goldAccent
-                                      ? Border.all(
-                                          color: const Color(0xFFD4AF37),
-                                          width: 1,
-                                        )
-                                      : Border.all(
-                                          color:
-                                              Colors.white.withOpacity(0.3),
-                                          width: 1,
-                                        ),
+                                  border:
+                                      cardColors.goldAccent
+                                          ? Border.all(
+                                            color: const Color(0xFFD4AF37),
+                                            width: 1,
+                                          )
+                                          : Border.all(
+                                            color: Colors.white.withOpacity(
+                                              0.3,
+                                            ),
+                                            width: 1,
+                                          ),
                                 ),
                                 child: Text(
                                   '${plan.durationMonths} MONTHS',
                                   style: TextStyle(
-                                    color: cardColors.goldAccent
-                                        ? const Color(0xFFFFE082)
-                                        : Colors.white,
+                                    color:
+                                        cardColors.goldAccent
+                                            ? const Color(0xFFFFE082)
+                                            : Colors.white,
                                     fontSize: 10,
                                     fontWeight: FontWeight.w700,
                                     letterSpacing: 1.2,
@@ -566,13 +478,12 @@ class _SubscriptionTableState extends State<SubscriptionTable>
                               // Plan name
                               Text(
                                 plan.name.toUpperCase(),
-                                style: theme.textTheme.headlineSmall
-                                    ?.copyWith(
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.w900,
-                                      fontSize: 19,
-                                      letterSpacing: 0.4,
-                                    ),
+                                style: theme.textTheme.headlineSmall?.copyWith(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w900,
+                                  fontSize: 19,
+                                  letterSpacing: 0.4,
+                                ),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                               ),
@@ -584,35 +495,40 @@ class _SubscriptionTableState extends State<SubscriptionTable>
                         Container(
                           padding: const EdgeInsets.all(11),
                           decoration: BoxDecoration(
-                            gradient: cardColors.goldAccent
-                                ? const LinearGradient(
-                                    begin: Alignment.topLeft,
-                                    end: Alignment.bottomRight,
-                                    colors: [
-                                      Color(0xFFD4AF37),
-                                      Color(0xFFB8860B),
-                                    ],
-                                  )
-                                : LinearGradient(
-                                    begin: Alignment.topLeft,
-                                    end: Alignment.bottomRight,
-                                    colors: [
-                                      Colors.white.withOpacity(0.28),
-                                      Colors.white.withOpacity(0.12),
-                                    ],
-                                  ),
+                            gradient:
+                                cardColors.goldAccent
+                                    ? const LinearGradient(
+                                      begin: Alignment.topLeft,
+                                      end: Alignment.bottomRight,
+                                      colors: [
+                                        Color(0xFFD4AF37),
+                                        Color(0xFFB8860B),
+                                      ],
+                                    )
+                                    : LinearGradient(
+                                      begin: Alignment.topLeft,
+                                      end: Alignment.bottomRight,
+                                      colors: [
+                                        Colors.white.withOpacity(0.28),
+                                        Colors.white.withOpacity(0.12),
+                                      ],
+                                    ),
                             borderRadius: BorderRadius.circular(16),
                             border: Border.all(
-                              color: cardColors.goldAccent
-                                  ? const Color(0xFFFFE082)
-                                  : Colors.white.withOpacity(0.3),
+                              color:
+                                  cardColors.goldAccent
+                                      ? const Color(0xFFFFE082)
+                                      : Colors.white.withOpacity(0.3),
                               width: 1.2,
                             ),
                             boxShadow: [
                               BoxShadow(
-                                color: cardColors.goldAccent
-                                    ? const Color(0xFFD4AF37).withOpacity(0.5)
-                                    : Colors.white.withOpacity(0.12),
+                                color:
+                                    cardColors.goldAccent
+                                        ? const Color(
+                                          0xFFD4AF37,
+                                        ).withOpacity(0.5)
+                                        : Colors.white.withOpacity(0.12),
                                 blurRadius: cardColors.goldAccent ? 14 : 6,
                                 spreadRadius: cardColors.goldAccent ? 1 : 0,
                               ),
@@ -643,54 +559,49 @@ class _SubscriptionTableState extends State<SubscriptionTable>
 
                     const Spacer(),
 
-                    // Glassmorphism stats panel
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(16),
-                      child: BackdropFilter(
-                        filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
-                        child: Container(
-                          padding: const EdgeInsets.all(14),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.11),
-                            borderRadius: BorderRadius.circular(16),
-                            border: Border.all(
-                              color: cardColors.goldAccent
+                    // Stats panel (no blur)
+                    Container(
+                      padding: const EdgeInsets.all(14),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.15),
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                          color:
+                              cardColors.goldAccent
                                   ? const Color(0xFFD4AF37).withOpacity(0.4)
                                   : Colors.white.withOpacity(0.22),
-                              width: 1,
-                            ),
-                          ),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceAround,
-                            children: [
-                              _buildStat(
-                                '${plan.totalDiscountPercentage}%',
-                                'Savings',
-                                cardColors.goldAccent,
-                              ),
-                              Container(
-                                width: 1,
-                                height: 32,
-                                color: Colors.white.withOpacity(0.22),
-                              ),
-                              _buildStat(
-                                plan.allowsInstallments ? 'Yes' : 'No',
-                                'EMI',
-                                cardColors.goldAccent,
-                              ),
-                              Container(
-                                width: 1,
-                                height: 32,
-                                color: Colors.white.withOpacity(0.22),
-                              ),
-                              _buildStat(
-                                '${plan.durationMonths}',
-                                'Months',
-                                cardColors.goldAccent,
-                              ),
-                            ],
-                          ),
+                          width: 1,
                         ),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceAround,
+                        children: [
+                          _buildStat(
+                            '${plan.totalDiscountPercentage}%',
+                            'Savings',
+                            cardColors.goldAccent,
+                          ),
+                          Container(
+                            width: 1,
+                            height: 32,
+                            color: Colors.white.withOpacity(0.22),
+                          ),
+                          _buildStat(
+                            plan.allowsInstallments ? 'Yes' : 'No',
+                            'EMI',
+                            cardColors.goldAccent,
+                          ),
+                          Container(
+                            width: 1,
+                            height: 32,
+                            color: Colors.white.withOpacity(0.22),
+                          ),
+                          _buildStat(
+                            '${plan.durationMonths}',
+                            'Months',
+                            cardColors.goldAccent,
+                          ),
+                        ],
                       ),
                     ),
 
@@ -701,24 +612,26 @@ class _SubscriptionTableState extends State<SubscriptionTable>
                       width: double.infinity,
                       padding: const EdgeInsets.symmetric(vertical: 14),
                       decoration: BoxDecoration(
-                        gradient: cardColors.goldAccent
-                            ? const LinearGradient(
-                                begin: Alignment.centerLeft,
-                                end: Alignment.centerRight,
-                                colors: [
-                                  Color(0xFFD4AF37),
-                                  Color(0xFFEACB55),
-                                  Color(0xFFD4AF37),
-                                ],
-                              )
-                            : null,
+                        gradient:
+                            cardColors.goldAccent
+                                ? const LinearGradient(
+                                  begin: Alignment.centerLeft,
+                                  end: Alignment.centerRight,
+                                  colors: [
+                                    Color(0xFFD4AF37),
+                                    Color(0xFFEACB55),
+                                    Color(0xFFD4AF37),
+                                  ],
+                                )
+                                : null,
                         color: cardColors.goldAccent ? null : Colors.white,
                         borderRadius: BorderRadius.circular(14),
                         boxShadow: [
                           BoxShadow(
-                            color: cardColors.goldAccent
-                                ? const Color(0xFFD4AF37).withOpacity(0.55)
-                                : Colors.black.withOpacity(0.12),
+                            color:
+                                cardColors.goldAccent
+                                    ? const Color(0xFFD4AF37).withOpacity(0.55)
+                                    : Colors.black.withOpacity(0.12),
                             blurRadius: cardColors.goldAccent ? 18 : 8,
                             offset: const Offset(0, 3),
                             spreadRadius: cardColors.goldAccent ? 1 : 0,
@@ -731,9 +644,10 @@ class _SubscriptionTableState extends State<SubscriptionTable>
                           Text(
                             'Explore Plan',
                             style: TextStyle(
-                              color: cardColors.goldAccent
-                                  ? const Color(0xFF1A3010)
-                                  : cardColors.gradient[0],
+                              color:
+                                  cardColors.goldAccent
+                                      ? const Color(0xFF1A3010)
+                                      : cardColors.gradient[0],
                               fontWeight: FontWeight.w800,
                               fontSize: 14,
                               letterSpacing: 0.3,
@@ -742,9 +656,10 @@ class _SubscriptionTableState extends State<SubscriptionTable>
                           const SizedBox(width: 8),
                           Icon(
                             Icons.arrow_forward_rounded,
-                            color: cardColors.goldAccent
-                                ? const Color(0xFF1A3010)
-                                : cardColors.gradient[0],
+                            color:
+                                cardColors.goldAccent
+                                    ? const Color(0xFF1A3010)
+                                    : cardColors.gradient[0],
                             size: 18,
                           ),
                         ],
@@ -786,14 +701,14 @@ class _SubscriptionTableState extends State<SubscriptionTable>
                       children: const [
                         Icon(
                           Icons.workspace_premium_rounded,
-                          color: Colors.white,
+                          color: AppColors.charcoal,
                           size: 11,
                         ),
                         SizedBox(width: 4),
                         Text(
                           'BEST VALUE',
                           style: TextStyle(
-                            color: Colors.white,
+                            color: AppColors.charcoal,
                             fontSize: 9,
                             fontWeight: FontWeight.w800,
                             letterSpacing: 0.8,
@@ -816,7 +731,7 @@ class _SubscriptionTableState extends State<SubscriptionTable>
         Text(
           value,
           style: TextStyle(
-            color: goldAccent ? const Color(0xFFFFE082) : Colors.white,
+            color: Colors.white,
             fontWeight: FontWeight.w800,
             fontSize: 20,
             letterSpacing: -0.5,
@@ -826,7 +741,7 @@ class _SubscriptionTableState extends State<SubscriptionTable>
         Text(
           label,
           style: TextStyle(
-            color: Colors.white.withOpacity(0.65),
+            color: Colors.white.withOpacity(0.8),
             fontSize: 11,
             letterSpacing: 0.3,
           ),
@@ -835,35 +750,28 @@ class _SubscriptionTableState extends State<SubscriptionTable>
     );
   }
 
-  _CardColors _getCardColors(SubscriptionPlan plan, bool isDark) {
-    final nameLower = plan.name.toLowerCase();
+  _CardColors _getCardColors(
+    SubscriptionPlan plan,
+    bool isDark,
+    bool isActive,
+  ) {
     final isOneYear = plan.durationMonths == 12;
 
-    // Siddh plans — warm saffron-earth gradient
-    if (nameLower.contains('siddh')) {
+    if (isActive) {
       return _CardColors(
-        gradient: const [
-          Color(0xFFD4873A),
-          Color(0xFFA85C1A),
-          Color(0xFF6B3208),
-        ],
-        shadow: const Color(0xFFBF6A20),
+        gradient: [AppColors.deepSoilGreen, AppColors.deepSoilGreen],
+        shadow: AppColors.deepSoilGreen,
+        icon: Icons.eco_rounded,
+        goldAccent: isOneYear,
+      );
+    } else {
+      return _CardColors(
+        gradient: [AppColors.rawEarth, AppColors.rawEarth],
+        shadow: AppColors.rawEarth,
         icon: Icons.spa_rounded,
         goldAccent: isOneYear,
       );
     }
-
-    // Tapsavi plans — deep forest green gradient
-    return _CardColors(
-      gradient: const [
-        Color(0xFF3A7035),
-        Color(0xFF1F4E15),
-        Color(0xFF0C2C06),
-      ],
-      shadow: const Color(0xFF2A5E22),
-      icon: Icons.eco_rounded,
-      goldAccent: isOneYear,
-    );
   }
 }
 
@@ -881,25 +789,6 @@ class _CardColors {
   });
 }
 
-class _DiagonalLinesPainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = Colors.white.withOpacity(0.04)
-      ..strokeWidth = 1;
-    const spacing = 22.0;
-    for (double i = -size.height; i < size.width + size.height; i += spacing) {
-      canvas.drawLine(
-        Offset(i, 0),
-        Offset(i + size.height, size.height),
-        paint,
-      );
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
-}
 
 // ================= POPUP DIALOG (Kept intact) =================
 
@@ -920,12 +809,6 @@ void showSubscriptionPopup({
     pageBuilder: (context, anim1, anim2) {
       return Stack(
         children: [
-          Positioned.fill(
-            child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
-              child: Container(color: Colors.transparent),
-            ),
-          ),
           Center(
             child: Material(
               color: Colors.transparent,
@@ -936,10 +819,16 @@ void showSubscriptionPopup({
                   maxHeight: MediaQuery.of(context).size.height * 0.85,
                 ),
                 decoration: BoxDecoration(
-                  gradient: const LinearGradient(
+                  gradient: LinearGradient(
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
-                    colors: [Color(0xFF2E7D32), Color(0xFF1B5E20)],
+                    colors:
+                        Theme.of(context).brightness == Brightness.dark
+                            ? [
+                              AppColors.darkSurface,
+                              AppColors.darkSurfaceElevated,
+                            ]
+                            : [AppColors.parchment, AppColors.parchment],
                   ),
                   borderRadius: BorderRadius.circular(28),
                   boxShadow: [
@@ -1033,6 +922,8 @@ class _SubscriptionPopupContentState extends State<_SubscriptionPopupContent> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textColor = isDark ? AppColors.parchment : AppColors.charcoal;
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -1046,10 +937,10 @@ class _SubscriptionPopupContentState extends State<_SubscriptionPopupContent> {
               child: Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.2),
+                  color: textColor.withOpacity(0.2),
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(Icons.close, color: Colors.white, size: 20),
+                child: Icon(Icons.close, color: textColor, size: 20),
               ),
             ),
           ),
@@ -1103,10 +994,10 @@ class _SubscriptionPopupContentState extends State<_SubscriptionPopupContent> {
                                     children: [
                                       Text(
                                         plan.name,
-                                        style: const TextStyle(
+                                        style: TextStyle(
                                           fontSize: 26,
                                           fontWeight: FontWeight.bold,
-                                          color: Colors.white,
+                                          color: textColor,
                                         ),
                                       ),
                                       const SizedBox(height: 8),
@@ -1114,7 +1005,7 @@ class _SubscriptionPopupContentState extends State<_SubscriptionPopupContent> {
                                         plan.description,
                                         style: TextStyle(
                                           fontSize: 14,
-                                          color: Colors.white.withOpacity(0.85),
+                                          color: textColor.withOpacity(0.85),
                                           height: 1.4,
                                         ),
                                       ),
@@ -1125,7 +1016,7 @@ class _SubscriptionPopupContentState extends State<_SubscriptionPopupContent> {
                                 Container(
                                   padding: const EdgeInsets.all(14),
                                   decoration: BoxDecoration(
-                                    color: Colors.white,
+                                    color: textColor,
                                     borderRadius: BorderRadius.circular(16),
                                   ),
                                   child: const Icon(
@@ -1144,6 +1035,7 @@ class _SubscriptionPopupContentState extends State<_SubscriptionPopupContent> {
                               Icons.calendar_month_rounded,
                               'Duration',
                               '${plan.durationMonths} Months',
+                              textColor,
                             ),
                             const SizedBox(height: 10),
                             _buildInfoCard(
@@ -1152,18 +1044,21 @@ class _SubscriptionPopupContentState extends State<_SubscriptionPopupContent> {
                               plan.allowsInstallments
                                   ? 'Available'
                                   : 'Not Available',
+                              textColor,
                             ),
                             const SizedBox(height: 10),
                             _buildInfoCard(
                               Icons.local_offer_rounded,
                               'Total Savings',
                               '${plan.totalDiscountPercentage}% Off',
+                              textColor,
                             ),
                             const SizedBox(height: 10),
                             _buildInfoCard(
                               Icons.verified_rounded,
                               'Plan Type',
                               plan.isOneTimeOnly ? 'One-Time' : 'Recurring',
+                              textColor,
                             ),
                           ],
                         ),
@@ -1177,7 +1072,7 @@ class _SubscriptionPopupContentState extends State<_SubscriptionPopupContent> {
                     decoration: BoxDecoration(
                       color: Colors.black.withOpacity(0.2),
                       border: Border(
-                        top: BorderSide(color: Colors.white.withOpacity(0.1)),
+                        top: BorderSide(color: textColor.withOpacity(0.1)),
                       ),
                     ),
                     child: Column(
@@ -1190,7 +1085,7 @@ class _SubscriptionPopupContentState extends State<_SubscriptionPopupContent> {
                               width: 3,
                               height: 14,
                               decoration: BoxDecoration(
-                                color: Colors.white,
+                                color: textColor,
                                 borderRadius: BorderRadius.circular(2),
                               ),
                             ),
@@ -1198,7 +1093,7 @@ class _SubscriptionPopupContentState extends State<_SubscriptionPopupContent> {
                             Text(
                               'Choose a Product',
                               style: TextStyle(
-                                color: Colors.white.withOpacity(0.9),
+                                color: textColor.withOpacity(0.9),
                                 fontSize: 13,
                                 fontWeight: FontWeight.w700,
                                 letterSpacing: 0.4,
@@ -1223,14 +1118,14 @@ class _SubscriptionPopupContentState extends State<_SubscriptionPopupContent> {
                               border: Border.all(
                                 color:
                                     _isDropdownOpen
-                                        ? Colors.white.withOpacity(0.6)
-                                        : Colors.white.withOpacity(0.25),
+                                        ? textColor.withOpacity(0.6)
+                                        : textColor.withOpacity(0.25),
                                 width: 1.5,
                               ),
                               color:
                                   _isDropdownOpen
-                                      ? Colors.white.withOpacity(0.18)
-                                      : Colors.white.withOpacity(0.08),
+                                      ? textColor.withOpacity(0.18)
+                                      : textColor.withOpacity(0.08),
                             ),
                             child: Column(
                               children: [
@@ -1244,7 +1139,7 @@ class _SubscriptionPopupContentState extends State<_SubscriptionPopupContent> {
                                     children: [
                                       Icon(
                                         Icons.shopping_bag_outlined,
-                                        color: Colors.white.withOpacity(0.8),
+                                        color: textColor.withOpacity(0.8),
                                         size: 18,
                                       ),
                                       const SizedBox(width: 12),
@@ -1258,7 +1153,7 @@ class _SubscriptionPopupContentState extends State<_SubscriptionPopupContent> {
                                                       height: 16,
                                                       child:
                                                           CircularProgressIndicator(
-                                                            color: Colors.white,
+                                                            color: textColor,
                                                             strokeWidth: 2,
                                                           ),
                                                     ),
@@ -1266,7 +1161,7 @@ class _SubscriptionPopupContentState extends State<_SubscriptionPopupContent> {
                                                     Text(
                                                       'Loading products…',
                                                       style: TextStyle(
-                                                        color: Colors.white
+                                                        color: textColor
                                                             .withOpacity(0.6),
                                                         fontSize: 14,
                                                       ),
@@ -1281,8 +1176,8 @@ class _SubscriptionPopupContentState extends State<_SubscriptionPopupContent> {
                                                   style: TextStyle(
                                                     color:
                                                         _selectedProduct != null
-                                                            ? Colors.white
-                                                            : Colors.white
+                                                            ? textColor
+                                                            : textColor
                                                                 .withOpacity(
                                                                   0.6,
                                                                 ),
@@ -1304,7 +1199,7 @@ class _SubscriptionPopupContentState extends State<_SubscriptionPopupContent> {
                                           curve: Curves.easeOutCubic,
                                           child: Icon(
                                             Icons.keyboard_arrow_down_rounded,
-                                            color: Colors.white,
+                                            color: textColor,
                                             size: 22,
                                           ),
                                         ),
@@ -1327,8 +1222,9 @@ class _SubscriptionPopupContentState extends State<_SubscriptionPopupContent> {
                                               children: [
                                                 Container(
                                                   height: 1,
-                                                  color: Colors.white
-                                                      .withOpacity(0.15),
+                                                  color: textColor.withOpacity(
+                                                    0.15,
+                                                  ),
                                                 ),
                                                 ...currentProducts.asMap().entries.map((
                                                   entry,
@@ -1431,7 +1327,7 @@ class _SubscriptionPopupContentState extends State<_SubscriptionPopupContent> {
                                                             ),
                                                         color:
                                                             isChosen
-                                                                ? Colors.white
+                                                                ? textColor
                                                                     .withOpacity(
                                                                       0.18,
                                                                     )
@@ -1462,8 +1358,8 @@ class _SubscriptionPopupContentState extends State<_SubscriptionPopupContent> {
                                                                               .circle,
                                                                       color:
                                                                           isChosen
-                                                                              ? Colors.white
-                                                                              : Colors.white.withOpacity(
+                                                                              ? textColor
+                                                                              : textColor.withOpacity(
                                                                                 0.3,
                                                                               ),
                                                                     ),
@@ -1475,7 +1371,7 @@ class _SubscriptionPopupContentState extends State<_SubscriptionPopupContent> {
                                                                     child: Text(
                                                                       p.productName,
                                                                       style: TextStyle(
-                                                                        color: Colors.white.withOpacity(
+                                                                        color: textColor.withOpacity(
                                                                           isChosen
                                                                               ? 1.0
                                                                               : 0.85,
@@ -1542,11 +1438,16 @@ class _SubscriptionPopupContentState extends State<_SubscriptionPopupContent> {
     );
   }
 
-  Widget _buildInfoCard(IconData icon, String label, String value) {
+  Widget _buildInfoCard(
+    IconData icon,
+    String label,
+    String value,
+    Color textColor,
+  ) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.12),
+        color: textColor.withOpacity(0.12),
         borderRadius: BorderRadius.circular(14),
       ),
       child: Row(
@@ -1554,31 +1455,28 @@ class _SubscriptionPopupContentState extends State<_SubscriptionPopupContent> {
           Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.15),
+              color: textColor.withOpacity(0.15),
               borderRadius: BorderRadius.circular(10),
             ),
-            child: Icon(icon, color: Colors.white, size: 20),
+            child: Icon(icon, color: textColor, size: 20),
           ),
           const SizedBox(width: 14),
           Expanded(
             child: Text(
               label,
-              style: TextStyle(
-                color: Colors.white.withOpacity(0.8),
-                fontSize: 14,
-              ),
+              style: TextStyle(color: textColor.withOpacity(0.8), fontSize: 14),
             ),
           ),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.2),
+              color: textColor.withOpacity(0.2),
               borderRadius: BorderRadius.circular(20),
             ),
             child: Text(
               value,
-              style: const TextStyle(
-                color: Colors.white,
+              style: TextStyle(
+                color: textColor,
                 fontWeight: FontWeight.bold,
                 fontSize: 13,
               ),

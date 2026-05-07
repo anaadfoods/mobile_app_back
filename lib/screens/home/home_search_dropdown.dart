@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:grocery_app/core/theme/app_colors.dart';
 import 'package:grocery_app/models/product_model.dart';
 
 class HomeSearchDropdown extends StatelessWidget {
@@ -29,8 +30,8 @@ class HomeSearchDropdown extends StatelessWidget {
             BoxShadow(
               color:
                   isDark
-                      ? Colors.black.withValues(alpha: 0.3)
-                      : Colors.black.withValues(alpha: 0.08),
+                      ? AppColors.charcoal.withValues(alpha: 0.3)
+                      : AppColors.charcoal.withValues(alpha: 0.08),
               blurRadius: 20,
               offset: const Offset(0, 8),
             ),
@@ -60,7 +61,7 @@ class HomeSearchDropdown extends StatelessWidget {
                   width: 44,
                   height: 44,
                   decoration: BoxDecoration(
-                    color: isDark ? Colors.grey.shade800 : Colors.grey.shade100,
+                    color: isDark ? AppColors.charcoal87 : AppColors.parchment,
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: Icon(
@@ -87,7 +88,7 @@ class HomeSearchDropdown extends StatelessWidget {
                 trailing: Icon(
                   Icons.arrow_forward_ios_rounded,
                   size: 16,
-                  color: Colors.grey.shade400,
+                  color: AppColors.rawEarth26,
                 ),
                 onTap: () => onProductTap(product),
               );

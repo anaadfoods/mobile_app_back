@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
+import 'package:grocery_app/core/theme/app_colors.dart';
 import 'package:grocery_app/routes/app_routes.dart';
 
 class AccountInnovationsCard extends StatelessWidget {
@@ -35,12 +36,12 @@ class AccountInnovationsCard extends StatelessWidget {
                   gradient: const LinearGradient(
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
-                    colors: [Color(0xFF6B21A8), Color(0xFF7C3AED)],
+                    colors: [AppColors.parchment, AppColors.parchment],
                   ),
                   borderRadius: BorderRadius.circular(20),
                   boxShadow: [
                     BoxShadow(
-                      color: const Color(0xFF6B21A8).withAlpha(100),
+                      color: AppColors.parchment.withAlpha(100),
                       blurRadius: 20,
                       offset: const Offset(0, 8),
                     ),
@@ -51,12 +52,12 @@ class AccountInnovationsCard extends StatelessWidget {
                     Container(
                       padding: const EdgeInsets.all(14),
                       decoration: BoxDecoration(
-                        color: Colors.white.withAlpha(50),
+                        color: AppColors.parchment.withAlpha(50),
                         borderRadius: BorderRadius.circular(16),
                       ),
                       child: const Icon(
                         Icons.rocket_launch_rounded,
-                        color: Colors.white,
+                        color: AppColors.parchment,
                         size: 28,
                       ),
                     ),
@@ -68,7 +69,7 @@ class AccountInnovationsCard extends StatelessWidget {
                           Text(
                             'Anaad Innovations',
                             style: theme.textTheme.titleMedium?.copyWith(
-                              color: Colors.white,
+                              color: AppColors.parchment,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
@@ -76,7 +77,7 @@ class AccountInnovationsCard extends StatelessWidget {
                           Text(
                             'Beyond food. Explore the future of farming.',
                             style: theme.textTheme.bodySmall?.copyWith(
-                              color: Colors.white.withOpacity(0.8),
+                              color: AppColors.parchment.withValues(alpha: 0.8),
                             ),
                           ),
                         ],
@@ -85,7 +86,7 @@ class AccountInnovationsCard extends StatelessWidget {
                     Container(
                       padding: const EdgeInsets.all(10),
                       decoration: BoxDecoration(
-                        color: Colors.white.withAlpha(40),
+                        color: AppColors.parchment.withAlpha(40),
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Row(
@@ -93,13 +94,13 @@ class AccountInnovationsCard extends StatelessWidget {
                           const Text(
                             'Enter Lab',
                             style: TextStyle(
-                              color: Colors.white,
+                              color: AppColors.parchment,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
                           const Icon(
                             Icons.arrow_forward_ios_rounded,
-                            color: Colors.white,
+                            color: AppColors.parchment,
                             size: 14,
                           ),
                         ],

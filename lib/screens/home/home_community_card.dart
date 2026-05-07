@@ -72,8 +72,8 @@ class _AnimatedCommunityCardState extends State<AnimatedCommunityCard>
     final isEvenCard = index % 2 == 0;
     final baseColor =
         isEvenCard
-            ? const Color(0xFF2E7D32) // Forest green
-            : const Color(0xFF5D4037); // Brown
+            ? AppColors.deepSoilGreen // Forest green anchor
+            : AppColors.rawEarth; // Earthy brown anchor
 
     return GestureDetector(
       onTapDown: (_) => setState(() => _isPressed = true),
@@ -103,9 +103,10 @@ class _AnimatedCommunityCardState extends State<AnimatedCommunityCard>
             borderRadius: BorderRadius.circular(AppColors.radiusXL),
             boxShadow: [
               BoxShadow(
-                color: (isEvenCard ? Colors.green : Colors.brown).withOpacity(
-                  _isPressed ? 0.15 : 0.25,
-                ),
+                color: (isEvenCard
+                        ? AppColors.deepSoilGreen
+                        : AppColors.rawEarth)
+                    .withValues(alpha: _isPressed ? 0.15 : 0.25),
                 blurRadius: _isPressed ? 8 : 16,
                 offset: Offset(0, _isPressed ? 4 : 8),
               ),
@@ -122,21 +123,23 @@ class _AnimatedCommunityCardState extends State<AnimatedCommunityCard>
                   fit: BoxFit.cover,
                   width: double.infinity,
                   height: double.infinity,
-                  placeholder: (context, url) => Container(
-                    color: isEvenCard
-                        ? Colors.green.shade800
-                        : Colors.brown.shade800,
-                  ),
+                  placeholder:
+                      (context, url) => Container(
+                        color:
+                            isEvenCard
+                                ? AppColors.deepSoilGreen
+                                : AppColors.rawEarth,
+                      ),
                   errorWidget:
                       (context, url, error) => Container(
                         color:
                             isEvenCard
-                                ? Colors.green.shade800
-                                : Colors.brown.shade800,
+                                ? AppColors.deepSoilGreen
+                                : AppColors.rawEarth,
                         child: const Icon(
                           Icons.eco,
                           size: 60,
-                          color: Colors.white24,
+                          color: AppColors.parchment24,
                         ),
                       ),
                 ),
@@ -149,9 +152,9 @@ class _AnimatedCommunityCardState extends State<AnimatedCommunityCard>
                       end: Alignment.bottomCenter,
                       stops: const [0.0, 0.5, 1.0],
                       colors: [
-                        Colors.transparent,
-                        baseColor.withOpacity(0.33),
-                        baseColor.withOpacity(0.51),
+                        AppColors.transparent,
+                        baseColor.withValues(alpha: 0.4),
+                        baseColor.withValues(alpha: 0.8),
                       ],
                     ),
                   ),
@@ -167,9 +170,9 @@ class _AnimatedCommunityCardState extends State<AnimatedCommunityCard>
                           begin: Alignment.topLeft,
                           end: Alignment.bottomRight,
                           colors: [
-                            Colors.transparent,
-                            Colors.white.withOpacity(0.08),
-                            Colors.transparent,
+                            AppColors.transparent,
+                            AppColors.parchment.withValues(alpha: 0.08),
+                            AppColors.transparent,
                           ],
                           stops: [
                             (_shimmerAnimation.value - 0.3).clamp(0.0, 1.0),
@@ -187,9 +190,7 @@ class _AnimatedCommunityCardState extends State<AnimatedCommunityCard>
                   animation: _floatAnimation,
                   builder: (context, _) {
                     final accentColor =
-                        isEvenCard
-                            ? const Color(0xFF69F0AE)
-                            : const Color(0xFFFFAB91);
+                        isEvenCard ? AppColors.parchment : AppColors.parchment;
                     return Stack(
                       children: [
                         // Dot 1 - top right
@@ -201,10 +202,10 @@ class _AnimatedCommunityCardState extends State<AnimatedCommunityCard>
                             height: 6,
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
-                              color: accentColor.withOpacity(0.6),
+                              color: AppColors.parchment.withValues(alpha: 0.4),
                               boxShadow: [
                                 BoxShadow(
-                                  color: accentColor.withOpacity(0.4),
+                                  color: AppColors.parchment.withValues(alpha: 0.2),
                                   blurRadius: 6,
                                 ),
                               ],
@@ -220,10 +221,10 @@ class _AnimatedCommunityCardState extends State<AnimatedCommunityCard>
                             height: 4,
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
-                              color: accentColor.withOpacity(0.5),
+                              color: AppColors.parchment.withValues(alpha: 0.3),
                               boxShadow: [
                                 BoxShadow(
-                                  color: accentColor.withOpacity(0.3),
+                                  color: AppColors.parchment.withValues(alpha: 0.15),
                                   blurRadius: 4,
                                 ),
                               ],
@@ -239,10 +240,10 @@ class _AnimatedCommunityCardState extends State<AnimatedCommunityCard>
                             height: 5,
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
-                              color: accentColor.withOpacity(0.4),
+                              color: accentColor.withValues(alpha: 0.4),
                               boxShadow: [
                                 BoxShadow(
-                                  color: accentColor.withOpacity(0.25),
+                                  color: accentColor.withValues(alpha: 0.25),
                                   blurRadius: 5,
                                 ),
                               ],
@@ -268,60 +269,64 @@ class _AnimatedCommunityCardState extends State<AnimatedCommunityCard>
                           child: BackdropFilter(
                             filter: ImageFilter.blur(sigmaX: 6, sigmaY: 6),
                             child: Container(
-                            padding: const EdgeInsets.symmetric(
-                              vertical: 8,
-                              horizontal: 14,
-                            ),
-                            decoration: BoxDecoration(
-                              color: Colors.white.withOpacity(0.2),
-                              borderRadius: BorderRadius.circular(20),
-                              border: Border.all(
-                                color: Colors.white.withOpacity(0.3),
-                                width: 1,
+                              padding: const EdgeInsets.symmetric(
+                                vertical: 8,
+                                horizontal: 14,
                               ),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: (isEvenCard
-                                          ? const Color(0xFF69F0AE)
-                                          : const Color(0xFFFFAB91))
-                                      .withOpacity(0.3),
-                                  blurRadius: 12,
-                                  offset: const Offset(0, 4),
+                              decoration: BoxDecoration(
+                                color: AppColors.parchment.withValues(
+                                  alpha: 0.2,
                                 ),
-                              ],
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Container(
-                                  padding: const EdgeInsets.all(1),
-                                  decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(20),
+                                border: Border.all(
+                                  color: AppColors.parchment.withValues(
+                                    alpha: 0.3,
+                                  ),
+                                  width: 1,
+                                ),
+                                boxShadow: [
+                                  BoxShadow(
                                     color: (isEvenCard
-                                            ? const Color(0xFF69F0AE)
-                                            : const Color(0xFFFFAB91))
-                                        .withOpacity(0.4),
-                                    shape: BoxShape.circle,
+                                            ? AppColors.parchment
+                                            : AppColors.parchment)
+                                        .withValues(alpha: 0.3),
+                                    blurRadius: 12,
+                                    offset: const Offset(0, 4),
                                   ),
-                                  child: const Icon(
-                                    Icons.auto_awesome,
-                                    size: 12,
-                                    color: Colors.white,
+                                ],
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.all(1),
+                                    decoration: BoxDecoration(
+                                      color: (isEvenCard
+                                              ? AppColors.parchment
+                                              : AppColors.parchment)
+                                          .withValues(alpha: 0.4),
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: const Icon(
+                                      Icons.auto_awesome,
+                                      size: 12,
+                                      color: AppColors.parchment,
+                                    ),
                                   ),
-                                ),
-                                const SizedBox(width: 8),
-                                Text(
-                                  "Coming Soon",
-                                  style: theme.textTheme.labelSmall?.copyWith(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.w700,
-                                    letterSpacing: 0.5,
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    "Coming Soon",
+                                    style: theme.textTheme.labelSmall?.copyWith(
+                                      color: AppColors.parchment,
+                                      fontWeight: FontWeight.w800,
+                                      letterSpacing: 0.8,
+                                    ),
                                   ),
-                                ),
-                              ],
+                                ],
+                              ),
                             ),
                           ),
                         ),
-                      ),
                       ),
 
                       // Community Name
@@ -334,40 +339,44 @@ class _AnimatedCommunityCardState extends State<AnimatedCommunityCard>
                           child: BackdropFilter(
                             filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
                             child: Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 12,
-                              vertical: 6,
-                            ),
-                            decoration: BoxDecoration(
-                              color: Colors.white.withOpacity(0.2),
-                              borderRadius: BorderRadius.circular(16),
-                              border: Border.all(
-                                color: Colors.white.withOpacity(0.4),
-                                width: 1.5,
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 6,
                               ),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Text(
-                                  "Explore",
-                                  style: theme.textTheme.labelLarge?.copyWith(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.w700,
-                                    letterSpacing: 0.3,
+                              decoration: BoxDecoration(
+                                color: AppColors.parchment.withValues(
+                                  alpha: 0.2,
+                                ),
+                                borderRadius: BorderRadius.circular(16),
+                                border: Border.all(
+                                  color: AppColors.parchment.withValues(
+                                    alpha: 0.4,
                                   ),
+                                  width: 1.5,
                                 ),
-                                const SizedBox(width: 8),
-                                const Icon(
-                                  Icons.arrow_forward_rounded,
-                                  size: 18,
-                                  color: Colors.white,
-                                ),
-                              ],
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(
+                                    "Explore",
+                                    style: theme.textTheme.labelLarge?.copyWith(
+                                      color: AppColors.parchment,
+                                      fontWeight: FontWeight.w800,
+                                      letterSpacing: 0.5,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  const Icon(
+                                    Icons.arrow_forward_rounded,
+                                    size: 16,
+                                    color: AppColors.parchment,
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
                         ),
-                      ),
                       ),
                     ],
                   ),
@@ -396,12 +405,12 @@ class _AnimatedCommunityCardState extends State<AnimatedCommunityCard>
     return Text(
       community.name,
       style: theme.textTheme.headlineSmall?.copyWith(
-        color: Colors.white,
+        color: AppColors.parchment,
         fontWeight: FontWeight.bold,
         shadows: [
           Shadow(
             blurRadius: 8,
-            color: Colors.black.withOpacity(0.3),
+            color: AppColors.charcoal.withValues(alpha: 0.3),
             offset: const Offset(0, 2),
           ),
         ],

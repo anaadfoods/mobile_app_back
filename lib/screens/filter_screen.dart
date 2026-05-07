@@ -30,7 +30,7 @@ class FilterScreen extends StatelessWidget {
                 color: theme.cardColor,
                 borderRadius: BorderRadius.circular(AppColors.radiusL),
                 border: Border.all(
-                  color: isDark ? Colors.grey.shade800 : Colors.grey.shade200,
+                  color: isDark ? AppColors.charcoal87 : AppColors.parchment,
                 ),
               ),
               child: const Column(children: [OptionItem(text: "Eggs")]),
@@ -83,4 +83,3 @@ class _OptionItemState extends State<OptionItem> {
     );
   }
 }
-

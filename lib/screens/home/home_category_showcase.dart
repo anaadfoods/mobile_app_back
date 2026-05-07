@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:grocery_app/core/theme/app_colors.dart';
 import 'package:grocery_app/cubits/auth/auth_cubit.dart';
 import 'package:grocery_app/cubits/auth/auth_state.dart';
 import 'package:grocery_app/screens/dashboard/dashboard_screen.dart';
@@ -24,7 +25,7 @@ class HomeCategoryShowcase extends StatelessWidget {
             theme.colorScheme.primary.withValues(alpha: 0.85),
             isDark
                 ? theme.colorScheme.primary.withValues(alpha: 0.7)
-                : Colors.green.shade400,
+                : AppColors.deepSoilGreen,
           ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
@@ -48,7 +49,7 @@ class HomeCategoryShowcase extends StatelessWidget {
               height: 120,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: Colors.white.withValues(alpha: 0.1),
+                color: AppColors.parchment.withValues(alpha: 0.1),
               ),
             ),
           ),
@@ -60,7 +61,7 @@ class HomeCategoryShowcase extends StatelessWidget {
               height: 80,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: Colors.white.withValues(alpha: 0.08),
+                color: AppColors.parchment.withValues(alpha: 0.08),
               ),
             ),
           ),
@@ -72,7 +73,7 @@ class HomeCategoryShowcase extends StatelessWidget {
               height: 8,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: Colors.white.withValues(alpha: 0.3),
+                color: AppColors.parchment.withValues(alpha: 0.3),
               ),
             ),
           ),
@@ -84,7 +85,7 @@ class HomeCategoryShowcase extends StatelessWidget {
               height: 6,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: Colors.white.withValues(alpha: 0.25),
+                color: AppColors.parchment.withValues(alpha: 0.25),
               ),
             ),
           ),
@@ -101,12 +102,12 @@ class HomeCategoryShowcase extends StatelessWidget {
                     Container(
                       padding: const EdgeInsets.all(10),
                       decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.2),
+                        color: AppColors.parchment.withValues(alpha: 0.2),
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: const Icon(
                         Icons.eco_rounded,
-                        color: Colors.white,
+                        color: AppColors.parchment,
                         size: 24,
                       ),
                     ),
@@ -118,7 +119,7 @@ class HomeCategoryShowcase extends StatelessWidget {
                           Text(
                             "Rejuvenating Earth",
                             style: theme.textTheme.titleLarge?.copyWith(
-                              color: Colors.white,
+                              color: AppColors.parchment,
                               fontWeight: FontWeight.bold,
                               height: 1.2,
                             ),
@@ -126,7 +127,7 @@ class HomeCategoryShowcase extends StatelessWidget {
                           Text(
                             "Nourishing Lives",
                             style: theme.textTheme.titleMedium?.copyWith(
-                              color: Colors.white.withOpacity(0.9),
+                              color: AppColors.parchment.withValues(alpha: 0.9),
                               fontWeight: FontWeight.w500,
                             ),
                           ),
@@ -142,7 +143,7 @@ class HomeCategoryShowcase extends StatelessWidget {
                     vertical: 6,
                   ),
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.2),
+                    color: AppColors.parchment.withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Row(
@@ -150,14 +151,14 @@ class HomeCategoryShowcase extends StatelessWidget {
                     children: [
                       Icon(
                         Icons.shopping_bag_outlined,
-                        color: Colors.white,
+                        color: AppColors.parchment,
                         size: 14,
                       ),
                       const SizedBox(width: 6),
                       Text(
                         "Shop by Category",
                         style: theme.textTheme.bodySmall?.copyWith(
-                          color: Colors.white,
+                          color: AppColors.parchment,
                           fontWeight: FontWeight.w600,
                         ),
                       ),

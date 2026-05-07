@@ -1,4 +1,6 @@
+import 'package:grocery_app/core/theme/app_colors.dart';
 import 'package:flutter/material.dart';
+import 'package:grocery_app/core/theme/theme.dart';
 import 'package:shimmer/shimmer.dart';
 
 class ShimmerLoading extends StatelessWidget {
@@ -13,12 +15,11 @@ class ShimmerLoading extends StatelessWidget {
       return child;
     }
 
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
+    final isDark = context.isDark;
 
     return Shimmer.fromColors(
-      baseColor: isDark ? Colors.grey[850]! : Colors.grey[300]!,
-      highlightColor: isDark ? Colors.grey[700]! : Colors.grey[100]!,
+      baseColor: isDark ? AppColors.charcoal87 : AppColors.rawEarth12,
+      highlightColor: isDark ? AppColors.charcoal60 : AppColors.parchment,
       child: child,
     );
   }

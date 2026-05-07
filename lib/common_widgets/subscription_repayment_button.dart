@@ -28,19 +28,22 @@ class SubscriptionRepaymentButton extends StatelessWidget {
     Widget buttonContent = Container(
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [AppColors.error, AppColors.error.withOpacity(0.8)],
+          colors: [
+            AppColors.rawEarth,
+            AppColors.rawEarth.withValues(alpha: 0.8),
+          ],
         ),
         borderRadius: BorderRadius.circular(14),
         boxShadow: [
           BoxShadow(
-            color: AppColors.error.withOpacity(0.3),
+            color: AppColors.rawEarth.withValues(alpha: 0.3),
             blurRadius: 8,
             offset: const Offset(0, 4),
           ),
         ],
       ),
       child: Material(
-        color: Colors.transparent,
+        color: AppColors.transparent,
         child: InkWell(
           onTap: () {
             final handler = SubscriptionHandler(context);
@@ -57,7 +60,7 @@ class SubscriptionRepaymentButton extends StatelessWidget {
                 children: [
                   const Icon(
                     Icons.payment_rounded,
-                    color: Colors.white,
+                    color: AppColors.parchment,
                     size: 20,
                   ),
                   if (showLabel) ...[
@@ -65,7 +68,7 @@ class SubscriptionRepaymentButton extends StatelessWidget {
                     Text(
                       'Pay Now',
                       style: theme.textTheme.labelLarge?.copyWith(
-                        color: Colors.white,
+                        color: AppColors.parchment,
                         fontWeight: FontWeight.bold,
                       ),
                     ),

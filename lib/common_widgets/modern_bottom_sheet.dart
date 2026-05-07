@@ -1,6 +1,9 @@
+import 'package:grocery_app/core/theme/app_colors.dart';
 import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:grocery_app/core/theme/theme.dart';
 
 /// A modern, animated bottom sheet wrapper with floating particles and glassmorphism effects
 class ModernBottomSheet extends StatefulWidget {
@@ -49,8 +52,8 @@ class ModernBottomSheet extends StatefulWidget {
       isScrollControlled: true,
       isDismissible: isDismissible,
       enableDrag: enableDrag,
-      backgroundColor: Colors.transparent,
-      barrierColor: Colors.black.withOpacity(0.5),
+      backgroundColor: AppColors.transparent,
+      barrierColor: AppColors.charcoal.withValues(alpha: 0.5),
       builder:
           (context) => ModernBottomSheet(
             title: title,
@@ -143,16 +146,16 @@ class _ModernBottomSheetState extends State<ModernBottomSheet>
           ),
           margin: EdgeInsets.only(bottom: bottomPadding),
           decoration: BoxDecoration(
-            color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+            color: isDark ? AppColors.deepSoilGreen : AppColors.pureWhite,
             borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
             boxShadow: [
               BoxShadow(
-                color: accentColor.withOpacity(0.15),
+                color: accentColor.withValues(alpha: 0.15),
                 blurRadius: 30,
                 offset: const Offset(0, -10),
               ),
               BoxShadow(
-                color: Colors.black.withOpacity(0.1),
+                color: AppColors.charcoal.withValues(alpha: 0.1),
                 blurRadius: 20,
                 offset: const Offset(0, -5),
               ),
@@ -178,13 +181,13 @@ class _ModernBottomSheetState extends State<ModernBottomSheet>
                               begin: Alignment.topCenter,
                               end: Alignment.bottomCenter,
                               colors: [
-                                accentColor.withOpacity(
-                                  _glowAnimation.value * 0.4,
+                                accentColor.withValues(
+                                  alpha: _glowAnimation.value * 0.4,
                                 ),
-                                accentColor.withOpacity(
-                                  _glowAnimation.value * 0.1,
+                                accentColor.withValues(
+                                  alpha: _glowAnimation.value * 0.1,
                                 ),
-                                Colors.transparent,
+                                AppColors.transparent,
                               ],
                             ),
                           ),
@@ -235,15 +238,17 @@ class _ModernBottomSheetState extends State<ModernBottomSheet>
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: [
-                  accentColor.withOpacity(0.3),
-                  accentColor.withOpacity(0.6),
-                  accentColor.withOpacity(0.3),
+                  accentColor.withValues(alpha: 0.3),
+                  accentColor.withValues(alpha: 0.6),
+                  accentColor.withValues(alpha: 0.3),
                 ],
               ),
               borderRadius: BorderRadius.circular(3),
               boxShadow: [
                 BoxShadow(
-                  color: accentColor.withOpacity(_glowAnimation.value * 0.5),
+                  color: accentColor.withValues(
+                    alpha: _glowAnimation.value * 0.5,
+                  ),
                   blurRadius: 8,
                   spreadRadius: 1,
                 ),
@@ -266,12 +271,12 @@ class _ModernBottomSheetState extends State<ModernBottomSheet>
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   colors: [
-                    accentColor.withOpacity(0.2),
-                    accentColor.withOpacity(0.1),
+                    accentColor.withValues(alpha: 0.2),
+                    accentColor.withValues(alpha: 0.1),
                   ],
                 ),
                 borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: accentColor.withOpacity(0.3)),
+                border: Border.all(color: accentColor.withValues(alpha: 0.3)),
               ),
               child: Icon(widget.headerIcon, color: accentColor, size: 24),
             ),
@@ -326,7 +331,7 @@ class _ModernBottomSheetState extends State<ModernBottomSheet>
             height: size,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: accentColor.withOpacity(opacity.clamp(0.05, 0.25)),
+              color: accentColor.withValues(alpha: opacity.clamp(0.05, 0.25)),
             ),
           ),
         );
@@ -386,26 +391,26 @@ class ModernSelectionCard extends StatelessWidget {
                   ? LinearGradient(
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
-                    colors: [color, color.withOpacity(0.85)],
+                    colors: [color, color.withValues(alpha: 0.85)],
                   )
                   : null,
           color:
               isSelected
                   ? null
-                  : (isDark ? Colors.grey.shade900 : Colors.grey.shade50),
+                  : (isDark ? AppColors.charcoal : AppColors.parchment),
           borderRadius: BorderRadius.circular(18),
           border: Border.all(
             color:
                 isSelected
-                    ? color.withOpacity(0.5)
-                    : (isDark ? Colors.grey.shade800 : Colors.grey.shade200),
+                    ? color.withValues(alpha: 0.5)
+                    : (isDark ? AppColors.charcoal87 : AppColors.parchment),
             width: isSelected ? 2 : 1,
           ),
           boxShadow:
               isSelected
                   ? [
                     BoxShadow(
-                      color: color.withOpacity(0.3),
+                      color: color.withValues(alpha: 0.3),
                       blurRadius: 12,
                       offset: const Offset(0, 4),
                     ),
@@ -428,15 +433,15 @@ class ModernSelectionCard extends StatelessWidget {
                       shape: BoxShape.circle,
                       color:
                           isSelected
-                              ? Colors.white.withOpacity(0.2)
-                              : Colors.transparent,
+                              ? AppColors.parchment.withValues(alpha: 0.2)
+                              : AppColors.transparent,
                       border: Border.all(
                         color:
                             isSelected
-                                ? Colors.white
+                                ? AppColors.parchment
                                 : (isDark
-                                    ? Colors.grey.shade600
-                                    : Colors.grey.shade400),
+                                    ? AppColors.rawEarth70
+                                    : AppColors.rawEarth26),
                         width: 2,
                       ),
                     ),
@@ -445,7 +450,7 @@ class ModernSelectionCard extends StatelessWidget {
                             ? const Icon(
                               Icons.check,
                               size: 14,
-                              color: Colors.white,
+                              color: AppColors.parchment,
                             )
                             : null,
                   ),
@@ -455,7 +460,7 @@ class ModernSelectionCard extends StatelessWidget {
                   if (icon != null) ...[
                     Icon(
                       icon,
-                      color: isSelected ? Colors.white : color,
+                      color: isSelected ? AppColors.parchment : color,
                       size: 22,
                     ),
                     const SizedBox(width: 12),
@@ -470,7 +475,7 @@ class ModernSelectionCard extends StatelessWidget {
                           title,
                           style: theme.textTheme.titleMedium?.copyWith(
                             fontWeight: FontWeight.bold,
-                            color: isSelected ? Colors.white : null,
+                            color: isSelected ? AppColors.parchment : null,
                           ),
                         ),
                         if (subtitle != null) ...[
@@ -480,7 +485,9 @@ class ModernSelectionCard extends StatelessWidget {
                             style: theme.textTheme.bodySmall?.copyWith(
                               color:
                                   isSelected
-                                      ? Colors.white.withOpacity(0.8)
+                                      ? AppColors.parchment.withValues(
+                                        alpha: 0.8,
+                                      )
                                       : theme.hintColor,
                             ),
                           ),
@@ -498,7 +505,7 @@ class ModernSelectionCard extends StatelessWidget {
                           trailingText!,
                           style: theme.textTheme.titleMedium?.copyWith(
                             fontWeight: FontWeight.bold,
-                            color: isSelected ? Colors.white : color,
+                            color: isSelected ? AppColors.parchment : color,
                           ),
                         ),
                         if (trailingSubtext != null)
@@ -507,7 +514,9 @@ class ModernSelectionCard extends StatelessWidget {
                             style: theme.textTheme.bodySmall?.copyWith(
                               color:
                                   isSelected
-                                      ? Colors.white.withOpacity(0.7)
+                                      ? AppColors.parchment.withValues(
+                                        alpha: 0.7,
+                                      )
                                       : theme.hintColor,
                               decoration: TextDecoration.lineThrough,
                             ),
@@ -555,7 +564,7 @@ class ModernQuantitySelector extends StatelessWidget {
 
     return Container(
       decoration: BoxDecoration(
-        color: isDark ? Colors.grey.shade800 : Colors.grey.shade100,
+        color: isDark ? AppColors.charcoal87 : AppColors.parchment,
         borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
@@ -593,7 +602,7 @@ class ModernQuantitySelector extends StatelessWidget {
     required ThemeData theme,
   }) {
     return Material(
-      color: Colors.transparent,
+      color: AppColors.transparent,
       child: InkWell(
         onTap:
             onTap != null
@@ -657,9 +666,9 @@ class ModernBottomSheetButton extends StatelessWidget {
               isOutlined
                   ? null
                   : LinearGradient(
-                    colors: [buttonColor, buttonColor.withOpacity(0.85)],
+                    colors: [buttonColor, buttonColor.withValues(alpha: 0.85)],
                   ),
-          color: isOutlined ? Colors.transparent : null,
+          color: isOutlined ? AppColors.transparent : null,
           borderRadius: BorderRadius.circular(16),
           border: isOutlined ? Border.all(color: buttonColor, width: 2) : null,
           boxShadow:
@@ -667,7 +676,7 @@ class ModernBottomSheetButton extends StatelessWidget {
                   ? null
                   : [
                     BoxShadow(
-                      color: buttonColor.withOpacity(0.3),
+                      color: buttonColor.withValues(alpha: 0.3),
                       blurRadius: 12,
                       offset: const Offset(0, 4),
                     ),
@@ -681,7 +690,7 @@ class ModernBottomSheetButton extends StatelessWidget {
                     height: 24,
                     child: CircularProgressIndicator(
                       strokeWidth: 2.5,
-                      color: isOutlined ? buttonColor : Colors.white,
+                      color: isOutlined ? buttonColor : AppColors.parchment,
                     ),
                   )
                   : Row(
@@ -690,7 +699,7 @@ class ModernBottomSheetButton extends StatelessWidget {
                       if (icon != null) ...[
                         Icon(
                           icon,
-                          color: isOutlined ? buttonColor : Colors.white,
+                          color: isOutlined ? buttonColor : AppColors.parchment,
                           size: 22,
                         ),
                         const SizedBox(width: 10),
@@ -698,7 +707,7 @@ class ModernBottomSheetButton extends StatelessWidget {
                       Text(
                         label,
                         style: TextStyle(
-                          color: isOutlined ? buttonColor : Colors.white,
+                          color: isOutlined ? buttonColor : AppColors.parchment,
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
                         ),

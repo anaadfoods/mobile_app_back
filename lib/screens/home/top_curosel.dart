@@ -80,7 +80,7 @@ class _TopCuroselState extends State<TopCurosel>
         subtitle:
             "Low RPM Natural Stone Milling of the flour preserves every bit of nutrition",
         buttonText: 'See the Product',
-        color: const Color(0xFF8D6E63), // Brownish for grains/milling
+        color: AppColors.parchment, // Brownish for grains/milling
         onTap: () {
           final dashboardState =
               context.findAncestorStateOfType<DashboardScreenState>();
@@ -92,7 +92,7 @@ class _TopCuroselState extends State<TopCurosel>
         title: 'We don’t manufacture. We grow',
         subtitle: 'A return to Truly Nutritional Food',
         buttonText: 'Read Our Roots',
-        color: const Color(0xFF558B2F), // Green for growing
+        color: AppColors.parchment, // Green for growing
         onTap: () {
           context.push('/about-us');
         },
@@ -102,7 +102,7 @@ class _TopCuroselState extends State<TopCurosel>
         title: 'Picked before the sun rose',
         subtitle: "Harvested only when you order. Not a moment sooner",
         buttonText: 'Visit our Plot',
-        color: const Color(0xFFF9A825), // Golden/Orange for sun/harvest
+        color: AppColors.parchment, // Golden/Orange for sun/harvest
         onTap: () {
           context.push('/product/1');
         },
@@ -112,7 +112,7 @@ class _TopCuroselState extends State<TopCurosel>
         title: 'Remote Farming Program',
         subtitle: "You can’t be at the farm. So we bring the farm to you.",
         buttonText: 'Visit our Plot',
-        color: const Color(0xFF00695C), // Teal for remote/tech+farm
+        color: AppColors.parchment, // Teal for remote/tech+farm
         onTap: () {
           final authState = context.read<AuthCubit>().state;
           final isRfp = authState is Authenticated && authState.user.isRfp;
@@ -198,8 +198,8 @@ class _TopCuroselState extends State<TopCurosel>
     // Determine current color for glow effect
     final currentColor =
         _carouselItems.isNotEmpty && _currentPage < _carouselItems.length
-            ? (_carouselItems[_currentPage].color ?? colorScheme.primary)
-            : colorScheme.primary;
+            ? (_carouselItems[_currentPage].color ?? AppColors.amberWarn)
+            : AppColors.amberWarn;
 
     return Column(
       children: [
@@ -208,7 +208,8 @@ class _TopCuroselState extends State<TopCurosel>
             animation: _pulseController,
             builder: (context, child) {
               final glowIntensity =
-                  0.15 + (math.sin(_pulseController.value * math.pi * 2) * 0.10);
+                  0.15 +
+                  (math.sin(_pulseController.value * math.pi * 2) * 0.10);
 
               return Container(
                 margin: const EdgeInsets.symmetric(horizontal: 8),
@@ -216,7 +217,7 @@ class _TopCuroselState extends State<TopCurosel>
                   borderRadius: BorderRadius.circular(16),
                   boxShadow: [
                     BoxShadow(
-                      color: currentColor.withOpacity(glowIntensity),
+                      color: currentColor.withValues(alpha: glowIntensity),
                       blurRadius: 16,
                       spreadRadius: 1,
                     ),
@@ -226,210 +227,210 @@ class _TopCuroselState extends State<TopCurosel>
               );
             },
             child: CarouselSlider.builder(
-                itemCount: _carouselItems.length,
-                itemBuilder: (context, index, realIndex) {
-                  final item = _carouselItems[index];
-                  final isActive = index == _currentPage;
-                  final itemColor = item.color ?? colorScheme.primary;
+              itemCount: _carouselItems.length,
+              itemBuilder: (context, index, realIndex) {
+                final item = _carouselItems[index];
+                final isActive = index == _currentPage;
+                final itemColor = item.color ?? colorScheme.primary;
 
-                  // Check if image path is a URL (http/https) or asset
-                  final isNetworkImage = item.imagePath.startsWith('http');
+                // Check if image path is a URL (http/https) or asset
+                final isNetworkImage = item.imagePath.startsWith('http');
 
-                  return AnimatedScale(
-                    scale: isActive ? 1.0 : 0.92,
+                return AnimatedScale(
+                  scale: isActive ? 1.0 : 0.92,
+                  duration: const Duration(milliseconds: 400),
+                  curve: Curves.easeOutCubic,
+                  child: AnimatedOpacity(
+                    opacity: isActive ? 1.0 : 0.7,
                     duration: const Duration(milliseconds: 400),
-                    curve: Curves.easeOutCubic,
-                    child: AnimatedOpacity(
-                      opacity: isActive ? 1.0 : 0.7,
-                      duration: const Duration(milliseconds: 400),
-                      child: Container(
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(12),
-                          boxShadow:
-                              isActive
-                                  ? [
-                                    BoxShadow(
-                                      color: itemColor.withOpacity(0.3),
-                                      blurRadius: 12,
-                                      spreadRadius: 1,
-                                    ),
-                                  ]
-                                  : [],
-                        ),
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(12),
-                          child: Stack(
-                            fit: StackFit.expand,
-                            children: [
-                              // Image (Network or Asset)
-                              isNetworkImage
-                                  ? CachedNetworkImage(
-                                    imageUrl: item.imagePath,
-                                    fit: BoxFit.cover,
-                                    width: double.infinity,
-                                    memCacheWidth: 600,
-                                    placeholder:
-                                        (context, url) => Center(
-                                          child: CircularProgressIndicator(
-                                            color: itemColor,
-                                          ),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(12),
+                        boxShadow:
+                            isActive
+                                ? [
+                                  BoxShadow(
+                                    color: itemColor.withValues(alpha: 0.3),
+                                    blurRadius: 12,
+                                    spreadRadius: 1,
+                                  ),
+                                ]
+                                : [],
+                      ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(12),
+                        child: Stack(
+                          fit: StackFit.expand,
+                          children: [
+                            // Image (Network or Asset)
+                            isNetworkImage
+                                ? CachedNetworkImage(
+                                  imageUrl: item.imagePath,
+                                  fit: BoxFit.cover,
+                                  width: double.infinity,
+                                  memCacheWidth: 600,
+                                  placeholder:
+                                      (context, url) => Center(
+                                        child: CircularProgressIndicator(
+                                          color: itemColor,
                                         ),
-                                    errorWidget:
-                                        (context, url, error) => const Center(
-                                          child: Icon(Icons.error),
-                                        ),
-                                  )
-                                  : item.imagePath.isEmpty
-                                  ? Container(
-                                    color: itemColor.withOpacity(0.2),
-                                    child: Center(
-                                      child: Icon(
-                                        Icons.image_not_supported_outlined,
-                                        color: itemColor.withOpacity(0.5),
-                                        size: 48,
                                       ),
+                                  errorWidget:
+                                      (context, url, error) => const Center(
+                                        child: Icon(Icons.error),
+                                      ),
+                                )
+                                : item.imagePath.isEmpty
+                                ? Container(
+                                  color: itemColor.withValues(alpha: 0.2),
+                                  child: Center(
+                                    child: Icon(
+                                      Icons.image_not_supported_outlined,
+                                      color: itemColor.withValues(alpha: 0.5),
+                                      size: 48,
                                     ),
-                                  )
-                                  : SvgPicture.asset(
-                                    item.imagePath,
-                                    fit: BoxFit.cover,
-                                    width: double.infinity,
-                                    placeholderBuilder:
-                                        (context) => Center(
-                                          child: CircularProgressIndicator(
-                                            color: itemColor,
-                                          ),
+                                  ),
+                                )
+                                : SvgPicture.asset(
+                                  item.imagePath,
+                                  fit: BoxFit.cover,
+                                  width: double.infinity,
+                                  placeholderBuilder:
+                                      (context) => Center(
+                                        child: CircularProgressIndicator(
+                                          color: itemColor,
                                         ),
-                                  ),
-                              // Subtle gradient to give depth to the image
-                              Container(
-                                decoration: BoxDecoration(
-                                  gradient: LinearGradient(
-                                    colors: [
-                                      Colors.black.withOpacity(0.25),
-                                      Colors.transparent,
-                                    ],
-                                    begin: Alignment.bottomCenter,
-                                    end: Alignment.topCenter,
-                                  ),
+                                      ),
+                                ),
+                            // Subtle gradient to give depth to the image
+                            Container(
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  colors: [
+                                    AppColors.charcoal.withValues(alpha: 0.25),
+                                    AppColors.transparent,
+                                  ],
+                                  begin: Alignment.bottomCenter,
+                                  end: Alignment.topCenter,
                                 ),
                               ),
-                              // Frosted Glass Content Panel
-                              Positioned(
-                                bottom: 12,
-                                left: 16,
-                                right: 16,
-                                child: ClipRRect(
-                                  borderRadius: BorderRadius.circular(14),
-                                  child: BackdropFilter(
-                                    filter: ImageFilter.blur(
-                                      sigmaX: 6,
-                                      sigmaY: 6,
+                            ),
+                            // Frosted Glass Content Panel
+                            Positioned(
+                              bottom: 12,
+                              left: 16,
+                              right: 16,
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(14),
+                                child: BackdropFilter(
+                                  filter: ImageFilter.blur(
+                                    sigmaX: 6,
+                                    sigmaY: 6,
+                                  ),
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 14,
+                                      vertical: 10,
                                     ),
-                                    child: Container(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 14,
-                                        vertical: 10,
+                                    decoration: BoxDecoration(
+                                      color: AppColors.charcoal.withValues(
+                                        alpha: 0.15,
                                       ),
-                                      decoration: BoxDecoration(
-                                        color: Colors.black.withOpacity(0.15),
-                                        borderRadius: BorderRadius.circular(14),
-                                        border: Border.all(
-                                          color: Colors.white.withOpacity(0.12),
-                                          width: 1,
+                                      borderRadius: BorderRadius.circular(14),
+                                      border: Border.all(
+                                        color: AppColors.parchment.withValues(
+                                          alpha: 0.12,
                                         ),
+                                        width: 1,
                                       ),
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          Text(
-                                            item.title,
-                                            style:
-                                                textTheme.bodyMedium?.copyWith(
-                                                  color: Colors.white,
-                                                  fontWeight: FontWeight.bold,
-                                                  letterSpacing: 0.3,
-                                                ),
-                                            maxLines: 1,
-                                            overflow: TextOverflow.ellipsis,
+                                    ),
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Text(
+                                          item.title,
+                                          style: textTheme.bodyMedium?.copyWith(
+                                            color: AppColors.parchment,
+                                            fontWeight: FontWeight.bold,
+                                            letterSpacing: 0.3,
                                           ),
-                                          const SizedBox(height: 3),
-                                          Text(
-                                            item.subtitle,
-                                            style:
-                                                textTheme.labelSmall?.copyWith(
-                                                  color: Colors.white
-                                                      .withOpacity(0.88),
-                                                  fontWeight: FontWeight.w400,
-                                                  height: 1.4,
-                                                ),
-                                            maxLines: 2,
-                                            overflow: TextOverflow.ellipsis,
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                        const SizedBox(height: 3),
+                                        Text(
+                                          item.subtitle,
+                                          style: textTheme.labelSmall?.copyWith(
+                                            color: AppColors.parchment
+                                                .withValues(alpha: 0.88),
+                                            fontWeight: FontWeight.w400,
+                                            height: 1.4,
                                           ),
-                                          const SizedBox(height: 8),
-                                          Align(
-                                            alignment: Alignment.centerLeft,
-                                            child: SizedBox(
-                                              height: 28,
-                                              child: TextButton(
-                                                onPressed: item.onTap,
-                                                style: TextButton.styleFrom(
-                                                  backgroundColor:
-                                                      colorScheme.primary
-                                                          .withOpacity(0.9),
-                                                  padding:
-                                                      const EdgeInsets.symmetric(
-                                                    horizontal: 12,
-                                                  ),
-                                                  shape: RoundedRectangleBorder(
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                          8,
-                                                        ),
-                                                  ),
+                                          maxLines: 2,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                        const SizedBox(height: 8),
+                                        Align(
+                                          alignment: Alignment.centerLeft,
+                                          child: SizedBox(
+                                            height: 28,
+                                            child: TextButton(
+                                              onPressed: item.onTap,
+                                              style: TextButton.styleFrom(
+                                                backgroundColor: colorScheme
+                                                    .primary
+                                                    .withValues(alpha: 0.9),
+                                                padding:
+                                                    const EdgeInsets.symmetric(
+                                                      horizontal: 12,
+                                                    ),
+                                                shape: RoundedRectangleBorder(
+                                                  borderRadius:
+                                                      BorderRadius.circular(8),
                                                 ),
-                                                child: Text(
-                                                  item.buttonText,
-                                                  style: textTheme.labelMedium
-                                                      ?.copyWith(
-                                                        fontSize: 10,
-                                                        color:
-                                                            colorScheme.onPrimary,
-                                                      ),
-                                                ),
+                                              ),
+                                              child: Text(
+                                                item.buttonText,
+                                                style: textTheme.labelMedium
+                                                    ?.copyWith(
+                                                      fontSize: 10,
+                                                      color:
+                                                          colorScheme.onPrimary,
+                                                    ),
                                               ),
                                             ),
                                           ),
-                                        ],
-                                      ),
+                                        ),
+                                      ],
                                     ),
                                   ),
                                 ),
                               ),
-                            ],
-                          ),
+                            ),
+                          ],
                         ),
                       ),
                     ),
-                  );
+                  ),
+                );
+              },
+              options: CarouselOptions(
+                viewportFraction: 1,
+                height: screenHeight * 0.22,
+                autoPlay: true,
+                enlargeCenterPage: false,
+                enableInfiniteScroll: true,
+                autoPlayAnimationDuration: const Duration(milliseconds: 800),
+                autoPlayCurve: Curves.easeOutCubic,
+                onPageChanged: (index, reason) {
+                  _onPageChanged(index);
                 },
-                options: CarouselOptions(
-                  viewportFraction: 1,
-                  height: screenHeight * 0.22,
-                  autoPlay: true,
-                  enlargeCenterPage: false,
-                  enableInfiniteScroll: true,
-                  autoPlayAnimationDuration: const Duration(milliseconds: 800),
-                  autoPlayCurve: Curves.easeOutCubic,
-                  onPageChanged: (index, reason) {
-                    _onPageChanged(index);
-                  },
-                ),
               ),
             ),
           ),
+        ),
         const SizedBox(height: 10),
         // Dots Indicator
         AnimatedSmoothIndicator(

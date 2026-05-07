@@ -6,6 +6,7 @@ export 'package:grocery_app/common_widgets/subscription_repayment_button.dart';
 // export "package:grocery_app/common_widgets/subscription_table.dart"  hide ShimmerLoading;
 
 export 'package:auto_size_text/auto_size_text.dart';
+export 'package:grocery_app/core/theme/theme.dart';
 
 export 'package:grocery_app/models/favorite_model.dart';
 export 'package:grocery_app/helpers/responsive_helper.dart';
@@ -158,6 +159,7 @@ export 'package:grocery_app/common_widgets/empty_state_widget.dart';
 export 'package:grocery_app/common_widgets/loading_state_widget.dart';
 export 'package:grocery_app/common_widgets/floating_particle.dart';
 export 'package:grocery_app/common_widgets/glassmorphic_icon_button.dart';
+export 'package:grocery_app/common_widgets/anaad_logo_mark.dart';
 export 'package:grocery_app/services/api_exception.dart';
 export 'package:grocery_app/common_widgets/short_pull_to_refresh.dart';
 export 'package:permission_handler/permission_handler.dart';

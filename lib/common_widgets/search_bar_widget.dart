@@ -1,5 +1,7 @@
+import 'package:grocery_app/core/theme/app_colors.dart';
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:grocery_app/core/theme/theme.dart';
 import 'package:grocery_app/services/api_config.dart';
 import 'package:http/http.dart' as http;
 
@@ -60,7 +62,7 @@ class _ProductSearchBarState extends State<ProductSearchBar> {
         // 🔍 Search Bar
         Container(
           height: 50,
-          padding: EdgeInsets.symmetric(
+          margin: EdgeInsets.symmetric(
             horizontal: MediaQuery.of(context).size.width * 0.05,
           ),
           child: TextField(
@@ -87,17 +89,17 @@ class _ProductSearchBarState extends State<ProductSearchBar> {
         // ⏳ Loading
         if (_isLoading)
           const Padding(
-            padding: EdgeInsets.all(16),
+            padding: AppSpacing.paddingLg,
             child: CircularProgressIndicator(),
           ),
 
         // ⚠️ Error message
         if (_errorMessage.isNotEmpty)
           Padding(
-            padding: const EdgeInsets.all(8.0),
+            padding: const EdgeInsets.all(AppSpacing.sm),
             child: Text(
               _errorMessage,
-              style: const TextStyle(color: Colors.red, fontSize: 14),
+              style: TextStyle(color: AppColors.rawEarth, fontSize: 14),
             ),
           ),
 
@@ -113,7 +115,10 @@ class _ProductSearchBarState extends State<ProductSearchBar> {
                 trailing: Text(
                   product['is_in_stock'] ? 'In stock' : 'Out of stock',
                   style: TextStyle(
-                    color: product['is_in_stock'] ? Colors.green : Colors.red,
+                    color:
+                        product['is_in_stock']
+                            ? AppColors.deepSoilGreen
+                            : AppColors.rawEarth,
                   ),
                 ),
               );

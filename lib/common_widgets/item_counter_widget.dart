@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:grocery_app/core/theme/theme.dart';
 
 class ItemCounterWidget extends StatefulWidget {
   final Function(int) onAmountChanged;
@@ -129,7 +130,9 @@ class _ItemCounterWidgetState extends State<ItemCounterWidget> {
       width: buttonSize,
       height: buttonSize,
       child: Material(
-        color: colorScheme.onPrimary.withOpacity(onPressed == null ? 0.1 : 0.2),
+        color: colorScheme.onPrimary.withValues(
+          alpha: onPressed == null ? 0.1 : 0.2,
+        ),
         shape: const CircleBorder(),
         child: InkWell(
           onTap: onPressed,
@@ -140,4 +143,3 @@ class _ItemCounterWidgetState extends State<ItemCounterWidget> {
     );
   }
 }
-

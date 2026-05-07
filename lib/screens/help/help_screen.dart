@@ -145,7 +145,7 @@ class _HelpScreenState extends State<HelpScreen> with TickerProviderStateMixin {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: Colors.transparent,
+      backgroundColor: AppColors.transparent,
       builder: (context) => _QueryFormSheet(orderNumber: widget.orderNumber),
     );
   }
@@ -159,7 +159,7 @@ class _HelpScreenState extends State<HelpScreen> with TickerProviderStateMixin {
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle.light.copyWith(
-        statusBarColor: Colors.transparent,
+        statusBarColor: AppColors.transparent,
         statusBarIconBrightness: Brightness.light,
       ),
       child: Scaffold(
@@ -233,29 +233,11 @@ class _HelpScreenState extends State<HelpScreen> with TickerProviderStateMixin {
               children: [
                 // Floating particles
                 ..._buildFloatingParticles(),
-                // Back button
+                // ANAAD Logo
                 Positioned(
                   top: statusBarHeight + 8,
                   left: 12,
-                  child: Material(
-                    color: Colors.white.withAlpha(30),
-                    borderRadius: BorderRadius.circular(12),
-                    child: InkWell(
-                      onTap: () {
-                        _triggerHaptic();
-                        Navigator.pop(context);
-                      },
-                      borderRadius: BorderRadius.circular(12),
-                      child: const Padding(
-                        padding: EdgeInsets.all(10),
-                        child: Icon(
-                          Icons.arrow_back_ios_new_rounded,
-                          color: Colors.white,
-                          size: 20,
-                        ),
-                      ),
-                    ),
-                  ),
+                  child: const AnaadLogoMark(),
                 ),
                 // Title and subtitle
                 Positioned(
@@ -271,7 +253,7 @@ class _HelpScreenState extends State<HelpScreen> with TickerProviderStateMixin {
                         child: const Text(
                           'The Community Desk',
                           style: TextStyle(
-                            color: Colors.white,
+                            color: AppColors.parchment,
                             fontSize: 28,
                             fontWeight: FontWeight.bold,
                             letterSpacing: 0.5,
@@ -285,7 +267,7 @@ class _HelpScreenState extends State<HelpScreen> with TickerProviderStateMixin {
                         child: Text(
                           'Questions about your food? Speak to us',
                           style: TextStyle(
-                            color: Colors.white.withAlpha(200),
+                            color: AppColors.parchment.withAlpha(200),
                             fontSize: 15,
                             fontWeight: FontWeight.w400,
                           ),
@@ -310,12 +292,12 @@ class _HelpScreenState extends State<HelpScreen> with TickerProviderStateMixin {
                         child: Container(
                           padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(
-                            color: Colors.white.withAlpha(25),
+                            color: AppColors.parchment.withAlpha(25),
                             shape: BoxShape.circle,
                           ),
                           child: const Icon(
                             Icons.support_agent_rounded,
-                            color: Colors.white,
+                            color: AppColors.parchment,
                             size: 40,
                           ),
                         ),
@@ -381,7 +363,7 @@ class _HelpScreenState extends State<HelpScreen> with TickerProviderStateMixin {
               child: Icon(
                 p['icon'] as IconData,
                 size: p['size'] as double,
-                color: Colors.white.withAlpha(40),
+                color: AppColors.parchment.withAlpha(40),
               ),
             ),
           );
@@ -406,24 +388,24 @@ class _HelpScreenState extends State<HelpScreen> with TickerProviderStateMixin {
         'icon': Icons.email_rounded,
         'title': 'Write to Us',
         'subtitle': ' A detailed response within 3-5 business days',
-        'color': Colors.blue,
-        'gradient': [Colors.blue.shade400, Colors.blue.shade600],
+        'color': AppColors.deepSoilGreen,
+        'gradient': [AppColors.deepSoilGreen, AppColors.deepSoilGreen],
         'onTap': () => _launchEmail('complaints@anaadfoods.com'),
       },
       {
         'icon': Icons.chat_rounded,
         'title': 'Chat Live',
         'subtitle': 'within 24 hours',
-        'color': Colors.green,
-        'gradient': [Colors.green.shade400, Colors.green.shade600],
+        'color': AppColors.deepSoilGreen,
+        'gradient': [AppColors.deepSoilGreen, AppColors.deepSoilGreen],
         'onTap': () => _launchWhatsApp('919996166186'),
       },
       {
         'icon': Icons.phone_rounded,
         'title': 'Speak to Us',
         'subtitle': 'Real voices, no robots',
-        'color': Colors.orange,
-        'gradient': [Colors.orange.shade400, Colors.orange.shade600],
+        'color': AppColors.harvestAmber,
+        'gradient': [AppColors.harvestAmber, AppColors.harvestAmber],
         'onTap': () => _launchPhoneCall('9996166186'),
       },
     ];
@@ -493,16 +475,16 @@ class _HelpScreenState extends State<HelpScreen> with TickerProviderStateMixin {
               Container(
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: Colors.white.withAlpha(50),
+                  color: AppColors.parchment.withAlpha(50),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: Icon(icon, color: Colors.white, size: 22),
+                child: Icon(icon, color: AppColors.parchment, size: 22),
               ),
               const Spacer(),
               Text(
                 title,
                 style: const TextStyle(
-                  color: Colors.white,
+                  color: AppColors.parchment,
                   fontSize: 15,
                   fontWeight: FontWeight.bold,
                 ),
@@ -511,7 +493,7 @@ class _HelpScreenState extends State<HelpScreen> with TickerProviderStateMixin {
               Text(
                 subtitle,
                 style: TextStyle(
-                  color: Colors.white.withAlpha(200),
+                  color: AppColors.parchment.withAlpha(200),
                   fontSize: 11,
                 ),
                 maxLines: 2,
@@ -639,7 +621,7 @@ class _HelpScreenState extends State<HelpScreen> with TickerProviderStateMixin {
               onPressed: _showQueryForm,
               style: ElevatedButton.styleFrom(
                 backgroundColor: colorScheme.primary,
-                foregroundColor: Colors.white,
+                foregroundColor: AppColors.parchment,
                 elevation: 0,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(16),
@@ -1005,7 +987,7 @@ class _QueryFormSheetState extends State<_QueryFormSheet>
                     onPressed: _isLoading ? null : _submitForm,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: colorScheme.primary,
-                      foregroundColor: Colors.white,
+                      foregroundColor: AppColors.parchment,
                       elevation: 0,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(16),
@@ -1017,7 +999,7 @@ class _QueryFormSheetState extends State<_QueryFormSheet>
                               width: 24,
                               height: 24,
                               child: CircularProgressIndicator(
-                                color: Colors.white,
+                                color: AppColors.parchment,
                                 strokeWidth: 2.5,
                               ),
                             )
@@ -1074,7 +1056,7 @@ class _QueryFormSheetState extends State<_QueryFormSheet>
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
-          borderSide: const BorderSide(color: Colors.red),
+          borderSide: const BorderSide(color: AppColors.rawEarth),
         ),
         contentPadding: const EdgeInsets.symmetric(
           horizontal: 16,
@@ -1170,7 +1152,7 @@ class _QueryFormSheetState extends State<_QueryFormSheet>
             Icon(
               icon,
               size: 20,
-              color: isSelected ? Colors.white : colorScheme.primary,
+              color: isSelected ? AppColors.parchment : colorScheme.primary,
             ),
             const SizedBox(width: 8),
             Text(
@@ -1178,7 +1160,7 @@ class _QueryFormSheetState extends State<_QueryFormSheet>
               style: TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.w600,
-                color: isSelected ? Colors.white : colorScheme.primary,
+                color: isSelected ? AppColors.parchment : colorScheme.primary,
               ),
             ),
           ],

@@ -1,5 +1,7 @@
+import 'package:grocery_app/core/theme/app_colors.dart';
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
+import 'package:grocery_app/core/theme/theme.dart';
 
 /// A reusable floating particle widget for animated screen headers.
 ///
@@ -54,7 +56,7 @@ class FloatingParticle extends StatelessWidget {
     this.minSize = 4,
     this.swayX = 30,
     this.swayY = 20,
-    this.color = Colors.white,
+    this.color = AppColors.parchment,
   });
 
   @override
@@ -81,7 +83,7 @@ class FloatingParticle extends StatelessWidget {
             height: size,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: color.withOpacity(opacity.clamp(0.05, 0.3)),
+              color: color.withValues(alpha: opacity.clamp(0.05, 0.3)),
             ),
           ),
         );

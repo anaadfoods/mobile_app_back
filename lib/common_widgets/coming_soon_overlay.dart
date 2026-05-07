@@ -1,4 +1,6 @@
+import 'package:grocery_app/core/theme/app_colors.dart';
 import 'package:flutter/material.dart';
+import 'package:grocery_app/core/theme/theme.dart';
 
 /// A full-card overlay shown when a product has `tag == false`.
 /// Drop this as the last child inside any Stack that wraps a product card.
@@ -9,36 +11,39 @@ class ComingSoonOverlay extends StatelessWidget {
   Widget build(BuildContext context) {
     return Positioned.fill(
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(AppColors.radiusXL - 4),
         child: Container(
-          color: const Color(0xFF091309).withOpacity(0.72),
+          color: AppColors.deepSoilGreen.withValues(alpha: 0.72),
           child: Center(
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+              padding: EdgeInsets.symmetric(
+                horizontal: AppSpacing.md + 2,
+                vertical: AppSpacing.sm,
+              ),
               decoration: BoxDecoration(
-                color: const Color(0xFFAD8441),
-                borderRadius: BorderRadius.circular(30),
+                color: AppColors.deepSoilGreen,
+                borderRadius: BorderRadius.circular(AppColors.radiusRound),
                 boxShadow: [
                   BoxShadow(
-                    color: const Color(0xFFAD8441).withOpacity(0.55),
+                    color: AppColors.deepSoilGreen.withValues(alpha: 0.55),
                     blurRadius: 14,
                     spreadRadius: 2,
                   ),
                 ],
               ),
-              child: const Row(
+              child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(
+                  const Icon(
                     Icons.schedule_rounded,
-                    color: Colors.white,
+                    color: AppColors.parchment,
                     size: 15,
                   ),
-                  SizedBox(width: 6),
+                  const SizedBox(width: 6),
                   Text(
                     'Coming Soon',
-                    style: TextStyle(
-                      color: Colors.white,
+                    style: AppTextStyles.caption.copyWith(
+                      color: AppColors.parchment,
                       fontSize: 13,
                       fontWeight: FontWeight.w700,
                       letterSpacing: 0.3,

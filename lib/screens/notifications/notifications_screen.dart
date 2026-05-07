@@ -290,7 +290,7 @@ class _NotificationsScreenState extends State<NotificationsScreen>
                     style: TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
-                      color: Colors.grey[800],
+                      color: AppColors.charcoal87,
                     ),
                     textAlign: TextAlign.center,
                   ),
@@ -300,7 +300,7 @@ class _NotificationsScreenState extends State<NotificationsScreen>
                     notification['body'] ?? 'Special offer just for you!',
                     style: TextStyle(
                       fontSize: 16,
-                      color: Colors.grey[600],
+                      color: AppColors.rawEarth70,
                       height: 1.4,
                     ),
                     textAlign: TextAlign.center,
@@ -317,7 +317,7 @@ class _NotificationsScreenState extends State<NotificationsScreen>
                           },
                           child: Text(
                             'Dismiss',
-                            style: TextStyle(color: Colors.grey[600]),
+                            style: TextStyle(color: AppColors.rawEarth70),
                           ),
                         ),
                       ),
@@ -330,14 +330,14 @@ class _NotificationsScreenState extends State<NotificationsScreen>
                             _handlePromotionalAction(notification);
                           },
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.green,
+                            backgroundColor: AppColors.deepSoilGreen,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(10),
                             ),
                           ),
                           child: Text(
                             'View Offer',
-                            style: TextStyle(color: Colors.white),
+                            style: TextStyle(color: AppColors.parchment),
                           ),
                         ),
                       ),
@@ -500,7 +500,7 @@ class _NotificationsScreenState extends State<NotificationsScreen>
 
     return Scaffold(
       backgroundColor:
-          isDark ? theme.scaffoldBackgroundColor : Colors.grey.shade50,
+          isDark ? theme.scaffoldBackgroundColor : AppColors.parchment,
       body: CustomScrollView(
         slivers: [
           // Modern U-Shape Header
@@ -535,7 +535,10 @@ class _NotificationsScreenState extends State<NotificationsScreen>
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [colorScheme.primary, colorScheme.primary.withOpacity(0.8)],
+            colors: [
+              colorScheme.primary,
+              colorScheme.primary.withValues(alpha: 0.8),
+            ],
           ),
           borderRadius: const BorderRadius.only(
             bottomLeft: Radius.circular(32),
@@ -543,7 +546,7 @@ class _NotificationsScreenState extends State<NotificationsScreen>
           ),
           boxShadow: [
             BoxShadow(
-              color: colorScheme.primary.withOpacity(0.3),
+              color: colorScheme.primary.withValues(alpha: 0.3),
               blurRadius: 20,
               offset: const Offset(0, 10),
             ),
@@ -560,7 +563,7 @@ class _NotificationsScreenState extends State<NotificationsScreen>
                 height: 120,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: Colors.white.withOpacity(0.1),
+                  color: AppColors.parchment.withValues(alpha: 0.1),
                 ),
               ),
             ),
@@ -572,7 +575,7 @@ class _NotificationsScreenState extends State<NotificationsScreen>
                 height: 80,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: Colors.white.withOpacity(0.08),
+                  color: AppColors.parchment.withValues(alpha: 0.08),
                 ),
               ),
             ),
@@ -590,12 +593,12 @@ class _NotificationsScreenState extends State<NotificationsScreen>
                     child: Container(
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.2),
+                        color: AppColors.parchment.withValues(alpha: 0.2),
                         shape: BoxShape.circle,
                       ),
                       child: const Icon(
                         Icons.notifications_rounded,
-                        color: Colors.white,
+                        color: AppColors.parchment,
                         size: 36,
                       ),
                     ),
@@ -615,33 +618,21 @@ class _NotificationsScreenState extends State<NotificationsScreen>
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        GestureDetector(
-                          onTap: () => Navigator.pop(context),
-                          child: Container(
-                            padding: const EdgeInsets.all(10),
-                            decoration: BoxDecoration(
-                              color: Colors.white.withOpacity(0.2),
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: const Icon(
-                              Icons.arrow_back_ios_new_rounded,
-                              color: Colors.white,
-                              size: 20,
-                            ),
-                          ),
-                        ),
+                        const AnaadLogoMark(),
                         if (_notifications.isNotEmpty)
                           GestureDetector(
                             onTap: _clearAllNotifications,
                             child: Container(
                               padding: const EdgeInsets.all(10),
                               decoration: BoxDecoration(
-                                color: Colors.white.withOpacity(0.2),
+                                color: AppColors.parchment.withValues(
+                                  alpha: 0.2,
+                                ),
                                 borderRadius: BorderRadius.circular(12),
                               ),
                               child: const Icon(
                                 Icons.delete_sweep_rounded,
-                                color: Colors.white,
+                                color: AppColors.parchment,
                                 size: 20,
                               ),
                             ),
@@ -653,7 +644,7 @@ class _NotificationsScreenState extends State<NotificationsScreen>
                     Text(
                       "Notifications",
                       style: theme.textTheme.headlineMedium?.copyWith(
-                        color: Colors.white,
+                        color: AppColors.parchment,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -663,7 +654,7 @@ class _NotificationsScreenState extends State<NotificationsScreen>
                           ? '$unreadCount unread notification${unreadCount > 1 ? 's' : ''}'
                           : 'All caught up!',
                       style: theme.textTheme.bodyMedium?.copyWith(
-                        color: Colors.white.withOpacity(0.9),
+                        color: AppColors.parchment.withValues(alpha: 0.9),
                       ),
                     ),
                   ],
@@ -693,12 +684,12 @@ class _NotificationsScreenState extends State<NotificationsScreen>
 
     final filterColors = {
       'all': colorScheme.primary,
-      'payment': Colors.green,
-      'subscription': Colors.purple,
-      'order': Colors.blue,
-      'product': Colors.orange,
-      'promotional': Colors.pink,
-      'system': Colors.grey,
+      'payment': AppColors.deepSoilGreen,
+      'subscription': AppColors.harvestAmber,
+      'order': AppColors.deepSoilGreen,
+      'product': AppColors.harvestAmber,
+      'promotional': AppColors.harvestAmber,
+      'system': AppColors.rawEarth54,
     };
 
     return Container(
@@ -738,23 +729,23 @@ class _NotificationsScreenState extends State<NotificationsScreen>
                             isSelected
                                 ? color
                                 : (isDark
-                                    ? Colors.grey.shade800
-                                    : Colors.white),
+                                    ? AppColors.charcoal87
+                                    : AppColors.parchment),
                         borderRadius: BorderRadius.circular(25),
                         border: Border.all(
                           color:
                               isSelected
                                   ? color
                                   : (isDark
-                                      ? Colors.grey.shade700
-                                      : Colors.grey.shade200),
+                                      ? AppColors.charcoal60
+                                      : AppColors.parchment),
                           width: 1.5,
                         ),
                         boxShadow:
                             isSelected
                                 ? [
                                   BoxShadow(
-                                    color: color.withOpacity(0.4),
+                                    color: color.withValues(alpha: 0.4),
                                     blurRadius: 8,
                                     offset: const Offset(0, 3),
                                   ),
@@ -767,7 +758,7 @@ class _NotificationsScreenState extends State<NotificationsScreen>
                           Icon(
                             icon,
                             size: 18,
-                            color: isSelected ? Colors.white : color,
+                            color: isSelected ? AppColors.parchment : color,
                           ),
                           const SizedBox(width: 8),
                           Text(
@@ -775,10 +766,10 @@ class _NotificationsScreenState extends State<NotificationsScreen>
                             style: theme.textTheme.bodyMedium?.copyWith(
                               color:
                                   isSelected
-                                      ? Colors.white
+                                      ? AppColors.parchment
                                       : (isDark
-                                          ? Colors.white70
-                                          : Colors.grey.shade700),
+                                          ? AppColors.parchment70
+                                          : AppColors.charcoal60),
                               fontWeight:
                                   isSelected
                                       ? FontWeight.w600
@@ -795,14 +786,17 @@ class _NotificationsScreenState extends State<NotificationsScreen>
                               decoration: BoxDecoration(
                                 color:
                                     isSelected
-                                        ? Colors.white.withOpacity(0.3)
-                                        : color.withOpacity(0.15),
+                                        ? AppColors.parchment.withValues(
+                                          alpha: 0.3,
+                                        )
+                                        : color.withValues(alpha: 0.15),
                                 borderRadius: BorderRadius.circular(12),
                               ),
                               child: Text(
                                 count.toString(),
                                 style: theme.textTheme.labelSmall?.copyWith(
-                                  color: isSelected ? Colors.white : color,
+                                  color:
+                                      isSelected ? AppColors.parchment : color,
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
@@ -849,7 +843,7 @@ class _NotificationsScreenState extends State<NotificationsScreen>
                   ),
                   child: const Icon(
                     Icons.notifications_rounded,
-                    color: Colors.white,
+                    color: AppColors.parchment,
                     size: 32,
                   ),
                 ),
@@ -922,12 +916,12 @@ class _NotificationsScreenState extends State<NotificationsScreen>
             padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: colorScheme.primary.withOpacity(0.1),
+              color: colorScheme.primary.withValues(alpha: 0.1),
             ),
             child: Icon(
               Icons.notifications_off_rounded,
               size: 64,
-              color: colorScheme.primary.withOpacity(0.5),
+              color: colorScheme.primary.withValues(alpha: 0.5),
             ),
           ),
           const SizedBox(height: 24),
@@ -979,12 +973,12 @@ class _NotificationsScreenState extends State<NotificationsScreen>
         child: const Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.delete_rounded, color: Colors.white, size: 28),
+            Icon(Icons.delete_rounded, color: AppColors.parchment, size: 28),
             SizedBox(height: 4),
             Text(
               'Delete',
               style: TextStyle(
-                color: Colors.white,
+                color: AppColors.parchment,
                 fontWeight: FontWeight.w600,
               ),
             ),
@@ -999,19 +993,19 @@ class _NotificationsScreenState extends State<NotificationsScreen>
         child: Container(
           margin: const EdgeInsets.only(bottom: 12),
           decoration: BoxDecoration(
-            color: isDark ? Colors.grey.shade900 : Colors.white,
+            color: isDark ? AppColors.charcoal : AppColors.parchment,
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
               color:
                   isHighPriority
-                      ? color.withOpacity(0.5)
-                      : (isDark ? Colors.grey.shade800 : Colors.grey.shade100),
+                      ? color.withValues(alpha: 0.5)
+                      : (isDark ? AppColors.charcoal87 : AppColors.parchment),
               width: isHighPriority ? 2 : 1,
             ),
             boxShadow: [
               BoxShadow(
-                color: (isHighPriority ? color : theme.shadowColor).withOpacity(
-                  0.08,
+                color: (isHighPriority ? color : theme.shadowColor).withValues(
+                  alpha: 0.08,
                 ),
                 blurRadius: 12,
                 offset: const Offset(0, 4),
@@ -1031,7 +1025,10 @@ class _NotificationsScreenState extends State<NotificationsScreen>
                     gradient: LinearGradient(
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
-                      colors: [color.withOpacity(0.2), color.withOpacity(0.1)],
+                      colors: [
+                        color.withValues(alpha: 0.2),
+                        color.withValues(alpha: 0.1),
+                      ],
                     ),
                     borderRadius: BorderRadius.circular(14),
                   ),
@@ -1069,7 +1066,7 @@ class _NotificationsScreenState extends State<NotificationsScreen>
                               child: Text(
                                 'URGENT',
                                 style: theme.textTheme.labelSmall?.copyWith(
-                                  color: Colors.white,
+                                  color: AppColors.parchment,
                                   fontWeight: FontWeight.bold,
                                   fontSize: 10,
                                 ),
@@ -1084,7 +1081,7 @@ class _NotificationsScreenState extends State<NotificationsScreen>
                           style: theme.textTheme.bodyMedium?.copyWith(
                             color:
                                 isRead
-                                    ? theme.hintColor.withOpacity(0.7)
+                                    ? theme.hintColor.withValues(alpha: 0.7)
                                     : theme.hintColor,
                             height: 1.4,
                           ),
@@ -1110,8 +1107,8 @@ class _NotificationsScreenState extends State<NotificationsScreen>
                                 decoration: BoxDecoration(
                                   color:
                                       isDark
-                                          ? Colors.grey.shade800
-                                          : Colors.grey.shade200,
+                                          ? AppColors.charcoal87
+                                          : AppColors.parchment,
                                   borderRadius: BorderRadius.circular(12),
                                 ),
                                 child: Center(

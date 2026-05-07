@@ -1,62 +1,62 @@
+import 'package:grocery_app/core/theme/app_colors.dart';
 import 'package:flutter/material.dart';
+import 'package:grocery_app/core/theme/theme.dart';
 
 class NoInternetWidget extends StatelessWidget {
   final VoidCallback onRetry;
 
-  const NoInternetWidget({Key? key, required this.onRetry}) : super(key: key);
+  const NoInternetWidget({super.key, required this.onRetry});
 
   @override
   Widget build(BuildContext context) {
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(24.0),
+        padding: AppSpacing.paddingXl,
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             // Friendly wifi icon with warm color
-            Icon(
+            const Icon(
               Icons.wifi_off_rounded,
               size: 80,
-              color: const Color(0xFF6B7B8A), // Cool slate grey - friendly
+              color: AppColors.charcoal54,
             ),
-            const SizedBox(height: 24),
+            AppSpacing.verticalXl,
             Text(
               "Oops! You're Offline 📶",
-              style: Theme.of(
-                context,
-              ).textTheme.headlineMedium?.copyWith(
+              style: context.text.headlineMedium?.copyWith(
                 fontWeight: FontWeight.bold,
-                color: const Color(0xFF6B7B8A),
+                color: AppColors.charcoal54,
               ),
               textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 12),
+            AppSpacing.verticalMd,
             Text(
               'Your internet took a coffee break ☕\nCheck your connection and try again.',
-              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+              style: context.text.bodyLarge?.copyWith(
                 color: Theme.of(context).hintColor,
               ),
               textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 16),
+            AppSpacing.verticalLg,
             Text(
               "🐄 A single desi cow can support an entire family's farming needs sustainably!",
-              style: TextStyle(
-                color: Colors.green.shade700,
+              style: AppTextStyles.caption.copyWith(
+                color: AppColors.deepSoilGreen,
                 fontSize: 12,
                 fontStyle: FontStyle.italic,
               ),
               textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 24),
+            AppSpacing.verticalXl,
             FilledButton.icon(
               onPressed: onRetry,
               icon: const Icon(Icons.refresh_rounded),
               label: const Text('Try Again'),
               style: FilledButton.styleFrom(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 32,
-                  vertical: 16,
+                padding: EdgeInsets.symmetric(
+                  horizontal: AppSpacing.xxl,
+                  vertical: AppSpacing.lg,
                 ),
               ),
             ),
@@ -66,4 +66,3 @@ class NoInternetWidget extends StatelessWidget {
     );
   }
 }
-

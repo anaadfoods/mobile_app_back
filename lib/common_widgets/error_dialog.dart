@@ -1,5 +1,6 @@
+import 'package:grocery_app/core/theme/app_colors.dart';
 import 'package:flutter/material.dart';
-import 'package:grocery_app/styles/colors.dart';
+import 'package:grocery_app/core/theme/theme.dart';
 import 'package:grocery_app/common_widgets/app_constants.dart';
 
 /// A beautifully themed error dialog that displays user-friendly error messages.
@@ -45,13 +46,12 @@ class ErrorDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
     final isDark = theme.brightness == Brightness.dark;
 
-    final effectiveIconColor = iconColor ?? colorScheme.error;
+    final effectiveIconColor = iconColor ?? (isDark ? AppColors.rawEarth : AppColors.softRed);
 
     return Dialog(
-      backgroundColor: Colors.transparent,
+      backgroundColor: AppColors.transparent,
       elevation: 0,
       child: TweenAnimationBuilder<double>(
         tween: Tween(begin: 0.0, end: 1.0),
@@ -66,11 +66,13 @@ class ErrorDialog extends StatelessWidget {
         child: Container(
           constraints: const BoxConstraints(maxWidth: 340),
           decoration: BoxDecoration(
-            color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+            color: isDark ? AppColors.deepSoilGreen : AppColors.pureWhite,
             borderRadius: BorderRadius.circular(AppDecorations.radiusXL),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(isDark ? 0.4 : 0.15),
+                color: AppColors.charcoal.withValues(
+                  alpha: isDark ? 0.4 : 0.15,
+                ),
                 blurRadius: 24,
                 offset: const Offset(0, 8),
               ),
@@ -93,7 +95,8 @@ class ErrorDialog extends StatelessWidget {
                       title,
                       style: theme.textTheme.titleLarge?.copyWith(
                         fontWeight: FontWeight.bold,
-                        color: isDark ? Colors.white : AppColors.textPrimary,
+                        color:
+                            isDark ? AppColors.parchment : AppColors.charcoal,
                       ),
                       textAlign: TextAlign.center,
                     ),
@@ -104,7 +107,9 @@ class ErrorDialog extends StatelessWidget {
                       message,
                       style: theme.textTheme.bodyMedium?.copyWith(
                         color:
-                            isDark ? Colors.grey[400] : AppColors.textSecondary,
+                            isDark
+                                ? AppColors.rawEarth26
+                                : AppColors.charcoal70,
                         height: 1.5,
                       ),
                       textAlign: TextAlign.center,
@@ -132,8 +137,8 @@ class ErrorDialog extends StatelessWidget {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            iconColor.withOpacity(isDark ? 0.25 : 0.12),
-            iconColor.withOpacity(isDark ? 0.1 : 0.05),
+            iconColor.withValues(alpha: isDark ? 0.25 : 0.12),
+            iconColor.withValues(alpha: isDark ? 0.1 : 0.05),
           ],
         ),
         borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
@@ -153,7 +158,7 @@ class ErrorDialog extends StatelessWidget {
                   },
                   icon: Icon(
                     Icons.close_rounded,
-                    color: isDark ? Colors.grey[400] : Colors.grey[600],
+                    color: isDark ? AppColors.rawEarth26 : AppColors.rawEarth70,
                     size: 22,
                   ),
                   splashRadius: 24,
@@ -168,10 +173,10 @@ class ErrorDialog extends StatelessWidget {
             height: 80,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: iconColor.withOpacity(isDark ? 0.2 : 0.15),
+              color: iconColor.withValues(alpha: isDark ? 0.2 : 0.15),
               boxShadow: [
                 BoxShadow(
-                  color: iconColor.withOpacity(0.3),
+                  color: iconColor.withValues(alpha: 0.3),
                   blurRadius: 20,
                   spreadRadius: 2,
                 ),
@@ -212,8 +217,8 @@ class ErrorDialog extends StatelessWidget {
               ),
               label: Text(primaryButtonText ?? 'Try Again'),
               style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primaryColor,
-                foregroundColor: Colors.white,
+                backgroundColor: AppColors.deepSoilGreen,
+                foregroundColor: AppColors.parchment,
                 padding: const EdgeInsets.symmetric(vertical: 14),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
@@ -236,7 +241,7 @@ class ErrorDialog extends StatelessWidget {
               child: Text(
                 secondaryButtonText ?? 'Dismiss',
                 style: TextStyle(
-                  color: isDark ? Colors.grey[400] : AppColors.textSecondary,
+                  color: isDark ? AppColors.rawEarth26 : AppColors.charcoal70,
                   fontWeight: FontWeight.w500,
                 ),
               ),
@@ -254,8 +259,8 @@ class ErrorDialog extends StatelessWidget {
                 onDismiss?.call();
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primaryColor,
-                foregroundColor: Colors.white,
+                backgroundColor: AppColors.deepSoilGreen,
+                foregroundColor: AppColors.parchment,
                 padding: const EdgeInsets.symmetric(vertical: 14),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
@@ -278,9 +283,10 @@ class ErrorDialogPresets {
   static ErrorDialog networkError({VoidCallback? onRetry}) {
     return ErrorDialog(
       title: 'Oops! You\'re Offline',
-      message: 'Looks like your internet took a coffee break ☕\nCheck your connection and try again.',
+      message:
+          'Looks like your internet took a coffee break ☕\nCheck your connection and try again.',
       icon: Icons.wifi_off_rounded,
-      iconColor: const Color(0xFF6B7B8A), // Cool slate grey
+      iconColor: AppColors.charcoal54,
       onRetry: onRetry,
     );
   }
@@ -291,7 +297,7 @@ class ErrorDialogPresets {
       title: 'Our Servers Need a Moment',
       message: 'We\'re working on it! Please try again shortly.',
       icon: Icons.cloud_outlined,
-      iconColor: const Color(0xFF8B7355), // Warm mocha
+      iconColor: AppColors.rawEarth,
       onRetry: onRetry,
     );
   }
@@ -302,7 +308,7 @@ class ErrorDialogPresets {
       title: 'Session Took a Nap 💤',
       message: 'Your session has ended. Please log in again to continue.',
       icon: Icons.access_time_rounded,
-      iconColor: const Color(0xFFB8860B), // Dark golden
+      iconColor: AppColors.harvestAmber,
       primaryButtonText: 'Log In',
       onRetry: onLogin,
       showCloseButton: false,
@@ -314,9 +320,8 @@ class ErrorDialogPresets {
     return ErrorDialog(
       title: 'Hmm, That Didn\'t Work',
       message: message ?? 'Something went sideways. Let\'s try again! 🔄',
-      iconColor: const Color(0xFF8B7355), // Warm mocha
+      iconColor: AppColors.rawEarth,
       onRetry: onRetry,
     );
   }
 }
-

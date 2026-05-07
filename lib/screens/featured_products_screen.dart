@@ -55,8 +55,7 @@ class _FeaturedProductsScreenState extends State<FeaturedProductsScreen> {
     final isDark = theme.brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor:
-          isDark ? const Color(0xFF121212) : const Color(0xFFF5F5F5),
+      backgroundColor: isDark ? AppColors.darkCanvas : AppColors.parchment,
       body: CustomScrollView(
         slivers: [
           // App Bar
@@ -64,7 +63,7 @@ class _FeaturedProductsScreenState extends State<FeaturedProductsScreen> {
             expandedHeight: 140,
             floating: false,
             pinned: true,
-            backgroundColor: AppColors.primaryColor,
+            backgroundColor: AppColors.deepSoilGreen,
             shape: const RoundedRectangleBorder(
               borderRadius: BorderRadius.only(
                 bottomLeft: Radius.circular(32),
@@ -83,8 +82,8 @@ class _FeaturedProductsScreenState extends State<FeaturedProductsScreen> {
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                       colors: [
-                        AppColors.primaryColor,
-                        AppColors.primaryColor.withOpacity(0.8),
+                        AppColors.deepSoilGreen,
+                        AppColors.deepSoilGreen.withValues(alpha: 0.8),
                       ],
                     ),
                   ),
@@ -99,7 +98,7 @@ class _FeaturedProductsScreenState extends State<FeaturedProductsScreen> {
                           Text(
                             'Featured Products',
                             style: theme.textTheme.headlineSmall?.copyWith(
-                              color: Colors.white,
+                              color: AppColors.parchment,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
@@ -107,7 +106,7 @@ class _FeaturedProductsScreenState extends State<FeaturedProductsScreen> {
                           Text(
                             '${_products.length} products available',
                             style: theme.textTheme.bodyMedium?.copyWith(
-                              color: Colors.white.withOpacity(0.8),
+                              color: AppColors.parchment.withValues(alpha: 0.8),
                             ),
                           ),
                         ],
@@ -117,24 +116,16 @@ class _FeaturedProductsScreenState extends State<FeaturedProductsScreen> {
                 ),
               ),
             ),
-            leading: IconButton(
-              icon: Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.15),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: const Icon(Icons.arrow_back_ios_new, size: 18),
-              ),
-              color: Colors.white,
-              onPressed: () => context.pop(),
+            leading: Padding(
+              padding: const EdgeInsets.all(4),
+              child: const AnaadLogoMark(),
             ),
             actions: [
               IconButton(
                 icon: Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.15),
+                    color: AppColors.parchment.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Icon(
@@ -144,7 +135,7 @@ class _FeaturedProductsScreenState extends State<FeaturedProductsScreen> {
                     size: 20,
                   ),
                 ),
-                color: Colors.white,
+                color: AppColors.parchment,
                 onPressed: () => setState(() => _isGridView = !_isGridView),
               ),
               const SizedBox(width: 8),
@@ -214,11 +205,11 @@ class _FeaturedProductsScreenState extends State<FeaturedProductsScreen> {
               child: Container(
                 height: 100,
                 decoration: BoxDecoration(
-                  color: isDark ? const Color(0xFF2A2A2A) : Colors.white,
+                  color: isDark ? AppColors.darkSurfaceElevated : AppColors.parchment,
                   borderRadius: BorderRadius.circular(16),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.05),
+                      color: AppColors.charcoal.withValues(alpha: 0.05),
                       blurRadius: 8,
                       offset: const Offset(0, 2),
                     ),
@@ -229,7 +220,8 @@ class _FeaturedProductsScreenState extends State<FeaturedProductsScreen> {
                     Container(
                       width: 100,
                       decoration: BoxDecoration(
-                        color: isDark ? Colors.grey[800] : Colors.grey[200],
+                        color:
+                            isDark ? AppColors.charcoal87 : AppColors.parchment,
                         borderRadius: const BorderRadius.horizontal(
                           left: Radius.circular(16),
                         ),
@@ -256,7 +248,10 @@ class _FeaturedProductsScreenState extends State<FeaturedProductsScreen> {
                         width: 36,
                         height: 36,
                         decoration: BoxDecoration(
-                          color: isDark ? Colors.grey[700] : Colors.grey[200],
+                          color:
+                              isDark
+                                  ? AppColors.charcoal60
+                                  : AppColors.parchment,
                           borderRadius: BorderRadius.circular(10),
                         ),
                       ),
@@ -289,18 +284,19 @@ class _FeaturedProductsScreenState extends State<FeaturedProductsScreen> {
           decoration: BoxDecoration(
             color:
                 isSelected
-                    ? AppColors.primaryColor
-                    : (isDark ? Colors.grey[850] : Colors.white),
+                    ? AppColors.deepSoilGreen
+                    : (isDark ? AppColors.charcoal87 : AppColors.parchment),
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
-              color: isSelected ? AppColors.primaryColor : Colors.transparent,
+              color:
+                  isSelected ? AppColors.deepSoilGreen : AppColors.transparent,
             ),
             boxShadow:
                 isSelected
                     ? null
                     : [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.05),
+                        color: AppColors.charcoal.withValues(alpha: 0.05),
                         blurRadius: 4,
                         offset: const Offset(0, 2),
                       ),
@@ -314,8 +310,10 @@ class _FeaturedProductsScreenState extends State<FeaturedProductsScreen> {
                 size: 16,
                 color:
                     isSelected
-                        ? Colors.white
-                        : (isDark ? Colors.white70 : Colors.black54),
+                        ? AppColors.parchment
+                        : (isDark
+                            ? AppColors.parchment70
+                            : AppColors.charcoal54),
               ),
               const SizedBox(width: 6),
               Text(
@@ -325,8 +323,10 @@ class _FeaturedProductsScreenState extends State<FeaturedProductsScreen> {
                   fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
                   color:
                       isSelected
-                          ? Colors.white
-                          : (isDark ? Colors.white70 : Colors.black87),
+                          ? AppColors.parchment
+                          : (isDark
+                              ? AppColors.parchment70
+                              : AppColors.charcoal87),
                 ),
               ),
             ],
@@ -414,14 +414,14 @@ class _FeaturedProductCard extends StatelessWidget {
           children: [
             Container(
               decoration: BoxDecoration(
-                color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+                color: isDark ? AppColors.darkSurfaceElevated : AppColors.parchment,
                 borderRadius: BorderRadius.circular(20),
                 boxShadow: [
                   BoxShadow(
                     color:
                         isDark
-                            ? Colors.black26
-                            : Colors.black.withOpacity(0.06),
+                            ? AppColors.charcoal26
+                            : AppColors.charcoal.withValues(alpha: 0.06),
                     blurRadius: 12,
                     offset: const Offset(0, 4),
                   ),
@@ -441,7 +441,14 @@ class _FeaturedProductCard extends StatelessWidget {
                             borderRadius: const BorderRadius.vertical(
                               top: Radius.circular(20),
                             ),
-                            gradient: _getDummyGradient(index),
+                            gradient: isDark
+                                ? LinearGradient(
+                                  colors: [
+                                    AppColors.darkCanvas,
+                                    AppColors.darkCanvas,
+                                  ],
+                                )
+                                : _getDummyGradient(index),
                           ),
                           child: ClipRRect(
                             borderRadius: const BorderRadius.vertical(
@@ -461,13 +468,20 @@ class _FeaturedProductCard extends StatelessWidget {
                                 vertical: 4,
                               ),
                               decoration: BoxDecoration(
-                                color: AppColors.error,
+                                color: AppColors.harvestAmber,
                                 borderRadius: BorderRadius.circular(8),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: AppColors.harvestAmber.withValues(alpha: 0.3),
+                                    blurRadius: 6,
+                                    offset: const Offset(0, 2),
+                                  ),
+                                ],
                               ),
                               child: Text(
                                 '${product.discountPercentage.toInt()}% OFF',
                                 style: const TextStyle(
-                                  color: Colors.white,
+                                  color: AppColors.pureWhite,
                                   fontSize: 10,
                                   fontWeight: FontWeight.bold,
                                 ),
@@ -481,13 +495,16 @@ class _FeaturedProductCard extends StatelessWidget {
                           child: Container(
                             padding: const EdgeInsets.all(6),
                             decoration: BoxDecoration(
-                              color: Colors.white.withOpacity(0.9),
+                              color: AppColors.parchment.withValues(alpha: 0.9),
                               shape: BoxShape.circle,
                             ),
                             child: Icon(
                               Icons.favorite_border,
                               size: 18,
-                              color: isDark ? Colors.black54 : Colors.black45,
+                              color:
+                                  isDark
+                                      ? AppColors.charcoal54
+                                      : AppColors.charcoal45,
                             ),
                           ),
                         ),
@@ -527,7 +544,7 @@ class _FeaturedProductCard extends StatelessWidget {
                                 '₹${product.finalPrice.toStringAsFixed(0)}',
                                 style: theme.textTheme.titleMedium?.copyWith(
                                   fontWeight: FontWeight.bold,
-                                  color: AppColors.primaryColor,
+                                  color: AppColors.deepSoilGreen,
                                 ),
                                 overflow: TextOverflow.ellipsis,
                               ),
@@ -564,12 +581,12 @@ class _FeaturedProductCard extends StatelessWidget {
 
   LinearGradient _getDummyGradient(int index) {
     final gradients = [
-      [const Color(0xFFFFF3E0), const Color(0xFFFFE0B2)], // Orange light
-      [const Color(0xFFE8F5E9), const Color(0xFFC8E6C9)], // Green light
-      [const Color(0xFFFCE4EC), const Color(0xFFF8BBD0)], // Pink light
-      [const Color(0xFFE3F2FD), const Color(0xFFBBDEFB)], // Blue light
-      [const Color(0xFFF3E5F5), const Color(0xFFE1BEE7)], // Purple light
-      [const Color(0xFFFFFDE7), const Color(0xFFFFF9C4)], // Yellow light
+      [AppColors.parchment, AppColors.parchment], // Orange light
+      [AppColors.parchment, AppColors.parchment], // Green light
+      [AppColors.parchment, AppColors.parchment], // Pink light
+      [AppColors.parchment, AppColors.parchment], // Blue light
+      [AppColors.parchment, AppColors.parchment], // Purple light
+      [AppColors.parchment, AppColors.parchment], // Yellow light
     ];
     final colors = gradients[index % gradients.length];
     return LinearGradient(
@@ -601,18 +618,18 @@ class _FeaturedProductCard extends StatelessWidget {
       Icons.breakfast_dining_rounded,
     ];
     final colors = [
-      const Color(0xFFE65100),
-      const Color(0xFF2E7D32),
-      const Color(0xFFD32F2F),
-      const Color(0xFF7B1FA2),
-      const Color(0xFFF9A825),
-      const Color(0xFF795548),
+      AppColors.parchment,
+      AppColors.parchment,
+      AppColors.parchment,
+      AppColors.parchment,
+      AppColors.parchment,
+      AppColors.parchment,
     ];
     return Center(
       child: Icon(
         icons[index % icons.length],
         size: 56,
-        color: colors[index % colors.length].withOpacity(0.6),
+        color: colors[index % colors.length].withValues(alpha: 0.6),
       ),
     );
   }
@@ -642,7 +659,7 @@ class _AddToCartButton extends StatelessWidget {
         if (quantity > 0) {
           return Container(
             decoration: BoxDecoration(
-              color: AppColors.primaryColor.withOpacity(0.1),
+              color: AppColors.deepSoilGreen.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(10),
             ),
             child: Row(
@@ -655,7 +672,7 @@ class _AddToCartButton extends StatelessWidget {
                     child: Icon(
                       Icons.remove,
                       size: 16,
-                      color: AppColors.primaryColor,
+                      color: AppColors.deepSoilGreen,
                     ),
                   ),
                 ),
@@ -665,7 +682,7 @@ class _AddToCartButton extends StatelessWidget {
                     '$quantity',
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
-                      color: AppColors.primaryColor,
+                      color: AppColors.deepSoilGreen,
                     ),
                   ),
                 ),
@@ -676,7 +693,7 @@ class _AddToCartButton extends StatelessWidget {
                     child: Icon(
                       Icons.add,
                       size: 16,
-                      color: AppColors.primaryColor,
+                      color: AppColors.deepSoilGreen,
                     ),
                   ),
                 ),
@@ -693,10 +710,10 @@ class _AddToCartButton extends StatelessWidget {
           child: Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: AppColors.primaryColor,
+              color: AppColors.deepSoilGreen,
               borderRadius: BorderRadius.circular(10),
             ),
-            child: const Icon(Icons.add, size: 18, color: Colors.white),
+            child: const Icon(Icons.add, size: 18, color: AppColors.parchment),
           ),
         );
       },

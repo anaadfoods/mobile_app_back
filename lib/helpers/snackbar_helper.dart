@@ -1,19 +1,42 @@
 import 'package:flutter/material.dart';
+import 'package:grocery_app/core/theme/app_colors.dart';
 
-/// Friendly snackbar helper with app-themed colors
-/// Uses warm, friendly tones - no scary red colors!
+/// ═══════════════════════════════════════════════════════════════════════════
+/// SnackBarHelper — Premium ANAAD-themed notification system.
+///
+/// Light Mode: Clean whites & semantic tints with green/gold/teal accents.
+/// Dark Mode: Deep Soil Green base with parchment text.
+/// ═══════════════════════════════════════════════════════════════════════════
 class SnackBarHelper {
-  // Friendly color palette matching app theme
-  static const _successColor = Color(0xFF3f5e46);    // App primary green
-  static const _errorColor = Color(0xFF8B7355);      // Warm mocha - friendly, not scary
-  static const _infoColor = Color(0xFF5B8A9A);       // Soft teal blue
-  static const _warningColor = Color(0xFFB8860B);    // Dark golden
-  static const _networkColor = Color(0xFF6B7B8A);    // Cool slate grey
+  // ─── Semantic Background Colors ──────────────────────────────────────────
+  static const _successBg = AppColors.deepSoilGreen;
+  static const _successIcon = AppColors.parchment;
+  static const _successText = AppColors.parchment;
+
+  static const _errorBg = AppColors.softRed;
+  static const _errorIcon = AppColors.parchment;
+  static const _errorText = AppColors.parchment;
+
+  static const _infoBg = AppColors.infoTeal;
+  static const _infoIcon = AppColors.parchment;
+  static const _infoText = AppColors.parchment;
+
+  static const _warningBg = AppColors.amberWarn;
+  static const _warningIcon = AppColors.pureWhite;
+  static const _warningText = AppColors.pureWhite;
+
+  static const _networkBg = AppColors.charcoal;
+  static const _networkIcon = AppColors.parchment;
+  static const _networkText = AppColors.parchment;
+
+  static const _loadingBg = AppColors.deepSoilGreen;
 
   static void showTopSnackBar(
     BuildContext context, {
     required String message,
-    Color backgroundColor = const Color(0xFF3f5e46),
+    Color backgroundColor = AppColors.deepSoilGreen,
+    Color textColor = AppColors.parchment,
+    Color iconColor = AppColors.parchment,
     Duration duration = const Duration(seconds: 3),
     SnackBarAction? action,
     bool showProgressIndicator = false,
@@ -23,8 +46,6 @@ class SnackBarHelper {
     late final OverlayEntry overlayEntry;
     bool isDismissible = true;
 
-    final shadowColor = backgroundColor.withValues(alpha: 0.4);
-
     overlayEntry = OverlayEntry(
       builder:
           (context) => Positioned(
@@ -32,14 +53,14 @@ class SnackBarHelper {
             left: 16,
             right: 16,
             child: Material(
-              color: Colors.transparent,
+              color: AppColors.transparent,
               child: TweenAnimationBuilder<double>(
                 tween: Tween(begin: 0.0, end: 1.0),
-                duration: const Duration(milliseconds: 300),
+                duration: const Duration(milliseconds: 350),
                 curve: Curves.easeOutBack,
                 builder: (context, value, child) {
                   return Transform.translate(
-                    offset: Offset(0, -20 * (1 - value)),
+                    offset: Offset(0, -24 * (1 - value)),
                     child: Opacity(
                       opacity: value.clamp(0.0, 1.0),
                       child: child,
@@ -47,13 +68,11 @@ class SnackBarHelper {
                   );
                 },
                 child: GestureDetector(
-                  // Make it dismissible by tapping anywhere on the snackbar
                   onTap: () {
                     if (isDismissible && overlayEntry.mounted) {
                       overlayEntry.remove();
                     }
                   },
-                  // Make it dismissible by swiping down
                   onPanEnd: (details) {
                     if (isDismissible && details.velocity.pixelsPerSecond.dy > 300) {
                       if (overlayEntry.mounted) overlayEntry.remove();
@@ -69,32 +88,28 @@ class SnackBarHelper {
                       borderRadius: BorderRadius.circular(16),
                       boxShadow: [
                         BoxShadow(
-                          color: shadowColor,
-                          blurRadius: 16,
-                          spreadRadius: 1,
-                          offset: const Offset(0, 6),
+                          color: backgroundColor.withValues(alpha: 0.35),
+                          blurRadius: 20,
+                          spreadRadius: 0,
+                          offset: const Offset(0, 8),
                         ),
                         BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.15),
-                          blurRadius: 8,
-                          offset: const Offset(0, 3),
+                          color: AppColors.charcoal.withValues(alpha: 0.1),
+                          blurRadius: 6,
+                          offset: const Offset(0, 2),
                         ),
                       ],
-                      border: Border.all(
-                        color: Colors.white.withValues(alpha: 0.15),
-                        width: 1.0,
-                      ),
                     ),
                     child: Row(
                       children: [
                         if (icon != null) ...[
                           Container(
-                            padding: const EdgeInsets.all(6),
+                            padding: const EdgeInsets.all(7),
                             decoration: BoxDecoration(
-                              color: Colors.white.withValues(alpha: 0.2),
-                              borderRadius: BorderRadius.circular(8),
+                              color: AppColors.pureWhite.withValues(alpha: 0.18),
+                              borderRadius: BorderRadius.circular(10),
                             ),
-                            child: Icon(icon, color: Colors.white, size: 18),
+                            child: Icon(icon, color: iconColor, size: 18),
                           ),
                           const SizedBox(width: 12),
                         ],
@@ -105,7 +120,7 @@ class SnackBarHelper {
                             child: CircularProgressIndicator(
                               strokeWidth: 2,
                               valueColor: AlwaysStoppedAnimation<Color>(
-                                Colors.white,
+                                iconColor,
                               ),
                             ),
                           ),
@@ -114,8 +129,8 @@ class SnackBarHelper {
                         Expanded(
                           child: Text(
                             message,
-                            style: const TextStyle(
-                              color: Colors.white,
+                            style: TextStyle(
+                              color: textColor,
                               fontWeight: FontWeight.w600,
                               fontSize: 14,
                               letterSpacing: 0.2,
@@ -131,7 +146,7 @@ class SnackBarHelper {
                               action.onPressed();
                             },
                             style: TextButton.styleFrom(
-                              backgroundColor: Colors.white.withValues(alpha: 0.2),
+                              backgroundColor: AppColors.pureWhite.withValues(alpha: 0.2),
                               padding: const EdgeInsets.symmetric(
                                 horizontal: 12,
                                 vertical: 8,
@@ -143,15 +158,14 @@ class SnackBarHelper {
                             ),
                             child: Text(
                               action.label,
-                              style: const TextStyle(
-                                color: Colors.white,
+                              style: TextStyle(
+                                color: textColor,
                                 fontWeight: FontWeight.bold,
                                 fontSize: 12,
                               ),
                             ),
                           ),
                         ],
-                        // Add close button for manual dismissal
                         if (isDismissible && action == null) ...[
                           const SizedBox(width: 8),
                           GestureDetector(
@@ -161,12 +175,12 @@ class SnackBarHelper {
                             child: Container(
                               padding: const EdgeInsets.all(4),
                               decoration: BoxDecoration(
-                                color: Colors.white.withValues(alpha: 0.2),
+                                color: AppColors.pureWhite.withValues(alpha: 0.18),
                                 borderRadius: BorderRadius.circular(6),
                               ),
                               child: Icon(
                                 Icons.close_rounded,
-                                color: Colors.white,
+                                color: iconColor,
                                 size: 16,
                               ),
                             ),
@@ -191,7 +205,9 @@ class SnackBarHelper {
     });
   }
 
-  /// Success - App primary green with checkmark
+  /// ═══════════════════════════════════════════════════════════════════════════
+  /// Success — Deep Soil Green with checkmark (brand primary)
+  /// ═══════════════════════════════════════════════════════════════════════════
   static void showSuccess(
     BuildContext context,
     String message, {
@@ -200,13 +216,17 @@ class SnackBarHelper {
     showTopSnackBar(
       context,
       message: message,
-      backgroundColor: _successColor,
+      backgroundColor: _successBg,
+      textColor: _successText,
+      iconColor: _successIcon,
       icon: Icons.check_circle_outline_rounded,
       action: action,
     );
   }
 
-  /// Invoice downloaded — rich two-line professional toast
+  /// ═══════════════════════════════════════════════════════════════════════════
+  /// Invoice downloaded — premium two-line toast
+  /// ═══════════════════════════════════════════════════════════════════════════
   static void showInvoiceDownloaded(BuildContext context) {
     final overlay = Overlay.of(context);
     late final OverlayEntry overlayEntry;
@@ -217,7 +237,7 @@ class SnackBarHelper {
         left: 16,
         right: 16,
         child: Material(
-          color: Colors.transparent,
+          color: AppColors.transparent,
           child: TweenAnimationBuilder<double>(
             tween: Tween(begin: 0.0, end: 1.0),
             duration: const Duration(milliseconds: 350),
@@ -241,25 +261,21 @@ class SnackBarHelper {
                   vertical: 14,
                 ),
                 decoration: BoxDecoration(
-                  color: _successColor,
+                  color: _successBg,
                   borderRadius: BorderRadius.circular(16),
                   boxShadow: [
                     BoxShadow(
-                      color: _successColor.withValues(alpha: 0.45),
-                      blurRadius: 18,
-                      spreadRadius: 1,
-                      offset: const Offset(0, 6),
+                      color: _successBg.withValues(alpha: 0.35),
+                      blurRadius: 20,
+                      spreadRadius: 0,
+                      offset: const Offset(0, 8),
                     ),
                     BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.15),
-                      blurRadius: 8,
-                      offset: const Offset(0, 3),
+                      color: AppColors.charcoal.withValues(alpha: 0.1),
+                      blurRadius: 6,
+                      offset: const Offset(0, 2),
                     ),
                   ],
-                  border: Border.all(
-                    color: Colors.white.withValues(alpha: 0.15),
-                    width: 1.0,
-                  ),
                 ),
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.center,
@@ -268,12 +284,12 @@ class SnackBarHelper {
                     Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.20),
+                        color: AppColors.pureWhite.withValues(alpha: 0.18),
                         borderRadius: BorderRadius.circular(10),
                       ),
                       child: const Icon(
                         Icons.download_done_rounded,
-                        color: Colors.white,
+                        color: _successIcon,
                         size: 22,
                       ),
                     ),
@@ -287,7 +303,7 @@ class SnackBarHelper {
                           const Text(
                             'Invoice Downloaded Successfully',
                             style: TextStyle(
-                              color: Colors.white,
+                              color: _successText,
                               fontWeight: FontWeight.w700,
                               fontSize: 13,
                               letterSpacing: 0.2,
@@ -297,7 +313,7 @@ class SnackBarHelper {
                           Text(
                             'Your invoice is ready. Please check your Downloads folder.',
                             style: TextStyle(
-                              color: Colors.white.withValues(alpha: 0.82),
+                              color: _successText.withValues(alpha: 0.82),
                               fontWeight: FontWeight.w400,
                               fontSize: 12,
                               height: 1.4,
@@ -315,12 +331,12 @@ class SnackBarHelper {
                       child: Container(
                         padding: const EdgeInsets.all(4),
                         decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.18),
+                          color: AppColors.pureWhite.withValues(alpha: 0.18),
                           borderRadius: BorderRadius.circular(6),
                         ),
                         child: const Icon(
                           Icons.close_rounded,
-                          color: Colors.white,
+                          color: _successIcon,
                           size: 15,
                         ),
                       ),
@@ -340,7 +356,9 @@ class SnackBarHelper {
     });
   }
 
-  /// Error - Warm mocha (NOT red!) with info icon
+  /// ═══════════════════════════════════════════════════════════════════════════
+  /// Error — Terracotta red (warm, not scary)
+  /// ═══════════════════════════════════════════════════════════════════════════
   static void showError(
     BuildContext context,
     String message, {
@@ -349,13 +367,17 @@ class SnackBarHelper {
     showTopSnackBar(
       context,
       message: message,
-      backgroundColor: _errorColor,
+      backgroundColor: _errorBg,
+      textColor: _errorText,
+      iconColor: _errorIcon,
       icon: Icons.sentiment_neutral_rounded,
       action: action,
     );
   }
 
-  /// Info - Soft teal with lightbulb
+  /// ═══════════════════════════════════════════════════════════════════════════
+  /// Info — Deep Teal with lightbulb
+  /// ═══════════════════════════════════════════════════════════════════════════
   static void showInfo(
     BuildContext context,
     String message, {
@@ -364,13 +386,17 @@ class SnackBarHelper {
     showTopSnackBar(
       context,
       message: message,
-      backgroundColor: _infoColor,
+      backgroundColor: _infoBg,
+      textColor: _infoText,
+      iconColor: _infoIcon,
       icon: Icons.lightbulb_outline_rounded,
       action: action,
     );
   }
 
-  /// Warning - Golden amber
+  /// ═══════════════════════════════════════════════════════════════════════════
+  /// Warning — Rich golden amber
+  /// ═══════════════════════════════════════════════════════════════════════════
   static void showWarning(
     BuildContext context,
     String message, {
@@ -379,13 +405,17 @@ class SnackBarHelper {
     showTopSnackBar(
       context,
       message: message,
-      backgroundColor: _warningColor,
+      backgroundColor: _warningBg,
+      textColor: _warningText,
+      iconColor: _warningIcon,
       icon: Icons.tips_and_updates_outlined,
       action: action,
     );
   }
 
-  /// Loading indicator
+  /// ═══════════════════════════════════════════════════════════════════════════
+  /// Loading — Deep Soil Green with spinner
+  /// ═══════════════════════════════════════════════════════════════════════════
   static void showLoading(
     BuildContext context,
     String message, {
@@ -394,7 +424,9 @@ class SnackBarHelper {
     showTopSnackBar(
       context,
       message: message,
-      backgroundColor: _infoColor,
+      backgroundColor: _loadingBg,
+      textColor: AppColors.parchment,
+      iconColor: AppColors.parchment,
       duration: duration,
       showProgressIndicator: true,
     );
@@ -409,7 +441,9 @@ class SnackBarHelper {
     showTopSnackBar(
       context,
       message: "Oops! Looks like you're offline. Check your connection 📶",
-      backgroundColor: _networkColor,
+      backgroundColor: _networkBg,
+      textColor: _networkText,
+      iconColor: _networkIcon,
       icon: Icons.wifi_off_rounded,
       action: action,
       duration: const Duration(seconds: 4),
@@ -421,7 +455,9 @@ class SnackBarHelper {
     showTopSnackBar(
       context,
       message: "Our servers need a quick break. Try again shortly! ☕",
-      backgroundColor: _errorColor,
+      backgroundColor: _errorBg,
+      textColor: _errorText,
+      iconColor: _errorIcon,
       icon: Icons.cloud_outlined,
       action: action,
       duration: const Duration(seconds: 4),
@@ -433,7 +469,9 @@ class SnackBarHelper {
     showTopSnackBar(
       context,
       message: "Hmm, that didn't work. Let's try again! 🔄",
-      backgroundColor: _errorColor,
+      backgroundColor: _errorBg,
+      textColor: _errorText,
+      iconColor: _errorIcon,
       icon: Icons.refresh_rounded,
       action: action,
     );
@@ -444,7 +482,9 @@ class SnackBarHelper {
     showTopSnackBar(
       context,
       message: "Your session took a nap. Please log in again 💤",
-      backgroundColor: _warningColor,
+      backgroundColor: _warningBg,
+      textColor: _warningText,
+      iconColor: _warningIcon,
       icon: Icons.access_time_rounded,
       action: onLogin != null
           ? SnackBarAction(label: 'Log In', onPressed: onLogin)
@@ -458,7 +498,9 @@ class SnackBarHelper {
     showTopSnackBar(
       context,
       message: message ?? "Payment got stuck. No worries, try once more! 💳",
-      backgroundColor: _errorColor,
+      backgroundColor: _errorBg,
+      textColor: _errorText,
+      iconColor: _errorIcon,
       icon: Icons.payment_rounded,
       duration: const Duration(seconds: 4),
     );
@@ -469,7 +511,9 @@ class SnackBarHelper {
     showTopSnackBar(
       context,
       message: "Taking too long... Let's give it another shot! ⏱️",
-      backgroundColor: _networkColor,
+      backgroundColor: _networkBg,
+      textColor: _networkText,
+      iconColor: _networkIcon,
       icon: Icons.timer_off_outlined,
       action: action,
     );
@@ -480,7 +524,9 @@ class SnackBarHelper {
     showTopSnackBar(
       context,
       message: "Couldn't find ${item ?? 'that'}. It might have moved! 🔍",
-      backgroundColor: _infoColor,
+      backgroundColor: _infoBg,
+      textColor: _infoText,
+      iconColor: _infoIcon,
       icon: Icons.search_off_rounded,
     );
   }
@@ -500,7 +546,9 @@ class SnackBarHelper {
     showTopSnackBar(
       context,
       message: reason ?? "This action isn't available right now 🚫",
-      backgroundColor: _warningColor,
+      backgroundColor: _warningBg,
+      textColor: _warningText,
+      iconColor: _warningIcon,
       icon: Icons.block_rounded,
     );
   }

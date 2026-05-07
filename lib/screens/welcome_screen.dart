@@ -150,7 +150,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
     final size = MediaQuery.of(context).size;
 
     return Scaffold(
-      backgroundColor: AppColors.primaryColor,
+      backgroundColor: AppColors.deepSoilGreen,
       body: Stack(
         children: [
           // Parallax Background Images
@@ -186,10 +186,10 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                       begin: Alignment.topCenter,
                       end: Alignment.bottomCenter,
                       colors: [
-                        AppColors.primaryColor.withOpacity(0.3),
-                        Colors.black.withOpacity(0.2),
-                        Colors.black.withOpacity(0.7),
-                        Colors.black.withOpacity(0.95),
+                        AppColors.deepSoilGreen.withValues(alpha: 0.3),
+                        AppColors.charcoal.withValues(alpha: 0.2),
+                        AppColors.charcoal.withValues(alpha: 0.7),
+                        AppColors.charcoal.withValues(alpha: 0.95),
                       ],
                       stops: const [0.0, 0.3, 0.6, 1.0],
                     ),
@@ -208,7 +208,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                 painter: ParticlePainter(
                   particles: _particles,
                   progress: _particleController.value,
-                  color: Colors.white,
+                  color: AppColors.parchment,
                 ),
               );
             },
@@ -245,10 +245,12 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                         height: 220,
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          color: Colors.white.withOpacity(0.05),
+                          color: AppColors.parchment.withValues(alpha: 0.05),
                           boxShadow: [
                             BoxShadow(
-                              color: AppColors.primaryLight.withOpacity(0.2),
+                              color: AppColors.deepSoilGreen.withValues(
+                                alpha: 0.2,
+                              ),
                               blurRadius: 40,
                               spreadRadius: 20,
                             ),
@@ -260,9 +262,13 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                             child: Container(
                               decoration: BoxDecoration(
                                 shape: BoxShape.circle,
-                                color: Colors.white.withOpacity(0.1),
+                                color: AppColors.parchment.withValues(
+                                  alpha: 0.1,
+                                ),
                                 border: Border.all(
-                                  color: Colors.white.withOpacity(0.2),
+                                  color: AppColors.parchment.withValues(
+                                    alpha: 0.2,
+                                  ),
                                   width: 2,
                                 ),
                               ),
@@ -329,19 +335,20 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                         child: Container(
                           padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(
-                            color: AppColors.buttonBackgroundColor.withOpacity(
-                              0.2,
+                            color: AppColors.deepSoilGreen.withValues(
+                              alpha: 0.2,
                             ),
                             borderRadius: BorderRadius.circular(20),
                             border: Border.all(
-                              color: AppColors.buttonBackgroundColor
-                                  .withOpacity(0.4),
+                              color: AppColors.deepSoilGreen.withValues(
+                                alpha: 0.4,
+                              ),
                               width: 1.5,
                             ),
                           ),
                           child: Icon(
                             data.icon,
-                            color: AppColors.buttonBackgroundColor,
+                            color: AppColors.deepSoilGreen,
                             size: 32,
                           ),
                         ),
@@ -373,10 +380,10 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                           shaderCallback:
                               (bounds) => LinearGradient(
                                 colors: [
-                                  Colors.white,
-                                  Colors.white.withOpacity(0.9),
-                                  AppColors.buttonBackgroundColor.withOpacity(
-                                    0.8,
+                                  AppColors.parchment,
+                                  AppColors.parchment.withValues(alpha: 0.9),
+                                  AppColors.deepSoilGreen.withValues(
+                                    alpha: 0.8,
                                   ),
                                 ],
                               ).createShader(bounds),
@@ -384,7 +391,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                             data.title,
                             textAlign: TextAlign.center,
                             style: theme.textTheme.headlineMedium?.copyWith(
-                              color: Colors.white,
+                              color: AppColors.parchment,
                               fontWeight: FontWeight.bold,
                               letterSpacing: 0.5,
                               height: 1.2,
@@ -419,7 +426,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                           data.subtitle,
                           textAlign: TextAlign.center,
                           style: theme.textTheme.bodyLarge?.copyWith(
-                            color: Colors.white.withOpacity(0.85),
+                            color: AppColors.parchment.withValues(alpha: 0.85),
                             height: 1.6,
                             letterSpacing: 0.3,
                           ),
@@ -457,14 +464,15 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                         borderRadius: BorderRadius.circular(6),
                         color:
                             isActive
-                                ? AppColors.buttonBackgroundColor
-                                : Colors.white.withOpacity(0.4),
+                                ? AppColors.deepSoilGreen
+                                : AppColors.parchment.withValues(alpha: 0.4),
                         boxShadow:
                             isActive
                                 ? [
                                   BoxShadow(
-                                    color: AppColors.buttonBackgroundColor
-                                        .withOpacity(0.5),
+                                    color: AppColors.deepSoilGreen.withValues(
+                                      alpha: 0.5,
+                                    ),
                                     blurRadius: 8,
                                     spreadRadius: 1,
                                   ),
@@ -552,16 +560,16 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                         vertical: 8,
                       ),
                       decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.15),
+                        color: AppColors.parchment.withValues(alpha: 0.15),
                         borderRadius: BorderRadius.circular(20),
                         border: Border.all(
-                          color: Colors.white.withOpacity(0.2),
+                          color: AppColors.parchment.withValues(alpha: 0.2),
                         ),
                       ),
                       child: Text(
                         "Skip",
                         style: theme.textTheme.labelLarge?.copyWith(
-                          color: Colors.white.withOpacity(0.9),
+                          color: AppColors.parchment.withValues(alpha: 0.9),
                           fontWeight: FontWeight.w500,
                         ),
                       ),
@@ -587,22 +595,20 @@ class _WelcomeScreenState extends State<WelcomeScreen>
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
-            AppColors.buttonBackgroundColor,
-            AppColors.buttonBackgroundColor.withRed(200),
+            AppColors.deepSoilGreen,
+            AppColors.deepSoilGreen.withRed(200),
           ],
         ),
         borderRadius: BorderRadius.circular(AppColors.radiusRound),
         boxShadow: [
           BoxShadow(
-            color: AppColors.buttonBackgroundColor.withOpacity(
-              _buttonGlow.value,
-            ),
+            color: AppColors.deepSoilGreen.withValues(alpha: _buttonGlow.value),
             blurRadius: 20,
             spreadRadius: 2,
             offset: const Offset(0, 4),
           ),
           BoxShadow(
-            color: AppColors.buttonBackgroundColor.withOpacity(0.3),
+            color: AppColors.deepSoilGreen.withValues(alpha: 0.3),
             blurRadius: 40,
             spreadRadius: 0,
             offset: const Offset(0, 8),
@@ -615,7 +621,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
           Text(
             "Get Started",
             style: theme.textTheme.titleMedium?.copyWith(
-              color: Colors.white,
+              color: AppColors.parchment,
               fontWeight: FontWeight.bold,
               letterSpacing: 0.5,
             ),
@@ -623,7 +629,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
           const SizedBox(width: AppColors.spacingS),
           const Icon(
             Icons.arrow_forward_rounded,
-            color: Colors.white,
+            color: AppColors.parchment,
             size: 22,
           ),
         ],
@@ -640,13 +646,13 @@ class _WelcomeScreenState extends State<WelcomeScreen>
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
           decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.1),
+            color: AppColors.parchment.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(20),
           ),
           child: Text(
             "${_currentPage + 1}/${onboardingData.length}",
             style: theme.textTheme.labelMedium?.copyWith(
-              color: Colors.white.withOpacity(0.7),
+              color: AppColors.parchment.withValues(alpha: 0.7),
               fontWeight: FontWeight.w500,
             ),
           ),
@@ -658,15 +664,15 @@ class _WelcomeScreenState extends State<WelcomeScreen>
             vertical: AppColors.spacingM + 2,
           ),
           decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.15),
+            color: AppColors.parchment.withValues(alpha: 0.15),
             borderRadius: BorderRadius.circular(AppColors.radiusRound),
             border: Border.all(
-              color: Colors.white.withOpacity(0.25),
+              color: AppColors.parchment.withValues(alpha: 0.25),
               width: 1.5,
             ),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.1),
+                color: AppColors.charcoal.withValues(alpha: 0.1),
                 blurRadius: 10,
                 offset: const Offset(0, 4),
               ),
@@ -678,7 +684,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
               Text(
                 "Next",
                 style: theme.textTheme.labelLarge?.copyWith(
-                  color: Colors.white,
+                  color: AppColors.parchment,
                   fontWeight: FontWeight.w600,
                   letterSpacing: 0.3,
                 ),
@@ -687,12 +693,12 @@ class _WelcomeScreenState extends State<WelcomeScreen>
               Container(
                 padding: const EdgeInsets.all(4),
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.2),
+                  color: AppColors.parchment.withValues(alpha: 0.2),
                   shape: BoxShape.circle,
                 ),
                 child: const Icon(
                   Icons.arrow_forward_ios_rounded,
-                  color: Colors.white,
+                  color: AppColors.parchment,
                   size: 14,
                 ),
               ),
@@ -763,8 +769,8 @@ class ParticlePainter extends CustomPainter {
 
       final paint =
           Paint()
-            ..color = color.withOpacity(
-              particle.opacity * (1 - (y - 0.5).abs() * 0.5),
+            ..color = color.withValues(
+              alpha: particle.opacity * (1 - (y - 0.5).abs() * 0.5),
             )
             ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 2);
 

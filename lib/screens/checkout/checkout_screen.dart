@@ -260,10 +260,16 @@ class _CheckoutScreenState extends State<CheckoutScreen>
         if (result['payment_links']['web'] != null) {
           await _launchSubscriptionWebView(result);
         } else {
-          _showSubscriptionFailedDialog({'message': 'We couldn\'t start the payment process. Please check your connection and try again.'});
+          _showSubscriptionFailedDialog({
+            'message':
+                'We couldn\'t start the payment process. Please check your connection and try again.',
+          });
         }
       } else {
-        _showSubscriptionFailedDialog({'message': 'We couldn\'t start the payment process. Please check your connection and try again.'});
+        _showSubscriptionFailedDialog({
+          'message':
+              'We couldn\'t start the payment process. Please check your connection and try again.',
+        });
       }
     } else {
       _showSubscriptionFailedDialog(result);
@@ -376,10 +382,14 @@ class _CheckoutScreenState extends State<CheckoutScreen>
         response.paymentLinks?.web != null) {
       await _launchOrderWebView(response);
     } else if (response is OrderCreateResponse && !response.success) {
-      _showOrderFailedDialog(_parseServerError(response.message ?? 'Payment initiation failed.'));
+      _showOrderFailedDialog(
+        _parseServerError(response.message ?? 'Payment initiation failed.'),
+      );
     } else {
       // Missing payment_links means the third party gateway failed to initialize.
-      _showOrderFailedDialog('We couldn\'t start the payment process. Please check your connection and try again.');
+      _showOrderFailedDialog(
+        'We couldn\'t start the payment process. Please check your connection and try again.',
+      );
     }
   }
 
@@ -474,7 +484,7 @@ class _CheckoutScreenState extends State<CheckoutScreen>
           WebViewPage(
             url: paymentUrl,
             orderId: parsedSubscriptionId,
-            title: 'UPI Payment',
+            title: 'Secure Payment',
             subID: parsedSubscriptionId,
             isSubscription: widget.isSubscription,
             merchantTransactionId: merchantTransactionId,
@@ -495,7 +505,7 @@ class _CheckoutScreenState extends State<CheckoutScreen>
                       title: 'Payment Successful!',
                       body:
                           'Subscription ID: $parsedSubscriptionId\n'
-                          'Payment Mode: UPI\n'
+                          'Payment Mode: Online Payment\n'
                           'Status: Paid',
                       payload: json.encode({
                         'screen': 'subscription_detail',
@@ -533,7 +543,7 @@ class _CheckoutScreenState extends State<CheckoutScreen>
                 title: 'Payment Failed!',
                 body:
                     'Subscription ID: $parsedSubscriptionId\n'
-                    'Payment Mode: UPI\n'
+                    'Payment Mode: Online Payment\n'
                     'Status: Failed',
                 payload: json.encode({
                   'screen': 'subscription_detail',
@@ -561,7 +571,7 @@ class _CheckoutScreenState extends State<CheckoutScreen>
         WebViewPage(
           url: paymentUrl,
           orderId: int.parse(response.orderId!),
-          title: 'UPI Payment',
+          title: 'Secure Payment',
           onPaymentSuccess: (url) async {
             await _verifyAndHandlePaymentSuccess(response);
           },
@@ -571,7 +581,7 @@ class _CheckoutScreenState extends State<CheckoutScreen>
               title: 'Payment Failed!',
               body:
                   'Order ID: ${response.orderId}\n'
-                  'Payment Mode: UPI\n'
+                  'Payment Mode: Online Payment\n'
                   'Status: Failed',
               payload: json.encode({
                 'screen': 'order_tracking',
@@ -602,7 +612,7 @@ class _CheckoutScreenState extends State<CheckoutScreen>
           title: 'Payment Successful!',
           body:
               'Order ID: ${response.orderId}\n'
-              'Payment Mode: UPI\n'
+              'Payment Mode: Online Payment\n'
               'Status: Paid',
           payload: json.encode({
             'screen': 'order_tracking',
@@ -874,7 +884,7 @@ class _CheckoutScreenState extends State<CheckoutScreen>
           );
         },
         child: Container(
-          height: 180,
+          constraints: const BoxConstraints(minHeight: 180),
           decoration: BoxDecoration(
             gradient: LinearGradient(
               begin: Alignment.topLeft,
@@ -884,7 +894,7 @@ class _CheckoutScreenState extends State<CheckoutScreen>
                 theme.colorScheme.primary.withValues(alpha: 0.85),
                 isDark
                     ? theme.colorScheme.primary.withValues(alpha: 0.7)
-                    : Colors.green.shade400,
+                    : AppColors.deepSoilGreen,
               ],
             ),
             borderRadius: const BorderRadius.only(
@@ -913,7 +923,7 @@ class _CheckoutScreenState extends State<CheckoutScreen>
                   height: 100,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: Colors.white.withValues(alpha: 0.1),
+                    color: AppColors.parchment.withValues(alpha: 0.1),
                   ),
                 ),
               ),
@@ -925,7 +935,7 @@ class _CheckoutScreenState extends State<CheckoutScreen>
                   height: 80,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: Colors.white.withValues(alpha: 0.08),
+                    color: AppColors.parchment.withValues(alpha: 0.08),
                   ),
                 ),
               ),
@@ -937,11 +947,8 @@ class _CheckoutScreenState extends State<CheckoutScreen>
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Back Button
-                      _buildIconButton(Icons.arrow_back_ios_new_rounded, () {
-                        HapticFeedback.lightImpact();
-                        Navigator.pop(context);
-                      }),
+                      // ANAAD Logo
+                      const AnaadLogoMark(),
                       const Spacer(),
                       // Title Row
                       Row(
@@ -949,14 +956,14 @@ class _CheckoutScreenState extends State<CheckoutScreen>
                           Container(
                             padding: const EdgeInsets.all(12),
                             decoration: BoxDecoration(
-                              color: Colors.white.withValues(alpha: 0.2),
+                              color: AppColors.parchment.withValues(alpha: 0.2),
                               borderRadius: BorderRadius.circular(16),
                             ),
                             child: Icon(
                               widget.isSubscription
                                   ? Icons.card_membership_rounded
                                   : Icons.shopping_bag_rounded,
-                              color: Colors.white,
+                              color: AppColors.parchment,
                               size: 28,
                             ),
                           ),
@@ -965,21 +972,27 @@ class _CheckoutScreenState extends State<CheckoutScreen>
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(
-                                  widget.isSubscription
-                                      ? "Subscription"
-                                      : "Checkout",
-                                  style: theme.textTheme.headlineMedium
-                                      ?.copyWith(
-                                        color: Colors.white,
-                                        fontWeight: FontWeight.bold,
-                                      ),
+                                FittedBox(
+                                  fit: BoxFit.scaleDown,
+                                  alignment: Alignment.centerLeft,
+                                  child: Text(
+                                    widget.isSubscription
+                                        ? "Subscription"
+                                        : "Checkout",
+                                    style: theme.textTheme.headlineMedium
+                                        ?.copyWith(
+                                          color: AppColors.parchment,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                  ),
                                 ),
                                 const SizedBox(height: 4),
                                 Text(
                                   "$totalItems item${totalItems > 1 ? 's' : ''} ready to order",
                                   style: theme.textTheme.bodyMedium?.copyWith(
-                                    color: Colors.white.withValues(alpha: 0.9),
+                                    color: AppColors.parchment.withValues(
+                                      alpha: 0.9,
+                                    ),
                                   ),
                                 ),
                               ],
@@ -1021,7 +1034,9 @@ class _CheckoutScreenState extends State<CheckoutScreen>
             height: size,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: Colors.white.withValues(alpha: opacity.clamp(0.05, 0.25)),
+              color: AppColors.parchment.withValues(
+                alpha: opacity.clamp(0.05, 0.25),
+              ),
             ),
           ),
         );
@@ -1031,14 +1046,14 @@ class _CheckoutScreenState extends State<CheckoutScreen>
 
   Widget _buildIconButton(IconData icon, VoidCallback onTap) {
     return Material(
-      color: Colors.white.withValues(alpha: 0.2),
+      color: AppColors.parchment.withValues(alpha: 0.2),
       borderRadius: BorderRadius.circular(12),
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(12),
         child: Padding(
           padding: const EdgeInsets.all(10),
-          child: Icon(icon, color: Colors.white, size: 22),
+          child: Icon(icon, color: AppColors.parchment, size: 22),
         ),
       ),
     );
@@ -1050,8 +1065,8 @@ class _CheckoutScreenState extends State<CheckoutScreen>
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
-            const Color(0xFFFF9800).withValues(alpha: 0.9),
-            const Color(0xFFFFB74D).withValues(alpha: 0.85),
+            AppColors.parchment.withValues(alpha: 0.9),
+            AppColors.parchment.withValues(alpha: 0.85),
           ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
@@ -1059,7 +1074,7 @@ class _CheckoutScreenState extends State<CheckoutScreen>
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFFFF9800).withValues(alpha: 0.3),
+            color: AppColors.parchment.withValues(alpha: 0.3),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
@@ -1070,12 +1085,12 @@ class _CheckoutScreenState extends State<CheckoutScreen>
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.25),
+              color: AppColors.parchment.withValues(alpha: 0.25),
               shape: BoxShape.circle,
             ),
             child: const Icon(
               Icons.card_giftcard_rounded,
-              color: Colors.white,
+              color: AppColors.parchment,
               size: 28,
             ),
           ),
@@ -1087,7 +1102,7 @@ class _CheckoutScreenState extends State<CheckoutScreen>
                 Text(
                   '🎁 Rewards Waiting!',
                   style: theme.textTheme.titleMedium?.copyWith(
-                    color: Colors.white,
+                    color: AppColors.parchment,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -1097,7 +1112,7 @@ class _CheckoutScreenState extends State<CheckoutScreen>
                       ? 'You have 1 referral reward waiting in your orders!'
                       : 'You have $_pendingRewardsCount referral rewards waiting in your orders!',
                   style: theme.textTheme.bodySmall?.copyWith(
-                    color: Colors.white.withValues(alpha: 0.9),
+                    color: AppColors.parchment.withValues(alpha: 0.9),
                   ),
                 ),
               ],
@@ -1105,7 +1120,7 @@ class _CheckoutScreenState extends State<CheckoutScreen>
           ),
           Icon(
             Icons.arrow_forward_ios_rounded,
-            color: Colors.white.withValues(alpha: 0.7),
+            color: AppColors.parchment.withValues(alpha: 0.7),
             size: 18,
           ),
         ],
@@ -1119,26 +1134,28 @@ class _CheckoutScreenState extends State<CheckoutScreen>
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
-            Colors.green.withValues(alpha: 0.15),
-            Colors.green.withValues(alpha: 0.05),
+            AppColors.deepSoilGreen.withValues(alpha: 0.15),
+            AppColors.deepSoilGreen.withValues(alpha: 0.05),
           ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.green.withValues(alpha: 0.3)),
+        border: Border.all(
+          color: AppColors.deepSoilGreen.withValues(alpha: 0.3),
+        ),
       ),
       child: Row(
         children: [
           Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: Colors.green.withValues(alpha: 0.2),
+              color: AppColors.deepSoilGreen.withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(12),
             ),
             child: const Icon(
               Icons.local_shipping_rounded,
-              color: Colors.green,
+              color: AppColors.deepSoilGreen,
               size: 24,
             ),
           ),
@@ -1158,7 +1175,7 @@ class _CheckoutScreenState extends State<CheckoutScreen>
                   widget.expectedDeliveryDate,
                   style: theme.textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.bold,
-                    color: Colors.green.shade700,
+                    color: AppColors.deepSoilGreen,
                   ),
                 ),
               ],
@@ -1168,13 +1185,13 @@ class _CheckoutScreenState extends State<CheckoutScreen>
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
               decoration: BoxDecoration(
-                color: Colors.green,
+                color: AppColors.deepSoilGreen,
                 borderRadius: BorderRadius.circular(12),
               ),
               child: const Text(
                 'FREE',
                 style: TextStyle(
-                  color: Colors.white,
+                  color: AppColors.parchment,
                   fontWeight: FontWeight.bold,
                   fontSize: 12,
                 ),
@@ -1231,7 +1248,7 @@ class _CheckoutScreenState extends State<CheckoutScreen>
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
-                  color: Colors.green.withValues(alpha: 0.1),
+                  color: AppColors.deepSoilGreen.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Row(
@@ -1240,13 +1257,13 @@ class _CheckoutScreenState extends State<CheckoutScreen>
                     Icon(
                       Icons.check_circle,
                       size: 14,
-                      color: Colors.green.shade700,
+                      color: AppColors.deepSoilGreen,
                     ),
                     const SizedBox(width: 4),
                     Text(
                       'Verified',
                       style: TextStyle(
-                        color: Colors.green.shade700,
+                        color: AppColors.deepSoilGreen,
                         fontSize: 11,
                         fontWeight: FontWeight.w600,
                       ),
@@ -1320,12 +1337,12 @@ class _CheckoutScreenState extends State<CheckoutScreen>
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.2),
+              color: AppColors.parchment.withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(16),
             ),
             child: const Icon(
               Icons.celebration_rounded,
-              color: Colors.white,
+              color: AppColors.parchment,
               size: 32,
             ),
           ),
@@ -1337,7 +1354,7 @@ class _CheckoutScreenState extends State<CheckoutScreen>
                 Text(
                   "Great Choice!",
                   style: theme.textTheme.titleMedium?.copyWith(
-                    color: Colors.white,
+                    color: AppColors.parchment,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -1345,7 +1362,7 @@ class _CheckoutScreenState extends State<CheckoutScreen>
                 Text(
                   "Your ${subscription.durationMonths}-month journey to wellness begins here.",
                   style: theme.textTheme.bodyMedium?.copyWith(
-                    color: Colors.white.withValues(alpha: 0.9),
+                    color: AppColors.parchment.withValues(alpha: 0.9),
                   ),
                 ),
               ],
@@ -1398,15 +1415,15 @@ class _CheckoutScreenState extends State<CheckoutScreen>
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
               decoration: BoxDecoration(
-                color: Colors.blue.shade50,
+                color: AppColors.deepSoilGreen,
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.blue.shade200),
+                border: Border.all(color: AppColors.deepSoilGreen),
               ),
               child: Row(
                 children: [
                   Icon(
                     Icons.autorenew_rounded,
-                    color: Colors.blue.shade700,
+                    color: AppColors.deepSoilGreen,
                     size: 20,
                   ),
                   const SizedBox(width: 10),
@@ -1414,7 +1431,7 @@ class _CheckoutScreenState extends State<CheckoutScreen>
                     child: Text(
                       'Products delivered every month for ${subscription!.durationMonths} months',
                       style: theme.textTheme.bodySmall?.copyWith(
-                        color: Colors.blue.shade800,
+                        color: AppColors.deepSoilGreen,
                         fontWeight: FontWeight.w500,
                       ),
                     ),
@@ -1468,7 +1485,7 @@ class _CheckoutScreenState extends State<CheckoutScreen>
                 style: theme.textTheme.bodySmall?.copyWith(
                   fontSize: 10,
                   fontStyle: FontStyle.italic,
-                  color: Colors.green,
+                  color: AppColors.deepSoilGreen,
                 ),
               ),
             ),
@@ -1559,15 +1576,15 @@ class _CheckoutScreenState extends State<CheckoutScreen>
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: Colors.green.shade50,
+                color: AppColors.deepSoilGreen,
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.green.shade200),
+                border: Border.all(color: AppColors.deepSoilGreen),
               ),
               child: Row(
                 children: [
                   Icon(
                     Icons.savings_rounded,
-                    color: Colors.green.shade700,
+                    color: AppColors.deepSoilGreen,
                     size: 20,
                   ),
                   const SizedBox(width: 10),
@@ -1575,7 +1592,7 @@ class _CheckoutScreenState extends State<CheckoutScreen>
                     child: Text(
                       'Total over ${subscription!.durationMonths} months: ₹${(double.parse(totalPrice) * subscription!.durationMonths).toStringAsFixed(0)}',
                       style: theme.textTheme.bodySmall?.copyWith(
-                        color: Colors.green.shade800,
+                        color: AppColors.deepSoilGreen,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
@@ -1609,7 +1626,7 @@ class _CheckoutScreenState extends State<CheckoutScreen>
           width: 60,
           height: 60,
           decoration: BoxDecoration(
-            color: isDark ? Colors.grey.shade900 : Colors.grey.shade100,
+            color: isDark ? AppColors.charcoal : AppColors.parchment,
             borderRadius: BorderRadius.circular(12),
           ),
           child: ClipRRect(
@@ -1688,9 +1705,9 @@ class _CheckoutScreenState extends State<CheckoutScreen>
           style: theme.textTheme.bodyMedium?.copyWith(
             color:
                 isDiscount
-                    ? Colors.green
+                    ? AppColors.deepSoilGreen
                     : isDelivery && value == 'FREE'
-                    ? Colors.green
+                    ? AppColors.deepSoilGreen
                     : null,
             fontWeight: FontWeight.w600,
           ),
@@ -1760,7 +1777,7 @@ class _CheckoutScreenState extends State<CheckoutScreen>
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: isDark ? Colors.grey.shade800 : Colors.grey.shade100,
+                color: isDark ? AppColors.charcoal87 : AppColors.parchment,
                 borderRadius: BorderRadius.circular(10),
               ),
               child: Icon(
@@ -1801,11 +1818,11 @@ class _CheckoutScreenState extends State<CheckoutScreen>
         child: Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: isDark ? theme.cardColor : Colors.white,
+            color: isDark ? theme.cardColor : AppColors.parchment,
             borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
             boxShadow: [
               BoxShadow(
-                color: theme.shadowColor.withOpacity(0.15),
+                color: theme.shadowColor.withValues(alpha: 0.15),
                 blurRadius: 30,
                 offset: const Offset(0, -10),
               ),
@@ -1844,7 +1861,7 @@ class _CheckoutScreenState extends State<CheckoutScreen>
                       onPressed: _createOrder,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: theme.colorScheme.primary,
-                        foregroundColor: Colors.white,
+                        foregroundColor: AppColors.parchment,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(16),
                         ),
@@ -1899,11 +1916,11 @@ class _CheckoutScreenState extends State<CheckoutScreen>
         child: Container(
           padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
-            color: isDark ? theme.cardColor : Colors.white,
+            color: isDark ? theme.cardColor : AppColors.parchment,
             borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
             boxShadow: [
               BoxShadow(
-                color: theme.shadowColor.withOpacity(0.15),
+                color: theme.shadowColor.withValues(alpha: 0.15),
                 blurRadius: 30,
                 offset: const Offset(0, -10),
               ),
@@ -1920,7 +1937,7 @@ class _CheckoutScreenState extends State<CheckoutScreen>
                   height: 4,
                   margin: const EdgeInsets.only(bottom: 16),
                   decoration: BoxDecoration(
-                    color: isDark ? Colors.grey[700] : Colors.grey[300],
+                    color: isDark ? AppColors.charcoal60 : AppColors.rawEarth12,
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
@@ -1929,7 +1946,7 @@ class _CheckoutScreenState extends State<CheckoutScreen>
                     Container(
                       padding: const EdgeInsets.all(10),
                       decoration: BoxDecoration(
-                        color: theme.colorScheme.primary.withOpacity(0.1),
+                        color: theme.colorScheme.primary.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Icon(
@@ -1988,7 +2005,7 @@ class _CheckoutScreenState extends State<CheckoutScreen>
                     onPressed: _createOrder,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: theme.colorScheme.primary,
-                      foregroundColor: Colors.white,
+                      foregroundColor: AppColors.parchment,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(16),
                       ),
@@ -2042,7 +2059,7 @@ class _CheckoutScreenState extends State<CheckoutScreen>
                   height: 4,
                   margin: const EdgeInsets.only(bottom: 20),
                   decoration: BoxDecoration(
-                    color: isDark ? Colors.grey[700] : Colors.grey[300],
+                    color: isDark ? AppColors.charcoal60 : AppColors.rawEarth12,
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
@@ -2062,7 +2079,7 @@ class _CheckoutScreenState extends State<CheckoutScreen>
                   'Cash on Delivery',
                   'Pay when you receive your order',
                   Icons.money_rounded,
-                  Colors.orange,
+                  AppColors.harvestAmber,
                 ),
                 const SizedBox(height: 12),
               ],
@@ -2107,13 +2124,13 @@ class _CheckoutScreenState extends State<CheckoutScreen>
         duration: const Duration(milliseconds: 200),
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: isSelected ? color.withOpacity(0.1) : theme.cardColor,
+          color: isSelected ? color.withValues(alpha: 0.1) : theme.cardColor,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
             color:
                 isSelected
                     ? color
-                    : (isDark ? Colors.grey.shade800 : Colors.grey.shade200),
+                    : (isDark ? AppColors.charcoal87 : AppColors.parchment),
             width: isSelected ? 2 : 1,
           ),
         ),
@@ -2122,7 +2139,7 @@ class _CheckoutScreenState extends State<CheckoutScreen>
             Container(
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                color: color.withOpacity(0.15),
+                color: color.withValues(alpha: 0.15),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Icon(icon, color: color, size: 24),
@@ -2151,7 +2168,11 @@ class _CheckoutScreenState extends State<CheckoutScreen>
               Container(
                 padding: const EdgeInsets.all(4),
                 decoration: BoxDecoration(color: color, shape: BoxShape.circle),
-                child: const Icon(Icons.check, color: Colors.white, size: 16),
+                child: const Icon(
+                  Icons.check,
+                  color: AppColors.parchment,
+                  size: 16,
+                ),
               ),
           ],
         ),
@@ -2161,7 +2182,7 @@ class _CheckoutScreenState extends State<CheckoutScreen>
 
   Widget _buildLoadingOverlay(ThemeData theme) {
     return Container(
-      color: Colors.black.withOpacity(0.3),
+      color: AppColors.charcoal.withValues(alpha: 0.3),
       child: Center(
         child: Container(
           padding: const EdgeInsets.all(24),

@@ -1,3 +1,4 @@
+import 'package:grocery_app/core/theme/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:grocery_app/models/rfp_delivery_model.dart';
 import 'package:grocery_app/services/rfp_services.dart';
@@ -26,7 +27,7 @@ class _ExpandableDeliveryTileState extends State<ExpandableDeliveryTile> {
     if (isExpanding && !_hasFetched) {
       _detailsFuture = _service.fetchDeliveryDetails(widget.delivery.id);
       _hasFetched = true;
-        }
+    }
   }
 
   @override
@@ -41,7 +42,10 @@ class _ExpandableDeliveryTileState extends State<ExpandableDeliveryTile> {
       color: tileColor,
       child: ExpansionTile(
         onExpansionChanged: _onExpansionChanged,
-        title: Text(widget.delivery.displayLabel, style: theme.textTheme.bodyLarge),
+        title: Text(
+          widget.delivery.displayLabel,
+          style: theme.textTheme.bodyLarge,
+        ),
         trailing: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -53,9 +57,7 @@ class _ExpandableDeliveryTileState extends State<ExpandableDeliveryTile> {
             ),
           ],
         ),
-        children: <Widget>[
-          if (_isExpanded) _buildDetailsSection(),
-        ],
+        children: <Widget>[if (_isExpanded) _buildDetailsSection()],
       ),
     );
   }
@@ -78,8 +80,9 @@ class _ExpandableDeliveryTileState extends State<ExpandableDeliveryTile> {
         }
         if (!snapshot.hasData) {
           return const Padding(
-              padding: EdgeInsets.all(16.0),
-              child: Center(child: Text("No details available.")));
+            padding: EdgeInsets.all(16.0),
+            child: Center(child: Text("No details available.")),
+          );
         }
 
         final details = snapshot.data!;
@@ -93,7 +96,8 @@ class _ExpandableDeliveryTileState extends State<ExpandableDeliveryTile> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              if (planItems.isNotEmpty) _buildItemList("Plan Items", planItems, theme),
+              if (planItems.isNotEmpty)
+                _buildItemList("Plan Items", planItems, theme),
               if (addonItems.isNotEmpty) ...[
                 const Divider(height: 24),
                 _buildItemList("Add-ons", addonItems, theme),
@@ -103,7 +107,7 @@ class _ExpandableDeliveryTileState extends State<ExpandableDeliveryTile> {
                 Text("Notes", style: theme.textTheme.titleMedium),
                 const SizedBox(height: 4),
                 Text(details.notes!, style: theme.textTheme.bodyMedium),
-              ]
+              ],
             ],
           ),
         );
@@ -111,11 +115,20 @@ class _ExpandableDeliveryTileState extends State<ExpandableDeliveryTile> {
     );
   }
 
-  Widget _buildItemList(String title, List<PlanDelivered> items, ThemeData theme) {
+  Widget _buildItemList(
+    String title,
+    List<PlanDelivered> items,
+    ThemeData theme,
+  ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(title, style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+        Text(
+          title,
+          style: theme.textTheme.titleMedium?.copyWith(
+            fontWeight: FontWeight.bold,
+          ),
+        ),
         const SizedBox(height: 8),
         ...items.map(
           (item) => Padding(
@@ -123,7 +136,10 @@ class _ExpandableDeliveryTileState extends State<ExpandableDeliveryTile> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(item.veg?.name ?? 'Unknown Item', style: theme.textTheme.bodyLarge),
+                Text(
+                  item.veg?.name ?? 'Unknown Item',
+                  style: theme.textTheme.bodyLarge,
+                ),
                 Text(
                   "${item.quantity ?? '0'} kg",
                   style: theme.textTheme.bodyMedium,
@@ -145,7 +161,7 @@ class _ExpandableDeliveryTileState extends State<ExpandableDeliveryTile> {
       ),
       child: Text(
         status,
-        style: theme.textTheme.labelSmall?.copyWith(color: Colors.white),
+        style: theme.textTheme.labelSmall?.copyWith(color: AppColors.parchment),
       ),
     );
   }
@@ -153,7 +169,7 @@ class _ExpandableDeliveryTileState extends State<ExpandableDeliveryTile> {
   Color _getStatusColor(ThemeData theme, String status) {
     switch (status.toUpperCase()) {
       case 'DELIVERED':
-        return AppColors.success;
+        return AppColors.deepSoilGreen;
       default:
         return theme.disabledColor;
     }
@@ -162,10 +178,9 @@ class _ExpandableDeliveryTileState extends State<ExpandableDeliveryTile> {
   Color _getTileColor(ThemeData theme, String status) {
     switch (status.toUpperCase()) {
       case 'DELIVERED':
-        return AppColors.success.withOpacity(0.1);
+        return AppColors.deepSoilGreen.withValues(alpha: 0.1);
       default:
         return theme.cardColor;
     }
   }
 }
-

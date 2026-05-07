@@ -2,12 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 /// A reusable wrapper widget that provides tap-to-scale animation effect.
-/// 
+///
 /// This widget consolidates the common pattern of:
 /// - GestureDetector with onTapDown/onTapUp/onTapCancel
 /// - AnimatedScale for press feedback
 /// - Optional haptic feedback
-/// 
+///
 /// Usage:
 /// ```dart
 /// TapScaleWrapper(
@@ -18,22 +18,22 @@ import 'package:flutter/services.dart';
 class TapScaleWrapper extends StatefulWidget {
   /// The child widget to wrap with tap-scale animation
   final Widget child;
-  
+
   /// Callback when the widget is tapped
   final VoidCallback? onTap;
-  
+
   /// The scale factor when pressed (default: 0.98)
   final double pressedScale;
-  
+
   /// Animation duration (default: 150ms)
   final Duration duration;
-  
+
   /// Animation curve (default: Curves.easeInOut)
   final Curve curve;
-  
+
   /// Whether to trigger haptic feedback on tap (default: true)
   final bool enableHaptic;
-  
+
   /// Type of haptic feedback (default: light)
   final HapticType hapticType;
 
@@ -106,9 +106,4 @@ class _TapScaleWrapperState extends State<TapScaleWrapper> {
 }
 
 /// Types of haptic feedback available
-enum HapticType {
-  light,
-  medium,
-  heavy,
-  selection,
-}
+enum HapticType { light, medium, heavy, selection }

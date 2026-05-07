@@ -62,33 +62,41 @@ class _AllProductsListState extends State<AllProductsList> {
                 onTap: _onSeeAll,
                 child: AnimatedContainer(
                   duration: const Duration(milliseconds: 200),
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 6,
+                  ),
                   decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.primary.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(20),
                   ),
-                  child: _isNavigating
-                      ? SizedBox(
-                          width: 56,
-                          height: 16,
-                          child: ShimmerLoading(
-                            isLoading: true,
-                            child: Container(
-                              decoration: BoxDecoration(
-                                color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.4),
-                                borderRadius: BorderRadius.circular(8),
+                  child:
+                      _isNavigating
+                          ? SizedBox(
+                            width: 56,
+                            height: 16,
+                            child: ShimmerLoading(
+                              isLoading: true,
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.primary.withValues(alpha: 0.4),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
                               ),
                             ),
+                          )
+                          : Text(
+                            "See All →",
+                            style: TextStyle(
+                              color: Theme.of(context).colorScheme.primary,
+                              fontWeight: FontWeight.w600,
+                              fontSize: 13,
+                            ),
                           ),
-                        )
-                      : Text(
-                          "See All →",
-                          style: TextStyle(
-                            color: Theme.of(context).colorScheme.primary,
-                            fontWeight: FontWeight.w600,
-                            fontSize: 13,
-                          ),
-                        ),
                 ),
               ),
             ],

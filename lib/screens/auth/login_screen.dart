@@ -1,6 +1,7 @@
 import 'dart:ui';
 import 'dart:math' as math;
 import 'package:grocery_app/common_widgets/global_import.dart';
+import 'package:grocery_app/core/theme/theme.dart';
 
 class LoginScreen extends StatefulWidget {
   final String? redirectPath;
@@ -140,8 +141,8 @@ class _LoginScreenState extends State<LoginScreen>
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-    final textTheme = theme.textTheme;
+    final colorScheme = context.colors;
+    final textTheme = context.text;
     final size = MediaQuery.of(context).size;
 
     return Scaffold(
@@ -188,7 +189,7 @@ class _LoginScreenState extends State<LoginScreen>
                                 end: Alignment.bottomCenter,
                                 colors: [
                                   colorScheme.primary.withValues(alpha: 0.1),
-                                  Colors.transparent,
+                                  AppColors.transparent,
                                   colorScheme.primary.withValues(alpha: 0.05),
                                 ],
                               ),
@@ -213,9 +214,7 @@ class _LoginScreenState extends State<LoginScreen>
                           left: -30,
                           child: _buildFloatingCircle(
                             80,
-                            AppColors.buttonBackgroundColor.withValues(
-                              alpha: 0.08,
-                            ),
+                            AppColors.deepSoilGreen.withValues(alpha: 0.08),
                           ),
                         ),
                       ],
@@ -236,7 +235,7 @@ class _LoginScreenState extends State<LoginScreen>
                         ),
                         child: IntrinsicHeight(
                           child: Padding(
-                            padding: const EdgeInsets.all(AppColors.spacingXL),
+                            padding: const EdgeInsets.all(AppSpacing.xl),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.stretch,
                               children: [
@@ -267,7 +266,7 @@ class _LoginScreenState extends State<LoginScreen>
                                     );
                                   },
                                 ),
-                                const SizedBox(height: AppColors.spacingXXL),
+                                const SizedBox(height: AppSpacing.xxl),
 
                                 // Animated Login Card
                                 AnimatedBuilder(
@@ -292,7 +291,7 @@ class _LoginScreenState extends State<LoginScreen>
                                       ),
                                       child: Container(
                                         padding: const EdgeInsets.all(
-                                          AppColors.spacingXL,
+                                          AppSpacing.xl,
                                         ),
                                         decoration: BoxDecoration(
                                           gradient: LinearGradient(
@@ -309,9 +308,8 @@ class _LoginScreenState extends State<LoginScreen>
                                             AppColors.radiusXL,
                                           ),
                                           border: Border.all(
-                                            color: Colors.white.withValues(
-                                              alpha: 0.2,
-                                            ),
+                                            color: AppColors.parchment
+                                                .withValues(alpha: 0.2),
                                             width: 1.5,
                                           ),
                                           boxShadow: [
@@ -349,7 +347,7 @@ class _LoginScreenState extends State<LoginScreen>
                                                 ),
                                               ),
                                               const SizedBox(
-                                                height: AppColors.spacingXS,
+                                                height: AppSpacing.xs,
                                               ),
                                               _buildStaggeredWidget(
                                                 delay: 0.1,
@@ -369,7 +367,7 @@ class _LoginScreenState extends State<LoginScreen>
                                                 ),
                                               ),
                                               const SizedBox(
-                                                height: AppColors.spacingXL,
+                                                height: AppSpacing.xl,
                                               ),
 
                                               // Email Input with focus animation
@@ -401,7 +399,7 @@ class _LoginScreenState extends State<LoginScreen>
                                                 ),
                                               ),
                                               const SizedBox(
-                                                height: AppColors.spacingL,
+                                                height: AppSpacing.lg,
                                               ),
 
                                               // Password Input with focus animation
@@ -426,7 +424,7 @@ class _LoginScreenState extends State<LoginScreen>
                                                 ),
                                               ),
                                               const SizedBox(
-                                                height: AppColors.spacingXS,
+                                                height: AppSpacing.xs,
                                               ),
 
                                               // Forgot Password with hover effect
@@ -464,7 +462,7 @@ class _LoginScreenState extends State<LoginScreen>
                                                 ),
                                               ),
                                               const SizedBox(
-                                                height: AppColors.spacingM,
+                                                height: AppSpacing.md,
                                               ),
 
                                               // Enhanced Login Button
@@ -476,7 +474,7 @@ class _LoginScreenState extends State<LoginScreen>
                                                 ),
                                               ),
                                               const SizedBox(
-                                                height: AppColors.spacingL,
+                                                height: AppSpacing.lg,
                                               ),
 
                                               // Register Link
@@ -514,7 +512,7 @@ class _LoginScreenState extends State<LoginScreen>
                                                             ?.copyWith(
                                                               color:
                                                                   AppColors
-                                                                      .buttonBackgroundColor,
+                                                                      .deepSoilGreen,
                                                               fontWeight:
                                                                   FontWeight
                                                                       .bold,
@@ -561,7 +559,7 @@ class _LoginScreenState extends State<LoginScreen>
                                       ),
                                       Padding(
                                         padding: const EdgeInsets.symmetric(
-                                          horizontal: AppColors.spacingM,
+                                          horizontal: AppSpacing.md,
                                         ),
                                         child: Text(
                                           "or continue with",
@@ -578,7 +576,7 @@ class _LoginScreenState extends State<LoginScreen>
                                     ],
                                   ),
                                 ),
-                                const SizedBox(height: AppColors.spacingXL),
+                                const SizedBox(height: AppSpacing.xl),
 
                                 // Animated Google Sign-in Button
                                 AnimatedBuilder(
@@ -625,7 +623,7 @@ class _LoginScreenState extends State<LoginScreen>
                                     ),
                                   ),
                                 ),
-                                const SizedBox(height: AppColors.spacingM),
+                                const SizedBox(height: AppSpacing.md),
 
                                 // Animated Apple Sign-in Button
                                 AnimatedBuilder(
@@ -672,7 +670,7 @@ class _LoginScreenState extends State<LoginScreen>
                                     ),
                                   ),
                                 ),
-                                const SizedBox(height: AppColors.spacingXL),
+                                const SizedBox(height: AppSpacing.xl),
                               ],
                             ),
                           ),
@@ -740,9 +738,7 @@ class _LoginScreenState extends State<LoginScreen>
             isFocused
                 ? [
                   BoxShadow(
-                    color: AppColors.buttonBackgroundColor.withValues(
-                      alpha: 0.3,
-                    ),
+                    color: AppColors.deepSoilGreen.withValues(alpha: 0.3),
                     blurRadius: 15,
                     spreadRadius: 0,
                   ),
@@ -766,27 +762,27 @@ class _LoginScreenState extends State<LoginScreen>
             borderRadius: BorderRadius.circular(AppColors.radiusRound),
             gradient: LinearGradient(
               colors: [
-                AppColors.buttonBackgroundColor,
-                AppColors.buttonBackgroundColor.withRed(200),
-                AppColors.buttonBackgroundColor,
+                AppColors.deepSoilGreen,
+                AppColors.deepSoilGreen.withRed(200),
+                AppColors.deepSoilGreen,
               ],
               stops: [0.0, _shimmerController.value, 1.0],
             ),
             boxShadow: [
               BoxShadow(
-                color: AppColors.buttonBackgroundColor.withValues(alpha: 0.4),
+                color: AppColors.deepSoilGreen.withValues(alpha: 0.4),
                 blurRadius: 15,
                 offset: const Offset(0, 6),
               ),
             ],
           ),
           child: Material(
-            color: Colors.transparent,
+            color: AppColors.transparent,
             child: InkWell(
               borderRadius: BorderRadius.circular(AppColors.radiusRound),
               onTap: isLoading ? null : onPressed,
-              splashColor: Colors.white.withValues(alpha: 0.2),
-              highlightColor: Colors.white.withValues(alpha: 0.1),
+              splashColor: AppColors.parchment.withValues(alpha: 0.2),
+              highlightColor: AppColors.parchment.withValues(alpha: 0.1),
               child: Padding(
                 padding: const EdgeInsets.symmetric(
                   vertical: AppColors.spacingL,
@@ -799,17 +795,15 @@ class _LoginScreenState extends State<LoginScreen>
                             height: 24,
                             child: CircularProgressIndicator(
                               strokeWidth: 2.5,
-                              valueColor: AlwaysStoppedAnimation<Color>(
-                                Colors.white,
+                              valueColor: const AlwaysStoppedAnimation<Color>(
+                                AppColors.parchment,
                               ),
                             ),
                           )
                           : Text(
                             "Login",
-                            style: Theme.of(
-                              context,
-                            ).textTheme.titleMedium?.copyWith(
-                              color: Colors.white,
+                            style: context.text.titleMedium?.copyWith(
+                              color: AppColors.parchment,
                               fontWeight: FontWeight.bold,
                               letterSpacing: 0.5,
                             ),
@@ -902,19 +896,21 @@ class _GoogleSignInButtonState extends State<_GoogleSignInButton>
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 200),
             padding: const EdgeInsets.symmetric(
-              horizontal: AppColors.spacingXL,
-              vertical: AppColors.spacingM,
+              horizontal: AppSpacing.xl,
+              vertical: AppSpacing.md,
             ),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: AppColors.parchment,
               borderRadius: BorderRadius.circular(AppColors.radiusRound),
               border: Border.all(
-                color: _isHovered ? Colors.grey.shade300 : Colors.grey.shade200,
+                color: _isHovered ? AppColors.rawEarth12 : AppColors.parchment,
                 width: 1.5,
               ),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(_isHovered ? 0.12 : 0.08),
+                  color: AppColors.charcoal.withValues(
+                    alpha: _isHovered ? 0.12 : 0.08,
+                  ),
                   blurRadius: _isHovered ? 12 : 8,
                   offset: const Offset(0, 2),
                 ),
@@ -933,11 +929,11 @@ class _GoogleSignInButtonState extends State<_GoogleSignInButton>
                     child: CustomPaint(painter: _GoogleLogoPainter()),
                   ),
                 ),
-                const SizedBox(width: AppColors.spacingM),
+                const SizedBox(width: AppSpacing.md),
                 Text(
                   "Sign in with Google",
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: Colors.grey.shade700,
+                  style: context.text.bodyMedium?.copyWith(
+                    color: AppColors.charcoal60,
                     fontWeight: FontWeight.w600,
                     letterSpacing: 0.2,
                   ),
@@ -961,10 +957,10 @@ class _GoogleLogoPainter extends CustomPainter {
     final double innerRadius = s * 0.28;
 
     // Google brand colors
-    const Color blue = Color(0xFF4285F4);
-    const Color red = Color(0xFFEA4335);
-    const Color yellow = Color(0xFFFBBC05);
-    const Color green = Color(0xFF34A853);
+    const Color blue = AppColors.deepSoilGreen;
+    const Color red = AppColors.rawEarth;
+    const Color yellow = AppColors.harvestAmber;
+    const Color green = AppColors.deepSoilGreen;
 
     final paint = Paint()..style = PaintingStyle.fill;
 
@@ -1010,11 +1006,11 @@ class _GoogleLogoPainter extends CustomPainter {
     );
 
     // Cut out the inner circle (white center)
-    paint.color = Colors.white;
+    paint.color = AppColors.parchment;
     canvas.drawCircle(Offset(center, center), innerRadius, paint);
 
     // Cut out the top-right opening of the G
-    paint.color = Colors.white;
+    paint.color = AppColors.parchment;
     final path = Path();
     path.moveTo(center, center);
     path.lineTo(s, center);
@@ -1103,19 +1099,21 @@ class _AppleSignInButtonState extends State<_AppleSignInButton>
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 200),
             padding: const EdgeInsets.symmetric(
-              horizontal: AppColors.spacingXL,
-              vertical: AppColors.spacingM,
+              horizontal: AppSpacing.xl,
+              vertical: AppSpacing.md,
             ),
             decoration: BoxDecoration(
-              color: Colors.black, // Apple's standard black background
+              color: AppColors.charcoal,
               borderRadius: BorderRadius.circular(AppColors.radiusRound),
               border: Border.all(
-                color: _isHovered ? Colors.grey.shade800 : Colors.black,
+                color: _isHovered ? AppColors.charcoal87 : AppColors.charcoal,
                 width: 1.5,
               ),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(_isHovered ? 0.3 : 0.2),
+                  color: AppColors.charcoal.withValues(
+                    alpha: _isHovered ? 0.3 : 0.2,
+                  ),
                   blurRadius: _isHovered ? 12 : 8,
                   offset: const Offset(0, 2),
                 ),
@@ -1130,14 +1128,18 @@ class _AppleSignInButtonState extends State<_AppleSignInButton>
                   child: const SizedBox(
                     width: 20,
                     height: 20,
-                    child: Icon(Icons.apple, color: Colors.white, size: 24),
+                    child: Icon(
+                      Icons.apple,
+                      color: AppColors.parchment,
+                      size: 24,
+                    ),
                   ),
                 ),
-                const SizedBox(width: AppColors.spacingM),
+                const SizedBox(width: AppSpacing.md),
                 Text(
                   "Sign in with Apple",
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: Colors.white,
+                  style: context.text.bodyMedium?.copyWith(
+                    color: AppColors.parchment,
                     fontWeight: FontWeight.w600,
                     letterSpacing: 0.2,
                   ),

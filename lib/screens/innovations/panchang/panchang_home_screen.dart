@@ -108,12 +108,11 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
     return BlocProvider.value(
       value: _cubit,
       child: Scaffold(
-        backgroundColor:
-            isDark ? const Color(0xFF070C08) : const Color(0xFFF4F8F4),
+        backgroundColor: theme.scaffoldBackgroundColor,
         body: Stack(
           children: [
             // Animated background
-            _buildAnimatedBackground(isDark),
+            _buildAnimatedBackground(isDark, theme),
 
             // Main content
             CustomScrollView(
@@ -174,7 +173,7 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
     );
   }
 
-  Widget _buildAnimatedBackground(bool isDark) {
+  Widget _buildAnimatedBackground(bool isDark, ThemeData theme) {
     return Positioned.fill(
       child: Container(
         decoration: BoxDecoration(
@@ -183,15 +182,11 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
             end: Alignment.bottomRight,
             colors:
                 isDark
-                    ? [
-                      const Color(0xFF091309),
-                      const Color(0xFF080D09),
-                      const Color(0xFF070C08),
-                    ]
+                    ? [AppColors.deepSoilGreen, const Color(0xFF3D6B28)]
                     : [
-                      const Color(0xFFEDF4EE),
-                      const Color(0xFFF4F8F4),
-                      const Color(0xFFFFFFFF),
+                      theme.scaffoldBackgroundColor,
+                      theme.scaffoldBackgroundColor,
+                      theme.scaffoldBackgroundColor,
                     ],
           ),
         ),
@@ -204,7 +199,7 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
     return SliverAppBar(
       expandedHeight: 200,
       pinned: true,
-      backgroundColor: Colors.transparent,
+      backgroundColor: AppColors.transparent,
       elevation: 0,
       flexibleSpace: FlexibleSpaceBar(
         background: _buildHeaderBackground(isDark),
@@ -224,12 +219,16 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
           colors:
               isDark
                   ? [
-                    const Color(0xFF3F5E46).withOpacity(0.3),
-                    const Color(0xFF3A8C54).withOpacity(0.2),
+                    (isDark ? AppColors.parchment : AppColors.deepSoilGreen)
+                        .withAlpha(50),
+                    (isDark ? AppColors.parchment : AppColors.deepSoilGreen)
+                        .withAlpha(20),
                   ]
                   : [
-                    const Color(0xFF3A8C54).withOpacity(0.1),
-                    const Color(0xFF3F5E46).withOpacity(0.05),
+                    (isDark ? AppColors.parchment : AppColors.deepSoilGreen)
+                        .withAlpha(25),
+                    (isDark ? AppColors.parchment : AppColors.deepSoilGreen)
+                        .withAlpha(10),
                   ],
         ),
       ),
@@ -251,7 +250,7 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                   style: TextStyle(
                     fontSize: 28,
                     fontWeight: FontWeight.bold,
-                    color: isDark ? Colors.white : Colors.black87,
+                    color: isDark ? AppColors.pureWhite : AppColors.charcoal,
                     letterSpacing: -0.5,
                   ),
                 ),
@@ -271,17 +270,18 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         decoration: BoxDecoration(
-          color: (isDark ? Colors.white : Colors.black).withOpacity(0.1),
+          color: (isDark ? AppColors.pureWhite : AppColors.charcoal).withValues(
+            alpha: 0.1,
+          ),
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: (isDark ? Colors.white : Colors.black).withOpacity(0.1),
+            color: (isDark ? AppColors.pureWhite : AppColors.charcoal)
+                .withValues(alpha: 0.1),
           ),
           boxShadow: [
             BoxShadow(
-              color: (isDark
-                      ? const Color(0xFF3F5E46)
-                      : const Color(0xFF2D5A3D))
-                  .withOpacity(0.1),
+              color: (isDark ? AppColors.pureWhite : AppColors.charcoal)
+                  .withValues(alpha: 0.1),
               blurRadius: 8,
               offset: const Offset(0, 2),
             ),
@@ -293,7 +293,7 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
             Icon(
               Icons.calendar_today_rounded,
               size: 18,
-              color: isDark ? Colors.white : Colors.black87,
+              color: isDark ? AppColors.pureWhite : AppColors.charcoal,
             ),
             const SizedBox(width: 10),
             AutoSizeText(
@@ -301,14 +301,20 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
               style: TextStyle(
                 fontSize: 15,
                 fontWeight: FontWeight.w600,
-                color: isDark ? Colors.white.withOpacity(0.9) : Colors.black87,
+                color:
+                    isDark
+                        ? AppColors.parchment.withValues(alpha: 0.9)
+                        : AppColors.charcoal,
               ),
             ),
             const SizedBox(width: 8),
             Icon(
               Icons.keyboard_arrow_down_rounded,
               size: 20,
-              color: isDark ? Colors.white70 : Colors.black54,
+              color:
+                  isDark
+                      ? AppColors.pureWhite.withValues(alpha: 0.54)
+                      : AppColors.charcoal54,
             ),
           ],
         ),
@@ -330,12 +336,13 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
             },
             child: Container(
               decoration: BoxDecoration(
-                color: (isDark ? Colors.white : Colors.black).withOpacity(0.1),
+                color: (isDark ? AppColors.pureWhite : AppColors.charcoal)
+                    .withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Icon(
                 Icons.arrow_back_rounded,
-                color: isDark ? Colors.white : Colors.black87,
+                color: isDark ? AppColors.pureWhite : AppColors.charcoal,
               ),
             ),
           ),
@@ -360,6 +367,7 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
   }
 
   Widget _buildShimmerCard({required double height}) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return AnimatedBuilder(
       animation: _shimmerAnimation,
       builder: (context, child) {
@@ -376,11 +384,18 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                     _shimmerAnimation.value,
                     _shimmerAnimation.value + 0.3,
                   ].map((e) => e.clamp(0.0, 1.0)).toList(),
-              colors: [
-                Colors.grey.shade300,
-                Colors.grey.shade100,
-                Colors.grey.shade300,
-              ],
+              colors:
+                  isDark
+                      ? [
+                        AppColors.charcoal.withValues(alpha: 0.8),
+                        AppColors.deepSoilGreen.withValues(alpha: 0.6),
+                        AppColors.charcoal.withValues(alpha: 0.8),
+                      ]
+                      : [
+                        AppColors.rawEarth12,
+                        Theme.of(context).scaffoldBackgroundColor,
+                        AppColors.rawEarth12,
+                      ],
             ),
           ),
         );
@@ -496,14 +511,14 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                       BoxShadow(
                         color: const Color(
                           0xFFFFD700,
-                        ).withOpacity(0.45 * _shimmerAnimation.value),
+                        ).withValues(alpha: 0.45 * _shimmerAnimation.value),
                         blurRadius: 18 + (12 * _shimmerAnimation.value),
                         spreadRadius: 2 + (3 * _shimmerAnimation.value),
                         offset: const Offset(-4, 0),
                       ),
                       BoxShadow(
-                        color: Colors.white.withOpacity(
-                          0.12 * _shimmerAnimation.value,
+                        color: AppColors.parchment.withValues(
+                          alpha: 0.12 * _shimmerAnimation.value,
                         ),
                         blurRadius: 20 + (10 * _shimmerAnimation.value),
                         spreadRadius: 1 + (2 * _shimmerAnimation.value),
@@ -522,14 +537,14 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
       child: ClipRRect(
         borderRadius: BorderRadius.circular(24),
         child: Container(
-          decoration: const BoxDecoration(
+          decoration: BoxDecoration(
             gradient: LinearGradient(
               begin: Alignment.centerLeft,
               end: Alignment.centerRight,
               colors: [
-                Color(0xFFAD8441), // saffron gold — sunrise side
-                Color(0xFF3F5E46), // forest green — transition
-                Color(0xFF091309), // near-black night — sunset side
+                const Color(0xFFE8760A), // saffron sunrise
+                AppColors.deepSoilGreen, // forest green transition
+                const Color(0xFF0D1B2A), // deep night sunset side
               ],
               stops: [0.0, 0.48, 1.0],
             ),
@@ -547,8 +562,8 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                     shape: BoxShape.circle,
                     gradient: RadialGradient(
                       colors: [
-                        const Color(0xFFFFD700).withOpacity(0.45),
-                        Colors.transparent,
+                        AppColors.parchment.withValues(alpha: 0.45),
+                        AppColors.transparent,
                       ],
                     ),
                   ),
@@ -565,8 +580,8 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                     shape: BoxShape.circle,
                     gradient: RadialGradient(
                       colors: [
-                        Colors.white.withOpacity(0.13),
-                        Colors.transparent,
+                        AppColors.parchment.withValues(alpha: 0.13),
+                        AppColors.transparent,
                       ],
                     ),
                   ),
@@ -617,9 +632,9 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                                   begin: Alignment.topCenter,
                                   end: Alignment.bottomCenter,
                                   colors: [
-                                    Colors.transparent,
-                                    Colors.white.withOpacity(0.6),
-                                    Colors.transparent,
+                                    AppColors.transparent,
+                                    AppColors.parchment.withValues(alpha: 0.6),
+                                    AppColors.transparent,
                                   ],
                                 ),
                               ),
@@ -646,10 +661,10 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                           vertical: 10,
                         ),
                         decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.12),
+                          color: AppColors.parchment.withValues(alpha: 0.12),
                           borderRadius: BorderRadius.circular(20),
                           border: Border.all(
-                            color: Colors.white.withOpacity(0.25),
+                            color: AppColors.parchment.withValues(alpha: 0.25),
                             width: 1,
                           ),
                         ),
@@ -657,16 +672,22 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                           mainAxisSize: MainAxisSize.min,
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            const Icon(
+                            Icon(
                               Icons.wb_sunny,
-                              color: Color(0xFFFFD700),
+                              color:
+                                  isDark
+                                      ? AppColors.pureWhite
+                                      : AppColors.parchment,
                               size: 18,
                             ),
                             const SizedBox(width: 8),
                             AutoSizeText(
                               'Solar Noon: ${formatTime(timings.solarNoon)}',
-                              style: const TextStyle(
-                                color: Colors.white,
+                              style: TextStyle(
+                                color:
+                                    isDark
+                                        ? AppColors.pureWhite
+                                        : AppColors.parchment,
                                 fontSize: 14,
                                 fontWeight: FontWeight.w600,
                               ),
@@ -702,12 +723,22 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
       },
       child: Column(
         children: [
-          Icon(icon, color: Colors.white, size: 32),
+          Icon(
+            icon,
+            color:
+                Theme.of(context).brightness == Brightness.dark
+                    ? AppColors.pureWhite
+                    : AppColors.parchment,
+            size: 32,
+          ),
           const SizedBox(height: 8),
           AutoSizeText(
             label,
-            style: const TextStyle(
-              color: Colors.white70,
+            style: TextStyle(
+              color:
+                  (Theme.of(context).brightness == Brightness.dark)
+                      ? AppColors.pureWhite.withValues(alpha: 0.7)
+                      : AppColors.parchment.withValues(alpha: 0.7),
               fontSize: 13,
               fontWeight: FontWeight.w500,
             ),
@@ -715,8 +746,11 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
           const SizedBox(height: 4),
           AutoSizeText(
             time,
-            style: const TextStyle(
-              color: Colors.white,
+            style: TextStyle(
+              color:
+                  Theme.of(context).brightness == Brightness.dark
+                      ? AppColors.pureWhite
+                      : AppColors.parchment,
               fontSize: 20,
               fontWeight: FontWeight.bold,
             ),
@@ -732,10 +766,10 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
       height: size,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        color: Colors.white.withOpacity(opacity),
+        color: AppColors.parchment.withValues(alpha: opacity),
         boxShadow: [
           BoxShadow(
-            color: Colors.white.withOpacity(opacity * 0.6),
+            color: AppColors.parchment.withValues(alpha: opacity * 0.6),
             blurRadius: size * 1.5,
             spreadRadius: size * 0.3,
           ),
@@ -782,42 +816,42 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
         'Tithi',
         day.corePanchang.tithi,
         Icons.brightness_3,
-        const Color(0xFFEC4899),
+        isDark ? AppColors.parchment : AppColors.harvestAmber,
         formatEndTime(day.corePanchang.tithiEnd),
       ),
       _PanchangItemData(
         'Nakshatra',
         day.corePanchang.nakshatra,
         Icons.stars_rounded,
-        const Color(0xFF8B5CF6),
+        isDark ? AppColors.parchment : AppColors.deepSoilGreen,
         formatEndTime(day.corePanchang.nakshatraEnd),
       ),
       _PanchangItemData(
         'Yoga',
         day.corePanchang.yoga,
         Icons.self_improvement_rounded,
-        const Color(0xFF10B981),
+        isDark ? AppColors.parchment : AppColors.rawEarth,
         formatEndTime(day.corePanchang.yogaEnd),
       ),
       _PanchangItemData(
         'Karana',
         day.corePanchang.karana,
         Icons.change_history_rounded,
-        const Color(0xFFF59E0B),
+        isDark ? AppColors.parchment : AppColors.harvestAmber,
         formatEndTime(day.corePanchang.karanaEnd),
       ),
       _PanchangItemData(
         'Vara',
         day.corePanchang.vara,
         Icons.wb_sunny_rounded,
-        const Color(0xFF3B82F6),
+        isDark ? AppColors.parchment : AppColors.deepSoilGreen,
         'वार',
       ),
       _PanchangItemData(
         'Paksha',
         day.lunar.paksha,
         Icons.brightness_2_rounded,
-        const Color(0xFF6366F1),
+        isDark ? AppColors.parchment : AppColors.rawEarth,
         'पक्ष',
       ),
     ];
@@ -829,8 +863,8 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
           BoxShadow(
             color:
                 isDark
-                    ? Colors.black.withOpacity(0.4)
-                    : const Color(0xFF3A8C54).withOpacity(0.15),
+                    ? AppColors.charcoal.withValues(alpha: 0.4)
+                    : AppColors.parchment.withValues(alpha: 0.15),
             blurRadius: 25,
             offset: const Offset(0, 10),
           ),
@@ -845,8 +879,8 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
               end: Alignment.bottomRight,
               colors:
                   isDark
-                      ? [const Color(0xFF0D1A10), const Color(0xFF143318)]
-                      : [Colors.white, const Color(0xFFF5F8F5)],
+                      ? [AppColors.darkSurface, AppColors.darkSurfaceElevated]
+                      : [AppColors.deepSoilGreen, const Color(0xFF3A6B24)],
             ),
           ),
           child: Stack(
@@ -862,8 +896,10 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                     shape: BoxShape.circle,
                     gradient: RadialGradient(
                       colors: [
-                        const Color(0xFF3A8C54).withOpacity(isDark ? 0.2 : 0.1),
-                        Colors.transparent,
+                        AppColors.parchment.withValues(
+                          alpha: isDark ? 0.2 : 0.1,
+                        ),
+                        AppColors.transparent,
                       ],
                     ),
                   ),
@@ -880,9 +916,9 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                     gradient: RadialGradient(
                       colors: [
                         const Color(
-                          0xFFEC4899,
-                        ).withOpacity(isDark ? 0.15 : 0.08),
-                        Colors.transparent,
+                          0xFF6B4226,
+                        ).withValues(alpha: isDark ? 0.15 : 0.08),
+                        AppColors.transparent,
                       ],
                     ),
                   ),
@@ -903,19 +939,20 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                             return Container(
                               padding: const EdgeInsets.all(12),
                               decoration: BoxDecoration(
-                                gradient: const LinearGradient(
+                                gradient: LinearGradient(
                                   begin: Alignment.topLeft,
                                   end: Alignment.bottomRight,
                                   colors: [
-                                    Color(0xFF3A8C54),
-                                    Color(0xFFEC4899),
+                                    AppColors.parchment,
+                                    AppColors.parchment,
                                   ],
                                 ),
                                 borderRadius: BorderRadius.circular(16),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: const Color(0xFF3A8C54).withOpacity(
-                                      0.4 + (0.2 * _shimmerAnimation.value),
+                                    color: AppColors.parchment.withValues(
+                                      alpha:
+                                          0.4 + (0.2 * _shimmerAnimation.value),
                                     ),
                                     blurRadius: 15,
                                     spreadRadius: 0,
@@ -941,13 +978,15 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                                   fontWeight: FontWeight.bold,
                                   color:
                                       isDark
-                                          ? Colors.white
-                                          : const Color(0xFF0D1A10),
+                                          ? AppColors.parchment
+                                          : AppColors.parchment,
                                   letterSpacing: -0.5,
                                 ),
                               ),
                               const SizedBox(height: 4),
-                              Row(
+                              Wrap(
+                                spacing: 8,
+                                runSpacing: 4,
                                 children: [
                                   if (lunar.masa.isNotEmpty) ...[
                                     GestureDetector(
@@ -966,13 +1005,15 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                                           gradient: LinearGradient(
                                             colors: [
                                               const Color(
-                                                0xFF3A8C54,
-                                              ).withOpacity(
-                                                isDark ? 0.3 : 0.15,
+                                                0xFF2C4A1E,
+                                              ).withValues(
+                                                alpha: isDark ? 0.3 : 0.15,
                                               ),
                                               const Color(
-                                                0xFFEC4899,
-                                              ).withOpacity(isDark ? 0.2 : 0.1),
+                                                0xFF6B4226,
+                                              ).withValues(
+                                                alpha: isDark ? 0.2 : 0.1,
+                                              ),
                                             ],
                                           ),
                                           borderRadius: BorderRadius.circular(
@@ -980,8 +1021,8 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                                           ),
                                           border: Border.all(
                                             color: const Color(
-                                              0xFF3A8C54,
-                                            ).withOpacity(0.3),
+                                              0xFF2C4A1E,
+                                            ).withValues(alpha: 0.3),
                                           ),
                                         ),
                                         child: Row(
@@ -995,10 +1036,10 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                                                 color:
                                                     isDark
                                                         ? const Color(
-                                                          0xFFD8B4FE,
+                                                          0xFFF0D78C,
                                                         )
                                                         : const Color(
-                                                          0xFF7C3AED,
+                                                          0xFFC9943A,
                                                         ),
                                               ),
                                             ),
@@ -1009,18 +1050,17 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                                               color:
                                                   isDark
                                                       ? const Color(
-                                                        0xFFD8B4FE,
-                                                      ).withOpacity(0.6)
+                                                        0xFFF0D78C,
+                                                      ).withValues(alpha: 0.6)
                                                       : const Color(
-                                                        0xFF7C3AED,
-                                                      ).withOpacity(0.6),
+                                                        0xFFC9943A,
+                                                      ).withValues(alpha: 0.6),
                                             ),
                                           ],
                                         ),
                                       ),
                                     ),
-                                    const SizedBox(width: 8),
-                                  ],
+                                    ],
                                   if (lunar.paksha.isNotEmpty)
                                     GestureDetector(
                                       onTap:
@@ -1040,14 +1080,14 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                                                       .toLowerCase()
                                                       .contains('krishna')
                                                   ? const Color(
-                                                    0xFF6366F1,
-                                                  ).withOpacity(
-                                                    isDark ? 0.3 : 0.15,
+                                                    0xFF2C4A1E,
+                                                  ).withValues(
+                                                    alpha: isDark ? 0.3 : 0.15,
                                                   )
                                                   : const Color(
-                                                    0xFFF59E0B,
-                                                  ).withOpacity(
-                                                    isDark ? 0.3 : 0.15,
+                                                    0xFFC9943A,
+                                                  ).withValues(
+                                                    alpha: isDark ? 0.3 : 0.15,
                                                   ),
                                           borderRadius: BorderRadius.circular(
                                             20,
@@ -1058,11 +1098,11 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                                                         .toLowerCase()
                                                         .contains('krishna')
                                                     ? const Color(
-                                                      0xFF6366F1,
-                                                    ).withOpacity(0.3)
+                                                      0xFF2C4A1E,
+                                                    ).withValues(alpha: 0.3)
                                                     : const Color(
-                                                      0xFFF59E0B,
-                                                    ).withOpacity(0.3),
+                                                      0xFFC9943A,
+                                                    ).withValues(alpha: 0.3),
                                           ),
                                         ),
                                         child: Row(
@@ -1083,17 +1123,17 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                                                             .contains('krishna')
                                                         ? (isDark
                                                             ? const Color(
-                                                              0xFFA5B4FC,
+                                                              0xFFE8C362,
                                                             )
                                                             : const Color(
-                                                              0xFF4F46E5,
+                                                              0xFF2C4A1E,
                                                             ))
                                                         : (isDark
                                                             ? const Color(
-                                                              0xFFFCD34D,
+                                                              0xFFF0D78C,
                                                             )
                                                             : const Color(
-                                                              0xFFD97706,
+                                                              0xFF6B4226,
                                                             )),
                                               ),
                                             ),
@@ -1107,18 +1147,26 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                                                           .contains('krishna')
                                                       ? (isDark
                                                           ? const Color(
-                                                            0xFFA5B4FC,
-                                                          ).withOpacity(0.6)
+                                                            0xFFE8C362,
+                                                          ).withValues(
+                                                            alpha: 0.6,
+                                                          )
                                                           : const Color(
-                                                            0xFF4F46E5,
-                                                          ).withOpacity(0.6))
+                                                            0xFF2C4A1E,
+                                                          ).withValues(
+                                                            alpha: 0.6,
+                                                          ))
                                                       : (isDark
                                                           ? const Color(
-                                                            0xFFFCD34D,
-                                                          ).withOpacity(0.6)
+                                                            0xFFF0D78C,
+                                                          ).withValues(
+                                                            alpha: 0.6,
+                                                          )
                                                           : const Color(
-                                                            0xFFD97706,
-                                                          ).withOpacity(0.6)),
+                                                            0xFF6B4226,
+                                                          ).withValues(
+                                                            alpha: 0.6,
+                                                          )),
                                             ),
                                           ],
                                         ),
@@ -1136,21 +1184,25 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                             decoration: BoxDecoration(
                               color:
                                   isDark
-                                      ? Colors.white.withOpacity(0.1)
+                                      ? AppColors.parchment.withValues(
+                                        alpha: 0.1,
+                                      )
                                       : const Color(
-                                        0xFF3A8C54,
-                                      ).withOpacity(0.1),
+                                        0xFF2C4A1E,
+                                      ).withValues(alpha: 0.1),
                               borderRadius: BorderRadius.circular(14),
                               border: Border.all(
-                                color: const Color(0xFF3A8C54).withOpacity(0.2),
+                                color: AppColors.parchment.withValues(
+                                  alpha: 0.2,
+                                ),
                               ),
                             ),
                             child: Icon(
                               Icons.info_outline_rounded,
                               color:
                                   isDark
-                                      ? const Color(0xFF7BC48F)
-                                      : const Color(0xFF3A8C54),
+                                      ? AppColors.parchment
+                                      : AppColors.parchment,
                               size: 22,
                             ),
                           ),
@@ -1205,22 +1257,22 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
             colors:
                 isDark
                     ? [
-                      item.color.withOpacity(0.25),
-                      item.color.withOpacity(0.1),
+                      item.color.withValues(alpha: 0.25),
+                      item.color.withValues(alpha: 0.1),
                     ]
                     : [
-                      item.color.withOpacity(0.12),
-                      item.color.withOpacity(0.05),
+                      item.color.withValues(alpha: 0.12),
+                      item.color.withValues(alpha: 0.05),
                     ],
           ),
           borderRadius: BorderRadius.circular(18),
           border: Border.all(
-            color: item.color.withOpacity(isDark ? 0.4 : 0.25),
+            color: item.color.withValues(alpha: isDark ? 0.4 : 0.25),
             width: 1.5,
           ),
           boxShadow: [
             BoxShadow(
-              color: item.color.withOpacity(isDark ? 0.2 : 0.1),
+              color: item.color.withValues(alpha: isDark ? 0.2 : 0.1),
               blurRadius: 10,
               offset: const Offset(0, 4),
             ),
@@ -1236,12 +1288,13 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: item.color.withOpacity(isDark ? 0.3 : 0.15),
+                    color: item.color.withValues(alpha: isDark ? 0.3 : 0.15),
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: Icon(
                     item.icon,
-                    color: isDark ? item.color.withOpacity(0.9) : item.color,
+                    color:
+                        isDark ? item.color.withValues(alpha: 0.9) : item.color,
                     size: 18,
                   ),
                 ),
@@ -1258,8 +1311,8 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                         fontWeight: FontWeight.w600,
                         color:
                             isDark
-                                ? item.color.withOpacity(0.8)
-                                : item.color.withOpacity(0.9),
+                                ? item.color.withValues(alpha: 0.8)
+                                : item.color.withValues(alpha: 0.9),
                       ),
                     ),
                   ),
@@ -1278,9 +1331,7 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                     minFontSize: 9,
                     style: TextStyle(
                       fontSize: 12,
-                      color: (isDark ? Colors.white : Colors.black).withOpacity(
-                        0.6,
-                      ),
+                      color: AppColors.pureWhite.withValues(alpha: 0.6),
                       fontWeight: FontWeight.w500,
                     ),
                   ),
@@ -1290,7 +1341,7 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                     style: TextStyle(
                       fontSize: 15,
                       fontWeight: FontWeight.w800,
-                      color: isDark ? Colors.white : const Color(0xFF0D1A10),
+                      color: isDark ? AppColors.parchment : AppColors.pureWhite,
                     ),
                     maxLines: 2,
                     minFontSize: 10,
@@ -1325,13 +1376,13 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                 Container(
                   padding: const EdgeInsets.all(6),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFFFB020).withValues(alpha: 0.15),
+                    color: AppColors.parchment.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: const Icon(
+                  child: Icon(
                     Icons.celebration_rounded,
                     size: 16,
-                    color: Color(0xFFFFB020),
+                    color: isDark ? AppColors.pureWhite : AppColors.deepSoilGreen,
                   ),
                 ),
                 const SizedBox(width: 10),
@@ -1340,7 +1391,7 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                   style: TextStyle(
                     fontSize: 17,
                     fontWeight: FontWeight.w800,
-                    color: isDark ? Colors.white : Colors.black87,
+                    color: isDark ? AppColors.pureWhite : AppColors.charcoal,
                     letterSpacing: -0.3,
                   ),
                 ),
@@ -1361,7 +1412,7 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                   vertical: 5,
                 ),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF3A8C54).withValues(alpha: 0.1),
+                  color: AppColors.deepSoilGreen.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: AutoSizeText(
@@ -1369,7 +1420,7 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                   style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w700,
-                    color: Color(0xFF3A8C54),
+                    color: isDark ? AppColors.pureWhite : AppColors.deepSoilGreen,
                   ),
                 ),
               ),
@@ -1413,8 +1464,8 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
             end: Alignment.bottomRight,
             colors:
                 isDark
-                    ? [const Color(0xFF111E13), const Color(0xFF0D150F)]
-                    : [Colors.white, const Color(0xFFFFFBF0)],
+                    ? [AppColors.darkSurface, AppColors.darkSurfaceElevated]
+                    : [AppColors.deepSoilGreen, const Color(0xFF3A6B24)],
           ),
           borderRadius: BorderRadius.circular(14),
           border: Border.all(
@@ -1444,17 +1495,23 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                     vertical: 4,
                   ),
                   decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      colors: [Color(0xFFFFB020), Color(0xFFFF8C00)],
+                    gradient: LinearGradient(
+                      colors:
+                          isDark
+                              ? [AppColors.darkSurface, AppColors.darkSurfaceElevated]
+                              : [
+                                AppColors.deepSoilGreen,
+                                const Color(0xFF3A6B24),
+                              ],
                     ),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: AutoSizeText(
                     day,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w900,
-                      color: Colors.white,
+                      color: isDark ? AppColors.pureWhite : AppColors.parchment,
                     ),
                   ),
                 ),
@@ -1464,7 +1521,7 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                   style: TextStyle(
                     fontSize: 11,
                     fontWeight: FontWeight.w700,
-                    color: isDark ? Colors.white60 : Colors.black54,
+                    color: AppColors.pureWhite.withValues(alpha: 0.6),
                   ),
                 ),
               ],
@@ -1478,7 +1535,7 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                 style: TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w700,
-                  color: isDark ? Colors.white : Colors.black87,
+                  color: isDark ? AppColors.pureWhite : AppColors.charcoal,
                 ),
               ),
             ),
@@ -1498,7 +1555,7 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
               width: 4,
               height: 22,
               decoration: BoxDecoration(
-                color: const Color(0xFFAD8441),
+                color: isDark ? AppColors.pureWhite : AppColors.deepSoilGreen,
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
@@ -1508,7 +1565,7 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
               style: TextStyle(
                 fontSize: 17,
                 fontWeight: FontWeight.w800,
-                color: isDark ? Colors.white : Colors.black87,
+                color: isDark ? AppColors.pureWhite : AppColors.charcoal,
                 letterSpacing: -0.3,
               ),
             ),
@@ -1521,7 +1578,7 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
               child: _buildActionCard(
                 icon: Icons.calendar_view_month_rounded,
                 label: 'Month\nCalendar',
-                color: const Color(0xFF3F5E46),
+                color: isDark ? AppColors.pureWhite : AppColors.deepSoilGreen,
                 isDark: isDark,
                 onTap:
                     () => Navigator.push(
@@ -1537,7 +1594,7 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
               child: _buildActionCard(
                 icon: Icons.celebration_rounded,
                 label: 'All\nFestivals',
-                color: const Color(0xFF3A8C54),
+                color: isDark ? AppColors.harvestAmber : AppColors.harvestAmber,
                 isDark: isDark,
                 onTap:
                     () => Navigator.push(
@@ -1557,7 +1614,7 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
               child: _buildActionCard(
                 icon: Icons.self_improvement_rounded,
                 label: 'Vrat\nCalendar',
-                color: const Color(0xFF3F5E46),
+                color: isDark ? AppColors.pureWhite : AppColors.rawEarth,
                 isDark: isDark,
                 onTap:
                     () => Navigator.push(
@@ -1573,7 +1630,7 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
               child: _buildActionCard(
                 icon: Icons.auto_awesome,
                 label: 'Today\'s\nGuidance',
-                color: const Color(0xFFAD8441),
+                color: isDark ? AppColors.warmGold : AppColors.warmGold,
                 isDark: isDark,
                 onTap:
                     () => Navigator.push(
@@ -1610,12 +1667,12 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              color.withOpacity(isDark ? 0.3 : 0.2),
-              color.withOpacity(isDark ? 0.2 : 0.1),
+              color.withValues(alpha: isDark ? 0.3 : 0.2),
+              color.withValues(alpha: isDark ? 0.2 : 0.1),
             ],
           ),
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: color.withOpacity(0.3)),
+          border: Border.all(color: color.withValues(alpha: 0.3)),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -1627,11 +1684,11 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                 Container(
                   padding: const EdgeInsets.all(9),
                   decoration: BoxDecoration(
-                    color: color.withOpacity(isDark ? 0.35 : 0.18),
+                    color: color.withValues(alpha: isDark ? 0.35 : 0.18),
                     borderRadius: BorderRadius.circular(12),
                     boxShadow: [
                       BoxShadow(
-                        color: color.withOpacity(0.35),
+                        color: color.withValues(alpha: 0.35),
                         blurRadius: 10,
                         spreadRadius: 1,
                       ),
@@ -1641,7 +1698,7 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                 ),
                 Icon(
                   Icons.arrow_forward_ios_rounded,
-                  color: color.withOpacity(0.5),
+                  color: color.withValues(alpha: 0.5),
                   size: 14,
                 ),
               ],
@@ -1657,7 +1714,7 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                   style: TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.bold,
-                    color: isDark ? Colors.white : Colors.black87,
+                    color: isDark ? AppColors.pureWhite : AppColors.charcoal,
                   ),
                 ),
               ),
@@ -1678,7 +1735,9 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
       builder: (context, child) {
         return Theme(
           data: Theme.of(context).copyWith(
-            colorScheme: ColorScheme.fromSwatch(primarySwatch: Colors.green),
+            colorScheme: ColorScheme.fromSeed(
+              seedColor: AppColors.deepSoilGreen,
+            ),
           ),
           child: child!,
         );
@@ -1716,7 +1775,9 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
             borderRadius: BorderRadius.circular(20),
             boxShadow: [
               BoxShadow(
-                color: Colors.red.withOpacity(0.3 * _shimmerAnimation.value),
+                color: AppColors.rawEarth.withValues(
+                  alpha: 0.3 * _shimmerAnimation.value,
+                ),
                 blurRadius: 15 + (10 * _shimmerAnimation.value),
                 spreadRadius: 0,
                 offset: const Offset(0, 0),
@@ -1729,14 +1790,14 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
               gradient: LinearGradient(
                 colors:
                     isDark
-                        ? [
-                          const Color(0xFFFF4444).withOpacity(0.3),
-                          const Color(0xFFFF6B6B).withOpacity(0.2),
-                        ]
-                        : [const Color(0xFFFFEBEE), const Color(0xFFFFCDD2)],
+                        ? [AppColors.darkSurface, AppColors.darkSurfaceElevated]
+                        : [AppColors.deepSoilGreen, const Color(0xFF3A6B24)],
               ),
               borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: Colors.red.withOpacity(0.5), width: 2),
+              border: Border.all(
+                color: AppColors.rawEarth.withValues(alpha: 0.5),
+                width: 2,
+              ),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -1746,19 +1807,20 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                     Container(
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: Colors.red,
+                        color: AppColors.rawEarth,
                         borderRadius: BorderRadius.circular(12),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.red.withOpacity(0.5),
+                            color: AppColors.rawEarth.withValues(alpha: 0.5),
                             blurRadius: 10,
                             spreadRadius: 2,
                           ),
                         ],
                       ),
-                      child: const Icon(
+                      child: Icon(
                         Icons.warning_rounded,
-                        color: Colors.white,
+                        color:
+                            isDark ? AppColors.pureWhite : AppColors.parchment,
                         size: 24,
                       ),
                     ),
@@ -1769,7 +1831,8 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
-                          color: isDark ? Colors.white : Colors.red.shade900,
+                          color:
+                              isDark ? AppColors.pureWhite : AppColors.parchment,
                         ),
                       ),
                     ),
@@ -1778,15 +1841,13 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                       child: Container(
                         padding: const EdgeInsets.all(8),
                         decoration: BoxDecoration(
-                          color: Colors.red.withOpacity(0.2),
+                          color: AppColors.rawEarth.withValues(alpha: 0.2),
                           borderRadius: BorderRadius.circular(10),
                         ),
                         child: Icon(
                           Icons.info_outline_rounded,
                           color:
-                              isDark
-                                  ? Colors.red.shade200
-                                  : Colors.red.shade700,
+                              isDark ? AppColors.rawEarth : AppColors.rawEarth,
                           size: 20,
                         ),
                       ),
@@ -1798,9 +1859,7 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                   'Tap ℹ️ to learn more • Avoid starting new work',
                   style: TextStyle(
                     fontSize: 12,
-                    color: (isDark ? Colors.white : Colors.black).withOpacity(
-                      0.6,
-                    ),
+                    color: AppColors.pureWhite.withValues(alpha: 0.6),
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -1851,7 +1910,7 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
       children: [
         Icon(
           icon,
-          color: isDark ? Colors.red.shade300 : Colors.red.shade700,
+          color: isDark ? AppColors.rawEarth : AppColors.rawEarth,
           size: 20,
         ),
         const SizedBox(width: 8),
@@ -1861,7 +1920,7 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
             style: TextStyle(
               fontSize: 15,
               fontWeight: FontWeight.w600,
-              color: isDark ? Colors.white : Colors.red.shade900,
+              color: AppColors.pureWhite,
             ),
           ),
         ),
@@ -1870,7 +1929,7 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
           style: TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.w600,
-            color: isDark ? Colors.red.shade200 : Colors.red.shade700,
+            color: isDark ? AppColors.rawEarth : AppColors.rawEarth,
           ),
         ),
       ],
@@ -1896,7 +1955,9 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
             borderRadius: BorderRadius.circular(20),
             boxShadow: [
               BoxShadow(
-                color: Colors.red.withOpacity(0.3 * _shimmerAnimation.value),
+                color: AppColors.rawEarth.withValues(
+                  alpha: 0.3 * _shimmerAnimation.value,
+                ),
                 blurRadius: 15 + (10 * _shimmerAnimation.value),
                 spreadRadius: 0,
                 offset: const Offset(0, 0),
@@ -1909,33 +1970,33 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
               gradient: LinearGradient(
                 colors:
                     isDark
-                        ? [
-                          const Color(0xFFFF4444).withOpacity(0.3),
-                          const Color(0xFFFF6B6B).withOpacity(0.2),
-                        ]
-                        : [const Color(0xFFFFEBEE), const Color(0xFFFFCDD2)],
+                        ? [AppColors.darkSurface, AppColors.darkSurfaceElevated]
+                        : [AppColors.deepSoilGreen, const Color(0xFF3A6B24)],
               ),
               borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: Colors.red.withOpacity(0.5), width: 2),
+              border: Border.all(
+                color: AppColors.rawEarth.withValues(alpha: 0.5),
+                width: 2,
+              ),
             ),
             child: Row(
               children: [
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: Colors.red,
+                    color: AppColors.rawEarth,
                     borderRadius: BorderRadius.circular(12),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.red.withOpacity(0.5),
+                        color: AppColors.rawEarth.withValues(alpha: 0.5),
                         blurRadius: 10,
                         spreadRadius: 2,
                       ),
                     ],
                   ),
-                  child: const Icon(
+                  child: Icon(
                     Icons.warning_rounded,
-                    color: Colors.white,
+                    color: isDark ? AppColors.pureWhite : AppColors.parchment,
                     size: 28,
                   ),
                 ),
@@ -1949,7 +2010,8 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
-                          color: isDark ? Colors.white : Colors.red.shade900,
+                          color:
+                              isDark ? AppColors.pureWhite : AppColors.rawEarth,
                         ),
                       ),
                       const SizedBox(height: 4),
@@ -1957,8 +2019,7 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                         'Avoid starting new work',
                         style: TextStyle(
                           fontSize: 12,
-                          color: (isDark ? Colors.white : Colors.black)
-                              .withOpacity(0.6),
+                          color: AppColors.pureWhite.withValues(alpha: 0.6),
                         ),
                       ),
                       const SizedBox(height: 8),
@@ -1968,9 +2029,7 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
                           color:
-                              isDark
-                                  ? Colors.red.shade200
-                                  : Colors.red.shade700,
+                              isDark ? AppColors.rawEarth : AppColors.rawEarth,
                         ),
                       ),
                     ],
@@ -1998,12 +2057,17 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF0D150E).withOpacity(0.6) : Colors.white,
+        color: isDark ? AppColors.darkSurfaceElevated : AppColors.pureWhite,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: const Color(0xFF3A8C54).withOpacity(0.3)),
+        border: Border.all(
+          color:
+              isDark
+                  ? AppColors.harvestAmber40
+                  : AppColors.harvestAmber.withValues(alpha: 0.3),
+        ),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF3A8C54).withOpacity(0.12),
+            color: AppColors.parchment.withValues(alpha: 0.12),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -2017,14 +2081,20 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFF4CAF50), Color(0xFF66BB6A)],
+                  gradient: LinearGradient(
+                    colors:
+                        isDark
+                            ? [AppColors.darkSurface, AppColors.darkSurfaceElevated]
+                            : [
+                              AppColors.deepSoilGreen,
+                              const Color(0xFF3A6B24),
+                            ],
                   ),
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: const Icon(
+                child: Icon(
                   Icons.auto_awesome,
-                  color: Colors.white,
+                  color: isDark ? AppColors.pureWhite : AppColors.parchment,
                   size: 20,
                 ),
               ),
@@ -2035,7 +2105,7 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
-                    color: isDark ? Colors.white : Colors.black87,
+                    color: isDark ? AppColors.pureWhite : AppColors.charcoal,
                   ),
                 ),
               ),
@@ -2044,15 +2114,18 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                 child: Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF3A8C54).withOpacity(0.15),
+                    color:
+                        isDark
+                            ? AppColors.charcoal.withValues(alpha: 0.5)
+                            : AppColors.deepSoilGreen.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: Icon(
                     Icons.info_outline_rounded,
                     color:
                         isDark
-                            ? const Color(0xFF7BC48F)
-                            : const Color(0xFF2D5A3D),
+                            ? AppColors.harvestAmber
+                            : AppColors.deepSoilGreen,
                     size: 20,
                   ),
                 ),
@@ -2064,7 +2137,8 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
             'Tap ℹ️ to learn more about auspicious muhurats',
             style: TextStyle(
               fontSize: 12,
-              color: (isDark ? Colors.white : Colors.black).withOpacity(0.6),
+              color: (isDark ? AppColors.pureWhite : AppColors.charcoal)
+                  .withValues(alpha: 0.6),
             ),
           ),
           const SizedBox(height: 12),
@@ -2075,7 +2149,7 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
               formatTime(muhurats.abhijit!.start),
               formatTime(muhurats.abhijit!.end),
               Icons.star,
-              Colors.amber,
+              AppColors.harvestAmber,
               isDark,
             ),
           if (muhurats.abhijit != null && muhurats.brahma != null)
@@ -2087,7 +2161,7 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
               formatTime(muhurats.brahma!.start),
               formatTime(muhurats.brahma!.end),
               Icons.self_improvement,
-              const Color(0xFF3F5E46),
+              AppColors.parchment,
               isDark,
             ),
         ],
@@ -2107,9 +2181,9 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: color.withOpacity(isDark ? 0.2 : 0.1),
+        color: color.withValues(alpha: isDark ? 0.2 : 0.1),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: color.withOpacity(0.3)),
+        border: Border.all(color: color.withValues(alpha: 0.3)),
       ),
       child: Row(
         children: [
@@ -2124,16 +2198,15 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.bold,
-                    color: isDark ? Colors.white : Colors.black87,
+                    color: isDark ? AppColors.pureWhite : AppColors.charcoal,
                   ),
                 ),
                 AutoSizeText(
                   subtitle,
                   style: TextStyle(
                     fontSize: 11,
-                    color: (isDark ? Colors.white : Colors.black).withOpacity(
-                      0.6,
-                    ),
+                    color: (isDark ? AppColors.pureWhite : AppColors.charcoal)
+                        .withValues(alpha: 0.6),
                   ),
                 ),
               ],
@@ -2173,14 +2246,11 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
         gradient: LinearGradient(
           colors:
               isDark
-                  ? [
-                    const Color(0xFF3F5E46).withOpacity(0.4),
-                    const Color(0xFF2D5A3D).withOpacity(0.3),
-                  ]
-                  : [const Color(0xFFDCEEDF), const Color(0xFFF0F7F0)],
+                  ? [AppColors.darkSurface, AppColors.darkSurfaceElevated]
+                  : [AppColors.deepSoilGreen, const Color(0xFF3A6B24)],
         ),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: const Color(0xFF3A8C54).withOpacity(0.3)),
+        border: Border.all(color: (isDark ? AppColors.parchment : AppColors.deepSoilGreen).withValues(alpha: 0.3)),
       ),
       child: Column(
         children: [
@@ -2191,15 +2261,15 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                   shape: BoxShape.circle,
                   boxShadow: [
                     BoxShadow(
-                      color: const Color(0xFFAD8441).withOpacity(0.5),
+                      color: AppColors.parchment.withValues(alpha: 0.5),
                       blurRadius: 14,
                       spreadRadius: 3,
                     ),
                   ],
                 ),
-                child: const Icon(
+                child: Icon(
                   Icons.nightlight_round,
-                  color: Color(0xFFAD8441),
+                  color: AppColors.pureWhite,
                   size: 28,
                 ),
               ),
@@ -2210,7 +2280,7 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
-                    color: isDark ? Colors.white : Colors.black87,
+                    color: isDark ? AppColors.pureWhite : AppColors.charcoal,
                   ),
                 ),
               ),
@@ -2219,15 +2289,12 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                 child: Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF3A8C54).withOpacity(0.2),
+                    color: AppColors.parchment.withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: Icon(
                     Icons.info_outline_rounded,
-                    color:
-                        isDark
-                            ? const Color(0xFF7BC48F)
-                            : const Color(0xFF2D5A3D),
+                    color: isDark ? AppColors.pureWhite : AppColors.charcoal,
                     size: 20,
                   ),
                 ),
@@ -2239,7 +2306,8 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
             'Tap ℹ️ to learn about Moon phases & Rashi',
             style: TextStyle(
               fontSize: 12,
-              color: (isDark ? Colors.white : Colors.black).withOpacity(0.5),
+              color: (isDark ? AppColors.pureWhite : AppColors.charcoal)
+                  .withValues(alpha: 0.5),
             ),
           ),
           const SizedBox(height: 12),
@@ -2300,20 +2368,24 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: (isDark ? Colors.white : const Color(0xFF3F5E46)).withOpacity(
-          0.1,
+        color: AppColors.pureWhite.withValues(
+          alpha: 0.1,
         ),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Column(
         children: [
-          Icon(icon, color: const Color(0xFF7BC48F), size: 20),
-          const SizedBox(height: 4),
+          Icon(
+            icon,
+            color: AppColors.pureWhite,
+            size: 20,
+          ),
+          SizedBox(height: 4),
           AutoSizeText(
             label,
             style: TextStyle(
               fontSize: 11,
-              color: (isDark ? Colors.white : Colors.black).withOpacity(0.6),
+              color: AppColors.pureWhite.withValues(alpha: 0.6),
             ),
           ),
           const SizedBox(height: 2),
@@ -2322,7 +2394,7 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
             style: TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.bold,
-              color: isDark ? Colors.white : Colors.black87,
+              color: AppColors.pureWhite,
             ),
           ),
         ],
@@ -2358,20 +2430,17 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
           gradient: LinearGradient(
             colors:
                 isDark
-                    ? [
-                      const Color(0xFF3F5E46).withOpacity(0.4),
-                      const Color(0xFF2D5A3D).withOpacity(0.3),
-                    ]
-                    : [const Color(0xFFDCEEDF), const Color(0xFFF0F7F0)],
+                    ? [AppColors.darkSurface, AppColors.darkSurfaceElevated]
+                    : [AppColors.deepSoilGreen, const Color(0xFF3A6B24)],
           ),
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color: const Color(0xFF3F5E46).withOpacity(0.3),
+            color: (isDark ? AppColors.parchment : AppColors.deepSoilGreen).withValues(alpha: 0.3),
             width: 1.5,
           ),
           boxShadow: [
             BoxShadow(
-              color: const Color(0xFF3F5E46).withOpacity(0.15),
+              color: AppColors.parchment.withValues(alpha: 0.15),
               blurRadius: 15,
               offset: const Offset(0, 8),
             ),
@@ -2385,19 +2454,19 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                 Container(
                   padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFAD8441).withOpacity(0.15),
+                    color: AppColors.parchment.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(12),
                     boxShadow: [
                       BoxShadow(
-                        color: const Color(0xFFAD8441).withOpacity(0.3),
+                        color: AppColors.parchment.withValues(alpha: 0.3),
                         blurRadius: 8,
                         spreadRadius: 1,
                       ),
                     ],
                   ),
-                  child: const Icon(
+                  child: Icon(
                     Icons.auto_awesome,
-                    color: Color(0xFFAD8441),
+                    color: AppColors.pureWhite,
                     size: 22,
                   ),
                 ),
@@ -2411,24 +2480,22 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
-                          color:
-                              isDark ? Colors.white : const Color(0xFF2D5A3D),
+                          color: AppColors.pureWhite,
                         ),
                       ),
                       AutoSizeText(
                         'Personalized recommendations',
                         style: TextStyle(
                           fontSize: 12,
-                          color: (isDark ? Colors.white : Colors.black)
-                              .withOpacity(0.6),
+                          color: AppColors.pureWhite.withValues(alpha: 0.6),
                         ),
                       ),
                     ],
                   ),
                 ),
-                const Icon(
+                Icon(
                   Icons.arrow_forward_ios_rounded,
-                  color: Color(0xFF3A8C54),
+                  color: AppColors.pureWhite,
                   size: 16,
                 ),
               ],
@@ -2437,7 +2504,7 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: (isDark ? Colors.white : Colors.black).withOpacity(0.05),
+                color: AppColors.pureWhite.withValues(alpha: 0.08),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Row(
@@ -2451,7 +2518,7 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                           style: TextStyle(
                             fontSize: 15,
                             fontWeight: FontWeight.bold,
-                            color: isDark ? Colors.white : Colors.black87,
+                            color: AppColors.pureWhite,
                           ),
                         ),
                         const SizedBox(height: 4),
@@ -2463,14 +2530,16 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                                 activeRec.verdict.toLowerCase().contains(
                                       'avoid',
                                     )
-                                    ? Colors.red
+                                    ? AppColors.rawEarth
                                     : activeRec.verdict.toLowerCase().contains(
                                       'recommended',
                                     )
-                                    ? Colors.green
+                                    ? AppColors.deepSoilGreen
                                     : (isDark
-                                        ? Colors.white70
-                                        : Colors.black54),
+                                        ? AppColors.pureWhite.withValues(
+                                          alpha: 0.54,
+                                        )
+                                        : AppColors.charcoal54),
                             fontWeight: FontWeight.w600,
                           ),
                         ),
@@ -2478,9 +2547,9 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                     ),
                   ),
                   if (activeRec.notesList.isNotEmpty)
-                    const Icon(
+                    Icon(
                       Icons.info_outline,
-                      color: Color(0xFF3A8C54),
+                      color: isDark ? AppColors.pureWhite : AppColors.parchment,
                       size: 20,
                     ),
                 ],
@@ -2518,13 +2587,13 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
           gradient: LinearGradient(
             colors:
                 isDark
-                    ? [const Color(0xFF3F5E46), const Color(0xFF2D5A3D)]
-                    : [const Color(0xFF3A8C54), const Color(0xFF3F5E46)],
+                    ? [AppColors.darkSurface, AppColors.darkSurfaceElevated]
+                    : [AppColors.deepSoilGreen, const Color(0xFF3A6B24)],
           ),
           borderRadius: BorderRadius.circular(20),
           boxShadow: [
             BoxShadow(
-              color: const Color(0xFF3F5E46).withOpacity(0.4),
+              color: AppColors.parchment.withValues(alpha: 0.4),
               blurRadius: 20,
               offset: const Offset(0, 8),
             ),
@@ -2535,17 +2604,17 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.2),
+                color: AppColors.parchment.withValues(alpha: 0.2),
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: const Icon(
+              child: Icon(
                 Icons.access_time_filled,
-                color: Colors.white,
+                color: isDark ? AppColors.pureWhite : AppColors.parchment,
                 size: 24,
               ),
             ),
             const SizedBox(width: 16),
-            const Expanded(
+            Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -2554,20 +2623,26 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
-                      color: Colors.white,
+                      color: isDark ? AppColors.pureWhite : AppColors.parchment,
                     ),
                   ),
                   SizedBox(height: 4),
                   AutoSizeText(
                     'Hora, Choghadiya & Transitions',
-                    style: TextStyle(fontSize: 12, color: Colors.white70),
+                    style: TextStyle(
+                      fontSize: 12,
+                      color:
+                          (isDark)
+                              ? AppColors.pureWhite.withValues(alpha: 0.7)
+                              : AppColors.parchment.withValues(alpha: 0.7),
+                    ),
                   ),
                 ],
               ),
             ),
-            const Icon(
+            Icon(
               Icons.arrow_forward_ios_rounded,
-              color: Colors.white,
+              color: isDark ? AppColors.pureWhite : AppColors.parchment,
               size: 18,
             ),
           ],
@@ -2581,7 +2656,7 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
       context: context,
       builder:
           (context) => Dialog(
-            backgroundColor: Colors.transparent,
+            backgroundColor: AppColors.transparent,
             insetPadding: const EdgeInsets.all(20),
             child: Container(
               constraints: const BoxConstraints(maxWidth: 400),
@@ -2591,19 +2666,19 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                   end: Alignment.bottomRight,
                   colors:
                       isDark
-                          ? [const Color(0xFF2D1B1B), const Color(0xFF1A1A1A)]
-                          : [Colors.white, const Color(0xFFFFF5F5)],
+                          ? [AppColors.darkSurface, AppColors.darkSurfaceElevated]
+                          : [AppColors.deepSoilGreen, const Color(0xFF3A6B24)],
                 ),
                 borderRadius: BorderRadius.circular(24),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.red.withOpacity(0.3),
+                    color: AppColors.rawEarth.withValues(alpha: 0.3),
                     blurRadius: 30,
                     spreadRadius: 5,
                   ),
                 ],
                 border: Border.all(
-                  color: Colors.red.withOpacity(0.3),
+                  color: AppColors.rawEarth.withValues(alpha: 0.3),
                   width: 1,
                 ),
               ),
@@ -2615,7 +2690,7 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                       padding: const EdgeInsets.all(24),
                       decoration: BoxDecoration(
                         gradient: LinearGradient(
-                          colors: [Colors.red.shade700, Colors.red.shade900],
+                          colors: [AppColors.rawEarth, AppColors.rawEarth],
                         ),
                         borderRadius: const BorderRadius.vertical(
                           top: Radius.circular(24),
@@ -2626,17 +2701,20 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                           Container(
                             padding: const EdgeInsets.all(12),
                             decoration: BoxDecoration(
-                              color: Colors.white.withOpacity(0.2),
+                              color: AppColors.parchment.withValues(alpha: 0.2),
                               borderRadius: BorderRadius.circular(12),
                             ),
-                            child: const Icon(
+                            child: Icon(
                               Icons.warning_rounded,
-                              color: Colors.white,
+                              color:
+                                  isDark
+                                      ? AppColors.pureWhite
+                                      : AppColors.parchment,
                               size: 28,
                             ),
                           ),
                           const SizedBox(width: 16),
-                          const Expanded(
+                          Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
@@ -2645,7 +2723,10 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                                   style: TextStyle(
                                     fontSize: 20,
                                     fontWeight: FontWeight.bold,
-                                    color: Colors.white,
+                                    color:
+                                        isDark
+                                            ? AppColors.pureWhite
+                                            : AppColors.parchment,
                                   ),
                                 ),
                                 SizedBox(height: 4),
@@ -2653,7 +2734,14 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                                   'Understanding unfavorable periods',
                                   style: TextStyle(
                                     fontSize: 13,
-                                    color: Colors.white70,
+                                    color:
+                                        (isDark)
+                                            ? AppColors.pureWhite.withValues(
+                                              alpha: 0.7,
+                                            )
+                                            : AppColors.parchment.withValues(
+                                              alpha: 0.7,
+                                            ),
                                   ),
                                 ),
                               ],
@@ -2661,9 +2749,16 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                           ),
                           IconButton(
                             onPressed: () => Navigator.pop(context),
-                            icon: const Icon(
+                            icon: Icon(
                               Icons.close,
-                              color: Colors.white70,
+                              color:
+                                  (isDark)
+                                      ? AppColors.pureWhite.withValues(
+                                        alpha: 0.7,
+                                      )
+                                      : AppColors.parchment.withValues(
+                                        alpha: 0.7,
+                                      ),
                             ),
                           ),
                         ],
@@ -2676,7 +2771,7 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                           _buildInfoSection(
                             icon: Icons.dangerous_rounded,
                             title: 'Rahu Kaal',
-                            color: Colors.red.shade600,
+                            color: AppColors.rawEarth,
                             description:
                                 'Rahu Kaal is considered the most inauspicious time of the day. According to Vedic astrology, Rahu is a shadow planet that brings obstacles, delays, and negative outcomes. Any new venture started during this period may face unexpected hurdles.',
                             tips: [
@@ -2691,7 +2786,7 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                           _buildInfoSection(
                             icon: Icons.block_rounded,
                             title: 'Gulika Kaal',
-                            color: Colors.orange.shade700,
+                            color: AppColors.harvestAmber,
                             description:
                                 'Gulika (also known as Mandi) is the son of Saturn and represents a highly malefic period. Activities begun during Gulika Kaal may lead to illness, loss, or failure.',
                             tips: [
@@ -2706,7 +2801,7 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                           _buildInfoSection(
                             icon: Icons.report_problem_rounded,
                             title: 'Yamaganda Kaal',
-                            color: Colors.deepOrange.shade700,
+                            color: AppColors.rawEarth,
                             description:
                                 'Yamaganda means "danger of Yama" (the god of death). Activities started during this time may lead to accidents or health issues.',
                             tips: [
@@ -2721,19 +2816,21 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                           Container(
                             padding: const EdgeInsets.all(16),
                             decoration: BoxDecoration(
-                              color: Colors.amber.withOpacity(
-                                isDark ? 0.15 : 0.1,
+                              color: AppColors.harvestAmber.withValues(
+                                alpha: isDark ? 0.15 : 0.1,
                               ),
                               borderRadius: BorderRadius.circular(16),
                               border: Border.all(
-                                color: Colors.amber.withOpacity(0.3),
+                                color: AppColors.harvestAmber.withValues(
+                                  alpha: 0.3,
+                                ),
                               ),
                             ),
                             child: Row(
                               children: [
                                 Icon(
                                   Icons.lightbulb_outline,
-                                  color: Colors.amber.shade600,
+                                  color: AppColors.harvestAmber,
                                   size: 24,
                                 ),
                                 const SizedBox(width: 12),
@@ -2744,8 +2841,8 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                                       fontSize: 13,
                                       color:
                                           isDark
-                                              ? Colors.amber.shade200
-                                              : Colors.amber.shade800,
+                                              ? AppColors.harvestAmber
+                                              : AppColors.harvestAmber,
                                     ),
                                   ),
                                 ),
@@ -2768,7 +2865,7 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
       context: context,
       builder:
           (context) => Dialog(
-            backgroundColor: Colors.transparent,
+            backgroundColor: AppColors.transparent,
             insetPadding: const EdgeInsets.all(20),
             child: Container(
               constraints: const BoxConstraints(maxWidth: 400),
@@ -2778,19 +2875,19 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                   end: Alignment.bottomRight,
                   colors:
                       isDark
-                          ? [const Color(0xFF1B2D1B), const Color(0xFF1A1A1A)]
-                          : [Colors.white, const Color(0xFFF5FFF5)],
+                          ? [AppColors.darkSurface, AppColors.darkSurfaceElevated]
+                          : [AppColors.deepSoilGreen, const Color(0xFF3A6B24)],
                 ),
                 borderRadius: BorderRadius.circular(24),
                 boxShadow: [
                   BoxShadow(
-                    color: const Color(0xFF3A8C54).withOpacity(0.3),
+                    color: AppColors.parchment.withValues(alpha: 0.3),
                     blurRadius: 30,
                     spreadRadius: 5,
                   ),
                 ],
                 border: Border.all(
-                  color: const Color(0xFF3A8C54).withOpacity(0.3),
+                  color: AppColors.parchment.withValues(alpha: 0.3),
                   width: 1,
                 ),
               ),
@@ -2802,10 +2899,16 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                       padding: const EdgeInsets.all(24),
                       decoration: BoxDecoration(
                         gradient: LinearGradient(
-                          colors: [
-                            const Color(0xFF3F5E46),
-                            const Color(0xFF1B3A24),
-                          ],
+                          colors:
+                              isDark
+                                  ? [
+                                    AppColors.charcoal,
+                                    const Color(0xFF222222),
+                                  ]
+                                  : [
+                                    AppColors.deepSoilGreen,
+                                    const Color(0xFF3A6B24),
+                                  ],
                         ),
                         borderRadius: const BorderRadius.vertical(
                           top: Radius.circular(24),
@@ -2816,17 +2919,20 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                           Container(
                             padding: const EdgeInsets.all(12),
                             decoration: BoxDecoration(
-                              color: Colors.white.withOpacity(0.2),
+                              color: AppColors.parchment.withValues(alpha: 0.2),
                               borderRadius: BorderRadius.circular(12),
                             ),
-                            child: const Icon(
+                            child: Icon(
                               Icons.auto_awesome,
-                              color: Colors.white,
+                              color:
+                                  isDark
+                                      ? AppColors.pureWhite
+                                      : AppColors.parchment,
                               size: 28,
                             ),
                           ),
-                          const SizedBox(width: 16),
-                          const Expanded(
+                          SizedBox(width: 16),
+                          Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
@@ -2835,7 +2941,10 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                                   style: TextStyle(
                                     fontSize: 20,
                                     fontWeight: FontWeight.bold,
-                                    color: Colors.white,
+                                    color:
+                                        isDark
+                                            ? AppColors.pureWhite
+                                            : AppColors.parchment,
                                   ),
                                 ),
                                 SizedBox(height: 4),
@@ -2843,7 +2952,14 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                                   'Sacred windows of opportunity',
                                   style: TextStyle(
                                     fontSize: 13,
-                                    color: Colors.white70,
+                                    color:
+                                        (isDark)
+                                            ? AppColors.pureWhite.withValues(
+                                              alpha: 0.7,
+                                            )
+                                            : AppColors.parchment.withValues(
+                                              alpha: 0.7,
+                                            ),
                                   ),
                                 ),
                               ],
@@ -2851,9 +2967,16 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                           ),
                           IconButton(
                             onPressed: () => Navigator.pop(context),
-                            icon: const Icon(
+                            icon: Icon(
                               Icons.close,
-                              color: Colors.white70,
+                              color:
+                                  (isDark)
+                                      ? AppColors.pureWhite.withValues(
+                                        alpha: 0.7,
+                                      )
+                                      : AppColors.parchment.withValues(
+                                        alpha: 0.7,
+                                      ),
                             ),
                           ),
                         ],
@@ -2866,7 +2989,7 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                           _buildInfoSection(
                             icon: Icons.wb_twilight_rounded,
                             title: 'Brahma Muhurat',
-                            color: Colors.purple.shade600,
+                            color: AppColors.harvestAmber,
                             description:
                                 'Brahma Muhurat literally means "the creator\'s time" and occurs approximately 1 hour 36 minutes before sunrise. This is the most spiritually powerful time for meditation and prayer.',
                             tips: [
@@ -2881,7 +3004,7 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                           _buildInfoSection(
                             icon: Icons.star_rounded,
                             title: 'Abhijit Muhurat',
-                            color: Colors.amber.shade700,
+                            color: AppColors.harvestAmber,
                             description:
                                 'Abhijit Muhurat is the "victorious moment" occurring around midday. It\'s so auspicious that it nullifies all doshas (defects). Lord Krishna was born during this muhurat.',
                             tips: [
@@ -2896,7 +3019,7 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                           _buildInfoSection(
                             icon: Icons.sunny,
                             title: 'Sunrise (Suryodaya)',
-                            color: Colors.orange.shade600,
+                            color: AppColors.harvestAmber,
                             description:
                                 'The moment of sunrise is highly auspicious. The first rays of the sun carry healing energy and divine blessings. Morning prayers at this time are especially powerful.',
                             tips: [
@@ -3005,14 +3128,14 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: Colors.transparent,
+      backgroundColor: AppColors.transparent,
       builder:
           (context) => Container(
             constraints: BoxConstraints(
               maxHeight: MediaQuery.of(context).size.height * 0.7,
             ),
             decoration: BoxDecoration(
-              color: isDark ? const Color(0xFF0D1A10) : Colors.white,
+              color: isDark ? AppColors.pureWhite : AppColors.charcoal,
               borderRadius: const BorderRadius.vertical(
                 top: Radius.circular(25),
               ),
@@ -3026,7 +3149,7 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                   width: 40,
                   height: 4,
                   decoration: BoxDecoration(
-                    color: Colors.grey.withOpacity(0.3),
+                    color: AppColors.rawEarth54.withValues(alpha: 0.3),
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
@@ -3035,10 +3158,13 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                   padding: const EdgeInsets.all(20),
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
-                      colors: [
-                        const Color(0xFF3A8C54),
-                        const Color(0xFFEC4899),
-                      ],
+                      colors:
+                          isDark
+                              ? [AppColors.darkSurface, AppColors.darkSurfaceElevated]
+                              : [
+                                AppColors.deepSoilGreen,
+                                const Color(0xFF3A6B24),
+                              ],
                     ),
                     borderRadius: const BorderRadius.vertical(
                       top: Radius.circular(25),
@@ -3049,7 +3175,7 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                       Container(
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.2),
+                          color: AppColors.parchment.withValues(alpha: 0.2),
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: AutoSizeText(
@@ -3064,17 +3190,22 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                           children: [
                             AutoSizeText(
                               '$currentMasa Masa',
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 22,
                                 fontWeight: FontWeight.bold,
-                                color: Colors.white,
+                                color:
+                                    isDark
+                                        ? AppColors.pureWhite
+                                        : AppColors.parchment,
                               ),
                             ),
                             AutoSizeText(
                               'Hindu Lunar Month (मास)',
                               style: TextStyle(
                                 fontSize: 13,
-                                color: Colors.white.withOpacity(0.8),
+                                color: AppColors.parchment.withValues(
+                                  alpha: 0.8,
+                                ),
                               ),
                             ),
                           ],
@@ -3082,7 +3213,13 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                       ),
                       IconButton(
                         onPressed: () => Navigator.pop(context),
-                        icon: const Icon(Icons.close, color: Colors.white),
+                        icon: Icon(
+                          Icons.close,
+                          color:
+                              isDark
+                                  ? AppColors.pureWhite
+                                  : AppColors.parchment,
+                        ),
                       ),
                     ],
                   ),
@@ -3119,11 +3256,11 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                           padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(
                             color: const Color(
-                              0xFF3A8C54,
-                            ).withOpacity(isDark ? 0.2 : 0.1),
+                              0xFF2C4A1E,
+                            ).withValues(alpha: isDark ? 0.2 : 0.1),
                             borderRadius: BorderRadius.circular(16),
                             border: Border.all(
-                              color: const Color(0xFF3A8C54).withOpacity(0.3),
+                              color: AppColors.parchment.withValues(alpha: 0.3),
                             ),
                           ),
                           child: Column(
@@ -3134,7 +3271,10 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                                 style: TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.bold,
-                                  color: isDark ? Colors.white : Colors.black87,
+                                  color:
+                                      isDark
+                                          ? AppColors.pureWhite
+                                          : AppColors.charcoal,
                                 ),
                               ),
                               const SizedBox(height: 8),
@@ -3144,7 +3284,11 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                                   fontSize: 14,
 
                                   color:
-                                      isDark ? Colors.white70 : Colors.black54,
+                                      isDark
+                                          ? AppColors.pureWhite.withValues(
+                                            alpha: 0.54,
+                                          )
+                                          : AppColors.charcoal54,
                                 ),
                               ),
                             ],
@@ -3170,14 +3314,14 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: Colors.transparent,
+      backgroundColor: AppColors.transparent,
       builder:
           (context) => Container(
             constraints: BoxConstraints(
               maxHeight: MediaQuery.of(context).size.height * 0.75,
             ),
             decoration: BoxDecoration(
-              color: isDark ? const Color(0xFF0D1A10) : Colors.white,
+              color: isDark ? AppColors.pureWhite : AppColors.charcoal,
               borderRadius: const BorderRadius.vertical(
                 top: Radius.circular(25),
               ),
@@ -3191,7 +3335,7 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                   width: 40,
                   height: 4,
                   decoration: BoxDecoration(
-                    color: Colors.grey.withOpacity(0.3),
+                    color: AppColors.rawEarth54.withValues(alpha: 0.3),
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
@@ -3202,13 +3346,20 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                     gradient: LinearGradient(
                       colors:
                           isKrishna
-                              ? [
-                                const Color(0xFF143318),
-                                const Color(0xFF6366F1),
-                              ]
+                              ? isDark
+                                  ? [
+                                    AppColors.charcoal,
+                                    const Color(0xFF222222),
+                                  ]
+                                  : [
+                                    AppColors.deepSoilGreen,
+                                    const Color(0xFF3A6B24),
+                                  ]
+                              : isDark
+                              ? [AppColors.darkSurface, AppColors.darkSurfaceElevated]
                               : [
-                                const Color(0xFFF59E0B),
-                                const Color(0xFFFBBF24),
+                                AppColors.deepSoilGreen,
+                                const Color(0xFF3A6B24),
                               ],
                     ),
                     borderRadius: const BorderRadius.vertical(
@@ -3220,7 +3371,7 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                       Container(
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.2),
+                          color: AppColors.parchment.withValues(alpha: 0.2),
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: AutoSizeText(
@@ -3239,7 +3390,9 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                                 fontSize: 22,
                                 fontWeight: FontWeight.bold,
                                 color:
-                                    isKrishna ? Colors.white : Colors.black87,
+                                    isKrishna
+                                        ? AppColors.parchment
+                                        : AppColors.charcoal,
                               ),
                             ),
                             AutoSizeText(
@@ -3250,8 +3403,10 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                                 fontSize: 13,
                                 color:
                                     isKrishna
-                                        ? Colors.white.withOpacity(0.8)
-                                        : Colors.black54,
+                                        ? AppColors.parchment.withValues(
+                                          alpha: 0.8,
+                                        )
+                                        : AppColors.charcoal54,
                               ),
                             ),
                           ],
@@ -3261,7 +3416,10 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                         onPressed: () => Navigator.pop(context),
                         icon: Icon(
                           Icons.close,
-                          color: isKrishna ? Colors.white : Colors.black54,
+                          color:
+                              isKrishna
+                                  ? AppColors.parchment
+                                  : AppColors.charcoal54,
                         ),
                       ),
                     ],
@@ -3284,16 +3442,16 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                                       ? [
                                         const Color(
                                           0xFF0D1A10,
-                                        ).withOpacity(0.5),
+                                        ).withValues(alpha: 0.5),
                                         const Color(
                                           0xFF143318,
-                                        ).withOpacity(0.3),
+                                        ).withValues(alpha: 0.3),
                                       ]
                                       : [
-                                        const Color(0xFFFEF3C7),
+                                        AppColors.parchment,
                                         const Color(
                                           0xFFFDE68A,
-                                        ).withOpacity(0.5),
+                                        ).withValues(alpha: 0.5),
                                       ],
                             ),
                             borderRadius: BorderRadius.circular(16),
@@ -3309,9 +3467,9 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                                         'Day 1',
                                         isDark,
                                       ),
-                                      const Icon(
+                                      Icon(
                                         Icons.arrow_forward,
-                                        color: Colors.grey,
+                                        color: AppColors.rawEarth54,
                                       ),
                                       _buildMoonPhase(
                                         '🌖',
@@ -3319,9 +3477,9 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                                         'Day 5',
                                         isDark,
                                       ),
-                                      const Icon(
+                                      Icon(
                                         Icons.arrow_forward,
-                                        color: Colors.grey,
+                                        color: AppColors.rawEarth54,
                                       ),
                                       _buildMoonPhase(
                                         '🌗',
@@ -3329,9 +3487,9 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                                         'Day 8',
                                         isDark,
                                       ),
-                                      const Icon(
+                                      Icon(
                                         Icons.arrow_forward,
-                                        color: Colors.grey,
+                                        color: AppColors.rawEarth54,
                                       ),
                                       _buildMoonPhase(
                                         '🌑',
@@ -3347,9 +3505,9 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                                         'Day 1',
                                         isDark,
                                       ),
-                                      const Icon(
+                                      Icon(
                                         Icons.arrow_forward,
-                                        color: Colors.grey,
+                                        color: AppColors.rawEarth54,
                                       ),
                                       _buildMoonPhase(
                                         '🌒',
@@ -3357,9 +3515,9 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                                         'Day 5',
                                         isDark,
                                       ),
-                                      const Icon(
+                                      Icon(
                                         Icons.arrow_forward,
-                                        color: Colors.grey,
+                                        color: AppColors.rawEarth54,
                                       ),
                                       _buildMoonPhase(
                                         '🌓',
@@ -3367,9 +3525,9 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                                         'Day 8',
                                         isDark,
                                       ),
-                                      const Icon(
+                                      Icon(
                                         Icons.arrow_forward,
-                                        color: Colors.grey,
+                                        color: AppColors.rawEarth54,
                                       ),
                                       _buildMoonPhase(
                                         '🌕',
@@ -3412,15 +3570,15 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                           padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(
                             color: (isKrishna
-                                    ? const Color(0xFF6366F1)
-                                    : const Color(0xFFF59E0B))
-                                .withOpacity(isDark ? 0.2 : 0.1),
+                                    ? AppColors.parchment
+                                    : AppColors.parchment)
+                                .withValues(alpha: isDark ? 0.2 : 0.1),
                             borderRadius: BorderRadius.circular(16),
                             border: Border.all(
                               color: (isKrishna
-                                      ? const Color(0xFF6366F1)
-                                      : const Color(0xFFF59E0B))
-                                  .withOpacity(0.3),
+                                      ? AppColors.parchment
+                                      : AppColors.parchment)
+                                  .withValues(alpha: 0.3),
                             ),
                           ),
                           child: Column(
@@ -3433,7 +3591,10 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                                 style: TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.bold,
-                                  color: isDark ? Colors.white : Colors.black87,
+                                  color:
+                                      isDark
+                                          ? AppColors.pureWhite
+                                          : AppColors.charcoal,
                                 ),
                               ),
                               const SizedBox(height: 12),
@@ -3464,8 +3625,9 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                                           fontSize: 14,
                                           color:
                                               isDark
-                                                  ? Colors.white70
-                                                  : Colors.black54,
+                                                  ? AppColors.pureWhite
+                                                      .withValues(alpha: 0.54)
+                                                  : AppColors.charcoal54,
                                         ),
                                       ),
                                     ),
@@ -3493,14 +3655,20 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
           style: TextStyle(
             fontSize: 10,
             fontWeight: FontWeight.w600,
-            color: isDark ? Colors.white70 : Colors.black54,
+            color:
+                isDark
+                    ? AppColors.pureWhite.withValues(alpha: 0.54)
+                    : AppColors.charcoal54,
           ),
         ),
         AutoSizeText(
           day,
           style: TextStyle(
             fontSize: 9,
-            color: isDark ? Colors.white54 : Colors.black38,
+            color:
+                isDark
+                    ? AppColors.pureWhite.withValues(alpha: 0.54)
+                    : AppColors.charcoal38,
           ),
         ),
       ],
@@ -3516,14 +3684,17 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
           decoration: BoxDecoration(
             color:
                 isDark
-                    ? Colors.white.withOpacity(0.1)
-                    : Colors.grey.withOpacity(0.1),
+                    ? AppColors.parchment.withValues(alpha: 0.1)
+                    : AppColors.rawEarth54.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(10),
           ),
           child: Icon(
             icon,
             size: 20,
-            color: isDark ? Colors.white70 : Colors.black54,
+            color:
+                isDark
+                    ? AppColors.pureWhite.withValues(alpha: 0.54)
+                    : AppColors.charcoal54,
           ),
         ),
         const SizedBox(width: 12),
@@ -3535,7 +3706,10 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                 label,
                 style: TextStyle(
                   fontSize: 12,
-                  color: isDark ? Colors.white54 : Colors.black45,
+                  color:
+                      isDark
+                          ? AppColors.pureWhite.withValues(alpha: 0.54)
+                          : AppColors.charcoal45,
                 ),
               ),
               const SizedBox(height: 2),
@@ -3544,7 +3718,7 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                 style: TextStyle(
                   fontSize: 15,
                   fontWeight: FontWeight.w600,
-                  color: isDark ? Colors.white : Colors.black87,
+                  color: isDark ? AppColors.pureWhite : AppColors.charcoal,
                 ),
               ),
             ],
@@ -3559,7 +3733,7 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
       context: context,
       builder:
           (context) => Dialog(
-            backgroundColor: Colors.transparent,
+            backgroundColor: AppColors.transparent,
             insetPadding: const EdgeInsets.all(20),
             child: Container(
               constraints: const BoxConstraints(maxWidth: 400),
@@ -3569,19 +3743,19 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                   end: Alignment.bottomRight,
                   colors:
                       isDark
-                          ? [const Color(0xFF0D1A10), const Color(0xFF143318)]
-                          : [Colors.white, const Color(0xFFF5F3FF)],
+                          ? [AppColors.darkSurface, AppColors.darkSurfaceElevated]
+                          : [AppColors.deepSoilGreen, const Color(0xFF3A6B24)],
                 ),
                 borderRadius: BorderRadius.circular(24),
                 boxShadow: [
                   BoxShadow(
-                    color: const Color(0xFF3A8C54).withOpacity(0.3),
+                    color: AppColors.parchment.withValues(alpha: 0.3),
                     blurRadius: 30,
                     spreadRadius: 5,
                   ),
                 ],
                 border: Border.all(
-                  color: const Color(0xFF3A8C54).withOpacity(0.3),
+                  color: AppColors.parchment.withValues(alpha: 0.3),
                   width: 1,
                 ),
               ),
@@ -3591,9 +3765,18 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                   children: [
                     Container(
                       padding: const EdgeInsets.all(24),
-                      decoration: const BoxDecoration(
+                      decoration: BoxDecoration(
                         gradient: LinearGradient(
-                          colors: [Color(0xFF3A8C54), Color(0xFF6366F1)],
+                          colors:
+                              isDark
+                                  ? [
+                                    AppColors.charcoal,
+                                    const Color(0xFF222222),
+                                  ]
+                                  : [
+                                    AppColors.deepSoilGreen,
+                                    const Color(0xFF3A6B24),
+                                  ],
                         ),
                         borderRadius: BorderRadius.vertical(
                           top: Radius.circular(24),
@@ -3604,17 +3787,20 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                           Container(
                             padding: const EdgeInsets.all(12),
                             decoration: BoxDecoration(
-                              color: Colors.white.withOpacity(0.2),
+                              color: AppColors.parchment.withValues(alpha: 0.2),
                               borderRadius: BorderRadius.circular(12),
                             ),
-                            child: const Icon(
+                            child: Icon(
                               Icons.auto_awesome_rounded,
-                              color: Colors.white,
+                              color:
+                                  isDark
+                                      ? AppColors.pureWhite
+                                      : AppColors.parchment,
                               size: 28,
                             ),
                           ),
                           const SizedBox(width: 16),
-                          const Expanded(
+                          Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
@@ -3623,7 +3809,10 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                                   style: TextStyle(
                                     fontSize: 20,
                                     fontWeight: FontWeight.bold,
-                                    color: Colors.white,
+                                    color:
+                                        isDark
+                                            ? AppColors.pureWhite
+                                            : AppColors.parchment,
                                   ),
                                 ),
                                 SizedBox(height: 4),
@@ -3631,7 +3820,14 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                                   'The five limbs of Vedic time',
                                   style: TextStyle(
                                     fontSize: 13,
-                                    color: Colors.white70,
+                                    color:
+                                        (isDark)
+                                            ? AppColors.pureWhite.withValues(
+                                              alpha: 0.7,
+                                            )
+                                            : AppColors.parchment.withValues(
+                                              alpha: 0.7,
+                                            ),
                                   ),
                                 ),
                               ],
@@ -3639,9 +3835,16 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                           ),
                           IconButton(
                             onPressed: () => Navigator.pop(context),
-                            icon: const Icon(
+                            icon: Icon(
                               Icons.close,
-                              color: Colors.white70,
+                              color:
+                                  (isDark)
+                                      ? AppColors.pureWhite.withValues(
+                                        alpha: 0.7,
+                                      )
+                                      : AppColors.parchment.withValues(
+                                        alpha: 0.7,
+                                      ),
                             ),
                           ),
                         ],
@@ -3655,11 +3858,13 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                             padding: const EdgeInsets.all(16),
                             decoration: BoxDecoration(
                               color: const Color(
-                                0xFF3A8C54,
-                              ).withOpacity(isDark ? 0.15 : 0.08),
+                                0xFF2C4A1E,
+                              ).withValues(alpha: isDark ? 0.15 : 0.08),
                               borderRadius: BorderRadius.circular(16),
                               border: Border.all(
-                                color: const Color(0xFF3A8C54).withOpacity(0.2),
+                                color: AppColors.parchment.withValues(
+                                  alpha: 0.2,
+                                ),
                               ),
                             ),
                             child: AutoSizeText(
@@ -3667,7 +3872,12 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                               style: TextStyle(
                                 fontSize: 14,
 
-                                color: isDark ? Colors.white70 : Colors.black54,
+                                color:
+                                    isDark
+                                        ? AppColors.pureWhite.withValues(
+                                          alpha: 0.54,
+                                        )
+                                        : AppColors.charcoal54,
                               ),
                             ),
                           ),
@@ -3676,62 +3886,80 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                             icon: Icons.brightness_3,
                             title: 'Tithi (तिथि)',
                             subtitle: 'Lunar Day',
-                            color: const Color(0xFFEC4899),
+                            color:
+                                isDark
+                                    ? AppColors.pureWhite
+                                    : AppColors.parchment,
                             description:
                                 'Tithi represents the lunar day based on the angle between the Sun and Moon. There are 30 Tithis in a lunar month.',
                             examples: 'Pratipada, Dvitiya, Amavasya, Purnima',
                             isDark: isDark,
                           ),
-                          const SizedBox(height: 12),
+                          SizedBox(height: 12),
                           _buildPanchangElementInfo(
                             icon: Icons.stars_rounded,
                             title: 'Nakshatra (नक्षत्र)',
                             subtitle: 'Lunar Mansion',
-                            color: const Color(0xFF8B5CF6),
+                            color:
+                                isDark
+                                    ? AppColors.pureWhite
+                                    : AppColors.parchment,
                             description:
                                 'Nakshatra is the lunar constellation where the Moon resides. There are 27 Nakshatras, each spanning 13°20\'.',
                             examples: 'Ashwini, Rohini, Pushya, Revati',
                             isDark: isDark,
                           ),
-                          const SizedBox(height: 12),
+                          SizedBox(height: 12),
                           _buildPanchangElementInfo(
                             icon: Icons.self_improvement_rounded,
                             title: 'Yoga (योग)',
                             subtitle: 'Auspicious Combination',
-                            color: const Color(0xFF10B981),
+                            color:
+                                isDark
+                                    ? AppColors.pureWhite
+                                    : AppColors.parchment,
                             description:
                                 'Yoga is calculated from the combined longitude of Sun and Moon. There are 27 Yogas, each lasting about one day.',
                             examples: 'Siddhi, Amrita, Shobhana',
                             isDark: isDark,
                           ),
-                          const SizedBox(height: 12),
+                          SizedBox(height: 12),
                           _buildPanchangElementInfo(
                             icon: Icons.change_history_rounded,
                             title: 'Karana (करण)',
                             subtitle: 'Half Tithi',
-                            color: const Color(0xFFF59E0B),
+                            color:
+                                isDark
+                                    ? AppColors.pureWhite
+                                    : AppColors.parchment,
                             description:
                                 'Karana is half of a Tithi. There are 11 Karanas. Vishti Karana (Bhadra) is considered inauspicious.',
                             examples: 'Bava, Balava, Vishti (inauspicious)',
                             isDark: isDark,
                           ),
-                          const SizedBox(height: 12),
+                          SizedBox(height: 12),
                           _buildPanchangElementInfo(
                             icon: Icons.wb_sunny_rounded,
                             title: 'Vara (वार)',
                             subtitle: 'Weekday',
-                            color: const Color(0xFF3B82F6),
+                            color:
+                                isDark
+                                    ? AppColors.pureWhite
+                                    : AppColors.parchment,
                             description:
                                 'Vara is the day of the week, ruled by different planets. Each day has specific favorable activities.',
                             examples: 'Ravivara (Sun), Somavara (Mon)',
                             isDark: isDark,
                           ),
-                          const SizedBox(height: 12),
+                          SizedBox(height: 12),
                           _buildPanchangElementInfo(
                             icon: Icons.brightness_2_rounded,
                             title: 'Paksha (पक्ष)',
                             subtitle: 'Lunar Fortnight',
-                            color: const Color(0xFF6366F1),
+                            color:
+                                isDark
+                                    ? AppColors.pureWhite
+                                    : AppColors.parchment,
                             description:
                                 'Paksha divides the lunar month into two halves. Shukla (bright) for new beginnings, Krishna (dark) for completion.',
                             examples: 'Shukla Paksha, Krishna Paksha',
@@ -3753,7 +3981,7 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
       context: context,
       builder:
           (context) => Dialog(
-            backgroundColor: Colors.transparent,
+            backgroundColor: AppColors.transparent,
             insetPadding: const EdgeInsets.all(20),
             child: Container(
               constraints: const BoxConstraints(maxWidth: 400),
@@ -3763,19 +3991,19 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                   end: Alignment.bottomRight,
                   colors:
                       isDark
-                          ? [const Color(0xFF1B3A24), const Color(0xFF0D150E)]
-                          : [Colors.white, const Color(0xFFEDF4EE)],
+                          ? [AppColors.darkSurface, AppColors.darkSurfaceElevated]
+                          : [AppColors.deepSoilGreen, const Color(0xFF3A6B24)],
                 ),
                 borderRadius: BorderRadius.circular(24),
                 boxShadow: [
                   BoxShadow(
-                    color: const Color(0xFF3F5E46).withOpacity(0.3),
+                    color: AppColors.parchment.withValues(alpha: 0.3),
                     blurRadius: 30,
                     spreadRadius: 5,
                   ),
                 ],
                 border: Border.all(
-                  color: const Color(0xFF3F5E46).withOpacity(0.3),
+                  color: AppColors.parchment.withValues(alpha: 0.3),
                   width: 1,
                 ),
               ),
@@ -3787,10 +4015,16 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                       padding: const EdgeInsets.all(24),
                       decoration: BoxDecoration(
                         gradient: LinearGradient(
-                          colors: [
-                            const Color(0xFF3F5E46),
-                            const Color(0xFF1A3D24),
-                          ],
+                          colors:
+                              isDark
+                                  ? [
+                                    AppColors.charcoal,
+                                    const Color(0xFF222222),
+                                  ]
+                                  : [
+                                    AppColors.deepSoilGreen,
+                                    const Color(0xFF3A6B24),
+                                  ],
                         ),
                         borderRadius: const BorderRadius.vertical(
                           top: Radius.circular(24),
@@ -3801,17 +4035,20 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                           Container(
                             padding: const EdgeInsets.all(12),
                             decoration: BoxDecoration(
-                              color: Colors.white.withOpacity(0.2),
+                              color: AppColors.parchment.withValues(alpha: 0.2),
                               borderRadius: BorderRadius.circular(12),
                             ),
-                            child: const Icon(
+                            child: Icon(
                               Icons.nightlight_round,
-                              color: Colors.white,
+                              color:
+                                  isDark
+                                      ? AppColors.pureWhite
+                                      : AppColors.parchment,
                               size: 28,
                             ),
                           ),
                           const SizedBox(width: 16),
-                          const Expanded(
+                          Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
@@ -3820,7 +4057,10 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                                   style: TextStyle(
                                     fontSize: 20,
                                     fontWeight: FontWeight.bold,
-                                    color: Colors.white,
+                                    color:
+                                        isDark
+                                            ? AppColors.pureWhite
+                                            : AppColors.parchment,
                                   ),
                                 ),
                                 SizedBox(height: 4),
@@ -3828,7 +4068,14 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                                   'Lunar influence on daily life',
                                   style: TextStyle(
                                     fontSize: 13,
-                                    color: Colors.white70,
+                                    color:
+                                        (isDark)
+                                            ? AppColors.pureWhite.withValues(
+                                              alpha: 0.7,
+                                            )
+                                            : AppColors.parchment.withValues(
+                                              alpha: 0.7,
+                                            ),
                                   ),
                                 ),
                               ],
@@ -3836,9 +4083,16 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                           ),
                           IconButton(
                             onPressed: () => Navigator.pop(context),
-                            icon: const Icon(
+                            icon: Icon(
                               Icons.close,
-                              color: Colors.white70,
+                              color:
+                                  (isDark)
+                                      ? AppColors.pureWhite.withValues(
+                                        alpha: 0.7,
+                                      )
+                                      : AppColors.parchment.withValues(
+                                        alpha: 0.7,
+                                      ),
                             ),
                           ),
                         ],
@@ -3851,7 +4105,7 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                           _buildMoonRashiSection(
                             icon: Icons.arrow_upward_rounded,
                             title: 'Moonrise (चन्द्रोदय)',
-                            color: Colors.amber.shade600,
+                            color: AppColors.harvestAmber,
                             description:
                                 'Moonrise marks when the Moon becomes visible above the eastern horizon. The energy after moonrise is favorable for creativity and nurturing.',
                             significance: [
@@ -3865,7 +4119,7 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                           _buildMoonRashiSection(
                             icon: Icons.arrow_downward_rounded,
                             title: 'Moonset (चन्द्रास्त)',
-                            color: Colors.purple.shade600,
+                            color: AppColors.harvestAmber,
                             description:
                                 'Moonset is when the Moon descends below the western horizon. Important for calculating lunar day transitions.',
                             significance: [
@@ -3879,7 +4133,7 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                           _buildMoonRashiSection(
                             icon: Icons.wb_sunny_rounded,
                             title: 'Sun Rashi (सूर्य राशि)',
-                            color: Colors.orange.shade600,
+                            color: AppColors.harvestAmber,
                             description:
                                 'Sun Rashi indicates which zodiac sign the Sun is transiting. Determines solar months and Sankranti festivals.',
                             significance: [
@@ -3893,7 +4147,7 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                           _buildMoonRashiSection(
                             icon: Icons.nightlight_rounded,
                             title: 'Moon Rashi (चन्द्र राशि)',
-                            color: Colors.blue.shade600,
+                            color: AppColors.deepSoilGreen,
                             description:
                                 'Moon Rashi shows which zodiac sign the Moon occupies. More important than Sun sign in Vedic astrology for emotions and mental well-being.',
                             significance: [
@@ -3911,15 +4165,17 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                                 colors: [
                                   const Color(
                                     0xFF3F5E46,
-                                  ).withOpacity(isDark ? 0.2 : 0.1),
+                                  ).withValues(alpha: isDark ? 0.2 : 0.1),
                                   const Color(
                                     0xFF1A3D24,
-                                  ).withOpacity(isDark ? 0.2 : 0.1),
+                                  ).withValues(alpha: isDark ? 0.2 : 0.1),
                                 ],
                               ),
                               borderRadius: BorderRadius.circular(16),
                               border: Border.all(
-                                color: const Color(0xFF3F5E46).withOpacity(0.3),
+                                color: AppColors.parchment.withValues(
+                                  alpha: 0.3,
+                                ),
                               ),
                             ),
                             child: Column(
@@ -3930,8 +4186,8 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                                       Icons.lightbulb_outline,
                                       color:
                                           isDark
-                                              ? const Color(0xFF7BC48F)
-                                              : const Color(0xFF2D5A3D),
+                                              ? AppColors.parchment
+                                              : AppColors.parchment,
                                       size: 24,
                                     ),
                                     const SizedBox(width: 12),
@@ -3943,8 +4199,8 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                                           fontWeight: FontWeight.bold,
                                           color:
                                               isDark
-                                                  ? const Color(0xFF7BC48F)
-                                                  : const Color(0xFF2D5A3D),
+                                                  ? AppColors.parchment
+                                                  : AppColors.parchment,
                                         ),
                                       ),
                                     ),
@@ -3979,8 +4235,8 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                                               decoration: BoxDecoration(
                                                 color: const Color(
                                                   0xFF3F5E46,
-                                                ).withOpacity(
-                                                  isDark ? 0.2 : 0.15,
+                                                ).withValues(
+                                                  alpha: isDark ? 0.2 : 0.15,
                                                 ),
                                                 borderRadius:
                                                     BorderRadius.circular(20),
@@ -3992,7 +4248,8 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                                                   fontWeight: FontWeight.w500,
                                                   color:
                                                       isDark
-                                                          ? Colors.white70
+                                                          ? AppColors
+                                                              .parchment70
                                                           : const Color(
                                                             0xFF1A3D24,
                                                           ),
@@ -4027,9 +4284,9 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: color.withOpacity(isDark ? 0.1 : 0.05),
+        color: color.withValues(alpha: isDark ? 0.1 : 0.05),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: color.withOpacity(0.2)),
+        border: Border.all(color: color.withValues(alpha: 0.2)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -4039,7 +4296,7 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
               Container(
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: color.withOpacity(0.2),
+                  color: color.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Icon(icon, color: color, size: 22),
@@ -4050,7 +4307,7 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                 style: TextStyle(
                   fontSize: 17,
                   fontWeight: FontWeight.bold,
-                  color: isDark ? Colors.white : Colors.black87,
+                  color: isDark ? AppColors.pureWhite : AppColors.charcoal,
                 ),
               ),
             ],
@@ -4061,7 +4318,10 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
             style: TextStyle(
               fontSize: 13,
 
-              color: isDark ? Colors.white70 : Colors.black54,
+              color:
+                  isDark
+                      ? AppColors.pureWhite.withValues(alpha: 0.54)
+                      : AppColors.charcoal54,
             ),
           ),
           const SizedBox(height: 12),
@@ -4077,7 +4337,7 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                           vertical: 6,
                         ),
                         decoration: BoxDecoration(
-                          color: color.withOpacity(isDark ? 0.15 : 0.1),
+                          color: color.withValues(alpha: isDark ? 0.15 : 0.1),
                           borderRadius: BorderRadius.circular(20),
                         ),
                         child: Row(
@@ -4092,7 +4352,11 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                                   fontSize: 11,
                                   fontWeight: FontWeight.w500,
                                   color:
-                                      isDark ? Colors.white70 : Colors.black54,
+                                      isDark
+                                          ? AppColors.pureWhite.withValues(
+                                            alpha: 0.54,
+                                          )
+                                          : AppColors.charcoal54,
                                 ),
                               ),
                             ),
@@ -4119,9 +4383,9 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: color.withOpacity(isDark ? 0.1 : 0.05),
+        color: color.withValues(alpha: isDark ? 0.1 : 0.05),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: color.withOpacity(0.2)),
+        border: Border.all(color: color.withValues(alpha: 0.2)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -4131,7 +4395,7 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
               Container(
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: color.withOpacity(0.2),
+                  color: color.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Icon(icon, color: color, size: 22),
@@ -4146,7 +4410,8 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
-                        color: isDark ? Colors.white : Colors.black87,
+                        color:
+                            isDark ? AppColors.pureWhite : AppColors.charcoal,
                       ),
                     ),
                     AutoSizeText(
@@ -4168,14 +4433,17 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
             style: TextStyle(
               fontSize: 13,
 
-              color: isDark ? Colors.white70 : Colors.black54,
+              color:
+                  isDark
+                      ? AppColors.pureWhite.withValues(alpha: 0.54)
+                      : AppColors.charcoal54,
             ),
           ),
           const SizedBox(height: 8),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             decoration: BoxDecoration(
-              color: color.withOpacity(isDark ? 0.15 : 0.1),
+              color: color.withValues(alpha: isDark ? 0.15 : 0.1),
               borderRadius: BorderRadius.circular(8),
             ),
             child: Row(
@@ -4188,7 +4456,10 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                     style: TextStyle(
                       fontSize: 12,
                       fontStyle: FontStyle.italic,
-                      color: isDark ? Colors.white60 : Colors.black45,
+                      color:
+                          isDark
+                              ? AppColors.pureWhite.withValues(alpha: 0.60)
+                              : AppColors.charcoal45,
                     ),
                   ),
                 ),
@@ -4211,9 +4482,9 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: color.withOpacity(isDark ? 0.1 : 0.05),
+        color: color.withValues(alpha: isDark ? 0.1 : 0.05),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: color.withOpacity(0.2)),
+        border: Border.all(color: color.withValues(alpha: 0.2)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -4223,7 +4494,7 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
               Container(
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: color.withOpacity(0.2),
+                  color: color.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Icon(icon, color: color, size: 22),
@@ -4235,7 +4506,7 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
-                    color: isDark ? Colors.white : Colors.black87,
+                    color: isDark ? AppColors.pureWhite : AppColors.charcoal,
                   ),
                 ),
               ),
@@ -4247,7 +4518,10 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
             style: TextStyle(
               fontSize: 13,
 
-              color: isDark ? Colors.white70 : Colors.black54,
+              color:
+                  isDark
+                      ? AppColors.pureWhite.withValues(alpha: 0.54)
+                      : AppColors.charcoal54,
             ),
           ),
           const SizedBox(height: 12),
@@ -4264,7 +4538,10 @@ class _PanchangHomeScreenState extends State<PanchangHomeScreen>
                       item,
                       style: TextStyle(
                         fontSize: 12,
-                        color: isDark ? Colors.white60 : Colors.black45,
+                        color:
+                            isDark
+                                ? AppColors.pureWhite.withValues(alpha: 0.60)
+                                : AppColors.charcoal45,
                       ),
                     ),
                   ),
@@ -4305,7 +4582,8 @@ class _BackgroundPatternPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final paint =
         Paint()
-          ..color = (isDark ? Colors.white : Colors.black).withOpacity(0.02)
+          ..color = (isDark ? AppColors.pureWhite : AppColors.charcoal)
+              .withValues(alpha: 0.02)
           ..style = PaintingStyle.stroke
           ..strokeWidth = 1;
 

@@ -1,3 +1,4 @@
+import 'package:grocery_app/core/theme/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'dart:ui';
 import 'package:grocery_app/styles/colors.dart';
@@ -15,6 +16,7 @@ class HomeCommunitiesSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return FutureBuilder<List<Community>>(
       future: communitiesFuture,
       builder: (context, snapshot) {
@@ -38,13 +40,13 @@ class HomeCommunitiesSection extends StatelessWidget {
                   Icon(
                     Icons.people_outline_rounded,
                     size: 32,
-                    color: const Color(0xFF6B7B8A), // Cool slate
+                    color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
                   ),
                   const SizedBox(height: 8),
                   Text(
                     "Communities taking a break ☕",
                     style: TextStyle(
-                      color: const Color(0xFF6B7B8A),
+                      color: theme.colorScheme.onSurface.withValues(alpha: 0.8),
                       fontWeight: FontWeight.w500,
                     ),
                   ),
@@ -52,7 +54,7 @@ class HomeCommunitiesSection extends StatelessWidget {
                   Text(
                     "🐄 Indian farmers have practiced cow-based farming for 5000+ years!",
                     style: TextStyle(
-                      color: Colors.green.shade700,
+                      color: theme.colorScheme.primary.withValues(alpha: 0.7),
                       fontSize: 11,
                       fontStyle: FontStyle.italic,
                     ),
@@ -86,18 +88,18 @@ class HomeCommunitiesSection extends StatelessWidget {
                         decoration: BoxDecoration(
                           gradient: LinearGradient(
                             colors: [
-                              Colors.transparent,
-                              const Color(0xFF3f5e46),
+                              AppColors.transparent,
+                              theme.colorScheme.onSurface.withValues(alpha: 0.2),
                             ],
                           ),
                           borderRadius: BorderRadius.circular(2),
                         ),
                       ),
                       const SizedBox(width: 6),
-                      const Icon(
+                      Icon(
                         Icons.eco_rounded,
                         size: 14,
-                        color: Color(0xFF3f5e46),
+                        color: theme.colorScheme.primary,
                       ),
                       const SizedBox(width: 6),
                       Container(
@@ -106,8 +108,8 @@ class HomeCommunitiesSection extends StatelessWidget {
                         decoration: BoxDecoration(
                           gradient: LinearGradient(
                             colors: [
-                              const Color(0xFF3f5e46),
-                              Colors.transparent,
+                              theme.colorScheme.onSurface.withValues(alpha: 0.2),
+                              AppColors.transparent,
                             ],
                           ),
                           borderRadius: BorderRadius.circular(2),
@@ -122,7 +124,7 @@ class HomeCommunitiesSection extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 22,
                       fontWeight: FontWeight.w800,
-                      color: Theme.of(context).colorScheme.onSurface,
+                      color: theme.colorScheme.onSurface,
                       letterSpacing: 0.4,
                       height: 1.1,
                     ),
@@ -136,17 +138,17 @@ class HomeCommunitiesSection extends StatelessWidget {
                         width: 3,
                         height: 14,
                         decoration: BoxDecoration(
-                          color: const Color(0xFFB8860B),
+                          color: AppColors.harvestAmber,
                           borderRadius: BorderRadius.circular(2),
                         ),
                       ),
                       const SizedBox(width: 8),
-                      const Text(
+                      Text(
                         'Where good food finds good people.',
                         style: TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.w500,
-                          color: Color(0xFFB8860B),
+                          color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
                           letterSpacing: 0.3,
                           fontStyle: FontStyle.italic,
                         ),

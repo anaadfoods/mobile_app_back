@@ -1,4 +1,5 @@
 import 'package:grocery_app/common_widgets/global_import.dart';
+import 'package:grocery_app/core/theme/theme.dart';
 
 class ChartItemWidget extends StatelessWidget {
   final CartItem item;
@@ -24,12 +25,14 @@ class ChartItemWidget extends StatelessWidget {
         color: theme.cardColor,
         borderRadius: BorderRadius.circular(AppColors.radiusL),
         border: Border.all(
-          color: isDark ? Colors.grey.shade800 : Colors.grey.shade200,
+          color: isDark ? AppColors.charcoal87 : AppColors.parchment,
           width: 1,
         ),
         boxShadow: [
           BoxShadow(
-            color: theme.shadowColor.withOpacity(AppColors.shadowOpacityLight),
+            color: theme.shadowColor.withValues(
+              alpha: AppColors.shadowOpacityLight,
+            ),
             blurRadius: 6,
             offset: const Offset(0, 2),
           ),
@@ -44,9 +47,9 @@ class ChartItemWidget extends StatelessWidget {
             width: 70,
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(AppColors.radiusM),
-              color: isDark ? Colors.grey.shade900 : Colors.grey.shade50,
+              color: isDark ? AppColors.charcoal : AppColors.parchment,
               border: Border.all(
-                color: isDark ? Colors.grey.shade700 : Colors.grey.shade100,
+                color: isDark ? AppColors.charcoal60 : AppColors.parchment,
                 width: 1,
               ),
             ),
@@ -112,7 +115,7 @@ class ChartItemWidget extends StatelessWidget {
           // Remove Button
           Container(
             decoration: BoxDecoration(
-              color: colorScheme.error.withOpacity(0.1),
+              color: colorScheme.error.withValues(alpha: 0.1),
               shape: BoxShape.circle,
             ),
             child: IconButton(
@@ -138,7 +141,7 @@ class ChartItemWidget extends StatelessWidget {
                           onPressed: () => Navigator.of(context).pop(),
                           child: Text(
                             'Cancel',
-                            style: TextStyle(
+                            style: context.text.bodyMedium?.copyWith(
                               color: theme.colorScheme.onSurface,
                             ),
                           ),
@@ -167,4 +170,3 @@ class ChartItemWidget extends StatelessWidget {
     );
   }
 }
-

@@ -59,7 +59,7 @@ class _AnaadGamesScreenState extends State<AnaadGamesScreen>
     final isDark = theme.brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: isDark ? const Color(0xFF0A0F0A) : const Color(0xFFF5FAF5),
+      backgroundColor: isDark ? AppColors.parchment : AppColors.parchment,
       body: Stack(
         children: [
           _buildNewBackground(isDark),
@@ -77,40 +77,66 @@ class _AnaadGamesScreenState extends State<AnaadGamesScreen>
                       // New header
                       _buildNewHeader(theme, isDark),
                       const SizedBox(height: 20),
-                      
+
                       // Games count
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 10,
+                        ),
                         decoration: BoxDecoration(
-                          gradient: LinearGradient(colors: [Colors.green.withOpacity(0.15), Colors.green.withOpacity(0.05)]),
+                          gradient: LinearGradient(
+                            colors: [
+                              AppColors.deepSoilGreen.withValues(alpha: 0.15),
+                              AppColors.deepSoilGreen.withValues(alpha: 0.05),
+                            ],
+                          ),
                           borderRadius: BorderRadius.circular(16),
-                          border: Border.all(color: Colors.green.withOpacity(0.3)),
+                          border: Border.all(
+                            color: AppColors.deepSoilGreen.withValues(
+                              alpha: 0.3,
+                            ),
+                          ),
                         ),
                         child: const Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             Text('🎮', style: TextStyle(fontSize: 18)),
                             SizedBox(width: 8),
-                            Text('5 GAMES READY TO PLAY', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: Colors.green, letterSpacing: 1)),
+                            Text(
+                              '5 GAMES READY TO PLAY',
+                              style: TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w800,
+                                color: AppColors.deepSoilGreen,
+                                letterSpacing: 1,
+                              ),
+                            ),
                           ],
                         ),
                       ),
                       const SizedBox(height: 24),
-                      
+
                       // Quick play grid
                       _buildQuickPlayGrid(theme, isDark),
                       const SizedBox(height: 24),
-                      
+
                       // Featured section title
                       Row(
                         children: [
                           const Text('🌟', style: TextStyle(fontSize: 18)),
                           const SizedBox(width: 8),
-                          Text('FEATURED GAMES', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w900, letterSpacing: 1)),
+                          Text(
+                            'FEATURED GAMES',
+                            style: theme.textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.w900,
+                              letterSpacing: 1,
+                            ),
+                          ),
                         ],
                       ),
                       const SizedBox(height: 16),
-                      
+
                       _buildFeaturedGame(theme, isDark),
                       const SizedBox(height: 14),
                       _buildMicrobeManiaFeatured(theme, isDark),
@@ -121,11 +147,11 @@ class _AnaadGamesScreenState extends State<AnaadGamesScreen>
                       const SizedBox(height: 14),
                       _buildRituChakraFeatured(theme, isDark),
                       const SizedBox(height: 24),
-                      
+
                       // Info card
                       _buildAnaadInfoStrip(theme, isDark),
                       const SizedBox(height: 24),
-                      
+
                       // All games list
                       _buildGameConcepts(theme, isDark),
                       const SizedBox(height: 30),
@@ -139,7 +165,7 @@ class _AnaadGamesScreenState extends State<AnaadGamesScreen>
       ),
     );
   }
-  
+
   Widget _buildNewBackground(bool isDark) {
     return Positioned.fill(
       child: Container(
@@ -147,91 +173,163 @@ class _AnaadGamesScreenState extends State<AnaadGamesScreen>
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: isDark
-                ? [const Color(0xFF0A1A0A), const Color(0xFF0A0F0A)]
-                : [const Color(0xFFE8F5E9), const Color(0xFFF5FAF5)],
+            colors:
+                isDark
+                    ? [AppColors.parchment, AppColors.parchment]
+                    : [AppColors.parchment, AppColors.parchment],
           ),
         ),
         child: CustomPaint(
-          painter: _LeafPatternPainter(isDark: isDark, animation: _floatAnimation.value),
+          painter: _LeafPatternPainter(
+            isDark: isDark,
+            animation: _floatAnimation.value,
+          ),
         ),
       ),
     );
   }
-  
+
   Widget _buildNewHeader(ThemeData theme, bool isDark) {
     return Column(
       children: [
         // Logo
         AnimatedBuilder(
           animation: _pulseAnimation,
-          builder: (_, __) => Transform.scale(
-            scale: _pulseAnimation.value,
-            child: Container(
-              width: 90,
-              height: 90,
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [Color(0xFF22C55E), Color(0xFF16A34A), Color(0xFF15803D)],
-                ),
-                shape: BoxShape.circle,
-                boxShadow: [
-                  BoxShadow(color: const Color(0xFF22C55E).withOpacity(0.5), blurRadius: 25, spreadRadius: 5),
-                ],
-                border: Border.all(color: Colors.white.withOpacity(0.3), width: 3),
-              ),
-              child: Stack(
-                alignment: Alignment.center,
-                children: [
-                  Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
+          builder:
+              (_, __) => Transform.scale(
+                scale: _pulseAnimation.value,
+                child: Container(
+                  width: 90,
+                  height: 90,
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [
+                        AppColors.parchment,
+                        AppColors.parchment,
+                        AppColors.parchment,
+                      ],
+                    ),
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.parchment.withValues(alpha: 0.5),
+                        blurRadius: 25,
+                        spreadRadius: 5,
+                      ),
+                    ],
+                    border: Border.all(
+                      color: AppColors.parchment.withValues(alpha: 0.3),
+                      width: 3,
+                    ),
+                  ),
+                  child: Stack(
+                    alignment: Alignment.center,
                     children: [
-                      const Text('🌾', style: TextStyle(fontSize: 30)),
-                      Text('A', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w900, color: Colors.white, height: 0.8)),
+                      Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Text('🌾', style: TextStyle(fontSize: 30)),
+                          Text(
+                            'A',
+                            style: theme.textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.w900,
+                              color: AppColors.parchment,
+                              height: 0.8,
+                            ),
+                          ),
+                        ],
+                      ),
                     ],
                   ),
-                ],
+                ),
               ),
-            ),
-          ),
         ),
         const SizedBox(height: 16),
-        
+
         // Title
         ShaderMask(
-          shaderCallback: (bounds) => const LinearGradient(
-            colors: [Color(0xFF22C55E), Color(0xFF16A34A)],
-          ).createShader(bounds),
-          child: const Text('ANAAD GAMES', style: TextStyle(fontSize: 32, fontWeight: FontWeight.w900, color: Colors.white, letterSpacing: 4)),
+          shaderCallback:
+              (bounds) => const LinearGradient(
+                colors: [AppColors.parchment, AppColors.parchment],
+              ).createShader(bounds),
+          child: const Text(
+            'ANAAD GAMES',
+            style: TextStyle(
+              fontSize: 32,
+              fontWeight: FontWeight.w900,
+              color: AppColors.parchment,
+              letterSpacing: 4,
+            ),
+          ),
         ),
         const SizedBox(height: 4),
         Text(
           'Learn Sustainable Farming Through Play',
-          style: TextStyle(fontSize: 13, color: isDark ? Colors.white54 : Colors.black45, fontWeight: FontWeight.w500),
+          style: TextStyle(
+            fontSize: 13,
+            color: isDark ? AppColors.parchment54 : AppColors.charcoal45,
+            fontWeight: FontWeight.w500,
+          ),
         ),
       ],
     );
   }
-  
+
   Widget _buildQuickPlayGrid(ThemeData theme, bool isDark) {
     final quickGames = [
-      {'emoji': '🐄', 'name': 'Cow Cycle', 'color': const Color(0xFF10B981), 'screen': const CowToSoilCycleGameScreen()},
-      {'emoji': '🦠', 'name': 'Microbe', 'color': const Color(0xFF8B5CF6), 'screen': const MicrobeManiaGameScreen()},
-      {'emoji': '🌾', 'name': 'Seeds', 'color': const Color(0xFF4CAF50), 'screen': const SeedSaviorGameScreen()},
-      {'emoji': '🌱', 'name': 'Compost', 'color': const Color(0xFF795548), 'screen': const CompostCommanderGameScreen()},
-      {'emoji': '☀️', 'name': 'Seasons', 'color': const Color(0xFFFF6B00), 'screen': const RituChakraGameScreen()},
+      {
+        'emoji': '🐄',
+        'name': 'Cow Cycle',
+        'color': AppColors.parchment,
+        'screen': const CowToSoilCycleGameScreen(),
+      },
+      {
+        'emoji': '🦠',
+        'name': 'Microbe',
+        'color': AppColors.parchment,
+        'screen': const MicrobeManiaGameScreen(),
+      },
+      {
+        'emoji': '🌾',
+        'name': 'Seeds',
+        'color': AppColors.parchment,
+        'screen': const SeedSaviorGameScreen(),
+      },
+      {
+        'emoji': '🌱',
+        'name': 'Compost',
+        'color': AppColors.parchment,
+        'screen': const CompostCommanderGameScreen(),
+      },
+      {
+        'emoji': '☀️',
+        'name': 'Seasons',
+        'color': AppColors.parchment,
+        'screen': const RituChakraGameScreen(),
+      },
     ];
-    
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [(isDark ? Colors.white : Colors.black).withOpacity(0.08), (isDark ? Colors.white : Colors.black).withOpacity(0.02)],
+          colors: [
+            (isDark ? AppColors.parchment : AppColors.charcoal).withValues(
+              alpha: 0.08,
+            ),
+            (isDark ? AppColors.parchment : AppColors.charcoal).withValues(
+              alpha: 0.02,
+            ),
+          ],
         ),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: (isDark ? Colors.white : Colors.black).withOpacity(0.1)),
+        border: Border.all(
+          color: (isDark ? AppColors.parchment : AppColors.charcoal).withValues(
+            alpha: 0.1,
+          ),
+        ),
       ),
       child: Column(
         children: [
@@ -239,38 +337,79 @@ class _AnaadGamesScreenState extends State<AnaadGamesScreen>
             children: [
               const Text('⚡', style: TextStyle(fontSize: 16)),
               const SizedBox(width: 8),
-              Text('QUICK PLAY', style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w900, letterSpacing: 1)),
+              Text(
+                'QUICK PLAY',
+                style: theme.textTheme.titleSmall?.copyWith(
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 1,
+                ),
+              ),
             ],
           ),
           const SizedBox(height: 14),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: quickGames.map((g) => GestureDetector(
-              onTap: () {
-                HapticFeedback.mediumImpact();
-                Navigator.push(context, MaterialPageRoute(builder: (_) => g['screen'] as Widget));
-              },
-              child: Column(
-                children: [
-                  Container(
-                    width: 54,
-                    height: 54,
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                        colors: [(g['color'] as Color), (g['color'] as Color).withOpacity(0.7)],
+            children:
+                quickGames
+                    .map(
+                      (g) => GestureDetector(
+                        onTap: () {
+                          HapticFeedback.mediumImpact();
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => g['screen'] as Widget,
+                            ),
+                          );
+                        },
+                        child: Column(
+                          children: [
+                            Container(
+                              width: 54,
+                              height: 54,
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                  colors: [
+                                    (g['color'] as Color),
+                                    (g['color'] as Color).withValues(
+                                      alpha: 0.7,
+                                    ),
+                                  ],
+                                ),
+                                borderRadius: BorderRadius.circular(16),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: (g['color'] as Color).withValues(
+                                      alpha: 0.4,
+                                    ),
+                                    blurRadius: 10,
+                                    offset: const Offset(0, 4),
+                                  ),
+                                ],
+                              ),
+                              child: Center(
+                                child: Text(
+                                  g['emoji'] as String,
+                                  style: const TextStyle(fontSize: 24),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 6),
+                            Text(
+                              g['name'] as String,
+                              style: TextStyle(
+                                fontSize: 10,
+                                fontWeight: FontWeight.w700,
+                                color: g['color'] as Color,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
-                      borderRadius: BorderRadius.circular(16),
-                      boxShadow: [BoxShadow(color: (g['color'] as Color).withOpacity(0.4), blurRadius: 10, offset: const Offset(0, 4))],
-                    ),
-                    child: Center(child: Text(g['emoji'] as String, style: const TextStyle(fontSize: 24))),
-                  ),
-                  const SizedBox(height: 6),
-                  Text(g['name'] as String, style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: g['color'] as Color)),
-                ],
-              ),
-            )).toList(),
+                    )
+                    .toList(),
           ),
         ],
       ),
@@ -284,9 +423,10 @@ class _AnaadGamesScreenState extends State<AnaadGamesScreen>
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: isDark
-                ? [const Color(0xFF0D1A2E), const Color(0xFF0F0F1A)]
-                : [const Color(0xFFEBF5FF), const Color(0xFFF8F9FE)],
+            colors:
+                isDark
+                    ? [AppColors.parchment, AppColors.parchment]
+                    : [AppColors.parchment, AppColors.parchment],
           ),
         ),
       ),
@@ -302,17 +442,17 @@ class _AnaadGamesScreenState extends State<AnaadGamesScreen>
             Positioned(
               top: 100 + (_floatAnimation.value * 12),
               right: 35,
-              child: _particle(9, const Color(0xFF3B82F6)),
+              child: _particle(9, AppColors.parchment),
             ),
             Positioned(
               top: 220 + (_floatAnimation.value * -10),
               left: 25,
-              child: _particle(6, const Color(0xFF60A5FA)),
+              child: _particle(6, AppColors.parchment),
             ),
             Positioned(
               bottom: 280 + (_floatAnimation.value * 8),
               right: 50,
-              child: _particle(5, const Color(0xFF93C5FD)),
+              child: _particle(5, AppColors.parchment),
             ),
           ],
         );
@@ -326,15 +466,17 @@ class _AnaadGamesScreenState extends State<AnaadGamesScreen>
       height: size,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        color: color.withOpacity(0.6),
-        boxShadow: [BoxShadow(color: color.withOpacity(0.4), blurRadius: 10)],
+        color: color.withValues(alpha: 0.6),
+        boxShadow: [
+          BoxShadow(color: color.withValues(alpha: 0.4), blurRadius: 10),
+        ],
       ),
     );
   }
 
   Widget _buildAppBar(BuildContext context, ThemeData theme, bool isDark) {
     return SliverAppBar(
-      backgroundColor: Colors.transparent,
+      backgroundColor: AppColors.transparent,
       elevation: 0,
       pinned: true,
       leading: Padding(
@@ -346,10 +488,14 @@ class _AnaadGamesScreenState extends State<AnaadGamesScreen>
           },
           child: Container(
             decoration: BoxDecoration(
-              color: (isDark ? Colors.white : Colors.black).withOpacity(0.1),
+              color: (isDark ? AppColors.parchment : AppColors.charcoal)
+                  .withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(12),
             ),
-            child: Icon(Icons.arrow_back_rounded, color: isDark ? Colors.white : Colors.black87),
+            child: Icon(
+              Icons.arrow_back_rounded,
+              color: isDark ? AppColors.parchment : AppColors.charcoal87,
+            ),
           ),
         ),
       ),
@@ -366,18 +512,22 @@ class _AnaadGamesScreenState extends State<AnaadGamesScreen>
             padding: const EdgeInsets.all(32),
             decoration: BoxDecoration(
               gradient: const LinearGradient(
-                colors: [Color(0xFF3B82F6), Color(0xFF1D4ED8)],
+                colors: [AppColors.parchment, AppColors.parchment],
               ),
               shape: BoxShape.circle,
               boxShadow: [
                 BoxShadow(
-                  color: const Color(0xFF3B82F6).withOpacity(0.4),
+                  color: AppColors.parchment.withValues(alpha: 0.4),
                   blurRadius: 30,
                   offset: const Offset(0, 10),
                 ),
               ],
             ),
-            child: const Icon(Icons.sports_esports_rounded, color: Colors.white, size: 60),
+            child: const Icon(
+              Icons.sports_esports_rounded,
+              color: AppColors.parchment,
+              size: 60,
+            ),
           ),
         );
       },
@@ -392,100 +542,123 @@ class _AnaadGamesScreenState extends State<AnaadGamesScreen>
       },
       child: AnimatedBuilder(
         animation: _pulseAnimation,
-        builder: (_, __) => Container(
-          width: double.infinity,
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: isDark
-                  ? [const Color(0xFF1A2830), const Color(0xFF0F1A20)]
-                  : [const Color(0xFFF0FDF4), const Color(0xFFECFDF5)],
-            ),
-            borderRadius: BorderRadius.circular(22),
-            border: Border.all(
-              color: const Color(0xFF22C55E).withOpacity(0.3),
-              width: 2,
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: const Color(0xFF22C55E).withOpacity(0.15 * _pulseAnimation.value),
-                blurRadius: 25,
-                spreadRadius: 2,
-                offset: const Offset(0, 8),
+        builder:
+            (_, __) => Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors:
+                      isDark
+                          ? [AppColors.parchment, AppColors.parchment]
+                          : [AppColors.parchment, AppColors.parchment],
+                ),
+                borderRadius: BorderRadius.circular(22),
+                border: Border.all(
+                  color: AppColors.parchment.withValues(alpha: 0.3),
+                  width: 2,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.parchment.withValues(
+                      alpha: 0.15 * _pulseAnimation.value,
+                    ),
+                    blurRadius: 25,
+                    spreadRadius: 2,
+                    offset: const Offset(0, 8),
+                  ),
+                  BoxShadow(
+                    color: AppColors.parchment.withValues(
+                      alpha: 0.1 * _pulseAnimation.value,
+                    ),
+                    blurRadius: 30,
+                    spreadRadius: 1,
+                    offset: const Offset(0, 12),
+                  ),
+                ],
               ),
-              BoxShadow(
-                color: const Color(0xFF3B82F6).withOpacity(0.1 * _pulseAnimation.value),
-                blurRadius: 30,
-                spreadRadius: 1,
-                offset: const Offset(0, 12),
-              ),
-            ],
-          ),
-          child: Row(
-            children: [
-              // Premium animated logo
-              _buildPremiumAnaadLogo(theme, isDark),
-              const SizedBox(width: 14),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
+              child: Row(
+                children: [
+                  // Premium animated logo
+                  _buildPremiumAnaadLogo(theme, isDark),
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        ShaderMask(
-                          shaderCallback: (bounds) => const LinearGradient(
-                            colors: [Color(0xFF22C55E), Color(0xFF10B981), Color(0xFF059669)],
-                          ).createShader(bounds),
-                          child: Text(
-                            'ANAAD',
-                            style: theme.textTheme.titleMedium?.copyWith(
-                              fontWeight: FontWeight.w900,
-                              color: Colors.white,
-                              letterSpacing: 2,
+                        Row(
+                          children: [
+                            ShaderMask(
+                              shaderCallback:
+                                  (bounds) => const LinearGradient(
+                                    colors: [
+                                      AppColors.parchment,
+                                      AppColors.parchment,
+                                      AppColors.parchment,
+                                    ],
+                                  ).createShader(bounds),
+                              child: Text(
+                                'ANAAD',
+                                style: theme.textTheme.titleMedium?.copyWith(
+                                  fontWeight: FontWeight.w900,
+                                  color: AppColors.parchment,
+                                  letterSpacing: 2,
+                                ),
+                              ),
                             ),
+                            const SizedBox(width: 8),
+                            _buildPremiumBetaBadge(),
+                          ],
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          'Learn sustainable farming through play',
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color:
+                                isDark
+                                    ? AppColors.rawEarth26
+                                    : AppColors.rawEarth70,
+                            fontWeight: FontWeight.w500,
                           ),
                         ),
-                        const SizedBox(width: 8),
-                        _buildPremiumBetaBadge(),
+                        const SizedBox(height: 8),
+                        Row(
+                          children: [
+                            _buildMiniFeature('🎮', '4 Games'),
+                            const SizedBox(width: 8),
+                            _buildMiniFeature('📚', 'Learn'),
+                            const SizedBox(width: 8),
+                            _buildMiniFeature('🌱', 'Grow'),
+                          ],
+                        ),
                       ],
                     ),
-                    const SizedBox(height: 4),
-                    Text(
-                      'Learn sustainable farming through play',
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: isDark ? Colors.grey[400] : Colors.grey[600],
-                        fontWeight: FontWeight.w500,
+                  ),
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          AppColors.parchment.withValues(alpha: 0.2),
+                          AppColors.parchment.withValues(alpha: 0.1),
+                        ],
+                      ),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: AppColors.parchment.withValues(alpha: 0.3),
                       ),
                     ),
-                    const SizedBox(height: 8),
-                    Row(
-                      children: [
-                        _buildMiniFeature('🎮', '4 Games'),
-                        const SizedBox(width: 8),
-                        _buildMiniFeature('📚', 'Learn'),
-                        const SizedBox(width: 8),
-                        _buildMiniFeature('🌱', 'Grow'),
-                      ],
+                    child: const Icon(
+                      Icons.arrow_forward_ios_rounded,
+                      size: 16,
+                      color: AppColors.parchment,
                     ),
-                  ],
-                ),
-              ),
-              Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [const Color(0xFF22C55E).withOpacity(0.2), const Color(0xFF22C55E).withOpacity(0.1)],
                   ),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: const Color(0xFF22C55E).withOpacity(0.3)),
-                ),
-                child: const Icon(Icons.arrow_forward_ios_rounded, size: 16, color: Color(0xFF22C55E)),
+                ],
               ),
-            ],
-          ),
-        ),
+            ),
       ),
     );
   }
@@ -494,7 +667,7 @@ class _AnaadGamesScreenState extends State<AnaadGamesScreen>
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: const Color(0xFF22C55E).withOpacity(0.1),
+        color: AppColors.parchment.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(8),
       ),
       child: Row(
@@ -502,7 +675,14 @@ class _AnaadGamesScreenState extends State<AnaadGamesScreen>
         children: [
           Text(emoji, style: const TextStyle(fontSize: 10)),
           const SizedBox(width: 4),
-          Text(text, style: const TextStyle(fontSize: 9, fontWeight: FontWeight.w700, color: Color(0xFF22C55E))),
+          Text(
+            text,
+            style: const TextStyle(
+              fontSize: 9,
+              fontWeight: FontWeight.w700,
+              color: AppColors.parchment,
+            ),
+          ),
         ],
       ),
     );
@@ -511,85 +691,120 @@ class _AnaadGamesScreenState extends State<AnaadGamesScreen>
   Widget _buildPremiumAnaadLogo(ThemeData theme, bool isDark) {
     return AnimatedBuilder(
       animation: _pulseAnimation,
-      builder: (_, __) => Transform.scale(
-        scale: 0.95 + (_pulseAnimation.value * 0.1),
-        child: Container(
-          width: 60,
-          height: 60,
-          decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [Color(0xFF22C55E), Color(0xFF16A34A), Color(0xFF15803D)],
-            ),
-            borderRadius: BorderRadius.circular(18),
-            boxShadow: [
-              BoxShadow(
-                color: const Color(0xFF22C55E).withOpacity(0.5),
-                blurRadius: 20,
-                spreadRadius: 2,
-                offset: const Offset(0, 6),
-              ),
-            ],
-            border: Border.all(color: Colors.white.withOpacity(0.25), width: 2),
-          ),
-          child: Stack(
-            alignment: Alignment.center,
-            children: [
-              // Rotating ring effect
-              AnimatedBuilder(
-                animation: _floatAnimation,
-                builder: (_, __) => Transform.rotate(
-                  angle: _floatAnimation.value * 3.14159 * 2,
-                  child: Container(
-                    width: 50,
-                    height: 50,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      border: Border.all(
-                        color: Colors.white.withOpacity(0.15),
-                        width: 1,
-                      ),
-                    ),
+      builder:
+          (_, __) => Transform.scale(
+            scale: 0.95 + (_pulseAnimation.value * 0.1),
+            child: Container(
+              width: 60,
+              height: 60,
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    AppColors.parchment,
+                    AppColors.parchment,
+                    AppColors.parchment,
+                  ],
+                ),
+                borderRadius: BorderRadius.circular(18),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.parchment.withValues(alpha: 0.5),
+                    blurRadius: 20,
+                    spreadRadius: 2,
+                    offset: const Offset(0, 6),
                   ),
+                ],
+                border: Border.all(
+                  color: AppColors.parchment.withValues(alpha: 0.25),
+                  width: 2,
                 ),
               ),
-              // Center content
-              Column(
-                mainAxisAlignment: MainAxisAlignment.center,
+              child: Stack(
+                alignment: Alignment.center,
                 children: [
-                  const Text('🌾', style: TextStyle(fontSize: 20)),
-                  Text(
-                    'A',
-                    style: theme.textTheme.titleSmall?.copyWith(
-                      fontWeight: FontWeight.w900,
-                      color: Colors.white,
-                      height: 0.9,
-                      shadows: [const Shadow(color: Colors.black38, blurRadius: 8)],
+                  // Rotating ring effect
+                  AnimatedBuilder(
+                    animation: _floatAnimation,
+                    builder:
+                        (_, __) => Transform.rotate(
+                          angle: _floatAnimation.value * 3.14159 * 2,
+                          child: Container(
+                            width: 50,
+                            height: 50,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                color: AppColors.parchment.withValues(
+                                  alpha: 0.15,
+                                ),
+                                width: 1,
+                              ),
+                            ),
+                          ),
+                        ),
+                  ),
+                  // Center content
+                  Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Text('🌾', style: TextStyle(fontSize: 20)),
+                      Text(
+                        'A',
+                        style: theme.textTheme.titleSmall?.copyWith(
+                          fontWeight: FontWeight.w900,
+                          color: AppColors.parchment,
+                          height: 0.9,
+                          shadows: [
+                            const Shadow(
+                              color: AppColors.charcoal38,
+                              blurRadius: 8,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  // Corner badge
+                  Positioned(
+                    top: 4,
+                    right: 4,
+                    child: Container(
+                      width: 12,
+                      height: 12,
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          colors: [AppColors.parchment, AppColors.parchment],
+                        ),
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: AppColors.parchment,
+                          width: 1.5,
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppColors.parchment.withValues(alpha: 0.5),
+                            blurRadius: 6,
+                          ),
+                        ],
+                      ),
+                      child: const Center(
+                        child: Text(
+                          'i',
+                          style: TextStyle(
+                            fontSize: 7,
+                            fontWeight: FontWeight.w900,
+                            color: AppColors.parchment,
+                          ),
+                        ),
+                      ),
                     ),
                   ),
                 ],
               ),
-              // Corner badge
-              Positioned(
-                top: 4,
-                right: 4,
-                child: Container(
-                  width: 12,
-                  height: 12,
-                  decoration: BoxDecoration(
-                    gradient: const LinearGradient(colors: [Color(0xFF3B82F6), Color(0xFF2563EB)]),
-                    shape: BoxShape.circle,
-                    border: Border.all(color: Colors.white, width: 1.5),
-                    boxShadow: [BoxShadow(color: const Color(0xFF3B82F6).withOpacity(0.5), blurRadius: 6)],
-                  ),
-                  child: const Center(child: Text('i', style: TextStyle(fontSize: 7, fontWeight: FontWeight.w900, color: Colors.white))),
-                ),
-              ),
-            ],
+            ),
           ),
-        ),
-      ),
     );
   }
 
@@ -598,11 +813,14 @@ class _AnaadGamesScreenState extends State<AnaadGamesScreen>
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
         gradient: const LinearGradient(
-          colors: [Color(0xFFFF6B00), Color(0xFFFF9500)],
+          colors: [AppColors.parchment, AppColors.parchment],
         ),
         borderRadius: BorderRadius.circular(8),
         boxShadow: [
-          BoxShadow(color: const Color(0xFFFF6B00).withOpacity(0.4), blurRadius: 8),
+          BoxShadow(
+            color: AppColors.parchment.withValues(alpha: 0.4),
+            blurRadius: 8,
+          ),
         ],
       ),
       child: const Row(
@@ -612,7 +830,12 @@ class _AnaadGamesScreenState extends State<AnaadGamesScreen>
           SizedBox(width: 3),
           Text(
             'BETA',
-            style: TextStyle(fontSize: 9, fontWeight: FontWeight.w900, color: Colors.white, letterSpacing: 1),
+            style: TextStyle(
+              fontSize: 9,
+              fontWeight: FontWeight.w900,
+              color: AppColors.parchment,
+              letterSpacing: 1,
+            ),
           ),
         ],
       ),
@@ -624,7 +847,7 @@ class _AnaadGamesScreenState extends State<AnaadGamesScreen>
       context: context,
       barrierDismissible: true,
       barrierLabel: 'Anaad Info',
-      barrierColor: Colors.black.withOpacity(0.85),
+      barrierColor: AppColors.charcoal.withValues(alpha: 0.85),
       transitionDuration: const Duration(milliseconds: 400),
       transitionBuilder: (context, anim, secondAnim, child) {
         return ScaleTransition(
@@ -642,8 +865,16 @@ class _AnaadGamesScreenState extends State<AnaadGamesScreen>
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(28),
                 boxShadow: [
-                  BoxShadow(color: const Color(0xFF22C55E).withOpacity(0.3), blurRadius: 40, spreadRadius: 5),
-                  BoxShadow(color: Colors.black.withOpacity(0.4), blurRadius: 30, offset: const Offset(0, 15)),
+                  BoxShadow(
+                    color: AppColors.parchment.withValues(alpha: 0.3),
+                    blurRadius: 40,
+                    spreadRadius: 5,
+                  ),
+                  BoxShadow(
+                    color: AppColors.charcoal.withValues(alpha: 0.4),
+                    blurRadius: 30,
+                    offset: const Offset(0, 15),
+                  ),
                 ],
               ),
               child: ClipRRect(
@@ -655,11 +886,21 @@ class _AnaadGamesScreenState extends State<AnaadGamesScreen>
                       gradient: LinearGradient(
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
-                        colors: isDark
-                            ? [const Color(0xFF0A1A0F).withOpacity(0.95), const Color(0xFF0F1A12).withOpacity(0.95)]
-                            : [Colors.white.withOpacity(0.95), const Color(0xFFF0FDF4).withOpacity(0.95)],
+                        colors:
+                            isDark
+                                ? [
+                                  AppColors.parchment.withValues(alpha: 0.95),
+                                  AppColors.parchment.withValues(alpha: 0.95),
+                                ]
+                                : [
+                                  AppColors.parchment.withValues(alpha: 0.95),
+                                  AppColors.parchment.withValues(alpha: 0.95),
+                                ],
                       ),
-                      border: Border.all(color: const Color(0xFF22C55E).withOpacity(0.3), width: 2),
+                      border: Border.all(
+                        color: AppColors.parchment.withValues(alpha: 0.3),
+                        width: 2,
+                      ),
                     ),
                     child: SingleChildScrollView(
                       padding: const EdgeInsets.all(20),
@@ -676,7 +917,12 @@ class _AnaadGamesScreenState extends State<AnaadGamesScreen>
                                 decoration: BoxDecoration(
                                   shape: BoxShape.circle,
                                   gradient: RadialGradient(
-                                    colors: [const Color(0xFF22C55E).withOpacity(0.3), Colors.transparent],
+                                    colors: [
+                                      AppColors.parchment.withValues(
+                                        alpha: 0.3,
+                                      ),
+                                      AppColors.transparent,
+                                    ],
                                   ),
                                 ),
                               ),
@@ -687,17 +933,41 @@ class _AnaadGamesScreenState extends State<AnaadGamesScreen>
                                   gradient: const LinearGradient(
                                     begin: Alignment.topLeft,
                                     end: Alignment.bottomRight,
-                                    colors: [Color(0xFF22C55E), Color(0xFF16A34A), Color(0xFF15803D)],
+                                    colors: [
+                                      AppColors.parchment,
+                                      AppColors.parchment,
+                                      AppColors.parchment,
+                                    ],
                                   ),
                                   shape: BoxShape.circle,
-                                  border: Border.all(color: Colors.white.withOpacity(0.3), width: 3),
-                                  boxShadow: [BoxShadow(color: const Color(0xFF22C55E).withOpacity(0.5), blurRadius: 20)],
+                                  border: Border.all(
+                                    color: AppColors.parchment.withValues(
+                                      alpha: 0.3,
+                                    ),
+                                    width: 3,
+                                  ),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: AppColors.parchment.withValues(
+                                        alpha: 0.5,
+                                      ),
+                                      blurRadius: 20,
+                                    ),
+                                  ],
                                 ),
                                 child: const Column(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
                                     Text('🌾', style: TextStyle(fontSize: 24)),
-                                    Text('A', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w900, color: Colors.white, height: 0.8)),
+                                    Text(
+                                      'A',
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w900,
+                                        color: AppColors.parchment,
+                                        height: 0.8,
+                                      ),
+                                    ),
                                   ],
                                 ),
                               ),
@@ -709,51 +979,90 @@ class _AnaadGamesScreenState extends State<AnaadGamesScreen>
                                   child: Container(
                                     padding: const EdgeInsets.all(8),
                                     decoration: BoxDecoration(
-                                      color: Colors.red.withOpacity(0.15),
+                                      color: AppColors.rawEarth.withValues(
+                                        alpha: 0.15,
+                                      ),
                                       shape: BoxShape.circle,
-                                      border: Border.all(color: Colors.red.withOpacity(0.3)),
+                                      border: Border.all(
+                                        color: AppColors.rawEarth.withValues(
+                                          alpha: 0.3,
+                                        ),
+                                      ),
                                     ),
-                                    child: const Icon(Icons.close_rounded, size: 20, color: Colors.red),
+                                    child: const Icon(
+                                      Icons.close_rounded,
+                                      size: 20,
+                                      color: AppColors.rawEarth,
+                                    ),
                                   ),
                                 ),
                               ),
                             ],
                           ),
                           const SizedBox(height: 12),
-                          
+
                           // Title
                           Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               ShaderMask(
-                                shaderCallback: (bounds) => const LinearGradient(
-                                  colors: [Color(0xFF22C55E), Color(0xFF10B981)],
-                                ).createShader(bounds),
-                                child: Text('ANAAD GAMES', style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w900, color: Colors.white, letterSpacing: 3)),
+                                shaderCallback:
+                                    (bounds) => const LinearGradient(
+                                      colors: [
+                                        AppColors.parchment,
+                                        AppColors.parchment,
+                                      ],
+                                    ).createShader(bounds),
+                                child: Text(
+                                  'ANAAD GAMES',
+                                  style: theme.textTheme.headlineSmall
+                                      ?.copyWith(
+                                        fontWeight: FontWeight.w900,
+                                        color: AppColors.parchment,
+                                        letterSpacing: 3,
+                                      ),
+                                ),
                               ),
                               const SizedBox(width: 10),
                               _buildPremiumBetaBadge(),
                             ],
                           ),
                           const SizedBox(height: 4),
-                          Text('Learn Sustainable Farming Through Play', style: TextStyle(fontSize: 12, color: isDark ? Colors.grey[400] : Colors.grey[600], fontWeight: FontWeight.w500)),
+                          Text(
+                            'Learn Sustainable Farming Through Play',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color:
+                                  isDark
+                                      ? AppColors.rawEarth26
+                                      : AppColors.rawEarth70,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
                           const SizedBox(height: 20),
-                          
+
                           // Why Important
                           _buildPremiumSection(
                             emoji: '🌍',
                             title: 'WHY IT MATTERS',
-                            gradient: [const Color(0xFF22C55E), const Color(0xFF16A34A)],
-                            content: 'Anaad Games transform complex farming knowledge into memorable, hands-on experiences. Instead of forgetting what you read, you learn by doing - making decisions, seeing consequences, and building real skills.',
+                            gradient: [
+                              AppColors.parchment,
+                              AppColors.parchment,
+                            ],
+                            content:
+                                'Anaad Games transform complex farming knowledge into memorable, hands-on experiences. Instead of forgetting what you read, you learn by doing - making decisions, seeing consequences, and building real skills.',
                             isDark: isDark,
                           ),
                           const SizedBox(height: 14),
-                          
+
                           // What You Learn
                           _buildPremiumSection(
                             emoji: '🎓',
                             title: 'WHAT YOU LEARN',
-                            gradient: [const Color(0xFF3B82F6), const Color(0xFF2563EB)],
+                            gradient: [
+                              AppColors.parchment,
+                              AppColors.parchment,
+                            ],
                             bullets: [
                               '🦠 Soil health: microbes, organic matter, nutrient cycles',
                               '🔄 Natural farming: Desi cow → Jeevamrut → Healthy soil',
@@ -764,12 +1073,15 @@ class _AnaadGamesScreenState extends State<AnaadGamesScreen>
                             isDark: isDark,
                           ),
                           const SizedBox(height: 14),
-                          
+
                           // How to Play Compost Commander
                           _buildPremiumSection(
                             emoji: '🪵',
                             title: 'HOW TO PLAY: COMPOST COMMANDER',
-                            gradient: [const Color(0xFF795548), const Color(0xFF5D4037)],
+                            gradient: [
+                              AppColors.parchment,
+                              AppColors.parchment,
+                            ],
                             bullets: [
                               '📦 TAP materials to add layers to your compost bin',
                               '⚖️ BALANCE: Mix browns (🍂 carbon) with greens (🌿 nitrogen)',
@@ -780,41 +1092,89 @@ class _AnaadGamesScreenState extends State<AnaadGamesScreen>
                             isDark: isDark,
                           ),
                           const SizedBox(height: 20),
-                          
+
                           // Play button
                           GestureDetector(
                             onTap: () {
                               HapticFeedback.heavyImpact();
                               Navigator.pop(context);
-                              Navigator.push(context, MaterialPageRoute(builder: (_) => const CompostCommanderGameScreen()));
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder:
+                                      (_) => const CompostCommanderGameScreen(),
+                                ),
+                              );
                             },
                             child: Container(
                               width: double.infinity,
                               padding: const EdgeInsets.symmetric(vertical: 16),
                               decoration: BoxDecoration(
-                                gradient: const LinearGradient(colors: [Color(0xFF795548), Color(0xFF5D4037), Color(0xFF4E342E)]),
+                                gradient: const LinearGradient(
+                                  colors: [
+                                    AppColors.parchment,
+                                    AppColors.parchment,
+                                    AppColors.parchment,
+                                  ],
+                                ),
                                 borderRadius: BorderRadius.circular(18),
-                                boxShadow: [BoxShadow(color: const Color(0xFF795548).withOpacity(0.5), blurRadius: 20, offset: const Offset(0, 8))],
-                                border: Border.all(color: Colors.white.withOpacity(0.2)),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: AppColors.parchment.withValues(
+                                      alpha: 0.5,
+                                    ),
+                                    blurRadius: 20,
+                                    offset: const Offset(0, 8),
+                                  ),
+                                ],
+                                border: Border.all(
+                                  color: AppColors.parchment.withValues(
+                                    alpha: 0.2,
+                                  ),
+                                ),
                               ),
                               child: Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  const Text('🌱', style: TextStyle(fontSize: 20)),
+                                  const Text(
+                                    '🌱',
+                                    style: TextStyle(fontSize: 20),
+                                  ),
                                   const SizedBox(width: 10),
-                                  Text('Play Compost Commander', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w900, color: Colors.white, letterSpacing: 1)),
+                                  Text(
+                                    'Play Compost Commander',
+                                    style: theme.textTheme.titleMedium
+                                        ?.copyWith(
+                                          fontWeight: FontWeight.w900,
+                                          color: AppColors.parchment,
+                                          letterSpacing: 1,
+                                        ),
+                                  ),
                                   const SizedBox(width: 8),
-                                  const Icon(Icons.arrow_forward_rounded, color: Colors.white, size: 20),
+                                  const Icon(
+                                    Icons.arrow_forward_rounded,
+                                    color: AppColors.parchment,
+                                    size: 20,
+                                  ),
                                 ],
                               ),
                             ),
                           ),
                           const SizedBox(height: 12),
-                          
+
                           // Close button
                           TextButton(
                             onPressed: () => Navigator.pop(context),
-                            child: Text('Got it!', style: TextStyle(color: isDark ? Colors.grey[400] : Colors.grey[600], fontWeight: FontWeight.w600)),
+                            child: Text(
+                              'Got it!',
+                              style: TextStyle(
+                                color:
+                                    isDark
+                                        ? AppColors.rawEarth26
+                                        : AppColors.rawEarth70,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
                           ),
                         ],
                       ),
@@ -843,10 +1203,13 @@ class _AnaadGamesScreenState extends State<AnaadGamesScreen>
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [gradient[0].withOpacity(0.15), gradient[1].withOpacity(0.05)],
+          colors: [
+            gradient[0].withValues(alpha: 0.15),
+            gradient[1].withValues(alpha: 0.05),
+          ],
         ),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: gradient[0].withOpacity(0.3)),
+        border: Border.all(color: gradient[0].withValues(alpha: 0.3)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -856,30 +1219,71 @@ class _AnaadGamesScreenState extends State<AnaadGamesScreen>
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  gradient: LinearGradient(colors: [gradient[0].withOpacity(0.3), gradient[1].withOpacity(0.15)]),
+                  gradient: LinearGradient(
+                    colors: [
+                      gradient[0].withValues(alpha: 0.3),
+                      gradient[1].withValues(alpha: 0.15),
+                    ],
+                  ),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Text(emoji, style: const TextStyle(fontSize: 18)),
               ),
               const SizedBox(width: 10),
-              Text(title, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w900, letterSpacing: 1, color: gradient[0])),
+              Text(
+                title,
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 1,
+                  color: gradient[0],
+                ),
+              ),
             ],
           ),
           const SizedBox(height: 10),
           if (content != null)
-            Text(content, style: TextStyle(fontSize: 12, color: isDark ? Colors.white70 : Colors.black54, height: 1.5)),
-          if (bullets != null)
-            ...bullets.map((b) => Padding(
-              padding: const EdgeInsets.only(bottom: 6),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('•', style: TextStyle(fontSize: 14, color: gradient[0], fontWeight: FontWeight.w900)),
-                  const SizedBox(width: 8),
-                  Expanded(child: Text(b, style: TextStyle(fontSize: 11, color: isDark ? Colors.white70 : Colors.black54, height: 1.4))),
-                ],
+            Text(
+              content,
+              style: TextStyle(
+                fontSize: 12,
+                color: isDark ? AppColors.parchment70 : AppColors.charcoal54,
+                height: 1.5,
               ),
-            )),
+            ),
+          if (bullets != null)
+            ...bullets.map(
+              (b) => Padding(
+                padding: const EdgeInsets.only(bottom: 6),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '•',
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: gradient[0],
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        b,
+                        style: TextStyle(
+                          fontSize: 11,
+                          color:
+                              isDark
+                                  ? AppColors.parchment70
+                                  : AppColors.charcoal54,
+                          height: 1.4,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
         ],
       ),
     );
@@ -896,9 +1300,15 @@ class _AnaadGamesScreenState extends State<AnaadGamesScreen>
       width: double.infinity,
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: (isDark ? Colors.white : Colors.black).withOpacity(0.05),
+        color: (isDark ? AppColors.parchment : AppColors.charcoal).withValues(
+          alpha: 0.05,
+        ),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: (isDark ? Colors.white : Colors.black).withOpacity(0.08)),
+        border: Border.all(
+          color: (isDark ? AppColors.parchment : AppColors.charcoal).withValues(
+            alpha: 0.08,
+          ),
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -911,7 +1321,7 @@ class _AnaadGamesScreenState extends State<AnaadGamesScreen>
                 title,
                 style: theme.textTheme.titleSmall?.copyWith(
                   fontWeight: FontWeight.w900,
-                  color: isDark ? Colors.white : Colors.black87,
+                  color: isDark ? AppColors.parchment : AppColors.charcoal87,
                 ),
               ),
             ],
@@ -921,7 +1331,7 @@ class _AnaadGamesScreenState extends State<AnaadGamesScreen>
             body,
             style: theme.textTheme.bodySmall?.copyWith(
               height: 1.5,
-              color: isDark ? Colors.grey[300] : Colors.grey[700],
+              color: isDark ? AppColors.rawEarth12 : AppColors.charcoal60,
             ),
           ),
         ],
@@ -940,9 +1350,15 @@ class _AnaadGamesScreenState extends State<AnaadGamesScreen>
       width: double.infinity,
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: (isDark ? Colors.white : Colors.black).withOpacity(0.05),
+        color: (isDark ? AppColors.parchment : AppColors.charcoal).withValues(
+          alpha: 0.05,
+        ),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: (isDark ? Colors.white : Colors.black).withOpacity(0.08)),
+        border: Border.all(
+          color: (isDark ? AppColors.parchment : AppColors.charcoal).withValues(
+            alpha: 0.08,
+          ),
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -955,7 +1371,7 @@ class _AnaadGamesScreenState extends State<AnaadGamesScreen>
                 title,
                 style: theme.textTheme.titleSmall?.copyWith(
                   fontWeight: FontWeight.w900,
-                  color: isDark ? Colors.white : Colors.black87,
+                  color: isDark ? AppColors.parchment : AppColors.charcoal87,
                 ),
               ),
             ],
@@ -973,13 +1389,22 @@ class _AnaadGamesScreenState extends State<AnaadGamesScreen>
                     margin: const EdgeInsets.only(top: 2),
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
-                        colors: [const Color(0xFF10B981).withOpacity(0.35), const Color(0xFF3B82F6).withOpacity(0.20)],
+                        colors: [
+                          AppColors.parchment.withValues(alpha: 0.35),
+                          AppColors.parchment.withValues(alpha: 0.20),
+                        ],
                       ),
                       borderRadius: BorderRadius.circular(6),
-                      border: Border.all(color: Colors.white.withOpacity(0.06)),
+                      border: Border.all(
+                        color: AppColors.parchment.withValues(alpha: 0.06),
+                      ),
                     ),
                     child: const Center(
-                      child: Icon(Icons.check_rounded, size: 12, color: Color(0xFF10B981)),
+                      child: Icon(
+                        Icons.check_rounded,
+                        size: 12,
+                        color: AppColors.parchment,
+                      ),
                     ),
                   ),
                   const SizedBox(width: 10),
@@ -988,7 +1413,10 @@ class _AnaadGamesScreenState extends State<AnaadGamesScreen>
                       b,
                       style: theme.textTheme.bodySmall?.copyWith(
                         height: 1.45,
-                        color: isDark ? Colors.grey[300] : Colors.grey[700],
+                        color:
+                            isDark
+                                ? AppColors.rawEarth12
+                                : AppColors.charcoal60,
                       ),
                     ),
                   ),
@@ -1005,19 +1433,19 @@ class _AnaadGamesScreenState extends State<AnaadGamesScreen>
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       decoration: BoxDecoration(
-        color: const Color(0xFF3B82F6).withOpacity(0.15),
+        color: AppColors.parchment.withValues(alpha: 0.15),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: const Color(0xFF3B82F6).withOpacity(0.3)),
+        border: Border.all(color: AppColors.parchment.withValues(alpha: 0.3)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Icon(Icons.games_rounded, color: Color(0xFF3B82F6), size: 18),
+          const Icon(Icons.games_rounded, color: AppColors.parchment, size: 18),
           const SizedBox(width: 8),
           Text(
             'Coming Soon (More Games)',
             style: theme.textTheme.labelLarge?.copyWith(
-              color: const Color(0xFF3B82F6),
+              color: AppColors.parchment,
               fontWeight: FontWeight.w700,
             ),
           ),
@@ -1030,19 +1458,23 @@ class _AnaadGamesScreenState extends State<AnaadGamesScreen>
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       decoration: BoxDecoration(
-        color: const Color(0xFF10B981).withOpacity(0.15),
+        color: AppColors.parchment.withValues(alpha: 0.15),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: const Color(0xFF10B981).withOpacity(0.3)),
+        border: Border.all(color: AppColors.parchment.withValues(alpha: 0.3)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Icon(Icons.play_circle_fill_rounded, color: Color(0xFF10B981), size: 18),
+          const Icon(
+            Icons.play_circle_fill_rounded,
+            color: AppColors.parchment,
+            size: 18,
+          ),
           const SizedBox(width: 8),
           Text(
             'Now Playable',
             style: theme.textTheme.labelLarge?.copyWith(
-              color: const Color(0xFF10B981),
+              color: AppColors.parchment,
               fontWeight: FontWeight.w800,
             ),
           ),
@@ -1055,12 +1487,12 @@ class _AnaadGamesScreenState extends State<AnaadGamesScreen>
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1E1E2E) : Colors.white,
+        color: isDark ? AppColors.parchment : AppColors.parchment,
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: const Color(0xFF3B82F6).withOpacity(0.2)),
+        border: Border.all(color: AppColors.parchment.withValues(alpha: 0.2)),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF3B82F6).withOpacity(0.1),
+            color: AppColors.parchment.withValues(alpha: 0.1),
             blurRadius: 20,
             offset: const Offset(0, 8),
           ),
@@ -1074,15 +1506,21 @@ class _AnaadGamesScreenState extends State<AnaadGamesScreen>
               Container(
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF3B82F6).withOpacity(0.15),
+                  color: AppColors.parchment.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: const Icon(Icons.article_rounded, color: Color(0xFF3B82F6), size: 20),
+                child: const Icon(
+                  Icons.article_rounded,
+                  color: AppColors.parchment,
+                  size: 20,
+                ),
               ),
               const SizedBox(width: 12),
               Text(
                 'About Anaad Games',
-                style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+                style: theme.textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ],
           ),
@@ -1091,7 +1529,7 @@ class _AnaadGamesScreenState extends State<AnaadGamesScreen>
             'Gaming for Good: Sustainable Farming Adventures',
             style: theme.textTheme.titleSmall?.copyWith(
               fontWeight: FontWeight.w600,
-              color: const Color(0xFF3B82F6),
+              color: AppColors.parchment,
             ),
           ),
           const SizedBox(height: 12),
@@ -1105,7 +1543,7 @@ class _AnaadGamesScreenState extends State<AnaadGamesScreen>
             'Every virtual crop you grow contributes to real-world agricultural awareness. Play, compete with friends, and become a sustainable farming champion!',
             style: theme.textTheme.bodyMedium?.copyWith(
               height: 1.7,
-              color: isDark ? Colors.grey[300] : Colors.grey[700],
+              color: isDark ? AppColors.rawEarth12 : AppColors.charcoal60,
             ),
           ),
         ],
@@ -1120,15 +1558,16 @@ class _AnaadGamesScreenState extends State<AnaadGamesScreen>
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: isDark
-              ? [const Color(0xFF0B1228), const Color(0xFF0F0F1A)]
-              : [Colors.white, const Color(0xFFEBF5FF)],
+          colors:
+              isDark
+                  ? [AppColors.parchment, AppColors.parchment]
+                  : [AppColors.parchment, AppColors.parchment],
         ),
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: const Color(0xFF10B981).withOpacity(0.25)),
+        border: Border.all(color: AppColors.parchment.withValues(alpha: 0.25)),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF10B981).withOpacity(0.12),
+            color: AppColors.parchment.withValues(alpha: 0.12),
             blurRadius: 22,
             offset: const Offset(0, 10),
           ),
@@ -1143,7 +1582,7 @@ class _AnaadGamesScreenState extends State<AnaadGamesScreen>
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
                   gradient: const LinearGradient(
-                    colors: [Color(0xFF10B981), Color(0xFF059669)],
+                    colors: [AppColors.parchment, AppColors.parchment],
                   ),
                   borderRadius: BorderRadius.circular(14),
                 ),
@@ -1158,32 +1597,38 @@ class _AnaadGamesScreenState extends State<AnaadGamesScreen>
                       'Featured',
                       style: theme.textTheme.labelLarge?.copyWith(
                         fontWeight: FontWeight.w800,
-                        color: const Color(0xFF10B981),
+                        color: AppColors.parchment,
                       ),
                     ),
                     Text(
                       'Cow → Soil Cycle',
                       style: theme.textTheme.titleLarge?.copyWith(
                         fontWeight: FontWeight.bold,
-                        color: isDark ? Colors.white : Colors.black87,
+                        color:
+                            isDark ? AppColors.parchment : AppColors.charcoal87,
                       ),
                     ),
                   ],
                 ),
               ),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 6,
+                ),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF10B981).withOpacity(0.15),
+                  color: AppColors.parchment.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(999),
-                  border: Border.all(color: const Color(0xFF10B981).withOpacity(0.25)),
+                  border: Border.all(
+                    color: AppColors.parchment.withValues(alpha: 0.25),
+                  ),
                 ),
                 child: const Text(
                   'NEW',
                   style: TextStyle(
                     fontSize: 11,
                     fontWeight: FontWeight.w900,
-                    color: Color(0xFF10B981),
+                    color: AppColors.parchment,
                     letterSpacing: 0.6,
                   ),
                 ),
@@ -1196,7 +1641,7 @@ class _AnaadGamesScreenState extends State<AnaadGamesScreen>
             'Earn streaks, learn concepts, and play quick rounds.',
             style: theme.textTheme.bodyMedium?.copyWith(
               height: 1.6,
-              color: isDark ? Colors.grey[300] : Colors.grey[700],
+              color: isDark ? AppColors.rawEarth12 : AppColors.charcoal60,
             ),
           ),
           const SizedBox(height: 16),
@@ -1208,17 +1653,21 @@ class _AnaadGamesScreenState extends State<AnaadGamesScreen>
                     HapticFeedback.mediumImpact();
                     Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (_) => const CowToSoilCycleGameScreen()),
+                      MaterialPageRoute(
+                        builder: (_) => const CowToSoilCycleGameScreen(),
+                      ),
                     );
                   },
                   child: Container(
                     padding: const EdgeInsets.symmetric(vertical: 14),
                     decoration: BoxDecoration(
-                      gradient: const LinearGradient(colors: [Color(0xFF10B981), Color(0xFF059669)]),
+                      gradient: const LinearGradient(
+                        colors: [AppColors.parchment, AppColors.parchment],
+                      ),
                       borderRadius: BorderRadius.circular(16),
                       boxShadow: [
                         BoxShadow(
-                          color: const Color(0xFF10B981).withOpacity(0.35),
+                          color: AppColors.parchment.withValues(alpha: 0.35),
                           blurRadius: 14,
                           offset: const Offset(0, 6),
                         ),
@@ -1228,7 +1677,7 @@ class _AnaadGamesScreenState extends State<AnaadGamesScreen>
                       child: Text(
                         'Play Now',
                         style: theme.textTheme.titleMedium?.copyWith(
-                          color: Colors.white,
+                          color: AppColors.parchment,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -1245,11 +1694,16 @@ class _AnaadGamesScreenState extends State<AnaadGamesScreen>
                 child: Container(
                   padding: const EdgeInsets.all(14),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF10B981).withOpacity(0.12),
+                    color: AppColors.parchment.withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: const Color(0xFF10B981).withOpacity(0.25)),
+                    border: Border.all(
+                      color: AppColors.parchment.withValues(alpha: 0.25),
+                    ),
                   ),
-                  child: const Icon(Icons.help_outline_rounded, color: Color(0xFF10B981)),
+                  child: const Icon(
+                    Icons.help_outline_rounded,
+                    color: AppColors.parchment,
+                  ),
                 ),
               ),
             ],
@@ -1263,11 +1717,11 @@ class _AnaadGamesScreenState extends State<AnaadGamesScreen>
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: Colors.transparent,
+      backgroundColor: AppColors.transparent,
       builder: (context) {
         return Container(
           decoration: BoxDecoration(
-            color: isDark ? const Color(0xFF121225) : Colors.white,
+            color: isDark ? AppColors.parchment : AppColors.parchment,
             borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
           ),
           child: Padding(
@@ -1281,7 +1735,7 @@ class _AnaadGamesScreenState extends State<AnaadGamesScreen>
                     width: 42,
                     height: 5,
                     decoration: BoxDecoration(
-                      color: Colors.grey.withOpacity(0.3),
+                      color: AppColors.rawEarth54.withValues(alpha: 0.3),
                       borderRadius: BorderRadius.circular(99),
                     ),
                   ),
@@ -1296,13 +1750,22 @@ class _AnaadGamesScreenState extends State<AnaadGamesScreen>
                         'How to Play',
                         style: theme.textTheme.titleLarge?.copyWith(
                           fontWeight: FontWeight.bold,
-                          color: isDark ? Colors.white : Colors.black87,
+                          color:
+                              isDark
+                                  ? AppColors.parchment
+                                  : AppColors.charcoal87,
                         ),
                       ),
                     ),
                     IconButton(
                       onPressed: () => Navigator.pop(context),
-                      icon: Icon(Icons.close_rounded, color: isDark ? Colors.white70 : Colors.black54),
+                      icon: Icon(
+                        Icons.close_rounded,
+                        color:
+                            isDark
+                                ? AppColors.parchment70
+                                : AppColors.charcoal54,
+                      ),
                     ),
                   ],
                 ),
@@ -1314,7 +1777,7 @@ class _AnaadGamesScreenState extends State<AnaadGamesScreen>
                   'Try “Challenge” mode to spot and avoid chemical decoys ☠️.',
                   style: theme.textTheme.bodyMedium?.copyWith(
                     height: 1.6,
-                    color: isDark ? Colors.grey[300] : Colors.grey[700],
+                    color: isDark ? AppColors.rawEarth12 : AppColors.charcoal60,
                   ),
                 ),
               ],
@@ -1332,15 +1795,16 @@ class _AnaadGamesScreenState extends State<AnaadGamesScreen>
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: isDark
-              ? [const Color(0xFF1A1A2E), const Color(0xFF16213E)]
-              : [Colors.white, const Color(0xFFF0E6FF)],
+          colors:
+              isDark
+                  ? [AppColors.parchment, AppColors.parchment]
+                  : [AppColors.parchment, AppColors.parchment],
         ),
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: const Color(0xFF8B5CF6).withOpacity(0.25)),
+        border: Border.all(color: AppColors.parchment.withValues(alpha: 0.25)),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF8B5CF6).withOpacity(0.12),
+            color: AppColors.parchment.withValues(alpha: 0.12),
             blurRadius: 22,
             offset: const Offset(0, 10),
           ),
@@ -1355,7 +1819,7 @@ class _AnaadGamesScreenState extends State<AnaadGamesScreen>
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
                   gradient: const LinearGradient(
-                    colors: [Color(0xFF8B5CF6), Color(0xFF6D28D9)],
+                    colors: [AppColors.parchment, AppColors.parchment],
                   ),
                   borderRadius: BorderRadius.circular(14),
                 ),
@@ -1370,32 +1834,38 @@ class _AnaadGamesScreenState extends State<AnaadGamesScreen>
                       'NEW GAME',
                       style: theme.textTheme.labelLarge?.copyWith(
                         fontWeight: FontWeight.w800,
-                        color: const Color(0xFF8B5CF6),
+                        color: AppColors.parchment,
                       ),
                     ),
                     Text(
                       'Microbe Mania',
                       style: theme.textTheme.titleLarge?.copyWith(
                         fontWeight: FontWeight.bold,
-                        color: isDark ? Colors.white : Colors.black87,
+                        color:
+                            isDark ? AppColors.parchment : AppColors.charcoal87,
                       ),
                     ),
                   ],
                 ),
               ),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 6,
+                ),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF8B5CF6).withOpacity(0.15),
+                  color: AppColors.parchment.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(999),
-                  border: Border.all(color: const Color(0xFF8B5CF6).withOpacity(0.25)),
+                  border: Border.all(
+                    color: AppColors.parchment.withValues(alpha: 0.25),
+                  ),
                 ),
                 child: const Text(
                   '🔥 HOT',
                   style: TextStyle(
                     fontSize: 11,
                     fontWeight: FontWeight.w900,
-                    color: Color(0xFF8B5CF6),
+                    color: AppColors.parchment,
                     letterSpacing: 0.6,
                   ),
                 ),
@@ -1407,7 +1877,7 @@ class _AnaadGamesScreenState extends State<AnaadGamesScreen>
             'Play as a beneficial soil microbe! Endless runner with power-ups, unlockable characters, achievements & educational content.',
             style: theme.textTheme.bodyMedium?.copyWith(
               height: 1.6,
-              color: isDark ? Colors.grey[300] : Colors.grey[700],
+              color: isDark ? AppColors.rawEarth12 : AppColors.charcoal60,
             ),
           ),
           const SizedBox(height: 10),
@@ -1415,10 +1885,10 @@ class _AnaadGamesScreenState extends State<AnaadGamesScreen>
             spacing: 8,
             runSpacing: 8,
             children: [
-              _featureChip('🏃 Endless Runner', const Color(0xFF8B5CF6)),
-              _featureChip('🛡️ Power-Ups', const Color(0xFF8B5CF6)),
-              _featureChip('🏆 Achievements', const Color(0xFF8B5CF6)),
-              _featureChip('🔓 Unlock Microbes', const Color(0xFF8B5CF6)),
+              _featureChip('🏃 Endless Runner', AppColors.parchment),
+              _featureChip('🛡️ Power-Ups', AppColors.parchment),
+              _featureChip('🏆 Achievements', AppColors.parchment),
+              _featureChip('🔓 Unlock Microbes', AppColors.parchment),
             ],
           ),
           const SizedBox(height: 16),
@@ -1427,18 +1897,22 @@ class _AnaadGamesScreenState extends State<AnaadGamesScreen>
               HapticFeedback.mediumImpact();
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (_) => const MicrobeManiaGameScreen()),
+                MaterialPageRoute(
+                  builder: (_) => const MicrobeManiaGameScreen(),
+                ),
               );
             },
             child: Container(
               width: double.infinity,
               padding: const EdgeInsets.symmetric(vertical: 14),
               decoration: BoxDecoration(
-                gradient: const LinearGradient(colors: [Color(0xFF8B5CF6), Color(0xFF6D28D9)]),
+                gradient: const LinearGradient(
+                  colors: [AppColors.parchment, AppColors.parchment],
+                ),
                 borderRadius: BorderRadius.circular(16),
                 boxShadow: [
                   BoxShadow(
-                    color: const Color(0xFF8B5CF6).withOpacity(0.35),
+                    color: AppColors.parchment.withValues(alpha: 0.35),
                     blurRadius: 14,
                     offset: const Offset(0, 6),
                   ),
@@ -1447,14 +1921,18 @@ class _AnaadGamesScreenState extends State<AnaadGamesScreen>
               child: const Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.play_arrow_rounded, color: Colors.white, size: 22),
+                  Icon(
+                    Icons.play_arrow_rounded,
+                    color: AppColors.parchment,
+                    size: 22,
+                  ),
                   SizedBox(width: 8),
                   Text(
                     'Play Now',
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w800,
-                      color: Colors.white,
+                      color: AppColors.parchment,
                     ),
                   ),
                 ],
@@ -1470,13 +1948,17 @@ class _AnaadGamesScreenState extends State<AnaadGamesScreen>
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: color.withOpacity(0.2)),
+        border: Border.all(color: color.withValues(alpha: 0.2)),
       ),
       child: Text(
         text,
-        style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: color),
+        style: TextStyle(
+          fontSize: 11,
+          fontWeight: FontWeight.w700,
+          color: color,
+        ),
       ),
     );
   }
@@ -1488,15 +1970,16 @@ class _AnaadGamesScreenState extends State<AnaadGamesScreen>
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: isDark
-              ? [const Color(0xFF1A2810), const Color(0xFF0F1A08)]
-              : [Colors.white, const Color(0xFFF5F8E8)],
+          colors:
+              isDark
+                  ? [AppColors.parchment, AppColors.parchment]
+                  : [AppColors.parchment, AppColors.parchment],
         ),
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: const Color(0xFF4CAF50).withOpacity(0.25)),
+        border: Border.all(color: AppColors.parchment.withValues(alpha: 0.25)),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF4CAF50).withOpacity(0.12),
+            color: AppColors.parchment.withValues(alpha: 0.12),
             blurRadius: 22,
             offset: const Offset(0, 10),
           ),
@@ -1511,7 +1994,7 @@ class _AnaadGamesScreenState extends State<AnaadGamesScreen>
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
                   gradient: const LinearGradient(
-                    colors: [Color(0xFF4CAF50), Color(0xFF2E7D32)],
+                    colors: [AppColors.parchment, AppColors.parchment],
                   ),
                   borderRadius: BorderRadius.circular(14),
                 ),
@@ -1526,32 +2009,38 @@ class _AnaadGamesScreenState extends State<AnaadGamesScreen>
                       'NEW GAME',
                       style: theme.textTheme.labelLarge?.copyWith(
                         fontWeight: FontWeight.w800,
-                        color: const Color(0xFF4CAF50),
+                        color: AppColors.parchment,
                       ),
                     ),
                     Text(
                       'Seed Savior',
                       style: theme.textTheme.titleLarge?.copyWith(
                         fontWeight: FontWeight.bold,
-                        color: isDark ? Colors.white : Colors.black87,
+                        color:
+                            isDark ? AppColors.parchment : AppColors.charcoal87,
                       ),
                     ),
                   ],
                 ),
               ),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 6,
+                ),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFFF9800).withOpacity(0.15),
+                  color: AppColors.parchment.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(999),
-                  border: Border.all(color: const Color(0xFFFF9800).withOpacity(0.25)),
+                  border: Border.all(
+                    color: AppColors.parchment.withValues(alpha: 0.25),
+                  ),
                 ),
                 child: const Text(
                   '🎮 NEW',
                   style: TextStyle(
                     fontSize: 11,
                     fontWeight: FontWeight.w900,
-                    color: Color(0xFFFF9800),
+                    color: AppColors.parchment,
                     letterSpacing: 0.6,
                   ),
                 ),
@@ -1563,7 +2052,7 @@ class _AnaadGamesScreenState extends State<AnaadGamesScreen>
             'Match-3 puzzle game! Match native seeds to save them from extinction. Avoid GMO invaders, collect seeds, and learn about biodiversity.',
             style: theme.textTheme.bodyMedium?.copyWith(
               height: 1.6,
-              color: isDark ? Colors.grey[300] : Colors.grey[700],
+              color: isDark ? AppColors.rawEarth12 : AppColors.charcoal60,
             ),
           ),
           const SizedBox(height: 10),
@@ -1571,10 +2060,10 @@ class _AnaadGamesScreenState extends State<AnaadGamesScreen>
             spacing: 8,
             runSpacing: 8,
             children: [
-              _featureChip('🧩 Match-3', const Color(0xFF4CAF50)),
-              _featureChip('🌾 6 Seed Types', const Color(0xFF4CAF50)),
-              _featureChip('🏆 10 Levels', const Color(0xFF4CAF50)),
-              _featureChip('⚡ Combos', const Color(0xFF4CAF50)),
+              _featureChip('🧩 Match-3', AppColors.parchment),
+              _featureChip('🌾 6 Seed Types', AppColors.parchment),
+              _featureChip('🏆 10 Levels', AppColors.parchment),
+              _featureChip('⚡ Combos', AppColors.parchment),
             ],
           ),
           const SizedBox(height: 16),
@@ -1590,11 +2079,13 @@ class _AnaadGamesScreenState extends State<AnaadGamesScreen>
               width: double.infinity,
               padding: const EdgeInsets.symmetric(vertical: 14),
               decoration: BoxDecoration(
-                gradient: const LinearGradient(colors: [Color(0xFF4CAF50), Color(0xFF2E7D32)]),
+                gradient: const LinearGradient(
+                  colors: [AppColors.parchment, AppColors.parchment],
+                ),
                 borderRadius: BorderRadius.circular(16),
                 boxShadow: [
                   BoxShadow(
-                    color: const Color(0xFF4CAF50).withOpacity(0.35),
+                    color: AppColors.parchment.withValues(alpha: 0.35),
                     blurRadius: 14,
                     offset: const Offset(0, 6),
                   ),
@@ -1603,14 +2094,18 @@ class _AnaadGamesScreenState extends State<AnaadGamesScreen>
               child: const Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.play_arrow_rounded, color: Colors.white, size: 22),
+                  Icon(
+                    Icons.play_arrow_rounded,
+                    color: AppColors.parchment,
+                    size: 22,
+                  ),
                   SizedBox(width: 8),
                   Text(
                     'Play Now',
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w800,
-                      color: Colors.white,
+                      color: AppColors.parchment,
                     ),
                   ),
                 ],
@@ -1629,15 +2124,16 @@ class _AnaadGamesScreenState extends State<AnaadGamesScreen>
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: isDark
-              ? [const Color(0xFF1A1510), const Color(0xFF0F0D08)]
-              : [Colors.white, const Color(0xFFF5EDE0)],
+          colors:
+              isDark
+                  ? [AppColors.parchment, AppColors.parchment]
+                  : [AppColors.parchment, AppColors.parchment],
         ),
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: const Color(0xFF795548).withOpacity(0.25)),
+        border: Border.all(color: AppColors.parchment.withValues(alpha: 0.25)),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF795548).withOpacity(0.15),
+            color: AppColors.parchment.withValues(alpha: 0.15),
             blurRadius: 22,
             offset: const Offset(0, 10),
           ),
@@ -1652,12 +2148,12 @@ class _AnaadGamesScreenState extends State<AnaadGamesScreen>
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
                   gradient: const LinearGradient(
-                    colors: [Color(0xFF795548), Color(0xFF5D4037)],
+                    colors: [AppColors.parchment, AppColors.parchment],
                   ),
                   borderRadius: BorderRadius.circular(14),
                   boxShadow: [
                     BoxShadow(
-                      color: const Color(0xFF795548).withOpacity(0.4),
+                      color: AppColors.parchment.withValues(alpha: 0.4),
                       blurRadius: 10,
                     ),
                   ],
@@ -1673,27 +2169,36 @@ class _AnaadGamesScreenState extends State<AnaadGamesScreen>
                       'PREMIUM GAME',
                       style: theme.textTheme.labelLarge?.copyWith(
                         fontWeight: FontWeight.w800,
-                        color: const Color(0xFF795548),
+                        color: AppColors.parchment,
                       ),
                     ),
                     Text(
                       'Compost Commander',
                       style: theme.textTheme.titleLarge?.copyWith(
                         fontWeight: FontWeight.bold,
-                        color: isDark ? Colors.white : Colors.black87,
+                        color:
+                            isDark ? AppColors.parchment : AppColors.charcoal87,
                       ),
                     ),
                   ],
                 ),
               ),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 6,
+                ),
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
-                    colors: [const Color(0xFFFFD700).withOpacity(0.3), const Color(0xFFFFD700).withOpacity(0.1)],
+                    colors: [
+                      AppColors.parchment.withValues(alpha: 0.3),
+                      AppColors.parchment.withValues(alpha: 0.1),
+                    ],
                   ),
                   borderRadius: BorderRadius.circular(999),
-                  border: Border.all(color: const Color(0xFFFFD700).withOpacity(0.4)),
+                  border: Border.all(
+                    color: AppColors.parchment.withValues(alpha: 0.4),
+                  ),
                 ),
                 child: const Row(
                   mainAxisSize: MainAxisSize.min,
@@ -1705,7 +2210,7 @@ class _AnaadGamesScreenState extends State<AnaadGamesScreen>
                       style: TextStyle(
                         fontSize: 10,
                         fontWeight: FontWeight.w900,
-                        color: Color(0xFFFFD700),
+                        color: AppColors.parchment,
                         letterSpacing: 1,
                       ),
                     ),
@@ -1719,7 +2224,7 @@ class _AnaadGamesScreenState extends State<AnaadGamesScreen>
             'Master the art of decomposition! Balance carbon, nitrogen, moisture & temperature to create black gold. Fight pests, manage critters, and learn real composting science.',
             style: theme.textTheme.bodyMedium?.copyWith(
               height: 1.6,
-              color: isDark ? Colors.grey[300] : Colors.grey[700],
+              color: isDark ? AppColors.rawEarth12 : AppColors.charcoal60,
             ),
           ),
           const SizedBox(height: 10),
@@ -1727,10 +2232,10 @@ class _AnaadGamesScreenState extends State<AnaadGamesScreen>
             spacing: 8,
             runSpacing: 8,
             children: [
-              _featureChip('🧪 Simulation', const Color(0xFF795548)),
-              _featureChip('📈 20 Levels', const Color(0xFF795548)),
-              _featureChip('🛒 Upgrades', const Color(0xFF795548)),
-              _featureChip('🎓 Learn Science', const Color(0xFF795548)),
+              _featureChip('🧪 Simulation', AppColors.parchment),
+              _featureChip('📈 20 Levels', AppColors.parchment),
+              _featureChip('🛒 Upgrades', AppColors.parchment),
+              _featureChip('🎓 Learn Science', AppColors.parchment),
             ],
           ),
           const SizedBox(height: 16),
@@ -1739,18 +2244,22 @@ class _AnaadGamesScreenState extends State<AnaadGamesScreen>
               HapticFeedback.mediumImpact();
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (_) => const CompostCommanderGameScreen()),
+                MaterialPageRoute(
+                  builder: (_) => const CompostCommanderGameScreen(),
+                ),
               );
             },
             child: Container(
               width: double.infinity,
               padding: const EdgeInsets.symmetric(vertical: 14),
               decoration: BoxDecoration(
-                gradient: const LinearGradient(colors: [Color(0xFF795548), Color(0xFF5D4037)]),
+                gradient: const LinearGradient(
+                  colors: [AppColors.parchment, AppColors.parchment],
+                ),
                 borderRadius: BorderRadius.circular(16),
                 boxShadow: [
                   BoxShadow(
-                    color: const Color(0xFF795548).withOpacity(0.4),
+                    color: AppColors.parchment.withValues(alpha: 0.4),
                     blurRadius: 14,
                     offset: const Offset(0, 6),
                   ),
@@ -1759,14 +2268,18 @@ class _AnaadGamesScreenState extends State<AnaadGamesScreen>
               child: const Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.play_arrow_rounded, color: Colors.white, size: 22),
+                  Icon(
+                    Icons.play_arrow_rounded,
+                    color: AppColors.parchment,
+                    size: 22,
+                  ),
                   SizedBox(width: 8),
                   Text(
                     'Play Now',
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w800,
-                      color: Colors.white,
+                      color: AppColors.parchment,
                     ),
                   ),
                 ],
@@ -1785,15 +2298,16 @@ class _AnaadGamesScreenState extends State<AnaadGamesScreen>
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: isDark
-              ? [const Color(0xFF1A1008), const Color(0xFF0F0805)]
-              : [Colors.white, const Color(0xFFFFF8E8)],
+          colors:
+              isDark
+                  ? [AppColors.parchment, AppColors.parchment]
+                  : [AppColors.parchment, AppColors.parchment],
         ),
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: const Color(0xFFFF6B00).withOpacity(0.3)),
+        border: Border.all(color: AppColors.parchment.withValues(alpha: 0.3)),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFFFF6B00).withOpacity(0.2),
+            color: AppColors.parchment.withValues(alpha: 0.2),
             blurRadius: 25,
             offset: const Offset(0, 10),
           ),
@@ -1811,19 +2325,19 @@ class _AnaadGamesScreenState extends State<AnaadGamesScreen>
                 decoration: BoxDecoration(
                   gradient: const SweepGradient(
                     colors: [
-                      Color(0xFFFF69B4), // Vasant
-                      Color(0xFFFF8C00), // Grishma
-                      Color(0xFF4169E1), // Varsha
-                      Color(0xFFDAA520), // Sharad
-                      Color(0xFF708090), // Hemant
-                      Color(0xFF4682B4), // Shishir
-                      Color(0xFFFF69B4), // Back to Vasant
+                      AppColors.parchment, // Vasant
+                      AppColors.parchment, // Grishma
+                      AppColors.parchment, // Varsha
+                      AppColors.parchment, // Sharad
+                      AppColors.parchment, // Hemant
+                      AppColors.parchment, // Shishir
+                      AppColors.parchment, // Back to Vasant
                     ],
                   ),
                   shape: BoxShape.circle,
                   boxShadow: [
                     BoxShadow(
-                      color: const Color(0xFFFF6B00).withOpacity(0.4),
+                      color: AppColors.parchment.withValues(alpha: 0.4),
                       blurRadius: 12,
                     ),
                   ],
@@ -1832,12 +2346,20 @@ class _AnaadGamesScreenState extends State<AnaadGamesScreen>
                   margin: const EdgeInsets.all(6),
                   decoration: BoxDecoration(
                     gradient: RadialGradient(
-                      colors: [Colors.amber[100]!, Colors.orange[300]!],
+                      colors: [
+                        AppColors.harvestAmber!,
+                        AppColors.harvestAmber!,
+                      ],
                     ),
                     shape: BoxShape.circle,
-                    border: Border.all(color: Colors.white.withOpacity(0.5), width: 2),
+                    border: Border.all(
+                      color: AppColors.parchment.withValues(alpha: 0.5),
+                      width: 2,
+                    ),
                   ),
-                  child: const Center(child: Text('☀️', style: TextStyle(fontSize: 18))),
+                  child: const Center(
+                    child: Text('☀️', style: TextStyle(fontSize: 18)),
+                  ),
                 ),
               ),
               const SizedBox(width: 12),
@@ -1849,27 +2371,36 @@ class _AnaadGamesScreenState extends State<AnaadGamesScreen>
                       'STRATEGY GAME',
                       style: theme.textTheme.labelLarge?.copyWith(
                         fontWeight: FontWeight.w800,
-                        color: const Color(0xFFFF6B00),
+                        color: AppColors.parchment,
                       ),
                     ),
                     Text(
                       'Ritu Chakra',
                       style: theme.textTheme.titleLarge?.copyWith(
                         fontWeight: FontWeight.bold,
-                        color: isDark ? Colors.white : Colors.black87,
+                        color:
+                            isDark ? AppColors.parchment : AppColors.charcoal87,
                       ),
                     ),
                   ],
                 ),
               ),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 6,
+                ),
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
-                    colors: [Colors.red.withOpacity(0.3), Colors.orange.withOpacity(0.2)],
+                    colors: [
+                      AppColors.rawEarth.withValues(alpha: 0.3),
+                      AppColors.harvestAmber.withValues(alpha: 0.2),
+                    ],
                   ),
                   borderRadius: BorderRadius.circular(999),
-                  border: Border.all(color: Colors.red.withOpacity(0.4)),
+                  border: Border.all(
+                    color: AppColors.rawEarth.withValues(alpha: 0.4),
+                  ),
                 ),
                 child: const Row(
                   mainAxisSize: MainAxisSize.min,
@@ -1881,7 +2412,7 @@ class _AnaadGamesScreenState extends State<AnaadGamesScreen>
                       style: TextStyle(
                         fontSize: 10,
                         fontWeight: FontWeight.w900,
-                        color: Colors.red,
+                        color: AppColors.rawEarth,
                         letterSpacing: 1,
                       ),
                     ),
@@ -1895,7 +2426,7 @@ class _AnaadGamesScreenState extends State<AnaadGamesScreen>
             'Master the 6 Hindu seasons! Plant crops, manage resources, survive weather events. A year-long cycle of growth, harvest, and ancient farming wisdom.',
             style: theme.textTheme.bodyMedium?.copyWith(
               height: 1.6,
-              color: isDark ? Colors.grey[300] : Colors.grey[700],
+              color: isDark ? AppColors.rawEarth12 : AppColors.charcoal60,
             ),
           ),
           const SizedBox(height: 10),
@@ -1904,12 +2435,12 @@ class _AnaadGamesScreenState extends State<AnaadGamesScreen>
             scrollDirection: Axis.horizontal,
             child: Row(
               children: [
-                _seasonChip('🌸', 'Vasant', const Color(0xFFFF69B4)),
-                _seasonChip('☀️', 'Grishma', const Color(0xFFFF8C00)),
-                _seasonChip('🌧️', 'Varsha', const Color(0xFF4169E1)),
-                _seasonChip('🍂', 'Sharad', const Color(0xFFDAA520)),
-                _seasonChip('🌫️', 'Hemant', const Color(0xFF708090)),
-                _seasonChip('❄️', 'Shishir', const Color(0xFF4682B4)),
+                _seasonChip('🌸', 'Vasant', AppColors.parchment),
+                _seasonChip('☀️', 'Grishma', AppColors.parchment),
+                _seasonChip('🌧️', 'Varsha', AppColors.parchment),
+                _seasonChip('🍂', 'Sharad', AppColors.parchment),
+                _seasonChip('🌫️', 'Hemant', AppColors.parchment),
+                _seasonChip('❄️', 'Shishir', AppColors.parchment),
               ],
             ),
           ),
@@ -1918,10 +2449,10 @@ class _AnaadGamesScreenState extends State<AnaadGamesScreen>
             spacing: 8,
             runSpacing: 8,
             children: [
-              _featureChip('🌾 8 Crops', const Color(0xFFFF6B00)),
-              _featureChip('📅 3 Years', const Color(0xFFFF6B00)),
-              _featureChip('🎯 Strategy', const Color(0xFFFF6B00)),
-              _featureChip('🌦️ Weather', const Color(0xFFFF6B00)),
+              _featureChip('🌾 8 Crops', AppColors.parchment),
+              _featureChip('📅 3 Years', AppColors.parchment),
+              _featureChip('🎯 Strategy', AppColors.parchment),
+              _featureChip('🌦️ Weather', AppColors.parchment),
             ],
           ),
           const SizedBox(height: 16),
@@ -1937,11 +2468,17 @@ class _AnaadGamesScreenState extends State<AnaadGamesScreen>
               width: double.infinity,
               padding: const EdgeInsets.symmetric(vertical: 14),
               decoration: BoxDecoration(
-                gradient: const LinearGradient(colors: [Color(0xFFFF6B00), Color(0xFFFF8C00), Color(0xFFFFD700)]),
+                gradient: const LinearGradient(
+                  colors: [
+                    AppColors.parchment,
+                    AppColors.parchment,
+                    AppColors.parchment,
+                  ],
+                ),
                 borderRadius: BorderRadius.circular(16),
                 boxShadow: [
                   BoxShadow(
-                    color: const Color(0xFFFF6B00).withOpacity(0.45),
+                    color: AppColors.parchment.withValues(alpha: 0.45),
                     blurRadius: 16,
                     offset: const Offset(0, 6),
                   ),
@@ -1950,14 +2487,18 @@ class _AnaadGamesScreenState extends State<AnaadGamesScreen>
               child: const Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.play_arrow_rounded, color: Colors.white, size: 22),
+                  Icon(
+                    Icons.play_arrow_rounded,
+                    color: AppColors.parchment,
+                    size: 22,
+                  ),
                   SizedBox(width: 8),
                   Text(
                     'Play Now',
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w800,
-                      color: Colors.white,
+                      color: AppColors.parchment,
                     ),
                   ),
                 ],
@@ -1974,30 +2515,74 @@ class _AnaadGamesScreenState extends State<AnaadGamesScreen>
       margin: const EdgeInsets.only(right: 6),
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        gradient: LinearGradient(colors: [color.withOpacity(0.3), color.withOpacity(0.1)]),
+        gradient: LinearGradient(
+          colors: [color.withValues(alpha: 0.3), color.withValues(alpha: 0.1)],
+        ),
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: color.withOpacity(0.4)),
+        border: Border.all(color: color.withValues(alpha: 0.4)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           Text(emoji, style: const TextStyle(fontSize: 10)),
           const SizedBox(width: 4),
-          Text(name, style: TextStyle(fontSize: 9, fontWeight: FontWeight.w700, color: color)),
+          Text(
+            name,
+            style: TextStyle(
+              fontSize: 9,
+              fontWeight: FontWeight.w700,
+              color: color,
+            ),
+          ),
         ],
       ),
     );
   }
 
-
   Widget _buildGameConcepts(ThemeData theme, bool isDark) {
     final games = [
-      {'icon': Icons.spa_rounded, 'name': 'Cow → Soil Cycle', 'desc': 'Build the natural cycle', 'soon': false, 'color': const Color(0xFF10B981)},
-      {'icon': Icons.bug_report_rounded, 'name': 'Microbe Mania', 'desc': 'Endless runner as soil microbe', 'soon': false, 'color': const Color(0xFF8B5CF6)},
-      {'icon': Icons.grass_rounded, 'name': 'Seed Savior', 'desc': 'Match-3 to save native seeds', 'soon': false, 'color': const Color(0xFF4CAF50)},
-      {'icon': Icons.eco_rounded, 'name': 'Compost Commander', 'desc': 'Master decomposition science', 'soon': false, 'color': const Color(0xFF795548)},
-      {'icon': Icons.wb_sunny_rounded, 'name': 'Ritu Chakra', 'desc': 'Master 6 Hindu seasons', 'soon': false, 'color': const Color(0xFFFF6B00)},
-      {'icon': Icons.water_drop_rounded, 'name': 'Water Wisdom', 'desc': 'Traditional water harvesting', 'soon': true, 'color': const Color(0xFF06B6D4)},
+      {
+        'icon': Icons.spa_rounded,
+        'name': 'Cow → Soil Cycle',
+        'desc': 'Build the natural cycle',
+        'soon': false,
+        'color': AppColors.parchment,
+      },
+      {
+        'icon': Icons.bug_report_rounded,
+        'name': 'Microbe Mania',
+        'desc': 'Endless runner as soil microbe',
+        'soon': false,
+        'color': AppColors.parchment,
+      },
+      {
+        'icon': Icons.grass_rounded,
+        'name': 'Seed Savior',
+        'desc': 'Match-3 to save native seeds',
+        'soon': false,
+        'color': AppColors.parchment,
+      },
+      {
+        'icon': Icons.eco_rounded,
+        'name': 'Compost Commander',
+        'desc': 'Master decomposition science',
+        'soon': false,
+        'color': AppColors.parchment,
+      },
+      {
+        'icon': Icons.wb_sunny_rounded,
+        'name': 'Ritu Chakra',
+        'desc': 'Master 6 Hindu seasons',
+        'soon': false,
+        'color': AppColors.parchment,
+      },
+      {
+        'icon': Icons.water_drop_rounded,
+        'name': 'Water Wisdom',
+        'desc': 'Traditional water harvesting',
+        'soon': true,
+        'color': AppColors.parchment,
+      },
     ];
 
     return Column(
@@ -2005,7 +2590,9 @@ class _AnaadGamesScreenState extends State<AnaadGamesScreen>
       children: [
         Text(
           'Games',
-          style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+          style: theme.textTheme.titleMedium?.copyWith(
+            fontWeight: FontWeight.bold,
+          ),
         ),
         const SizedBox(height: 16),
         ...games.asMap().entries.map((entry) {
@@ -2027,15 +2614,42 @@ class _AnaadGamesScreenState extends State<AnaadGamesScreen>
                           HapticFeedback.mediumImpact();
                           final name = game['name'] as String;
                           if (name.contains('Cow')) {
-                            Navigator.push(context, MaterialPageRoute(builder: (_) => const CowToSoilCycleGameScreen()));
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder:
+                                    (_) => const CowToSoilCycleGameScreen(),
+                              ),
+                            );
                           } else if (name.contains('Microbe')) {
-                            Navigator.push(context, MaterialPageRoute(builder: (_) => const MicrobeManiaGameScreen()));
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => const MicrobeManiaGameScreen(),
+                              ),
+                            );
                           } else if (name.contains('Seed')) {
-                            Navigator.push(context, MaterialPageRoute(builder: (_) => const SeedSaviorGameScreen()));
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => const SeedSaviorGameScreen(),
+                              ),
+                            );
                           } else if (name.contains('Compost')) {
-                            Navigator.push(context, MaterialPageRoute(builder: (_) => const CompostCommanderGameScreen()));
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder:
+                                    (_) => const CompostCommanderGameScreen(),
+                              ),
+                            );
                           } else if (name.contains('Ritu')) {
-                            Navigator.push(context, MaterialPageRoute(builder: (_) => const RituChakraGameScreen()));
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => const RituChakraGameScreen(),
+                              ),
+                            );
                           }
                         }
                       },
@@ -2044,22 +2658,41 @@ class _AnaadGamesScreenState extends State<AnaadGamesScreen>
                         decoration: BoxDecoration(
                           gradient: LinearGradient(
                             colors: [
-                              (game['color'] as Color).withOpacity(isDark ? 0.15 : 0.08),
-                              (game['color'] as Color).withOpacity(isDark ? 0.05 : 0.02),
+                              (game['color'] as Color).withValues(
+                                alpha: isDark ? 0.15 : 0.08,
+                              ),
+                              (game['color'] as Color).withValues(
+                                alpha: isDark ? 0.05 : 0.02,
+                              ),
                             ],
                           ),
                           borderRadius: BorderRadius.circular(16),
-                          border: Border.all(color: (game['color'] as Color).withOpacity(0.2)),
+                          border: Border.all(
+                            color: (game['color'] as Color).withValues(
+                              alpha: 0.2,
+                            ),
+                          ),
                         ),
                         child: Row(
                           children: [
                             Container(
                               padding: const EdgeInsets.all(12),
                               decoration: BoxDecoration(
-                                gradient: LinearGradient(colors: [(game['color'] as Color), (game['color'] as Color).withOpacity(0.7)]),
+                                gradient: LinearGradient(
+                                  colors: [
+                                    (game['color'] as Color),
+                                    (game['color'] as Color).withValues(
+                                      alpha: 0.7,
+                                    ),
+                                  ],
+                                ),
                                 borderRadius: BorderRadius.circular(12),
                               ),
-                              child: Icon(game['icon'] as IconData, color: Colors.white, size: 24),
+                              child: Icon(
+                                game['icon'] as IconData,
+                                color: AppColors.parchment,
+                                size: 24,
+                              ),
                             ),
                             const SizedBox(width: 14),
                             Expanded(
@@ -2068,32 +2701,61 @@ class _AnaadGamesScreenState extends State<AnaadGamesScreen>
                                 children: [
                                   Text(
                                     game['name'] as String,
-                                    style: theme.textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.bold),
+                                    style: theme.textTheme.bodyLarge?.copyWith(
+                                      fontWeight: FontWeight.bold,
+                                    ),
                                   ),
                                   Text(
                                     game['desc'] as String,
-                                    style: theme.textTheme.bodySmall?.copyWith(color: isDark ? Colors.grey[400] : Colors.grey[600]),
+                                    style: theme.textTheme.bodySmall?.copyWith(
+                                      color:
+                                          isDark
+                                              ? AppColors.rawEarth26
+                                              : AppColors.rawEarth70,
+                                    ),
                                   ),
                                 ],
                               ),
                             ),
                             Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 10,
+                                vertical: 6,
+                              ),
                               decoration: BoxDecoration(
-                                color: ((game['soon'] as bool) ? Colors.grey : const Color(0xFF10B981)).withOpacity(0.15),
+                                color: ((game['soon'] as bool)
+                                        ? AppColors.rawEarth54
+                                        : AppColors.parchment)
+                                    .withValues(alpha: 0.15),
                                 borderRadius: BorderRadius.circular(8),
-                                border: Border.all(color: ((game['soon'] as bool) ? Colors.grey : const Color(0xFF10B981)).withOpacity(0.3)),
+                                border: Border.all(
+                                  color: ((game['soon'] as bool)
+                                          ? AppColors.rawEarth54
+                                          : AppColors.parchment)
+                                      .withValues(alpha: 0.3),
+                                ),
                               ),
                               child: Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  if (!(game['soon'] as bool)) const Icon(Icons.play_arrow_rounded, size: 14, color: Color(0xFF10B981)),
-                                  if (!(game['soon'] as bool)) const SizedBox(width: 4),
+                                  if (!(game['soon'] as bool))
+                                    const Icon(
+                                      Icons.play_arrow_rounded,
+                                      size: 14,
+                                      color: AppColors.parchment,
+                                    ),
+                                  if (!(game['soon'] as bool))
+                                    const SizedBox(width: 4),
                                   Text(
-                                    (game['soon'] as bool) ? 'Coming Soon' : 'Play',
+                                    (game['soon'] as bool)
+                                        ? 'Coming Soon'
+                                        : 'Play',
                                     style: TextStyle(
                                       fontSize: 11,
-                                      color: (game['soon'] as bool) ? Colors.grey : const Color(0xFF10B981),
+                                      color:
+                                          (game['soon'] as bool)
+                                              ? AppColors.rawEarth54
+                                              : AppColors.parchment,
                                       fontWeight: FontWeight.w700,
                                     ),
                                   ),
@@ -2119,19 +2781,23 @@ class _AnaadGamesScreenState extends State<AnaadGamesScreen>
       return Container(
         padding: const EdgeInsets.all(24),
         decoration: BoxDecoration(
-          color: const Color(0xFF10B981).withOpacity(0.15),
+          color: AppColors.parchment.withValues(alpha: 0.15),
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: const Color(0xFF10B981).withOpacity(0.3)),
+          border: Border.all(color: AppColors.parchment.withValues(alpha: 0.3)),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.check_circle_rounded, color: Color(0xFF10B981), size: 24),
+            const Icon(
+              Icons.check_circle_rounded,
+              color: AppColors.parchment,
+              size: 24,
+            ),
             const SizedBox(width: 12),
             Text(
               'You\'re in! We\'ll notify you at launch.',
               style: theme.textTheme.bodyMedium?.copyWith(
-                color: const Color(0xFF10B981),
+                color: AppColors.parchment,
                 fontWeight: FontWeight.w600,
               ),
             ),
@@ -2143,25 +2809,32 @@ class _AnaadGamesScreenState extends State<AnaadGamesScreen>
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1E1E2E) : Colors.white,
+        color: isDark ? AppColors.parchment : AppColors.parchment,
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: const Color(0xFF3B82F6).withOpacity(0.2)),
+        border: Border.all(color: AppColors.parchment.withValues(alpha: 0.2)),
       ),
       child: Column(
         children: [
           Text(
             'Be the First to Play',
-            style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+            style: theme.textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.bold,
+            ),
           ),
           const SizedBox(height: 8),
           Text(
             'Get early access and exclusive rewards',
-            style: theme.textTheme.bodySmall?.copyWith(color: isDark ? Colors.grey[400] : Colors.grey[600]),
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: isDark ? AppColors.rawEarth26 : AppColors.rawEarth70,
+            ),
           ),
           const SizedBox(height: 16),
           Container(
             decoration: BoxDecoration(
-              color: isDark ? Colors.white.withOpacity(0.05) : Colors.grey.withOpacity(0.1),
+              color:
+                  isDark
+                      ? AppColors.parchment.withValues(alpha: 0.05)
+                      : AppColors.rawEarth54.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(14),
             ),
             child: TextField(
@@ -2170,8 +2843,14 @@ class _AnaadGamesScreenState extends State<AnaadGamesScreen>
               decoration: InputDecoration(
                 hintText: 'Enter your email',
                 border: InputBorder.none,
-                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                prefixIcon: Icon(Icons.email_outlined, color: isDark ? Colors.grey[400] : Colors.grey[600]),
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 14,
+                ),
+                prefixIcon: Icon(
+                  Icons.email_outlined,
+                  color: isDark ? AppColors.rawEarth26 : AppColors.rawEarth70,
+                ),
               ),
             ),
           ),
@@ -2187,11 +2866,13 @@ class _AnaadGamesScreenState extends State<AnaadGamesScreen>
               width: double.infinity,
               padding: const EdgeInsets.symmetric(vertical: 14),
               decoration: BoxDecoration(
-                gradient: const LinearGradient(colors: [Color(0xFF3B82F6), Color(0xFF1D4ED8)]),
+                gradient: const LinearGradient(
+                  colors: [AppColors.parchment, AppColors.parchment],
+                ),
                 borderRadius: BorderRadius.circular(14),
                 boxShadow: [
                   BoxShadow(
-                    color: const Color(0xFF3B82F6).withOpacity(0.4),
+                    color: AppColors.parchment.withValues(alpha: 0.4),
                     blurRadius: 12,
                     offset: const Offset(0, 4),
                   ),
@@ -2201,7 +2882,7 @@ class _AnaadGamesScreenState extends State<AnaadGamesScreen>
                 child: Text(
                   'Join Waitlist',
                   style: theme.textTheme.titleMedium?.copyWith(
-                    color: Colors.white,
+                    color: AppColors.parchment,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -2218,23 +2899,25 @@ class _AnaadGamesScreenState extends State<AnaadGamesScreen>
 class _LeafPatternPainter extends CustomPainter {
   final bool isDark;
   final double animation;
-  
+
   _LeafPatternPainter({required this.isDark, required this.animation});
-  
+
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()..style = PaintingStyle.fill;
     final rand = math.Random(42);
-    
+
     // Draw subtle leaf patterns
     for (int i = 0; i < 20; i++) {
       final x = rand.nextDouble() * size.width;
       final baseY = rand.nextDouble() * size.height;
       final y = (baseY + animation * 30) % size.height;
       final leafSize = rand.nextDouble() * 15 + 8;
-      
-      paint.color = Colors.green.withOpacity(isDark ? 0.04 : 0.06);
-      
+
+      paint.color = AppColors.deepSoilGreen.withValues(
+        alpha: isDark ? 0.04 : 0.06,
+      );
+
       // Simple leaf shape
       final path = Path();
       path.moveTo(x, y - leafSize);
@@ -2242,18 +2925,22 @@ class _LeafPatternPainter extends CustomPainter {
       path.quadraticBezierTo(x - leafSize * 0.7, y, x, y - leafSize);
       canvas.drawPath(path, paint);
     }
-    
+
     // Draw subtle circles
     for (int i = 0; i < 10; i++) {
       final x = rand.nextDouble() * size.width;
       final y = rand.nextDouble() * size.height;
       final radius = rand.nextDouble() * 30 + 20;
-      
-      paint.color = (i % 2 == 0 ? Colors.green : Colors.amber).withOpacity(isDark ? 0.02 : 0.03);
+
+      paint.color = (i % 2 == 0
+              ? AppColors.deepSoilGreen
+              : AppColors.harvestAmber)
+          .withValues(alpha: isDark ? 0.02 : 0.03);
       canvas.drawCircle(Offset(x, y), radius, paint);
     }
   }
-  
+
   @override
-  bool shouldRepaint(covariant _LeafPatternPainter old) => old.animation != animation;
+  bool shouldRepaint(covariant _LeafPatternPainter old) =>
+      old.animation != animation;
 }

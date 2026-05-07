@@ -53,7 +53,7 @@ class _AnaadRobotsScreenState extends State<AnaadRobotsScreen>
     final isDark = theme.brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: isDark ? const Color(0xFF0F0F1A) : const Color(0xFFF8F9FE),
+      backgroundColor: isDark ? AppColors.parchment : AppColors.parchment,
       body: Stack(
         children: [
           // Background gradient
@@ -86,7 +86,10 @@ class _AnaadRobotsScreenState extends State<AnaadRobotsScreen>
                         'Anaad Robots',
                         style: theme.textTheme.headlineMedium?.copyWith(
                           fontWeight: FontWeight.bold,
-                          color: isDark ? Colors.white : Colors.black87,
+                          color:
+                              isDark
+                                  ? AppColors.parchment
+                                  : AppColors.charcoal87,
                         ),
                         textAlign: TextAlign.center,
                       ),
@@ -96,7 +99,7 @@ class _AnaadRobotsScreenState extends State<AnaadRobotsScreen>
                       Text(
                         'The Future of Farming is Here',
                         style: theme.textTheme.titleMedium?.copyWith(
-                          color: const Color(0xFF8B5CF6),
+                          color: AppColors.parchment,
                           fontWeight: FontWeight.w600,
                         ),
                         textAlign: TextAlign.center,
@@ -132,9 +135,10 @@ class _AnaadRobotsScreenState extends State<AnaadRobotsScreen>
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: isDark
-                ? [const Color(0xFF1A0F2E), const Color(0xFF0F0F1A)]
-                : [const Color(0xFFF5F0FF), const Color(0xFFF8F9FE)],
+            colors:
+                isDark
+                    ? [AppColors.parchment, AppColors.parchment]
+                    : [AppColors.parchment, AppColors.parchment],
           ),
         ),
       ),
@@ -150,17 +154,17 @@ class _AnaadRobotsScreenState extends State<AnaadRobotsScreen>
             Positioned(
               top: 120 + (_floatAnimation.value * 15),
               right: 40,
-              child: _particle(10, const Color(0xFF8B5CF6)),
+              child: _particle(10, AppColors.parchment),
             ),
             Positioned(
               top: 250 + (_floatAnimation.value * -12),
               left: 30,
-              child: _particle(7, const Color(0xFFA78BFA)),
+              child: _particle(7, AppColors.parchment),
             ),
             Positioned(
               bottom: 300 + (_floatAnimation.value * 10),
               right: 60,
-              child: _particle(6, const Color(0xFFC4B5FD)),
+              child: _particle(6, AppColors.parchment),
             ),
           ],
         );
@@ -174,15 +178,17 @@ class _AnaadRobotsScreenState extends State<AnaadRobotsScreen>
       height: size,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        color: color.withOpacity(0.6),
-        boxShadow: [BoxShadow(color: color.withOpacity(0.4), blurRadius: 10)],
+        color: color.withValues(alpha: 0.6),
+        boxShadow: [
+          BoxShadow(color: color.withValues(alpha: 0.4), blurRadius: 10),
+        ],
       ),
     );
   }
 
   Widget _buildAppBar(BuildContext context, ThemeData theme, bool isDark) {
     return SliverAppBar(
-      backgroundColor: Colors.transparent,
+      backgroundColor: AppColors.transparent,
       elevation: 0,
       pinned: true,
       leading: Padding(
@@ -194,10 +200,14 @@ class _AnaadRobotsScreenState extends State<AnaadRobotsScreen>
           },
           child: Container(
             decoration: BoxDecoration(
-              color: (isDark ? Colors.white : Colors.black).withOpacity(0.1),
+              color: (isDark ? AppColors.parchment : AppColors.charcoal)
+                  .withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(12),
             ),
-            child: Icon(Icons.arrow_back_rounded, color: isDark ? Colors.white : Colors.black87),
+            child: Icon(
+              Icons.arrow_back_rounded,
+              color: isDark ? AppColors.parchment : AppColors.charcoal87,
+            ),
           ),
         ),
       ),
@@ -214,18 +224,22 @@ class _AnaadRobotsScreenState extends State<AnaadRobotsScreen>
             padding: const EdgeInsets.all(32),
             decoration: BoxDecoration(
               gradient: const LinearGradient(
-                colors: [Color(0xFF8B5CF6), Color(0xFF6D28D9)],
+                colors: [AppColors.parchment, AppColors.parchment],
               ),
               shape: BoxShape.circle,
               boxShadow: [
                 BoxShadow(
-                  color: const Color(0xFF8B5CF6).withOpacity(0.4),
+                  color: AppColors.parchment.withValues(alpha: 0.4),
                   blurRadius: 30,
                   offset: const Offset(0, 10),
                 ),
               ],
             ),
-            child: const Icon(Icons.smart_toy_rounded, color: Colors.white, size: 60),
+            child: const Icon(
+              Icons.smart_toy_rounded,
+              color: AppColors.parchment,
+              size: 60,
+            ),
           ),
         );
       },
@@ -236,19 +250,23 @@ class _AnaadRobotsScreenState extends State<AnaadRobotsScreen>
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       decoration: BoxDecoration(
-        color: const Color(0xFF8B5CF6).withOpacity(0.15),
+        color: AppColors.parchment.withValues(alpha: 0.15),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: const Color(0xFF8B5CF6).withOpacity(0.3)),
+        border: Border.all(color: AppColors.parchment.withValues(alpha: 0.3)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Icon(Icons.rocket_launch_rounded, color: Color(0xFF8B5CF6), size: 18),
+          const Icon(
+            Icons.rocket_launch_rounded,
+            color: AppColors.parchment,
+            size: 18,
+          ),
           const SizedBox(width: 8),
           Text(
             'Coming Soon',
             style: theme.textTheme.labelLarge?.copyWith(
-              color: const Color(0xFF8B5CF6),
+              color: AppColors.parchment,
               fontWeight: FontWeight.w700,
             ),
           ),
@@ -261,12 +279,12 @@ class _AnaadRobotsScreenState extends State<AnaadRobotsScreen>
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1E1E2E) : Colors.white,
+        color: isDark ? AppColors.parchment : AppColors.parchment,
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: const Color(0xFF8B5CF6).withOpacity(0.2)),
+        border: Border.all(color: AppColors.parchment.withValues(alpha: 0.2)),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF8B5CF6).withOpacity(0.1),
+            color: AppColors.parchment.withValues(alpha: 0.1),
             blurRadius: 20,
             offset: const Offset(0, 8),
           ),
@@ -280,15 +298,21 @@ class _AnaadRobotsScreenState extends State<AnaadRobotsScreen>
               Container(
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF8B5CF6).withOpacity(0.15),
+                  color: AppColors.parchment.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: const Icon(Icons.article_rounded, color: Color(0xFF8B5CF6), size: 20),
+                child: const Icon(
+                  Icons.article_rounded,
+                  color: AppColors.parchment,
+                  size: 20,
+                ),
               ),
               const SizedBox(width: 12),
               Text(
                 'About Anaad Robots',
-                style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+                style: theme.textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ],
           ),
@@ -297,7 +321,7 @@ class _AnaadRobotsScreenState extends State<AnaadRobotsScreen>
             'Revolutionizing Farming with AI-Powered Robots',
             style: theme.textTheme.titleSmall?.copyWith(
               fontWeight: FontWeight.w600,
-              color: const Color(0xFF8B5CF6),
+              color: AppColors.parchment,
             ),
           ),
           const SizedBox(height: 12),
@@ -311,7 +335,7 @@ class _AnaadRobotsScreenState extends State<AnaadRobotsScreen>
             'Our vision is to bring the future of farming to your fields - making agriculture smarter, more efficient, and environmentally conscious.',
             style: theme.textTheme.bodyMedium?.copyWith(
               height: 1.7,
-              color: isDark ? Colors.grey[300] : Colors.grey[700],
+              color: isDark ? AppColors.rawEarth12 : AppColors.charcoal60,
             ),
           ),
         ],
@@ -321,33 +345,57 @@ class _AnaadRobotsScreenState extends State<AnaadRobotsScreen>
 
   Widget _buildFeaturesSection(ThemeData theme, bool isDark) {
     final features = [
-      {'icon': Icons.memory_rounded, 'title': 'AI-Powered', 'desc': 'Smart decision making'},
-      {'icon': Icons.eco_rounded, 'title': 'Eco-Friendly', 'desc': 'Sustainable practices'},
-      {'icon': Icons.speed_rounded, 'title': 'Efficient', 'desc': '24/7 operation'},
+      {
+        'icon': Icons.memory_rounded,
+        'title': 'AI-Powered',
+        'desc': 'Smart decision making',
+      },
+      {
+        'icon': Icons.eco_rounded,
+        'title': 'Eco-Friendly',
+        'desc': 'Sustainable practices',
+      },
+      {
+        'icon': Icons.speed_rounded,
+        'title': 'Efficient',
+        'desc': '24/7 operation',
+      },
     ];
 
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-      children: features.map((f) {
-        return Column(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(14),
-              decoration: BoxDecoration(
-                color: const Color(0xFF8B5CF6).withOpacity(0.15),
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: Icon(f['icon'] as IconData, color: const Color(0xFF8B5CF6), size: 28),
-            ),
-            const SizedBox(height: 10),
-            Text(f['title'] as String, style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold)),
-            Text(
-              f['desc'] as String,
-              style: theme.textTheme.labelSmall?.copyWith(color: isDark ? Colors.grey[400] : Colors.grey[600]),
-            ),
-          ],
-        );
-      }).toList(),
+      children:
+          features.map((f) {
+            return Column(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: AppColors.parchment.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Icon(
+                    f['icon'] as IconData,
+                    color: AppColors.parchment,
+                    size: 28,
+                  ),
+                ),
+                const SizedBox(height: 10),
+                Text(
+                  f['title'] as String,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                Text(
+                  f['desc'] as String,
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    color: isDark ? AppColors.rawEarth26 : AppColors.rawEarth70,
+                  ),
+                ),
+              ],
+            );
+          }).toList(),
     );
   }
 
@@ -356,19 +404,23 @@ class _AnaadRobotsScreenState extends State<AnaadRobotsScreen>
       return Container(
         padding: const EdgeInsets.all(24),
         decoration: BoxDecoration(
-          color: const Color(0xFF10B981).withOpacity(0.15),
+          color: AppColors.parchment.withValues(alpha: 0.15),
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: const Color(0xFF10B981).withOpacity(0.3)),
+          border: Border.all(color: AppColors.parchment.withValues(alpha: 0.3)),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.check_circle_rounded, color: Color(0xFF10B981), size: 24),
+            const Icon(
+              Icons.check_circle_rounded,
+              color: AppColors.parchment,
+              size: 24,
+            ),
             const SizedBox(width: 12),
             Text(
               'You\'re on the list! We\'ll notify you.',
               style: theme.textTheme.bodyMedium?.copyWith(
-                color: const Color(0xFF10B981),
+                color: AppColors.parchment,
                 fontWeight: FontWeight.w600,
               ),
             ),
@@ -380,20 +432,25 @@ class _AnaadRobotsScreenState extends State<AnaadRobotsScreen>
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1E1E2E) : Colors.white,
+        color: isDark ? AppColors.parchment : AppColors.parchment,
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: const Color(0xFF8B5CF6).withOpacity(0.2)),
+        border: Border.all(color: AppColors.parchment.withValues(alpha: 0.2)),
       ),
       child: Column(
         children: [
           Text(
             'Get Notified at Launch',
-            style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+            style: theme.textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.bold,
+            ),
           ),
           const SizedBox(height: 16),
           Container(
             decoration: BoxDecoration(
-              color: isDark ? Colors.white.withOpacity(0.05) : Colors.grey.withOpacity(0.1),
+              color:
+                  isDark
+                      ? AppColors.parchment.withValues(alpha: 0.05)
+                      : AppColors.rawEarth54.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(14),
             ),
             child: TextField(
@@ -402,8 +459,14 @@ class _AnaadRobotsScreenState extends State<AnaadRobotsScreen>
               decoration: InputDecoration(
                 hintText: 'Enter your email',
                 border: InputBorder.none,
-                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                prefixIcon: Icon(Icons.email_outlined, color: isDark ? Colors.grey[400] : Colors.grey[600]),
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 14,
+                ),
+                prefixIcon: Icon(
+                  Icons.email_outlined,
+                  color: isDark ? AppColors.rawEarth26 : AppColors.rawEarth70,
+                ),
               ),
             ),
           ),
@@ -419,11 +482,13 @@ class _AnaadRobotsScreenState extends State<AnaadRobotsScreen>
               width: double.infinity,
               padding: const EdgeInsets.symmetric(vertical: 14),
               decoration: BoxDecoration(
-                gradient: const LinearGradient(colors: [Color(0xFF8B5CF6), Color(0xFF6D28D9)]),
+                gradient: const LinearGradient(
+                  colors: [AppColors.parchment, AppColors.parchment],
+                ),
                 borderRadius: BorderRadius.circular(14),
                 boxShadow: [
                   BoxShadow(
-                    color: const Color(0xFF8B5CF6).withOpacity(0.4),
+                    color: AppColors.parchment.withValues(alpha: 0.4),
                     blurRadius: 12,
                     offset: const Offset(0, 4),
                   ),
@@ -433,7 +498,7 @@ class _AnaadRobotsScreenState extends State<AnaadRobotsScreen>
                 child: Text(
                   'Notify Me',
                   style: theme.textTheme.titleMedium?.copyWith(
-                    color: Colors.white,
+                    color: AppColors.parchment,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -445,4 +510,3 @@ class _AnaadRobotsScreenState extends State<AnaadRobotsScreen>
     );
   }
 }
-

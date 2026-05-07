@@ -35,7 +35,7 @@ import 'package:grocery_app/repositories/notification_repository.dart';
 import 'package:grocery_app/services/notification_service.dart';
 // import 'package:grocery_app/services/navigation_service.dart'; // Unused
 import 'package:grocery_app/helpers/double_click_back.dart';
-import 'package:grocery_app/styles/theme.dart';
+import 'package:grocery_app/core/theme/app_theme.dart';
 
 import 'package:grocery_app/common_widgets/connectivity_wrapper.dart';
 import 'package:grocery_app/routes/app_router.dart';

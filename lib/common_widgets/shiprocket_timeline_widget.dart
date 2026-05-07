@@ -1,3 +1,4 @@
+import 'package:grocery_app/core/theme/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
@@ -41,11 +42,13 @@ class _ShiprocketTimelineWidgetState extends State<ShiprocketTimelineWidget> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: widget.isDark ? const Color(0xFF1E1E1E) : Colors.white,
+        color: widget.isDark ? AppColors.parchment : AppColors.parchment,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(widget.isDark ? 0.3 : 0.08),
+            color: AppColors.charcoal.withValues(
+              alpha: widget.isDark ? 0.3 : 0.08,
+            ),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
@@ -84,12 +87,12 @@ class _ShiprocketTimelineWidgetState extends State<ShiprocketTimelineWidget> {
         Container(
           padding: const EdgeInsets.all(10),
           decoration: BoxDecoration(
-            color: AppColors.info.withOpacity(0.1),
+            color: AppColors.deepSoilGreen.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(12),
           ),
           child: Icon(
             Icons.local_shipping_rounded,
-            color: AppColors.info,
+            color: AppColors.deepSoilGreen,
             size: 22,
           ),
         ),
@@ -134,8 +137,10 @@ class _ShiprocketTimelineWidgetState extends State<ShiprocketTimelineWidget> {
               decoration: BoxDecoration(
                 color:
                     isCompleted
-                        ? AppColors.success
-                        : (widget.isDark ? Colors.grey[700] : Colors.grey[300]),
+                        ? AppColors.deepSoilGreen
+                        : (widget.isDark
+                            ? AppColors.charcoal60
+                            : AppColors.rawEarth12),
                 borderRadius: BorderRadius.circular(2),
               ),
             );
@@ -168,8 +173,8 @@ class _ShiprocketTimelineWidgetState extends State<ShiprocketTimelineWidget> {
   }) {
     final color =
         isCompleted
-            ? AppColors.success
-            : (isCurrent ? AppColors.info : Colors.grey);
+            ? AppColors.deepSoilGreen
+            : (isCurrent ? AppColors.deepSoilGreen : AppColors.rawEarth54);
 
     return Column(
       children: [
@@ -179,18 +184,20 @@ class _ShiprocketTimelineWidgetState extends State<ShiprocketTimelineWidget> {
           decoration: BoxDecoration(
             color:
                 isCompleted || isCurrent
-                    ? color.withOpacity(0.15)
-                    : (widget.isDark ? Colors.grey[800] : Colors.grey[100]),
+                    ? color.withValues(alpha: 0.15)
+                    : (widget.isDark
+                        ? AppColors.charcoal87
+                        : AppColors.parchment),
             shape: BoxShape.circle,
             border: Border.all(
-              color: isCompleted || isCurrent ? color : Colors.transparent,
+              color: isCompleted || isCurrent ? color : AppColors.transparent,
               width: 2,
             ),
             boxShadow:
                 isCurrent
                     ? [
                       BoxShadow(
-                        color: color.withOpacity(0.3),
+                        color: color.withValues(alpha: 0.3),
                         blurRadius: 8,
                         spreadRadius: 2,
                       ),
@@ -202,7 +209,9 @@ class _ShiprocketTimelineWidgetState extends State<ShiprocketTimelineWidget> {
             color:
                 isCompleted || isCurrent
                     ? color
-                    : (widget.isDark ? Colors.grey[600] : Colors.grey[400]),
+                    : (widget.isDark
+                        ? AppColors.rawEarth70
+                        : AppColors.rawEarth26),
             size: 20,
           ),
         ),
@@ -233,8 +242,8 @@ class _ShiprocketTimelineWidgetState extends State<ShiprocketTimelineWidget> {
       decoration: BoxDecoration(
         color:
             widget.isDark
-                ? Colors.white.withOpacity(0.05)
-                : Colors.grey.withOpacity(0.08),
+                ? AppColors.parchment.withValues(alpha: 0.05)
+                : AppColors.rawEarth54.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
@@ -270,7 +279,7 @@ class _ShiprocketTimelineWidgetState extends State<ShiprocketTimelineWidget> {
                         Icon(
                           Icons.copy_rounded,
                           size: 16,
-                          color: AppColors.info,
+                          color: AppColors.deepSoilGreen,
                         ),
                       ],
                     ),
@@ -284,7 +293,8 @@ class _ShiprocketTimelineWidgetState extends State<ShiprocketTimelineWidget> {
               width: 1,
               height: 36,
               margin: const EdgeInsets.symmetric(horizontal: 14),
-              color: widget.isDark ? Colors.grey[700] : Colors.grey[300],
+              color:
+                  widget.isDark ? AppColors.charcoal60 : AppColors.rawEarth12,
             ),
 
           // Estimated Delivery
@@ -306,7 +316,7 @@ class _ShiprocketTimelineWidgetState extends State<ShiprocketTimelineWidget> {
                     ).format(tracking.estimatedDelivery!),
                     style: theme.textTheme.bodyMedium?.copyWith(
                       fontWeight: FontWeight.w600,
-                      color: AppColors.success,
+                      color: AppColors.deepSoilGreen,
                     ),
                   ),
                 ],
@@ -369,7 +379,7 @@ class _ShiprocketTimelineWidgetState extends State<ShiprocketTimelineWidget> {
                         ? 'Show Less'
                         : 'Show ${sortedEvents.length - 3} More',
                     style: theme.textTheme.bodySmall?.copyWith(
-                      color: AppColors.info,
+                      color: AppColors.deepSoilGreen,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
@@ -378,7 +388,7 @@ class _ShiprocketTimelineWidgetState extends State<ShiprocketTimelineWidget> {
                     _showAllEvents
                         ? Icons.keyboard_arrow_up_rounded
                         : Icons.keyboard_arrow_down_rounded,
-                    color: AppColors.info,
+                    color: AppColors.deepSoilGreen,
                     size: 18,
                   ),
                 ],
@@ -406,13 +416,15 @@ class _ShiprocketTimelineWidgetState extends State<ShiprocketTimelineWidget> {
               width: 12,
               height: 12,
               decoration: BoxDecoration(
-                color: isFirst ? AppColors.info : Colors.grey,
+                color: isFirst ? AppColors.deepSoilGreen : AppColors.rawEarth54,
                 shape: BoxShape.circle,
                 boxShadow:
                     isFirst
                         ? [
                           BoxShadow(
-                            color: AppColors.info.withOpacity(0.4),
+                            color: AppColors.deepSoilGreen.withValues(
+                              alpha: 0.4,
+                            ),
                             blurRadius: 6,
                           ),
                         ]
@@ -423,7 +435,8 @@ class _ShiprocketTimelineWidgetState extends State<ShiprocketTimelineWidget> {
               Container(
                 width: 2,
                 height: 50,
-                color: widget.isDark ? Colors.grey[700] : Colors.grey[300],
+                color:
+                    widget.isDark ? AppColors.charcoal60 : AppColors.rawEarth12,
               ),
           ],
         ),
@@ -526,14 +539,14 @@ class _ShiprocketTimelineWidgetState extends State<ShiprocketTimelineWidget> {
   Color _getStatusColor(String status) {
     switch (status.toUpperCase()) {
       case 'DELIVERED':
-        return AppColors.success;
+        return AppColors.deepSoilGreen;
       case 'CANCELLED':
       case 'RTO':
-        return AppColors.error;
+        return AppColors.rawEarth;
       case 'OUT_FOR_DELIVERY':
-        return AppColors.warning;
+        return AppColors.harvestAmber;
       default:
-        return AppColors.info;
+        return AppColors.deepSoilGreen;
     }
   }
 }

@@ -88,7 +88,7 @@ class SubscriptionHandler {
   }) {
     NotificationHelper.showNotification(
       title: title,
-      body: 'Subscription ID: $subscriptionId\nPayment Mode: UPI\nStatus: $status',
+      body: 'Subscription ID: $subscriptionId\nPayment Mode: Online Payment\nStatus: $status',
     );
   }
 
@@ -111,7 +111,7 @@ class SubscriptionHandler {
           WebViewPage(
             url: paymentUrl,
             orderId: parsedId,
-            title: 'UPI Payment',
+            title: 'Secure Payment',
             subID: parsedId,
             isSubscription: true,
             // NOW we just call our single reusable method!

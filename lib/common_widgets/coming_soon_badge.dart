@@ -1,34 +1,35 @@
 import 'package:flutter/material.dart';
+import 'package:grocery_app/core/theme/app_colors.dart';
 
 /// A reusable "Coming Soon" badge widget with animation.
-/// 
+///
 /// Consolidates the various coming soon badge implementations across the app.
-/// 
+///
 /// Usage:
 /// ```dart
 /// ComingSoonBadge(
-///   accentColor: Colors.purple,
+///   accentColor: AppColors.harvestAmber,
 /// )
 /// ```
 class ComingSoonBadge extends StatefulWidget {
   /// Accent color for the badge gradient
   final Color? accentColor;
-  
+
   /// Secondary color for the gradient (optional)
   final Color? secondaryColor;
-  
+
   /// Whether to animate with pulse effect (default: true)
   final bool animated;
-  
+
   /// Badge text (default: 'COMING SOON')
   final String text;
-  
+
   /// Whether to show the rocket icon (default: true)
   final bool showIcon;
-  
+
   /// Icon to display (default: rocket_launch)
   final IconData icon;
-  
+
   /// Size variant (default: medium)
   final ComingSoonBadgeSize size;
 
@@ -77,23 +78,21 @@ class _ComingSoonBadgeState extends State<ComingSoonBadge>
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final primary = widget.accentColor ?? theme.colorScheme.primary;
-    final secondary = widget.secondaryColor ?? primary.withOpacity(0.8);
-    
+    final secondary = widget.secondaryColor ?? primary.withValues(alpha: 0.8);
+
     final config = _getSizeConfig();
-    
+
     Widget badge = Container(
       padding: EdgeInsets.symmetric(
         horizontal: config.horizontalPadding,
         vertical: config.verticalPadding,
       ),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [primary, secondary],
-        ),
+        gradient: LinearGradient(colors: [primary, secondary]),
         borderRadius: BorderRadius.circular(config.borderRadius),
         boxShadow: [
           BoxShadow(
-            color: primary.withOpacity(0.5),
+            color: primary.withValues(alpha: 0.5),
             blurRadius: 10,
             offset: const Offset(0, 3),
           ),
@@ -106,7 +105,7 @@ class _ComingSoonBadgeState extends State<ComingSoonBadge>
             Icon(
               widget.icon,
               size: config.iconSize,
-              color: Colors.white,
+              color: AppColors.parchment,
             ),
             SizedBox(width: config.spacing),
           ],
@@ -115,30 +114,27 @@ class _ComingSoonBadgeState extends State<ComingSoonBadge>
             style: TextStyle(
               fontSize: config.fontSize,
               fontWeight: FontWeight.bold,
-              color: Colors.white,
+              color: AppColors.parchment,
               letterSpacing: 0.5,
             ),
           ),
         ],
       ),
     );
-    
+
     if (widget.animated) {
       return AnimatedBuilder(
         animation: _pulseAnimation,
         builder: (context, child) {
-          return Transform.scale(
-            scale: _pulseAnimation.value,
-            child: child,
-          );
+          return Transform.scale(scale: _pulseAnimation.value, child: child);
         },
         child: badge,
       );
     }
-    
+
     return badge;
   }
-  
+
   _BadgeSizeConfig _getSizeConfig() {
     switch (widget.size) {
       case ComingSoonBadgeSize.small:
@@ -173,11 +169,7 @@ class _ComingSoonBadgeState extends State<ComingSoonBadge>
 }
 
 /// Size variants for the coming soon badge
-enum ComingSoonBadgeSize {
-  small,
-  medium,
-  large,
-}
+enum ComingSoonBadgeSize { small, medium, large }
 
 class _BadgeSizeConfig {
   final double horizontalPadding;
@@ -186,7 +178,7 @@ class _BadgeSizeConfig {
   final double iconSize;
   final double spacing;
   final double borderRadius;
-  
+
   const _BadgeSizeConfig({
     required this.horizontalPadding,
     required this.verticalPadding,
@@ -202,20 +194,16 @@ class ComingSoonChip extends StatelessWidget {
   final Color? color;
   final String text;
 
-  const ComingSoonChip({
-    super.key,
-    this.color,
-    this.text = 'Soon',
-  });
+  const ComingSoonChip({super.key, this.color, this.text = 'Soon'});
 
   @override
   Widget build(BuildContext context) {
     final chipColor = color ?? Theme.of(context).colorScheme.primary;
-    
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: BoxDecoration(
-        color: chipColor.withOpacity(0.15),
+        color: chipColor.withValues(alpha: 0.15),
         borderRadius: BorderRadius.circular(6),
       ),
       child: Text(
@@ -229,4 +217,3 @@ class ComingSoonChip extends StatelessWidget {
     );
   }
 }
-

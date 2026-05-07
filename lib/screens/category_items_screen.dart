@@ -49,8 +49,7 @@ class _CategoryItemsScreenState extends State<CategoryItemsScreen> {
     final isDark = theme.brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor:
-          isDark ? const Color(0xFF121212) : const Color(0xFFF5F5F5),
+      backgroundColor: isDark ? AppColors.parchment : AppColors.parchment,
       body: CustomScrollView(
         slivers: [
           // ── Green banner app bar ──────────────────────────────────────
@@ -58,36 +57,28 @@ class _CategoryItemsScreenState extends State<CategoryItemsScreen> {
             expandedHeight: 140,
             floating: false,
             pinned: true,
-            backgroundColor: AppColors.primaryColor,
+            backgroundColor: AppColors.deepSoilGreen,
             shape: const RoundedRectangleBorder(
               borderRadius: BorderRadius.only(
                 bottomLeft: Radius.circular(32),
                 bottomRight: Radius.circular(32),
               ),
             ),
-            leading: IconButton(
-              icon: Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.15),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: const Icon(Icons.arrow_back_ios_new, size: 18),
-              ),
-              color: Colors.white,
-              onPressed: () => context.pop(),
+            leading: Padding(
+              padding: const EdgeInsets.all(4),
+              child: const AnaadLogoMark(),
             ),
             actions: [
               PopupMenuButton<String>(
                 icon: Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.15),
+                    color: AppColors.parchment.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: const Icon(
                     Icons.sort_rounded,
-                    color: Colors.white,
+                    color: AppColors.parchment,
                     size: 20,
                   ),
                 ),
@@ -118,9 +109,9 @@ class _CategoryItemsScreenState extends State<CategoryItemsScreen> {
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                       colors: [
-                        AppColors.primaryColor,
-                        AppColors.primaryColor.withOpacity(0.85),
-                        Colors.green.shade400,
+                        AppColors.deepSoilGreen,
+                        AppColors.deepSoilGreen.withValues(alpha: 0.85),
+                        AppColors.deepSoilGreen,
                       ],
                     ),
                   ),
@@ -135,7 +126,7 @@ class _CategoryItemsScreenState extends State<CategoryItemsScreen> {
                           height: 110,
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
-                            color: Colors.white.withOpacity(0.07),
+                            color: AppColors.parchment.withValues(alpha: 0.07),
                           ),
                         ),
                       ),
@@ -147,7 +138,7 @@ class _CategoryItemsScreenState extends State<CategoryItemsScreen> {
                           height: 80,
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
-                            color: Colors.white.withOpacity(0.05),
+                            color: AppColors.parchment.withValues(alpha: 0.05),
                           ),
                         ),
                       ),
@@ -162,7 +153,7 @@ class _CategoryItemsScreenState extends State<CategoryItemsScreen> {
                               Text(
                                 widget.name,
                                 style: theme.textTheme.headlineSmall?.copyWith(
-                                  color: Colors.white,
+                                  color: AppColors.parchment,
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
@@ -170,7 +161,9 @@ class _CategoryItemsScreenState extends State<CategoryItemsScreen> {
                               Text(
                                 '${filteredProducts.length} products available',
                                 style: theme.textTheme.bodyMedium?.copyWith(
-                                  color: Colors.white.withOpacity(0.85),
+                                  color: AppColors.parchment.withValues(
+                                    alpha: 0.85,
+                                  ),
                                 ),
                               ),
                             ],
@@ -226,7 +219,7 @@ class _CategoryItemsScreenState extends State<CategoryItemsScreen> {
                       Icon(
                         Icons.inventory_2_outlined,
                         size: 80,
-                        color: theme.disabledColor.withOpacity(0.5),
+                        color: theme.disabledColor.withValues(alpha: 0.5),
                       ),
                       const SizedBox(height: AppColors.spacingL),
                       Text(
@@ -264,14 +257,14 @@ class _CategoryItemsScreenState extends State<CategoryItemsScreen> {
               label: Text(
                 itemCount.toString(),
                 style: const TextStyle(
-                  color: Colors.white,
+                  color: AppColors.parchment,
                   fontSize: 10,
                   fontWeight: FontWeight.bold,
                 ),
               ),
               child: const Icon(
                 Icons.shopping_cart_rounded,
-                color: Colors.white,
+                color: AppColors.parchment,
               ),
             ),
           );
@@ -292,11 +285,11 @@ class _CategoryItemsScreenState extends State<CategoryItemsScreen> {
               child: Container(
                 height: 100,
                 decoration: BoxDecoration(
-                  color: isDark ? const Color(0xFF2A2A2A) : Colors.white,
+                  color: isDark ? AppColors.parchment : AppColors.parchment,
                   borderRadius: BorderRadius.circular(16),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.05),
+                      color: AppColors.charcoal.withValues(alpha: 0.05),
                       blurRadius: 8,
                       offset: const Offset(0, 2),
                     ),
@@ -307,7 +300,8 @@ class _CategoryItemsScreenState extends State<CategoryItemsScreen> {
                     Container(
                       width: 100,
                       decoration: BoxDecoration(
-                        color: isDark ? Colors.grey[800] : Colors.grey[200],
+                        color:
+                            isDark ? AppColors.charcoal87 : AppColors.parchment,
                         borderRadius: const BorderRadius.horizontal(
                           left: Radius.circular(16),
                         ),
@@ -334,7 +328,10 @@ class _CategoryItemsScreenState extends State<CategoryItemsScreen> {
                         width: 36,
                         height: 36,
                         decoration: BoxDecoration(
-                          color: isDark ? Colors.grey[700] : Colors.grey[200],
+                          color:
+                              isDark
+                                  ? AppColors.charcoal60
+                                  : AppColors.parchment,
                           borderRadius: BorderRadius.circular(10),
                         ),
                       ),

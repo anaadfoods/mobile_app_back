@@ -1,5 +1,6 @@
 // widgets/select_state.dart
 import 'package:flutter/material.dart';
+import 'package:grocery_app/core/theme/app_colors.dart';
 import '../models/location_models.dart';
 import '../services/location_service.dart';
 
@@ -263,17 +264,17 @@ class _SelectStateState extends State<SelectState> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         decoration: BoxDecoration(
-          color: isDark ? Colors.grey.shade900 : Colors.grey.shade50,
+          color: isDark ? AppColors.charcoal : AppColors.parchment,
           borderRadius: BorderRadius.circular(14),
           border: Border.all(
-            color: isDark ? Colors.grey.shade800 : Colors.grey.shade200,
+            color: isDark ? AppColors.charcoal87 : AppColors.parchment,
           ),
         ),
         child: Row(
           children: [
             Icon(
               icon,
-              color: theme.colorScheme.primary.withOpacity(0.7),
+              color: theme.colorScheme.primary.withValues(alpha: 0.7),
               size: 22,
             ),
             const SizedBox(width: 12),
@@ -284,14 +285,18 @@ class _SelectStateState extends State<SelectState> {
                     widget.style?.copyWith(
                       color:
                           value != null
-                              ? (isDark ? Colors.white : Colors.black87)
-                              : theme.hintColor.withOpacity(0.5),
+                              ? (isDark
+                                  ? AppColors.parchment
+                                  : AppColors.charcoal87)
+                              : theme.hintColor.withValues(alpha: 0.5),
                     ) ??
                     TextStyle(
                       color:
                           value != null
-                              ? (isDark ? Colors.white : Colors.black87)
-                              : theme.hintColor.withOpacity(0.5),
+                              ? (isDark
+                                  ? AppColors.parchment
+                                  : AppColors.charcoal87)
+                              : theme.hintColor.withValues(alpha: 0.5),
                       fontSize: 16,
                     ),
               ),
@@ -301,7 +306,7 @@ class _SelectStateState extends State<SelectState> {
               color:
                   enabled
                       ? theme.colorScheme.primary
-                      : theme.hintColor.withOpacity(0.3),
+                      : theme.hintColor.withValues(alpha: 0.3),
               size: 20,
             ),
           ],
@@ -388,18 +393,18 @@ class _SearchableDialogState<T> extends State<_SearchableDialog<T>> {
               ),
               child: Row(
                 children: [
-                  Icon(Icons.location_on_rounded, color: Colors.white),
+                  Icon(Icons.location_on_rounded, color: AppColors.parchment),
                   const SizedBox(width: 12),
                   Text(
                     widget.title,
                     style: theme.textTheme.titleMedium?.copyWith(
-                      color: Colors.white,
+                      color: AppColors.parchment,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                   const Spacer(),
                   IconButton(
-                    icon: const Icon(Icons.close, color: Colors.white),
+                    icon: const Icon(Icons.close, color: AppColors.parchment),
                     onPressed: () => Navigator.pop(context),
                     padding: EdgeInsets.zero,
                     constraints: const BoxConstraints(),
@@ -420,8 +425,7 @@ class _SearchableDialogState<T> extends State<_SearchableDialog<T>> {
                     color: theme.colorScheme.primary,
                   ),
                   filled: true,
-                  fillColor:
-                      isDark ? Colors.grey.shade900 : Colors.grey.shade100,
+                  fillColor: isDark ? AppColors.charcoal : AppColors.parchment,
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
                     borderSide: BorderSide.none,
@@ -446,7 +450,7 @@ class _SearchableDialogState<T> extends State<_SearchableDialog<T>> {
                               Icon(
                                 Icons.search_off_rounded,
                                 size: 48,
-                                color: theme.hintColor.withOpacity(0.5),
+                                color: theme.hintColor.withValues(alpha: 0.5),
                               ),
                               const SizedBox(height: 12),
                               Text(
@@ -466,7 +470,9 @@ class _SearchableDialogState<T> extends State<_SearchableDialog<T>> {
                             title: Text(widget.getDisplayName(item)),
                             leading: Icon(
                               Icons.place_outlined,
-                              color: theme.colorScheme.primary.withOpacity(0.7),
+                              color: theme.colorScheme.primary.withValues(
+                                alpha: 0.7,
+                              ),
                             ),
                             onTap: () {
                               widget.onSelected(item);

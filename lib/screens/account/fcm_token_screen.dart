@@ -1,6 +1,5 @@
 import "package:grocery_app/common_widgets/global_import.dart";
 
-
 class FCMTokenScreen extends StatefulWidget {
   const FCMTokenScreen({super.key});
 
@@ -99,11 +98,11 @@ class _FCMTokenScreenState extends State<FCMTokenScreen> {
           fontSize: 20,
           fontWeight: FontWeight.bold,
         ),
-        backgroundColor: Colors.white,
+        backgroundColor: AppColors.parchment,
         elevation: 0,
-        iconTheme: IconThemeData(color: AppColors.primaryColor),
+        iconTheme: IconThemeData(color: AppColors.deepSoilGreen),
       ),
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.parchment,
       body: Padding(
         padding: EdgeInsets.all(20),
         child: Column(
@@ -119,7 +118,7 @@ class _FCMTokenScreenState extends State<FCMTokenScreen> {
               text:
                   'This token is used to send push notifications to your device.',
               fontSize: 14,
-              color: Colors.grey[600]!,
+              color: AppColors.rawEarth70!,
             ),
             SizedBox(height: 30),
 
@@ -128,9 +127,9 @@ class _FCMTokenScreenState extends State<FCMTokenScreen> {
               width: double.infinity,
               padding: EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: Colors.grey[50],
+                color: AppColors.parchment,
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.grey[300]!),
+                border: Border.all(color: AppColors.rawEarth12!),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -150,8 +149,8 @@ class _FCMTokenScreenState extends State<FCMTokenScreen> {
                             _isCopied ? Icons.check : Icons.copy,
                             color:
                                 _isCopied
-                                    ? Colors.green
-                                    : AppColors.primaryColor,
+                                    ? AppColors.deepSoilGreen
+                                    : AppColors.deepSoilGreen,
                           ),
                           tooltip: 'Copy to clipboard',
                         ),
@@ -161,7 +160,7 @@ class _FCMTokenScreenState extends State<FCMTokenScreen> {
                   if (_isLoading)
                     Center(
                       child: CircularProgressIndicator(
-                        color: AppColors.primaryColor,
+                        color: AppColors.deepSoilGreen,
                       ),
                     )
                   else if (_fcmToken != null)
@@ -169,16 +168,16 @@ class _FCMTokenScreenState extends State<FCMTokenScreen> {
                       width: double.infinity,
                       padding: EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: AppColors.parchment,
                         borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: Colors.grey[300]!),
+                        border: Border.all(color: AppColors.rawEarth12!),
                       ),
                       child: SelectableText(
                         _fcmToken!,
                         style: TextStyle(
                           fontSize: 12,
                           fontFamily: 'monospace',
-                          color: Colors.black87,
+                          color: AppColors.charcoal87,
                         ),
                       ),
                     )
@@ -187,14 +186,14 @@ class _FCMTokenScreenState extends State<FCMTokenScreen> {
                       width: double.infinity,
                       padding: EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: Colors.orange[50],
+                        color: AppColors.harvestAmber,
                         borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: Colors.orange[300]!),
+                        border: Border.all(color: AppColors.harvestAmber!),
                       ),
                       child: AppText(
                         text: 'No FCM token available',
                         fontSize: 14,
-                        color: Colors.orange[700]!,
+                        color: AppColors.harvestAmber!,
                       ),
                     ),
                 ],
@@ -212,8 +211,8 @@ class _FCMTokenScreenState extends State<FCMTokenScreen> {
                     icon: Icon(Icons.refresh),
                     label: Text(_isLoading ? 'Refreshing...' : 'Refresh Token'),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.primaryColor,
-                      foregroundColor: Colors.white,
+                      backgroundColor: AppColors.deepSoilGreen,
+                      foregroundColor: AppColors.parchment,
                       padding: EdgeInsets.symmetric(vertical: 16),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8),
@@ -229,8 +228,10 @@ class _FCMTokenScreenState extends State<FCMTokenScreen> {
                     label: Text(_isCopied ? 'Copied!' : 'Copy Token'),
                     style: ElevatedButton.styleFrom(
                       backgroundColor:
-                          _fcmToken != null ? Colors.green : Colors.grey,
-                      foregroundColor: Colors.white,
+                          _fcmToken != null
+                              ? AppColors.deepSoilGreen
+                              : AppColors.rawEarth54,
+                      foregroundColor: AppColors.parchment,
                       padding: EdgeInsets.symmetric(vertical: 16),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8),
@@ -248,22 +249,22 @@ class _FCMTokenScreenState extends State<FCMTokenScreen> {
               width: double.infinity,
               padding: EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: Colors.blue[50],
+                color: AppColors.deepSoilGreen,
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: Colors.blue[200]!),
+                border: Border.all(color: AppColors.deepSoilGreen!),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
                     children: [
-                      Icon(Icons.info_outline, color: Colors.blue[700]!),
+                      Icon(Icons.info_outline, color: AppColors.deepSoilGreen!),
                       SizedBox(width: 8),
                       AppText(
                         text: 'Information',
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
-                        color: Colors.blue[700]!,
+                        color: AppColors.deepSoilGreen!,
                       ),
                     ],
                   ),
@@ -275,7 +276,7 @@ class _FCMTokenScreenState extends State<FCMTokenScreen> {
                         '• Copy this token to test push notifications\n'
                         '• Keep this token secure',
                     fontSize: 14,
-                    color: Colors.blue[700]!,
+                    color: AppColors.deepSoilGreen!,
                   ),
                 ],
               ),
@@ -286,4 +287,3 @@ class _FCMTokenScreenState extends State<FCMTokenScreen> {
     );
   }
 }
-

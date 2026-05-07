@@ -236,7 +236,7 @@ class _SignupScreenState extends State<SignupScreen>
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(24),
               ),
-              backgroundColor: Colors.transparent,
+              backgroundColor: AppColors.transparent,
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(24),
                 child: BackdropFilter(
@@ -257,7 +257,7 @@ class _SignupScreenState extends State<SignupScreen>
                       ),
                       borderRadius: BorderRadius.circular(24),
                       border: Border.all(
-                        color: Colors.white.withValues(alpha: 0.2),
+                        color: AppColors.parchment.withValues(alpha: 0.2),
                         width: 1.5,
                       ),
                       boxShadow: [
@@ -275,12 +275,12 @@ class _SignupScreenState extends State<SignupScreen>
                         Container(
                           padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(
-                            color: AppColors.buttonBackgroundColor.withValues(
+                            color: AppColors.deepSoilGreen.withValues(
                               alpha: 0.2,
                             ),
                             shape: BoxShape.circle,
                             border: Border.all(
-                              color: AppColors.buttonBackgroundColor.withValues(
+                              color: AppColors.deepSoilGreen.withValues(
                                 alpha: 0.4,
                               ),
                               width: 2,
@@ -290,7 +290,7 @@ class _SignupScreenState extends State<SignupScreen>
                             type == 'email'
                                 ? Icons.email_rounded
                                 : Icons.phone_android_rounded,
-                            color: AppColors.buttonBackgroundColor,
+                            color: AppColors.deepSoilGreen,
                             size: 32,
                           ),
                         ),
@@ -324,13 +324,17 @@ class _SignupScreenState extends State<SignupScreen>
                             textStyle: const TextStyle(
                               fontSize: 20,
                               fontWeight: FontWeight.bold,
-                              color: Colors.white,
+                              color: AppColors.parchment,
                             ),
                             decoration: BoxDecoration(
-                              color: Colors.white.withValues(alpha: 0.15),
+                              color: AppColors.parchment.withValues(
+                                alpha: 0.15,
+                              ),
                               borderRadius: BorderRadius.circular(12),
                               border: Border.all(
-                                color: Colors.white.withValues(alpha: 0.3),
+                                color: AppColors.parchment.withValues(
+                                  alpha: 0.3,
+                                ),
                               ),
                             ),
                           ),
@@ -340,13 +344,13 @@ class _SignupScreenState extends State<SignupScreen>
                             textStyle: const TextStyle(
                               fontSize: 20,
                               fontWeight: FontWeight.bold,
-                              color: Colors.white,
+                              color: AppColors.parchment,
                             ),
                             decoration: BoxDecoration(
-                              color: Colors.white.withValues(alpha: 0.2),
+                              color: AppColors.parchment.withValues(alpha: 0.2),
                               borderRadius: BorderRadius.circular(12),
                               border: Border.all(
-                                color: AppColors.buttonBackgroundColor,
+                                color: AppColors.deepSoilGreen,
                                 width: 2,
                               ),
                             ),
@@ -357,13 +361,17 @@ class _SignupScreenState extends State<SignupScreen>
                             textStyle: const TextStyle(
                               fontSize: 20,
                               fontWeight: FontWeight.bold,
-                              color: Colors.white,
+                              color: AppColors.parchment,
                             ),
                             decoration: BoxDecoration(
-                              color: Colors.white.withValues(alpha: 0.25),
+                              color: AppColors.parchment.withValues(
+                                alpha: 0.25,
+                              ),
                               borderRadius: BorderRadius.circular(12),
                               border: Border.all(
-                                color: Colors.white.withValues(alpha: 0.5),
+                                color: AppColors.parchment.withValues(
+                                  alpha: 0.5,
+                                ),
                               ),
                             ),
                           ),
@@ -407,17 +415,16 @@ class _SignupScreenState extends State<SignupScreen>
                                 decoration: BoxDecoration(
                                   gradient: LinearGradient(
                                     colors: [
-                                      AppColors.buttonBackgroundColor,
-                                      AppColors.buttonBackgroundColor.withRed(
-                                        200,
-                                      ),
+                                      AppColors.deepSoilGreen,
+                                      AppColors.deepSoilGreen.withRed(200),
                                     ],
                                   ),
                                   borderRadius: BorderRadius.circular(12),
                                   boxShadow: [
                                     BoxShadow(
-                                      color: AppColors.buttonBackgroundColor
-                                          .withValues(alpha: 0.4),
+                                      color: AppColors.deepSoilGreen.withValues(
+                                        alpha: 0.4,
+                                      ),
                                       blurRadius: 12,
                                       offset: const Offset(0, 4),
                                     ),
@@ -425,9 +432,9 @@ class _SignupScreenState extends State<SignupScreen>
                                 ),
                                 child: ElevatedButton(
                                   style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.transparent,
-                                    shadowColor: Colors.transparent,
-                                    foregroundColor: Colors.white,
+                                    backgroundColor: AppColors.transparent,
+                                    shadowColor: AppColors.transparent,
+                                    foregroundColor: AppColors.parchment,
                                     padding: const EdgeInsets.symmetric(
                                       vertical: 14,
                                     ),
@@ -486,14 +493,14 @@ class _SignupScreenState extends State<SignupScreen>
                                             height: 22,
                                             child: CircularProgressIndicator(
                                               strokeWidth: 2,
-                                              color: Colors.white,
+                                              color: AppColors.parchment,
                                             ),
                                           )
                                           : Text(
                                             "Verify",
                                             style: textTheme.labelLarge
                                                 ?.copyWith(
-                                                  color: Colors.white,
+                                                  color: AppColors.parchment,
                                                   fontWeight: FontWeight.bold,
                                                 ),
                                           ),
@@ -565,7 +572,7 @@ class _SignupScreenState extends State<SignupScreen>
                                 end: Alignment.bottomCenter,
                                 colors: [
                                   colorScheme.primary.withValues(alpha: 0.1),
-                                  Colors.transparent,
+                                  AppColors.transparent,
                                   colorScheme.primary.withValues(alpha: 0.05),
                                 ],
                               ),
@@ -590,9 +597,7 @@ class _SignupScreenState extends State<SignupScreen>
                           left: -25,
                           child: _buildFloatingCircle(
                             70,
-                            AppColors.buttonBackgroundColor.withValues(
-                              alpha: 0.08,
-                            ),
+                            AppColors.deepSoilGreen.withValues(alpha: 0.08),
                           ),
                         ),
                       ],
@@ -670,7 +675,9 @@ class _SignupScreenState extends State<SignupScreen>
                                   AppColors.radiusXL,
                                 ),
                                 border: Border.all(
-                                  color: Colors.white.withValues(alpha: 0.2),
+                                  color: AppColors.parchment.withValues(
+                                    alpha: 0.2,
+                                  ),
                                   width: 1.5,
                                 ),
                                 boxShadow: [
@@ -1025,8 +1032,7 @@ class _SignupScreenState extends State<SignupScreen>
                                               style: textTheme.bodyMedium
                                                   ?.copyWith(
                                                     color:
-                                                        AppColors
-                                                            .buttonBackgroundColor,
+                                                        AppColors.deepSoilGreen,
                                                     fontWeight: FontWeight.bold,
                                                   ),
                                             ),
@@ -1187,9 +1193,9 @@ class _SignupScreenState extends State<SignupScreen>
               borderRadius: BorderRadius.circular(AppColors.radiusRound),
               gradient: LinearGradient(
                 colors: [
-                  AppColors.buttonBackgroundColor,
-                  AppColors.buttonBackgroundColor.withRed(200),
-                  AppColors.buttonBackgroundColor,
+                  AppColors.deepSoilGreen,
+                  AppColors.deepSoilGreen.withRed(200),
+                  AppColors.deepSoilGreen,
                 ],
                 stops: [0.0, _shimmerController.value, 1.0],
               ),
@@ -1197,9 +1203,7 @@ class _SignupScreenState extends State<SignupScreen>
                   isEnabled
                       ? [
                         BoxShadow(
-                          color: AppColors.buttonBackgroundColor.withValues(
-                            alpha: 0.4,
-                          ),
+                          color: AppColors.deepSoilGreen.withValues(alpha: 0.4),
                           blurRadius: 15,
                           offset: const Offset(0, 6),
                         ),
@@ -1207,12 +1211,12 @@ class _SignupScreenState extends State<SignupScreen>
                       : null,
             ),
             child: Material(
-              color: Colors.transparent,
+              color: AppColors.transparent,
               child: InkWell(
                 borderRadius: BorderRadius.circular(AppColors.radiusRound),
                 onTap: isLoading || !isEnabled ? null : onPressed,
-                splashColor: Colors.white.withValues(alpha: 0.2),
-                highlightColor: Colors.white.withValues(alpha: 0.1),
+                splashColor: AppColors.parchment.withValues(alpha: 0.2),
+                highlightColor: AppColors.parchment.withValues(alpha: 0.1),
                 child: Padding(
                   padding: const EdgeInsets.symmetric(
                     vertical: AppColors.spacingL,
@@ -1226,7 +1230,7 @@ class _SignupScreenState extends State<SignupScreen>
                               child: CircularProgressIndicator(
                                 strokeWidth: 2.5,
                                 valueColor: AlwaysStoppedAnimation<Color>(
-                                  Colors.white,
+                                  AppColors.parchment,
                                 ),
                               ),
                             )
@@ -1235,7 +1239,7 @@ class _SignupScreenState extends State<SignupScreen>
                               style: Theme.of(
                                 context,
                               ).textTheme.titleMedium?.copyWith(
-                                color: Colors.white,
+                                color: AppColors.parchment,
                                 fontWeight: FontWeight.bold,
                                 letterSpacing: 0.5,
                               ),
@@ -1282,10 +1286,8 @@ class _SignupScreenState extends State<SignupScreen>
           onPressed: isVerified ? null : onPressed,
           style: TextButton.styleFrom(
             backgroundColor:
-                isVerified
-                    ? AppColors.success
-                    : AppColors.buttonBackgroundColor,
-            foregroundColor: Colors.white,
+                isVerified ? AppColors.deepSoilGreen : AppColors.deepSoilGreen,
+            foregroundColor: AppColors.parchment,
             padding: const EdgeInsets.symmetric(horizontal: 12),
             minimumSize: const Size(0, 32),
             tapTargetSize: MaterialTapTargetSize.shrinkWrap,
@@ -1302,7 +1304,7 @@ class _SignupScreenState extends State<SignupScreen>
                   child: Icon(
                     Icons.check_circle,
                     size: 14,
-                    color: Colors.white,
+                    color: AppColors.parchment,
                   ),
                 ),
               Text(
@@ -1330,7 +1332,7 @@ class _SignupScreenState extends State<SignupScreen>
         child: Center(
           child: CircularProgressIndicator(
             strokeWidth: 2,
-            valueColor: AlwaysStoppedAnimation<Color>(Colors.white70),
+            valueColor: AlwaysStoppedAnimation<Color>(AppColors.parchment70),
           ),
         ),
       );
@@ -1410,12 +1412,12 @@ class _SignupScreenState extends State<SignupScreen>
             onChanged: onChanged,
             fillColor: WidgetStateProperty.resolveWith((states) {
               if (states.contains(WidgetState.selected)) {
-                return AppColors.buttonBackgroundColor;
+                return AppColors.deepSoilGreen;
               }
-              return Colors.white.withValues(alpha: 0.2);
+              return AppColors.parchment.withValues(alpha: 0.2);
             }),
-            checkColor: Colors.white,
-            side: BorderSide(color: Colors.white.withValues(alpha: 0.5)),
+            checkColor: AppColors.parchment,
+            side: BorderSide(color: AppColors.parchment.withValues(alpha: 0.5)),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(4),
             ),
@@ -1438,10 +1440,10 @@ class _SignupScreenState extends State<SignupScreen>
                       child: Text(
                         linkText,
                         style: textTheme.bodySmall?.copyWith(
-                          color: AppColors.buttonBackgroundColor,
+                          color: AppColors.deepSoilGreen,
                           fontWeight: FontWeight.bold,
                           decoration: TextDecoration.underline,
-                          decorationColor: AppColors.buttonBackgroundColor,
+                          decorationColor: AppColors.deepSoilGreen,
                         ),
                       ),
                     ),
@@ -1520,15 +1522,17 @@ class _GoogleSignUpButtonState extends State<_GoogleSignUpButton>
               vertical: AppColors.spacingM,
             ),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: AppColors.parchment,
               borderRadius: BorderRadius.circular(AppColors.radiusRound),
               border: Border.all(
-                color: _isHovered ? Colors.grey.shade300 : Colors.grey.shade200,
+                color: _isHovered ? AppColors.rawEarth12 : AppColors.parchment,
                 width: 1.5,
               ),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(_isHovered ? 0.12 : 0.08),
+                  color: AppColors.charcoal.withValues(
+                    alpha: _isHovered ? 0.12 : 0.08,
+                  ),
                   blurRadius: _isHovered ? 12 : 8,
                   offset: const Offset(0, 2),
                 ),
@@ -1551,7 +1555,7 @@ class _GoogleSignUpButtonState extends State<_GoogleSignUpButton>
                 Text(
                   "Sign up with Google",
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: Colors.grey.shade700,
+                    color: AppColors.charcoal60,
                     fontWeight: FontWeight.w600,
                     letterSpacing: 0.2,
                   ),
@@ -1575,10 +1579,10 @@ class _GoogleLogoPainter extends CustomPainter {
     final double innerRadius = s * 0.28;
 
     // Google brand colors
-    const Color blue = Color(0xFF4285F4);
-    const Color red = Color(0xFFEA4335);
-    const Color yellow = Color(0xFFFBBC05);
-    const Color green = Color(0xFF34A853);
+    const Color blue = AppColors.parchment;
+    const Color red = AppColors.parchment;
+    const Color yellow = AppColors.parchment;
+    const Color green = AppColors.parchment;
 
     final paint = Paint()..style = PaintingStyle.fill;
 
@@ -1624,11 +1628,11 @@ class _GoogleLogoPainter extends CustomPainter {
     );
 
     // Cut out the inner circle (white center)
-    paint.color = Colors.white;
+    paint.color = AppColors.parchment;
     canvas.drawCircle(Offset(center, center), innerRadius, paint);
 
     // Cut out the top-right opening of the G
-    paint.color = Colors.white;
+    paint.color = AppColors.parchment;
     final path = Path();
     path.moveTo(center, center);
     path.lineTo(s, center);

@@ -1,6 +1,5 @@
 import "package:grocery_app/common_widgets/global_import.dart";
 
-
 class AuthScreen extends StatelessWidget {
   const AuthScreen({super.key});
 
@@ -48,16 +47,22 @@ class AuthScreen extends StatelessWidget {
             const SizedBox(height: 20), // Increased spacing
             ElevatedButton(
               onPressed: () {
-                Navigator.push(context,
-                    MaterialPageRoute(builder: (context) => const SignupScreen()));
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const SignupScreen()),
+                );
               },
               style: theme.elevatedButtonTheme.style?.copyWith(
-                minimumSize: MaterialStateProperty.all(const Size(double.infinity, 50)),
+                minimumSize: MaterialStateProperty.all(
+                  const Size(double.infinity, 50),
+                ),
               ),
               child: Text(
                 "Create account",
                 // Using themed text style for text on a primary button
-                style: textTheme.labelLarge?.copyWith(color: colorScheme.onPrimary),
+                style: textTheme.labelLarge?.copyWith(
+                  color: colorScheme.onPrimary,
+                ),
               ),
             ),
             const SizedBox(height: 12),
@@ -72,13 +77,23 @@ class AuthScreen extends StatelessWidget {
                 minimumSize: const Size(double.infinity, 50),
                 foregroundColor: colorScheme.primary,
                 side: BorderSide(color: colorScheme.primary),
-                shape: theme.elevatedButtonTheme.style?.shape?.resolve({}), // Match button shape
+                shape: theme.elevatedButtonTheme.style?.shape?.resolve(
+                  {},
+                ), // Match button shape
               ),
               child: Text("Login", style: textTheme.labelLarge),
             ),
             const SizedBox(height: 30),
-            _buildBenefitItem(context, Icons.currency_rupee, "Upto ₹100 cashback on your first order"),
-            _buildBenefitItem(context, Icons.local_shipping, "Free Delivery on first order – for top categories"),
+            _buildBenefitItem(
+              context,
+              Icons.currency_rupee,
+              "Upto ₹100 cashback on your first order",
+            ),
+            _buildBenefitItem(
+              context,
+              Icons.local_shipping,
+              "Free Delivery on first order – for top categories",
+            ),
             _buildBenefitItem(context, Icons.money, "Pay on Delivery"),
           ],
         ),
@@ -86,4 +101,3 @@ class AuthScreen extends StatelessWidget {
     );
   }
 }
-

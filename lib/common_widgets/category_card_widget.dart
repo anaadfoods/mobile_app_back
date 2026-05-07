@@ -1,7 +1,8 @@
+import 'package:grocery_app/core/theme/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:grocery_app/models/category_model.dart';
-import 'package:grocery_app/styles/colors.dart';
+import 'package:grocery_app/core/theme/theme.dart';
 
 class CategoryCardWidget extends StatefulWidget {
   final Category category;
@@ -42,13 +43,13 @@ class _CategoryCardWidgetState extends State<CategoryCardWidget> {
             color: theme.cardColor,
             borderRadius: BorderRadius.circular(AppColors.radiusM),
             border: Border.all(
-              color: isDark ? Colors.grey.shade800 : Colors.grey.shade200,
+              color: isDark ? AppColors.charcoal87 : AppColors.parchment,
               width: 1,
             ),
             boxShadow: [
               BoxShadow(
-                color: theme.shadowColor.withOpacity(
-                  _isPressed ? 0.02 : AppColors.shadowOpacityLight,
+                color: theme.shadowColor.withValues(
+                  alpha: _isPressed ? 0.02 : AppColors.shadowOpacityLight,
                 ),
                 blurRadius: _isPressed ? 2 : 6,
                 offset: Offset(0, _isPressed ? 1 : 2),
@@ -65,8 +66,7 @@ class _CategoryCardWidgetState extends State<CategoryCardWidget> {
                   flex: 3,
                   child: Container(
                     decoration: BoxDecoration(
-                      color:
-                          isDark ? Colors.grey.shade900 : Colors.grey.shade50,
+                      color: isDark ? AppColors.charcoal : AppColors.parchment,
                     ),
                     child: CachedNetworkImage(
                       imageUrl: widget.category.image,
@@ -117,4 +117,3 @@ class _CategoryCardWidgetState extends State<CategoryCardWidget> {
     );
   }
 }
-

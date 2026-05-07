@@ -1,4 +1,6 @@
+import 'package:grocery_app/core/theme/app_colors.dart';
 import 'package:flutter/material.dart';
+import 'package:grocery_app/core/theme/theme.dart';
 
 /// A glassmorphic icon button used in animated screen headers.
 ///
@@ -38,16 +40,16 @@ class GlassmorphicIconButton extends StatelessWidget {
     required this.icon,
     required this.onTap,
     this.backgroundOpacity = 0.2,
-    this.iconColor = Colors.white,
+    this.iconColor = AppColors.parchment,
     this.iconSize = 24,
-    this.borderRadius = 12,
+    this.borderRadius = AppColors.radiusM,
     this.padding = 10,
   });
 
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: Colors.white.withOpacity(backgroundOpacity),
+      color: AppColors.parchment.withValues(alpha: backgroundOpacity),
       borderRadius: BorderRadius.circular(borderRadius),
       child: InkWell(
         onTap: onTap,

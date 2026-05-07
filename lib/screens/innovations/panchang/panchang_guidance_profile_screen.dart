@@ -1,6 +1,8 @@
+import '../../../core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:grocery_app/core/theme/app_colors.dart';
 
 import '../../../cubits/panchang/panchang_guidance_cubit.dart';
 import '../../../cubits/panchang/panchang_guidance_state.dart';
@@ -122,22 +124,24 @@ class _PanchangGuidanceProfileScreenState
 
     return Scaffold(
       backgroundColor:
-          isDark ? const Color(0xFF070C08) : const Color(0xFFF5F5F5),
+          isDark ? AppColors.pureBlack : AppColors.parchment,
       appBar: AppBar(
-        backgroundColor: isDark ? const Color(0xFF0D150E) : Colors.white,
+        backgroundColor:
+            isDark ? AppColors.deepSoilGreen : AppColors.deepSoilGreen,
         elevation: 0,
         title: AutoSizeText(
           'Guidance Preferences',
           style: TextStyle(
             fontSize: 20,
             fontWeight: FontWeight.bold,
-            color: isDark ? Colors.white : Colors.black87,
+            color:
+                isDark ? AppColors.parchment : AppColors.charcoal,
           ),
         ),
         leading: IconButton(
           icon: Icon(
             Icons.arrow_back_rounded,
-            color: isDark ? Colors.white : Colors.black87,
+            color: AppColors.parchment,
           ),
           onPressed: () => Navigator.pop(context),
         ),
@@ -156,10 +160,10 @@ class _PanchangGuidanceProfileScreenState
                             height: 16,
                             child: CircularProgressIndicator(strokeWidth: 2),
                           )
-                          : const Icon(Icons.save_rounded),
+                          : Icon(Icons.save_rounded),
                   label: AutoSizeText('Save'),
                   style: TextButton.styleFrom(
-                    foregroundColor: const Color(0xFF3F5E46),
+                    foregroundColor: AppColors.parchment,
                   ),
                 ),
               );
@@ -175,7 +179,7 @@ class _PanchangGuidanceProfileScreenState
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
                 content: AutoSizeText('Preferences saved successfully!'),
-                backgroundColor: Colors.green,
+                backgroundColor: AppColors.deepSoilGreen,
               ),
             );
             Navigator.pop(context);
@@ -187,7 +191,7 @@ class _PanchangGuidanceProfileScreenState
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: AutoSizeText('Error: ${state.message}'),
-                backgroundColor: Colors.red,
+                backgroundColor: AppColors.rawEarth,
               ),
             );
           }
@@ -207,14 +211,15 @@ class _PanchangGuidanceProfileScreenState
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.error_outline, size: 64, color: Colors.red.shade400),
+          Icon(Icons.error_outline, size: 64, color: AppColors.rawEarth),
           const SizedBox(height: 16),
           AutoSizeText(
             'Error loading preferences',
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
-              color: isDark ? Colors.white : Colors.black87,
+              color:
+                  isDark ? AppColors.parchment : AppColors.charcoal,
             ),
           ),
           const SizedBox(height: 8),
@@ -225,14 +230,14 @@ class _PanchangGuidanceProfileScreenState
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 14,
-                color: isDark ? Colors.white70 : Colors.black54,
+                color: isDark ? AppColors.pureWhite.withValues(alpha: 0.54) : AppColors.charcoal54,
               ),
             ),
           ),
           const SizedBox(height: 24),
           ElevatedButton.icon(
             onPressed: _loadProfile,
-            icon: const Icon(Icons.refresh),
+            icon: Icon(Icons.refresh),
             label: AutoSizeText('Retry'),
           ),
         ],
@@ -250,7 +255,7 @@ class _PanchangGuidanceProfileScreenState
             title: 'Diet Style',
             subtitle: 'Your dietary preferences',
             icon: Icons.restaurant,
-            color: Colors.green,
+            color: AppColors.deepSoilGreen,
             isDark: isDark,
             child: _buildOptionGrid(
               options: dietOptions,
@@ -264,7 +269,7 @@ class _PanchangGuidanceProfileScreenState
             title: 'Fasting Preference',
             subtitle: 'Your fasting observance level',
             icon: Icons.self_improvement,
-            color: Colors.orange,
+            color: AppColors.harvestAmber,
             isDark: isDark,
             child: _buildOptionGrid(
               options: fastingOptions,
@@ -278,7 +283,7 @@ class _PanchangGuidanceProfileScreenState
             title: 'Devata (Deity)',
             subtitle: 'Your primary deity for worship',
             icon: Icons.temple_hindu,
-            color: const Color(0xFF3F5E46),
+            color: isDark ? AppColors.pureWhite : AppColors.parchment,
             isDark: isDark,
             child: _buildOptionGrid(
               options: devataOptions,
@@ -292,7 +297,7 @@ class _PanchangGuidanceProfileScreenState
             title: 'Regional Profile',
             subtitle: 'Regional calendar variations',
             icon: Icons.location_on,
-            color: const Color(0xFF3F5E46),
+            color: isDark ? AppColors.pureWhite : AppColors.parchment,
             isDark: isDark,
             child: _buildOptionGrid(
               options: profileOptions,
@@ -306,7 +311,7 @@ class _PanchangGuidanceProfileScreenState
             title: 'Language',
             subtitle: 'Preferred language for guidance',
             icon: Icons.language,
-            color: Colors.teal,
+            color: AppColors.deepSoilGreen,
             isDark: isDark,
             child: _buildOptionGrid(
               options: localeOptions,
@@ -331,12 +336,15 @@ class _PanchangGuidanceProfileScreenState
   }) {
     return Container(
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF0D150E) : Colors.white,
+        color:
+            (isDark
+                ? AppColors.charcoal
+                : AppColors.parchment),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: color.withOpacity(0.3)),
+        border: Border.all(color: color.withValues(alpha: 0.3)),
         boxShadow: [
           BoxShadow(
-            color: color.withOpacity(0.1),
+            color: color.withValues(alpha: 0.1),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -350,8 +358,8 @@ class _PanchangGuidanceProfileScreenState
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: [
-                  color.withOpacity(isDark ? 0.2 : 0.1),
-                  color.withOpacity(isDark ? 0.1 : 0.05),
+                  color.withValues(alpha: isDark ? 0.2 : 0.1),
+                  color.withValues(alpha: isDark ? 0.1 : 0.05),
                 ],
               ),
               borderRadius: const BorderRadius.vertical(
@@ -363,7 +371,7 @@ class _PanchangGuidanceProfileScreenState
                 Container(
                   padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
-                    color: color.withOpacity(0.2),
+                    color: color.withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: Icon(icon, color: color, size: 22),
@@ -377,15 +385,22 @@ class _PanchangGuidanceProfileScreenState
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
-                        color: isDark ? Colors.white : Colors.black87,
+                        color:
+                            (isDark
+                                ? AppColors.parchment
+                                : AppTheme
+                                    .lightTheme
+                                    .textTheme
+                                    .bodyLarge
+                                    ?.color),
                       ),
                     ),
                     AutoSizeText(
                       subtitle,
                       style: TextStyle(
                         fontSize: 12,
-                        color: (isDark ? Colors.white : Colors.black)
-                            .withOpacity(0.6),
+                        color: (isDark ? AppColors.pureWhite : AppColors.charcoal)
+                            .withValues(alpha: 0.6),
                       ),
                     ),
                   ],
@@ -424,18 +439,18 @@ class _PanchangGuidanceProfileScreenState
                       isSelected
                           ? const Color(
                             0xFF3F5E46,
-                          ).withOpacity(isDark ? 0.3 : 0.15)
+                          ).withValues(alpha: isDark ? 0.3 : 0.15)
                           : (isDark
-                              ? Colors.white.withOpacity(0.05)
-                              : Colors.grey.shade100),
+                              ? AppColors.parchment.withValues(alpha: 0.05)
+                              : AppColors.parchment),
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(
                     color:
                         isSelected
-                            ? const Color(0xFF3F5E46)
+                            ? AppColors.parchment
                             : (isDark
-                                ? Colors.white.withOpacity(0.1)
-                                : Colors.grey.shade300),
+                                ? AppColors.parchment.withValues(alpha: 0.1)
+                                : AppColors.rawEarth12),
                     width: isSelected ? 2 : 1,
                   ),
                 ),
@@ -458,17 +473,17 @@ class _PanchangGuidanceProfileScreenState
                                 isSelected ? FontWeight.bold : FontWeight.w500,
                             color:
                                 isSelected
-                                    ? const Color(0xFF3F5E46)
-                                    : (isDark ? Colors.white : Colors.black87),
+                                    ? AppColors.parchment
+                                    : (isDark ? AppColors.pureWhite : AppColors.charcoal),
                           ),
                         ),
                       ],
                     ),
                     if (isSelected) ...[
                       const SizedBox(width: 8),
-                      const Icon(
+                      Icon(
                         Icons.check_circle,
-                        color: Color(0xFF3F5E46),
+                        color: isDark ? AppColors.pureWhite : AppColors.parchment,
                         size: 18,
                       ),
                     ],

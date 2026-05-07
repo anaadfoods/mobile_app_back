@@ -32,15 +32,15 @@ class _PauseDatePickerSheetState extends State<PauseDatePickerSheet> {
         gradient: LinearGradient(
           colors:
               isDark
-                  ? [const Color(0xFF1E1E1E), const Color(0xFF252525)]
-                  : [Colors.white, Colors.grey[50]!],
+                  ? [AppColors.parchment, AppColors.parchment]
+                  : [AppColors.parchment, AppColors.parchment!],
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
         ),
         borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.2),
+            color: AppColors.charcoal.withValues(alpha: 0.2),
             blurRadius: 20,
             offset: const Offset(0, -4),
           ),
@@ -59,7 +59,7 @@ class _PauseDatePickerSheetState extends State<PauseDatePickerSheet> {
                 height: 4,
                 margin: const EdgeInsets.only(bottom: 20),
                 decoration: BoxDecoration(
-                  color: isDark ? Colors.grey[700] : Colors.grey[300],
+                  color: isDark ? AppColors.charcoal60 : AppColors.rawEarth12,
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
@@ -83,13 +83,13 @@ class _PauseDatePickerSheetState extends State<PauseDatePickerSheet> {
                         vertical: 4,
                       ),
                       decoration: BoxDecoration(
-                        color: AppColors.warning.withOpacity(0.15),
+                        color: AppColors.harvestAmber.withValues(alpha: 0.15),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Text(
                         '${widget.maxPausesLeft} pause${widget.maxPausesLeft != 1 ? 's' : ''} remaining',
                         style: theme.textTheme.bodySmall?.copyWith(
-                          color: AppColors.warning,
+                          color: AppColors.harvestAmber,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -98,7 +98,7 @@ class _PauseDatePickerSheetState extends State<PauseDatePickerSheet> {
                 ),
                 Container(
                   decoration: BoxDecoration(
-                    color: isDark ? Colors.grey[850] : Colors.grey[100],
+                    color: isDark ? AppColors.charcoal87 : AppColors.parchment,
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: IconButton(
@@ -128,7 +128,7 @@ class _PauseDatePickerSheetState extends State<PauseDatePickerSheet> {
                           return Theme(
                             data: theme.copyWith(
                               colorScheme: theme.colorScheme.copyWith(
-                                primary: AppColors.primaryColor,
+                                primary: AppColors.deepSoilGreen,
                               ),
                             ),
                             child: child!,
@@ -164,7 +164,7 @@ class _PauseDatePickerSheetState extends State<PauseDatePickerSheet> {
                           return Theme(
                             data: theme.copyWith(
                               colorScheme: theme.colorScheme.copyWith(
-                                primary: AppColors.primaryColor,
+                                primary: AppColors.deepSoilGreen,
                               ),
                             ),
                             child: child!,
@@ -182,21 +182,21 @@ class _PauseDatePickerSheetState extends State<PauseDatePickerSheet> {
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   colors: [
-                    AppColors.warning,
-                    AppColors.warning.withOpacity(0.8),
+                    AppColors.harvestAmber,
+                    AppColors.harvestAmber.withValues(alpha: 0.8),
                   ],
                 ),
                 borderRadius: BorderRadius.circular(16),
                 boxShadow: [
                   BoxShadow(
-                    color: AppColors.warning.withOpacity(0.3),
+                    color: AppColors.harvestAmber.withValues(alpha: 0.3),
                     blurRadius: 12,
                     offset: const Offset(0, 6),
                   ),
                 ],
               ),
               child: Material(
-                color: Colors.transparent,
+                color: AppColors.transparent,
                 child: InkWell(
                   onTap: () {
                     if (widget.maxPausesLeft <= 0) {
@@ -228,14 +228,14 @@ class _PauseDatePickerSheetState extends State<PauseDatePickerSheet> {
                       children: [
                         const Icon(
                           Icons.pause_circle_rounded,
-                          color: Colors.white,
+                          color: AppColors.parchment,
                           size: 24,
                         ),
                         const SizedBox(width: 12),
                         Text(
                           'Pause Subscription',
                           style: theme.textTheme.titleMedium?.copyWith(
-                            color: Colors.white,
+                            color: AppColors.parchment,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
@@ -269,8 +269,8 @@ class ResumeSubscriptionSheet extends StatelessWidget {
         gradient: LinearGradient(
           colors:
               isDark
-                  ? [const Color(0xFF1E1E1E), const Color(0xFF252525)]
-                  : [Colors.white, Colors.grey[50]!],
+                  ? [AppColors.parchment, AppColors.parchment]
+                  : [AppColors.parchment, AppColors.parchment!],
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
         ),
@@ -285,7 +285,7 @@ class ResumeSubscriptionSheet extends StatelessWidget {
               height: 4,
               margin: const EdgeInsets.only(bottom: 20),
               decoration: BoxDecoration(
-                color: isDark ? Colors.grey[700] : Colors.grey[300],
+                color: isDark ? AppColors.charcoal60 : AppColors.rawEarth12,
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
@@ -318,8 +318,8 @@ class ResumeSubscriptionSheet extends StatelessWidget {
                     onConfirm();
                   },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.success,
-                    foregroundColor: Colors.white,
+                    backgroundColor: AppColors.deepSoilGreen,
+                    foregroundColor: AppColors.parchment,
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
@@ -362,8 +362,8 @@ class DateButton extends StatelessWidget {
           gradient: LinearGradient(
             colors:
                 isDark
-                    ? [const Color(0xFF2A2A2A), const Color(0xFF1E1E1E)]
-                    : [Colors.white, Colors.grey[50]!],
+                    ? [AppColors.parchment, AppColors.parchment]
+                    : [AppColors.parchment, AppColors.parchment!],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
@@ -371,22 +371,24 @@ class DateButton extends StatelessWidget {
           border: Border.all(
             color:
                 selectedDate != null
-                    ? AppColors.primaryColor
-                    : (isDark ? Colors.grey[700]! : Colors.grey[300]!),
+                    ? AppColors.deepSoilGreen
+                    : (isDark ? AppColors.charcoal60! : AppColors.rawEarth12!),
             width: selectedDate != null ? 2 : 1,
           ),
           boxShadow:
               selectedDate != null
                   ? [
                     BoxShadow(
-                      color: AppColors.primaryColor.withOpacity(0.2),
+                      color: AppColors.deepSoilGreen.withValues(alpha: 0.2),
                       blurRadius: 12,
                       offset: const Offset(0, 4),
                     ),
                   ]
                   : [
                     BoxShadow(
-                      color: Colors.black.withOpacity(isDark ? 0.3 : 0.05),
+                      color: AppColors.charcoal.withValues(
+                        alpha: isDark ? 0.3 : 0.05,
+                      ),
                       blurRadius: 6,
                       offset: const Offset(0, 2),
                     ),
@@ -402,8 +404,10 @@ class DateButton extends StatelessWidget {
                   decoration: BoxDecoration(
                     color:
                         selectedDate != null
-                            ? AppColors.primaryColor.withOpacity(0.15)
-                            : (isDark ? Colors.grey[800] : Colors.grey[100]),
+                            ? AppColors.deepSoilGreen.withValues(alpha: 0.15)
+                            : (isDark
+                                ? AppColors.charcoal87
+                                : AppColors.parchment),
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: Icon(
@@ -411,7 +415,7 @@ class DateButton extends StatelessWidget {
                     size: 18,
                     color:
                         selectedDate != null
-                            ? AppColors.primaryColor
+                            ? AppColors.deepSoilGreen
                             : theme.hintColor,
                   ),
                 ),

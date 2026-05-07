@@ -1,10 +1,12 @@
+import 'package:grocery_app/core/theme/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:grocery_app/core/theme/theme.dart';
 
 /// A reusable modern back button for app bars.
-/// 
+///
 /// Consolidates the common back button pattern used across app bars.
-/// 
+///
 /// Usage:
 /// ```dart
 /// ModernBackButton(
@@ -14,28 +16,28 @@ import 'package:flutter/services.dart';
 class ModernBackButton extends StatelessWidget {
   /// Callback when the button is pressed (defaults to Navigator.pop)
   final VoidCallback? onPressed;
-  
+
   /// Icon to display (default: arrow_back_ios_new_rounded)
   final IconData icon;
-  
+
   /// Icon color (auto-detected from theme if not provided)
   final Color? iconColor;
-  
+
   /// Background color (auto-detected from theme if not provided)
   final Color? backgroundColor;
-  
+
   /// Border radius (default: 12)
   final double borderRadius;
-  
+
   /// Size of the button (default: 40)
   final double size;
-  
+
   /// Icon size (default: 20)
   final double iconSize;
-  
+
   /// Whether to trigger haptic feedback (default: true)
   final bool enableHaptic;
-  
+
   /// For use on gradient/image backgrounds
   final bool forLightBackground;
 
@@ -56,17 +58,21 @@ class ModernBackButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    
-    final bgColor = backgroundColor ?? 
+
+    final bgColor =
+        backgroundColor ??
         (forLightBackground
-            ? Colors.white.withOpacity(0.9)
-            : (isDark ? Colors.white.withOpacity(0.1) : Colors.black.withOpacity(0.05)));
-    
-    final fgColor = iconColor ?? 
+            ? AppColors.parchment.withValues(alpha: 0.9)
+            : (isDark
+                ? AppColors.parchment.withValues(alpha: 0.1)
+                : AppColors.charcoal.withValues(alpha: 0.05)));
+
+    final fgColor =
+        iconColor ??
         (forLightBackground
             ? theme.colorScheme.primary
-            : (isDark ? Colors.white : Colors.black87));
-    
+            : (isDark ? AppColors.parchment : AppColors.charcoal87));
+
     return GestureDetector(
       onTap: () {
         if (enableHaptic) {
@@ -85,11 +91,7 @@ class ModernBackButton extends StatelessWidget {
           color: bgColor,
           borderRadius: BorderRadius.circular(borderRadius),
         ),
-        child: Icon(
-          icon,
-          color: fgColor,
-          size: iconSize,
-        ),
+        child: Icon(icon, color: fgColor, size: iconSize),
       ),
     );
   }
@@ -154,17 +156,21 @@ class ModernActionButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    
-    final bgColor = backgroundColor ?? 
+
+    final bgColor =
+        backgroundColor ??
         (forLightBackground
-            ? Colors.white.withOpacity(0.9)
-            : (isDark ? Colors.white.withOpacity(0.1) : Colors.black.withOpacity(0.05)));
-    
-    final fgColor = iconColor ?? 
+            ? AppColors.parchment.withValues(alpha: 0.9)
+            : (isDark
+                ? AppColors.parchment.withValues(alpha: 0.1)
+                : AppColors.charcoal.withValues(alpha: 0.05)));
+
+    final fgColor =
+        iconColor ??
         (forLightBackground
             ? theme.colorScheme.primary
-            : (isDark ? Colors.white : Colors.black87));
-    
+            : (isDark ? AppColors.parchment : AppColors.charcoal87));
+
     Widget button = GestureDetector(
       onTap: () {
         HapticFeedback.lightImpact();
@@ -177,35 +183,21 @@ class ModernActionButton extends StatelessWidget {
           color: bgColor,
           borderRadius: BorderRadius.circular(12),
         ),
-        child: Icon(
-          icon,
-          color: fgColor,
-          size: iconSize,
-        ),
+        child: Icon(icon, color: fgColor, size: iconSize),
       ),
     );
-    
+
     if (badge != null) {
       button = Stack(
         clipBehavior: Clip.none,
-        children: [
-          button,
-          Positioned(
-            right: -4,
-            top: -4,
-            child: badge!,
-          ),
-        ],
+        children: [button, Positioned(right: -4, top: -4, child: badge!)],
       );
     }
-    
+
     if (tooltip != null) {
-      return Tooltip(
-        message: tooltip!,
-        child: button,
-      );
+      return Tooltip(message: tooltip!, child: button);
     }
-    
+
     return button;
   }
 }

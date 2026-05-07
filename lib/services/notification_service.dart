@@ -417,7 +417,7 @@ class NotificationService {
       priority: Priority.high,
       ticker: 'ticker',
       icon: '@mipmap/ic_launcher',
-      color: const Color(0xFF4CAF50),
+      color: AppColors.parchment,
       styleInformation: styleInformation,
     );
 
@@ -666,7 +666,7 @@ class NotificationService {
       priority: Priority.high,
       ticker: 'ticker',
       icon: '@mipmap/ic_launcher',
-      color: const Color(0xFF4CAF50),
+      color: AppColors.parchment,
       // Style for better text display
       styleInformation: BigTextStyleInformation(
         body,

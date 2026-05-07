@@ -68,7 +68,7 @@ class _GroceryItemCardWidgetState extends State<GroceryItemCardWidget> {
             color: theme.cardColor,
             borderRadius: BorderRadius.circular(AppColors.radiusL),
             border: Border.all(
-              color: isDark ? Colors.grey.shade800 : Colors.grey.shade200,
+              color: isDark ? AppColors.parchment.withValues(alpha: 0.1) : AppColors.parchment,
               width: 1,
             ),
             boxShadow: [
@@ -94,13 +94,13 @@ class _GroceryItemCardWidgetState extends State<GroceryItemCardWidget> {
                       height: 100,
                       decoration: BoxDecoration(
                         color:
-                            isDark ? Colors.grey.shade900 : Colors.grey.shade50,
+                            isDark ? AppColors.darkCanvas : AppColors.parchment,
                         borderRadius: BorderRadius.circular(AppColors.radiusM),
                         border: Border.all(
                           color:
                               isDark
-                                  ? Colors.grey.shade700
-                                  : Colors.grey.shade100,
+                                  ? AppColors.parchment.withValues(alpha: 0.05)
+                                  : AppColors.parchment,
                           width: 1,
                         ),
                       ),
@@ -147,7 +147,7 @@ class _GroceryItemCardWidgetState extends State<GroceryItemCardWidget> {
                                 (index) => Icon(
                                   Icons.star,
                                   size: 14,
-                                  color: AppColors.orderPlaced,
+                                  color: AppColors.harvestAmber,
                                 ),
                               ),
                             ),

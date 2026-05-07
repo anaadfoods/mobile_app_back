@@ -1,4 +1,5 @@
 import "global_import.dart";
+import 'package:grocery_app/core/theme/theme.dart';
 
 class AppButton extends StatefulWidget {
   final String label;
@@ -63,7 +64,10 @@ class _AppButtonState extends State<AppButton> {
               ),
               padding: WidgetStateProperty.all(
                 widget.padding ??
-                    const EdgeInsets.symmetric(vertical: 14, horizontal: 24),
+                    const EdgeInsets.symmetric(
+                      vertical: AppSpacing.md + 2,
+                      horizontal: AppSpacing.xl,
+                    ),
               ), // Improved padding
               elevation: WidgetStateProperty.resolveWith((states) {
                 if (states.contains(WidgetState.pressed)) return 0;
@@ -93,4 +97,3 @@ class _AppButtonState extends State<AppButton> {
     );
   }
 }
-

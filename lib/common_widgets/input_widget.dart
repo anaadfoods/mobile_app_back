@@ -1,5 +1,6 @@
+import 'package:grocery_app/core/theme/app_colors.dart';
 import 'package:flutter/material.dart';
-import 'package:grocery_app/styles/colors.dart';
+import 'package:grocery_app/core/theme/theme.dart';
 
 class CustomInput extends StatefulWidget {
   final String hintText;
@@ -68,14 +69,14 @@ class _CustomInputState extends State<CustomInput> {
     final effectiveHintStyle =
         widget.onPrimary
             ? theme.textTheme.bodyMedium?.copyWith(
-              color: onPrimaryColor.withOpacity(0.7),
+              color: onPrimaryColor.withValues(alpha: 0.7),
             )
             : theme.inputDecorationTheme.hintStyle;
 
     final effectiveFillColor =
         widget.fillColor ??
         (widget.onPrimary
-            ? onPrimaryColor.withOpacity(0.1)
+            ? onPrimaryColor.withValues(alpha: 0.1)
             : theme.inputDecorationTheme.fillColor);
 
     final finalDecoration = InputDecoration(
@@ -91,10 +92,10 @@ class _CustomInputState extends State<CustomInput> {
         borderSide: BorderSide(
           color:
               widget.onPrimary
-                  ? onPrimaryColor.withOpacity(0.3)
+                  ? onPrimaryColor.withValues(alpha: 0.3)
                   : (widget.customBorderColor ??
                       theme.inputDecorationTheme.border?.borderSide.color ??
-                      Colors.grey),
+                      AppColors.charcoal54),
           width: 1,
         ),
       ),
@@ -105,14 +106,14 @@ class _CustomInputState extends State<CustomInput> {
         borderSide: BorderSide(
           color:
               widget.onPrimary
-                  ? onPrimaryColor.withOpacity(0.4)
+                  ? onPrimaryColor.withValues(alpha: 0.4)
                   : (widget.customBorderColor ??
                       theme
                           .inputDecorationTheme
                           .enabledBorder
                           ?.borderSide
                           .color ??
-                      AppColors.border),
+                      AppColors.rawEarth26),
           width: 1,
         ),
       ),
@@ -143,7 +144,7 @@ class _CustomInputState extends State<CustomInput> {
                   _obscure ? Icons.visibility_off : Icons.visibility,
                   color:
                       widget.onPrimary
-                          ? onPrimaryColor.withOpacity(0.7)
+                          ? onPrimaryColor.withValues(alpha: 0.7)
                           : theme.iconTheme.color,
                 ),
                 onPressed: () {

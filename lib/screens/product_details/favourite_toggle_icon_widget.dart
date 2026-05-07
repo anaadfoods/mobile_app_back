@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:grocery_app/core/theme/app_colors.dart';
 
 class FavoriteToggleIcon extends StatefulWidget {
   final bool favorite;
@@ -44,7 +45,7 @@ class _FavoriteToggleIconState extends State<FavoriteToggleIcon> {
       },
       child: Icon(
         _isFavorite ? Icons.favorite : Icons.favorite_border,
-        color: _isFavorite ? Colors.red : Colors.white,
+        color: _isFavorite ? AppColors.rawEarth : AppColors.parchment,
         size: 30,
       ),
     );

@@ -19,7 +19,8 @@ class NotificationBadgeWidget extends StatefulWidget {
   });
 
   @override
-  State<NotificationBadgeWidget> createState() => _NotificationBadgeWidgetState();
+  State<NotificationBadgeWidget> createState() =>
+      _NotificationBadgeWidgetState();
 }
 
 class _NotificationBadgeWidgetState extends State<NotificationBadgeWidget> {
@@ -103,7 +104,9 @@ class _NotificationBadgeWidgetState extends State<NotificationBadgeWidget> {
                 ),
                 child: Center(
                   child: Text(
-                    _notificationCount > 99 ? '99+' : _notificationCount.toString(),
+                    _notificationCount > 99
+                        ? '99+'
+                        : _notificationCount.toString(),
                     style: TextStyle(
                       color: textColor,
                       fontSize: (widget.badgeSize ?? 22) * 0.55,
@@ -141,12 +144,13 @@ class NotificationListWidget extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.notifications_none, size: 64, color: theme.disabledColor),
-            const SizedBox(height: 16),
-            Text(
-              'No notifications yet',
-              style: theme.textTheme.bodyLarge,
+            Icon(
+              Icons.notifications_none,
+              size: 64,
+              color: theme.disabledColor,
             ),
+            const SizedBox(height: 16),
+            Text('No notifications yet', style: theme.textTheme.bodyLarge),
           ],
         ),
       );
@@ -191,7 +195,9 @@ class _NotificationListItemState extends State<_NotificationListItem> {
     final messageType = MessageUtility.getMessageType(widget.notification);
     final icon = MessageUtility.getMessageIcon(messageType);
     final color = MessageUtility.getMessageColor(messageType);
-    final backgroundColor = MessageUtility.getMessageBackgroundColor(messageType);
+    final backgroundColor = MessageUtility.getMessageBackgroundColor(
+      messageType,
+    );
     final timestamp = widget.notification['timestamp'] as int? ?? 0;
     final title = widget.notification['title'] as String? ?? '';
     final body = widget.notification['body'] as String? ?? '';
@@ -215,7 +221,7 @@ class _NotificationListItemState extends State<_NotificationListItem> {
           color: backgroundColor,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: isHighPriority ? color : Colors.transparent,
+            color: isHighPriority ? color : AppColors.transparent,
             width: isHighPriority ? 2 : 0,
           ),
         ),
@@ -224,7 +230,7 @@ class _NotificationListItemState extends State<_NotificationListItem> {
             width: 48,
             height: 48,
             decoration: BoxDecoration(
-              color: color.withOpacity(0.1),
+              color: color.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(8),
             ),
             child: Icon(icon, color: color, size: 24),
@@ -275,25 +281,26 @@ class _NotificationListItemState extends State<_NotificationListItem> {
               ),
             ],
           ),
-          trailing: isHighPriority
-              ? Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 4,
-                  ),
-                  decoration: BoxDecoration(
-                    color: color,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Text(
-                    'URGENT',
-                    style: textTheme.labelSmall?.copyWith(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
+          trailing:
+              isHighPriority
+                  ? Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
                     ),
-                  ),
-                )
-              : null,
+                    decoration: BoxDecoration(
+                      color: color,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Text(
+                      'URGENT',
+                      style: textTheme.labelSmall?.copyWith(
+                        color: AppColors.parchment,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  )
+                  : null,
           onTap: widget.onTap,
         ),
       ),
@@ -316,10 +323,12 @@ class NotificationSettingsWidget extends StatefulWidget {
   });
 
   @override
-  State<NotificationSettingsWidget> createState() => _NotificationSettingsWidgetState();
+  State<NotificationSettingsWidget> createState() =>
+      _NotificationSettingsWidgetState();
 }
 
-class _NotificationSettingsWidgetState extends State<NotificationSettingsWidget> {
+class _NotificationSettingsWidgetState
+    extends State<NotificationSettingsWidget> {
   bool _orderNotifications = true;
   bool _productNotifications = true;
   bool _promoNotifications = true;
@@ -339,7 +348,8 @@ class _NotificationSettingsWidgetState extends State<NotificationSettingsWidget>
         _orderNotifications = prefs.getBool('order_notifications') ?? true;
         _productNotifications = prefs.getBool('product_notifications') ?? true;
         _promoNotifications = prefs.getBool('promo_notifications') ?? true;
-        _subscriptionNotifications = prefs.getBool('subscription_notifications') ?? true;
+        _subscriptionNotifications =
+            prefs.getBool('subscription_notifications') ?? true;
       });
     }
   }
@@ -363,7 +373,7 @@ class _NotificationSettingsWidgetState extends State<NotificationSettingsWidget>
           title: 'Order Updates',
           subtitle: 'Get notified about order status changes',
           icon: Icons.shopping_bag,
-          color: AppColors.info,
+          color: AppColors.deepSoilGreen,
           value: _orderNotifications,
           onChanged: (value) {
             setState(() => _orderNotifications = value);
@@ -375,7 +385,7 @@ class _NotificationSettingsWidgetState extends State<NotificationSettingsWidget>
           title: 'Product Updates',
           subtitle: 'Get notified about product availability',
           icon: Icons.inventory,
-          color: AppColors.success,
+          color: AppColors.deepSoilGreen,
           value: _productNotifications,
           onChanged: (value) {
             setState(() => _productNotifications = value);
@@ -387,7 +397,7 @@ class _NotificationSettingsWidgetState extends State<NotificationSettingsWidget>
           title: 'Promotions',
           subtitle: 'Get notified about special offers and deals',
           icon: Icons.local_offer,
-          color: AppColors.error,
+          color: AppColors.rawEarth,
           value: _promoNotifications,
           onChanged: (value) {
             setState(() => _promoNotifications = value);
@@ -399,7 +409,7 @@ class _NotificationSettingsWidgetState extends State<NotificationSettingsWidget>
           title: 'Subscription Updates',
           subtitle: 'Get notified about subscription changes',
           icon: Icons.subscriptions,
-          color: AppColors.warning,
+          color: AppColors.harvestAmber,
           value: _subscriptionNotifications,
           onChanged: (value) {
             setState(() => _subscriptionNotifications = value);
@@ -429,7 +439,7 @@ class _NotificationSettingsWidgetState extends State<NotificationSettingsWidget>
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: theme.shadowColor.withOpacity(0.08),
+            color: theme.shadowColor.withValues(alpha: 0.08),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -440,22 +450,24 @@ class _NotificationSettingsWidgetState extends State<NotificationSettingsWidget>
           width: 48,
           height: 48,
           decoration: BoxDecoration(
-            color: color.withOpacity(0.1),
+            color: color.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(8),
           ),
           child: Icon(icon, color: color, size: 24),
         ),
-        title: Text(title, style: textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.bold)),
+        title: Text(
+          title,
+          style: textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.bold),
+        ),
         subtitle: Text(subtitle, style: textTheme.bodyMedium),
         trailing: Switch(
           value: value,
           onChanged: onChanged,
           activeColor: color,
-          inactiveTrackColor: color.withOpacity(0.3),
-          activeTrackColor: color.withOpacity(0.5),
+          inactiveTrackColor: color.withValues(alpha: 0.3),
+          activeTrackColor: color.withValues(alpha: 0.5),
         ),
       ),
     );
   }
 }
-

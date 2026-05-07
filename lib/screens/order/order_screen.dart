@@ -147,10 +147,13 @@ class _OrderScreenState extends State<OrderScreen>
             end: Alignment.bottomRight,
             colors:
                 isDark
-                    ? [const Color(0xFF1B3A24), const Color(0xFF122918)]
+                    ? [
+                      AppColors.darkSurfaceElevated,
+                      AppColors.darkSurfaceElevated.withValues(alpha: 0.8),
+                    ]
                     : [
-                      AppColors.primaryColor,
-                      AppColors.primaryColor.withValues(alpha: 0.8),
+                      AppColors.deepSoilGreen,
+                      AppColors.deepSoilGreen.withValues(alpha: 0.8),
                     ],
           ),
           borderRadius: const BorderRadius.only(
@@ -159,7 +162,7 @@ class _OrderScreenState extends State<OrderScreen>
           ),
           boxShadow: [
             BoxShadow(
-              color: AppColors.primaryColor.withValues(alpha: 0.3),
+              color: AppColors.deepSoilGreen.withValues(alpha: 0.3),
               blurRadius: 20,
               offset: const Offset(0, 10),
             ),
@@ -176,7 +179,7 @@ class _OrderScreenState extends State<OrderScreen>
                 height: 120,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: Colors.white.withValues(alpha: 0.1),
+                  color: AppColors.parchment.withValues(alpha: 0.1),
                 ),
               ),
             ),
@@ -188,7 +191,7 @@ class _OrderScreenState extends State<OrderScreen>
                 height: 80,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: Colors.white.withValues(alpha: 0.08),
+                  color: AppColors.parchment.withValues(alpha: 0.08),
                 ),
               ),
             ),
@@ -200,12 +203,12 @@ class _OrderScreenState extends State<OrderScreen>
               child: Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.2),
+                  color: AppColors.parchment.withValues(alpha: 0.2),
                   shape: BoxShape.circle,
                 ),
                 child: const Icon(
                   Icons.shopping_bag_rounded,
-                  color: Colors.white,
+                  color: AppColors.parchment,
                   size: 28,
                 ),
               ),
@@ -220,22 +223,8 @@ class _OrderScreenState extends State<OrderScreen>
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    // Top Row with Back Button
-                    GestureDetector(
-                      onTap: () => context.go("/profile"),
-                      child: Container(
-                        padding: const EdgeInsets.all(10),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.2),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: const Icon(
-                          Icons.arrow_back_ios_new_rounded,
-                          color: Colors.white,
-                          size: 20,
-                        ),
-                      ),
-                    ),
+                    // ANAAD Logo
+                    const AnaadLogoMark(),
                     const SizedBox(height: 16),
                     // Title
                     FittedBox(
@@ -244,7 +233,7 @@ class _OrderScreenState extends State<OrderScreen>
                       child: Text(
                         "My Orders",
                         style: theme.textTheme.headlineMedium?.copyWith(
-                          color: Colors.white,
+                          color: AppColors.parchment,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -255,7 +244,7 @@ class _OrderScreenState extends State<OrderScreen>
                           ? "Your orders will appear here"
                           : "${orders.length} order${orders.length != 1 ? 's' : ''} total",
                       style: theme.textTheme.bodyMedium?.copyWith(
-                        color: Colors.white.withValues(alpha: 0.9),
+                        color: AppColors.parchment.withValues(alpha: 0.9),
                       ),
                     ),
                     // Stats Row - scrollable to prevent overflow
@@ -269,14 +258,14 @@ class _OrderScreenState extends State<OrderScreen>
                               icon: Icons.local_shipping_outlined,
                               label: 'Active',
                               count: activeOrders,
-                              color: AppColors.warning,
+                              color: AppColors.harvestAmber,
                             ),
                             const SizedBox(width: 8),
                             _buildStatChip(
                               icon: Icons.check_circle_outline,
                               label: 'Completed',
                               count: completedOrders,
-                              color: AppColors.success,
+                              color: AppColors.deepSoilGreen,
                             ),
                           ],
                         ),
@@ -301,9 +290,9 @@ class _OrderScreenState extends State<OrderScreen>
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.15),
+        color: AppColors.parchment.withValues(alpha: 0.15),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
+        border: Border.all(color: AppColors.parchment.withValues(alpha: 0.2)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -313,7 +302,7 @@ class _OrderScreenState extends State<OrderScreen>
           Text(
             '$count $label',
             style: const TextStyle(
-              color: Colors.white,
+              color: AppColors.parchment,
               fontSize: 11,
               fontWeight: FontWeight.w600,
             ),
@@ -333,17 +322,17 @@ class _OrderScreenState extends State<OrderScreen>
           colors:
               isDark
                   ? [
-                    AppColors.primaryColor.withValues(alpha: 0.2),
-                    AppColors.primaryColor.withValues(alpha: 0.1),
+                    AppColors.deepSoilGreen.withValues(alpha: 0.2),
+                    AppColors.deepSoilGreen.withValues(alpha: 0.1),
                   ]
                   : [
-                    AppColors.primaryColor.withValues(alpha: 0.08),
-                    AppColors.primaryColor.withValues(alpha: 0.04),
+                    AppColors.deepSoilGreen.withValues(alpha: 0.08),
+                    AppColors.deepSoilGreen.withValues(alpha: 0.04),
                   ],
         ),
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: AppColors.primaryColor.withValues(alpha: 0.2),
+          color: AppColors.deepSoilGreen.withValues(alpha: 0.2),
         ),
       ),
       child: Row(
@@ -351,12 +340,12 @@ class _OrderScreenState extends State<OrderScreen>
           Container(
             padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
-              color: AppColors.primaryColor.withValues(alpha: 0.15),
+              color: AppColors.deepSoilGreen.withValues(alpha: 0.15),
               borderRadius: BorderRadius.circular(14),
             ),
             child: Icon(
               Icons.support_agent_rounded,
-              color: AppColors.primaryColor,
+              color: AppColors.deepSoilGreen,
               size: 26,
             ),
           ),
@@ -391,12 +380,12 @@ class _OrderScreenState extends State<OrderScreen>
             icon: Container(
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                color: AppColors.primaryColor,
+                color: AppColors.deepSoilGreen,
                 borderRadius: BorderRadius.circular(12),
               ),
               child: const Icon(
                 Icons.arrow_forward,
-                color: Colors.white,
+                color: AppColors.parchment,
                 size: 18,
               ),
             ),
@@ -505,14 +494,14 @@ class _ModernOrderCard extends StatelessWidget {
       onTap: onTap,
       child: Container(
         decoration: BoxDecoration(
-          color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+          color: isDark ? AppColors.darkSurfaceElevated : AppColors.parchment,
           borderRadius: BorderRadius.circular(20),
           boxShadow: [
             BoxShadow(
               color:
                   isDark
-                      ? Colors.black.withValues(alpha: 0.3)
-                      : AppColors.primaryColor.withValues(alpha: 0.08),
+                      ? AppColors.charcoal.withValues(alpha: 0.3)
+                      : AppColors.deepSoilGreen.withValues(alpha: 0.08),
               blurRadius: 20,
               offset: const Offset(0, 8),
               spreadRadius: -4,
@@ -571,7 +560,7 @@ class _ModernOrderCard extends StatelessWidget {
                         '₹${order.total.toStringAsFixed(0)}',
                         style: theme.textTheme.titleMedium?.copyWith(
                           fontWeight: FontWeight.bold,
-                          color: AppColors.primaryColor,
+                          color: AppColors.deepSoilGreen,
                         ),
                       ),
                       Text(
@@ -614,7 +603,7 @@ class _ModernOrderCard extends StatelessWidget {
                           vertical: 8,
                         ),
                         decoration: BoxDecoration(
-                          color: AppColors.primaryColor.withValues(alpha: 0.1),
+                          color: AppColors.deepSoilGreen.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(20),
                         ),
                         child: Row(
@@ -623,7 +612,7 @@ class _ModernOrderCard extends StatelessWidget {
                             Text(
                               'View Details',
                               style: theme.textTheme.labelMedium?.copyWith(
-                                color: AppColors.primaryColor,
+                                color: AppColors.deepSoilGreen,
                                 fontWeight: FontWeight.w600,
                               ),
                             ),
@@ -631,7 +620,7 @@ class _ModernOrderCard extends StatelessWidget {
                             Icon(
                               Icons.arrow_forward_ios,
                               size: 12,
-                              color: AppColors.primaryColor,
+                              color: AppColors.deepSoilGreen,
                             ),
                           ],
                         ),
@@ -673,12 +662,12 @@ class _ModernOrderCard extends StatelessWidget {
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
-                      color: isDark ? const Color(0xFF2D2D2D) : Colors.white,
+                      color: isDark ? AppColors.darkSurfaceElevated : AppColors.parchment,
                       width: 2,
                     ),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.1),
+                        color: AppColors.charcoal.withValues(alpha: 0.1),
                         blurRadius: 8,
                         offset: const Offset(0, 2),
                       ),
@@ -706,7 +695,7 @@ class _ModernOrderCard extends StatelessWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
             decoration: BoxDecoration(
-              color: isDark ? const Color(0xFF2D2D2D) : Colors.grey[100],
+              color: isDark ? AppColors.darkSurfaceElevated : AppColors.parchment,
               borderRadius: BorderRadius.circular(12),
             ),
             child: Text(
@@ -714,7 +703,7 @@ class _ModernOrderCard extends StatelessWidget {
               style: TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w600,
-                color: isDark ? Colors.white70 : Colors.grey[700],
+                color: isDark ? AppColors.parchment70 : AppColors.charcoal60,
               ),
             ),
           ),
@@ -738,10 +727,10 @@ class _ModernOrderCard extends StatelessWidget {
 
   Widget _buildPlaceholder(bool isDark) {
     return Container(
-      color: isDark ? const Color(0xFF2D2D2D) : Colors.grey[100],
+      color: isDark ? AppColors.darkSurfaceElevated : AppColors.parchment,
       child: Icon(
         Icons.image_outlined,
-        color: isDark ? Colors.white24 : Colors.grey[400],
+        color: isDark ? AppColors.parchment24 : AppColors.rawEarth26,
         size: 20,
       ),
     );
@@ -755,32 +744,32 @@ class _ModernOrderCard extends StatelessWidget {
     switch (status.toUpperCase()) {
       case 'DELIVERED':
         return (
-          color: AppColors.success,
+          color: AppColors.deepSoilGreen,
           icon: Icons.check_circle_rounded,
           label: 'Delivered',
         );
       case 'CANCELLED':
         return (
-          color: AppColors.error,
+          color: AppColors.rawEarth,
           icon: Icons.cancel_rounded,
           label: 'Cancelled',
         );
       case 'SHIPPED':
         return (
-          color: AppColors.info,
+          color: AppColors.deepSoilGreen,
           icon: Icons.local_shipping_rounded,
           label: 'Shipped',
         );
       case 'OUT_FOR_DELIVERY':
         return (
-          color: AppColors.warning,
+          color: AppColors.harvestAmber,
           icon: Icons.delivery_dining_rounded,
           label: 'Out for Delivery',
         );
       case 'PLACED':
       default:
         return (
-          color: AppColors.primaryColor,
+          color: AppColors.deepSoilGreen,
           icon: Icons.pending_rounded,
           label: 'Order Placed',
         );
@@ -808,7 +797,7 @@ class _LoadingState extends StatelessWidget {
             child: Container(
               height: 140,
               decoration: BoxDecoration(
-                color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+                color: isDark ? AppColors.darkSurfaceElevated : AppColors.parchment,
                 borderRadius: BorderRadius.circular(20),
               ),
             ),
@@ -862,13 +851,13 @@ class _EmptyState extends StatelessWidget {
                 Container(
                   padding: EdgeInsets.all(paddingContainer),
                   decoration: BoxDecoration(
-                    color: AppColors.primaryColor.withValues(alpha: 0.1),
+                    color: AppColors.deepSoilGreen.withValues(alpha: 0.1),
                     shape: BoxShape.circle,
                   ),
                   child: Icon(
                     Icons.shopping_bag_outlined,
                     size: iconSize,
-                    color: AppColors.primaryColor.withValues(alpha: 0.6),
+                    color: AppColors.deepSoilGreen.withValues(alpha: 0.6),
                   ),
                 ),
                 SizedBox(height: paddingScreen),
