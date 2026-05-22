@@ -46,6 +46,17 @@ class AppColors {
   static const Color amberWarn = Color(0xFFD4920A);        // Rich amber warning
   static const Color amberWarnBg = Color(0xFFFFF8E7);      // Light warning bg
 
+  // Price Amber tones (high-contrast branding)
+  static const Color priceAmberLight = Color(0xFFD4920A);   // Rich amber warning/gold for light canvas
+  static const Color priceAmberDark = Color(0xFFFFC107);    // Amber/yellow for dark canvas
+
+  /// Dynamic helper to retrieve price color based on theme brightness.
+  static Color getPriceColor(BuildContext context) {
+    return Theme.of(context).brightness == Brightness.dark
+        ? priceAmberDark
+        : priceAmberLight;
+  }
+
   // Info tones (brand-safe)
   static const Color infoTeal = Color(0xFF2A7B7B);         // Deep teal for info
   static const Color infoBg = Color(0xFFE7F5F5);           // Light info bg

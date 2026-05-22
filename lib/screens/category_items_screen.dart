@@ -49,7 +49,7 @@ class _CategoryItemsScreenState extends State<CategoryItemsScreen> {
     final isDark = theme.brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: isDark ? AppColors.parchment : AppColors.parchment,
+      backgroundColor: isDark ? AppColors.darkCanvas : AppColors.parchment,
       body: CustomScrollView(
         slivers: [
           // ── Green banner app bar ──────────────────────────────────────
@@ -83,7 +83,6 @@ class _CategoryItemsScreenState extends State<CategoryItemsScreen> {
                   ),
                 ),
                 onSelected: (value) {
-                  if (value == 'id') _sortById();
                   if (value == 'price') _sortByPrice();
                 },
                 itemBuilder:
@@ -92,7 +91,6 @@ class _CategoryItemsScreenState extends State<CategoryItemsScreen> {
                         value: 'price',
                         child: Text('Sort by Price'),
                       ),
-                      PopupMenuItem(value: 'id', child: Text('Sort by ID')),
                     ],
               ),
               const SizedBox(width: 8),
@@ -285,7 +283,7 @@ class _CategoryItemsScreenState extends State<CategoryItemsScreen> {
               child: Container(
                 height: 100,
                 decoration: BoxDecoration(
-                  color: isDark ? AppColors.parchment : AppColors.parchment,
+                  color: isDark ? AppColors.darkSurfaceElevated : AppColors.parchment,
                   borderRadius: BorderRadius.circular(16),
                   boxShadow: [
                     BoxShadow(

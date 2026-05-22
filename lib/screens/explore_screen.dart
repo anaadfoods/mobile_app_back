@@ -30,7 +30,6 @@ class _ExploreScreenState extends State<ExploreScreen>
   // --- ANIMATION CONTROLLERS ---
   late AnimationController _headerController;
   late AnimationController _contentController;
-  late AnimationController _particleController;
   late AnimationController _pulseController;
 
   late Animation<double> _headerSlide;
@@ -54,11 +53,6 @@ class _ExploreScreenState extends State<ExploreScreen>
       duration: const Duration(milliseconds: 600),
       vsync: this,
     );
-
-    _particleController = AnimationController(
-      duration: const Duration(seconds: 20),
-      vsync: this,
-    )..repeat();
 
     _pulseController = AnimationController(
       duration: const Duration(milliseconds: 2000),
@@ -89,7 +83,6 @@ class _ExploreScreenState extends State<ExploreScreen>
   void dispose() {
     _headerController.dispose();
     _contentController.dispose();
-    _particleController.dispose();
     _pulseController.dispose();
     super.dispose();
   }
@@ -285,50 +278,6 @@ class _ExploreScreenState extends State<ExploreScreen>
           ),
           child: Stack(
             children: [
-              // Floating Particles
-              ...List.generate(
-                12,
-                (index) => FloatingParticle(
-                  index: index,
-                  controller: _particleController,
-                ),
-              ),
-
-              // Decorative circles
-              Positioned(
-                top: -40,
-                right: -40,
-                child: AnimatedBuilder(
-                  animation: _pulseController,
-                  builder: (context, child) {
-                    return Transform.scale(
-                      scale: 1.0 + (_pulseController.value * 0.1),
-                      child: child,
-                    );
-                  },
-                  child: Container(
-                    width: 150,
-                    height: 150,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: AppColors.parchment.withValues(alpha: 0.1),
-                    ),
-                  ),
-                ),
-              ),
-              Positioned(
-                bottom: -20,
-                left: -30,
-                child: Container(
-                  width: 100,
-                  height: 100,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: AppColors.parchment.withValues(alpha: 0.08),
-                  ),
-                ),
-              ),
-
               // Header Content
               SafeArea(
                 bottom: false,
@@ -1179,7 +1128,7 @@ class _AnimatedProductCardState extends State<_AnimatedProductCard> {
                               child: Text(
                                 '₹${widget.product.finalPrice.toStringAsFixed(0)}',
                                 style: TextStyle(
-                                  color: theme.colorScheme.primary,
+                                  color: AppColors.getPriceColor(context),
                                   fontWeight: FontWeight.bold,
                                   fontSize: 14,
                                 ),

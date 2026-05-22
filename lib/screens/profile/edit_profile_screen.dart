@@ -29,7 +29,6 @@ class _EditProfileScreenState extends State<EditProfileScreen>
   // Animation controllers
   late AnimationController _animationController;
   late AnimationController _shimmerController;
-  late AnimationController _avatarBorderController;
   late Animation<double> _fadeAnimation;
   late Animation<Offset> _slideAnimation;
 
@@ -103,13 +102,6 @@ class _EditProfileScreenState extends State<EditProfileScreen>
     );
     _shimmerController.repeat();
 
-    // Avatar border rotation
-    _avatarBorderController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 3000),
-    );
-    _avatarBorderController.repeat();
-
     _animationController.forward();
   }
 
@@ -127,7 +119,6 @@ class _EditProfileScreenState extends State<EditProfileScreen>
     _pincodeController.dispose();
     _animationController.dispose();
     _shimmerController.dispose();
-    _avatarBorderController.dispose();
     super.dispose();
   }
 
@@ -739,59 +730,49 @@ class _EditProfileScreenState extends State<EditProfileScreen>
       onTap: _pickImage,
       child: Stack(
         children: [
-          // Rotating gradient border
-          AnimatedBuilder(
-            animation: _avatarBorderController,
-            builder: (context, child) {
-              return Container(
-                padding: const EdgeInsets.all(4),
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  gradient: SweepGradient(
-                    startAngle: _avatarBorderController.value * math.pi * 2,
-                    colors: [
-                      colorScheme.primary,
-                      colorScheme.primary.withAlpha(128),
-                      AppColors.parchment.withAlpha(128),
-                      colorScheme.primary,
-                    ],
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: colorScheme.primary.withAlpha(76),
-                      blurRadius: 20,
-                      offset: const Offset(0, 8),
-                    ),
-                  ],
-                ),
-                child: CircleAvatar(
-                  radius: 52,
-                  backgroundColor: theme.scaffoldBackgroundColor,
-                  child: CircleAvatar(
-                    radius: 48,
-                    backgroundColor: colorScheme.primary.withAlpha(25),
-                    backgroundImage:
-                        _selectedImage != null
-                            ? FileImage(_selectedImage!)
-                            : (widget.userProfile.profilePicture != null
-                                    ? NetworkImage(
-                                      widget.userProfile.profilePicture!,
-                                    )
-                                    : null)
-                                as ImageProvider?,
-                    child:
-                        (_selectedImage == null &&
-                                widget.userProfile.profilePicture == null)
-                            ? Icon(
-                              Icons.person_rounded,
-                              size: 50,
-                              color: colorScheme.primary,
-                            )
-                            : null,
-                  ),
-                ),
-              );
-            },
+          // Profile avatar with fallback icon
+          Container(
+            width: 104,
+            height: 104,
+            decoration: BoxDecoration(
+              color: colorScheme.primary.withAlpha(25),
+              shape: BoxShape.circle,
+              border: Border.all(
+                color: colorScheme.primary.withAlpha(50),
+                width: 2,
+              ),
+            ),
+            child: Center(
+              child: CircleAvatar(
+                radius: 48,
+                backgroundColor: colorScheme.primary.withAlpha(25),
+                backgroundImage:
+                    _selectedImage != null
+                        ? FileImage(_selectedImage!)
+                        : (widget.userProfile.profilePicture != null &&
+                                    widget
+                                        .userProfile
+                                        .profilePicture!
+                                        .isNotEmpty &&
+                                    widget.userProfile.profilePicture != "null"
+                                ? NetworkImage(
+                                  widget.userProfile.profilePicture!,
+                                )
+                                : null)
+                            as ImageProvider?,
+                child:
+                    (_selectedImage == null &&
+                            (widget.userProfile.profilePicture == null ||
+                                widget.userProfile.profilePicture!.isEmpty ||
+                                widget.userProfile.profilePicture == "null"))
+                        ? const Icon(
+                          Icons.person_rounded,
+                          size: 50,
+                          color: AppColors.parchment,
+                        )
+                        : null,
+              ),
+            ),
           ),
           // Camera badge
           Positioned(

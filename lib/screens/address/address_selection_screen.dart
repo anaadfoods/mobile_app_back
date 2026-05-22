@@ -515,11 +515,11 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen>
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
               colors: [
-                theme.colorScheme.primary,
-                theme.colorScheme.primary.withValues(alpha: 0.85),
+                AppColors.harvestAmber,
+                AppColors.harvestAmber.withValues(alpha: 0.85),
                 isDark
-                    ? theme.colorScheme.primary.withValues(alpha: 0.7)
-                    : AppColors.deepSoilGreen,
+                    ? AppColors.harvestAmber.withValues(alpha: 0.7)
+                    : AppColors.harvestAmber,
               ],
             ),
             borderRadius: const BorderRadius.only(
@@ -528,7 +528,7 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen>
             ),
             boxShadow: [
               BoxShadow(
-                color: theme.colorScheme.primary.withValues(alpha: 0.3),
+                color: AppColors.harvestAmber.withValues(alpha: 0.3),
                 blurRadius: 20,
                 offset: const Offset(0, 10),
               ),
@@ -588,7 +588,7 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen>
                             ),
                             child: const Icon(
                               Icons.location_on_rounded,
-                              color: AppColors.parchment,
+                              color: AppColors.harvestAmber,
                               size: 24,
                             ),
                           ),
@@ -678,7 +678,7 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen>
         borderRadius: BorderRadius.circular(12),
         child: Padding(
           padding: const EdgeInsets.all(10),
-          child: Icon(icon, color: AppColors.parchment, size: 22),
+          child: Icon(icon, color: AppColors.harvestAmber, size: 22),
         ),
       ),
     );
@@ -746,7 +746,7 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen>
         duration: const Duration(milliseconds: 200),
         padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 12),
         decoration: BoxDecoration(
-          color: isSelected ? theme.colorScheme.primary : AppColors.transparent,
+          color: isSelected ? AppColors.harvestAmber : AppColors.transparent,
           borderRadius: BorderRadius.circular(12),
         ),
         child: Row(
@@ -755,7 +755,7 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen>
             Icon(
               icon,
               size: 20,
-              color: isSelected ? AppColors.parchment : theme.hintColor,
+              color: isSelected ? AppColors.parchment : AppColors.harvestAmber,
             ),
             const SizedBox(width: 8),
             Flexible(
@@ -797,7 +797,7 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen>
           border: Border.all(
             color:
                 isSelected
-                    ? theme.colorScheme.primary
+                    ? AppColors.harvestAmber
                     : isDark
                     ? AppColors.charcoal87
                     : AppColors.parchment,
@@ -807,7 +807,7 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen>
             BoxShadow(
               color:
                   isSelected
-                      ? theme.colorScheme.primary.withValues(alpha: 0.15)
+                      ? AppColors.harvestAmber.withValues(alpha: 0.15)
                       : theme.shadowColor.withValues(alpha: 0.06),
               blurRadius: isSelected ? 16 : 8,
               offset: Offset(0, isSelected ? 6 : 3),
@@ -825,12 +825,12 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen>
                 shape: BoxShape.circle,
                 color:
                     isSelected
-                        ? theme.colorScheme.primary
+                        ? AppColors.harvestAmber
                         : AppColors.transparent,
                 border: Border.all(
                   color:
                       isSelected
-                          ? theme.colorScheme.primary
+                          ? AppColors.harvestAmber
                           : theme.hintColor.withValues(alpha: 0.3),
                   width: 2,
                 ),
@@ -849,12 +849,12 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen>
             Container(
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                color: theme.colorScheme.primary.withValues(alpha: 0.1),
+                color: AppColors.harvestAmber.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Icon(
                 Icons.home_rounded,
-                color: theme.colorScheme.primary,
+                color: AppColors.harvestAmber,
                 size: 24,
               ),
             ),
@@ -879,13 +879,13 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen>
                           vertical: 2,
                         ),
                         decoration: BoxDecoration(
-                          color: AppColors.deepSoilGreen.withValues(alpha: 0.1),
+                          color: AppColors.harvestAmber.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Text(
                           'Default',
                           style: TextStyle(
-                            color: AppColors.deepSoilGreen,
+                            color: AppColors.harvestAmber,
                             fontSize: 10,
                             fontWeight: FontWeight.w600,
                           ),
@@ -942,7 +942,7 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen>
           border: Border.all(
             color:
                 isSelected
-                    ? theme.colorScheme.primary
+                    ? AppColors.harvestAmber
                     : isDark
                     ? AppColors.charcoal87
                     : AppColors.parchment,
@@ -952,7 +952,7 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen>
             BoxShadow(
               color:
                   isSelected
-                      ? theme.colorScheme.primary.withValues(alpha: 0.15)
+                      ? AppColors.harvestAmber.withValues(alpha: 0.15)
                       : theme.shadowColor.withValues(alpha: 0.06),
               blurRadius: isSelected ? 16 : 8,
               offset: Offset(0, isSelected ? 6 : 3),
@@ -970,12 +970,12 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen>
                 shape: BoxShape.circle,
                 color:
                     isSelected
-                        ? theme.colorScheme.primary
+                        ? AppColors.harvestAmber
                         : AppColors.transparent,
                 border: Border.all(
                   color:
                       isSelected
-                          ? theme.colorScheme.primary
+                          ? AppColors.harvestAmber
                           : theme.hintColor.withValues(alpha: 0.3),
                   width: 2,
                 ),
@@ -994,12 +994,12 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen>
             Container(
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                color: theme.colorScheme.primary.withValues(alpha: 0.1),
+                color: AppColors.harvestAmber.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Icon(
                 Icons.add_location_alt_rounded,
-                color: theme.colorScheme.primary,
+                color: AppColors.harvestAmber,
                 size: 24,
               ),
             ),
@@ -1051,7 +1051,7 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen>
               children: [
                 Icon(
                   Icons.edit_location_alt_rounded,
-                  color: theme.colorScheme.primary,
+                  color: AppColors.harvestAmber,
                   size: 24,
                 ),
                 const SizedBox(width: 12),
@@ -1169,7 +1169,7 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen>
             hintStyle: TextStyle(color: theme.hintColor.withValues(alpha: 0.5)),
             prefixIcon: Icon(
               icon,
-              color: theme.colorScheme.primary.withValues(alpha: 0.7),
+              color: AppColors.harvestAmber,
               size: 22,
             ),
             filled: true,
@@ -1187,7 +1187,7 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen>
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(14),
               borderSide: BorderSide(
-                color: theme.colorScheme.primary,
+                color: AppColors.harvestAmber,
                 width: 2,
               ),
             ),
@@ -1242,15 +1242,15 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen>
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
-            theme.colorScheme.primary.withValues(alpha: 0.1),
-            theme.colorScheme.primary.withValues(alpha: 0.05),
+            AppColors.harvestAmber.withValues(alpha: 0.1),
+            AppColors.harvestAmber.withValues(alpha: 0.05),
           ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: theme.colorScheme.primary.withValues(alpha: 0.3),
+          color: AppColors.harvestAmber.withValues(alpha: 0.3),
         ),
       ),
       child: Column(
@@ -1261,12 +1261,12 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen>
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: theme.colorScheme.primary.withValues(alpha: 0.2),
+                  color: AppColors.harvestAmber.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Icon(
                   Icons.local_shipping_rounded,
-                  color: theme.colorScheme.primary,
+                  color: AppColors.harvestAmber,
                   size: 22,
                 ),
               ),
@@ -1286,7 +1286,7 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen>
               Container(
                 width: 1,
                 height: 50,
-                color: theme.colorScheme.primary.withValues(alpha: 0.2),
+                color: AppColors.harvestAmber.withValues(alpha: 0.2),
               ),
               Expanded(
                 child: _buildDeliveryInfoItem(
@@ -1311,7 +1311,7 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen>
   ) {
     return Column(
       children: [
-        Icon(icon, color: theme.colorScheme.primary, size: 24),
+        Icon(icon, color: AppColors.harvestAmber, size: 24),
         const SizedBox(height: 8),
         Text(
           label,
@@ -1323,7 +1323,7 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen>
           value,
           style: theme.textTheme.titleSmall?.copyWith(
             fontWeight: FontWeight.bold,
-            color: theme.colorScheme.primary,
+            color: AppColors.harvestAmber,
           ),
           textAlign: TextAlign.center,
         ),
@@ -1349,7 +1349,7 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen>
       children: [
         Icon(
           Icons.payments_rounded,
-          color: theme.colorScheme.primary,
+          color: AppColors.harvestAmber,
           size: 24,
         ),
         const SizedBox(height: 8),
@@ -1363,7 +1363,7 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen>
           'COD: ₹$codCharge',
           style: theme.textTheme.titleSmall?.copyWith(
             fontWeight: FontWeight.bold,
-            color: theme.colorScheme.primary,
+            color: AppColors.harvestAmber,
           ),
           textAlign: TextAlign.center,
         ),
@@ -1372,7 +1372,7 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen>
           'Prepaid: ₹$prepaidCharge',
           style: theme.textTheme.titleSmall?.copyWith(
             fontWeight: FontWeight.bold,
-            color: theme.colorScheme.primary,
+            color: AppColors.harvestAmber,
           ),
           textAlign: TextAlign.center,
         ),
@@ -1404,7 +1404,7 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen>
             child: ElevatedButton(
               onPressed: _isLoading ? null : _onContinuePressed,
               style: ElevatedButton.styleFrom(
-                backgroundColor: theme.colorScheme.primary,
+                backgroundColor: AppColors.harvestAmber,
                 foregroundColor: AppColors.parchment,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(16),
@@ -1454,7 +1454,7 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen>
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              CircularProgressIndicator(color: theme.colorScheme.primary),
+              CircularProgressIndicator(color: AppColors.harvestAmber),
               const SizedBox(height: 16),
               Text('Processing...', style: theme.textTheme.bodyMedium),
             ],

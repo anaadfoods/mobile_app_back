@@ -28,8 +28,6 @@ class ProductDetailsScreen extends StatefulWidget {
 class _ProductDetailsScreenState extends State<ProductDetailsScreen>
     with TickerProviderStateMixin {
   // --- ANIMATION CONTROLLERS ---
-  late AnimationController _shimmerController;
-  late Animation<double> _shimmerAnimation;
 
   // --- NON-CART STATE VARIABLES (Remain unchanged) ---
   int? _selectedPlanId;
@@ -77,14 +75,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
   }
 
   void _initAnimations() {
-    // Shimmer animation
-    _shimmerController = AnimationController(
-      duration: const Duration(milliseconds: 2500),
-      vsync: this,
-    )..repeat();
-    _shimmerAnimation = Tween<double>(begin: -1.0, end: 2.0).animate(
-      CurvedAnimation(parent: _shimmerController, curve: Curves.easeInOut),
-    );
+    // Shimmer animation removed — no longer needed
   }
 
   void _triggerHaptic() {
@@ -95,7 +86,6 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
   void dispose() {
     _cartDebounceTimer?.cancel();
     _pageController.dispose();
-    _shimmerController.dispose();
     super.dispose();
   }
 
@@ -169,7 +159,8 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
             if (!mounted) return;
 
             // Determine initial plan index
-            int initialIndex = allPlans.length - 1; // Default to max duration
+            int initialIndex = -1;
+
             if (widget.initialPlanId != null) {
               final foundIndex = allPlans.indexWhere(
                 (p) => p.id == widget.initialPlanId,
@@ -179,9 +170,23 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
               }
             }
 
+            // If still -1, find the max duration among AVAILABLE plans
+            if (initialIndex == -1) {
+              int maxDur = -1;
+              for (int i = 0; i < allPlans.length; i++) {
+                final isAvailable = availablePlansForProduct.any(
+                  (p) => p.planName == allPlans[i].name,
+                );
+                if (isAvailable && allPlans[i].durationMonths > maxDur) {
+                  maxDur = allPlans[i].durationMonths;
+                  initialIndex = i;
+                }
+              }
+            }
+
             _showSubscriptionSelectionSheet(
               initialPlanIndex: initialIndex,
-              initialPlanId: allPlans[initialIndex].id,
+              initialPlanId: initialIndex != -1 ? allPlans[initialIndex].id : -1,
             );
           });
         }
@@ -203,59 +208,34 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
       backgroundColor: isDark ? AppColors.darkCanvas : AppColors.parchment,
       body: Stack(
         children: [
-          // Blurred Background with shimmer
-          AnimatedBuilder(
-            animation: _shimmerController,
-            builder: (context, _) {
-              return Container(
+          // Blurred Background
+          Container(
+            decoration: BoxDecoration(
+              image: DecorationImage(
+                image: CachedNetworkImageProvider(backgroundImage),
+                fit: BoxFit.cover,
+              ),
+            ),
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+              child: Container(
                 decoration: BoxDecoration(
-                  image: DecorationImage(
-                    image: CachedNetworkImageProvider(backgroundImage),
-                    fit: BoxFit.cover,
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      // Ensure high contrast overlay for readability
+                      isDark
+                          ? AppColors.darkCanvas.withValues(alpha: 0.7)
+                          : AppColors.parchment.withValues(alpha: 0.85),
+                      isDark
+                          ? AppColors.darkCanvas.withValues(alpha: 0.85)
+                          : AppColors.parchment.withValues(alpha: 0.95),
+                    ],
                   ),
                 ),
-                child: BackdropFilter(
-                  filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
-                  child: Container(
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                        colors: [
-                          // Ensure high contrast overlay for readability
-                          isDark
-                              ? AppColors.darkCanvas.withValues(alpha: 0.7)
-                              : AppColors.parchment.withValues(alpha: 0.85),
-                          isDark
-                              ? AppColors.darkCanvas.withValues(alpha: 0.85)
-                              : AppColors.parchment.withValues(alpha: 0.95),
-                        ],
-                      ),
-                    ),
-                    // Shimmer overlay (subtle)
-                    child: Container(
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                          colors: [
-                            AppColors.transparent,
-                            (isDark ? AppColors.parchment : AppColors.darkSurface)
-                                .withValues(alpha: 0.02),
-                            AppColors.transparent,
-                          ],
-                          stops: [
-                            (_shimmerAnimation.value - 0.3).clamp(0.0, 1.0),
-                            _shimmerAnimation.value.clamp(0.0, 1.0),
-                            (_shimmerAnimation.value + 0.3).clamp(0.0, 1.0),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              );
-            },
+              ),
+            ),
           ),
 
           SafeArea(
@@ -374,7 +354,10 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
                 child: Container(
                   padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
-                    color: isDark ? AppColors.darkSurfaceElevated : AppColors.parchment,
+                    color:
+                        isDark
+                            ? AppColors.darkSurfaceElevated
+                            : AppColors.parchment,
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Icon(
@@ -417,7 +400,9 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
                           color:
                               isFavorite
                                   ? AppColors.softRed.withValues(alpha: 0.3)
-                                  : AppColors.darkSurface.withValues(alpha: 0.08),
+                                  : AppColors.darkSurface.withValues(
+                                    alpha: 0.08,
+                                  ),
                         ),
                       ),
                       child: Icon(
@@ -501,7 +486,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
           '₹${widget.product.finalPrice.toStringAsFixed(0)}',
           style: theme.textTheme.headlineMedium?.copyWith(
             fontWeight: FontWeight.bold,
-            color: isDark ? AppColors.parchment : AppColors.charcoal,
+            color: AppColors.harvestAmber,
           ),
         ),
         const SizedBox(width: 12),
@@ -511,9 +496,10 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
             '₹${widget.product.price.toStringAsFixed(0)}',
             style: theme.textTheme.bodyLarge?.copyWith(
               decoration: TextDecoration.lineThrough,
-              color: isDark
-                  ? AppColors.parchment.withValues(alpha: 0.5)
-                  : AppColors.rawEarth54,
+              color:
+                  isDark
+                      ? AppColors.parchment.withValues(alpha: 0.5)
+                      : AppColors.rawEarth54,
             ),
           ),
         ),
@@ -741,7 +727,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
                           isSelected
                               ? null
                               : (isDark
-                                  ? AppColors.darkSurfaceElevated
+                                  ? AppColors.darkMintGreen
                                   : AppColors.pureWhite),
                       borderRadius: BorderRadius.circular(16),
                       border: Border.all(
@@ -773,14 +759,17 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
                           Text(
                             plan.name,
                             style: TextStyle(
-                              fontWeight: FontWeight.bold,
                               fontSize: 13,
                               color:
                                   isSelected
                                       ? AppColors.pureWhite
                                       : (isDark
-                                          ? AppColors.parchment
-                                          : AppColors.charcoal),
+                                          ? AppColors.pureWhite
+                                          : AppColors.pureBlack),
+                              fontWeight:
+                                  (isDark && !isSelected)
+                                      ? FontWeight.w900
+                                      : FontWeight.bold,
                             ),
                           ),
                           const SizedBox(height: 8),
@@ -793,9 +782,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
                                   color:
                                       isSelected
                                           ? AppColors.pureWhite
-                                          : (isDark
-                                              ? AppColors.parchment
-                                              : AppColors.charcoal),
+                                          : AppColors.harvestAmber,
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
@@ -889,13 +876,20 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
                   ),
                 );
               },
-              child: const Row(
+              child: Row(
                 children: [
-                  Text("See All", style: TextStyle(color: AppColors.parchment)),
-                  SizedBox(width: 4),
+                  Text(
+                    "See All",
+                    style: TextStyle(
+                      color:
+                          isDark ? AppColors.parchment : AppColors.pureBlack,
+                    ),
+                  ),
+                  const SizedBox(width: 4),
                   Icon(
                     Icons.arrow_forward,
-                    color: AppColors.parchment,
+                    color:
+                        isDark ? AppColors.parchment : AppColors.pureBlack,
                     size: 16,
                   ),
                 ],
@@ -1053,7 +1047,12 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
                         child: Container(
                           height: 50,
                           decoration: BoxDecoration(
-                            color: isDark ? AppColors.darkCanvas : AppColors.rawEarth54.withValues(alpha: 0.2),
+                            color:
+                                isDark
+                                    ? AppColors.darkCanvas
+                                    : AppColors.rawEarth54.withValues(
+                                      alpha: 0.2,
+                                    ),
                             borderRadius: BorderRadius.circular(12),
                           ),
                         ),
@@ -1063,7 +1062,12 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
                         child: Container(
                           height: 50,
                           decoration: BoxDecoration(
-                            color: isDark ? AppColors.darkCanvas : AppColors.rawEarth54.withValues(alpha: 0.2),
+                            color:
+                                isDark
+                                    ? AppColors.darkCanvas
+                                    : AppColors.rawEarth54.withValues(
+                                      alpha: 0.2,
+                                    ),
                             borderRadius: BorderRadius.circular(12),
                           ),
                         ),
@@ -1123,8 +1127,12 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
             ),
             style: OutlinedButton.styleFrom(
               padding: const EdgeInsets.symmetric(vertical: 16),
-              foregroundColor: isDark ? AppColors.harvestAmber : AppColors.deepSoilGreen,
-              side: BorderSide(color: isDark ? AppColors.harvestAmber : AppColors.deepSoilGreen),
+              foregroundColor:
+                  isDark ? AppColors.harvestAmber : AppColors.harvestAmber,
+              side: BorderSide(
+                color:
+                    isDark ? AppColors.harvestAmber : AppColors.harvestAmber,
+              ),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
               ),
@@ -1135,25 +1143,38 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
         Expanded(
           child: ElevatedButton.icon(
             onPressed: () {
-              // Open the subscription sheet, selecting the plan with MAX duration by default
-              if (allPlans.isNotEmpty) {
-                // Find the plan with the maximum duration
-                int maxDurationIndex = 0;
+              // Open the subscription sheet
+              // Check if there are actually available plans for THIS product
+              bool hasSubscriptions = availablePlansForProduct.isNotEmpty;
+
+              if (hasSubscriptions && allPlans.isNotEmpty) {
+                // Find the plan with the maximum duration that is AVAILABLE for this product
+                int maxDurationIndex = -1;
                 int maxDuration = -1;
 
                 for (int i = 0; i < allPlans.length; i++) {
-                  if (allPlans[i].durationMonths > maxDuration) {
+                  final isAvailable = availablePlansForProduct.any(
+                    (p) => p.planName == allPlans[i].name,
+                  );
+                  if (isAvailable && allPlans[i].durationMonths > maxDuration) {
                     maxDuration = allPlans[i].durationMonths;
                     maxDurationIndex = i;
                   }
                 }
 
-                _showSubscriptionSelectionSheet(
-                  initialPlanIndex: maxDurationIndex,
-                  initialPlanId: allPlans[maxDurationIndex].id,
-                );
+                if (maxDurationIndex != -1) {
+                  _showSubscriptionSelectionSheet(
+                    initialPlanIndex: maxDurationIndex,
+                    initialPlanId: allPlans[maxDurationIndex].id,
+                  );
+                } else {
+                  _showSubscriptionSelectionSheet(
+                    initialPlanIndex: -1,
+                    initialPlanId: -1,
+                  );
+                }
               } else {
-                // Fallback if no plans (should ideally not happen if plans are loaded)
+                // Default to One-time purchase if no subscriptions available
                 _showSubscriptionSelectionSheet(
                   initialPlanIndex: -1,
                   initialPlanId: -1,
@@ -1163,14 +1184,14 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
             icon: const Icon(
               Icons.shopping_bag_rounded,
               size: 20,
-              color: AppColors.parchment,
+              color: AppColors.pureWhite,
             ),
             label: const Text(
               "Buy Now",
               style: TextStyle(
                 fontWeight: FontWeight.w800,
                 fontSize: 16,
-                color: AppColors.parchment,
+                color: AppColors.pureWhite,
                 letterSpacing: 0.5,
               ),
             ),
@@ -1213,8 +1234,12 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
             ),
             style: OutlinedButton.styleFrom(
               padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
-              side: BorderSide(color: isDark ? AppColors.harvestAmber : AppColors.deepSoilGreen),
-              foregroundColor: isDark ? AppColors.harvestAmber : AppColors.deepSoilGreen,
+              side: BorderSide(
+                color:
+                    isDark ? AppColors.harvestAmber : AppColors.harvestAmber,
+              ),
+              foregroundColor:
+                  isDark ? AppColors.harvestAmber : AppColors.harvestAmber,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
               ),
@@ -1829,7 +1854,7 @@ class _ModernSubscriptionSheetState extends State<_ModernSubscriptionSheet>
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    final accentColor = theme.colorScheme.primary;
+    final accentColor = AppColors.harvestAmber;
 
     return SlideTransition(
       position: _slideAnimation,
@@ -2120,7 +2145,9 @@ class _ModernSubscriptionSheetState extends State<_ModernSubscriptionSheet>
                     Container(
                       decoration: BoxDecoration(
                         color:
-                            isDark ? AppColors.darkSurface : AppColors.parchment,
+                            isDark
+                                ? AppColors.darkSurface
+                                : AppColors.parchment,
                         border: Border(
                           top: BorderSide(
                             color:
@@ -2232,7 +2259,7 @@ class _ModernSubscriptionSheetState extends State<_ModernSubscriptionSheet>
     bool isEnabled,
     int index,
   ) {
-    final accentColor = theme.colorScheme.primary;
+    final accentColor = AppColors.harvestAmber;
 
     return GestureDetector(
       onTap:
@@ -2258,7 +2285,9 @@ class _ModernSubscriptionSheetState extends State<_ModernSubscriptionSheet>
           color:
               isSelected
                   ? null
-                  : (isDark ? AppColors.darkSurfaceElevated : AppColors.pureWhite),
+                  : (isDark
+                      ? AppColors.darkMintGreen
+                      : AppColors.pureWhite),
           borderRadius: BorderRadius.circular(18),
           border: Border.all(
             color:
@@ -2331,8 +2360,13 @@ class _ModernSubscriptionSheetState extends State<_ModernSubscriptionSheet>
                         Text(
                           plan.name,
                           style: theme.textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.bold,
-                            color: isSelected ? AppColors.pureWhite : null,
+                            color: isSelected
+                                ? AppColors.pureWhite
+                                : (isDark ? AppColors.pureWhite : null),
+                            fontWeight:
+                                (isDark && !isSelected)
+                                    ? FontWeight.w900
+                                    : FontWeight.bold,
                           ),
                         ),
                         const SizedBox(height: 2),
@@ -2342,7 +2376,13 @@ class _ModernSubscriptionSheetState extends State<_ModernSubscriptionSheet>
                             color:
                                 isSelected
                                     ? AppColors.pureWhite.withValues(alpha: 0.7)
-                                    : theme.hintColor,
+                                    : (isDark
+                                        ? AppColors.parchment70
+                                        : theme.hintColor),
+                            fontWeight:
+                                (isDark && !isSelected)
+                                    ? FontWeight.bold
+                                    : FontWeight.normal,
                           ),
                         ),
                       ],
@@ -2357,7 +2397,10 @@ class _ModernSubscriptionSheetState extends State<_ModernSubscriptionSheet>
                         '₹${planData.discountedPrice.toStringAsFixed(0)}',
                         style: theme.textTheme.titleMedium?.copyWith(
                           fontWeight: FontWeight.bold,
-                          color: isSelected ? AppColors.pureWhite : accentColor,
+                          color:
+                              isSelected
+                                  ? AppColors.pureWhite
+                                  : AppColors.harvestAmber,
                         ),
                       ),
                       Text(
@@ -2366,7 +2409,13 @@ class _ModernSubscriptionSheetState extends State<_ModernSubscriptionSheet>
                           color:
                               isSelected
                                   ? AppColors.pureWhite.withValues(alpha: 0.6)
-                                  : theme.hintColor,
+                                  : (isDark
+                                      ? AppColors.parchment70
+                                      : theme.hintColor),
+                          fontWeight:
+                              (isDark && !isSelected)
+                                  ? FontWeight.bold
+                                  : FontWeight.normal,
                         ),
                       ),
                     ],
@@ -2454,7 +2503,7 @@ class _ModernSubscriptionSheetState extends State<_ModernSubscriptionSheet>
         Text(
           value,
           style: const TextStyle(
-            color: AppColors.parchment,
+            color: AppColors.harvestAmber,
             fontWeight: FontWeight.bold,
             fontSize: 14,
           ),
@@ -2470,7 +2519,7 @@ class _ModernSubscriptionSheetState extends State<_ModernSubscriptionSheet>
         Flexible(
           child: Text(
             label,
-            style: const TextStyle(color: AppColors.charcoal26, fontSize: 12),
+            style: const TextStyle(color: AppColors.parchment70, fontSize: 12),
             overflow: TextOverflow.ellipsis,
           ),
         ),
@@ -2478,7 +2527,7 @@ class _ModernSubscriptionSheetState extends State<_ModernSubscriptionSheet>
         Text(
           '₹${amount.toStringAsFixed(0)}',
           style: const TextStyle(
-            color: AppColors.charcoal,
+            color: AppColors.harvestAmber,
             fontWeight: FontWeight.bold,
             fontSize: 14,
           ),
@@ -2537,7 +2586,7 @@ class _ModernSubscriptionSheetState extends State<_ModernSubscriptionSheet>
     bool isDark,
     bool isSelected,
   ) {
-    final accentColor = theme.colorScheme.primary;
+    final accentColor = AppColors.harvestAmber;
 
     return GestureDetector(
       onTap: () {
@@ -2560,7 +2609,9 @@ class _ModernSubscriptionSheetState extends State<_ModernSubscriptionSheet>
           color:
               isSelected
                   ? null
-                  : (isDark ? AppColors.darkSurfaceElevated : AppColors.pureWhite),
+                  : (isDark
+                      ? AppColors.darkSurfaceElevated
+                      : AppColors.pureWhite),
           borderRadius: BorderRadius.circular(18),
           border: Border.all(
             color:
@@ -2655,7 +2706,10 @@ class _ModernSubscriptionSheetState extends State<_ModernSubscriptionSheet>
                   '₹${widget.product.finalPrice.toStringAsFixed(0)}',
                   style: theme.textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.bold,
-                    color: isSelected ? AppColors.pureWhite : accentColor,
+                    color:
+                        isSelected
+                            ? AppColors.pureWhite
+                            : AppColors.harvestAmber,
                   ),
                 ),
               ],

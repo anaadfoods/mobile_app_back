@@ -379,8 +379,17 @@ class _AccountScreenState extends State<AccountScreen>
                 Row(
                   children: [
                     // Avatar
-                    _buildHeroAvatar(theme, user),
-                    const SizedBox(width: 16),
+                    GestureDetector(
+                      onTap: () {
+                        _triggerHaptic();
+                        context.pushNamed(
+                          AppRoute.editProfile.name,
+                          extra: user,
+                        );
+                      },
+                      child: _buildHeroAvatar(theme, user),
+                    ),
+                    const SizedBox(width: 8),
                     // User details - right aligned
                     Expanded(
                       child: Column(
@@ -461,141 +470,119 @@ class _AccountScreenState extends State<AccountScreen>
 
   /// Circular avatar with shimmer ring for the hero section
   Widget _buildHeroAvatar(ThemeData theme, UserModel user) {
-    return AnimatedBuilder(
-      animation: _shimmerController,
-      builder: (context, child) {
-        return Container(
-          padding: const EdgeInsets.all(3.5),
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            gradient: SweepGradient(
-              startAngle: _shimmerController.value * math.pi * 2,
-              colors: [
-                AppColors.parchment,
-                AppColors.parchment.withAlpha(100),
-                AppColors.parchment,
-              ],
-            ),
+    final bool hasImage =
+        user.profilePicture != null &&
+        user.profilePicture!.isNotEmpty &&
+        user.profilePicture != "null";
+
+    return Container(
+      width: 68,
+      height: 68,
+      decoration: BoxDecoration(
+        color: AppColors.parchment.withAlpha(hasImage ? 40 : 25),
+        shape: BoxShape.circle,
+        border: Border.all(color: AppColors.parchment.withAlpha(60), width: 1),
+      ),
+      child: Center(
+        child: CircleAvatar(
+          radius: 30,
+          backgroundColor: theme.colorScheme.primary.withAlpha(
+            hasImage ? 40 : 80,
           ),
-          child: CircleAvatar(
-            radius: 34,
-            backgroundColor: AppColors.parchment.withAlpha(30),
-            child: CircleAvatar(
-              radius: 31,
-              backgroundColor: theme.colorScheme.primary.withAlpha(60),
-              backgroundImage:
-                  user.profilePicture != null && user.profilePicture!.isNotEmpty
-                      ? NetworkImage(user.profilePicture!)
-                      : null,
-              child:
-                  user.profilePicture == null || user.profilePicture!.isEmpty
-                      ? const Icon(
-                        Icons.person_rounded,
-                        size: 32,
-                        color: AppColors.parchment,
-                      )
-                      : null,
-            ),
-          ),
-        );
-      },
+          backgroundImage: hasImage ? NetworkImage(user.profilePicture!) : null,
+          child:
+              !hasImage
+                  ? const Icon(
+                    Icons.person_rounded,
+                    size: 34,
+                    color: AppColors.parchment,
+                  )
+                  : null,
+        ),
+      ),
     );
   }
 
   // Refer & Earn green banner
   Widget _buildReferEarnBanner(BuildContext context, ThemeData theme) {
-    return TweenAnimationBuilder<double>(
-      tween: Tween(begin: 0.0, end: 1.0),
-      duration: const Duration(milliseconds: 600),
-      curve: Curves.easeOut,
-      builder: (context, value, child) {
-        return Opacity(
-          opacity: value.clamp(0.0, 1.0),
-          child: Transform.translate(
-            offset: Offset(0, 10 * (1 - value)),
-            child: child,
-          ),
-        );
+    return GestureDetector(
+      onTap: () {
+        _triggerMediumHaptic();
+        context.pushNamed(AppRoute.referEarn.name);
       },
-      child: GestureDetector(
-        onTap: () {
-          _triggerMediumHaptic();
-          context.pushNamed(AppRoute.referEarn.name);
-        },
-        child: Container(
-          width: double.infinity,
-          padding: const EdgeInsets.all(18),
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                theme.colorScheme.primary,
-                theme.colorScheme.primary.withAlpha(200),
-              ],
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(18),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              theme.colorScheme.primary,
+              theme.colorScheme.primary.withAlpha(200),
+            ],
+          ),
+          borderRadius: BorderRadius.circular(18),
+          boxShadow: [
+            BoxShadow(
+              color: theme.colorScheme.primary.withAlpha(60),
+              blurRadius: 16,
+              offset: const Offset(0, 6),
             ),
-            borderRadius: BorderRadius.circular(18),
-            boxShadow: [
-              BoxShadow(
-                color: theme.colorScheme.primary.withAlpha(60),
-                blurRadius: 16,
-                offset: const Offset(0, 6),
+          ],
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: AppColors.parchment.withAlpha(50),
+                borderRadius: BorderRadius.circular(14),
               ),
-            ],
-          ),
-          child: Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: AppColors.parchment.withAlpha(50),
-                  borderRadius: BorderRadius.circular(14),
-                ),
-                child: const Icon(
-                  Icons.card_giftcard_rounded,
-                  color: AppColors.parchment,
-                  size: 28,
-                ),
+              child: const Icon(
+                Icons.card_giftcard_rounded,
+                color: AppColors.parchment,
+                size: 28,
               ),
-              const SizedBox(width: 14),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'Refer & Earn',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.parchment,
-                        letterSpacing: 0.3,
-                      ),
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Refer & Earn',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.parchment,
+                      letterSpacing: 0.3,
                     ),
-                    const SizedBox(height: 3),
-                    Text(
-                      'Share health with friends & get rewards',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: AppColors.parchment.withAlpha(220),
-                      ),
+                  ),
+                  const SizedBox(height: 3),
+                  Text(
+                    'Share health with friends & get rewards',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: AppColors.parchment.withAlpha(220),
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: AppColors.parchment.withAlpha(40),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: const Icon(
-                  Icons.arrow_forward_rounded,
-                  color: AppColors.parchment,
-                  size: 20,
-                ),
+            ),
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: AppColors.parchment.withAlpha(40),
+                borderRadius: BorderRadius.circular(10),
               ),
-            ],
-          ),
+              child: const Icon(
+                Icons.arrow_forward_rounded,
+                color: AppColors.parchment,
+                size: 20,
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -626,9 +613,10 @@ class _AccountScreenState extends State<AccountScreen>
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(20),
-                color: isDark
-                    ? AppColors.charcoal.withAlpha(120)
-                    : AppColors.pureWhite.withAlpha(180),
+                color:
+                    isDark
+                        ? AppColors.charcoal.withAlpha(120)
+                        : AppColors.pureWhite.withAlpha(180),
                 border: Border.all(
                   color: accentColor.withAlpha(
                     ((glowIntensity + 0.1) * 200).round(),

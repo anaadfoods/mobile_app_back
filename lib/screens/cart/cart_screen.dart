@@ -310,7 +310,7 @@ class _CartScreenState extends State<CartScreen> with TickerProviderStateMixin {
                           Text(
                             '₹${totalAmount.toStringAsFixed(2)}',
                             style: theme.textTheme.headlineSmall?.copyWith(
-                              color: theme.colorScheme.primary,
+                              color: AppColors.harvestAmber,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
@@ -677,8 +677,8 @@ class _AnimatedCartItemState extends State<_AnimatedCartItem> {
                             ),
                             child: Text(
                               '₹${item.productVariant.finalPrice.toStringAsFixed(0)}',
-                              style: TextStyle(
-                                color: theme.colorScheme.primary,
+                              style: const TextStyle(
+                                color: AppColors.harvestAmber,
                                 fontWeight: FontWeight.bold,
                                 fontSize: 14,
                               ),

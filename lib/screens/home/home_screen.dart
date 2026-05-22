@@ -214,12 +214,12 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                             children: [
                               // Modern Welcome Section with Avatar
                               const AnaadLogoMark(
-                                size: 42,
-                                logoSize: 30,
+                                size: 50,
+                                logoSize: 40,
                                 backgroundOpacity: 0.18,
                                 showShadow: false,
                               ),
-                              const SizedBox(width: 10),
+                              const SizedBox(width: 6),
                               Expanded(
                                 child: BlocBuilder<AuthCubit, AuthState>(
                                   buildWhen: (prev, curr) => prev != curr,
@@ -294,7 +294,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                           //             : null,
                                           //   ),
                                           // ),
-                                          const SizedBox(width: 12),
+                                          const SizedBox(width: 4),
                                           // Greeting Text Column
                                           Expanded(
                                             child: Column(

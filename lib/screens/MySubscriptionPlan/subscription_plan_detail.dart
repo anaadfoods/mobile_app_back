@@ -25,19 +25,19 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
       'Active',
       'ACTIVE',
       Icons.autorenew_rounded,
-      AppColors.deepSoilGreen,
+      AppColors.harvestAmber,
     ),
     _FilterTab(
       'Paused',
       'PAUSED',
       Icons.pause_circle_outline,
-      AppColors.harvestAmber,
+      AppColors.rawEarth,
     ),
     _FilterTab(
       'Cancelled',
       'CANCELLED',
       Icons.cancel_outlined,
-      AppColors.rawEarth,
+      AppColors.charcoal,
     ),
     _FilterTab(
       'Completed',
@@ -122,7 +122,13 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
-    return Scaffold(
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) return;
+        context.goNamed(AppRoute.home.name);
+      },
+      child: Scaffold(
       backgroundColor: isDark ? AppColors.darkCanvas : AppColors.parchment,
       body: RefreshIndicator(
         onRefresh: _fetchSubscriptions,
@@ -140,6 +146,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
             _buildContent(theme, isDark),
           ],
         ),
+      ),
       ),
     );
   }
@@ -242,7 +249,11 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     // ANAAD Logo
-                    const AnaadLogoMark(),
+                    Row(
+                      children: [
+                        const AnaadLogoMark(),
+                      ],
+                    ),
                     const SizedBox(height: 16),
                     // Title
                     FittedBox(
@@ -294,6 +305,27 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBackButton(ThemeData theme, bool isDark) {
+    return GestureDetector(
+      onTap: () {
+        HapticFeedback.lightImpact();
+        context.goNamed(AppRoute.home.name);
+      },
+      child: Container(
+        padding: const EdgeInsets.all(10),
+        decoration: BoxDecoration(
+          color: AppColors.parchment.withValues(alpha: 0.2),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: const Icon(
+          Icons.arrow_back_rounded,
+          color: AppColors.harvestAmber,
+          size: 20,
         ),
       ),
     );
@@ -509,7 +541,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
               Icons.shopping_bag_rounded,
               activeCount.toString(),
               'Active',
-              AppColors.deepSoilGreen,
+              AppColors.harvestAmber,
             ),
           ),
           Container(
@@ -524,7 +556,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
               Icons.currency_rupee_rounded,
               '₹${totalSpent.toStringAsFixed(0)}',
               'Total Value',
-              AppColors.deepSoilGreen,
+              AppColors.harvestAmber,
             ),
           ),
           Container(
@@ -539,7 +571,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
               Icons.inventory_2_rounded,
               allSubscriptions.length.toString(),
               'Total',
-              AppColors.deepSoilGreen,
+              AppColors.harvestAmber,
             ),
           ),
         ],
@@ -1009,13 +1041,13 @@ class _SubscriptionCardState extends State<_SubscriptionCard> {
                           Icon(
                             Icons.calendar_month_rounded,
                             size: 14,
-                            color: AppColors.deepSoilGreen,
+                            color: AppColors.harvestAmber,
                           ),
                           const SizedBox(width: 4),
                           Text(
                             subscription.planName,
                             style: theme.textTheme.labelSmall?.copyWith(
-                              color: AppColors.deepSoilGreen,
+                              color: AppColors.harvestAmber,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
@@ -1113,7 +1145,7 @@ class _SubscriptionCardState extends State<_SubscriptionCard> {
                                   '₹${subscription.items[0].discountedPrice.toStringAsFixed(0)}',
                                   style: theme.textTheme.titleLarge?.copyWith(
                                     fontWeight: FontWeight.bold,
-                                    color: AppColors.deepSoilGreen,
+                                    color: AppColors.harvestAmber,
                                   ),
                                 ),
                                 const SizedBox(width: 8),
@@ -1165,7 +1197,7 @@ class _SubscriptionCardState extends State<_SubscriptionCard> {
                                               ? AppColors.charcoal
                                               : AppColors.snowWhite,
                                       valueColor: AlwaysStoppedAnimation<Color>(
-                                        AppColors.deepSoilGreen,
+                                        AppColors.harvestAmber,
                                       ),
                                     ),
                                   ),
@@ -1309,14 +1341,14 @@ class _SubscriptionCardState extends State<_SubscriptionCard> {
                           decoration: BoxDecoration(
                             gradient: LinearGradient(
                               colors: [
-                                AppColors.deepSoilGreen,
-                                AppColors.deepSoilGreen,
+                                AppColors.harvestAmber,
+                                AppColors.harvestAmber,
                               ],
                             ),
                             borderRadius: BorderRadius.circular(14),
                             boxShadow: [
                               BoxShadow(
-                                color: AppColors.deepSoilGreen.withValues(
+                                color: AppColors.harvestAmber.withValues(
                                   alpha: 0.3,
                                 ),
                                 blurRadius: 8,
@@ -1419,7 +1451,7 @@ class _SubscriptionCardState extends State<_SubscriptionCard> {
     switch (status.toUpperCase()) {
       case 'ACTIVE':
         return _StatusInfo(
-          AppColors.deepSoilGreen,
+          AppColors.harvestAmber,
           Icons.autorenew_rounded,
           'Active',
         );
@@ -1437,7 +1469,7 @@ class _SubscriptionCardState extends State<_SubscriptionCard> {
         );
       case 'COMPLETED':
         return _StatusInfo(
-          AppColors.deepSoilGreen,
+          AppColors.harvestAmber,
           Icons.check_circle_rounded,
           'Completed',
         );

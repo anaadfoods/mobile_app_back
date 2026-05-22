@@ -303,66 +303,73 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
     final isDark = theme.brightness == Brightness.dark;
     final status = _getStatusInfo(_currentOrder!.status);
 
-    return Scaffold(
-      backgroundColor: isDark ? AppColors.darkCanvas : AppColors.parchment,
-      body: RefreshIndicator(
-        onRefresh: () async {
-          // Refresh order details and tracking
-          final updatedOrder = await _orderService.getOrderById(
-            _currentOrder!.id,
-          );
-          if (updatedOrder.id == _currentOrder!.id) {
-            setState(() {
-              _currentOrder = updatedOrder;
-            });
-          }
-          await _fetchTracking();
-        },
-        color: theme.colorScheme.primary,
-        child: CustomScrollView(
-          physics: const AlwaysScrollableScrollPhysics(),
-          slivers: [
-            // Premium U-Shape Header
-            _buildAnimatedHeader(theme, isDark, status),
-            // Content
-            SliverToBoxAdapter(
-              child: FadeTransition(
-                opacity: _fadeAnimation,
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 100),
-                  child: Column(
-                    children: [
-                      // Premium Delivery Header (Amazon-style)
-                      _buildDeliveryDateHeader(theme, isDark),
-                      const SizedBox(height: 16),
-                      // Order Timeline with tracking
-                      _buildTrackingTimelineCard(theme, isDark),
-                      const SizedBox(height: 16),
-                      // Referral Reward Banner
-                      if (_currentOrder!.hasReferralReward)
-                        _buildReferralRewardBanner(theme, isDark),
-                      if (_currentOrder!.hasReferralReward)
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) return;
+        context.goNamed(AppRoute.home.name);
+      },
+      child: Scaffold(
+        backgroundColor: isDark ? AppColors.darkCanvas : AppColors.parchment,
+        body: RefreshIndicator(
+          onRefresh: () async {
+            // Refresh order details and tracking
+            final updatedOrder = await _orderService.getOrderById(
+              _currentOrder!.id,
+            );
+            if (updatedOrder.id == _currentOrder!.id) {
+              setState(() {
+                _currentOrder = updatedOrder;
+              });
+            }
+            await _fetchTracking();
+          },
+          color: theme.colorScheme.primary,
+          child: CustomScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            slivers: [
+              // Premium U-Shape Header
+              _buildAnimatedHeader(theme, isDark, status),
+              // Content
+              SliverToBoxAdapter(
+                child: FadeTransition(
+                  opacity: _fadeAnimation,
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 100),
+                    child: Column(
+                      children: [
+                        // Premium Delivery Header (Amazon-style)
+                        _buildDeliveryDateHeader(theme, isDark),
                         const SizedBox(height: 16),
-                      // Products
-                      _buildProductsCard(theme, isDark),
-                      const SizedBox(height: 16),
-                      // Price Summary
-                      _buildPriceSummaryCard(theme, isDark),
-                      const SizedBox(height: 16),
-                      // Delivery Details
-                      _buildDeliveryCard(theme, isDark),
-                      const SizedBox(height: 16),
-                      // Actions
-                      _buildActionsCard(theme, isDark),
-                    ],
+                        // Order Timeline with tracking
+                        _buildTrackingTimelineCard(theme, isDark),
+                        const SizedBox(height: 16),
+                        // Referral Reward Banner
+                        if (_currentOrder!.hasReferralReward)
+                          _buildReferralRewardBanner(theme, isDark),
+                        if (_currentOrder!.hasReferralReward)
+                          const SizedBox(height: 16),
+                        // Products
+                        _buildProductsCard(theme, isDark),
+                        const SizedBox(height: 16),
+                        // Price Summary
+                        _buildPriceSummaryCard(theme, isDark),
+                        const SizedBox(height: 16),
+                        // Delivery Details
+                        _buildDeliveryCard(theme, isDark),
+                        const SizedBox(height: 16),
+                        // Actions
+                        _buildActionsCard(theme, isDark),
+                      ],
+                    ),
                   ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
+        floatingActionButton: _buildWhatsAppFAB(),
       ),
-      floatingActionButton: _buildWhatsAppFAB(),
     );
   }
 
@@ -428,11 +435,8 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     // Top Row with Back Button and Invoice Button
-                    Wrap(
-                      alignment: WrapAlignment.spaceBetween,
-                      crossAxisAlignment: WrapCrossAlignment.center,
-                      spacing: 12,
-                      runSpacing: 8,
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         const AnaadLogoMark(),
                         // Action Buttons: Refresh, Invoice
@@ -467,7 +471,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
                                 ),
                                 child: const Icon(
                                   Icons.refresh_rounded,
-                                  color: AppColors.parchment,
+                                  color: AppColors.harvestAmber,
                                   size: 20,
                                 ),
                               ),
@@ -485,7 +489,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
                                 ),
                                 child: const Icon(
                                   Icons.receipt_long_rounded,
-                                  color: AppColors.parchment,
+                                  color: AppColors.harvestAmber,
                                   size: 20,
                                 ),
                               ),
@@ -511,13 +515,13 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
                           Icon(
                             status.icon,
                             size: 16,
-                            color: AppColors.parchment,
+                            color: AppColors.harvestAmber,
                           ),
                           const SizedBox(width: 8),
                           Text(
                             status.label,
                             style: const TextStyle(
-                              color: AppColors.parchment,
+                              color: AppColors.harvestAmber,
                               fontWeight: FontWeight.w600,
                               fontSize: 13,
                             ),
@@ -568,7 +572,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
                             ),
                             child: const Icon(
                               Icons.copy_rounded,
-                              color: AppColors.parchment,
+                              color: AppColors.harvestAmber,
                               size: 20,
                             ),
                           ),
@@ -580,6 +584,27 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBackButton(ThemeData theme, bool isDark) {
+    return GestureDetector(
+      onTap: () {
+        HapticFeedback.lightImpact();
+        context.goNamed(AppRoute.home.name);
+      },
+      child: Container(
+        padding: const EdgeInsets.all(10),
+        decoration: BoxDecoration(
+          color: AppColors.parchment.withValues(alpha: 0.2),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: const Icon(
+          Icons.arrow_back_rounded,
+          color: AppColors.harvestAmber,
+          size: 20,
         ),
       ),
     );
@@ -610,8 +635,8 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
       headerIcon = Icons.check_circle_rounded;
     } else if (isCancelled) {
       deliveryText = 'Order Cancelled';
-      headerColor = AppColors.rawEarth;
-      headerIcon = Icons.cancel_rounded;
+      headerColor = AppColors.deepSoilGreen;
+      headerIcon = Icons.local_shipping_rounded;
     } else if (estimatedDelivery != null) {
       deliveryText =
           'Arriving by ${DateFormat('d MMM, h:mm a').format(estimatedDelivery)}';
@@ -619,8 +644,8 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
       headerIcon = Icons.local_shipping_rounded;
     } else {
       deliveryText = 'Delivery date pending';
-      headerColor = AppColors.harvestAmber;
-      headerIcon = Icons.schedule_rounded;
+      headerColor = AppColors.deepSoilGreen;
+      headerIcon = Icons.local_shipping_rounded;
     }
 
     return Container(
@@ -753,7 +778,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
             theme,
             icon: Icons.timeline_rounded,
             title: 'Order Timeline',
-            color: AppColors.deepSoilGreen,
+            color: AppColors.harvestAmber,
           ),
           const SizedBox(height: 20),
           // Timeline stepper
@@ -779,13 +804,13 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
                     Icon(
                       Icons.history_rounded,
                       size: 18,
-                      color: AppColors.deepSoilGreen,
+                      color: AppColors.harvestAmber,
                     ),
                     const SizedBox(width: 8),
                     Text(
                       'See all ${_orderTracking!.trackingEvents.length} updates',
                       style: theme.textTheme.bodyMedium?.copyWith(
-                        color: AppColors.deepSoilGreen,
+                        color: AppColors.harvestAmber,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
@@ -793,7 +818,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
                     Icon(
                       Icons.arrow_forward_ios_rounded,
                       size: 14,
-                      color: AppColors.deepSoilGreen,
+                      color: AppColors.harvestAmber,
                     ),
                   ],
                 ),
@@ -949,7 +974,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
         title: 'Order Placed',
         subtitle: _formatShortDate(_currentOrder!.createdAt),
         icon: Icons.shopping_bag_outlined,
-        color: AppColors.deepSoilGreen,
+        color: AppColors.harvestAmber,
         isCompleted: true,
         isCurrent: status == 'PLACED' || status == 'CREATED',
       ),
@@ -999,7 +1024,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
         title: 'Shipped',
         subtitle: shippedSubtitle,
         icon: Icons.local_shipping_outlined,
-        color: AppColors.deepSoilGreen,
+        color: AppColors.harvestAmber,
         isCompleted: isShipped && !isCurrentShipped,
         isCurrent: isCurrentShipped,
       ),
@@ -1079,7 +1104,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
         title: 'Delivered',
         subtitle: deliveredSubtitle,
         icon: Icons.home_outlined,
-        color: AppColors.deepSoilGreen,
+        color: AppColors.harvestAmber,
         isCompleted: isDelivered,
         isCurrent: isDelivered,
       ),
@@ -1243,7 +1268,9 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
                       color:
-                          isDark ? AppColors.darkSurfaceElevated : AppColors.parchment!,
+                          isDark
+                              ? AppColors.darkSurfaceElevated
+                              : AppColors.parchment!,
                     ),
                   ),
                   child: ClipRRect(
@@ -1290,7 +1317,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
                               vertical: 4,
                             ),
                             decoration: BoxDecoration(
-                              color: AppColors.deepSoilGreen.withValues(
+                              color: AppColors.harvestAmber.withValues(
                                 alpha: 0.1,
                               ),
                               borderRadius: BorderRadius.circular(8),
@@ -1298,7 +1325,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
                             child: Text(
                               'Qty: ${item.quantity}',
                               style: theme.textTheme.labelSmall?.copyWith(
-                                color: AppColors.deepSoilGreen,
+                                color: AppColors.harvestAmber,
                                 fontWeight: FontWeight.w600,
                               ),
                             ),
@@ -1323,7 +1350,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
                       '₹${item.total.toStringAsFixed(0)}',
                       style: theme.textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.bold,
-                        color: AppColors.deepSoilGreen,
+                        color: AppColors.harvestAmber,
                       ),
                     ),
                     if (product.discountPercentage > 0)
@@ -1386,8 +1413,8 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: [
-                  AppColors.deepSoilGreen.withValues(alpha: 0.1),
-                  AppColors.deepSoilGreen.withValues(alpha: 0.05),
+                  AppColors.harvestAmber.withValues(alpha: 0.1),
+                  AppColors.harvestAmber.withValues(alpha: 0.05),
                 ],
               ),
               borderRadius: BorderRadius.circular(12),
@@ -1405,7 +1432,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
                   '₹${_currentOrder!.total.toStringAsFixed(2)}',
                   style: theme.textTheme.titleLarge?.copyWith(
                     fontWeight: FontWeight.bold,
-                    color: AppColors.deepSoilGreen,
+                    color: AppColors.harvestAmber,
                   ),
                 ),
               ],
@@ -1483,7 +1510,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
           '${isDiscount && amount != 0 ? '-' : ''}₹${amount.abs().toStringAsFixed(2)}',
           style: theme.textTheme.bodyMedium?.copyWith(
             fontWeight: FontWeight.w600,
-            color: isDiscount ? AppColors.deepSoilGreen : null,
+            color: isDiscount ? AppColors.harvestAmber : null,
           ),
         ),
       ],
@@ -1566,17 +1593,17 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: AppColors.deepSoilGreen.withValues(alpha: 0.1),
+              color: AppColors.harvestAmber.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
-                color: AppColors.deepSoilGreen.withValues(alpha: 0.3),
+                color: AppColors.harvestAmber.withValues(alpha: 0.3),
               ),
             ),
             child: Row(
               children: [
                 Icon(
                   Icons.schedule_rounded,
-                  color: AppColors.deepSoilGreen,
+                  color: AppColors.harvestAmber,
                   size: 20,
                 ),
                 const SizedBox(width: 12),
@@ -1594,7 +1621,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
                         _formatDate(_currentOrder!.expectedDeliveryDate),
                         style: theme.textTheme.titleSmall?.copyWith(
                           fontWeight: FontWeight.w600,
-                          color: AppColors.deepSoilGreen,
+                          color: AppColors.harvestAmber,
                         ),
                       ),
                     ],
@@ -1633,7 +1660,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
             icon: Icons.support_agent_rounded,
             title: 'Need Help?',
             subtitle: 'Contact support for any issues',
-            color: AppColors.deepSoilGreen,
+            color: AppColors.harvestAmber,
             onTap: () {
               Navigator.push(
                 context,
@@ -1653,7 +1680,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
             icon: Icons.download_rounded,
             title: 'Download Invoice',
             subtitle: 'Get PDF copy of your order',
-            color: AppColors.deepSoilGreen,
+            color: AppColors.harvestAmber,
             onTap: _downloadInvoice,
           ),
           if (canCancel) ...[
@@ -1811,7 +1838,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
         title: 'Order Placed',
         subtitle: _formatShortDate(_currentOrder!.createdAt),
         icon: Icons.check_circle_outline,
-        color: AppColors.deepSoilGreen,
+        color: AppColors.harvestAmber,
         isCompleted: true,
         isCurrent: status == 'PLACED',
       ),
@@ -1828,7 +1855,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
         title: 'Order Shipped',
         subtitle: isShipped ? 'Your order is on the way' : 'Pending',
         icon: Icons.local_shipping_outlined,
-        color: AppColors.deepSoilGreen,
+        color: AppColors.harvestAmber,
         isCompleted: isShipped,
         isCurrent: status == 'SHIPPED',
       ),
@@ -1857,7 +1884,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
                 ? _formatShortDate(_currentOrder!.updatedAt)
                 : 'Expected: ${DateFormat('MMM d').format(_currentOrder!.expectedDeliveryDate)}',
         icon: Icons.home_outlined,
-        color: AppColors.deepSoilGreen,
+        color: AppColors.harvestAmber,
         isCompleted: isDelivered,
         isCurrent: isDelivered,
       ),
@@ -1888,7 +1915,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
         );
       case 'OUT_FOR_DELIVERY':
         return _StatusInfo(
-          color: AppColors.harvestAmber,
+          color: AppColors.deepSoilGreen,
           icon: Icons.delivery_dining_rounded,
           label: 'Out for Delivery',
         );
@@ -2083,12 +2110,12 @@ class _TrackingHistorySheet extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
-                    color: AppColors.deepSoilGreen.withValues(alpha: 0.15),
+                    color: AppColors.harvestAmber.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Icon(
                     Icons.local_shipping_rounded,
-                    color: AppColors.deepSoilGreen,
+                    color: AppColors.harvestAmber,
                     size: 24,
                   ),
                 ),
@@ -2119,7 +2146,9 @@ class _TrackingHistorySheet extends StatelessWidget {
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
                       color:
-                          isDark ? AppColors.darkSurfaceElevated : AppColors.parchment,
+                          isDark
+                              ? AppColors.darkSurfaceElevated
+                              : AppColors.parchment,
                       shape: BoxShape.circle,
                     ),
                     child: Icon(
@@ -2210,10 +2239,10 @@ class _TrackingHistorySheet extends StatelessWidget {
               width: 12,
               height: 12,
               decoration: BoxDecoration(
-                color: AppColors.deepSoilGreen,
+                color: AppColors.harvestAmber,
                 shape: BoxShape.circle,
                 border: Border.all(
-                  color: AppColors.deepSoilGreen.withValues(alpha: 0.3),
+                  color: AppColors.harvestAmber.withValues(alpha: 0.3),
                   width: 3,
                 ),
               ),
@@ -2238,7 +2267,7 @@ class _TrackingHistorySheet extends StatelessWidget {
                 Text(
                   DateFormat('h:mm a').format(event.timestamp),
                   style: theme.textTheme.bodySmall?.copyWith(
-                    color: AppColors.deepSoilGreen,
+                    color: AppColors.harvestAmber,
                     fontWeight: FontWeight.w600,
                   ),
                 ),

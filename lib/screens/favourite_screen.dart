@@ -27,7 +27,6 @@ class _FavouriteScreenState extends State<FavouriteScreen>
   // Animation Controllers
   late AnimationController _headerController;
   late AnimationController _contentController;
-  late AnimationController _particleController;
   late AnimationController _pulseController;
 
   late Animation<double> _headerSlide;
@@ -69,11 +68,6 @@ class _FavouriteScreenState extends State<FavouriteScreen>
       vsync: this,
     );
 
-    _particleController = AnimationController(
-      duration: const Duration(seconds: 20),
-      vsync: this,
-    )..repeat();
-
     _pulseController = AnimationController(
       duration: const Duration(milliseconds: 1500),
       vsync: this,
@@ -104,7 +98,6 @@ class _FavouriteScreenState extends State<FavouriteScreen>
   void dispose() {
     _headerController.dispose();
     _contentController.dispose();
-    _particleController.dispose();
     _pulseController.dispose();
     _authSubscription?.cancel();
     _favoriteSubscription?.cancel();
@@ -390,44 +383,6 @@ class _FavouriteScreenState extends State<FavouriteScreen>
           ),
           child: Stack(
             children: [
-              // Floating Particles
-              ...List.generate(
-                10,
-                (index) => FloatingParticle(
-                  index: index,
-                  controller: _particleController,
-                  areaHeight: 200,
-                  swayX: 25,
-                  swayY: 15,
-                ),
-              ),
-
-              // Decorative circles
-              Positioned(
-                top: -40,
-                right: -40,
-                child: Container(
-                  width: 120,
-                  height: 120,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: AppColors.parchment.withValues(alpha: 0.1),
-                  ),
-                ),
-              ),
-              Positioned(
-                bottom: 20,
-                left: -30,
-                child: Container(
-                  width: 80,
-                  height: 80,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: AppColors.parchment.withValues(alpha: 0.08),
-                  ),
-                ),
-              ),
-
               // Animated Heart
               Positioned(
                 top: 25,
@@ -775,7 +730,7 @@ class _FavouriteScreenState extends State<FavouriteScreen>
                     Text(
                       '₹${favorite.price}',
                       style: theme.textTheme.titleMedium?.copyWith(
-                        color: theme.colorScheme.primary,
+                        color: AppColors.harvestAmber,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -849,14 +804,14 @@ class _FavouriteScreenState extends State<FavouriteScreen>
           children: [
             const Icon(
               Icons.add_shopping_cart_rounded,
-              color: AppColors.parchment,
+              color: AppColors.harvestAmber,
               size: 18,
             ),
             const SizedBox(width: 4),
             Text(
               'Add',
               style: theme.textTheme.labelLarge?.copyWith(
-                color: AppColors.parchment,
+                color: AppColors.harvestAmber,
                 fontWeight: FontWeight.bold,
               ),
             ),

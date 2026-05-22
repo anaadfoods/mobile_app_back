@@ -177,7 +177,7 @@ class _ReferEarnScreenState extends State<ReferEarnScreen>
           ),
           child: const Icon(
             Icons.card_giftcard_rounded,
-            color: AppColors.charcoal,
+            color: AppColors.pureWhite,
             size: 50,
           ),
         ),
@@ -193,7 +193,7 @@ class _ReferEarnScreenState extends State<ReferEarnScreen>
         Text(
           'Invite your loved ones to Anaad. When your friend signs up and places their first order, you receive a surprise gift from the Anaad team! 🎁',
           style: theme.textTheme.bodyMedium?.copyWith(
-            color: isDark ? AppColors.rawEarth26 : AppColors.rawEarth70,
+            color: isDark ? AppColors.parchment70 : AppColors.rawEarth70,
           ),
           textAlign: TextAlign.center,
         ),
@@ -327,14 +327,14 @@ class _ReferEarnScreenState extends State<ReferEarnScreen>
                         children: [
                           Icon(
                             Icons.share_rounded,
-                            color: AppColors.parchment,
+                            color: AppColors.deepSoilGreen,
                             size: 20,
                           ),
                           const SizedBox(width: 8),
                           Text(
                             'Share Now',
                             style: theme.textTheme.titleSmall?.copyWith(
-                              color: AppColors.parchment,
+                              color: AppColors.deepSoilGreen,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
@@ -411,7 +411,7 @@ class _ReferEarnScreenState extends State<ReferEarnScreen>
                         style: theme.textTheme.labelSmall?.copyWith(
                           color:
                               isDark
-                                  ? AppColors.rawEarth26
+                                  ? AppColors.parchment70
                                   : AppColors.rawEarth70,
                         ),
                       ),
@@ -511,7 +511,7 @@ class _ReferEarnScreenState extends State<ReferEarnScreen>
         Text(
           label,
           style: theme.textTheme.labelSmall?.copyWith(
-            color: isDark ? AppColors.rawEarth26 : AppColors.rawEarth70,
+            color: isDark ? AppColors.parchment70 : AppColors.rawEarth70,
           ),
         ),
       ],
@@ -650,7 +650,7 @@ class _ReferEarnScreenState extends State<ReferEarnScreen>
                 Text(
                   'Joined $dateStr',
                   style: theme.textTheme.bodySmall?.copyWith(
-                    color: isDark ? AppColors.rawEarth26 : AppColors.rawEarth70,
+                    color: isDark ? AppColors.parchment70 : AppColors.rawEarth70,
                     fontSize: 11,
                   ),
                 ),
@@ -802,7 +802,7 @@ class _ReferEarnScreenState extends State<ReferEarnScreen>
                           style: theme.textTheme.bodySmall?.copyWith(
                             color:
                                 isDark
-                                    ? AppColors.rawEarth26
+                                    ? AppColors.parchment70
                                     : AppColors.rawEarth70,
                           ),
                         ),

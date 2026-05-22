@@ -39,8 +39,7 @@ class CheckoutScreen extends StatefulWidget {
   _CheckoutScreenState createState() => _CheckoutScreenState();
 }
 
-class _CheckoutScreenState extends State<CheckoutScreen>
-    with TickerProviderStateMixin {
+class _CheckoutScreenState extends State<CheckoutScreen> {
   final OrderService _orderService = OrderService();
   // final CartService _cartService = CartService(); // Unused - commented out
   // final AuthService _authService = AuthService(); // Unused - commented out
@@ -58,18 +57,9 @@ class _CheckoutScreenState extends State<CheckoutScreen>
   late String _selectedPaymentType;
   int _pendingRewardsCount = 0;
 
-  // Animation Controllers
-  late AnimationController _headerController;
-  late AnimationController _contentController;
-  late AnimationController _particleController;
-  late AnimationController _bottomBarController;
 
-  late Animation<double> _headerSlide;
-  late Animation<double> _headerFade;
-  late Animation<double> _contentFade;
-  late Animation<double> _bottomBarSlide;
 
-  int get totalItems => widget.cart?.totalItems ?? widget.quantity!;
+  int get totalItems => widget.cart?.totalItems ?? widget.quantity ?? 0;
   double get currentDeliveryCharge {
     return _selectedPaymentMethod == 'COD'
         ? widget.codDeliveryCharge
@@ -81,10 +71,13 @@ class _CheckoutScreenState extends State<CheckoutScreen>
     if (widget.isSubscription) {
       basePrice = (widget.price ?? 0.0) * (widget.quantity ?? 1);
     } else {
-      basePrice =
-          widget.cart?.totalPrice != null
-              ? double.parse(widget.cart!.totalPrice)
-              : (widget.singleProduct!.finalPrice * widget.quantity!);
+      if (widget.cart != null) {
+        basePrice = double.tryParse(widget.cart!.totalPrice) ?? 0.0;
+      } else if (widget.singleProduct != null) {
+        basePrice = widget.singleProduct!.finalPrice * (widget.quantity ?? 1);
+      } else {
+        basePrice = 0.0;
+      }
     }
     return (basePrice + currentDeliveryCharge).toString();
   }
@@ -92,8 +85,7 @@ class _CheckoutScreenState extends State<CheckoutScreen>
   @override
   void initState() {
     super.initState();
-    _initAnimations();
-
+    // Removed broken animations
     if (widget.isSubscription) {
       _selectedPaymentType = widget.paymentType ?? 'PAID_FULL';
     } else {
@@ -103,57 +95,8 @@ class _CheckoutScreenState extends State<CheckoutScreen>
     _initializeCheckout();
   }
 
-  void _initAnimations() {
-    _headerController = AnimationController(
-      duration: const Duration(milliseconds: 800),
-      vsync: this,
-    );
-
-    _contentController = AnimationController(
-      duration: const Duration(milliseconds: 600),
-      vsync: this,
-    );
-
-    _particleController = AnimationController(
-      duration: const Duration(seconds: 20),
-      vsync: this,
-    )..repeat();
-
-    _bottomBarController = AnimationController(
-      duration: const Duration(milliseconds: 500),
-      vsync: this,
-    );
-
-    _headerSlide = Tween<double>(begin: -30, end: 0).animate(
-      CurvedAnimation(parent: _headerController, curve: Curves.easeOutCubic),
-    );
-
-    _headerFade = Tween<double>(begin: 0, end: 1).animate(
-      CurvedAnimation(parent: _headerController, curve: Curves.easeOut),
-    );
-
-    _contentFade = Tween<double>(begin: 0, end: 1).animate(
-      CurvedAnimation(parent: _contentController, curve: Curves.easeOut),
-    );
-
-    _bottomBarSlide = Tween<double>(begin: 100, end: 0).animate(
-      CurvedAnimation(parent: _bottomBarController, curve: Curves.easeOutCubic),
-    );
-
-    Future.delayed(const Duration(milliseconds: 100), () {
-      if (mounted) _headerController.forward();
-    });
-    Future.delayed(const Duration(milliseconds: 300), () {
-      if (mounted) _contentController.forward();
-    });
-  }
-
   @override
   void dispose() {
-    _headerController.dispose();
-    _contentController.dispose();
-    _particleController.dispose();
-    _bottomBarController.dispose();
     super.dispose();
   }
 
@@ -174,9 +117,6 @@ class _CheckoutScreenState extends State<CheckoutScreen>
     await _fetchPendingRewards();
 
     _setLoadingState(false);
-    Future.delayed(const Duration(milliseconds: 100), () {
-      if (mounted) _bottomBarController.forward();
-    });
   }
 
   Future<void> _fetchPendingRewards() async {
@@ -628,12 +568,12 @@ class _CheckoutScreenState extends State<CheckoutScreen>
           extra: order,
         );
       } else {
-        Navigator.pop(context);
-        SnackBarHelper.showError(context, 'Payment not successful!');
+        if (mounted) Navigator.pop(context);
+        if (mounted) SnackBarHelper.showError(context, 'Payment not successful!');
       }
     } catch (e) {
-      Navigator.pop(context);
-      SnackBarHelper.showError(context, 'Failed to verify payment!');
+      if (mounted) Navigator.pop(context);
+      if (mounted) SnackBarHelper.showError(context, 'Failed to verify payment!');
     }
   }
 
@@ -824,20 +764,9 @@ class _CheckoutScreenState extends State<CheckoutScreen>
                 )
               else
                 SliverToBoxAdapter(
-                  child: AnimatedBuilder(
-                    animation: _contentController,
-                    builder: (context, child) {
-                      return Transform.translate(
-                        offset: Offset(0, 20 * (1 - _contentFade.value)),
-                        child: Opacity(
-                          opacity: _contentFade.value,
-                          child: child,
-                        ),
-                      );
-                    },
-                    child: Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: Column(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
                           _buildDeliveryTimeCard(theme, isDark),
@@ -859,7 +788,6 @@ class _CheckoutScreenState extends State<CheckoutScreen>
                       ),
                     ),
                   ),
-                ),
             ],
           ),
 
@@ -875,174 +803,95 @@ class _CheckoutScreenState extends State<CheckoutScreen>
 
   Widget _buildAnimatedHeader(ThemeData theme, bool isDark) {
     return SliverToBoxAdapter(
-      child: AnimatedBuilder(
-        animation: _headerController,
-        builder: (context, child) {
-          return Transform.translate(
-            offset: Offset(0, _headerSlide.value),
-            child: Opacity(opacity: _headerFade.value, child: child),
-          );
-        },
-        child: Container(
-          constraints: const BoxConstraints(minHeight: 180),
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                theme.colorScheme.primary,
-                theme.colorScheme.primary.withValues(alpha: 0.85),
-                isDark
-                    ? theme.colorScheme.primary.withValues(alpha: 0.7)
-                    : AppColors.deepSoilGreen,
-              ],
-            ),
-            borderRadius: const BorderRadius.only(
-              bottomLeft: Radius.circular(32),
-              bottomRight: Radius.circular(32),
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: theme.colorScheme.primary.withValues(alpha: 0.3),
-                blurRadius: 20,
-                offset: const Offset(0, 10),
-              ),
+      child: Container(
+        constraints: const BoxConstraints(minHeight: 180),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              AppColors.harvestAmber,
+              AppColors.harvestAmber.withValues(alpha: 0.85),
+              isDark
+                  ? AppColors.harvestAmber.withValues(alpha: 0.7)
+                  : AppColors.harvestAmber,
             ],
           ),
-          child: Stack(
-            children: [
-              // Floating Particles
-              ...List.generate(8, (index) => _buildFloatingParticle(index)),
-
-              // Decorative circles
-              Positioned(
-                top: -30,
-                right: -30,
-                child: Container(
-                  width: 100,
-                  height: 100,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: AppColors.parchment.withValues(alpha: 0.1),
-                  ),
-                ),
-              ),
-              Positioned(
-                bottom: 10,
-                left: -30,
-                child: Container(
-                  width: 80,
-                  height: 80,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: AppColors.parchment.withValues(alpha: 0.08),
-                  ),
-                ),
-              ),
-
-              // Header Content
-              SafeArea(
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 8, 20, 20),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // ANAAD Logo
-                      const AnaadLogoMark(),
-                      const Spacer(),
-                      // Title Row
-                      Row(
+          borderRadius: const BorderRadius.only(
+            bottomLeft: Radius.circular(32),
+            bottomRight: Radius.circular(32),
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.harvestAmber.withValues(alpha: 0.3),
+              blurRadius: 20,
+              offset: const Offset(0, 10),
+            ),
+          ],
+        ),
+        child: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(20, 8, 20, 20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // ANAAD Logo
+                const AnaadLogoMark(),
+                const SizedBox(height: 24),
+                // Title Row
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: AppColors.parchment.withValues(alpha: 0.2),
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: Icon(
+                        widget.isSubscription
+                            ? Icons.card_membership_rounded
+                            : Icons.shopping_bag_rounded,
+                        color: AppColors.harvestAmber,
+                        size: 28,
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Container(
-                            padding: const EdgeInsets.all(12),
-                            decoration: BoxDecoration(
-                              color: AppColors.parchment.withValues(alpha: 0.2),
-                              borderRadius: BorderRadius.circular(16),
-                            ),
-                            child: Icon(
-                              widget.isSubscription
-                                  ? Icons.card_membership_rounded
-                                  : Icons.shopping_bag_rounded,
-                              color: AppColors.parchment,
-                              size: 28,
+                          FittedBox(
+                            fit: BoxFit.scaleDown,
+                            alignment: Alignment.centerLeft,
+                            child: Text(
+                              widget.isSubscription ? "Subscription" : "Checkout",
+                              style: theme.textTheme.headlineMedium?.copyWith(
+                                color: AppColors.parchment,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                           ),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                FittedBox(
-                                  fit: BoxFit.scaleDown,
-                                  alignment: Alignment.centerLeft,
-                                  child: Text(
-                                    widget.isSubscription
-                                        ? "Subscription"
-                                        : "Checkout",
-                                    style: theme.textTheme.headlineMedium
-                                        ?.copyWith(
-                                          color: AppColors.parchment,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                  ),
-                                ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  "$totalItems item${totalItems > 1 ? 's' : ''} ready to order",
-                                  style: theme.textTheme.bodyMedium?.copyWith(
-                                    color: AppColors.parchment.withValues(
-                                      alpha: 0.9,
-                                    ),
-                                  ),
-                                ),
-                              ],
+                          const SizedBox(height: 4),
+                          Text(
+                            "$totalItems item${totalItems > 1 ? 's' : ''} ready to order",
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              color: AppColors.parchment.withValues(alpha: 0.9),
                             ),
                           ),
                         ],
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
     );
   }
 
-  Widget _buildFloatingParticle(int index) {
-    final random = math.Random(index);
-    final size = 4.0 + random.nextDouble() * 6;
-    final startX = random.nextDouble() * 400;
-    final startY = random.nextDouble() * 180;
-    final duration = 10 + random.nextInt(10);
-
-    return AnimatedBuilder(
-      animation: _particleController,
-      builder: (context, child) {
-        final progress = (_particleController.value * duration) % 1.0;
-        final x = startX + math.sin(progress * math.pi * 2 + index) * 20;
-        final y = startY + math.cos(progress * math.pi * 2 + index) * 12;
-        final opacity = 0.1 + (math.sin(progress * math.pi * 2) * 0.15);
-
-        return Positioned(
-          left: x,
-          top: y,
-          child: Container(
-            width: size,
-            height: size,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: AppColors.parchment.withValues(
-                alpha: opacity.clamp(0.05, 0.25),
-              ),
-            ),
-          ),
-        );
-      },
-    );
-  }
+  // Removed unused _buildFloatingParticle
 
   Widget _buildIconButton(IconData icon, VoidCallback onTap) {
     return Material(
@@ -1090,7 +939,7 @@ class _CheckoutScreenState extends State<CheckoutScreen>
             ),
             child: const Icon(
               Icons.card_giftcard_rounded,
-              color: AppColors.parchment,
+              color: AppColors.harvestAmber,
               size: 28,
             ),
           ),
@@ -1155,7 +1004,7 @@ class _CheckoutScreenState extends State<CheckoutScreen>
             ),
             child: const Icon(
               Icons.local_shipping_rounded,
-              color: AppColors.deepSoilGreen,
+              color: AppColors.harvestAmber,
               size: 24,
             ),
           ),
@@ -1175,7 +1024,7 @@ class _CheckoutScreenState extends State<CheckoutScreen>
                   widget.expectedDeliveryDate,
                   style: theme.textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.bold,
-                    color: AppColors.deepSoilGreen,
+                    color: AppColors.harvestAmber,
                   ),
                 ),
               ],
@@ -1233,7 +1082,7 @@ class _CheckoutScreenState extends State<CheckoutScreen>
                 ),
                 child: Icon(
                   Icons.location_on_rounded,
-                  color: theme.colorScheme.primary,
+                  color: AppColors.harvestAmber,
                   size: 22,
                 ),
               ),
@@ -1342,7 +1191,7 @@ class _CheckoutScreenState extends State<CheckoutScreen>
             ),
             child: const Icon(
               Icons.celebration_rounded,
-              color: AppColors.parchment,
+              color: AppColors.harvestAmber,
               size: 32,
             ),
           ),
@@ -1394,7 +1243,7 @@ class _CheckoutScreenState extends State<CheckoutScreen>
             children: [
               Icon(
                 Icons.receipt_long_rounded,
-                color: theme.colorScheme.primary,
+                color: AppColors.harvestAmber,
                 size: 24,
               ),
               const SizedBox(width: 12),
@@ -1563,7 +1412,7 @@ class _CheckoutScreenState extends State<CheckoutScreen>
               Text(
                 '₹${double.parse(totalPrice).toStringAsFixed(2)}',
                 style: theme.textTheme.titleLarge?.copyWith(
-                  color: theme.colorScheme.primary,
+                  color: AppColors.harvestAmber,
                   fontWeight: FontWeight.bold,
                 ),
               ),
@@ -1584,7 +1433,7 @@ class _CheckoutScreenState extends State<CheckoutScreen>
                 children: [
                   Icon(
                     Icons.savings_rounded,
-                    color: AppColors.deepSoilGreen,
+                    color: AppColors.harvestAmber,
                     size: 20,
                   ),
                   const SizedBox(width: 10),
@@ -1592,7 +1441,7 @@ class _CheckoutScreenState extends State<CheckoutScreen>
                     child: Text(
                       'Total over ${subscription!.durationMonths} months: ₹${(double.parse(totalPrice) * subscription!.durationMonths).toStringAsFixed(0)}',
                       style: theme.textTheme.bodySmall?.copyWith(
-                        color: AppColors.deepSoilGreen,
+                        color: AppColors.harvestAmber,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
@@ -1747,7 +1596,7 @@ class _CheckoutScreenState extends State<CheckoutScreen>
                 _selectedPaymentMethod == 'COD'
                     ? Icons.money_rounded
                     : Icons.payment_rounded,
-                color: theme.colorScheme.primary,
+                color: AppColors.harvestAmber,
                 size: 24,
               ),
             ),
@@ -1807,85 +1656,76 @@ class _CheckoutScreenState extends State<CheckoutScreen>
       left: 0,
       right: 0,
       bottom: 0,
-      child: AnimatedBuilder(
-        animation: _bottomBarController,
-        builder: (context, child) {
-          return Transform.translate(
-            offset: Offset(0, _bottomBarSlide.value),
-            child: child,
-          );
-        },
-        child: Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: isDark ? theme.cardColor : AppColors.parchment,
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
-            boxShadow: [
-              BoxShadow(
-                color: theme.shadowColor.withValues(alpha: 0.15),
-                blurRadius: 30,
-                offset: const Offset(0, -10),
-              ),
-            ],
-          ),
-          child: SafeArea(
-            top: false,
-            child: Row(
-              children: [
-                Expanded(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Total Amount',
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: theme.hintColor,
-                        ),
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: isDark ? theme.cardColor : AppColors.parchment,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+          boxShadow: [
+            BoxShadow(
+              color: theme.shadowColor.withValues(alpha: 0.15),
+              blurRadius: 30,
+              offset: const Offset(0, -10),
+            ),
+          ],
+        ),
+        child: SafeArea(
+          top: false,
+          child: Row(
+            children: [
+              Expanded(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Total Amount',
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.hintColor,
                       ),
-                      Text(
-                        '₹${total.toStringAsFixed(2)}',
-                        style: theme.textTheme.headlineSmall?.copyWith(
-                          color: theme.colorScheme.primary,
-                          fontWeight: FontWeight.bold,
-                        ),
+                    ),
+                    Text(
+                      '₹${total.toStringAsFixed(2)}',
+                      style: theme.textTheme.headlineSmall?.copyWith(
+                        color: AppColors.harvestAmber,
+                        fontWeight: FontWeight.bold,
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: SizedBox(
-                    height: 56,
-                    child: ElevatedButton(
-                      onPressed: _createOrder,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: theme.colorScheme.primary,
-                        foregroundColor: AppColors.parchment,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        elevation: 0,
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: SizedBox(
+                  height: 56,
+                  child: ElevatedButton(
+                    onPressed: _createOrder,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: theme.colorScheme.primary,
+                      foregroundColor: AppColors.parchment,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
                       ),
-                      child: const Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            'Place Order',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                            ),
+                      elevation: 0,
+                    ),
+                    child: const Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          'Place Order',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
                           ),
-                          SizedBox(width: 8),
-                          Icon(Icons.arrow_forward_rounded, size: 20),
-                        ],
-                      ),
+                        ),
+                        SizedBox(width: 8),
+                        Icon(Icons.arrow_forward_rounded, size: 20),
+                      ],
                     ),
                   ),
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),
@@ -1905,27 +1745,19 @@ class _CheckoutScreenState extends State<CheckoutScreen>
       left: 0,
       right: 0,
       bottom: 0,
-      child: AnimatedBuilder(
-        animation: _bottomBarController,
-        builder: (context, child) {
-          return Transform.translate(
-            offset: Offset(0, _bottomBarSlide.value),
-            child: child,
-          );
-        },
-        child: Container(
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            color: isDark ? theme.cardColor : AppColors.parchment,
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
-            boxShadow: [
-              BoxShadow(
-                color: theme.shadowColor.withValues(alpha: 0.15),
-                blurRadius: 30,
-                offset: const Offset(0, -10),
-              ),
-            ],
-          ),
+      child: Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: isDark ? theme.cardColor : AppColors.parchment,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+          boxShadow: [
+            BoxShadow(
+              color: theme.shadowColor.withValues(alpha: 0.15),
+              blurRadius: 30,
+              offset: const Offset(0, -10),
+            ),
+          ],
+        ),
           child: SafeArea(
             top: false,
             child: Column(
@@ -2031,8 +1863,7 @@ class _CheckoutScreenState extends State<CheckoutScreen>
             ),
           ),
         ),
-      ),
-    );
+      );
   }
 
   Future<void> _showPaymentMethodSelectionDialog() async {
@@ -2120,8 +1951,7 @@ class _CheckoutScreenState extends State<CheckoutScreen>
 
     return GestureDetector(
       onTap: () => Navigator.pop(context, value),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
+      child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           color: isSelected ? color.withValues(alpha: 0.1) : theme.cardColor,

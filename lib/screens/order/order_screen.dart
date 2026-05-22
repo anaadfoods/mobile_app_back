@@ -148,8 +148,8 @@ class _OrderScreenState extends State<OrderScreen>
             colors:
                 isDark
                     ? [
-                      AppColors.darkSurfaceElevated,
-                      AppColors.darkSurfaceElevated.withValues(alpha: 0.8),
+                      AppColors.deepSoilGreen,
+                      AppColors.deepSoilGreen.withValues(alpha: 0.8),
                     ]
                     : [
                       AppColors.deepSoilGreen,
@@ -208,7 +208,7 @@ class _OrderScreenState extends State<OrderScreen>
                 ),
                 child: const Icon(
                   Icons.shopping_bag_rounded,
-                  color: AppColors.parchment,
+                  color: AppColors.harvestAmber,
                   size: 28,
                 ),
               ),
@@ -560,7 +560,7 @@ class _ModernOrderCard extends StatelessWidget {
                         '₹${order.total.toStringAsFixed(0)}',
                         style: theme.textTheme.titleMedium?.copyWith(
                           fontWeight: FontWeight.bold,
-                          color: AppColors.deepSoilGreen,
+                          color: AppColors.harvestAmber,
                         ),
                       ),
                       Text(
@@ -612,7 +612,7 @@ class _ModernOrderCard extends StatelessWidget {
                             Text(
                               'View Details',
                               style: theme.textTheme.labelMedium?.copyWith(
-                                color: AppColors.deepSoilGreen,
+                                color: AppColors.harvestAmber,
                                 fontWeight: FontWeight.w600,
                               ),
                             ),
@@ -620,7 +620,7 @@ class _ModernOrderCard extends StatelessWidget {
                             Icon(
                               Icons.arrow_forward_ios,
                               size: 12,
-                              color: AppColors.deepSoilGreen,
+                              color: AppColors.harvestAmber,
                             ),
                           ],
                         ),
@@ -756,7 +756,7 @@ class _ModernOrderCard extends StatelessWidget {
         );
       case 'SHIPPED':
         return (
-          color: AppColors.deepSoilGreen,
+          color: AppColors.harvestAmber,
           icon: Icons.local_shipping_rounded,
           label: 'Shipped',
         );
@@ -769,7 +769,7 @@ class _ModernOrderCard extends StatelessWidget {
       case 'PLACED':
       default:
         return (
-          color: AppColors.deepSoilGreen,
+          color: AppColors.harvestAmber,
           icon: Icons.pending_rounded,
           label: 'Order Placed',
         );

@@ -295,7 +295,7 @@ class FeaturedProductCard extends StatelessWidget {
                                 '₹${product.finalPrice.toStringAsFixed(0)}',
                                 style: theme.textTheme.titleMedium?.copyWith(
                                   fontWeight: FontWeight.bold,
-                                  color: AppColors.deepSoilGreen,
+                                  color: AppColors.getPriceColor(context),
                                 ),
                                 overflow: TextOverflow.ellipsis,
                               ),

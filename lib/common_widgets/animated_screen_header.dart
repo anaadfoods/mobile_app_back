@@ -43,7 +43,6 @@ class _AnimatedScreenHeaderState extends State<AnimatedScreenHeader>
   late AnimationController _localController;
   late Animation<double> _fadeAnimation;
   late Animation<double> _slideAnimation;
-  late AnimationController _particleController;
   late AnimationController _pulseController;
 
   @override
@@ -71,12 +70,7 @@ class _AnimatedScreenHeaderState extends State<AnimatedScreenHeader>
       ),
     );
 
-    if (widget.hasParticles) {
-      _particleController = AnimationController(
-        duration: const Duration(seconds: 10),
-        vsync: this,
-      )..repeat();
-    }
+
 
     _pulseController = AnimationController(
       duration: const Duration(seconds: 4),
@@ -93,9 +87,7 @@ class _AnimatedScreenHeaderState extends State<AnimatedScreenHeader>
     if (widget.animationController == null) {
       _localController.dispose();
     }
-    if (widget.hasParticles) {
-      _particleController.dispose();
-    }
+
     _pulseController.dispose();
     super.dispose();
   }
@@ -152,55 +144,6 @@ class _AnimatedScreenHeaderState extends State<AnimatedScreenHeader>
         ),
         child: Stack(
           children: [
-            // Floating Particles
-            if (widget.hasParticles)
-              ...List.generate(
-                10,
-                (index) => FloatingParticle(
-                  index: index,
-                  controller: _particleController,
-                  areaHeight: calculatedHeight,
-                  maxSize: 10,
-                  swayX: 25,
-                  swayY: 15,
-                ),
-              ),
-
-            // Decorative circles
-            Positioned(
-              top: -30,
-              right: -30,
-              child: AnimatedBuilder(
-                animation: _pulseController,
-                builder: (context, child) {
-                  return Transform.scale(
-                    scale: 1.0 + (_pulseController.value * 0.1),
-                    child: child,
-                  );
-                },
-                child: Container(
-                  width: 120,
-                  height: 120,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: AppColors.parchment.withValues(alpha: 0.1),
-                  ),
-                ),
-              ),
-            ),
-            Positioned(
-              bottom: 20,
-              left: -40,
-              child: Container(
-                width: 100,
-                height: 100,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: AppColors.parchment.withValues(alpha: 0.08),
-                ),
-              ),
-            ),
-
             // Header Content
             SafeArea(
               child: Padding(

@@ -30,7 +30,6 @@ class AnaadLogoMark extends StatelessWidget {
       decoration: BoxDecoration(
         // color: AppColors.parchment.withValues(alpha: backgroundOpacity),
         borderRadius: radius,
-        border: Border.all(color: AppColors.parchment.withValues(alpha: 0.16)),
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(AppColors.radiusS),

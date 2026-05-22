@@ -65,10 +65,16 @@ class _GroceryItemCardWidgetState extends State<GroceryItemCardWidget> {
           duration: const Duration(milliseconds: AppColors.animMedium),
           margin: const EdgeInsets.symmetric(vertical: 6, horizontal: 8),
           decoration: BoxDecoration(
-            color: theme.cardColor,
+            color:
+                isDark
+                    ? AppColors.darkSurfaceElevated
+                    : AppColors.harvestAmber.withValues(alpha: 0.08),
             borderRadius: BorderRadius.circular(AppColors.radiusL),
             border: Border.all(
-              color: isDark ? AppColors.parchment.withValues(alpha: 0.1) : AppColors.parchment,
+              color:
+                  isDark
+                      ? AppColors.parchment.withValues(alpha: 0.1)
+                      : AppColors.harvestAmber.withValues(alpha: 0.18),
               width: 1,
             ),
             boxShadow: [
@@ -126,6 +132,7 @@ class _GroceryItemCardWidgetState extends State<GroceryItemCardWidget> {
                               text: widget.item.productName,
                               style: textTheme.bodyLarge?.copyWith(
                                 fontWeight: FontWeight.w600,
+                                color: isDark ? AppColors.pureWhite : null,
                               ),
                               maxLines: 2,
                               overflow: TextOverflow.ellipsis,
@@ -134,7 +141,7 @@ class _GroceryItemCardWidgetState extends State<GroceryItemCardWidget> {
                             AppText(
                               text: widget.item.productCategory,
                               style: textTheme.bodySmall?.copyWith(
-                                color: theme.hintColor,
+                                color: isDark ? AppColors.pureWhite.withValues(alpha: 0.7) : theme.hintColor,
                               ),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
@@ -159,7 +166,7 @@ class _GroceryItemCardWidgetState extends State<GroceryItemCardWidget> {
                                       "₹${widget.item.finalPrice.toStringAsFixed(0)}",
                                   style: textTheme.titleMedium?.copyWith(
                                     fontWeight: FontWeight.bold,
-                                    color: colorScheme.primary,
+                                    color: AppColors.getPriceColor(context),
                                   ),
                                 ),
                                 const SizedBox(width: 8),
@@ -262,6 +269,14 @@ class _GroceryItemCardWidgetState extends State<GroceryItemCardWidget> {
                   )
                   : ElevatedButton(
                     key: const ValueKey('addButton'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.harvestAmber,
+                      foregroundColor: AppColors.parchment,
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
                     onPressed: () {
                       // Redirect to product details with auto-open subscription
                       SubscriptionNavigationHelper.navigateToProductDetails(

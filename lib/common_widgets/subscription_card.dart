@@ -421,12 +421,12 @@ class _SubscriptionCardState extends State<SubscriptionCard> {
                               color:
                                   isDark
                                       ? AppColors.darkCanvas
-                                      : AppColors.deepSoilGreen.withValues(
+                                      : AppColors.harvestAmber.withValues(
                                         alpha: 0.08,
                                       ),
                               borderRadius: BorderRadius.circular(12),
                               border: Border.all(
-                                color: AppColors.deepSoilGreen.withValues(
+                                color: AppColors.harvestAmber.withValues(
                                   alpha: 0.2,
                                 ),
                               ),
@@ -436,14 +436,14 @@ class _SubscriptionCardState extends State<SubscriptionCard> {
                               children: [
                                 Icon(
                                   Icons.local_shipping_rounded,
-                                  color: AppColors.deepSoilGreen,
+                                  color: AppColors.harvestAmber,
                                   size: 14,
                                 ),
                                 const SizedBox(width: 6),
                                 Text(
                                   _formatDate(subscription.nextDeliveryDate),
                                   style: theme.textTheme.labelSmall?.copyWith(
-                                    color: AppColors.deepSoilGreen,
+                                    color: AppColors.harvestAmber,
                                     fontWeight: FontWeight.bold,
                                   ),
                                 ),
@@ -576,14 +576,14 @@ class _SubscriptionCardState extends State<SubscriptionCard> {
                                 const SizedBox(height: 10),
                                 Row(
                                   children: [
-                                    Text(
-                                      '₹${item.discountedPrice.toStringAsFixed(0)}',
-                                      style: theme.textTheme.titleLarge
-                                          ?.copyWith(
-                                            fontWeight: FontWeight.bold,
-                                            color: AppColors.deepSoilGreen,
-                                          ),
-                                    ),
+                                      Text(
+                                        '₹${item.discountedPrice.toStringAsFixed(0)}',
+                                        style: theme.textTheme.titleLarge
+                                            ?.copyWith(
+                                              fontWeight: FontWeight.bold,
+                                              color: AppColors.getPriceColor(context),
+                                            ),
+                                      ),
                                     const SizedBox(width: 8),
                                     Text(
                                       '₹${item.price.toStringAsFixed(0)}',
