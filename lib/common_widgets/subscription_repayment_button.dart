@@ -14,6 +14,10 @@ class SubscriptionRepaymentButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // COD restriction: Installments and online repayments are disabled. Return empty box.
+    return const SizedBox.shrink();
+
+    /*
     // Logic to verify if payment is pending
     // Using the getter from Subscription model if available or direct check
     final bool isPaymentPending =
@@ -86,5 +90,6 @@ class SubscriptionRepaymentButton extends StatelessWidget {
     }
 
     return buttonContent;
+    */
   }
 }

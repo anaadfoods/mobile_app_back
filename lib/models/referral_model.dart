@@ -7,6 +7,7 @@ class ReferredUser {
   final String lastName;
   final DateTime dateJoined;
   final String? status; // For future: "PENDING" or "ACCEPTED"
+  final String? statusDisplay;
 
   ReferredUser({
     required this.id,
@@ -16,6 +17,7 @@ class ReferredUser {
     required this.lastName,
     required this.dateJoined,
     this.status,
+    this.statusDisplay,
   });
 
   String get fullName => '$firstName $lastName'.trim();
@@ -30,6 +32,7 @@ class ReferredUser {
       dateJoined:
           DateTime.tryParse(json['date_joined'] ?? '') ?? DateTime.now(),
       status: json['status'], // Will be null if not provided by API yet
+      statusDisplay: json['status_display'],
     );
   }
 }

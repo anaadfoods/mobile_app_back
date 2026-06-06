@@ -1,6 +1,8 @@
 import 'dart:math' as math;
 import 'package:flutter/services.dart';
 import 'package:grocery_app/common_widgets/global_import.dart';
+import 'package:grocery_app/services/notification_sync_manager.dart';
+import 'package:grocery_app/models/notification_model.dart';
 
 class NotificationsScreen extends StatefulWidget {
   const NotificationsScreen({super.key});
@@ -17,6 +19,7 @@ class _NotificationsScreenState extends State<NotificationsScreen>
   String _selectedFilter = 'all';
   bool _isLoading = true;
   List<Map<String, dynamic>> _promotionalNotifications = [];
+  StreamSubscription? _syncSubscription;
 
   late TabController _tabController;
 
@@ -36,8 +39,19 @@ class _NotificationsScreenState extends State<NotificationsScreen>
     _tabController = TabController(length: _filterOptions.length, vsync: this);
     _loadNotifications();
     _loadPromotionalNotifications();
+    _listenToSyncEvents();
     _listenToNewNotifications();
     _resetNotificationBadgeCount(); // Reset badge when viewing notifications
+
+    // Trigger initial sync and flush offline queue
+    NotificationSyncManager().flushPendingQueue();
+    NotificationSyncManager().syncWithBackend();
+  }
+
+  void _listenToSyncEvents() {
+    _syncSubscription = NotificationSyncManager().onSyncEvent.listen((_) {
+      _loadNotifications();
+    });
   }
 
   Future<void> _resetNotificationBadgeCount() async {
@@ -48,6 +62,7 @@ class _NotificationsScreenState extends State<NotificationsScreen>
   @override
   void dispose() {
     _tabController.dispose();
+    _syncSubscription?.cancel();
     // Clear promotional notifications when leaving the screen
     _clearPromotionalNotifications();
     super.dispose();
@@ -61,26 +76,28 @@ class _NotificationsScreenState extends State<NotificationsScreen>
   }
 
   Future<void> _loadNotifications() async {
-    setState(() {
-      _isLoading = true;
-    });
+    if (_notifications.isEmpty) {
+      setState(() {
+        _isLoading = true;
+      });
+    }
 
     try {
-      SharedPreferences prefs = await SharedPreferences.getInstance();
-      String? notificationsJson = prefs.getString('notifications');
-
-      if (notificationsJson != null) {
-        List<dynamic> notificationsList = json.decode(notificationsJson);
-        _notifications = notificationsList.cast<Map<String, dynamic>>();
+      final list = await NotificationSyncManager().getLocalNotifications();
+      if (mounted) {
+        setState(() {
+          _notifications = list.map((n) => n.toLocalMap()).toList();
+        });
+        _filterNotifications();
       }
-
-      _filterNotifications();
     } catch (e) {
       debugPrint('Error loading notifications: $e');
     } finally {
-      setState(() {
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
   }
 
@@ -93,18 +110,13 @@ class _NotificationsScreenState extends State<NotificationsScreen>
       // Handle promotional notifications differently
       if (notificationData['type'] == 'promotional') {
         _addPromotionalNotification(notificationData);
-      } else {
-        _addNotification(notificationData);
       }
     });
   }
 
   void _addNotification(Map<String, dynamic> notification) {
-    setState(() {
-      _notifications.insert(0, notification);
-    });
-    _filterNotifications();
-    _saveNotifications();
+    final model = NotificationModel.fromJson(notification);
+    NotificationSyncManager().saveServerPushNotification(model);
   }
 
   void _filterNotifications() {
@@ -182,12 +194,35 @@ class _NotificationsScreenState extends State<NotificationsScreen>
       }
     });
 
-    String? action = MessageUtility.getAction(notification);
-    // Use the robust ID extraction from MessageUtility
-    String? id = MessageUtility.getId(notification);
-    String? type = notification['type'];
+    // Parse metadata if available to extract deep link targets
+    Map<String, dynamic> metadata = {};
+    if (notification['metadata'] != null) {
+      if (notification['metadata'] is Map) {
+        metadata = Map<String, dynamic>.from(notification['metadata']);
+      } else if (notification['metadata'] is String) {
+        try {
+          metadata = json.decode(notification['metadata']);
+        } catch (_) {}
+      }
+    }
 
-    debugPrint('Tapped notification - Type: $type, ID: $id, Action: $action');
+    String? metadataType = metadata['type']?.toString() ?? metadata['screen']?.toString();
+    String? metadataId = (metadata['id'] ??
+        metadata['order_id'] ??
+        metadata['product_id'] ??
+        metadata['subscription_id'])?.toString();
+
+    String? type = (metadataType != null && metadataType.isNotEmpty)
+        ? metadataType
+        : notification['type'];
+
+    String? id = (metadataId != null && metadataId.isNotEmpty)
+        ? metadataId
+        : MessageUtility.getId(notification);
+
+    String? action = notification['action'] ?? metadata['action'] ?? MessageUtility.getAction(notification);
+
+    debugPrint('Tapped notification - Resolved Type: $type, ID: $id, Action: $action');
 
     // Handle different notification types
     switch (type) {
@@ -398,11 +433,18 @@ class _NotificationsScreenState extends State<NotificationsScreen>
   }
 
   void _onNotificationDismiss(Map<String, dynamic> notification) {
-    setState(() {
-      _notifications.remove(notification);
-    });
-    _filterNotifications();
-    _saveNotifications();
+    final id = notification['id']?.toString() ?? '';
+
+    // Remove from local lists immediately (Dismissible already animated it away)
+    _notifications.removeWhere((n) => n['id']?.toString() == id);
+    _filteredNotifications.removeWhere((n) => n['id']?.toString() == id);
+
+    if (id.isNotEmpty) {
+      NotificationSyncManager().dismiss([id]);
+      try {
+        NotificationService().cancelNotification(int.tryParse(id) ?? id.hashCode);
+      } catch (_) {}
+    }
   }
 
   void _clearAllNotifications() {
@@ -420,12 +462,15 @@ class _NotificationsScreenState extends State<NotificationsScreen>
                 child: const Text('Cancel'),
               ),
               TextButton(
-                onPressed: () {
+                onPressed: () async {
+                  final ids = _notifications.map((n) => n['id'].toString()).toList();
+                  if (ids.isNotEmpty) {
+                    await NotificationSyncManager().dismiss(ids);
+                  }
                   setState(() {
                     _notifications.clear();
                     _filteredNotifications.clear();
                   });
-                  _saveNotifications();
                   Navigator.pop(context);
                 },
                 child: const Text('Clear All'),
@@ -484,12 +529,22 @@ class _NotificationsScreenState extends State<NotificationsScreen>
   }
 
   void _deleteNotification(Map<String, dynamic> notification) {
+    final id = notification['id']?.toString() ?? '';
+
+    // Immediately remove from local UI state for instant feedback
     setState(() {
-      _notifications.remove(notification);
-      // Also check promotional
-      _promotionalNotifications.remove(notification);
+      _notifications.removeWhere((n) => n['id']?.toString() == id);
+      _filteredNotifications.removeWhere((n) => n['id']?.toString() == id);
     });
-    _saveNotifications();
+
+    if (id.isNotEmpty) {
+      // Push dismiss + markAsRead to sync manager (backend + local storage)
+      NotificationSyncManager().dismiss([id]);
+      NotificationSyncManager().markAsRead([id]);
+      try {
+        NotificationService().cancelNotification(int.tryParse(id) ?? id.hashCode);
+      } catch (_) {}
+    }
   }
 
   @override
@@ -501,21 +556,28 @@ class _NotificationsScreenState extends State<NotificationsScreen>
     return Scaffold(
       backgroundColor:
           isDark ? theme.scaffoldBackgroundColor : AppColors.parchment,
-      body: CustomScrollView(
-        slivers: [
-          // Modern U-Shape Header
-          _buildAnimatedHeader(context, theme, colorScheme, isDark),
+      body: RefreshIndicator(
+        onRefresh: () async {
+          await NotificationSyncManager().syncWithBackend();
+        },
+        color: colorScheme.primary,
+        child: CustomScrollView(
+          physics: const AlwaysScrollableScrollPhysics(), // Allow refresh pull even when list is empty
+          slivers: [
+            // Modern U-Shape Header
+            _buildAnimatedHeader(context, theme, colorScheme, isDark),
 
-          // Filter Chips Section
-          SliverToBoxAdapter(
-            child: _buildModernFilterChips(theme, colorScheme, isDark),
-          ),
+            // Filter Chips Section
+            SliverToBoxAdapter(
+              child: _buildModernFilterChips(theme, colorScheme, isDark),
+            ),
 
-          // Notifications Content
-          _isLoading
-              ? SliverFillRemaining(child: _buildLoadingState(theme))
-              : _buildNotificationsContent(theme, colorScheme, isDark),
-        ],
+            // Notifications Content
+            _isLoading
+                ? SliverFillRemaining(child: _buildLoadingState(theme))
+                : _buildNotificationsContent(theme, colorScheme, isDark),
+          ],
+        ),
       ),
     );
   }

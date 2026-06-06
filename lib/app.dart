@@ -40,6 +40,8 @@ import 'package:grocery_app/core/theme/app_theme.dart';
 import 'package:grocery_app/common_widgets/connectivity_wrapper.dart';
 import 'package:grocery_app/routes/app_router.dart';
 
+import 'package:grocery_app/services/notification_sync_manager.dart';
+
 class MyApp extends StatelessWidget {
   final bool hasSeenWelcome;
   const MyApp({super.key, required this.hasSeenWelcome});
@@ -179,6 +181,8 @@ class _AppGlobalListenersState extends State<AppGlobalListeners> with WidgetsBin
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
       context.read<AuthCubit>().verifyAndRefreshToken();
+      NotificationSyncManager().flushPendingQueue();
+      NotificationSyncManager().syncWithBackend();
     }
   }
 
@@ -194,6 +198,10 @@ class _AppGlobalListenersState extends State<AppGlobalListeners> with WidgetsBin
               context.read<OrderCubit>().fetchOrders();
               context.read<SubscriptionCubit>().fetchUserSubscriptions();
               context.read<FavoritesCubit>().loadFavorites();
+
+              // Trigger sync on authentication
+              NotificationSyncManager().flushPendingQueue();
+              NotificationSyncManager().syncWithBackend();
             } else if (state is Unauthenticated) {
               context.read<NotificationCubit>().unregisterDevice();
               context.read<CartCubit>().clearCart();

@@ -4,6 +4,8 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:http/http.dart' as http;
 import 'package:device_info_plus/device_info_plus.dart';
+import '../models/notification_model.dart';
+import 'notification_sync_manager.dart';
 
 class NotificationService {
   static final NotificationService _instance = NotificationService._internal();
@@ -290,9 +292,10 @@ class NotificationService {
   }
 
   void _setupMessageHandlers() {
-    // Set up message handlers for different notification types
-    FirebaseMessaging.onMessage.listen(_handleForegroundMessage);
-    FirebaseMessaging.onMessageOpenedApp.listen(_handleMessageOpenedApp);
+    // Listeners are already registered in _initializeFirebaseMessaging.
+    // This method is kept as a placeholder for any additional setup.
+    // Do NOT re-register onMessage / onMessageOpenedApp here to avoid
+    // duplicate processing of every notification.
   }
 
   void _handleForegroundMessage(RemoteMessage message) {
@@ -303,23 +306,46 @@ class NotificationService {
       debugPrint(
         'Message also contained a notification: ${message.notification}',
       );
-
-      // Save notification to local storage
-      try {
-        Map<String, dynamic> notificationData = MessageUtility.parseMessageData(
-          message,
-        );
-        NotificationHelper.saveNotification(notificationData);
-      } catch (e) {
-        debugPrint('Error saving foreground notification: $e');
-      }
-
-      // Show local notification
-      _showLocalNotification(message);
-
-      // Add to stream for UI updates
-      _onMessageReceivedController.add(message);
     }
+
+    // Determine title and body from notification payload OR data payload.
+    // This ensures data-only messages from the backend are also handled.
+    final String title = message.notification?.title ?? message.data['title'] ?? 'New Notification';
+    final String body = message.notification?.body ?? message.data['body'] ?? '';
+
+    // Only skip truly empty messages (no notification AND no useful data)
+    if (message.notification == null && title == 'New Notification' && body.isEmpty && message.data.isEmpty) {
+      debugPrint('Skipping empty foreground message with no data');
+      return;
+    }
+
+    // Save notification to local storage via sync manager
+    try {
+      final notif = NotificationModel(
+        id: message.data['id']?.toString() ?? message.messageId ?? DateTime.now().millisecondsSinceEpoch.toString(),
+        title: title,
+        body: body,
+        type: message.data['type'] ?? 'general',
+        action: message.data['action'],
+        source: 'SERVER',
+        isRead: false,
+        isDismissed: false,
+        syncVersion: int.tryParse(message.data['sync_version']?.toString() ?? '0') ?? 0,
+        timestamp: DateTime.now().millisecondsSinceEpoch,
+        image: message.data['image'] ?? message.data['image_url'] ?? message.notification?.android?.imageUrl ?? message.notification?.apple?.imageUrl,
+        priority: message.data['priority'] ?? 'medium',
+        metadata: Map<String, dynamic>.from(message.data),
+      );
+      NotificationSyncManager().saveServerPushNotification(notif);
+    } catch (e) {
+      debugPrint('Error saving foreground notification: $e');
+    }
+
+    // Show local notification (heads-up banner)
+    _showLocalNotification(message);
+
+    // Add to stream for UI updates (badge, in-app list refresh)
+    _onMessageReceivedController.add(message);
   }
 
   void _handleMessageOpenedApp(RemoteMessage message) {
@@ -355,8 +381,8 @@ class NotificationService {
 
   Future<void> _showLocalNotification(RemoteMessage message) async {
     String channelId = _getChannelId(message.data);
-    String title = message.notification?.title ?? 'New Notification';
-    String body = message.notification?.body ?? '';
+    String title = message.notification?.title ?? message.data['title'] ?? 'New Notification';
+    String body = message.notification?.body ?? message.data['body'] ?? '';
 
     // Get image URL from notification or data payload
     String? imageUrl =
@@ -523,8 +549,32 @@ class NotificationService {
       return value.toString();
     }
 
-    final String? type = data['type'] as String?;
-    final String? genericId = toStringId(data['id']);
+    // Parse metadata if present (can be a JSON string or nested map)
+    Map<String, dynamic> metadata = {};
+    if (data['metadata'] != null) {
+      if (data['metadata'] is Map) {
+        metadata = Map<String, dynamic>.from(data['metadata']);
+      } else if (data['metadata'] is String) {
+        try {
+          metadata = json.decode(data['metadata']);
+        } catch (_) {}
+      }
+    }
+
+    // Extract type and ID from metadata
+    final String? metadataType = metadata['type']?.toString() ?? metadata['screen']?.toString();
+    final String? metadataId = toStringId(metadata['id'] ??
+        metadata['order_id'] ??
+        metadata['product_id'] ??
+        metadata['subscription_id']);
+
+    final String? type = (metadataType != null && metadataType.isNotEmpty)
+        ? metadataType
+        : data['type'] as String?;
+
+    final String? genericId = (metadataId != null && metadataId.isNotEmpty)
+        ? metadataId
+        : toStringId(data['id']);
 
     // Handle type-based routing (using 'type' field from backend)
     if (type != null && type.isNotEmpty) {
@@ -618,45 +668,42 @@ class NotificationService {
     int id = 0,
     String? type,
   }) async {
-    String channelId = _getChannelId({'type': type ?? 'order'});
+    String deviceId = await getDeviceId();
+    String localId = 'LOCAL_${deviceId}_${DateTime.now().millisecondsSinceEpoch}';
 
-    // Save local notification to storage
-    try {
-      Map<String, dynamic> notificationData = {
-        'title': title,
-        'body': body,
-        'type': type ?? 'order',
-        'timestamp': DateTime.now().millisecondsSinceEpoch,
-        'id': id.toString(),
-      };
-
-      if (payload != null) {
-        try {
-          final payloadMap = json.decode(payload) as Map<String, dynamic>;
-          notificationData.addAll(payloadMap);
-          // Ensure type is preserved from payload if available
-          if (payloadMap['type'] != null) {
-            notificationData['type'] = payloadMap['type'];
-          }
-          // Ensure id is preserved from payload if available
-          if (payloadMap['id'] != null) {
-            notificationData['id'] = payloadMap['id'].toString();
-          } else if (payloadMap['order_id'] != null) {
-            notificationData['id'] = payloadMap['order_id'].toString();
-          } else if (payloadMap['subscription_id'] != null) {
-            notificationData['id'] = payloadMap['subscription_id'].toString();
-          } else if (payloadMap['product_id'] != null) {
-            notificationData['id'] = payloadMap['product_id'].toString();
-          }
-        } catch (e) {
-          debugPrint('Error parsing payload for save: $e');
-        }
+    // Parse metadata from payload if any
+    Map<String, dynamic> metadataVal = {};
+    String? actionVal;
+    if (payload != null) {
+      try {
+        metadataVal = jsonDecode(payload) as Map<String, dynamic>;
+        actionVal = metadataVal['action'] as String?;
+      } catch (e) {
+        debugPrint('Error parsing payload: $e');
       }
-
-      await NotificationHelper.saveNotification(notificationData);
-    } catch (e) {
-      debugPrint('Error saving local notification: $e');
     }
+
+    final model = NotificationModel(
+      id: localId,
+      title: title,
+      body: body,
+      type: type ?? metadataVal['type'] ?? 'general',
+      action: actionVal,
+      source: 'LOCAL_DEVICE_APP',
+      originDeviceId: deviceId,
+      isRead: false,
+      isDismissed: false,
+      syncVersion: 0,
+      timestamp: DateTime.now().millisecondsSinceEpoch,
+      image: metadataVal['image'] ?? metadataVal['image_url'],
+      priority: metadataVal['priority'] ?? 'medium',
+      metadata: metadataVal,
+    );
+
+    // Save and register local notification optimistically
+    await NotificationSyncManager().registerLocalNotification(model);
+
+    String channelId = _getChannelId({'type': type ?? model.type});
 
     AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
       channelId,
@@ -797,12 +844,24 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   debugPrint('Message data: ${message.data}');
   debugPrint('Message notification: ${message.notification?.title}');
 
-  // Parse and save notification
+  // Parse and save notification via sync manager format
   try {
-    Map<String, dynamic> notificationData = MessageUtility.parseMessageData(
-      message,
+    final notif = NotificationModel(
+      id: message.data['id']?.toString() ?? message.messageId ?? DateTime.now().millisecondsSinceEpoch.toString(),
+      title: message.notification?.title ?? message.data['title'] ?? 'New Notification',
+      body: message.notification?.body ?? message.data['body'] ?? '',
+      type: message.data['type'] ?? 'general',
+      action: message.data['action'],
+      source: 'SERVER',
+      isRead: false,
+      isDismissed: false,
+      syncVersion: int.tryParse(message.data['sync_version']?.toString() ?? '0') ?? 0,
+      timestamp: DateTime.now().millisecondsSinceEpoch,
+      image: message.data['image'] ?? message.data['image_url'] ?? message.notification?.android?.imageUrl ?? message.notification?.apple?.imageUrl,
+      priority: message.data['priority'] ?? 'medium',
+      metadata: Map<String, dynamic>.from(message.data),
     );
-    await NotificationHelper.saveNotification(notificationData);
+    await NotificationSyncManager().saveServerPushNotification(notif);
   } catch (e) {
     debugPrint('Error saving background notification: $e');
   }

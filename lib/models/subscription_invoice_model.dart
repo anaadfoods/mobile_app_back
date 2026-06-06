@@ -50,10 +50,10 @@ class Invoice {
     /// Creates an Invoice instance from a JSON map.
     factory Invoice.fromJson(Map<String, dynamic> json) {
         return Invoice(
-            id: json["id"],
-            odooInvoiceNumber: json["odoo_invoice_number"],
-            s3Url: json["s3_url"],
-            displayName: json["display_name"],
+            id: json["id"] ?? 0,
+            odooInvoiceNumber: json["invoice_number"] ?? json["odoo_invoice_number"] ?? '',
+            s3Url: json["s3_url"] ?? '',
+            displayName: json["display_name"] ?? '',
         );
     }
 }

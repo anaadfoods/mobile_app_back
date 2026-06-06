@@ -1485,8 +1485,10 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
                   );
                 } else {
                   // Subscription
-                  final String paymentType =
-                      (paymentOption == 0) ? 'PAID_FULL' : 'INSTALLMENT';
+                  // COD restriction: Force PAID_FULL payment type for subscriptions since installments are disabled.
+                  // final String paymentType =
+                  //     (paymentOption == 0) ? 'PAID_FULL' : 'INSTALLMENT';
+                  final String paymentType = 'PAID_FULL';
                   _navigateToAddressScreen(
                     isSubscription: true,
                     selectedPlanIndex: selectedIndex,
@@ -1645,13 +1647,14 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
                 onPaymentOptionChanged, // Pass the callback down
               ),
               const SizedBox(width: 10),
-              if (plan.allowsInstallments)
-                _buildPaymentOptionRadio(
-                  1,
-                  'Installments',
-                  currentPaymentOption,
-                  onPaymentOptionChanged, // Pass the callback down
-                ),
+              // COD restriction: Installments are disabled. Comment out the Installments option.
+              // if (plan.allowsInstallments)
+              //   _buildPaymentOptionRadio(
+              //     1,
+              //     'Installments',
+              //     currentPaymentOption,
+              //     onPaymentOptionChanged, // Pass the callback down
+              //   ),
             ],
           ),
         ],
@@ -2476,8 +2479,9 @@ class _ModernSubscriptionSheetState extends State<_ModernSubscriptionSheet>
                       ),
                     ),
                     _buildPaymentChip('One Time', 0),
-                    if (plan.allowsInstallments)
-                      _buildPaymentChip('Installments', 1),
+                    // COD restriction: Installments are disabled. Comment out the Installments chip.
+                    // if (plan.allowsInstallments)
+                    //   _buildPaymentChip('Installments', 1),
                   ],
                 ),
               ],

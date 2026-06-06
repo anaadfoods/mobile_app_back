@@ -628,7 +628,7 @@ class SubscriptionService {
 
       final response = await http.get(
         Uri.parse(
-          '${ApiConfig.baseUrl}/api/odoo/subscriptions/$subscriptionId/invoices/',
+          '${ApiConfig.baseUrl}/api/invoicing/subscriptions/$subscriptionId/invoices/',
         ),
         headers: ApiConfig.getAuthHeaders(token),
       );

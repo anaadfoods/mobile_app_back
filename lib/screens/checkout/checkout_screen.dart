@@ -52,7 +52,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
   bool _isLoading = true;
   String? _error;
-  String _selectedPaymentMethod = 'UPI';
+  // String _selectedPaymentMethod = 'UPI';
+  // COD restriction: Default selection to Cash on Delivery (COD)
+  String _selectedPaymentMethod = 'COD';
   bool _useExistingAddress = true;
   late String _selectedPaymentType;
   int _pendingRewardsCount = 0;
@@ -170,6 +172,10 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     _setLoadingState(true);
 
     try {
+      // COD restriction: Enforce COD payment method and PAID_FULL payment type at order submission
+      _selectedPaymentMethod = 'COD';
+      _selectedPaymentType = 'PAID_FULL';
+
       if (_selectedPaymentMethod == 'UPI') {
         await _handleUPIPayment();
       } else {
@@ -1902,26 +1908,37 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 ),
               ),
               const SizedBox(height: 20),
-              if (!widget.isSubscription) ...[
-                _buildPaymentOption(
-                  theme,
-                  isDark,
-                  'COD',
-                  'Cash on Delivery',
-                  'Pay when you receive your order',
-                  Icons.money_rounded,
-                  AppColors.harvestAmber,
-                ),
-                const SizedBox(height: 12),
-              ],
+              // COD restriction: Enforce Cash on Delivery (COD) only. Comment out old conditional block and UPI option.
+              // if (!widget.isSubscription) ...[
+              //   _buildPaymentOption(
+              //     theme,
+              //     isDark,
+              //     'COD',
+              //     'Cash on Delivery',
+              //     'Pay when you receive your order',
+              //     Icons.money_rounded,
+              //     AppColors.harvestAmber,
+              //   ),
+              //   const SizedBox(height: 12),
+              // ],
+              // _buildPaymentOption(
+              //   theme,
+              //   isDark,
+              //   'UPI',
+              //   'Pay Online',
+              //   'UPI / Card / NetBanking',
+              //   Icons.payment_rounded,
+              //   theme.colorScheme.primary,
+              // ),
+              
               _buildPaymentOption(
                 theme,
                 isDark,
-                'UPI',
-                'Pay Online',
-                'UPI / Card / NetBanking',
-                Icons.payment_rounded,
-                theme.colorScheme.primary,
+                'COD',
+                'Cash on Delivery',
+                'Pay when you receive your order/subscription',
+                Icons.money_rounded,
+                AppColors.harvestAmber,
               ),
               const SizedBox(height: 20),
             ],

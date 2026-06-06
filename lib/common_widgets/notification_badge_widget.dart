@@ -1,4 +1,5 @@
 import 'package:grocery_app/common_widgets/global_import.dart';
+import 'package:grocery_app/services/notification_sync_manager.dart';
 
 class NotificationBadgeWidget extends StatefulWidget {
   final Widget child;
@@ -26,17 +27,30 @@ class NotificationBadgeWidget extends StatefulWidget {
 class _NotificationBadgeWidgetState extends State<NotificationBadgeWidget> {
   int _notificationCount = 0;
   final NotificationService _notificationService = NotificationService();
+  StreamSubscription? _syncSubscription;
 
   @override
   void initState() {
     super.initState();
     _loadNotificationCount();
+    _listenToSyncEvents();
     _listenToNotifications();
   }
 
+  void _listenToSyncEvents() {
+    _syncSubscription = NotificationSyncManager().onSyncEvent.listen((_) {
+      _loadNotificationCount();
+    });
+  }
+
+  @override
+  void dispose() {
+    _syncSubscription?.cancel();
+    super.dispose();
+  }
+
   Future<void> _loadNotificationCount() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    int count = prefs.getInt('notification_count') ?? 0;
+    int count = await NotificationSyncManager().getUnreadCount();
     if (mounted) {
       setState(() {
         _notificationCount = count;
@@ -46,22 +60,8 @@ class _NotificationBadgeWidgetState extends State<NotificationBadgeWidget> {
 
   void _listenToNotifications() {
     _notificationService.onMessageReceived.listen((message) {
-      _incrementNotificationCount();
+      _loadNotificationCount();
     });
-  }
-
-  Future<void> _incrementNotificationCount() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    int currentCount = prefs.getInt('notification_count') ?? 0;
-    int newCount = currentCount + 1;
-
-    await prefs.setInt('notification_count', newCount);
-
-    if (mounted) {
-      setState(() {
-        _notificationCount = newCount;
-      });
-    }
   }
 
   Future<void> _clearNotificationCount() async {

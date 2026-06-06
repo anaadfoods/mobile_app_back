@@ -2,6 +2,8 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../services/notification_service.dart';
+import '../models/notification_model.dart';
+import '../services/notification_sync_manager.dart';
 
 class NotificationHelper {
   static final NotificationService _notificationService = NotificationService();
@@ -53,16 +55,17 @@ class NotificationHelper {
     Map<String, dynamic> notification,
   ) async {
     try {
-      SharedPreferences prefs = await SharedPreferences.getInstance();
-
-      // Check for promotional type
+      // Keep promotional notifications saved separately in SharedPreferences as required by UI
       if (notification['type'] == 'promotional') {
+        SharedPreferences prefs = await SharedPreferences.getInstance();
         List<Map<String, dynamic>> promotionalNotifications = [];
         String? promoJson = prefs.getString('promotional_notifications');
 
         if (promoJson != null) {
-          List<dynamic> list = json.decode(promoJson);
-          promotionalNotifications = list.cast<Map<String, dynamic>>();
+          try {
+            List<dynamic> list = json.decode(promoJson);
+            promotionalNotifications = list.cast<Map<String, dynamic>>();
+          } catch (_) {}
         }
 
         promotionalNotifications.insert(0, notification);
@@ -74,26 +77,10 @@ class NotificationHelper {
         return;
       }
 
-      // Handle normal notifications
-      List<Map<String, dynamic>> notifications = [];
-      String? notificationsJson = prefs.getString('notifications');
-
-      if (notificationsJson != null) {
-        List<dynamic> notificationsList = json.decode(notificationsJson);
-        notifications = notificationsList.cast<Map<String, dynamic>>();
-      }
-
-      // Add new notification to the beginning
-      notifications.insert(0, notification);
-
-      // Save updated list
-      await prefs.setString('notifications', json.encode(notifications));
-
-      // Update badge count if needed (optional)
-      int currentCount = prefs.getInt('notification_count') ?? 0;
-      await prefs.setInt('notification_count', currentCount + 1);
-
-      debugPrint('Notification saved successfully');
+      // Delegate normal notifications to NotificationSyncManager to prevent duplicate serialization
+      final model = NotificationModel.fromJson(notification);
+      await NotificationSyncManager().saveServerPushNotification(model);
+      debugPrint('Notification saved successfully via SyncManager');
     } catch (e) {
       debugPrint('Error saving notification: $e');
     }

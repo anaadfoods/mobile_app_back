@@ -25,10 +25,20 @@ class _ReferEarnScreenState extends State<ReferEarnScreen>
   String get _referralCode => _referralData?.referralCode ?? 'LOADING...';
   int get _totalReferrals => _referralData?.referralsCount ?? 0;
   int get _pendingReferrals =>
-      _referralData?.referredUsers.where((u) => u.status == 'PENDING').length ??
+      _referralData?.referredUsers
+          .where((u) =>
+              u.status == 'PENDING' ||
+              u.status == 'REGISTERED' ||
+              u.status == 'QUALIFICATION_PENDING')
+          .length ??
       0;
   int get _acceptedReferrals =>
-      _referralData?.referredUsers.where((u) => u.status != 'PENDING').length ??
+      _referralData?.referredUsers
+          .where((u) =>
+              u.status == 'QUALIFIED' ||
+              u.status == 'REWARD_AVAILABLE' ||
+              u.status == 'REWARD_REDEEMED')
+          .length ??
       0;
 
   @override
@@ -137,11 +147,9 @@ class _ReferEarnScreenState extends State<ReferEarnScreen>
                       const SizedBox(height: 28),
 
                       // Referred Users List
-                      if (_referralData != null &&
-                          _referralData!.referredUsers.isNotEmpty)
+                      if (_referralData != null)
                         _buildReferredUsersList(theme, isDark),
-                      if (_referralData != null &&
-                          _referralData!.referredUsers.isNotEmpty)
+                      if (_referralData != null)
                         const SizedBox(height: 28),
 
                       // How It Works
@@ -577,20 +585,61 @@ class _ReferEarnScreenState extends State<ReferEarnScreen>
             ],
           ),
           const SizedBox(height: 16),
-          ...(_referralData!.referredUsers.map(
-            (user) => _buildUserCard(theme, isDark, user),
-          )),
+          if (_referralData!.referredUsers.isEmpty)
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 24),
+              child: Center(
+                child: Column(
+                  children: [
+                    Icon(
+                      Icons.people_outline_rounded,
+                      size: 40,
+                      color: isDark
+                          ? AppColors.parchment.withValues(alpha: 0.4)
+                          : AppColors.rawEarth.withValues(alpha: 0.3),
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      'No referrals registered yet',
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: isDark
+                            ? AppColors.parchment.withValues(alpha: 0.7)
+                            : AppColors.rawEarth.withValues(alpha: 0.7),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            )
+          else
+            ...(_referralData!.referredUsers.map(
+              (user) => _buildUserCard(theme, isDark, user),
+            )),
         ],
       ),
     );
   }
 
   Widget _buildUserCard(ThemeData theme, bool isDark, ReferredUser user) {
-    final statusColor =
-        user.status == 'PENDING'
-            ? AppColors.harvestAmber
-            : AppColors.deepSoilGreen;
-    final statusText = user.status ?? 'Active';
+    Color statusColor;
+    switch (user.status?.toUpperCase()) {
+      case 'REGISTERED':
+      case 'QUALIFICATION_PENDING':
+      case 'PENDING':
+        statusColor = AppColors.harvestAmber;
+        break;
+      case 'QUALIFIED':
+      case 'REWARD_AVAILABLE':
+      case 'REWARD_REDEEMED':
+        statusColor = AppColors.deepSoilGreen;
+        break;
+      case 'DISQUALIFIED':
+        statusColor = AppColors.rawEarth;
+        break;
+      default:
+        statusColor = AppColors.harvestAmber;
+    }
+    final statusText = user.statusDisplay ?? user.status ?? 'Joined';
     final dateStr =
         '${user.dateJoined.day}/${user.dateJoined.month}/${user.dateJoined.year}';
 

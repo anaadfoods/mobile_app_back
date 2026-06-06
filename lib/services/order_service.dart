@@ -337,7 +337,7 @@ class OrderService {
       if (token == null) throw Exception('Authentication required');
 
       final response = await http.get(
-        Uri.parse('$baseUrl/api/odoo/orders/$orderNumber/invoice/'),
+        Uri.parse('$baseUrl/api/invoicing/orders/$orderNumber/invoice/'),
         headers: await _getHeaders(),
       );
 
