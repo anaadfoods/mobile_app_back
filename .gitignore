@@ -65,3 +65,7 @@ app.*.map.json
 # ================================
 android/local.properties
 ios/Flutter/Generated.xcconfig
+
+.metadata
+macos/Flutter/GeneratedPluginRegistrant.swift
+.DS_Store
