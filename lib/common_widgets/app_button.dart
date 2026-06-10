@@ -1,5 +1,4 @@
 import "global_import.dart";
-import 'package:grocery_app/core/theme/theme.dart';
 
 class AppButton extends StatefulWidget {
   final String label;

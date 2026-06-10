@@ -1,5 +1,6 @@
 /// Panchang Guidance Models
 /// Models for the Today Guidance feature
+library;
 
 // Helper to parse DateTime from various formats
 DateTime? _tryParseDateTime(dynamic value) {

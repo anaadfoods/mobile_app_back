@@ -4,6 +4,8 @@ import 'package:grocery_app/models/rfp_delivery_model.dart';
 import 'package:grocery_app/services/rfp_services.dart';
 import 'package:grocery_app/styles/colors.dart';
 
+import 'package:grocery_app/service_locator.dart';
+
 class ExpandableDeliveryTile extends StatefulWidget {
   final Delivery delivery;
 
@@ -17,7 +19,7 @@ class _ExpandableDeliveryTileState extends State<ExpandableDeliveryTile> {
   late Future<DeliveryDetail> _detailsFuture;
   bool _isExpanded = false;
   bool _hasFetched = false;
-  final DeliveryService _service = DeliveryService();
+  final DeliveryService _service = getIt<DeliveryService>();
 
   void _onExpansionChanged(bool isExpanding) {
     setState(() {
@@ -167,18 +169,22 @@ class _ExpandableDeliveryTileState extends State<ExpandableDeliveryTile> {
   }
 
   Color _getStatusColor(ThemeData theme, String status) {
+    final isDark = theme.brightness == Brightness.dark;
     switch (status.toUpperCase()) {
       case 'DELIVERED':
-        return AppColors.deepSoilGreen;
+        return isDark ? AppColors.darkSuccessGreen : AppColors.deepSoilGreen;
       default:
         return theme.disabledColor;
     }
   }
 
   Color _getTileColor(ThemeData theme, String status) {
+    final isDark = theme.brightness == Brightness.dark;
     switch (status.toUpperCase()) {
       case 'DELIVERED':
-        return AppColors.deepSoilGreen.withValues(alpha: 0.1);
+        return isDark
+            ? AppColors.darkSuccessGreen.withValues(alpha: 0.15)
+            : AppColors.deepSoilGreen.withValues(alpha: 0.1);
       default:
         return theme.cardColor;
     }

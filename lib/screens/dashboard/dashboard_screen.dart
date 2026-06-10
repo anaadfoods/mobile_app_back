@@ -1,12 +1,6 @@
 import 'dart:math' as math;
 import 'dart:ui';
-import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
 import 'package:grocery_app/common_widgets/global_import.dart';
-import 'package:grocery_app/cubits/cart/cart_cubit.dart';
-import 'package:grocery_app/cubits/cart/cart_state.dart';
 import 'navigator_item.dart';
 
 class DashboardScreen extends StatefulWidget {
@@ -19,9 +13,10 @@ class DashboardScreen extends StatefulWidget {
 }
 
 class DashboardScreenState extends State<DashboardScreen>
-    with TickerProviderStateMixin {
+    with TickerProviderStateMixin, WidgetsBindingObserver {
   late AnimationController _bounceController;
   late AnimationController _fabFloatController;
+  bool _fabAnimationActive = true;
 
   // For double-back to exit
   DateTime? lastTimeBackPressed;
@@ -38,13 +33,34 @@ class DashboardScreenState extends State<DashboardScreen>
       duration: const Duration(milliseconds: 2000),
       vsync: this,
     )..repeat(reverse: true);
+
+    WidgetsBinding.instance.addObserver(this);
+
+    Future.delayed(const Duration(seconds: 6), () {
+      if (mounted) {
+        _fabAnimationActive = false;
+        _fabFloatController.stop();
+      }
+    });
   }
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _bounceController.dispose();
     _fabFloatController.dispose();
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.paused) {
+      _fabFloatController.stop();
+    } else if (state == AppLifecycleState.resumed) {
+      if (_fabAnimationActive) {
+        _fabFloatController.repeat(reverse: true);
+      }
+    }
   }
 
   void _onTabChanged(int index) {

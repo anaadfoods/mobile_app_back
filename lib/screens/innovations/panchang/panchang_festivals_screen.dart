@@ -8,6 +8,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:grocery_app/core/theme/app_colors.dart';
 import 'package:intl/intl.dart';
 
+import 'package:grocery_app/service_locator.dart';
 import '../../../common_widgets/error_state_widget.dart';
 import '../../../cubits/panchang/panchang_festivals_cubit.dart';
 import '../../../cubits/panchang/panchang_festivals_state.dart';
@@ -40,7 +41,7 @@ class _PanchangFestivalsScreenState extends State<PanchangFestivalsScreen>
   @override
   void initState() {
     super.initState();
-    _cubit = PanchangFestivalsCubit(repository: PanchangRepository());
+    _cubit = PanchangFestivalsCubit(repository: getIt<PanchangRepository>());
 
     _entranceController = AnimationController(
       duration: const Duration(milliseconds: 800),

@@ -1,8 +1,7 @@
 import 'dart:math' as math;
-import 'package:flutter/services.dart';
 import "package:grocery_app/common_widgets/global_import.dart";
-import "package:grocery_app/common_widgets/global_import.dart" as http;
 import "package:grocery_app/common_widgets/select_state.dart";
+import "package:http/http.dart" as http;
 
 enum OrderType { self, other }
 
@@ -14,7 +13,7 @@ class AddressSelectionScreen extends StatefulWidget {
   final int? quantity;
   final bool isSubscription;
   final int? selectedPlan;
-  final UserModel? user = AuthService().currentUser;
+  final UserModel? user = getIt<TokenService>().currentUser;
 
   AddressSelectionScreen({
     super.key,
@@ -28,7 +27,7 @@ class AddressSelectionScreen extends StatefulWidget {
   }) : assert(cart != null || (singleProduct != null && quantity != null));
 
   @override
-  _AddressSelectionScreenState createState() => _AddressSelectionScreenState();
+  State<AddressSelectionScreen> createState() => _AddressSelectionScreenState();
 }
 
 class _AddressSelectionScreenState extends State<AddressSelectionScreen>
@@ -45,8 +44,6 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen>
   String? _error;
   Map<String, dynamic>? _deliveryDetails;
   Map<String, String>? _savedAddress;
-
-  final authService = AuthService();
 
   OrderType _orderType = OrderType.self;
   String _selectedAddressType = 'new';
@@ -141,8 +138,7 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen>
         (user.address?.isNotEmpty ?? false) &&
         (user.city?.isNotEmpty ?? false) &&
         (user.state?.isNotEmpty ?? false) &&
-        (user.pincode?.isNotEmpty ?? false) &&
-        (user.phoneNumber.isNotEmpty)) {
+        (user.pincode?.isNotEmpty ?? false)) {
       _savedAddress = {
         'address': user.address!,
         'city': user.city!,
@@ -288,6 +284,16 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen>
             (_orderType == OrderType.self && _selectedAddressType == 'new')) &&
         !(_formKey.currentState?.validate() ?? false)) {
       return;
+    }
+
+    if (_orderType == OrderType.self && _selectedAddressType == 'saved') {
+      if (_phoneController.text.trim().length != 10) {
+        SnackBarHelper.showError(
+          context,
+          'Please enter a valid 10-digit phone number.',
+        );
+        return;
+      }
     }
 
     if (_deliveryDetails == null) {
@@ -450,8 +456,19 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen>
                                   ? Column(
                                     key: const ValueKey('self'),
                                     children: [
-                                      if (_savedAddress != null)
+                                      if (_savedAddress != null) ...[
                                         _buildSavedAddressCard(theme, isDark),
+                                        if (_selectedAddressType == 'saved' &&
+                                            (_savedAddress!['phone'] == null ||
+                                                _savedAddress!['phone']!
+                                                    .isEmpty)) ...[
+                                          const SizedBox(height: 16),
+                                          _buildMissingPhoneField(
+                                            theme,
+                                            isDark,
+                                          ),
+                                        ],
+                                      ],
                                       _buildNewAddressOption(
                                         theme,
                                         isDark,
@@ -588,7 +605,7 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen>
                             ),
                             child: const Icon(
                               Icons.location_on_rounded,
-                              color: AppColors.harvestAmber,
+                              color: AppColors.amberWarnBg,
                               size: 24,
                             ),
                           ),
@@ -824,9 +841,7 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen>
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 color:
-                    isSelected
-                        ? AppColors.harvestAmber
-                        : AppColors.transparent,
+                    isSelected ? AppColors.harvestAmber : AppColors.transparent,
                 border: Border.all(
                   color:
                       isSelected
@@ -969,9 +984,7 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen>
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 color:
-                    isSelected
-                        ? AppColors.harvestAmber
-                        : AppColors.transparent,
+                    isSelected ? AppColors.harvestAmber : AppColors.transparent,
                 border: Border.all(
                   color:
                       isSelected
@@ -1020,6 +1033,76 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen>
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildMissingPhoneField(ThemeData theme, bool isDark) {
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 200),
+      margin: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: theme.cardColor,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: AppColors.harvestAmber, width: 1),
+        boxShadow: [
+          BoxShadow(
+            color: theme.shadowColor.withValues(alpha: 0.06),
+            blurRadius: 8,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'We need your phone number',
+            style: theme.textTheme.titleSmall?.copyWith(
+              fontWeight: FontWeight.bold,
+              color: AppColors.harvestAmber,
+            ),
+          ),
+          const SizedBox(height: 12),
+          TextFormField(
+            controller: _phoneController,
+            keyboardType: TextInputType.phone,
+            maxLength: 10,
+            decoration: InputDecoration(
+              hintText: 'Enter 10-digit phone number',
+              prefixIcon: const Icon(
+                Icons.phone_rounded,
+                color: AppColors.harvestAmber,
+              ),
+              filled: true,
+              fillColor:
+                  isDark
+                      ? AppColors.parchment.withValues(alpha: 0.05)
+                      : AppColors.parchment,
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide(
+                  color: theme.dividerColor.withValues(alpha: 0.6),
+                ),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide(
+                  color: theme.dividerColor.withValues(alpha: 0.6),
+                ),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(
+                  color: AppColors.harvestAmber,
+                  width: 1.5,
+                ),
+              ),
+              counterText: '',
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -1167,11 +1250,7 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen>
           decoration: InputDecoration(
             hintText: hint,
             hintStyle: TextStyle(color: theme.hintColor.withValues(alpha: 0.5)),
-            prefixIcon: Icon(
-              icon,
-              color: AppColors.harvestAmber,
-              size: 22,
-            ),
+            prefixIcon: Icon(icon, color: AppColors.harvestAmber, size: 22),
             filled: true,
             fillColor: isDark ? AppColors.charcoal : AppColors.parchment,
             border: OutlineInputBorder(
@@ -1186,10 +1265,7 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen>
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(14),
-              borderSide: BorderSide(
-                color: AppColors.harvestAmber,
-                width: 2,
-              ),
+              borderSide: BorderSide(color: AppColors.harvestAmber, width: 2),
             ),
             errorBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(14),
@@ -1347,11 +1423,7 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen>
 
     return Column(
       children: [
-        Icon(
-          Icons.payments_rounded,
-          color: AppColors.harvestAmber,
-          size: 24,
-        ),
+        Icon(Icons.payments_rounded, color: AppColors.harvestAmber, size: 24),
         const SizedBox(height: 8),
         Text(
           'Delivery Charges',

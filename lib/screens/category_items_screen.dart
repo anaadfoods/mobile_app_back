@@ -1,5 +1,3 @@
-import 'package:flutter/services.dart';
-import 'package:go_router/go_router.dart';
 import 'package:grocery_app/common_widgets/coming_soon_overlay.dart';
 import 'package:grocery_app/common_widgets/global_import.dart';
 import 'package:grocery_app/routes/app_routes.dart';
@@ -186,21 +184,19 @@ class _CategoryItemsScreenState extends State<CategoryItemsScreen> {
                   final product = filteredProducts[index];
                   return Padding(
                     padding: const EdgeInsets.only(bottom: AppColors.spacingM),
-                    child: Stack(
-                      children: [
-                        Opacity(
-                          opacity: product.isInStock ? 1.0 : 0.5,
-                          child: GroceryItemCardWidget(
-                            item: product,
-                            heroSuffix: "home_screen",
-                            onTap:
-                                (product.isInStock && product.isActive)
-                                    ? () => _onProductClicked(product)
-                                    : null,
-                          ),
-                        ),
-                        if (!product.isActive) const ComingSoonOverlay(),
-                      ],
+                    child: Opacity(
+                      opacity:
+                          product.isActive
+                              ? (product.isInStock ? 1.0 : 0.5)
+                              : 1.0,
+                      child: GroceryItemCardWidget(
+                        item: product,
+                        heroSuffix: "home_screen",
+                        onTap:
+                            (product.isInStock && product.isActive)
+                                ? () => _onProductClicked(product)
+                                : null,
+                      ),
                     ),
                   );
                 }, childCount: filteredProducts.length),
@@ -283,7 +279,10 @@ class _CategoryItemsScreenState extends State<CategoryItemsScreen> {
               child: Container(
                 height: 100,
                 decoration: BoxDecoration(
-                  color: isDark ? AppColors.darkSurfaceElevated : AppColors.parchment,
+                  color:
+                      isDark
+                          ? AppColors.darkSurfaceElevated
+                          : AppColors.parchment,
                   borderRadius: BorderRadius.circular(16),
                   boxShadow: [
                     BoxShadow(

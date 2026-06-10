@@ -510,8 +510,9 @@ class _SeedSaviorState extends State<SeedSaviorGameScreen>
           _createShockWave(match[match.length ~/ 2]);
           // Clear row/column
           for (int i = 0; i < gridSize; i++) {
-            if (_grid[match[0].y][i]?.type == TileType.seed)
+            if (_grid[match[0].y][i]?.type == TileType.seed) {
               tilesToRemove.add(_grid[match[0].y][i]!);
+            }
           }
         } else if (match.length == 4) {
           _playSound('combo');
@@ -1629,7 +1630,7 @@ class _SeedSaviorState extends State<SeedSaviorGameScreen>
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'Level ${_level}: ${config.objective}',
+                              'Level $_level: ${config.objective}',
                               style: TextStyle(
                                 fontSize: 12,
                                 fontWeight: FontWeight.w800,
@@ -3420,12 +3421,15 @@ class _SeedSaviorState extends State<SeedSaviorGameScreen>
   }
 
   String _getCollectionMilestoneText() {
-    if (_totalSeedsSaved >= 1000)
+    if (_totalSeedsSaved >= 1000) {
       return 'Master Seed Saver! You\'ve preserved 1000+ seeds! 🎉';
-    if (_totalSeedsSaved >= 500)
+    }
+    if (_totalSeedsSaved >= 500) {
       return 'Biodiversity Champion! 500 seeds saved. Next: 1000 for Master status!';
-    if (_totalSeedsSaved >= 100)
+    }
+    if (_totalSeedsSaved >= 100) {
       return 'Growing collection! ${500 - _totalSeedsSaved} more seeds to Biodiversity Champion!';
+    }
     return 'Collect 100 seeds to unlock Seed Guardian achievement! Current: $_totalSeedsSaved';
   }
 

@@ -1,4 +1,3 @@
-import '../../../core/theme/app_theme.dart';
 import 'package:grocery_app/core/theme/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:auto_size_text/auto_size_text.dart';
@@ -6,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 
+import 'package:grocery_app/service_locator.dart';
 import '../../../common_widgets/error_state_widget.dart';
 import '../../../cubits/panchang/panchang_vrat_cubit.dart';
 import '../../../cubits/panchang/panchang_vrat_state.dart';
@@ -62,7 +62,7 @@ class _PanchangVratCalendarScreenState extends State<PanchangVratCalendarScreen>
   @override
   void initState() {
     super.initState();
-    _cubit = PanchangVratCubit(repository: PanchangRepository());
+    _cubit = PanchangVratCubit(repository: getIt<PanchangRepository>());
     _scrollController = ScrollController();
     _animController = AnimationController(
       vsync: this,

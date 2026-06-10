@@ -1,7 +1,5 @@
 import 'package:grocery_app/common_widgets/global_import.dart';
-import 'package:grocery_app/cubits/subscription/subscription_state.dart';
 import 'package:grocery_app/common_widgets/pause_date_picker_sheet.dart';
-import 'package:go_router/go_router.dart';
 import 'package:grocery_app/routes/app_routes.dart';
 
 class SubscriptionCarousel extends StatefulWidget {
@@ -67,7 +65,7 @@ class _SubscriptionCarouselState extends State<SubscriptionCarousel>
           return Center(
             child: Padding(
               padding: EdgeInsets.all(responsive.screenPadding),
-              child: Text("Couldn't load subscriptions.\n${state.message}"),
+              child: Text(""),
             ),
           );
         }
@@ -166,30 +164,177 @@ class _SubscriptionCarouselState extends State<SubscriptionCarousel>
     );
   }
 
+  void _showConfirmationPopup(
+    BuildContext context,
+    bool isPause,
+    VoidCallback onConfirm,
+  ) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    // Dynamically set the theme color based on the action
+    final Color primaryColor =
+        isPause ? AppColors.harvestAmber : AppColors.deepSoilGreen;
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext dialogContext) {
+        return Dialog(
+          backgroundColor: AppColors.transparent,
+          elevation: 0,
+          insetPadding: const EdgeInsets.symmetric(horizontal: 24),
+          child: Container(
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: isDark
+                    ? [AppColors.darkSurfaceElevated, AppColors.darkSurfaceElevated]
+                    : [AppColors.parchment, AppColors.parchment],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(24),
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.charcoal.withValues(
+                    alpha: isDark ? 0.3 : 0.1,
+                  ),
+                  blurRadius: 20,
+                  offset: const Offset(0, 10),
+                ),
+              ],
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: primaryColor.withValues(alpha: 0.15),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    isPause
+                        ? Icons.pause_circle_rounded
+                        : Icons.play_circle_rounded,
+                    color: primaryColor,
+                    size: 40,
+                  ),
+                ),
+                const SizedBox(height: 20),
+                Text(
+                  isPause ? 'Pause Subscription?' : 'Resume Subscription?',
+                  style: theme.textTheme.headlineSmall?.copyWith(
+                    color: isDark ? AppColors.pureWhite : AppColors.charcoal,
+                    fontWeight: FontWeight.bold,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  isPause
+                      ? 'Are you sure you want to pause your subscription for the selected dates?'
+                      : 'Are you sure you want to resume your subscription? Your deliveries will restart from the next scheduled date.',
+                  textAlign: TextAlign.center,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: isDark ? AppColors.pureWhite.withValues(alpha: 0.7) : AppColors.charcoal60,
+                    height: 1.4,
+                  ),
+                ),
+                const SizedBox(height: 32),
+                Row(
+                  children: [
+                    Expanded(
+                      child: TextButton(
+                        onPressed: () => Navigator.pop(dialogContext),
+                        style: TextButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                        ),
+                        child: Text(
+                          'Cancel',
+                          style: theme.textTheme.titleMedium?.copyWith(
+                            color: isDark ? AppColors.pureWhite.withValues(alpha: 0.7) : AppColors.charcoal60,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Container(
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [
+                              primaryColor,
+                              primaryColor.withValues(alpha: 0.8),
+                            ],
+                          ),
+                          borderRadius: BorderRadius.circular(16),
+                          boxShadow: [
+                            BoxShadow(
+                              color: primaryColor.withValues(alpha: 0.3),
+                              blurRadius: 12,
+                              offset: const Offset(0, 6),
+                            ),
+                          ],
+                        ),
+                        child: Material(
+                          color: AppColors.transparent,
+                          child: InkWell(
+                            onTap: () {
+                              Navigator.pop(dialogContext);
+                              onConfirm();
+                            },
+                            borderRadius: BorderRadius.circular(16),
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 16),
+                              child: Center(
+                                child: Text(
+                                  isPause ? 'Pause' : 'Resume',
+                                  style: theme.textTheme.titleMedium?.copyWith(
+                                    color: AppColors.parchment,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   void _showToggleConfirmation(Subscription subscription) {
     final isCurrentlyPaused = subscription.status == 'PAUSED';
-    final maxPausesLeft = subscription.remainingPauseTimes;
-    DateTime? selectedStartDate;
-    DateTime? selectedEndDate;
 
     if (isCurrentlyPaused) {
-      showModalBottomSheet(
-        context: context,
-        backgroundColor: AppColors.transparent,
-        builder:
-            (context) => ResumeSubscriptionSheet(
-              onConfirm: () {
-                context.read<SubscriptionCubit>().togglePauseSubscription(
-                  subscription.id,
-                  null,
-                  null,
-                );
-              },
-            ),
+      _showConfirmationPopup(
+        context,
+        false, // isPause = false
+        () {
+          context.read<SubscriptionCubit>().togglePauseSubscription(
+            subscription.id,
+            null,
+            null,
+          );
+        },
       );
       return;
     }
 
+    // Show pause date picker first, then confirm
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -198,10 +343,16 @@ class _SubscriptionCarouselState extends State<SubscriptionCarousel>
           (context) => PauseDatePickerSheet(
             maxPausesLeft: subscription.remainingPauseTimes,
             onConfirm: (start, end) {
-              context.read<SubscriptionCubit>().togglePauseSubscription(
-                subscription.id,
-                start,
-                end,
+              _showConfirmationPopup(
+                context,
+                true, // isPause = true
+                () {
+                  context.read<SubscriptionCubit>().togglePauseSubscription(
+                    subscription.id,
+                    start,
+                    end,
+                  );
+                },
               );
             },
           ),
@@ -631,11 +782,10 @@ class _SubscriptionCardState extends State<SubscriptionCard> {
                                   child: CircularProgressIndicator(
                                     value: progress,
                                     strokeWidth: 4,
-                                    backgroundColor:
-                                        isDark
-                                            ? AppColors.darkSurfaceElevated
-                                            : AppColors.parchment,
-                                    valueColor: AlwaysStoppedAnimation<Color>(
+                                    backgroundColor: AppColors.deepSoilGreen.withValues(
+                                      alpha: 0.15,
+                                    ),
+                                    valueColor: const AlwaysStoppedAnimation<Color>(
                                       AppColors.deepSoilGreen,
                                     ),
                                   ),

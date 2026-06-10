@@ -29,8 +29,8 @@ class _GameState extends State<CowToSoilCycleGameScreen>
   late Animation<double> _float, _rotate, _shimmer, _breathe;
 
   // Particles for visual effects
-  List<_Particle> _particles = [];
-  List<_Sparkle> _sparkles = [];
+  final List<_Particle> _particles = [];
+  final List<_Sparkle> _sparkles = [];
 
   // Phase 1: Feeding
   List<_FodderItem> _fodder = [];
@@ -764,7 +764,9 @@ class _GameState extends State<CowToSoilCycleGameScreen>
         );
       }
       setState(() {
-        for (var d in _drops) d.y += d.speed;
+        for (var d in _drops) {
+          d.y += d.speed;
+        }
         final bL = _bucketX - 0.1, bR = _bucketX + 0.1;
         _drops =
             _drops.where((d) {
@@ -773,8 +775,9 @@ class _GameState extends State<CowToSoilCycleGameScreen>
                   if (d.good) {
                     _collected++;
                     _addScore(20);
-                  } else
+                  } else {
                     _loseLife();
+                  }
                 } else if (d.good)
                   _combo = 0;
                 return false;

@@ -1,5 +1,6 @@
 /// Models for Vrat Calendar API response
 /// GET /api/panchang-calender/vrat-calendar/
+library;
 
 class VratCalendarResponse {
 	final String start;

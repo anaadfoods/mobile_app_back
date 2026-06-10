@@ -1,9 +1,5 @@
 import 'dart:ui';
-import 'package:flutter_svg/flutter_svg.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:grocery_app/common_widgets/global_import.dart';
-import 'package:grocery_app/cubits/auth/auth_cubit.dart';
-import 'package:grocery_app/cubits/auth/auth_state.dart';
 import 'dart:math' as math;
 
 class CarouselItem {
@@ -129,7 +125,7 @@ class _TopCuroselState extends State<TopCurosel>
     }
 
     try {
-      final BannerService bannerService = BannerService();
+      final BannerService bannerService = getIt<BannerService>();
       final List<BannerModel> apiBanners = await bannerService.fetchBanners();
 
       if (apiBanners.isNotEmpty && mounted) {
@@ -169,7 +165,7 @@ class _TopCuroselState extends State<TopCurosel>
         }
       }
     } catch (e) {
-      print("Error fetching banners: $e");
+      AppLogger.instance.log("Error fetching banners: $e");
       // Fallback to defaults (already set)
     }
   }

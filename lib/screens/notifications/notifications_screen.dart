@@ -1,8 +1,10 @@
 import 'dart:math' as math;
-import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:grocery_app/common_widgets/global_import.dart';
 import 'package:grocery_app/services/notification_sync_manager.dart';
 import 'package:grocery_app/models/notification_model.dart';
+import 'package:grocery_app/cubits/notification/notification_cubit.dart';
+import 'package:grocery_app/cubits/notification/notification_state.dart';
 
 class NotificationsScreen extends StatefulWidget {
   const NotificationsScreen({super.key});
@@ -13,13 +15,10 @@ class NotificationsScreen extends StatefulWidget {
 
 class _NotificationsScreenState extends State<NotificationsScreen>
     with TickerProviderStateMixin {
-  final NotificationService _notificationService = NotificationService();
-  List<Map<String, dynamic>> _notifications = [];
-  List<Map<String, dynamic>> _filteredNotifications = [];
+  late final NotificationService _notificationService =
+      getIt<NotificationService>();
   String _selectedFilter = 'all';
-  bool _isLoading = true;
   List<Map<String, dynamic>> _promotionalNotifications = [];
-  StreamSubscription? _syncSubscription;
 
   late TabController _tabController;
 
@@ -37,33 +36,21 @@ class _NotificationsScreenState extends State<NotificationsScreen>
   void initState() {
     super.initState();
     _tabController = TabController(length: _filterOptions.length, vsync: this);
-    _loadNotifications();
     _loadPromotionalNotifications();
-    _listenToSyncEvents();
-    _listenToNewNotifications();
-    _resetNotificationBadgeCount(); // Reset badge when viewing notifications
 
-    // Trigger initial sync and flush offline queue
-    NotificationSyncManager().flushPendingQueue();
-    NotificationSyncManager().syncWithBackend();
-  }
-
-  void _listenToSyncEvents() {
-    _syncSubscription = NotificationSyncManager().onSyncEvent.listen((_) {
-      _loadNotifications();
+    // Consciously trigger initial load, badge reset and sync via Cubit
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        context.read<NotificationCubit>().loadNotifications();
+        context.read<NotificationCubit>().resetNotificationBadgeCount();
+        context.read<NotificationCubit>().syncNotifications();
+      }
     });
-  }
-
-  Future<void> _resetNotificationBadgeCount() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    await prefs.setInt('notification_count', 0);
   }
 
   @override
   void dispose() {
     _tabController.dispose();
-    _syncSubscription?.cancel();
-    // Clear promotional notifications when leaving the screen
     _clearPromotionalNotifications();
     super.dispose();
   }
@@ -73,72 +60,6 @@ class _NotificationsScreenState extends State<NotificationsScreen>
       _promotionalNotifications.clear();
     });
     _savePromotionalNotifications();
-  }
-
-  Future<void> _loadNotifications() async {
-    if (_notifications.isEmpty) {
-      setState(() {
-        _isLoading = true;
-      });
-    }
-
-    try {
-      final list = await NotificationSyncManager().getLocalNotifications();
-      if (mounted) {
-        setState(() {
-          _notifications = list.map((n) => n.toLocalMap()).toList();
-        });
-        _filterNotifications();
-      }
-    } catch (e) {
-      debugPrint('Error loading notifications: $e');
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-      }
-    }
-  }
-
-  void _listenToNewNotifications() {
-    _notificationService.onMessageReceived.listen((message) {
-      Map<String, dynamic> notificationData = MessageUtility.parseMessageData(
-        message,
-      );
-
-      // Handle promotional notifications differently
-      if (notificationData['type'] == 'promotional') {
-        _addPromotionalNotification(notificationData);
-      }
-    });
-  }
-
-  void _addNotification(Map<String, dynamic> notification) {
-    final model = NotificationModel.fromJson(notification);
-    NotificationSyncManager().saveServerPushNotification(model);
-  }
-
-  void _filterNotifications() {
-    setState(() {
-      if (_selectedFilter == 'all') {
-        _filteredNotifications = List.from(_notifications);
-      } else if (_selectedFilter == 'promotional') {
-        _filteredNotifications = List.from(_promotionalNotifications);
-      } else {
-        _filteredNotifications =
-            _notifications
-                .where(
-                  (notification) => notification['type'] == _selectedFilter,
-                )
-                .toList();
-      }
-    });
-  }
-
-  Future<void> _saveNotifications() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    await prefs.setString('notifications', json.encode(_notifications));
   }
 
   Future<void> _loadPromotionalNotifications() async {
@@ -206,23 +127,33 @@ class _NotificationsScreenState extends State<NotificationsScreen>
       }
     }
 
-    String? metadataType = metadata['type']?.toString() ?? metadata['screen']?.toString();
-    String? metadataId = (metadata['id'] ??
-        metadata['order_id'] ??
-        metadata['product_id'] ??
-        metadata['subscription_id'])?.toString();
+    String? metadataType =
+        metadata['type']?.toString() ?? metadata['screen']?.toString();
+    String? metadataId =
+        (metadata['id'] ??
+                metadata['order_id'] ??
+                metadata['product_id'] ??
+                metadata['subscription_id'])
+            ?.toString();
 
-    String? type = (metadataType != null && metadataType.isNotEmpty)
-        ? metadataType
-        : notification['type'];
+    String? type =
+        (metadataType != null && metadataType.isNotEmpty)
+            ? metadataType
+            : notification['type'];
 
-    String? id = (metadataId != null && metadataId.isNotEmpty)
-        ? metadataId
-        : MessageUtility.getId(notification);
+    String? id =
+        (metadataId != null && metadataId.isNotEmpty)
+            ? metadataId
+            : MessageUtility.getId(notification);
 
-    String? action = notification['action'] ?? metadata['action'] ?? MessageUtility.getAction(notification);
+    String? action =
+        notification['action'] ??
+        metadata['action'] ??
+        MessageUtility.getAction(notification);
 
-    debugPrint('Tapped notification - Resolved Type: $type, ID: $id, Action: $action');
+    debugPrint(
+      'Tapped notification - Resolved Type: $type, ID: $id, Action: $action',
+    );
 
     // Handle different notification types
     switch (type) {
@@ -435,14 +366,12 @@ class _NotificationsScreenState extends State<NotificationsScreen>
   void _onNotificationDismiss(Map<String, dynamic> notification) {
     final id = notification['id']?.toString() ?? '';
 
-    // Remove from local lists immediately (Dismissible already animated it away)
-    _notifications.removeWhere((n) => n['id']?.toString() == id);
-    _filteredNotifications.removeWhere((n) => n['id']?.toString() == id);
-
     if (id.isNotEmpty) {
-      NotificationSyncManager().dismiss([id]);
+      context.read<NotificationCubit>().dismiss([id]);
       try {
-        NotificationService().cancelNotification(int.tryParse(id) ?? id.hashCode);
+        getIt<NotificationService>().cancelNotification(
+          int.tryParse(id) ?? id.hashCode,
+        );
       } catch (_) {}
     }
   }
@@ -463,14 +392,7 @@ class _NotificationsScreenState extends State<NotificationsScreen>
               ),
               TextButton(
                 onPressed: () async {
-                  final ids = _notifications.map((n) => n['id'].toString()).toList();
-                  if (ids.isNotEmpty) {
-                    await NotificationSyncManager().dismiss(ids);
-                  }
-                  setState(() {
-                    _notifications.clear();
-                    _filteredNotifications.clear();
-                  });
+                  context.read<NotificationCubit>().clearAllNotifications();
                   Navigator.pop(context);
                 },
                 child: const Text('Clear All'),
@@ -531,18 +453,12 @@ class _NotificationsScreenState extends State<NotificationsScreen>
   void _deleteNotification(Map<String, dynamic> notification) {
     final id = notification['id']?.toString() ?? '';
 
-    // Immediately remove from local UI state for instant feedback
-    setState(() {
-      _notifications.removeWhere((n) => n['id']?.toString() == id);
-      _filteredNotifications.removeWhere((n) => n['id']?.toString() == id);
-    });
-
     if (id.isNotEmpty) {
-      // Push dismiss + markAsRead to sync manager (backend + local storage)
-      NotificationSyncManager().dismiss([id]);
-      NotificationSyncManager().markAsRead([id]);
+      context.read<NotificationCubit>().dismiss([id]);
       try {
-        NotificationService().cancelNotification(int.tryParse(id) ?? id.hashCode);
+        getIt<NotificationService>().cancelNotification(
+          int.tryParse(id) ?? id.hashCode,
+        );
       } catch (_) {}
     }
   }
@@ -553,32 +469,58 @@ class _NotificationsScreenState extends State<NotificationsScreen>
     final colorScheme = theme.colorScheme;
     final isDark = theme.brightness == Brightness.dark;
 
-    return Scaffold(
-      backgroundColor:
-          isDark ? theme.scaffoldBackgroundColor : AppColors.parchment,
-      body: RefreshIndicator(
-        onRefresh: () async {
-          await NotificationSyncManager().syncWithBackend();
-        },
-        color: colorScheme.primary,
-        child: CustomScrollView(
-          physics: const AlwaysScrollableScrollPhysics(), // Allow refresh pull even when list is empty
-          slivers: [
-            // Modern U-Shape Header
-            _buildAnimatedHeader(context, theme, colorScheme, isDark),
+    return BlocBuilder<NotificationCubit, NotificationState>(
+      builder: (context, state) {
+        final notifications =
+            state.notifications.map((n) => n.toLocalMap()).toList();
+        final isLoading = state.isLoading && notifications.isEmpty;
 
-            // Filter Chips Section
-            SliverToBoxAdapter(
-              child: _buildModernFilterChips(theme, colorScheme, isDark),
+        return Scaffold(
+          backgroundColor:
+              isDark ? theme.scaffoldBackgroundColor : AppColors.parchment,
+          body: RefreshIndicator(
+            onRefresh: () async {
+              await context.read<NotificationCubit>().syncNotifications();
+            },
+            color: colorScheme.primary,
+            child: CustomScrollView(
+              physics:
+                  const AlwaysScrollableScrollPhysics(), // Allow refresh pull even when list is empty
+              slivers: [
+                // Modern U-Shape Header
+                _buildAnimatedHeader(
+                  context,
+                  theme,
+                  colorScheme,
+                  isDark,
+                  state.unreadCount,
+                  notifications.isNotEmpty,
+                ),
+
+                // Filter Chips Section
+                SliverToBoxAdapter(
+                  child: _buildModernFilterChips(
+                    theme,
+                    colorScheme,
+                    isDark,
+                    notifications,
+                  ),
+                ),
+
+                // Notifications Content
+                isLoading
+                    ? SliverFillRemaining(child: _buildLoadingState(theme))
+                    : _buildNotificationsContent(
+                      theme,
+                      colorScheme,
+                      isDark,
+                      notifications,
+                    ),
+              ],
             ),
-
-            // Notifications Content
-            _isLoading
-                ? SliverFillRemaining(child: _buildLoadingState(theme))
-                : _buildNotificationsContent(theme, colorScheme, isDark),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 
@@ -587,9 +529,9 @@ class _NotificationsScreenState extends State<NotificationsScreen>
     ThemeData theme,
     ColorScheme colorScheme,
     bool isDark,
+    int unreadCount,
+    bool hasNotifications,
   ) {
-    final unreadCount = _notifications.where((n) => n['read'] != true).length;
-
     return SliverToBoxAdapter(
       child: Container(
         height: 200,
@@ -643,31 +585,31 @@ class _NotificationsScreenState extends State<NotificationsScreen>
             ),
 
             // Animated Bell Icon
-            Positioned(
-              top: 60,
-              right: 30,
-              child: TweenAnimationBuilder<double>(
-                tween: Tween(begin: 0.0, end: 1.0),
-                duration: const Duration(milliseconds: 800),
-                builder: (context, value, child) {
-                  return Transform.rotate(
-                    angle: math.sin(value * math.pi * 4) * 0.15 * (1 - value),
-                    child: Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: AppColors.parchment.withValues(alpha: 0.2),
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Icon(
-                        Icons.notifications_rounded,
-                        color: AppColors.parchment,
-                        size: 36,
-                      ),
-                    ),
-                  );
-                },
-              ),
-            ),
+            // Positioned(
+            //   top: 60,
+            //   right: 30,
+            //   child: TweenAnimationBuilder<double>(
+            //     tween: Tween(begin: 0.0, end: 1.0),
+            //     duration: const Duration(milliseconds: 800),
+            //     builder: (context, value, child) {
+            //       return Transform.rotate(
+            //         angle: math.sin(value * math.pi * 4) * 0.15 * (1 - value),
+            //         child: Container(
+            //           padding: const EdgeInsets.all(16),
+            //           decoration: BoxDecoration(
+            //             color: AppColors.parchment.withValues(alpha: 0.2),
+            //             shape: BoxShape.circle,
+            //           ),
+            //           child: const Icon(
+            //             Icons.notifications_rounded,
+            //             color: AppColors.parchment,
+            //             size: 36,
+            //           ),
+            //         ),
+            //       );
+            //     },
+            //   ),
+            // ),
 
             // Header Content
             SafeArea(
@@ -681,7 +623,7 @@ class _NotificationsScreenState extends State<NotificationsScreen>
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         const AnaadLogoMark(),
-                        if (_notifications.isNotEmpty)
+                        if (hasNotifications)
                           GestureDetector(
                             onTap: _clearAllNotifications,
                             child: Container(
@@ -733,6 +675,7 @@ class _NotificationsScreenState extends State<NotificationsScreen>
     ThemeData theme,
     ColorScheme colorScheme,
     bool isDark,
+    List<Map<String, dynamic>> notifications,
   ) {
     final filterIcons = {
       'all': Icons.inbox_rounded,
@@ -765,7 +708,7 @@ class _NotificationsScreenState extends State<NotificationsScreen>
                 final isSelected = _selectedFilter == filter;
                 final icon = filterIcons[filter] ?? Icons.notifications;
                 final color = filterColors[filter] ?? colorScheme.primary;
-                final count = _getFilterCount(filter);
+                final count = _getFilterCount(filter, notifications);
 
                 return Padding(
                   padding: const EdgeInsets.only(right: 10),
@@ -778,7 +721,6 @@ class _NotificationsScreenState extends State<NotificationsScreen>
                           _filterOptions.indexOf(filter),
                         );
                       });
-                      _filterNotifications();
                     },
                     child: AnimatedContainer(
                       duration: const Duration(milliseconds: 200),
@@ -875,10 +817,10 @@ class _NotificationsScreenState extends State<NotificationsScreen>
     );
   }
 
-  int _getFilterCount(String filter) {
-    if (filter == 'all') return _notifications.length;
+  int _getFilterCount(String filter, List<Map<String, dynamic>> notifications) {
+    if (filter == 'all') return notifications.length;
     if (filter == 'promotional') return _promotionalNotifications.length;
-    return _notifications.where((n) => n['type'] == filter).length;
+    return notifications.where((n) => n['type'] == filter).length;
   }
 
   Widget _buildLoadingState(ThemeData theme) {
@@ -926,15 +868,16 @@ class _NotificationsScreenState extends State<NotificationsScreen>
     ThemeData theme,
     ColorScheme colorScheme,
     bool isDark,
+    List<Map<String, dynamic>> notifications,
   ) {
     List<Map<String, dynamic>> displayList;
     if (_selectedFilter == 'all') {
-      displayList = _notifications;
+      displayList = notifications;
     } else if (_selectedFilter == 'promotional') {
       displayList = _promotionalNotifications;
     } else {
       displayList =
-          _notifications.where((n) => n['type'] == _selectedFilter).toList();
+          notifications.where((n) => n['type'] == _selectedFilter).toList();
     }
 
     if (displayList.isEmpty) {

@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:grocery_app/common_widgets/global_import.dart';
 import 'package:grocery_app/routes/app_routes.dart';
 import 'package:grocery_app/services/referral_reward_service.dart';
+import 'package:grocery_app/utils/checkout_calculator.dart';
 
 class CheckoutScreen extends StatefulWidget {
   final CartModel? cart;
@@ -59,29 +60,36 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   late String _selectedPaymentType;
   int _pendingRewardsCount = 0;
 
-
-
   int get totalItems => widget.cart?.totalItems ?? widget.quantity ?? 0;
-  double get currentDeliveryCharge {
-    return _selectedPaymentMethod == 'COD'
-        ? widget.codDeliveryCharge
-        : widget.prepaidDeliveryCharge;
-  }
+  double get currentDeliveryCharge => CheckoutCalculator.deliveryCharge(
+    paymentMethod: _selectedPaymentMethod,
+    codCharge: widget.codDeliveryCharge,
+    prepaidCharge: widget.prepaidDeliveryCharge,
+  );
 
   String get totalPrice {
     double basePrice;
     if (widget.isSubscription) {
-      basePrice = (widget.price ?? 0.0) * (widget.quantity ?? 1);
+      basePrice = CheckoutCalculator.subscriptionBasePrice(
+        widget.price,
+        widget.quantity,
+      );
     } else {
       if (widget.cart != null) {
-        basePrice = double.tryParse(widget.cart!.totalPrice) ?? 0.0;
+        basePrice = CheckoutCalculator.cartBasePrice(widget.cart);
       } else if (widget.singleProduct != null) {
-        basePrice = widget.singleProduct!.finalPrice * (widget.quantity ?? 1);
+        basePrice = CheckoutCalculator.singleProductBasePrice(
+          widget.singleProduct!.finalPrice,
+          widget.quantity,
+        );
       } else {
         basePrice = 0.0;
       }
     }
-    return (basePrice + currentDeliveryCharge).toString();
+    return CheckoutCalculator.total(
+      basePrice,
+      currentDeliveryCharge,
+    ).toString();
   }
 
   @override
@@ -89,9 +97,11 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     super.initState();
     // Removed broken animations
     if (widget.isSubscription) {
-      _selectedPaymentType = widget.paymentType ?? 'PAID_FULL';
+      _selectedPaymentType = 'PAID_FULL';
+      _selectedPaymentMethod = 'COD';
     } else {
       _selectedPaymentType = 'FULL';
+      _selectedPaymentMethod = 'COD';
     }
 
     _initializeCheckout();
@@ -172,9 +182,10 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     _setLoadingState(true);
 
     try {
-      // COD restriction: Enforce COD payment method and PAID_FULL payment type at order submission
-      _selectedPaymentMethod = 'COD';
-      _selectedPaymentType = 'PAID_FULL';
+      if (widget.isSubscription) {
+        _selectedPaymentMethod = 'COD';
+        _selectedPaymentType = 'PAID_FULL';
+      }
 
       if (_selectedPaymentMethod == 'UPI') {
         await _handleUPIPayment();
@@ -229,19 +240,6 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
     if (result['success'] == true) {
       await _handleSuccessfulSubscription(result);
-
-      NotificationHelper.showNotification(
-        title: 'Subscription Created!',
-        body:
-            'Subscription ID: ${result['subscription_id']}\n'
-            'Payment Mode: Cash on Delivery\n'
-            'Status: Pending Payment',
-        payload: json.encode({
-          'screen': 'subscription_detail',
-          'subscription_id': result['subscription_id'],
-          'type': 'subscription',
-        }),
-      );
     } else {
       _showSubscriptionFailedDialog(result);
     }
@@ -346,19 +344,6 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     if (!mounted) return;
 
     _navigateToOrderAccepted(createdOrder);
-
-    NotificationHelper.showNotification(
-      title: 'Order Created!',
-      body:
-          'Order ID: ${createdOrder.orderNumber}\n'
-          'Payment Mode: Cash on Delivery\n'
-          'Status: Pending Payment',
-      payload: json.encode({
-        'screen': 'order_tracking',
-        'order_id': createdOrder.id,
-        'type': 'order',
-      }),
-    );
   }
 
   Future<void> _handleNonUPIPayment() async {
@@ -369,28 +354,121 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     }
   }
 
-  Future<Map<String, dynamic>> _createSubscription() async {
-    final request = SubscriptionCreateRequest(
-      plan: widget.selectedPlan,
-      deliveryAddress: _shippingDetails!.address,
-      deliveryName: _shippingDetails!.name,
-      deliveryCity: _shippingDetails!.city ?? "",
-      deliveryState: _shippingDetails!.state ?? "",
-      deliveryPincode: _shippingDetails!.pincode ?? "",
-      deliveryPhone: _shippingDetails!.phone ?? "",
-      paymentType: _selectedPaymentType,
-      paymentMethod: _selectedPaymentMethod,
-      // deliveryFee: currentDeliveryCharge,
-      // expectedDeliveryDate: widget.expectedDeliveryDate,
-      items: [
-        SubscriptionCreateItem(
-          productVariantId: widget.singleProduct!.id,
-          quantity: widget.quantity!,
-        ),
-      ],
+  /// Validates subscription request payload before API call
+  ///
+  /// Expected API Request Format:
+  /// ```json
+  /// {
+  ///   "plan": 4,
+  ///   "delivery_address": "Village Bhurri",
+  ///   "delivery_city": "Sonipat",
+  ///   "delivery_state": "Haryana",
+  ///   "delivery_pincode": "131101",
+  ///   "delivery_phone": "7027277570",
+  ///   "recipient_name": "Hemant",
+  ///   "payment_type": "PAID_FULL|INSTALLMENT",
+  ///   "payment_method": "COD|UPI",
+  ///   "delivery_fee": 127.00,
+  ///   "expected_delivery_date": "2025-10-15",
+  ///   "items": [
+  ///     {
+  ///       "product_variant_id": 6,
+  ///       "quantity": 1
+  ///     }
+  ///   ]
+  /// }
+  /// ```
+  ///
+  /// Authentication: Bearer token automatically added via AuthInterceptor
+  /// Response: Returns subscription object with payment_links for UPI or direct subscription for COD
+  Map<String, dynamic> _validateSubscriptionPayload() {
+    assert(_shippingDetails != null, 'Shipping details must not be null');
+    assert(widget.selectedPlan != null, 'Plan must be selected');
+    assert(widget.singleProduct != null, 'Product must be selected');
+    assert(
+      widget.quantity != null && widget.quantity! > 0,
+      'Quantity must be greater than 0',
     );
 
-    return await _subscriptionService.createSubscription(request);
+    return {
+      'plan': widget.selectedPlan,
+      'delivery_address': _shippingDetails!.address,
+      'delivery_city': _shippingDetails!.city ?? "",
+      'delivery_state': _shippingDetails!.state ?? "",
+      'delivery_pincode': _shippingDetails!.pincode ?? "",
+      'delivery_phone': _shippingDetails!.phone ?? "",
+      'recipient_name': _shippingDetails!.name,
+      'payment_type': _selectedPaymentType, // PAID_FULL or INSTALLMENT
+      'payment_method': _selectedPaymentMethod, // COD or UPI
+      'delivery_fee': currentDeliveryCharge,
+      'expected_delivery_date': widget.expectedDeliveryDate,
+      'product_variant_id': widget.singleProduct!.id,
+      'quantity': widget.quantity,
+    };
+  }
+
+  /// Creates subscription via API with authentication token
+  /// Token is automatically added by AuthInterceptor
+  ///
+  /// Expected Response (Success):
+  /// ```json
+  /// {
+  ///   "id": 4,
+  ///   "plan": 4,
+  ///   "plan_name": "SIDDH",
+  ///   "status": "ACTIVE",
+  ///   "payment_status": "PAID_FULL",
+  ///   ...full subscription details...
+  /// }
+  /// ```
+  Future<Map<String, dynamic>> _createSubscription() async {
+    try {
+      // Validate payload structure
+      _validateSubscriptionPayload();
+
+      // Build request with all required fields
+      final request = SubscriptionCreateRequest(
+        plan: widget.selectedPlan,
+        deliveryAddress: _shippingDetails!.address,
+        deliveryName: _shippingDetails!.name,
+        deliveryCity: _shippingDetails!.city ?? "",
+        deliveryState: _shippingDetails!.state ?? "",
+        deliveryPincode: _shippingDetails!.pincode ?? "",
+        deliveryPhone: _shippingDetails!.phone ?? "",
+        paymentType: _selectedPaymentType,
+        paymentMethod: _selectedPaymentMethod,
+        deliveryFee: currentDeliveryCharge,
+        expectedDeliveryDate: widget.expectedDeliveryDate,
+        items: [
+          SubscriptionCreateItem(
+            productVariantId: widget.singleProduct!.id,
+            quantity: widget.quantity!,
+          ),
+        ],
+      );
+
+      // Log request payload for debugging
+      AppLogger.instance.log(
+        'Creating subscription with payload: ${request.toJson()}',
+      );
+
+      // API call with automatic bearer token via AuthInterceptor
+      final result = await _subscriptionService.createSubscription(request);
+
+      // Log response for debugging
+      AppLogger.instance.log('Subscription response: $result');
+
+      return result;
+    } catch (e, stackTrace) {
+      AppLogger.instance.log(
+        'Error creating subscription: $e\nStackTrace: $stackTrace',
+      );
+      return {
+        'success': false,
+        'message': 'Error creating subscription',
+        'error': e.toString(),
+      };
+    }
   }
 
   OrderModel _createOrderModel() {
@@ -447,19 +525,6 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                       .getSubscriptionDetails(parsedSubscriptionId);
 
                   if (subscriptionDetails['success'] == true && mounted) {
-                    NotificationHelper.showNotification(
-                      title: 'Payment Successful!',
-                      body:
-                          'Subscription ID: $parsedSubscriptionId\n'
-                          'Payment Mode: Online Payment\n'
-                          'Status: Paid',
-                      payload: json.encode({
-                        'screen': 'subscription_detail',
-                        'subscription_id': parsedSubscriptionId,
-                        'type': 'subscription',
-                      }),
-                    );
-
                     Navigator.pop(context); // Close WebView
                     context.goNamed(
                       AppRoute.subscriptionDetails.name,
@@ -484,19 +549,6 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             },
             onPaymentFailure: (url) {
               Navigator.pop(context);
-
-              NotificationHelper.showNotification(
-                title: 'Payment Failed!',
-                body:
-                    'Subscription ID: $parsedSubscriptionId\n'
-                    'Payment Mode: Online Payment\n'
-                    'Status: Failed',
-                payload: json.encode({
-                  'screen': 'subscription_detail',
-                  'subscription_id': parsedSubscriptionId,
-                  'type': 'subscription',
-                }),
-              );
 
               SnackBarHelper.showPaymentIssue(context);
             },
@@ -523,18 +575,6 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           },
           onPaymentFailure: (url) {
             Navigator.pop(context);
-            NotificationHelper.showNotification(
-              title: 'Payment Failed!',
-              body:
-                  'Order ID: ${response.orderId}\n'
-                  'Payment Mode: Online Payment\n'
-                  'Status: Failed',
-              payload: json.encode({
-                'screen': 'order_tracking',
-                'order_id': response.orderId,
-                'type': 'order',
-              }),
-            );
             SnackBarHelper.showError(context, 'Payment failed or cancelled');
           },
         ),
@@ -554,19 +594,6 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           paymentStatus.transactionStatus == 'SUCCESS') {
         final order = await _orderService.getOrderById(paymentStatus.orderId);
 
-        NotificationHelper.showNotification(
-          title: 'Payment Successful!',
-          body:
-              'Order ID: ${response.orderId}\n'
-              'Payment Mode: Online Payment\n'
-              'Status: Paid',
-          payload: json.encode({
-            'screen': 'order_tracking',
-            'order_id': response.orderId,
-            'type': 'order',
-          }),
-        );
-
         Navigator.pop(context); // Close WebView
         context.goNamed(
           AppRoute.orderDetails.name,
@@ -575,18 +602,28 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         );
       } else {
         if (mounted) Navigator.pop(context);
-        if (mounted) SnackBarHelper.showError(context, 'Payment not successful!');
+        if (mounted)
+          SnackBarHelper.showError(context, 'Payment not successful!');
       }
     } catch (e) {
       if (mounted) Navigator.pop(context);
-      if (mounted) SnackBarHelper.showError(context, 'Failed to verify payment!');
+      if (mounted)
+        SnackBarHelper.showError(context, 'Failed to verify payment!');
     }
   }
 
   void _navigateToSubscriptionDetails(dynamic subscription) {
+    String idStr;
+    if (subscription is Subscription) {
+      idStr = subscription.id.toString();
+    } else if (subscription is Map) {
+      idStr = subscription['id'].toString();
+    } else {
+      idStr = subscription.toString();
+    }
     context.goNamed(
       AppRoute.subscriptionDetails.name,
-      pathParameters: {'id': subscription['id'].toString()},
+      pathParameters: {'id': idStr},
       extra: subscription,
     );
   }
@@ -603,6 +640,30 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     String errorMessage = _parseServerError(
       result['message'] ?? result['errors'] ?? 'Failed to create subscription',
     );
+
+    // Add detailed error information
+    if (result['error'] != null) {
+      errorMessage += '\n\nDetails: ${result['error']}';
+    }
+
+    // Add validation errors if present
+    if (result['errors'] is Map && (result['errors'] as Map).isNotEmpty) {
+      final errors = result['errors'] as Map;
+      String errorDetails = '';
+      errors.forEach((key, value) {
+        if (value is List && value.isNotEmpty) {
+          errorDetails += '\n• $key: ${value.join(', ')}';
+        } else {
+          errorDetails += '\n• $key: $value';
+        }
+      });
+      if (errorDetails.isNotEmpty) {
+        errorMessage += '\n\nValidation Errors:$errorDetails';
+      }
+    }
+
+    AppLogger.instance.log('Subscription error - Full response: $result');
+
     showDialog(
       context: context,
       builder:
@@ -611,7 +672,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               borderRadius: BorderRadius.circular(20),
             ),
             title: const Text('Subscription Failed'),
-            content: Text(errorMessage),
+            content: SingleChildScrollView(child: Text(errorMessage)),
             actions: [
               TextButton(
                 onPressed: () => Navigator.of(context).pop(),
@@ -773,27 +834,27 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                   child: Padding(
                     padding: const EdgeInsets.all(16),
                     child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          _buildDeliveryTimeCard(theme, isDark),
-                          const SizedBox(height: 16),
-                          if (_shippingDetails != null)
-                            _buildShippingAddressCard(theme, isDark),
-                          const SizedBox(height: 16),
-                          if (widget.isSubscription && subscription != null)
-                            _buildCongratulationCard(theme, subscription!),
-                          const SizedBox(height: 16),
-                          _buildOrderSummaryCard(theme, isDark),
-                          const SizedBox(height: 16),
-                          if (_pendingRewardsCount > 0)
-                            _buildRewardNotificationCard(theme, isDark),
-                          const SizedBox(height: 16),
-                          _buildPaymentMethodCard(theme, isDark),
-                          const SizedBox(height: 180),
-                        ],
-                      ),
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        _buildDeliveryTimeCard(theme, isDark),
+                        const SizedBox(height: 16),
+                        if (_shippingDetails != null)
+                          _buildShippingAddressCard(theme, isDark),
+                        const SizedBox(height: 16),
+                        if (widget.isSubscription && subscription != null)
+                          _buildCongratulationCard(theme, subscription!),
+                        const SizedBox(height: 16),
+                        _buildOrderSummaryCard(theme, isDark),
+                        const SizedBox(height: 16),
+                        if (_pendingRewardsCount > 0)
+                          _buildRewardNotificationCard(theme, isDark),
+                        const SizedBox(height: 16),
+                        _buildPaymentMethodCard(theme, isDark),
+                        const SizedBox(height: 180),
+                      ],
                     ),
                   ),
+                ),
             ],
           ),
 
@@ -857,7 +918,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                         widget.isSubscription
                             ? Icons.card_membership_rounded
                             : Icons.shopping_bag_rounded,
-                        color: AppColors.harvestAmber,
+                        color: AppColors.amberWarnBg,
                         size: 28,
                       ),
                     ),
@@ -870,7 +931,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                             fit: BoxFit.scaleDown,
                             alignment: Alignment.centerLeft,
                             child: Text(
-                              widget.isSubscription ? "Subscription" : "Checkout",
+                              widget.isSubscription
+                                  ? "Subscription"
+                                  : "Checkout",
                               style: theme.textTheme.headlineMedium?.copyWith(
                                 color: AppColors.parchment,
                                 fontWeight: FontWeight.bold,
@@ -1112,13 +1175,13 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                     Icon(
                       Icons.check_circle,
                       size: 14,
-                      color: AppColors.deepSoilGreen,
+                      color: AppColors.amberWarn,
                     ),
                     const SizedBox(width: 4),
                     Text(
                       'Verified',
                       style: TextStyle(
-                        color: AppColors.deepSoilGreen,
+                        color: AppColors.amberWarn,
                         fontSize: 11,
                         fontWeight: FontWeight.w600,
                       ),
@@ -1278,7 +1341,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 children: [
                   Icon(
                     Icons.autorenew_rounded,
-                    color: AppColors.deepSoilGreen,
+                    color: AppColors.parchment,
                     size: 20,
                   ),
                   const SizedBox(width: 10),
@@ -1286,7 +1349,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                     child: Text(
                       'Products delivered every month for ${subscription!.durationMonths} months',
                       style: theme.textTheme.bodySmall?.copyWith(
-                        color: AppColors.deepSoilGreen,
+                        color: AppColors.parchment,
                         fontWeight: FontWeight.w500,
                       ),
                     ),
@@ -1764,112 +1827,112 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             ),
           ],
         ),
-          child: SafeArea(
-            top: false,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                // Handle bar
-                Container(
-                  width: 40,
-                  height: 4,
-                  margin: const EdgeInsets.only(bottom: 16),
-                  decoration: BoxDecoration(
-                    color: isDark ? AppColors.charcoal60 : AppColors.rawEarth12,
-                    borderRadius: BorderRadius.circular(2),
-                  ),
+        child: SafeArea(
+          top: false,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Handle bar
+              Container(
+                width: 40,
+                height: 4,
+                margin: const EdgeInsets.only(bottom: 16),
+                decoration: BoxDecoration(
+                  color: isDark ? AppColors.charcoal60 : AppColors.rawEarth12,
+                  borderRadius: BorderRadius.circular(2),
                 ),
-                Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                        color: theme.colorScheme.primary.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Icon(
-                        Icons.card_membership_rounded,
-                        color: theme.colorScheme.primary,
-                        size: 22,
-                      ),
+              ),
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: theme.colorScheme.primary.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(12),
                     ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            '${subscription.durationMonths}-Month Plan',
-                            style: theme.textTheme.titleSmall?.copyWith(
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          Text(
-                            widget.paymentType == 'PAID_FULL'
-                                ? 'One-time payment'
-                                : 'Monthly installments',
-                            style: theme.textTheme.bodySmall?.copyWith(
-                              color: theme.hintColor,
-                            ),
-                          ),
-                        ],
-                      ),
+                    child: Icon(
+                      Icons.card_membership_rounded,
+                      color: theme.colorScheme.primary,
+                      size: 22,
                     ),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.end,
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          '₹${fullSubscriptionPrice.toStringAsFixed(2)}',
-                          style: theme.textTheme.titleMedium?.copyWith(
-                            color: theme.colorScheme.primary,
+                          '${subscription.durationMonths}-Month Plan',
+                          style: theme.textTheme.titleSmall?.copyWith(
                             fontWeight: FontWeight.bold,
                           ),
                         ),
                         Text(
-                          'total',
+                          _selectedPaymentType == 'PAID_FULL'
+                              ? 'One-time payment'
+                              : 'Monthly installments',
                           style: theme.textTheme.bodySmall?.copyWith(
                             color: theme.hintColor,
                           ),
                         ),
                       ],
                     ),
-                  ],
-                ),
-                const SizedBox(height: 16),
-                SizedBox(
-                  width: double.infinity,
-                  height: 56,
-                  child: ElevatedButton(
-                    onPressed: _createOrder,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: theme.colorScheme.primary,
-                      foregroundColor: AppColors.parchment,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      elevation: 0,
-                    ),
-                    child: const Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          'Subscribe Now',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
+                  ),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Text(
+                        '₹${fullSubscriptionPrice.toStringAsFixed(2)}',
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          color: theme.colorScheme.primary,
+                          fontWeight: FontWeight.bold,
                         ),
-                        SizedBox(width: 8),
-                        Icon(Icons.arrow_forward_rounded, size: 20),
-                      ],
+                      ),
+                      Text(
+                        'total',
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: theme.hintColor,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              SizedBox(
+                width: double.infinity,
+                height: 56,
+                child: ElevatedButton(
+                  onPressed: _createOrder,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: theme.colorScheme.primary,
+                    foregroundColor: AppColors.parchment,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
                     ),
+                    elevation: 0,
+                  ),
+                  child: const Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        'Subscribe Now',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      SizedBox(width: 8),
+                      Icon(Icons.arrow_forward_rounded, size: 20),
+                    ],
                   ),
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
-      );
+      ),
+    );
   }
 
   Future<void> _showPaymentMethodSelectionDialog() async {
@@ -1908,38 +1971,37 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 ),
               ),
               const SizedBox(height: 20),
-              // COD restriction: Enforce Cash on Delivery (COD) only. Comment out old conditional block and UPI option.
-              // if (!widget.isSubscription) ...[
-              //   _buildPaymentOption(
-              //     theme,
-              //     isDark,
-              //     'COD',
-              //     'Cash on Delivery',
-              //     'Pay when you receive your order',
-              //     Icons.money_rounded,
-              //     AppColors.harvestAmber,
-              //   ),
-              //   const SizedBox(height: 12),
-              // ],
-              // _buildPaymentOption(
-              //   theme,
-              //   isDark,
-              //   'UPI',
-              //   'Pay Online',
-              //   'UPI / Card / NetBanking',
-              //   Icons.payment_rounded,
-              //   theme.colorScheme.primary,
-              // ),
-              
-              _buildPaymentOption(
-                theme,
-                isDark,
-                'COD',
-                'Cash on Delivery',
-                'Pay when you receive your order/subscription',
-                Icons.money_rounded,
-                AppColors.harvestAmber,
-              ),
+              if (widget.isSubscription) ...[
+                _buildPaymentOption(
+                  theme,
+                  isDark,
+                  'COD',
+                  'Cash on Delivery',
+                  'Pay when you receive your subscription',
+                  Icons.money_rounded,
+                  AppColors.harvestAmber,
+                ),
+              ] else ...[
+                _buildPaymentOption(
+                  theme,
+                  isDark,
+                  'COD',
+                  'Cash on Delivery',
+                  'Pay when you receive your order',
+                  Icons.money_rounded,
+                  AppColors.harvestAmber,
+                ),
+                const SizedBox(height: 12),
+                _buildPaymentOption(
+                  theme,
+                  isDark,
+                  'UPI',
+                  'Pay Online',
+                  'UPI / Card / NetBanking',
+                  Icons.payment_rounded,
+                  theme.colorScheme.primary,
+                ),
+              ],
               const SizedBox(height: 20),
             ],
           ),

@@ -36,9 +36,12 @@ class InvoiceTrackerWidget extends StatelessWidget {
                   color: AppColors.deepSoilGreen.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: const Icon(
+                child: Icon(
                   Icons.receipt_long_rounded,
-                  color: AppColors.deepSoilGreen,
+                  color:
+                      isDark
+                          ? AppColors.amberWarn.withValues(alpha: 0.5)
+                          : AppColors.deepSoilGreen,
                   size: 20,
                 ),
               ),
@@ -53,7 +56,10 @@ class InvoiceTrackerWidget extends StatelessWidget {
               if (!isLoading && invoices.isNotEmpty) ...[
                 const SizedBox(width: 8),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 2,
+                  ),
                   decoration: BoxDecoration(
                     color: AppColors.deepSoilGreen,
                     borderRadius: BorderRadius.circular(20),
@@ -92,7 +98,8 @@ class InvoiceTrackerWidget extends StatelessWidget {
 
   Widget _buildContent(BuildContext context, ThemeData theme, bool isDark) {
     if (isLoading) return _buildLoadingState(isDark);
-    if (error != null || invoices.isEmpty) return _buildEmptyState(theme, isDark);
+    if (error != null || invoices.isEmpty)
+      return _buildEmptyState(theme, isDark);
     return _buildInvoiceList(context, theme, isDark);
   }
 
@@ -100,9 +107,10 @@ class InvoiceTrackerWidget extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 32),
       decoration: BoxDecoration(
-        color: isDark
-            ? AppColors.parchment.withValues(alpha: 0.05)
-            : AppColors.deepSoilGreen.withValues(alpha: 0.04),
+        color:
+            isDark
+                ? AppColors.parchment.withValues(alpha: 0.05)
+                : AppColors.deepSoilGreen.withValues(alpha: 0.04),
         borderRadius: BorderRadius.circular(16),
       ),
       child: const Center(
@@ -118,19 +126,28 @@ class InvoiceTrackerWidget extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 28, horizontal: 20),
       decoration: BoxDecoration(
-        color: isDark
-            ? AppColors.parchment.withValues(alpha: 0.05)
-            : AppColors.deepSoilGreen.withValues(alpha: 0.04),
+        color:
+            isDark
+                ? AppColors.parchment.withValues(alpha: 0.05)
+                : AppColors.deepSoilGreen.withValues(alpha: 0.04),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: isDark
-              ? AppColors.parchment.withValues(alpha: 0.08)
-              : AppColors.deepSoilGreen.withValues(alpha: 0.12),
+          color:
+              isDark
+                  ? AppColors.parchment.withValues(alpha: 0.08)
+                  : AppColors.deepSoilGreen.withValues(alpha: 0.12),
         ),
       ),
       child: Row(
         children: [
-          Icon(Icons.inbox_rounded, size: 32, color: AppColors.deepSoilGreen.withValues(alpha: 0.5)),
+          Icon(
+            Icons.inbox_rounded,
+            size: 32,
+            color:
+                isDark
+                    ? AppColors.amberWarn.withValues(alpha: 0.5)
+                    : AppColors.deepSoilGreen.withValues(alpha: 0.5),
+          ),
           const SizedBox(width: 14),
           Expanded(
             child: Column(
@@ -164,12 +181,18 @@ class InvoiceTrackerWidget extends StatelessWidget {
       physics: const NeverScrollableScrollPhysics(),
       itemCount: invoices.length,
       separatorBuilder: (_, __) => const SizedBox(height: 8),
-      itemBuilder: (context, index) =>
-          _buildInvoiceCard(invoices[index], index, theme, isDark),
+      itemBuilder:
+          (context, index) =>
+              _buildInvoiceCard(invoices[index], index, theme, isDark),
     );
   }
 
-  Widget _buildInvoiceCard(Invoice invoice, int index, ThemeData theme, bool isDark) {
+  Widget _buildInvoiceCard(
+    Invoice invoice,
+    int index,
+    ThemeData theme,
+    bool isDark,
+  ) {
     return Material(
       color: AppColors.transparent,
       child: InkWell(
@@ -179,22 +202,27 @@ class InvoiceTrackerWidget extends StatelessWidget {
         highlightColor: AppColors.deepSoilGreen.withValues(alpha: 0.04),
         child: Ink(
           decoration: BoxDecoration(
-            color: isDark ? AppColors.parchment.withValues(alpha: 0.06) : theme.cardColor,
+            color:
+                isDark
+                    ? AppColors.parchment.withValues(alpha: 0.06)
+                    : theme.cardColor,
             borderRadius: BorderRadius.circular(14),
             border: Border.all(
-              color: isDark
-                  ? AppColors.parchment.withValues(alpha: 0.09)
-                  : AppColors.deepSoilGreen.withValues(alpha: 0.13),
+              color:
+                  isDark
+                      ? AppColors.parchment.withValues(alpha: 0.09)
+                      : AppColors.deepSoilGreen.withValues(alpha: 0.13),
             ),
-            boxShadow: isDark
-                ? null
-                : [
-                    BoxShadow(
-                      color: AppColors.deepSoilGreen.withValues(alpha: 0.06),
-                      blurRadius: 8,
-                      offset: const Offset(0, 2),
-                    ),
-                  ],
+            boxShadow:
+                isDark
+                    ? null
+                    : [
+                      BoxShadow(
+                        color: AppColors.deepSoilGreen.withValues(alpha: 0.06),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
           ),
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
@@ -208,7 +236,10 @@ class InvoiceTrackerWidget extends StatelessWidget {
                     gradient: const LinearGradient(
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
-                      colors: [AppColors.deepSoilGreen, AppColors.deepSoilGreen],
+                      colors: [
+                        AppColors.deepSoilGreen,
+                        AppColors.deepSoilGreen,
+                      ],
                     ),
                     borderRadius: BorderRadius.circular(10),
                   ),
@@ -244,13 +275,17 @@ class InvoiceTrackerWidget extends StatelessWidget {
                           Icon(
                             Icons.tag_rounded,
                             size: 11,
-                            color: AppColors.deepSoilGreen.withValues(alpha: 0.7),
+                            color: AppColors.deepSoilGreen.withValues(
+                              alpha: 0.7,
+                            ),
                           ),
                           const SizedBox(width: 3),
                           Text(
                             invoice.odooInvoiceNumber,
                             style: theme.textTheme.bodySmall?.copyWith(
-                              color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
+                              color: theme.colorScheme.onSurface.withValues(
+                                alpha: 0.5,
+                              ),
                               fontSize: 11,
                               letterSpacing: 0.3,
                             ),

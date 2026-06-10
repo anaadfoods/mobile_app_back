@@ -1,6 +1,6 @@
 import 'package:grocery_app/common_widgets/global_import.dart';
-import 'package:go_router/go_router.dart';
 import 'package:grocery_app/routes/app_routes.dart';
+import 'package:grocery_app/service_locator.dart';
 import 'dart:math' as math;
 
 class OrderScreen extends StatefulWidget {
@@ -12,7 +12,7 @@ class OrderScreen extends StatefulWidget {
 
 class _OrderScreenState extends State<OrderScreen>
     with SingleTickerProviderStateMixin {
-  final OrderService _orderService = OrderService();
+  final OrderService _orderService = getIt<OrderService>();
   List<Order> orders = [];
   bool isLoading = true;
   String? error;
@@ -71,8 +71,14 @@ class _OrderScreenState extends State<OrderScreen>
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
-    return Scaffold(
-      backgroundColor: theme.scaffoldBackgroundColor,
+    return PopScope(
+      canPop: context.canPop(),
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) return;
+        context.goNamed(AppRoute.profile.name);
+      },
+      child: Scaffold(
+        backgroundColor: theme.scaffoldBackgroundColor,
       body: RefreshIndicator(
         onRefresh: _fetchOrders,
         color: theme.colorScheme.primary,
@@ -115,6 +121,7 @@ class _OrderScreenState extends State<OrderScreen>
           ],
         ),
       ),
+      )
     );
   }
 

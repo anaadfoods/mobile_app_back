@@ -7,6 +7,8 @@ import "package:grocery_app/screens/account/account_stats_row.dart";
 import "package:grocery_app/screens/account/account_menu_section.dart";
 import "package:grocery_app/screens/account/account_preferences_section.dart";
 
+import "package:grocery_app/service_locator.dart";
+
 class AccountScreen extends StatefulWidget {
   const AccountScreen({super.key});
 
@@ -23,7 +25,7 @@ class _AccountScreenState extends State<AccountScreen>
   bool _vibrationEnabled = true;
 
   // User summary state
-  final UserSummaryService _userSummaryService = UserSummaryService();
+  final UserSummaryService _userSummaryService = getIt<UserSummaryService>();
   UserSummaryModel? _userSummary;
   bool _isLoadingSummary = false;
 
@@ -309,6 +311,37 @@ class _AccountScreenState extends State<AccountScreen>
                         },
                       ),
                     ],
+                  ),
+                  const SizedBox(height: 32),
+
+                  // Log Out Button
+                  SizedBox(
+                    width: double.infinity,
+                    child: OutlinedButton.icon(
+                      onPressed: () => _showLogoutDialog(theme, context),
+                      icon: const Icon(
+                        Icons.logout_rounded,
+                        color: AppColors.rawEarth,
+                      ),
+                      label: const Text(
+                        'Log Out',
+                        style: TextStyle(
+                          color: AppColors.rawEarth,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                        ),
+                      ),
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        side: BorderSide(
+                          color: AppColors.rawEarth.withValues(alpha: 0.5),
+                          width: 1.5,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                      ),
+                    ),
                   ),
                   const SizedBox(height: 32),
 
@@ -651,11 +684,7 @@ class _AccountScreenState extends State<AccountScreen>
                       child: ShaderMask(
                         shaderCallback:
                             (bounds) => LinearGradient(
-                              colors: [
-                                accentColor,
-                                AppColors.parchment,
-                                accentColor,
-                              ],
+                              colors: [accentColor, accentColor],
                             ).createShader(bounds),
                         child: const Text(
                           'Powered by Innovators from the Soil of India',
@@ -693,6 +722,93 @@ class _AccountScreenState extends State<AccountScreen>
           },
         ),
       ],
+    );
+  }
+
+  // ==================== LOGOUT Logic ====================
+  void _handleLogout(BuildContext context) {
+    _triggerMediumHaptic();
+    context.read<AuthCubit>().logout();
+    context.go('/login');
+  }
+
+  void _showLogoutDialog(ThemeData theme, BuildContext context) {
+    _triggerHaptic();
+    showGeneralDialog(
+      context: context,
+      barrierDismissible: true,
+      barrierLabel: 'Logout Dialog',
+      barrierColor: AppColors.charcoal54,
+      transitionDuration: const Duration(milliseconds: 300),
+      pageBuilder: (context, anim1, anim2) => Container(),
+      transitionBuilder: (dialogContext, anim1, anim2, child) {
+        return ScaleTransition(
+          scale: CurvedAnimation(parent: anim1, curve: Curves.easeOutBack),
+          child: FadeTransition(
+            opacity: anim1,
+            child: AlertDialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+              ),
+              title: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: AppColors.rawEarth.withValues(alpha: 0.1),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.logout_rounded,
+                      color: AppColors.rawEarth,
+                      size: 24,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  const Text('Log Out'),
+                ],
+              ),
+              content: const Text(
+                'Are you sure you want to log out? You\'ll need to sign in again to access your account.',
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    _triggerHaptic();
+                    Navigator.pop(dialogContext);
+                  },
+                  child: Text(
+                    'Cancel',
+                    style: TextStyle(
+                      color: theme.textTheme.bodyMedium?.color?.withValues(
+                        alpha: 0.7,
+                      ),
+                    ),
+                  ),
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    Navigator.pop(dialogContext);
+                    _handleLogout(context);
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.rawEarth,
+                    foregroundColor: AppColors.parchment,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 20,
+                      vertical: 10,
+                    ),
+                  ),
+                  child: const Text('Log Out'),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 

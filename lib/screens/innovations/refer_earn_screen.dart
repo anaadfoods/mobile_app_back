@@ -1,9 +1,9 @@
-import 'dart:ui';
-import 'package:flutter/services.dart';
 import 'package:grocery_app/common_widgets/global_import.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:grocery_app/services/referral_reward_service.dart';
 import 'package:grocery_app/models/referral_model.dart';
+
+import 'package:grocery_app/service_locator.dart';
 
 class ReferEarnScreen extends StatefulWidget {
   const ReferEarnScreen({super.key});
@@ -16,7 +16,7 @@ class _ReferEarnScreenState extends State<ReferEarnScreen>
     with SingleTickerProviderStateMixin {
   late AnimationController _shimmerController;
   late Animation<double> _shimmerAnimation;
-  final ReferralRewardService _referralService = ReferralRewardService();
+  final ReferralRewardService _referralService = getIt<ReferralRewardService>();
 
   // Dynamic data from API
   ReferralData? _referralData;

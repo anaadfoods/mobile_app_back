@@ -1,6 +1,3 @@
-import 'dart:async';
-import 'dart:ui';
-import 'package:flutter/services.dart';
 import 'package:grocery_app/common_widgets/global_import.dart';
 
 class SubscriptionTable extends StatefulWidget {
@@ -13,7 +10,7 @@ class SubscriptionTable extends StatefulWidget {
 
 class _SubscriptionTableState extends State<SubscriptionTable>
     with TickerProviderStateMixin {
-  final SubscriptionService _subscriptionService = SubscriptionService();
+  final SubscriptionService _subscriptionService = getIt<SubscriptionService>();
   List<SubscriptionPlan> _plans = [];
   bool _isLoading = true;
   String? _error;
@@ -1106,8 +1103,9 @@ class _SubscriptionPopupContentState extends State<_SubscriptionPopupContent> {
                         // Tap-to-expand selector bar
                         GestureDetector(
                           onTap: () {
-                            if (areProductsLoading || currentProducts.isEmpty)
+                            if (areProductsLoading || currentProducts.isEmpty) {
                               return;
+                            }
                             setState(() => _isDropdownOpen = !_isDropdownOpen);
                           },
                           child: AnimatedContainer(
@@ -1284,8 +1282,9 @@ class _SubscriptionPopupContentState extends State<_SubscriptionPopupContent> {
                                                               await CategoryService.fetchProductById(
                                                                 p.productId,
                                                               );
-                                                          if (!context.mounted)
+                                                          if (!context.mounted) {
                                                             return;
+                                                          }
                                                           Navigator.push(
                                                             context,
                                                             AnimatedTransitions.fadeScale(
@@ -1301,8 +1300,9 @@ class _SubscriptionPopupContentState extends State<_SubscriptionPopupContent> {
                                                             ),
                                                           );
                                                         } catch (e) {
-                                                          if (!context.mounted)
+                                                          if (!context.mounted) {
                                                             return;
+                                                          }
                                                           ScaffoldMessenger.of(
                                                             context,
                                                           ).showSnackBar(
@@ -1416,7 +1416,7 @@ class _SubscriptionPopupContentState extends State<_SubscriptionPopupContent> {
                                                       ),
                                                     ),
                                                   );
-                                                }).toList(),
+                                                }),
                                               ],
                                             ),
                                           )

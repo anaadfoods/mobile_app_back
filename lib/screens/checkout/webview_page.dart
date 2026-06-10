@@ -1,4 +1,5 @@
 import "package:grocery_app/common_widgets/global_import.dart";
+import 'package:grocery_app/service_locator.dart';
 
 class WebViewPage extends StatefulWidget {
   final String url;
@@ -37,8 +38,8 @@ class _WebViewPageState extends State<WebViewPage> {
   late WebViewController _controller;
   bool _isLoading = true;
   bool _isHandlingPayment = false;
-  final OrderService _orderService = OrderService();
-  final SubscriptionService _subscriptionService = SubscriptionService();
+  final OrderService _orderService = getIt<OrderService>();
+  final SubscriptionService _subscriptionService = getIt<SubscriptionService>();
   List<Subscription> allSubscriptions = [];
 
   Future<void> _fetchSubscriptions() async {
@@ -118,7 +119,7 @@ class _WebViewPageState extends State<WebViewPage> {
         print("Is is Subscription call ${widget.isSubscription}");
         // Subscription payment status
         print(widget.orderId);
-        final debugpaymentone = await SubscriptionService()
+        final debugpaymentone = await getIt<SubscriptionService>()
             .fetchSubscriptionPaymentStatus(widget.subID);
 
         if (debugpaymentone == null) {

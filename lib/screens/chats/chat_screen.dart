@@ -1,8 +1,6 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:grocery_app/common_widgets/global_import.dart';
-import 'package:grocery_app/cubits/chats/chat_cubit.dart';
-import 'package:grocery_app/cubits/chats/chat_state.dart';
+import 'package:grocery_app/logic/cubits/chat_cubit.dart';
+import 'package:grocery_app/logic/cubits/chat_state.dart';
 
 class ChatScreen extends StatefulWidget {
   const ChatScreen({super.key});

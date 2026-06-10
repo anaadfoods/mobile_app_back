@@ -1,7 +1,9 @@
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:grocery_app/common_widgets/global_import.dart';
-import 'package:grocery_app/services/notification_sync_manager.dart';
+import 'package:grocery_app/cubits/notification/notification_cubit.dart';
+import 'package:grocery_app/cubits/notification/notification_state.dart';
 
-class NotificationBadgeWidget extends StatefulWidget {
+class NotificationBadgeWidget extends StatelessWidget {
   final Widget child;
   final bool showBadge;
   final Color? badgeColor;
@@ -20,105 +22,55 @@ class NotificationBadgeWidget extends StatefulWidget {
   });
 
   @override
-  State<NotificationBadgeWidget> createState() =>
-      _NotificationBadgeWidgetState();
-}
-
-class _NotificationBadgeWidgetState extends State<NotificationBadgeWidget> {
-  int _notificationCount = 0;
-  final NotificationService _notificationService = NotificationService();
-  StreamSubscription? _syncSubscription;
-
-  @override
-  void initState() {
-    super.initState();
-    _loadNotificationCount();
-    _listenToSyncEvents();
-    _listenToNotifications();
-  }
-
-  void _listenToSyncEvents() {
-    _syncSubscription = NotificationSyncManager().onSyncEvent.listen((_) {
-      _loadNotificationCount();
-    });
-  }
-
-  @override
-  void dispose() {
-    _syncSubscription?.cancel();
-    super.dispose();
-  }
-
-  Future<void> _loadNotificationCount() async {
-    int count = await NotificationSyncManager().getUnreadCount();
-    if (mounted) {
-      setState(() {
-        _notificationCount = count;
-      });
-    }
-  }
-
-  void _listenToNotifications() {
-    _notificationService.onMessageReceived.listen((message) {
-      _loadNotificationCount();
-    });
-  }
-
-  Future<void> _clearNotificationCount() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    await prefs.setInt('notification_count', 0);
-
-    if (mounted) {
-      setState(() {
-        _notificationCount = 0;
-      });
-    }
-  }
-
-  @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final badgeColor = widget.badgeColor ?? theme.colorScheme.error;
-    final textColor = widget.textColor ?? theme.colorScheme.onError;
+    final bColor = badgeColor ?? theme.colorScheme.error;
+    final tColor = textColor ?? theme.colorScheme.onError;
 
-    return Stack(
-      clipBehavior: Clip.none,
-      children: [
-        widget.child,
-        if (widget.showBadge && _notificationCount > 0)
-          Positioned(
-            right: -4,
-            top: -4,
-            child: GestureDetector(
-              onTap: () {
-                widget.onTap?.call();
-                _clearNotificationCount();
-              },
-              child: Container(
-                width: widget.badgeSize ?? 22,
-                height: widget.badgeSize ?? 22,
-                decoration: BoxDecoration(
-                  color: badgeColor,
-                  shape: BoxShape.circle,
-                  border: Border.all(color: theme.cardColor, width: 2),
-                ),
-                child: Center(
-                  child: Text(
-                    _notificationCount > 99
-                        ? '99+'
-                        : _notificationCount.toString(),
-                    style: TextStyle(
-                      color: textColor,
-                      fontSize: (widget.badgeSize ?? 22) * 0.55,
-                      fontWeight: FontWeight.bold,
+    return BlocBuilder<NotificationCubit, NotificationState>(
+      builder: (context, state) {
+        final notificationCount = state.unreadCount;
+
+        return Stack(
+          clipBehavior: Clip.none,
+          children: [
+            child,
+            if (showBadge && notificationCount > 0)
+              Positioned(
+                right: -4,
+                top: -4,
+                child: GestureDetector(
+                  onTap: () {
+                    onTap?.call();
+                    context.read<NotificationCubit>().resetNotificationBadgeCount();
+                  },
+                  child: Container(
+                    width: badgeSize ?? 22,
+                    height: badgeSize ?? 22,
+                    decoration: BoxDecoration(
+                      color: bColor,
+                      shape: BoxShape.circle,
+                      border: Border.all(color: theme.cardColor, width: 2),
                     ),
-                    textAlign: TextAlign.center,
+                    child: Center(
+                      child: Text(
+                        notificationCount > 99
+                            ? '99+'
+                            : notificationCount.toString(),
+                        style: TextStyle(
+                          color: tColor,
+                          fontSize: (badgeSize ?? 22) * 0.55,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
                   ),
                 ),
               ),
-            ),
-          ),
-      ],
+          ],
+        );
+      },
     );
   }
 }
@@ -138,6 +90,7 @@ class NotificationListWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final textTheme = theme.textTheme;
 
     if (notifications.isEmpty) {
       return Center(
@@ -150,7 +103,7 @@ class NotificationListWidget extends StatelessWidget {
               color: theme.disabledColor,
             ),
             const SizedBox(height: 16),
-            Text('No notifications yet', style: theme.textTheme.bodyLarge),
+            Text('No notifications yet', style: textTheme.bodyLarge),
           ],
         ),
       );
@@ -203,7 +156,7 @@ class _NotificationListItemState extends State<_NotificationListItem> {
     final body = widget.notification['body'] as String? ?? '';
     final isHighPriority = MessageUtility.isHighPriority(widget.notification);
 
-    final bool needsExpansion = body.length > 100;
+    final needsExpansion = body.length > 100;
 
     return Dismissible(
       key: Key(widget.notification['id']?.toString() ?? timestamp.toString()),
@@ -309,10 +262,10 @@ class _NotificationListItemState extends State<_NotificationListItem> {
 }
 
 class NotificationSettingsWidget extends StatefulWidget {
-  final Function(bool)? onOrderNotificationsChanged;
-  final Function(bool)? onProductNotificationsChanged;
-  final Function(bool)? onPromoNotificationsChanged;
-  final Function(bool)? onSubscriptionNotificationsChanged;
+  final ValueChanged<bool>? onOrderNotificationsChanged;
+  final ValueChanged<bool>? onProductNotificationsChanged;
+  final ValueChanged<bool>? onPromoNotificationsChanged;
+  final ValueChanged<bool>? onSubscriptionNotificationsChanged;
 
   const NotificationSettingsWidget({
     super.key,
@@ -333,7 +286,6 @@ class _NotificationSettingsWidgetState
   bool _productNotifications = true;
   bool _promoNotifications = true;
   bool _subscriptionNotifications = true;
-  final NotificationService _notificationService = NotificationService();
 
   @override
   void initState() {
@@ -463,7 +415,7 @@ class _NotificationSettingsWidgetState
         trailing: Switch(
           value: value,
           onChanged: onChanged,
-          activeColor: color,
+          activeThumbColor: color,
           inactiveTrackColor: color.withValues(alpha: 0.3),
           activeTrackColor: color.withValues(alpha: 0.5),
         ),

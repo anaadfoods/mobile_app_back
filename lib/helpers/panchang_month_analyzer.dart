@@ -68,9 +68,7 @@ class PanchangMonthAnalyzer {
       presentMasasSet.add(dominantMasa);
 
       // Track first and last masa
-      if (firstMasa == null) {
-        firstMasa = dominantMasa;
-      }
+      firstMasa ??= dominantMasa;
       lastMasa = dominantMasa;
 
       // Detect transition (when masa changes from previous row)

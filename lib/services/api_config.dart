@@ -1,11 +1,16 @@
 class ApiConfig {
-  // static const String baseUrl = 'http://34.131.42.218';
   static const String baseUrl = 'https://bck.anaadfoods.com';
-//   static const String baseUrl = 'http://10.0.2.2:8000';
 
-  // static const String baseUrl = "http://192.168.29.209:8000";
-
-  static const String paymentUrl = 'http://13.235.242.181:5000';
+  /// Juspay payment bridge - HTTPS endpoint with certificate pinning
+  static const String paymentUrl = 'https://payment.anaadfoods.com';
+  static const String _paymentCertificatePins =
+      String.fromEnvironment('PAYMENT_CERT_SHA256_PINS');
+  static List<String> get paymentCertificateSha256Pins =>
+      _paymentCertificatePins
+          .split(',')
+          .map((pin) => pin.trim())
+          .where((pin) => pin.isNotEmpty)
+          .toList(growable: false);
 
   /// Panchang may be hosted on a different backend than the main app APIs.
   /// Set this to the correct Panchang host when available.

@@ -1,5 +1,3 @@
-import 'package:flutter/services.dart';
-import 'package:go_router/go_router.dart';
 import 'package:grocery_app/common_widgets/global_import.dart';
 import 'package:grocery_app/routes/app_routes.dart';
 import 'package:grocery_app/screens/home/home_featured_products.dart';
@@ -43,6 +41,9 @@ class _AllProductsListState extends State<AllProductsList> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -81,21 +82,39 @@ class _AllProductsListState extends State<AllProductsList> {
                               isLoading: true,
                               child: Container(
                                 decoration: BoxDecoration(
-                                  color: Theme.of(
-                                    context,
-                                  ).colorScheme.primary.withValues(alpha: 0.4),
+                                  color:
+                                      isDark
+                                          ? Colors.white.withValues(alpha: 0.4)
+                                          : Theme.of(context)
+                                              .colorScheme
+                                              .primary
+                                              .withValues(alpha: 0.4),
                                   borderRadius: BorderRadius.circular(8),
                                 ),
                               ),
                             ),
                           )
-                          : Text(
-                            "See All →",
-                            style: TextStyle(
-                              color: Theme.of(context).colorScheme.primary,
-                              fontWeight: FontWeight.w600,
-                              fontSize: 13,
-                            ),
+                          : Row(
+                            children: [
+                              Text(
+                                "See All",
+                                style: TextStyle(
+                                  color:
+                                      isDark
+                                          ? AppColors.deepSoilGreen
+                                          : AppColors.pureBlack,
+                                ),
+                              ),
+                              const SizedBox(width: 4),
+                              Icon(
+                                Icons.arrow_forward,
+                                color:
+                                    isDark
+                                        ? AppColors.deepSoilGreen
+                                        : AppColors.pureBlack,
+                                size: 16,
+                              ),
+                            ],
                           ),
                 ),
               ),
@@ -103,7 +122,7 @@ class _AllProductsListState extends State<AllProductsList> {
           ),
         ),
         SizedBox(
-          height: 300,
+          height: (MediaQuery.sizeOf(context).width * 0.78).clamp(280.0, 340.0),
           child: FutureBuilder<List<Product>>(
             future: _allProductsFuture,
             builder: (context, snapshot) {

@@ -1,8 +1,6 @@
-import 'package:flutter/services.dart';
 import 'package:grocery_app/common_widgets/coming_soon_overlay.dart';
 import 'package:grocery_app/common_widgets/global_import.dart';
 import 'package:grocery_app/utils/subscription_navigation_helper.dart';
-import 'package:go_router/go_router.dart';
 import 'package:grocery_app/routes/app_routes.dart';
 
 class AllProductsScreen extends StatefulWidget {
@@ -14,8 +12,6 @@ class AllProductsScreen extends StatefulWidget {
 }
 
 class _AllProductsScreenState extends State<AllProductsScreen> {
-  // Keeping original loading logic
-  final CategoryService _productService = CategoryService();
   List<Product> _products = [];
   bool _isLoading = true;
   String? _error;
@@ -350,8 +346,8 @@ class _AllProductsScreenState extends State<AllProductsScreen> {
     return SliverPadding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       sliver: SliverGrid(
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 2,
+        gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+          maxCrossAxisExtent: 200,
           childAspectRatio: 0.68,
           crossAxisSpacing: 12,
           mainAxisSpacing: 12,
@@ -375,15 +371,13 @@ class _AllProductsScreenState extends State<AllProductsScreen> {
         delegate: SliverChildBuilderDelegate(
           (context, index) => Padding(
             padding: const EdgeInsets.only(bottom: 12),
-            child: Stack(
-              children: [
-                GroceryItemCardWidget(
-                  item: _products[index],
-                  heroSuffix: 'all_products_list_$index',
-                  onTap: () => _onProductTap(_products[index]),
-                ),
-                if (!_products[index].isActive) const ComingSoonOverlay(),
-              ],
+            child: Opacity(
+              opacity: _products[index].isActive ? (_products[index].isInStock ? 1.0 : 0.5) : 1.0,
+              child: GroceryItemCardWidget(
+                item: _products[index],
+                heroSuffix: 'all_products_list_$index',
+                onTap: () => _onProductTap(_products[index]),
+              ),
             ),
           ),
           childCount: _products.length,
@@ -424,7 +418,7 @@ class _FeaturedProductCard extends StatelessWidget {
     return GestureDetector(
       onTap: (product.isInStock && product.isActive) ? onTap : null,
       child: Opacity(
-        opacity: (product.isInStock && product.isActive) ? 1.0 : 0.5,
+        opacity: product.isActive ? (product.isInStock ? 1.0 : 0.5) : 1.0,
         child: Stack(
           children: [
             Container(
@@ -593,7 +587,16 @@ class _FeaturedProductCard extends StatelessWidget {
                 ],
               ),
             ),
-            if (!product.isActive) const ComingSoonOverlay(),
+            if (!product.isActive)
+              Positioned.fill(
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(20),
+                  child: ColoredBox(
+                    color: isDark ? Colors.black.withValues(alpha: 0.72) : Colors.white.withValues(alpha: 0.72),
+                    child: const ComingSoonOverlay(),
+                  ),
+                ),
+              ),
           ],
         ),
       ),
@@ -691,7 +694,18 @@ class _AddToCartButton extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 GestureDetector(
-                  onTap: () => cartCubit.removeItem(product.id),
+                  onTap: () {
+                    final authState = context.read<AuthCubit>().state;
+                    if (authState is Unauthenticated) {
+                      GuestAuthHelper.showGuestLoginBottomSheet(
+                        context,
+                        title: 'Login Required',
+                        subtitle: 'Please log in to manage your cart.',
+                      );
+                      return;
+                    }
+                    cartCubit.removeItem(product.id);
+                  },
                   child: Container(
                     padding: const EdgeInsets.all(6),
                     child: Icon(
@@ -712,7 +726,18 @@ class _AddToCartButton extends StatelessWidget {
                   ),
                 ),
                 GestureDetector(
-                  onTap: () => cartCubit.addItem(product, 1),
+                  onTap: () {
+                    final authState = context.read<AuthCubit>().state;
+                    if (authState is Unauthenticated) {
+                      GuestAuthHelper.showGuestLoginBottomSheet(
+                        context,
+                        title: 'Login Required',
+                        subtitle: 'Please log in to manage your cart.',
+                      );
+                      return;
+                    }
+                    cartCubit.addItem(product, 1);
+                  },
                   child: Container(
                     padding: const EdgeInsets.all(6),
                     child: Icon(

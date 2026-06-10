@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:grocery_app/core/theme/app_colors.dart';
+import 'package:grocery_app/cubits/auth/auth_cubit.dart';
+import 'package:grocery_app/cubits/auth/auth_state.dart';
+import 'package:grocery_app/common_widgets/guest_login_prompt.dart';
 
 class FavoriteToggleIcon extends StatefulWidget {
   final bool favorite;
@@ -38,6 +42,17 @@ class _FavoriteToggleIconState extends State<FavoriteToggleIcon> {
   Widget build(BuildContext context) {
     return InkWell(
       onTap: () {
+        final authState = context.read<AuthCubit>().state;
+        if (authState is Unauthenticated) {
+          GuestAuthHelper.showGuestLoginBottomSheet(
+            context,
+            title: 'Login Required',
+            subtitle: 'Please log in to add items to your favorites.',
+            icon: Icons.favorite_border_rounded,
+          );
+          return;
+        }
+
         setState(() {
           _isFavorite = !_isFavorite;
         });

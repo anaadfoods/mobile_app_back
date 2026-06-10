@@ -1,11 +1,10 @@
+import 'package:dio/dio.dart';
 import 'package:grocery_app/common_widgets/global_import.dart';
-
-import 'package:http/http.dart' as http;
+import 'package:grocery_app/service_locator.dart';
 
 class CategoryService {
-  // static const String baseUrl = 'http://192.168.1.40:8000';
-  // static const String baseUrl = 'http://192.168.19.81:8000';
-  static final String baseUrl = ApiConfig.baseUrl;
+  factory CategoryService() => getIt<CategoryService>();
+  CategoryService.create();
 
   static const String categoriesEndpoint = '/api/products/categories/';
   static const String baseProductsEndpoint = '/api/products/';
@@ -18,12 +17,16 @@ class CategoryService {
   // Fetches all categories from the server
   static Future<List<Category>> fetchCategories() async {
     try {
-      final response = await http
-          .get(Uri.parse('$baseUrl$categoriesEndpoint'))
-          .timeout(Duration(seconds: timeoutSeconds));
+      final response = await ApiClient.instance.get(
+        categoriesEndpoint,
+        options: Options(
+          sendTimeout: const Duration(seconds: timeoutSeconds),
+          receiveTimeout: const Duration(seconds: timeoutSeconds),
+        ),
+      );
 
       if (response.statusCode == 200) {
-        final List<dynamic> data = json.decode(response.body);
+        final List<dynamic> data = response.data;
         List<Category> categories = data.map((item) => Category.fromJson(item)).toList();
 
         // Fallback: Calculate true active products locally to ensure UI counts exactly match catalog items
@@ -60,16 +63,20 @@ class CategoryService {
   // Tests the server connection before loading data
   static Future<bool> testConnection() async {
     try {
-      print('Testing connection to $baseUrl$categoriesEndpoint...');
-      final response = await http
-          .get(Uri.parse('$baseUrl$categoriesEndpoint'))
-          .timeout(Duration(seconds: 5));
+      AppLogger.instance.log('Testing connection to $categoriesEndpoint...');
+      final response = await ApiClient.instance.get(
+        categoriesEndpoint,
+        options: Options(
+          sendTimeout: const Duration(seconds: 5),
+          receiveTimeout: const Duration(seconds: 5),
+        ),
+      );
 
-      print('HTTP test response status: ${response.statusCode}');
-      print('Response body: ${response.body}');
+      AppLogger.instance.log('HTTP test response status: ${response.statusCode}');
+      AppLogger.instance.log('Response body: ${response.data}');
       return response.statusCode == 200;
     } catch (e) {
-      print('Connection test failed with error: $e');
+      AppLogger.instance.log('Connection test failed with error: $e');
       return false;
     }
   }
@@ -77,13 +84,16 @@ class CategoryService {
   static Future<Product> fetchProductById(int id) async {
     try {
       String varianturl = 'variants/';
-      final response = await http
-          .get(Uri.parse('$baseUrl$baseProductsEndpoint$varianturl$id'))
-          .timeout(Duration(seconds: timeoutSeconds));
+      final response = await ApiClient.instance.get(
+        '$baseProductsEndpoint$varianturl$id',
+        options: Options(
+          sendTimeout: const Duration(seconds: timeoutSeconds),
+          receiveTimeout: const Duration(seconds: timeoutSeconds),
+        ),
+      );
 
       if (response.statusCode == 200) {
-        final data = json.decode(response.body);
-        return Product.fromJson(data);
+        return Product.fromJson(response.data);
       }
       throw Exception('Failed to load product');
     } catch (e) {
@@ -102,15 +112,14 @@ class CategoryService {
 
   /// Call API
   Future<List<Product>> searchProducts(String query) async {
-    final url = Uri.parse(
-      '${ApiConfig.baseUrl}/api/products/variants/search/?q=$query',
-    );
-
     try {
-      final response = await http.get(url);
+      final response = await ApiClient.instance.get(
+        '/api/products/variants/search/',
+        queryParameters: {'q': query},
+      );
 
       if (response.statusCode == 200) {
-        final List<dynamic> data = json.decode(response.body);
+        final List<dynamic> data = response.data;
         List<Product> results =
             data.map((item) => Product.fromJson(item)).toList();
         _sortProductsByActive(results);
@@ -127,12 +136,13 @@ class CategoryService {
     String categoryName,
   ) async {
     try {
-      final String url =
-          "$baseUrl$productsEndpoint?category_name=$categoryName";
-      final response = await http.get(Uri.parse(url));
+      final response = await ApiClient.instance.get(
+        productsEndpoint,
+        queryParameters: {'category_name': categoryName},
+      );
 
       if (response.statusCode == 200) {
-        final List<dynamic> data = json.decode(response.body);
+        final List<dynamic> data = response.data;
         final products = data.map((item) => Product.fromJson(item)).toList();
 
         // Client-side filtering fallback: Ensure we only return products for the requested category
@@ -157,12 +167,13 @@ class CategoryService {
 
   static Future<List<Product>> fetchSimilarProduct(String categoryName) async {
     try {
-      final String url =
-          "$baseUrl/api/products/variants/search/?=$categoryName";
-      final response = await http.get(Uri.parse(url));
+      final response = await ApiClient.instance.get(
+        '/api/products/variants/search/',
+        queryParameters: {'': categoryName},
+      );
 
       if (response.statusCode == 200) {
-        final List<dynamic> data = json.decode(response.body);
+        final List<dynamic> data = response.data;
         final results = data.map((item) => Product.fromJson(item)).toList();
         _sortProductsByActive(results);
         return results;
@@ -176,10 +187,10 @@ class CategoryService {
 
   static Future<List<Product>> fetchFeaturedProducts() async {
     try {
-      final response = await http.get(Uri.parse('$baseUrl$featuredEndPoint'));
+      final response = await ApiClient.instance.get(featuredEndPoint);
 
       if (response.statusCode == 200) {
-        final List<dynamic> data = json.decode(response.body);
+        final List<dynamic> data = response.data;
         final results = data.map((item) => Product.fromJson(item)).toList();
         _sortProductsByActive(results);
         return results;
@@ -193,10 +204,10 @@ class CategoryService {
 
   static Future<List<Product>> fetchAllProducts() async {
     try {
-      final response = await http.get(Uri.parse('$baseUrl$productsEndpoint'));
+      final response = await ApiClient.instance.get(productsEndpoint);
 
       if (response.statusCode == 200) {
-        final List<dynamic> data = json.decode(response.body);
+        final List<dynamic> data = response.data;
         final results = data.map((item) => Product.fromJson(item)).toList();
         _sortProductsByActive(results);
         return results;
@@ -210,12 +221,10 @@ class CategoryService {
 
   static Future<List<Product>> fetchBestsellerProducts() async {
     try {
-      final response = await http.get(
-        Uri.parse('$baseUrl$bestsellersEndpoint'),
-      );
+      final response = await ApiClient.instance.get(bestsellersEndpoint);
 
       if (response.statusCode == 200) {
-        final List<dynamic> data = json.decode(response.body);
+        final List<dynamic> data = response.data;
         final results = data.map((item) => Product.fromJson(item)).toList();
         _sortProductsByActive(results);
         return results;

@@ -1,13 +1,17 @@
 import '../models/cart_model.dart';
 import '../services/cart_service.dart';
+import 'package:grocery_app/service_locator.dart';
 
 class CartException implements Exception {
   final String message;
   CartException(this.message);
 }
 
+
 class CartRepository {
-  final CartService _service = CartService();
+  final CartService _service;
+
+  CartRepository({CartService? service}) : _service = service ?? getIt<CartService>();
 
   Future<CartModel> getCart() async {
     try {

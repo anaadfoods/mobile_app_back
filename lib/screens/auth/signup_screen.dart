@@ -2,8 +2,9 @@ import 'dart:ui';
 import 'dart:math' as math;
 import 'package:grocery_app/common_widgets/global_import.dart';
 import 'package:grocery_app/models/legal_document_model.dart';
-import 'package:grocery_app/services/legal_service.dart';
+import 'package:grocery_app/service_locator.dart';
 import 'package:grocery_app/screens/legal/legal_content_screen.dart';
+import 'package:grocery_app/services/legal_service.dart';
 
 class SignupScreen extends StatefulWidget {
   const SignupScreen({super.key});
@@ -32,7 +33,7 @@ class _SignupScreenState extends State<SignupScreen>
   String? _selectedGender;
 
   // Legal documents
-  final LegalService _legalService = LegalService();
+  final LegalService _legalService = getIt<LegalService>();
   List<LegalDocument> _legalDocuments = [];
   bool _isLoadingLegal = true;
   bool _termsAccepted = false;
@@ -415,14 +416,16 @@ class _SignupScreenState extends State<SignupScreen>
                                 decoration: BoxDecoration(
                                   gradient: LinearGradient(
                                     colors: [
-                                      AppColors.deepSoilGreen,
-                                      AppColors.deepSoilGreen.withRed(200),
+                                      AppColors.amberWarn,
+                                      AppColors.amberWarn.withValues(
+                                        alpha: 0.8,
+                                      ),
                                     ],
                                   ),
                                   borderRadius: BorderRadius.circular(12),
                                   boxShadow: [
                                     BoxShadow(
-                                      color: AppColors.deepSoilGreen.withValues(
+                                      color: AppColors.amberWarn.withValues(
                                         alpha: 0.4,
                                       ),
                                       blurRadius: 12,
@@ -805,8 +808,9 @@ class _SignupScreenState extends State<SignupScreen>
                                           if (v!.isEmpty) return 'Enter email';
                                           if (!RegExp(
                                             r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
-                                          ).hasMatch(v))
+                                          ).hasMatch(v)) {
                                             return 'Invalid email';
+                                          }
                                           return null;
                                         },
                                         onValidationChanged:
@@ -865,12 +869,14 @@ class _SignupScreenState extends State<SignupScreen>
                                         keyboardType: TextInputType.number,
                                         onPrimary: true,
                                         validator: (v) {
-                                          if (v!.isEmpty)
+                                          if (v!.isEmpty) {
                                             return 'Enter phone number';
+                                          }
                                           if (!RegExp(
                                             r'^[0-9]{10}$',
-                                          ).hasMatch(v))
+                                          ).hasMatch(v)) {
                                             return 'Invalid phone number';
+                                          }
                                           return null;
                                         },
                                         onValidationChanged:
@@ -929,10 +935,12 @@ class _SignupScreenState extends State<SignupScreen>
                                         obscureText: true,
                                         onPrimary: true,
                                         validator: (v) {
-                                          if (v!.isEmpty)
+                                          if (v!.isEmpty) {
                                             return 'Enter password';
-                                          if (v.length < 6)
+                                          }
+                                          if (v.length < 6) {
                                             return 'Min 6 characters';
+                                          }
                                           return null;
                                         },
                                         onValidationChanged:
@@ -953,10 +961,12 @@ class _SignupScreenState extends State<SignupScreen>
                                         obscureText: true,
                                         onPrimary: true,
                                         validator: (v) {
-                                          if (v!.isEmpty)
+                                          if (v!.isEmpty) {
                                             return 'Confirm password';
-                                          if (v != _passwordController.text)
+                                          }
+                                          if (v != _passwordController.text) {
                                             return 'Passwords do not match';
+                                          }
                                           return null;
                                         },
                                         onValidationChanged:
@@ -1032,7 +1042,7 @@ class _SignupScreenState extends State<SignupScreen>
                                               style: textTheme.bodyMedium
                                                   ?.copyWith(
                                                     color:
-                                                        AppColors.deepSoilGreen,
+                                                        AppColors.harvestAmber,
                                                     fontWeight: FontWeight.bold,
                                                   ),
                                             ),
@@ -1193,9 +1203,9 @@ class _SignupScreenState extends State<SignupScreen>
               borderRadius: BorderRadius.circular(AppColors.radiusRound),
               gradient: LinearGradient(
                 colors: [
-                  AppColors.deepSoilGreen,
-                  AppColors.deepSoilGreen.withRed(200),
-                  AppColors.deepSoilGreen,
+                  AppColors.harvestAmber,
+                  AppColors.harvestAmber.withValues(alpha: 0.8),
+                  AppColors.harvestAmber,
                 ],
                 stops: [0.0, _shimmerController.value, 1.0],
               ),
@@ -1239,7 +1249,7 @@ class _SignupScreenState extends State<SignupScreen>
                               style: Theme.of(
                                 context,
                               ).textTheme.titleMedium?.copyWith(
-                                color: AppColors.parchment,
+                                color: AppColors.pureWhite,
                                 fontWeight: FontWeight.bold,
                                 letterSpacing: 0.5,
                               ),
@@ -1440,10 +1450,10 @@ class _SignupScreenState extends State<SignupScreen>
                       child: Text(
                         linkText,
                         style: textTheme.bodySmall?.copyWith(
-                          color: AppColors.deepSoilGreen,
+                          color: AppColors.harvestAmber,
                           fontWeight: FontWeight.bold,
                           decoration: TextDecoration.underline,
-                          decorationColor: AppColors.deepSoilGreen,
+                          decorationColor: AppColors.harvestAmber,
                         ),
                       ),
                     ),

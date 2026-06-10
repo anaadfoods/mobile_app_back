@@ -75,20 +75,29 @@ class _CartScreenState extends State<CartScreen> with TickerProviderStateMixin {
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
-      body: BlocConsumer<CartCubit, CartState>(
-        listener: (context, state) {
-          if (state is CartError) {
-            SnackBarHelper.showError(context, state.message);
-          } else if (state is CartSuccess) {
-            if (state.error != null && state.error!.isNotEmpty) {
-              SnackBarHelper.showError(context, state.error!);
-            } else if (state.message != null && state.message!.isNotEmpty) {
-              SnackBarHelper.showSuccess(context, state.message!);
-            }
+      body: BlocBuilder<AuthCubit, AuthState>(
+        builder: (context, authState) {
+          if (authState is Unauthenticated) {
+            return const GuestEmptyStateWidget(
+              title: 'Login to View Cart',
+              subtitle: 'Please log in or sign up to see your cart and complete checkout.',
+              icon: Icons.shopping_cart_outlined,
+            );
           }
-        },
-        builder: (context, state) {
-          return Stack(
+          return BlocConsumer<CartCubit, CartState>(
+            listener: (context, state) {
+              if (state is CartError) {
+                SnackBarHelper.showError(context, state.message);
+              } else if (state is CartSuccess) {
+                if (state.error != null && state.error!.isNotEmpty) {
+                  SnackBarHelper.showError(context, state.error!);
+                } else if (state.message != null && state.message!.isNotEmpty) {
+                  SnackBarHelper.showSuccess(context, state.message!);
+                }
+              }
+            },
+            builder: (context, state) {
+              return Stack(
             children: [
               CustomScrollView(
                 slivers: [
@@ -145,6 +154,8 @@ class _CartScreenState extends State<CartScreen> with TickerProviderStateMixin {
                 _buildCheckoutSection(theme, isDark, state.cart),
             ],
           );
+        },
+      );
         },
       ),
     );
@@ -606,7 +617,10 @@ class _AnimatedCartItemState extends State<_AnimatedCartItem> {
                   height: 80,
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(16),
-                    color: isDark ? AppColors.darkSurfaceElevated : AppColors.parchment,
+                    color:
+                        isDark
+                            ? AppColors.darkSurfaceElevated
+                            : AppColors.parchment,
                   ),
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(16),
@@ -770,7 +784,7 @@ class _AnimatedCartItemState extends State<_AnimatedCartItem> {
         borderRadius: BorderRadius.circular(8),
         child: Padding(
           padding: const EdgeInsets.all(8),
-          child: Icon(icon, size: 18, color: theme.colorScheme.primary),
+          child: Icon(icon, size: 18, color: theme.colorScheme.secondary),
         ),
       ),
     );

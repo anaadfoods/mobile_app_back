@@ -460,8 +460,9 @@ class _MicrobeManiaState extends State<MicrobeManiaGameScreen>
         o.hit = true;
         if (!_hasShield) {
           _takeDamage();
-          if (o.type == _ObstacleType.pesticide)
+          if (o.type == _ObstacleType.pesticide) {
             _achievements['survive_chemical'] = true;
+          }
         } else {
           _playSound('collect');
           _spawnParticles(
@@ -567,8 +568,9 @@ class _MicrobeManiaState extends State<MicrobeManiaGameScreen>
       case _PowerType.multiplier:
         _multiplier = 2.0;
         Future.delayed(const Duration(seconds: 8), () {
-          if (mounted && _state == GameState.playing)
+          if (mounted && _state == GameState.playing) {
             setState(() => _multiplier = 1.0);
+          }
         });
         break;
     }

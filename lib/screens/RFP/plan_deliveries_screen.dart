@@ -6,6 +6,8 @@ import 'package:grocery_app/services/rfp_services.dart';
 import 'package:grocery_app/styles/colors.dart';
 import 'package:grocery_app/models/rfp_plan_model.dart';
 
+import 'package:grocery_app/service_locator.dart';
+
 class PlanDeliveriesScreen extends StatefulWidget {
   final RfpPlan plan;
 
@@ -16,7 +18,7 @@ class PlanDeliveriesScreen extends StatefulWidget {
 }
 
 class _PlanDeliveriesScreenState extends State<PlanDeliveriesScreen> {
-  final DeliveryService _service = DeliveryService();
+  final DeliveryService _service = getIt<DeliveryService>();
   late Future<List<Delivery>> _deliveriesFuture;
 
   @override
@@ -46,6 +48,7 @@ class _PlanDeliveriesScreenState extends State<PlanDeliveriesScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final plan = widget.plan;
+    final isDark = theme.brightness == Brightness.dark;
 
     return Scaffold(
       body: CustomScrollView(
@@ -72,10 +75,10 @@ class _PlanDeliveriesScreenState extends State<PlanDeliveriesScreen> {
                     child: Center(
                       child: Column(
                         children: [
-                          const Icon(
+                          Icon(
                             Icons.error_outline,
                             size: 48,
-                            color: AppColors.rawEarth,
+                            color: isDark ? AppColors.darkSoftRed : AppColors.softRed,
                           ),
                           const SizedBox(height: 12),
                           Text(
@@ -155,11 +158,15 @@ class _PlanDeliveriesScreenState extends State<PlanDeliveriesScreen> {
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [
-              AppColors.parchment,
-              theme.colorScheme.primary.withValues(alpha: 0.85),
-              isDark ? AppColors.parchment : AppColors.deepSoilGreen,
-            ],
+            colors: isDark
+                ? [
+                    AppColors.darkSurfaceElevated,
+                    AppColors.darkSurface,
+                  ]
+                : [
+                    AppColors.deepSoilGreen,
+                    AppColors.deepSoilGreen.withValues(alpha: 0.85),
+                  ],
           ),
           borderRadius: const BorderRadius.only(
             bottomLeft: Radius.circular(32),
@@ -167,7 +174,8 @@ class _PlanDeliveriesScreenState extends State<PlanDeliveriesScreen> {
           ),
           boxShadow: [
             BoxShadow(
-              color: theme.colorScheme.primary.withValues(alpha: 0.3),
+              color: (isDark ? AppColors.pureBlack : theme.colorScheme.primary)
+                  .withValues(alpha: isDark ? 0.3 : 0.15),
               blurRadius: 20,
               offset: const Offset(0, 10),
             ),
@@ -222,11 +230,14 @@ class _PlanDeliveriesScreenState extends State<PlanDeliveriesScreen> {
                         vertical: 4,
                       ),
                       decoration: BoxDecoration(
-                        color:
-                            plan.isActive
-                                ? AppColors.deepSoilGreen
-                                : AppColors.rawEarth54,
+                        color: plan.isActive
+                            ? AppColors.pureWhite.withValues(alpha: 0.15)
+                            : AppColors.pureWhite.withValues(alpha: 0.08),
                         borderRadius: BorderRadius.circular(20),
+                        border: Border.all(
+                          color: AppColors.parchment.withValues(alpha: 0.25),
+                          width: 1,
+                        ),
                       ),
                       child: Text(
                         plan.status,
@@ -452,13 +463,14 @@ class _PlanDeliveriesScreenState extends State<PlanDeliveriesScreen> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(
-                  color: theme.colorScheme.primary.withValues(alpha: 0.15),
+                  color: (isDark ? AppColors.darkSuccessGreen : theme.colorScheme.primary)
+                      .withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Text(
                   '${deliveries.length} ${deliveries.length == 1 ? 'delivery' : 'deliveries'}',
                   style: theme.textTheme.labelSmall?.copyWith(
-                    color: theme.colorScheme.primary,
+                    color: isDark ? AppColors.darkSuccessGreen : theme.colorScheme.primary,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -477,8 +489,8 @@ class _PlanDeliveriesScreenState extends State<PlanDeliveriesScreen> {
   }
 
   Widget _buildDeliveryCard(ThemeData theme, Delivery delivery) {
-    final statusColor = _getStatusColor(delivery.status);
     final isDark = theme.brightness == Brightness.dark;
+    final statusColor = _getStatusColor(delivery.status, isDark);
 
     return Container(
       margin: const EdgeInsets.only(left: 16, bottom: 8),
@@ -610,18 +622,18 @@ class _PlanDeliveriesScreenState extends State<PlanDeliveriesScreen> {
     );
   }
 
-  Color _getStatusColor(String status) {
+  Color _getStatusColor(String status, bool isDark) {
     switch (status.toUpperCase()) {
       case 'DELIVERED':
-        return AppColors.deepSoilGreen;
+        return isDark ? AppColors.darkSuccessGreen : AppColors.deepSoilGreen;
       case 'PENDING':
-        return AppColors.harvestAmber;
+        return isDark ? AppColors.darkSoftGold : AppColors.harvestAmber;
       case 'IN_TRANSIT':
-        return AppColors.deepSoilGreen;
+        return isDark ? AppColors.darkSuccessGreen : AppColors.deepSoilGreen;
       case 'CANCELLED':
-        return AppColors.rawEarth;
+        return isDark ? AppColors.darkSoftRed : AppColors.softRed;
       default:
-        return AppColors.rawEarth54;
+        return isDark ? AppColors.parchment54 : AppColors.rawEarth54;
     }
   }
 

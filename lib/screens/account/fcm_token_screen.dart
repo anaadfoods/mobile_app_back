@@ -118,7 +118,7 @@ class _FCMTokenScreenState extends State<FCMTokenScreen> {
               text:
                   'This token is used to send push notifications to your device.',
               fontSize: 14,
-              color: AppColors.rawEarth70!,
+              color: AppColors.rawEarth70,
             ),
             SizedBox(height: 30),
 
@@ -129,7 +129,7 @@ class _FCMTokenScreenState extends State<FCMTokenScreen> {
               decoration: BoxDecoration(
                 color: AppColors.parchment,
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: AppColors.rawEarth12!),
+                border: Border.all(color: AppColors.rawEarth12),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -170,7 +170,7 @@ class _FCMTokenScreenState extends State<FCMTokenScreen> {
                       decoration: BoxDecoration(
                         color: AppColors.parchment,
                         borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: AppColors.rawEarth12!),
+                        border: Border.all(color: AppColors.rawEarth12),
                       ),
                       child: SelectableText(
                         _fcmToken!,
@@ -188,12 +188,12 @@ class _FCMTokenScreenState extends State<FCMTokenScreen> {
                       decoration: BoxDecoration(
                         color: AppColors.harvestAmber,
                         borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: AppColors.harvestAmber!),
+                        border: Border.all(color: AppColors.harvestAmber),
                       ),
                       child: AppText(
                         text: 'No FCM token available',
                         fontSize: 14,
-                        color: AppColors.harvestAmber!,
+                        color: AppColors.harvestAmber,
                       ),
                     ),
                 ],
@@ -251,20 +251,20 @@ class _FCMTokenScreenState extends State<FCMTokenScreen> {
               decoration: BoxDecoration(
                 color: AppColors.deepSoilGreen,
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: AppColors.deepSoilGreen!),
+                border: Border.all(color: AppColors.deepSoilGreen),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
                     children: [
-                      Icon(Icons.info_outline, color: AppColors.deepSoilGreen!),
+                      Icon(Icons.info_outline, color: AppColors.deepSoilGreen),
                       SizedBox(width: 8),
                       AppText(
                         text: 'Information',
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
-                        color: AppColors.deepSoilGreen!,
+                        color: AppColors.deepSoilGreen,
                       ),
                     ],
                   ),
@@ -276,7 +276,7 @@ class _FCMTokenScreenState extends State<FCMTokenScreen> {
                         '• Copy this token to test push notifications\n'
                         '• Keep this token secure',
                     fontSize: 14,
-                    color: AppColors.deepSoilGreen!,
+                    color: AppColors.deepSoilGreen,
                   ),
                 ],
               ),

@@ -1,3 +1,4 @@
+import 'package:grocery_app/utils/app_logger.dart';
 import 'dart:io';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:grocery_app/models/user_model.dart';
@@ -150,7 +151,7 @@ class AuthCubit extends Cubit<AuthState> {
     try {
       final success = await _authRepository.updateAddress(addressDetails);
       if (success) {
-        // After updateAddress, AuthService._currentUser is already updated
+        // After updateAddress, TokenService._currentUser is already updated
         // Get the fresh user data from checkAuthStatus to ensure we have latest
         final updatedUser = await _authRepository.checkAuthStatus();
         if (updatedUser != null) {
@@ -162,7 +163,7 @@ class AuthCubit extends Cubit<AuthState> {
       }
       return false;
     } catch (e) {
-      print('AuthCubit.updateUserAddress error: $e');
+      AppLogger.instance.log('AuthCubit.updateUserAddress error: $e');
       if (currentUser != null) {
         emit(Authenticated(currentUser));
       }

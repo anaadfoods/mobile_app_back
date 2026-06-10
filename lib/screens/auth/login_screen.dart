@@ -1,7 +1,6 @@
 import 'dart:ui';
 import 'dart:math' as math;
 import 'package:grocery_app/common_widgets/global_import.dart';
-import 'package:grocery_app/core/theme/theme.dart';
 
 class LoginScreen extends StatefulWidget {
   final String? redirectPath;
@@ -385,8 +384,9 @@ class _LoginScreenState extends State<LoginScreen>
                                                     onPrimary: true,
                                                     validator: (value) {
                                                       if (value == null ||
-                                                          value.isEmpty)
+                                                          value.isEmpty) {
                                                         return 'Please enter your email';
+                                                      }
                                                       if (!RegExp(
                                                         r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
                                                       ).hasMatch(value)) {
@@ -415,8 +415,9 @@ class _LoginScreenState extends State<LoginScreen>
                                                     onPrimary: true,
                                                     validator: (value) {
                                                       if (value == null ||
-                                                          value.isEmpty)
+                                                          value.isEmpty) {
                                                         return 'Please enter your password';
+                                                      }
                                                       return null;
                                                     },
                                                   ),
@@ -512,7 +513,7 @@ class _LoginScreenState extends State<LoginScreen>
                                                             ?.copyWith(
                                                               color:
                                                                   AppColors
-                                                                      .deepSoilGreen,
+                                                                      .harvestAmber,
                                                               fontWeight:
                                                                   FontWeight
                                                                       .bold,
@@ -762,9 +763,9 @@ class _LoginScreenState extends State<LoginScreen>
             borderRadius: BorderRadius.circular(AppColors.radiusRound),
             gradient: LinearGradient(
               colors: [
-                AppColors.deepSoilGreen,
-                AppColors.deepSoilGreen.withRed(200),
-                AppColors.deepSoilGreen,
+                AppColors.harvestAmber,
+                AppColors.harvestAmber.withValues(alpha: 0.8),
+                AppColors.harvestAmber,
               ],
               stops: [0.0, _shimmerController.value, 1.0],
             ),
@@ -795,7 +796,7 @@ class _LoginScreenState extends State<LoginScreen>
                             height: 24,
                             child: CircularProgressIndicator(
                               strokeWidth: 2.5,
-                              valueColor: const AlwaysStoppedAnimation<Color>(
+                              valueColor: AlwaysStoppedAnimation<Color>(
                                 AppColors.parchment,
                               ),
                             ),
@@ -803,7 +804,7 @@ class _LoginScreenState extends State<LoginScreen>
                           : Text(
                             "Login",
                             style: context.text.titleMedium?.copyWith(
-                              color: AppColors.parchment,
+                              color: AppColors.pureWhite,
                               fontWeight: FontWeight.bold,
                               letterSpacing: 0.5,
                             ),

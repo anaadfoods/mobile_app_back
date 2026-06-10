@@ -1,7 +1,5 @@
-import 'package:flutter/services.dart';
 import 'package:grocery_app/common_widgets/global_import.dart';
 import 'package:grocery_app/common_widgets/pause_date_picker_sheet.dart';
-import 'package:go_router/go_router.dart';
 import 'package:grocery_app/routes/app_routes.dart';
 import 'dart:math' as math;
 
@@ -18,7 +16,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
   String currentFilter = "ACTIVE";
   bool _isLoading = true;
   String? _errorMessage;
-  final SubscriptionService _subscriptionService = SubscriptionService();
+  final SubscriptionService _subscriptionService = getIt<SubscriptionService>();
 
   final List<_FilterTab> _tabs = [
     _FilterTab(
@@ -31,19 +29,19 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
       'Paused',
       'PAUSED',
       Icons.pause_circle_outline,
-      AppColors.rawEarth,
+      AppColors.amberWarnBg,
     ),
     _FilterTab(
       'Cancelled',
       'CANCELLED',
       Icons.cancel_outlined,
-      AppColors.charcoal,
+      AppColors.amberWarn,
     ),
     _FilterTab(
       'Completed',
       'COMPLETED',
       Icons.check_circle_outline,
-      AppColors.deepSoilGreen,
+      AppColors.amberWarn,
     ),
   ];
 
@@ -123,30 +121,30 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
     final isDark = theme.brightness == Brightness.dark;
 
     return PopScope(
-      canPop: false,
+      canPop: context.canPop(),
       onPopInvokedWithResult: (didPop, result) {
         if (didPop) return;
-        context.goNamed(AppRoute.home.name);
+        context.goNamed(AppRoute.profile.name);
       },
       child: Scaffold(
-      backgroundColor: isDark ? AppColors.darkCanvas : AppColors.parchment,
-      body: RefreshIndicator(
-        onRefresh: _fetchSubscriptions,
-        color: theme.colorScheme.primary,
-        child: CustomScrollView(
-          physics: const AlwaysScrollableScrollPhysics(),
-          slivers: [
-            // Modern U-Shape Header
-            _buildAnimatedHeader(theme, isDark),
-            // Filter chips
-            SliverToBoxAdapter(child: _buildFilterTabs(theme, isDark)),
-            // Summary card
-            SliverToBoxAdapter(child: _buildSummaryCard(theme, isDark)),
-            // Content
-            _buildContent(theme, isDark),
-          ],
+        backgroundColor: isDark ? AppColors.darkCanvas : AppColors.parchment,
+        body: RefreshIndicator(
+          onRefresh: _fetchSubscriptions,
+          color: theme.colorScheme.primary,
+          child: CustomScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            slivers: [
+              // Modern U-Shape Header
+              _buildAnimatedHeader(theme, isDark),
+              // Filter chips
+              SliverToBoxAdapter(child: _buildFilterTabs(theme, isDark)),
+              // Summary card
+              SliverToBoxAdapter(child: _buildSummaryCard(theme, isDark)),
+              // Content
+              _buildContent(theme, isDark),
+            ],
+          ),
         ),
-      ),
       ),
     );
   }
@@ -178,8 +176,8 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
             end: Alignment.bottomRight,
             colors:
                 isDark
-                    ? [AppColors.deepSoilGreen, AppColors.deepSoilGreen]
-                    : [AppColors.deepSoilGreen, AppColors.deepSoilGreen],
+                    ? [AppColors.harvestAmber, AppColors.harvestAmber]
+                    : [AppColors.harvestAmber, AppColors.harvestAmber],
           ),
           borderRadius: const BorderRadius.only(
             bottomLeft: Radius.circular(32),
@@ -187,7 +185,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
           ),
           boxShadow: [
             BoxShadow(
-              color: AppColors.deepSoilGreen.withValues(alpha: 0.3),
+              color: AppColors.harvestAmber.withValues(alpha: 0.3),
               blurRadius: 20,
               offset: const Offset(0, 10),
             ),
@@ -222,22 +220,22 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
             ),
 
             // Animated Icon - position dynamically
-            Positioned(
-              top: statusBarHeight + 16,
-              right: 20,
-              child: Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: AppColors.parchment.withValues(alpha: 0.2),
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(
-                  Icons.autorenew_rounded,
-                  color: AppColors.parchment,
-                  size: 28,
-                ),
-              ),
-            ),
+            // Positioned(
+            //   top: statusBarHeight + 16,
+            //   right: 20,
+            //   child: Container(
+            //     padding: const EdgeInsets.all(12),
+            //     decoration: BoxDecoration(
+            //       color: AppColors.parchment.withValues(alpha: 0.2),
+            //       shape: BoxShape.circle,
+            //     ),
+            //     child: const Icon(
+            //       Icons.autorenew_rounded,
+            //       color: AppColors.parchment,
+            //       size: 28,
+            //     ),
+            //   ),
+            // ),
 
             // Header Content
             SafeArea(
@@ -248,10 +246,10 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    // ANAAD Logo
+                    // ANAAD Logo with Back button
                     Row(
                       children: [
-                        const AnaadLogoMark(),
+                        const AnaadLogoMark(logoPath: "assets/images/2.png"),
                       ],
                     ),
                     const SizedBox(height: 16),
@@ -287,14 +285,14 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                               icon: Icons.autorenew_rounded,
                               label: 'Active',
                               count: activeCount,
-                              color: AppColors.deepSoilGreen,
+                              color: AppColors.parchment,
                             ),
                             const SizedBox(width: 8),
                             _buildHeaderStatChip(
                               icon: Icons.pause_circle_outline,
                               label: 'Paused',
                               count: pausedCount,
-                              color: AppColors.harvestAmber,
+                              color: AppColors.parchment,
                             ),
                           ],
                         ),
@@ -314,7 +312,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
     return GestureDetector(
       onTap: () {
         HapticFeedback.lightImpact();
-        context.goNamed(AppRoute.home.name);
+        context.goNamed(AppRoute.profile.name);
       },
       child: Container(
         padding: const EdgeInsets.all(10),
@@ -324,7 +322,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
         ),
         child: const Icon(
           Icons.arrow_back_rounded,
-          color: AppColors.harvestAmber,
+          color: AppColors.parchment,
           size: 20,
         ),
       ),
@@ -404,15 +402,15 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                                 ? null
                                 : (isDark
                                     ? AppColors.darkSurfaceElevated
-                                    : AppColors.parchment),
+                                    : AppColors.pureWhite),
                         borderRadius: BorderRadius.circular(16),
                         border: Border.all(
                           color:
                               isSelected
                                   ? AppColors.transparent
                                   : (isDark
-                                      ? AppColors.darkSurfaceElevated!
-                                      : AppColors.parchment!),
+                                      ? AppColors.charcoal54
+                                      : AppColors.charcoal12),
                           width: 1.5,
                         ),
                         boxShadow:
@@ -450,7 +448,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                                   isSelected
                                       ? AppColors.parchment
                                       : (isDark
-                                          ? AppColors.rawEarth12
+                                          ? AppColors.parchment54
                                           : theme.hintColor),
                               fontWeight:
                                   isSelected
@@ -518,8 +516,11 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
         gradient: LinearGradient(
           colors:
               isDark
-                  ? [AppColors.darkSurfaceElevated, AppColors.darkSurfaceElevated]
-                  : [AppColors.parchment, AppColors.parchment!],
+                  ? [
+                    AppColors.darkSurfaceElevated,
+                    AppColors.darkSurfaceElevated,
+                  ]
+                  : [AppColors.pureWhite, AppColors.pureWhite],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
@@ -547,7 +548,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
           Container(
             width: 1,
             height: 40,
-            color: isDark ? AppColors.charcoal87 : AppColors.parchment,
+            color: isDark ? AppColors.charcoal54 : AppColors.charcoal12,
           ),
           Expanded(
             child: _buildSummaryItem(
@@ -562,7 +563,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
           Container(
             width: 1,
             height: 40,
-            color: isDark ? AppColors.charcoal87 : AppColors.parchment,
+            color: isDark ? AppColors.charcoal54 : AppColors.charcoal12,
           ),
           Expanded(
             child: _buildSummaryItem(
@@ -722,14 +723,14 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
                         colors: [
-                          AppColors.deepSoilGreen,
-                          AppColors.deepSoilGreen,
+                          AppColors.harvestAmber,
+                          AppColors.harvestAmber,
                         ],
                       ),
                       borderRadius: BorderRadius.circular(16),
                       boxShadow: [
                         BoxShadow(
-                          color: AppColors.deepSoilGreen.withValues(alpha: 0.3),
+                          color: AppColors.harvestAmber.withValues(alpha: 0.3),
                           blurRadius: 12,
                           offset: const Offset(0, 6),
                         ),
@@ -786,7 +787,10 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                 child: Container(
                   height: 200,
                   decoration: BoxDecoration(
-                    color: isDark ? AppColors.darkSurfaceElevated : AppColors.parchment,
+                    color:
+                        isDark
+                            ? AppColors.darkSurfaceElevated
+                            : AppColors.pureWhite,
                     borderRadius: BorderRadius.circular(20),
                     boxShadow: [
                       BoxShadow(
@@ -863,22 +867,181 @@ class _SubscriptionCardState extends State<_SubscriptionCard> {
     if (mounted) setState(() => _isLoading = false);
   }
 
+  void _showConfirmationPopup(
+    BuildContext context,
+    bool isPause,
+    VoidCallback onConfirm,
+  ) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    // Dynamically set the theme color based on the action
+    final Color primaryColor =
+        isPause ? AppColors.harvestAmber : AppColors.deepSoilGreen;
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext dialogContext) {
+        return Dialog(
+          backgroundColor: AppColors.transparent,
+          elevation: 0,
+          insetPadding: const EdgeInsets.symmetric(horizontal: 24),
+          child: Container(
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors:
+                    isDark
+                        ? [
+                          AppColors.darkSurfaceElevated,
+                          AppColors.darkSurfaceElevated,
+                        ]
+                        : [AppColors.parchment, AppColors.parchment],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(24),
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.charcoal.withValues(
+                    alpha: isDark ? 0.3 : 0.1,
+                  ),
+                  blurRadius: 20,
+                  offset: const Offset(0, 10),
+                ),
+              ],
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: primaryColor.withValues(alpha: 0.15),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    isPause
+                        ? Icons.pause_circle_rounded
+                        : Icons.play_circle_rounded,
+                    color: primaryColor,
+                    size: 40,
+                  ),
+                ),
+                const SizedBox(height: 20),
+                Text(
+                  isPause ? 'Pause Subscription?' : 'Resume Subscription?',
+                  style: theme.textTheme.headlineSmall?.copyWith(
+                    color: isDark ? AppColors.pureWhite : AppColors.charcoal,
+                    fontWeight: FontWeight.bold,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  isPause
+                      ? 'Are you sure you want to pause your subscription for the selected dates?'
+                      : 'Are you sure you want to resume your subscription? Your deliveries will restart from the next scheduled date.',
+                  textAlign: TextAlign.center,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color:
+                        isDark
+                            ? AppColors.pureWhite.withValues(alpha: 0.7)
+                            : AppColors.charcoal60,
+                    height: 1.4,
+                  ),
+                ),
+                const SizedBox(height: 32),
+                Row(
+                  children: [
+                    Expanded(
+                      child: TextButton(
+                        onPressed: () => Navigator.pop(dialogContext),
+                        style: TextButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                        ),
+                        child: Text(
+                          'Cancel',
+                          style: theme.textTheme.titleMedium?.copyWith(
+                            color:
+                                isDark
+                                    ? AppColors.pureWhite.withValues(alpha: 0.7)
+                                    : AppColors.charcoal60,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Container(
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [
+                              primaryColor,
+                              primaryColor.withValues(alpha: 0.8),
+                            ],
+                          ),
+                          borderRadius: BorderRadius.circular(16),
+                          boxShadow: [
+                            BoxShadow(
+                              color: primaryColor.withValues(alpha: 0.3),
+                              blurRadius: 12,
+                              offset: const Offset(0, 6),
+                            ),
+                          ],
+                        ),
+                        child: Material(
+                          color: AppColors.transparent,
+                          child: InkWell(
+                            onTap: () {
+                              Navigator.pop(dialogContext);
+                              onConfirm();
+                            },
+                            borderRadius: BorderRadius.circular(16),
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 16),
+                              child: Center(
+                                child: Text(
+                                  isPause ? 'Pause' : 'Resume',
+                                  style: theme.textTheme.titleMedium?.copyWith(
+                                    color: AppColors.parchment,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   void _showToggleConfirmation() {
     final isCurrentlyPaused = widget.subscription.status == 'PAUSED';
 
     if (isCurrentlyPaused) {
-      showModalBottomSheet(
-        context: context,
-        backgroundColor: AppColors.transparent,
-        builder:
-            (context) => ResumeSubscriptionSheet(
-              onConfirm: () => _togglePauseSubscription(null, null),
-            ),
+      _showConfirmationPopup(
+        context,
+        false, // isPause = false
+        () => _togglePauseSubscription(null, null),
       );
       return;
     }
 
-    // Show pause date picker
+    // Show pause date picker first, then confirm
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -886,7 +1049,13 @@ class _SubscriptionCardState extends State<_SubscriptionCard> {
       builder:
           (context) => PauseDatePickerSheet(
             maxPausesLeft: widget.subscription.remainingPauseTimes,
-            onConfirm: (start, end) => _togglePauseSubscription(start, end),
+            onConfirm: (start, end) {
+              _showConfirmationPopup(
+                context,
+                true, // isPause = true
+                () => _togglePauseSubscription(start, end),
+              );
+            },
           ),
     );
   }
@@ -930,17 +1099,22 @@ class _SubscriptionCardState extends State<_SubscriptionCard> {
         child: Container(
           decoration: BoxDecoration(
             gradient: LinearGradient(
-              colors: isDark
-                  ? [AppColors.darkSurfaceElevated, AppColors.darkSurfaceElevated]
-                  : [AppColors.snowWhite, AppColors.snowWhite],
+              colors:
+                  isDark
+                      ? [
+                        AppColors.darkSurfaceElevated,
+                        AppColors.darkSurfaceElevated,
+                      ]
+                      : [AppColors.snowWhite, AppColors.snowWhite],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
             borderRadius: BorderRadius.circular(20),
             border: Border.all(
-              color: isDark
-                  ? AppColors.charcoal.withValues(alpha: 0.2)
-                  : AppColors.charcoal.withValues(alpha: 0.08),
+              color:
+                  isDark
+                      ? AppColors.charcoal.withValues(alpha: 0.2)
+                      : AppColors.charcoal.withValues(alpha: 0.08),
               width: 1,
             ),
             boxShadow: [
@@ -1028,10 +1202,10 @@ class _SubscriptionCardState extends State<_SubscriptionCard> {
                         vertical: 6,
                       ),
                       decoration: BoxDecoration(
-                        color: AppColors.deepSoilGreen.withValues(alpha: 0.15),
+                        color: AppColors.harvestAmber.withValues(alpha: 0.15),
                         borderRadius: BorderRadius.circular(10),
                         border: Border.all(
-                          color: AppColors.deepSoilGreen.withValues(alpha: 0.3),
+                          color: AppColors.harvestAmber.withValues(alpha: 0.3),
                           width: 1,
                         ),
                       ),
@@ -1192,10 +1366,8 @@ class _SubscriptionCardState extends State<_SubscriptionCard> {
                                     child: CircularProgressIndicator(
                                       value: progress,
                                       strokeWidth: 3,
-                                      backgroundColor:
-                                          isDark
-                                              ? AppColors.charcoal
-                                              : AppColors.snowWhite,
+                                      backgroundColor: AppColors.harvestAmber
+                                          .withValues(alpha: 0.15),
                                       valueColor: AlwaysStoppedAnimation<Color>(
                                         AppColors.harvestAmber,
                                       ),
@@ -1254,7 +1426,7 @@ class _SubscriptionCardState extends State<_SubscriptionCard> {
                             border: Border.all(
                               color:
                                   subscription.status == 'PAUSED'
-                                      ? AppColors.deepSoilGreen
+                                      ? AppColors.harvestAmber
                                       : AppColors.harvestAmber,
                               width: 1.5,
                             ),
@@ -1284,7 +1456,7 @@ class _SubscriptionCardState extends State<_SubscriptionCard> {
                                                 AlwaysStoppedAnimation<Color>(
                                                   subscription.status ==
                                                           'PAUSED'
-                                                      ? AppColors.deepSoilGreen
+                                                      ? AppColors.harvestAmber
                                                       : AppColors.harvestAmber,
                                                 ),
                                           ),
@@ -1297,7 +1469,7 @@ class _SubscriptionCardState extends State<_SubscriptionCard> {
                                           size: 20,
                                           color:
                                               subscription.status == 'PAUSED'
-                                                  ? AppColors.deepSoilGreen
+                                                  ? AppColors.harvestAmber
                                                   : AppColors.harvestAmber,
                                         ),
                                       const SizedBox(width: 8),
@@ -1310,7 +1482,7 @@ class _SubscriptionCardState extends State<_SubscriptionCard> {
                                               color:
                                                   subscription.status ==
                                                           'PAUSED'
-                                                      ? AppColors.deepSoilGreen
+                                                      ? AppColors.harvestAmber
                                                       : AppColors.harvestAmber,
                                               fontWeight: FontWeight.bold,
                                             ),

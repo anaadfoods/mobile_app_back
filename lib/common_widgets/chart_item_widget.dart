@@ -1,5 +1,4 @@
 import 'package:grocery_app/common_widgets/global_import.dart';
-import 'package:grocery_app/core/theme/theme.dart';
 
 class ChartItemWidget extends StatelessWidget {
   final CartItem item;

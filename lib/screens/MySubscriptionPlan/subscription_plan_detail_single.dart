@@ -22,7 +22,7 @@ class _SubscriptionPlanDetailScreenState
     extends State<SubscriptionPlanDetailScreen>
     with TickerProviderStateMixin {
   // --- ALL ORIGINAL STATE AND LOGIC ARE PRESERVED ---
-  final SubscriptionService _subscriptionService = SubscriptionService();
+  final SubscriptionService _subscriptionService = getIt<SubscriptionService>();
   final bool _isLoading = false;
   List<Invoice> _invoices = [];
   bool _isLoadingInvoices = true;
@@ -165,7 +165,7 @@ class _SubscriptionPlanDetailScreenState
       SnackBarHelper.showInvoiceDownloaded(context);
 
       // The service already opens the file, but just in case or if we want to log it
-      print('Invoice downloaded and opened: $savedPath');
+      AppLogger.instance.log('Invoice downloaded and opened: $savedPath');
     } catch (e) {
       // Parse error message and show user-friendly text
       String errorMessage =
@@ -224,8 +224,13 @@ class _SubscriptionPlanDetailScreenState
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
+    // Dynamically set the theme color based on the action
+    final Color primaryColor =
+        isPause ? AppColors.harvestAmber : AppColors.deepSoilGreen;
+
     showDialog(
       context: context,
+      barrierDismissible: false,
       builder: (BuildContext dialogContext) {
         return Dialog(
           backgroundColor: AppColors.transparent,
@@ -237,7 +242,10 @@ class _SubscriptionPlanDetailScreenState
               gradient: LinearGradient(
                 colors:
                     isDark
-                        ? [AppColors.darkSurfaceElevated, AppColors.darkSurfaceElevated]
+                        ? [
+                          AppColors.darkSurfaceElevated,
+                          AppColors.darkSurfaceElevated,
+                        ]
                         : [AppColors.parchment, AppColors.parchment],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
@@ -259,20 +267,14 @@ class _SubscriptionPlanDetailScreenState
                 Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: (isPause
-                            ? AppColors.harvestAmber
-                            : AppColors.harvestAmber)
-                        .withValues(alpha: 0.15),
+                    color: primaryColor.withValues(alpha: 0.15),
                     shape: BoxShape.circle,
                   ),
                   child: Icon(
                     isPause
                         ? Icons.pause_circle_rounded
                         : Icons.play_circle_rounded,
-                    color:
-                        isPause
-                            ? AppColors.harvestAmber
-                            : AppColors.harvestAmber,
+                    color: primaryColor,
                     size: 40,
                   ),
                 ),
@@ -280,6 +282,7 @@ class _SubscriptionPlanDetailScreenState
                 Text(
                   isPause ? 'Pause Subscription?' : 'Resume Subscription?',
                   style: theme.textTheme.headlineSmall?.copyWith(
+                    color: isDark ? AppColors.pureWhite : AppColors.charcoal,
                     fontWeight: FontWeight.bold,
                   ),
                   textAlign: TextAlign.center,
@@ -291,7 +294,10 @@ class _SubscriptionPlanDetailScreenState
                       : 'Are you sure you want to resume your subscription? Your deliveries will restart from the next scheduled date.',
                   textAlign: TextAlign.center,
                   style: theme.textTheme.bodyMedium?.copyWith(
-                    color: theme.hintColor,
+                    color:
+                        isDark
+                            ? AppColors.pureWhite.withValues(alpha: 0.7)
+                            : AppColors.charcoal60,
                     height: 1.4,
                   ),
                 ),
@@ -310,7 +316,10 @@ class _SubscriptionPlanDetailScreenState
                         child: Text(
                           'Cancel',
                           style: theme.textTheme.titleMedium?.copyWith(
-                            color: theme.hintColor,
+                            color:
+                                isDark
+                                    ? AppColors.pureWhite.withValues(alpha: 0.7)
+                                    : AppColors.charcoal60,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
@@ -321,28 +330,15 @@ class _SubscriptionPlanDetailScreenState
                       child: Container(
                         decoration: BoxDecoration(
                           gradient: LinearGradient(
-                            colors:
-                                isPause
-                                    ? [
-                                      AppColors.harvestAmber,
-                                      AppColors.harvestAmber.withValues(
-                                        alpha: 0.8,
-                                      ),
-                                    ]
-                                    : [
-                                      AppColors.harvestAmber,
-                                      AppColors.harvestAmber.withValues(
-                                        alpha: 0.8,
-                                      ),
-                                    ],
+                            colors: [
+                              primaryColor,
+                              primaryColor.withValues(alpha: 0.8),
+                            ],
                           ),
                           borderRadius: BorderRadius.circular(16),
                           boxShadow: [
                             BoxShadow(
-                              color: (isPause
-                                      ? AppColors.harvestAmber
-                                      : AppColors.harvestAmber)
-                                  .withValues(alpha: 0.3),
+                              color: primaryColor.withValues(alpha: 0.3),
                               blurRadius: 12,
                               offset: const Offset(0, 6),
                             ),
@@ -381,6 +377,175 @@ class _SubscriptionPlanDetailScreenState
       },
     );
   }
+
+  // void _showConfirmationPopup(
+  //   BuildContext context,
+  //   bool isPause,
+  //   VoidCallback onConfirm,
+  // ) {
+  //   final theme = Theme.of(context);
+  //   final isDark = theme.brightness == Brightness.dark;
+
+  //   showDialog(
+  //     context: context,
+  //     builder: (BuildContext dialogContext) {
+  //       return Dialog(
+  //         backgroundColor: AppColors.transparent,
+  //         elevation: 0,
+  //         insetPadding: const EdgeInsets.symmetric(horizontal: 24),
+  //         child: Container(
+  //           padding: const EdgeInsets.all(24),
+  //           decoration: BoxDecoration(
+  //             gradient: LinearGradient(
+  //               colors:
+  //                   isDark
+  //                       ? [
+  //                         AppColors.darkSurfaceElevated,
+  //                         AppColors.darkSurfaceElevated,
+  //                       ]
+  //                       : [AppColors.pureWhite, AppColors.pureWhite],
+  //               begin: Alignment.topLeft,
+  //               end: Alignment.bottomRight,
+  //             ),
+  //             borderRadius: BorderRadius.circular(24),
+  //             boxShadow: [
+  //               BoxShadow(
+  //                 color: AppColors.charcoal.withValues(
+  //                   alpha: isDark ? 0.3 : 0.1,
+  //                 ),
+  //                 blurRadius: 20,
+  //                 offset: const Offset(0, 10),
+  //               ),
+  //             ],
+  //           ),
+  //           child: Column(
+  //             mainAxisSize: MainAxisSize.min,
+  //             children: [
+  //               Container(
+  //                 padding: const EdgeInsets.all(16),
+  //                 decoration: BoxDecoration(
+  //                   color: (isPause
+  //                           ? AppColors.harvestAmber
+  //                           : AppColors.harvestAmber)
+  //                       .withValues(alpha: 0.15),
+  //                   shape: BoxShape.circle,
+  //                 ),
+  //                 child: Icon(
+  //                   isPause
+  //                       ? Icons.pause_circle_rounded
+  //                       : Icons.play_circle_rounded,
+  //                   color:
+  //                       isPause
+  //                           ? AppColors.harvestAmber
+  //                           : AppColors.harvestAmber,
+  //                   size: 40,
+  //                 ),
+  //               ),
+  //               const SizedBox(height: 20),
+  //               Text(
+  //                 isPause ? 'Pause Subscription?' : 'Resume Subscription?',
+  //                 style: theme.textTheme.headlineSmall?.copyWith(
+  //                   fontWeight: FontWeight.bold,
+  //                 ),
+  //                 textAlign: TextAlign.center,
+  //               ),
+  //               const SizedBox(height: 12),
+  //               Text(
+  //                 isPause
+  //                     ? 'Are you sure you want to pause your subscription for the selected dates?'
+  //                     : 'Are you sure you want to resume your subscription? Your deliveries will restart from the next scheduled date.',
+  //                 textAlign: TextAlign.center,
+  //                 style: theme.textTheme.bodyMedium?.copyWith(
+  //                   color: theme.hintColor,
+  //                   height: 1.4,
+  //                 ),
+  //               ),
+  //               const SizedBox(height: 32),
+  //               Row(
+  //                 children: [
+  //                   Expanded(
+  //                     child: TextButton(
+  //                       onPressed: () => Navigator.pop(dialogContext),
+  //                       style: TextButton.styleFrom(
+  //                         padding: const EdgeInsets.symmetric(vertical: 16),
+  //                         shape: RoundedRectangleBorder(
+  //                           borderRadius: BorderRadius.circular(16),
+  //                         ),
+  //                       ),
+  //                       child: Text(
+  //                         'Cancel',
+  //                         style: theme.textTheme.titleMedium?.copyWith(
+  //                           color: theme.hintColor,
+  //                           fontWeight: FontWeight.bold,
+  //                         ),
+  //                       ),
+  //                     ),
+  //                   ),
+  //                   const SizedBox(width: 16),
+  //                   Expanded(
+  //                     child: Container(
+  //                       decoration: BoxDecoration(
+  //                         gradient: LinearGradient(
+  //                           colors:
+  //                               isPause
+  //                                   ? [
+  //                                     AppColors.harvestAmber,
+  //                                     AppColors.harvestAmber.withValues(
+  //                                       alpha: 0.8,
+  //                                     ),
+  //                                   ]
+  //                                   : [
+  //                                     AppColors.harvestAmber,
+  //                                     AppColors.harvestAmber.withValues(
+  //                                       alpha: 0.8,
+  //                                     ),
+  //                                   ],
+  //                         ),
+  //                         borderRadius: BorderRadius.circular(16),
+  //                         boxShadow: [
+  //                           BoxShadow(
+  //                             color: (isPause
+  //                                     ? AppColors.harvestAmber
+  //                                     : AppColors.harvestAmber)
+  //                                 .withValues(alpha: 0.3),
+  //                             blurRadius: 12,
+  //                             offset: const Offset(0, 6),
+  //                           ),
+  //                         ],
+  //                       ),
+  //                       child: Material(
+  //                         color: AppColors.transparent,
+  //                         child: InkWell(
+  //                           onTap: () {
+  //                             Navigator.pop(dialogContext);
+  //                             onConfirm();
+  //                           },
+  //                           borderRadius: BorderRadius.circular(16),
+  //                           child: Padding(
+  //                             padding: const EdgeInsets.symmetric(vertical: 16),
+  //                             child: Center(
+  //                               child: Text(
+  //                                 isPause ? 'Pause' : 'Resume',
+  //                                 style: theme.textTheme.titleMedium?.copyWith(
+  //                                   color: AppColors.parchment,
+  //                                   fontWeight: FontWeight.bold,
+  //                                 ),
+  //                               ),
+  //                             ),
+  //                           ),
+  //                         ),
+  //                       ),
+  //                     ),
+  //                   ),
+  //                 ],
+  //               ),
+  //             ],
+  //           ),
+  //         ),
+  //       );
+  //     },
+  //   );
+  // }
 
   void _showToggleConfirmation(Subscription subscription) {
     final isCurrentlyPaused = subscription.status == 'PAUSED';
@@ -550,77 +715,81 @@ class _SubscriptionPlanDetailScreenState
       canPop: false,
       onPopInvokedWithResult: (didPop, result) {
         if (didPop) return;
-        context.goNamed(AppRoute.home.name);
+        context.goNamed(AppRoute.subscriptionList.name);
       },
       child: Scaffold(
-      backgroundColor: isDark ? AppColors.darkCanvas : AppColors.parchment,
-      body: RefreshIndicator(
-        onRefresh: () async {
-          // Trigger a refresh of subscription details and invoices
-          if (_currentOrder != null) {
-            await _loadSubscription(_currentOrder!.id.toString());
-          } else if (widget.subscriptionId != null) {
-            await _loadSubscription(widget.subscriptionId!);
-          }
-          await _loadInvoices();
-        },
-        color: theme.colorScheme.primary,
-        child: CustomScrollView(
-          physics: const AlwaysScrollableScrollPhysics(),
-          slivers: [
-            // Modern U-Shape Header
-            _buildAnimatedHeader(theme, isDark),
-            // Content
-            SliverToBoxAdapter(
-              child:
-                  _isLoading
-                      ? const Center(child: CircularProgressIndicator())
-                      : Padding(
-                        padding: EdgeInsets.fromLTRB(
-                          16,
-                          20,
-                          16,
-                          MediaQuery.of(context).padding.bottom + 100,
-                        ),
-                        child: Column(
-                          children: [
-                            _buildPaymentPendingHeader(theme),
-                            _buildHeroProductCard(theme, isDark),
-                            const SizedBox(height: 20),
-                            _buildModernSummaryCard(theme, isDark),
-                            const SizedBox(height: 20),
-                            _buildDeliveryProgressCard(theme, isDark),
-                            const SizedBox(height: 20),
-                            _buildDeliveryAddressCard(theme, isDark),
-                            const SizedBox(height: 20),
-                            _buildModernPauseSection(theme, isDark),
-                            const SizedBox(height: 20),
-                            _buildModernSectionCard(
-                              theme: theme,
-                              isDark: isDark,
-                              icon: Icons.description_rounded,
-                              title: 'Invoices',
-                              gradient: [
-                                AppColors.deepSoilGreen,
-                                AppColors.deepSoilGreen.withValues(alpha: 0.7),
-                              ],
-                              child: InvoiceTrackerWidget(
-                                isLoading: _isLoadingInvoices,
-                                error: _invoiceError,
-                                invoices: _invoices,
-                                onInvoiceTap: (invoice) {
-                                  _downloadAndOpenInvoice(invoice);
-                                },
+        backgroundColor: isDark ? AppColors.darkCanvas : AppColors.parchment,
+        body: RefreshIndicator(
+          onRefresh: () async {
+            // Trigger a refresh of subscription details and invoices
+            if (_currentOrder != null) {
+              await _loadSubscription(_currentOrder!.id.toString());
+            } else if (widget.subscriptionId != null) {
+              await _loadSubscription(widget.subscriptionId!);
+            }
+            await _loadInvoices();
+          },
+          color: theme.colorScheme.primary,
+          child: CustomScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            slivers: [
+              // Modern U-Shape Header
+              _buildAnimatedHeader(theme, isDark),
+              // Content
+              SliverToBoxAdapter(
+                child:
+                    _isLoading
+                        ? const Center(child: CircularProgressIndicator())
+                        : Padding(
+                          padding: EdgeInsets.fromLTRB(
+                            16,
+                            20,
+                            16,
+                            MediaQuery.of(context).padding.bottom + 100,
+                          ),
+                          child: Column(
+                            children: [
+                              _buildPaymentPendingHeader(theme),
+                              _buildHeroProductCard(theme, isDark),
+                              const SizedBox(height: 20),
+                              _buildModernSummaryCard(theme, isDark),
+                              const SizedBox(height: 20),
+                              _buildBillingDetailsCard(theme, isDark),
+                              const SizedBox(height: 20),
+                              _buildDeliveryProgressCard(theme, isDark),
+                              const SizedBox(height: 20),
+                              _buildDeliveryAddressCard(theme, isDark),
+                              const SizedBox(height: 20),
+                              _buildModernPauseSection(theme, isDark),
+                              const SizedBox(height: 20),
+                              _buildModernSectionCard(
+                                theme: theme,
+                                isDark: isDark,
+                                icon: Icons.description_rounded,
+                                title: 'Invoices',
+                                gradient: [
+                                  AppColors.deepSoilGreen,
+                                  AppColors.deepSoilGreen.withValues(
+                                    alpha: 0.7,
+                                  ),
+                                ],
+                                child: InvoiceTrackerWidget(
+                                  isLoading: _isLoadingInvoices,
+                                  error: _invoiceError,
+                                  invoices: _invoices,
+                                  onInvoiceTap: (invoice) {
+                                    _downloadAndOpenInvoice(invoice);
+                                  },
+                                ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
-                      ),
-            ),
-          ],
+              ),
+            ],
+          ),
         ),
-      ),
-      bottomNavigationBar: _buildModernBottomButtons(theme, isDark),
+        bottomNavigationBar: _buildModernBottomButtons(theme, isDark),
       ),
     );
   }
@@ -693,15 +862,14 @@ class _SubscriptionPlanDetailScreenState
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     // Top Row with Back Button and Refresh
-                    Wrap(
-                      alignment: WrapAlignment.spaceBetween,
-                      crossAxisAlignment: WrapCrossAlignment.center,
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       spacing: 12,
-                      runSpacing: 8,
                       children: [
-                        _buildBackButton(theme, isDark),
-                        const SizedBox(width: 8),
-                        const AnaadLogoMark(),
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [const AnaadLogoMark()],
+                        ),
                         GestureDetector(
                           onTap: () async {
                             HapticFeedback.lightImpact();
@@ -785,21 +953,26 @@ class _SubscriptionPlanDetailScreenState
     final subscription = _currentOrder!;
     final isPaused = subscription.status == 'PAUSED';
     final isCancelled = subscription.status == 'CANCELLED';
+    final isPending = subscription.amountPaid < subscription.total;
 
     Color statusColor;
     IconData statusIcon;
     String statusText;
 
-    if (isPaused) {
-      statusColor = AppColors.harvestAmber;
-      statusIcon = Icons.pause_circle_rounded;
-      statusText = 'Paused';
-    } else if (isCancelled) {
+    if (isCancelled) {
       statusColor = AppColors.rawEarth;
       statusIcon = Icons.cancel_rounded;
       statusText = 'Cancelled';
-    } else {
+    } else if (isPaused) {
       statusColor = AppColors.harvestAmber;
+      statusIcon = Icons.pause_circle_rounded;
+      statusText = 'Paused';
+    } else if (isPending) {
+      statusColor = AppColors.harvestAmber;
+      statusIcon = Icons.pending_rounded;
+      statusText = 'Pending';
+    } else {
+      statusColor = AppColors.deepSoilGreen;
       statusIcon = Icons.check_circle_rounded;
       statusText = 'Active';
     }
@@ -847,8 +1020,11 @@ class _SubscriptionPlanDetailScreenState
         gradient: LinearGradient(
           colors:
               isDark
-                  ? [AppColors.darkSurfaceElevated, AppColors.darkSurfaceElevated]
-                  : [AppColors.parchment, AppColors.parchment!],
+                  ? [
+                    AppColors.darkSurfaceElevated,
+                    AppColors.darkSurfaceElevated,
+                  ]
+                  : [AppColors.pureWhite, AppColors.pureWhite],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
@@ -894,7 +1070,7 @@ class _SubscriptionPlanDetailScreenState
                               color:
                                   isDark
                                       ? AppColors.darkSurfaceElevated
-                                      : AppColors.parchment,
+                                      : AppColors.pureWhite,
                               child: const Center(
                                 child: CircularProgressIndicator(
                                   strokeWidth: 2,
@@ -906,7 +1082,7 @@ class _SubscriptionPlanDetailScreenState
                               color:
                                   isDark
                                       ? AppColors.darkSurfaceElevated
-                                      : AppColors.parchment,
+                                      : AppColors.pureWhite,
                               child: Icon(
                                 Icons.image_rounded,
                                 color: theme.hintColor,
@@ -915,7 +1091,9 @@ class _SubscriptionPlanDetailScreenState
                       )
                       : Container(
                         color:
-                            isDark ? AppColors.darkSurfaceElevated : AppColors.parchment,
+                            isDark
+                                ? AppColors.darkSurfaceElevated
+                                : AppColors.pureWhite,
                         child: Icon(
                           Icons.image_rounded,
                           color: theme.hintColor,
@@ -953,7 +1131,10 @@ class _SubscriptionPlanDetailScreenState
                         child: Text(
                           '${discountPercent.toStringAsFixed(0)}% OFF',
                           style: TextStyle(
-                            color: isDark ? AppColors.parchment : AppColors.charcoal,
+                            color:
+                                isDark
+                                    ? AppColors.parchment
+                                    : AppColors.charcoal,
                             fontSize: 10,
                             fontWeight: FontWeight.bold,
                           ),
@@ -996,7 +1177,7 @@ class _SubscriptionPlanDetailScreenState
                   child: Text(
                     '${item.weightUnit} × ${item.quantity} units',
                     style: theme.textTheme.bodySmall?.copyWith(
-                      color: AppColors.deepSoilGreen,
+                      color: AppColors.harvestAmber,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
@@ -1008,7 +1189,10 @@ class _SubscriptionPlanDetailScreenState
                       '₹${item.discountedPrice.toStringAsFixed(0)}',
                       style: theme.textTheme.headlineSmall?.copyWith(
                         fontWeight: FontWeight.bold,
-                        color: isDark ? AppColors.parchment : AppColors.harvestAmber,
+                        color:
+                            isDark
+                                ? AppColors.parchment
+                                : AppColors.harvestAmber,
                       ),
                     ),
                     const SizedBox(width: 10),
@@ -1039,8 +1223,11 @@ class _SubscriptionPlanDetailScreenState
         gradient: LinearGradient(
           colors:
               isDark
-                  ? [AppColors.darkSurfaceElevated, AppColors.darkSurfaceElevated]
-                  : [AppColors.parchment, AppColors.parchment!],
+                  ? [
+                    AppColors.darkSurfaceElevated,
+                    AppColors.darkSurfaceElevated,
+                  ]
+                  : [AppColors.pureWhite, AppColors.pureWhite],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
@@ -1088,7 +1275,8 @@ class _SubscriptionPlanDetailScreenState
                       subscription.planName,
                       style: theme.textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.bold,
-                        color: isDark ? AppColors.parchment : AppColors.charcoal,
+                        color:
+                            isDark ? AppColors.parchment : AppColors.charcoal,
                       ),
                     ),
                     Text(
@@ -1132,7 +1320,9 @@ class _SubscriptionPlanDetailScreenState
                   ],
                 ),
                 child: Text(
-                  isPaymentPending ? 'Unpaid' : 'Paid',
+                  (subscription.total > subscription.amountPaid)
+                      ? 'Unpaid'
+                      : 'Paid',
                   style: theme.textTheme.labelMedium?.copyWith(
                     color: AppColors.parchment,
                     fontWeight: FontWeight.bold,
@@ -1170,7 +1360,10 @@ class _SubscriptionPlanDetailScreenState
                 Container(
                   width: 1,
                   height: 50,
-                  color: isDark ? AppColors.darkSurfaceElevated : AppColors.rawEarth12,
+                  color:
+                      isDark
+                          ? AppColors.darkSurfaceElevated
+                          : AppColors.rawEarth12,
                 ),
                 Expanded(
                   child: _buildInfoItem(
@@ -1240,8 +1433,11 @@ class _SubscriptionPlanDetailScreenState
         gradient: LinearGradient(
           colors:
               isDark
-                  ? [AppColors.darkSurfaceElevated, AppColors.darkSurfaceElevated]
-                  : [AppColors.parchment, AppColors.parchment!],
+                  ? [
+                    AppColors.darkSurfaceElevated,
+                    AppColors.darkSurfaceElevated,
+                  ]
+                  : [AppColors.pureWhite, AppColors.pureWhite],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
@@ -1292,7 +1488,8 @@ class _SubscriptionPlanDetailScreenState
                       'Delivery Progress',
                       style: theme.textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.bold,
-                        color: isDark ? AppColors.parchment : AppColors.charcoal,
+                        color:
+                            isDark ? AppColors.parchment : AppColors.charcoal,
                       ),
                     ),
                     Text(
@@ -1313,8 +1510,9 @@ class _SubscriptionPlanDetailScreenState
                     child: CircularProgressIndicator(
                       value: progress,
                       strokeWidth: 5,
-                      backgroundColor:
-                          isDark ? AppColors.darkSurfaceElevated : AppColors.parchment,
+                      backgroundColor: AppColors.harvestAmber.withValues(
+                        alpha: 0.15,
+                      ),
                       valueColor: const AlwaysStoppedAnimation<Color>(
                         AppColors.harvestAmber,
                       ),
@@ -1339,7 +1537,7 @@ class _SubscriptionPlanDetailScreenState
               value: progress,
               minHeight: 10,
               backgroundColor:
-                  isDark ? AppColors.darkSurfaceElevated : AppColors.parchment,
+                  isDark ? AppColors.darkSurfaceElevated : AppColors.pureWhite,
               valueColor: const AlwaysStoppedAnimation<Color>(
                 AppColors.harvestAmber,
               ),
@@ -1401,7 +1599,7 @@ class _SubscriptionPlanDetailScreenState
     return GestureDetector(
       onTap: () {
         HapticFeedback.lightImpact();
-        context.goNamed(AppRoute.home.name);
+        context.safePop(fallbackLocation: AppRoute.subscriptionList.path);
       },
       child: Container(
         padding: const EdgeInsets.all(10),
@@ -1415,6 +1613,174 @@ class _SubscriptionPlanDetailScreenState
           size: 20,
         ),
       ),
+    );
+  }
+
+  Widget _buildBillingDetailsCard(ThemeData theme, bool isDark) {
+    final subscription = _currentOrder!;
+    final hasInstallments = subscription.installmentInfo != null;
+    final installment = subscription.installmentInfo;
+
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: isDark ? AppColors.darkSurfaceElevated : AppColors.pureWhite,
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.charcoal.withValues(alpha: isDark ? 0.3 : 0.08),
+            blurRadius: 20,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: AppColors.harvestAmber.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: const Icon(
+                  Icons.receipt_long_rounded,
+                  color: AppColors.harvestAmber,
+                  size: 24,
+                ),
+              ),
+              const SizedBox(width: 14),
+              Text(
+                'Billing Details',
+                style: theme.textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: isDark ? AppColors.parchment : AppColors.charcoal,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 20),
+          _buildBillingRow(
+            theme,
+            'Subtotal',
+            '₹${subscription.subtotal.toStringAsFixed(2)}',
+          ),
+          const SizedBox(height: 10),
+          _buildBillingRow(
+            theme,
+            'Delivery Charges',
+            subscription.deliveryCharges > 0
+                ? '₹${subscription.totalDeliveryCharges.toStringAsFixed(2)} '
+                : 'FREE',
+            valueColor:
+                subscription.deliveryCharges == 0
+                    ? AppColors.deepSoilGreen
+                    : null,
+          ),
+          const SizedBox(height: 10),
+          _buildBillingRow(
+            theme,
+            'Total Value',
+            '₹${subscription.total.toStringAsFixed(2)}',
+            isBold: true,
+          ),
+          const SizedBox(height: 10),
+          _buildBillingRow(
+            theme,
+            'Amount Paid',
+            '₹${subscription.amountPaid.toStringAsFixed(2)}',
+            valueColor: isDark ? AppColors.parchment : AppColors.deepSoilGreen,
+          ),
+          const SizedBox(height: 10),
+          _buildBillingRow(
+            theme,
+            'Remaining Amount',
+            '₹${subscription.remainingAmount.toStringAsFixed(2)}',
+            valueColor:
+                subscription.remainingAmount > 0
+                    ? isDark
+                        ? AppColors.amberWarn
+                        : AppColors.rawEarth
+                    : null,
+            isBold: subscription.remainingAmount > 0,
+          ),
+          if (subscription.paymentMethod != 'COD' && installment != null) ...[
+            const Divider(height: 24),
+            Text(
+              'Installment Schedule',
+              style: theme.textTheme.titleSmall?.copyWith(
+                fontWeight: FontWeight.bold,
+                color: isDark ? AppColors.parchment : AppColors.charcoal,
+              ),
+            ),
+            const SizedBox(height: 12),
+            _buildBillingRow(theme, 'Payment Mode', 'Installment Plan'),
+            const SizedBox(height: 8),
+            _buildBillingRow(
+              theme,
+              'Installment Progress',
+              '${installment.currentInstallment} of ${installment.totalInstallments} paid',
+            ),
+            const SizedBox(height: 8),
+            _buildBillingRow(
+              theme,
+              'Installment Amount',
+              '₹${double.tryParse(installment.installmentAmount)?.toStringAsFixed(2) ?? installment.installmentAmount}',
+            ),
+            if (installment.remainingInstallments > 0) ...[
+              const SizedBox(height: 8),
+              _buildBillingRow(
+                theme,
+                'Next Installment Amount',
+                '₹${double.tryParse(installment.nextInstallmentAmount)?.toStringAsFixed(2) ?? installment.nextInstallmentAmount}',
+                isBold: true,
+              ),
+              const SizedBox(height: 8),
+              _buildBillingRow(
+                theme,
+                'Frequency',
+                'Every ${installment.installmentFrequencyMonths} Month(s)',
+              ),
+            ],
+          ] else ...[
+            const Divider(height: 24),
+            _buildBillingRow(
+              theme,
+              'Payment Mode',
+              subscription.paymentMethod == 'COD'
+                  ? 'Cash on Delivery'
+                  : 'Prepaid (UPI/Card)',
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBillingRow(
+    ThemeData theme,
+    String label,
+    String value, {
+    Color? valueColor,
+    bool isBold = false,
+  }) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          label,
+          style: theme.textTheme.bodyMedium?.copyWith(color: theme.hintColor),
+        ),
+        Text(
+          value,
+          style: theme.textTheme.bodyMedium?.copyWith(
+            fontWeight: isBold ? FontWeight.bold : FontWeight.w600,
+            color: valueColor,
+          ),
+        ),
+      ],
     );
   }
 
@@ -1447,12 +1813,6 @@ class _SubscriptionPlanDetailScreenState
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                Text(
-                  '${_currentOrder!.lastPaymentDate}',
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: AppColors.rawEarth,
-                  ),
-                ),
               ],
             ),
           ),
@@ -1470,6 +1830,21 @@ class _SubscriptionPlanDetailScreenState
     final subscription = _currentOrder;
     final bool isPaused = subscription!.status == 'PAUSED';
 
+    // Parse latest pause duration if dates are available
+    int? latestPauseDaysTaken;
+    if (subscription.pauseStartDate != null &&
+        subscription.pauseStartDate!.isNotEmpty &&
+        subscription.pauseEndDate != null &&
+        subscription.pauseEndDate!.isNotEmpty) {
+      try {
+        final start = DateTime.parse(subscription.pauseStartDate!);
+        final end = DateTime.parse(subscription.pauseEndDate!);
+        latestPauseDaysTaken = end.difference(start).inDays + 1;
+      } catch (_) {
+        // Fallback if parsing fails
+      }
+    }
+
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -1481,8 +1856,11 @@ class _SubscriptionPlanDetailScreenState
                     AppColors.harvestAmber.withValues(alpha: 0.08),
                   ]
                   : isDark
-                  ? [AppColors.darkSurfaceElevated, AppColors.darkSurfaceElevated]
-                  : [AppColors.parchment, AppColors.parchment!],
+                  ? [
+                    AppColors.darkSurfaceElevated,
+                    AppColors.darkSurfaceElevated,
+                  ]
+                  : [AppColors.pureWhite, AppColors.pureWhite],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
@@ -1504,7 +1882,9 @@ class _SubscriptionPlanDetailScreenState
         ],
       ),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Header Row
           Row(
             children: [
               Container(
@@ -1525,10 +1905,7 @@ class _SubscriptionPlanDetailScreenState
                   borderRadius: BorderRadius.circular(14),
                   boxShadow: [
                     BoxShadow(
-                      color: (isPaused
-                              ? AppColors.harvestAmber
-                              : AppColors.harvestAmber)
-                          .withValues(alpha: 0.3),
+                      color: AppColors.harvestAmber.withValues(alpha: 0.3),
                       blurRadius: 8,
                       offset: const Offset(0, 3),
                     ),
@@ -1551,13 +1928,14 @@ class _SubscriptionPlanDetailScreenState
                       isPaused ? 'Subscription Paused' : 'Pause Controls',
                       style: theme.textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.bold,
-                        color: isDark ? AppColors.parchment : AppColors.charcoal,
+                        color:
+                            isDark ? AppColors.parchment : AppColors.charcoal,
                       ),
                     ),
                     Text(
                       isPaused
-                          ? 'Resume to continue deliveries'
-                          : '${subscription.remainingPauseTimes} pauses remaining',
+                          ? 'Deliveries are temporarily on hold'
+                          : 'Manage your delivery schedule',
                       style: theme.textTheme.bodySmall?.copyWith(
                         color: theme.hintColor,
                       ),
@@ -1565,50 +1943,186 @@ class _SubscriptionPlanDetailScreenState
                   ],
                 ),
               ),
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 6,
+            ],
+          ),
+          const Divider(height: 32),
+
+          // Informative Section: Remaining Allowance Info on Top
+          Text(
+            'Pause Allowance Status',
+            style: theme.textTheme.titleSmall?.copyWith(
+              fontWeight: FontWeight.bold,
+              color: isDark ? AppColors.parchment : AppColors.charcoal,
+            ),
+          ),
+          const SizedBox(height: 12),
+
+          // Grid showing allowance details
+          Row(
+            children: [
+              Expanded(
+                child: Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color:
+                        isDark
+                            ? AppColors.parchment.withValues(alpha: 0.03)
+                            : AppColors.harvestAmber.withValues(alpha: 0.03),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color:
+                          isDark
+                              ? AppColors.charcoal60.withValues(alpha: 0.2)
+                              : AppColors.charcoal12,
+                    ),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Days Remaining',
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: theme.hintColor,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        '${subscription.remainingPauseDays} Days',
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.harvestAmber,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-                decoration: BoxDecoration(
-                  color:
-                      isDark
-                          ? AppColors.parchment.withValues(alpha: 0.1)
-                          : AppColors.parchment,
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Text(
-                  '${subscription.remainingPauseTimes}/${subscription.remainingPauseDays}',
-                  style: theme.textTheme.labelMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color:
+                        isDark
+                            ? AppColors.parchment.withValues(alpha: 0.03)
+                            : AppColors.harvestAmber.withValues(alpha: 0.03),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color:
+                          isDark
+                              ? AppColors.charcoal60.withValues(alpha: 0.2)
+                              : AppColors.charcoal12,
+                    ),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Times Remaining',
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: theme.hintColor,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        '${subscription.remainingPauseTimes} Times',
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.harvestAmber,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 20),
+
+          const SizedBox(height: 16),
+          // Descriptive text of status
+          Text(
+            isPaused
+                ? 'Your subscription is paused. Deliveries are temporarily suspended and will automatically resume after the pause end date, or you can manually resume below.'
+                : 'Need to take a break? You can pause your deliveries for a customized date range. Each pause deducts from your remaining times and days allowance.',
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color:
+                  isDark
+                      ? AppColors.pureWhite.withValues(alpha: 0.7)
+                      : AppColors.charcoal60,
+              fontSize: 13,
+              height: 1.4,
+            ),
+          ),
+
+          // Latest Pause Information Section (Start/End dates + days taken)
+          if (subscription.pauseStartDate != null &&
+              subscription.pauseStartDate!.isNotEmpty &&
+              subscription.pauseEndDate != null &&
+              subscription.pauseEndDate!.isNotEmpty) ...[
+            const SizedBox(height: 20),
+            Text(
+              'Latest Pause Details',
+              style: theme.textTheme.titleSmall?.copyWith(
+                fontWeight: FontWeight.bold,
+                color: isDark ? AppColors.parchment : AppColors.charcoal,
+              ),
+            ),
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color:
+                    isDark
+                        ? AppColors.parchment.withValues(alpha: 0.05)
+                        : AppColors.harvestAmber.withValues(alpha: 0.04),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(
+                  color: AppColors.harvestAmber.withValues(alpha: 0.1),
+                ),
+              ),
+              child: Column(
+                children: [
+                  _buildBillingRow(
+                    theme,
+                    'Start Date',
+                    _formatDate(subscription.pauseStartDate!),
+                  ),
+                  const SizedBox(height: 10),
+                  _buildBillingRow(
+                    theme,
+                    'End Date',
+                    _formatDate(subscription.pauseEndDate!),
+                  ),
+                  if (latestPauseDaysTaken != null) ...[
+                    const Divider(height: 20),
+                    _buildBillingRow(
+                      theme,
+                      'Duration of Pause',
+                      '$latestPauseDaysTaken Day${latestPauseDaysTaken > 1 ? "s" : ""}',
+                      valueColor: AppColors.harvestAmber,
+                      isBold: true,
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ],
+
+          const SizedBox(height: 24),
+          // Action button
           Container(
             width: double.infinity,
             decoration: BoxDecoration(
               gradient: LinearGradient(
-                colors:
-                    isPaused
-                        ? [
-                          AppColors.harvestAmber,
-                          AppColors.harvestAmber.withValues(alpha: 0.85),
-                        ]
-                        : [
-                          AppColors.harvestAmber,
-                          AppColors.harvestAmber.withValues(alpha: 0.85),
-                        ],
+                colors: [
+                  AppColors.harvestAmber,
+                  AppColors.harvestAmber.withValues(alpha: 0.85),
+                ],
               ),
               borderRadius: BorderRadius.circular(16),
               boxShadow: [
                 BoxShadow(
-                  color: (isPaused
-                          ? AppColors.harvestAmber
-                          : AppColors.harvestAmber)
-                      .withValues(alpha: 0.35),
+                  color: AppColors.harvestAmber.withValues(alpha: 0.35),
                   blurRadius: 12,
                   offset: const Offset(0, 5),
                 ),
@@ -1664,8 +2178,11 @@ class _SubscriptionPlanDetailScreenState
         gradient: LinearGradient(
           colors:
               isDark
-                  ? [AppColors.darkSurfaceElevated, AppColors.darkSurfaceElevated]
-                  : [AppColors.parchment, AppColors.parchment!],
+                  ? [
+                    AppColors.darkSurfaceElevated,
+                    AppColors.darkSurfaceElevated,
+                  ]
+                  : [AppColors.pureWhite, AppColors.pureWhite],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
@@ -1720,7 +2237,7 @@ class _SubscriptionPlanDetailScreenState
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: isDark ? AppColors.darkSurfaceElevated : AppColors.parchment,
+        color: isDark ? AppColors.darkSurfaceElevated : AppColors.pureWhite,
         borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
         boxShadow: [
           BoxShadow(
@@ -1759,7 +2276,10 @@ class _SubscriptionPlanDetailScreenState
                             'Refresh',
                             style: theme.textTheme.titleMedium?.copyWith(
                               fontWeight: FontWeight.bold,
-                              color: isDark ? AppColors.parchment : AppColors.charcoal,
+                              color:
+                                  isDark
+                                      ? AppColors.parchment
+                                      : AppColors.charcoal,
                             ),
                           ),
                         ],
@@ -1850,7 +2370,7 @@ class _SubscriptionPlanDetailScreenState
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: isDark ? AppColors.darkSurfaceElevated : AppColors.parchment,
+        color: isDark ? AppColors.darkSurfaceElevated : AppColors.pureWhite,
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
@@ -1930,7 +2450,7 @@ class _SubscriptionPlanDetailScreenState
       return _currentOrder!.recipientName;
     }
 
-    final user = AuthService().currentUser;
+    final user = getIt<TokenService>().currentUser;
     if (user != null) {
       final firstName = user.firstName;
       final lastName = user.lastName;

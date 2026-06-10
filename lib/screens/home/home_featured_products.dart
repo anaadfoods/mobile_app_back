@@ -1,4 +1,3 @@
-import 'dart:ui';
 import 'package:grocery_app/common_widgets/coming_soon_overlay.dart';
 import 'package:grocery_app/common_widgets/global_import.dart';
 import 'package:grocery_app/common_widgets/out_of_stock_overlay.dart';
@@ -33,7 +32,7 @@ class FeaturedProductsSkeleton extends StatelessWidget {
         ),
         const SizedBox(height: 12),
         SizedBox(
-          height: 260,
+          height: (MediaQuery.sizeOf(context).width * 0.65).clamp(240.0, 280.0),
           child: ListView.builder(
             scrollDirection: Axis.horizontal,
             padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -144,7 +143,7 @@ class FeaturedProductCard extends StatelessWidget {
     return GestureDetector(
       onTap: (product.isInStock && product.isActive) ? onTap : null,
       child: Opacity(
-        opacity: (product.isInStock && product.isActive) ? 1.0 : 0.5,
+        opacity: product.isActive ? (product.isInStock ? 1.0 : 0.5) : 1.0,
         child: Stack(
           children: [
             Container(
@@ -326,8 +325,8 @@ class FeaturedProductCard extends StatelessWidget {
               Positioned.fill(
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(20),
-                  child: BackdropFilter(
-                    filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+                  child: ColoredBox(
+                    color: isDark ? Colors.black.withValues(alpha: 0.72) : Colors.white.withValues(alpha: 0.72),
                     child: const ComingSoonOverlay(),
                   ),
                 ),
@@ -336,8 +335,8 @@ class FeaturedProductCard extends StatelessWidget {
               Positioned.fill(
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(20),
-                  child: BackdropFilter(
-                    filter: ImageFilter.blur(sigmaX: 4, sigmaY: 4),
+                  child: ColoredBox(
+                    color: isDark ? Colors.black.withValues(alpha: 0.72) : Colors.white.withValues(alpha: 0.72),
                     child: const OutOfStockOverlay(),
                   ),
                 ),

@@ -1,4 +1,4 @@
-import 'package:grocery_app/core/theme/app_colors.dart';
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:grocery_app/core/theme/theme.dart';
 
@@ -9,9 +9,10 @@ class ComingSoonOverlay extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Positioned.fill(
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(AppColors.radiusXL - 4),
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(AppColors.radiusXL - 4),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 4.0, sigmaY: 4.0),
         child: Container(
           color: AppColors.deepSoilGreen.withValues(alpha: 0.72),
           child: Center(

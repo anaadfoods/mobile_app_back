@@ -1,7 +1,5 @@
 import 'dart:math' as math;
-import 'package:flutter/services.dart';
 import 'package:grocery_app/common_widgets/global_import.dart';
-import 'package:http/http.dart' as http;
 
 class HelpScreen extends StatefulWidget {
   final String? orderNumber;
@@ -830,10 +828,9 @@ class _QueryFormSheetState extends State<_QueryFormSheet>
     setState(() => _isLoading = true);
 
     try {
-      final response = await http.post(
-        Uri.parse('${ApiConfig.baseUrl}/api/user-queries/'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
+      final response = await ApiClient.instance.post(
+        '/api/user-queries/',
+        data: {
           'name': _nameController.text,
           'phone_number': _phoneController.text,
           'email': _emailController.text,
@@ -841,7 +838,7 @@ class _QueryFormSheetState extends State<_QueryFormSheet>
           'requirement_type': _selectedType,
           'is_from_rfp': false,
           'redirection_from': 'USER_QUERY',
-        }),
+        },
       );
 
       if (!mounted) return;
@@ -936,44 +933,49 @@ class _QueryFormSheetState extends State<_QueryFormSheet>
                 // Form fields
                 _buildTextField(
                   controller: _nameController,
-                  label: 'Full Name',
+                  label: 'Full Name*',
                   icon: Icons.person_outline_rounded,
-                  validator:
-                      (v) =>
-                          v == null || v.isEmpty
-                              ? 'Please enter your name'
-                              : null,
+                  validator: (v) {
+                    if (v == null || v.trim().isEmpty) return 'Please enter your name';
+                    if (v.trim().length < 3) return 'Name must be at least 3 characters';
+                    return null;
+                  },
                 ),
                 const SizedBox(height: 16),
                 _buildTextField(
                   controller: _phoneController,
-                  label: 'Phone Number',
+                  label: 'Phone Number*',
                   icon: Icons.phone_outlined,
                   keyboardType: TextInputType.phone,
-                  validator:
-                      (v) =>
-                          v == null || v.isEmpty
-                              ? 'Please enter your phone'
-                              : null,
+                  validator: (v) {
+                    if (v == null || v.trim().isEmpty) return 'Please enter your phone number';
+                    if (!RegExp(r'^\d{10}$').hasMatch(v.trim())) return 'Phone number must be exactly 10 digits';
+                    return null;
+                  },
                 ),
                 const SizedBox(height: 16),
                 _buildTextField(
                   controller: _emailController,
-                  label: 'Email (Optional)',
+                  label: 'Email*',
                   icon: Icons.email_outlined,
                   keyboardType: TextInputType.emailAddress,
+                  validator: (v) {
+                    if (v == null || v.trim().isEmpty) return 'Please enter your email';
+                    if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(v.trim())) return 'Please enter a valid email';
+                    return null;
+                  },
                 ),
                 const SizedBox(height: 16),
                 _buildTextField(
                   controller: _messageController,
-                  label: 'Your Message',
+                  label: 'Your Message*',
                   icon: Icons.message_outlined,
                   maxLines: 3,
-                  validator:
-                      (v) =>
-                          v == null || v.isEmpty
-                              ? 'Please enter your message'
-                              : null,
+                  validator: (v) {
+                    if (v == null || v.trim().isEmpty) return 'Please enter your message';
+                    if (v.trim().length < 10) return 'Message must be at least 10 characters';
+                    return null;
+                  },
                 ),
                 const SizedBox(height: 16),
                 // Requirement type selector

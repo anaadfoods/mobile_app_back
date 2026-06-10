@@ -1,6 +1,5 @@
 import 'dart:ui';
 import 'dart:math' as math;
-import 'package:flutter/services.dart';
 import 'package:grocery_app/common_widgets/global_import.dart';
 import 'package:grocery_app/screens/innovations/games/cow_to_soil_cycle_game_screen.dart';
 import 'package:grocery_app/screens/innovations/games/microbe_mania_game_screen.dart';
@@ -2347,8 +2346,8 @@ class _AnaadGamesScreenState extends State<AnaadGamesScreen>
                   decoration: BoxDecoration(
                     gradient: RadialGradient(
                       colors: [
-                        AppColors.harvestAmber!,
-                        AppColors.harvestAmber!,
+                        AppColors.harvestAmber,
+                        AppColors.harvestAmber,
                       ],
                     ),
                     shape: BoxShape.circle,

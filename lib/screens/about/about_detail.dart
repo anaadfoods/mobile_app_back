@@ -7,7 +7,7 @@ class SustainabilitySection extends StatelessWidget {
     final Uri uri = Uri.parse(url);
     if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
       // You can show a snackbar or toast here if the launch fails
-      print('Could not launch $url');
+      AppLogger.instance.log('Could not launch $url');
     }
   }
 

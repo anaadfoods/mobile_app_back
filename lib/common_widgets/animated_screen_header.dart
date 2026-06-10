@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'dart:math' as math;
-import 'package:grocery_app/common_widgets/floating_particle.dart';
 import 'package:grocery_app/common_widgets/glassmorphic_icon_button.dart';
 import 'package:grocery_app/common_widgets/anaad_logo_mark.dart';
 import 'package:grocery_app/core/theme/app_colors.dart';

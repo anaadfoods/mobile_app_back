@@ -1,8 +1,7 @@
-import 'dart:ui';
-import 'package:flutter/services.dart';
 import 'package:grocery_app/common_widgets/global_import.dart';
 import 'package:grocery_app/models/order_tracking_model.dart';
 import 'package:grocery_app/routes/app_routes.dart';
+import 'package:grocery_app/service_locator.dart';
 
 class OrderDetailScreen extends StatefulWidget {
   final Order? order;
@@ -15,7 +14,7 @@ class OrderDetailScreen extends StatefulWidget {
 
 class _OrderDetailScreenState extends State<OrderDetailScreen>
     with SingleTickerProviderStateMixin {
-  final OrderService _orderService = OrderService();
+  final OrderService _orderService = getIt<OrderService>();
   bool _isCancelling = false;
   Order? _currentOrder;
   bool _isLoading = false;
@@ -307,7 +306,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
       canPop: false,
       onPopInvokedWithResult: (didPop, result) {
         if (didPop) return;
-        context.goNamed(AppRoute.home.name);
+        context.goNamed(AppRoute.orderList.name);
       },
       child: Scaffold(
         backgroundColor: isDark ? AppColors.darkCanvas : AppColors.parchment,
@@ -476,24 +475,6 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
                                 ),
                               ),
                             ),
-                            const SizedBox(width: 12),
-                            GestureDetector(
-                              onTap: _downloadInvoice,
-                              child: Container(
-                                padding: const EdgeInsets.all(10),
-                                decoration: BoxDecoration(
-                                  color: AppColors.parchment.withValues(
-                                    alpha: 0.2,
-                                  ),
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                child: const Icon(
-                                  Icons.receipt_long_rounded,
-                                  color: AppColors.harvestAmber,
-                                  size: 20,
-                                ),
-                              ),
-                            ),
                           ],
                         ),
                       ],
@@ -649,6 +630,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
     }
 
     return Container(
+      margin: const EdgeInsets.fromLTRB(0, 15, 0, 0),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         gradient: LinearGradient(
@@ -1270,7 +1252,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
                       color:
                           isDark
                               ? AppColors.darkSurfaceElevated
-                              : AppColors.parchment!,
+                              : AppColors.parchment,
                     ),
                   ),
                   child: ClipRRect(
@@ -1674,14 +1656,30 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
           ),
           const SizedBox(height: 12),
           // Download invoice
-          _buildActionButton(
-            theme,
-            isDark,
-            icon: Icons.download_rounded,
-            title: 'Download Invoice',
-            subtitle: 'Get PDF copy of your order',
-            color: AppColors.harvestAmber,
-            onTap: _downloadInvoice,
+          Builder(
+            builder: (context) {
+              final isDelivered = _currentOrder?.status == 'DELIVERED';
+              return Opacity(
+                opacity: isDelivered ? 1.0 : 0.5,
+                child: _buildActionButton(
+                  theme,
+                  isDark,
+                  icon: Icons.download_rounded,
+                  title: 'Download Invoice',
+                  subtitle:
+                      isDelivered
+                          ? 'Get PDF copy of your order'
+                          : 'Wait until you get your product',
+                  color: AppColors.harvestAmber,
+                  onTap:
+                      isDelivered
+                          ? _downloadInvoice
+                          : () {
+                            // Do nothing or show a message when disabled
+                          },
+                ),
+              );
+            },
           ),
           if (canCancel) ...[
             const SizedBox(height: 12),
@@ -1718,7 +1716,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: color.withValues(alpha: isDestructive ? 0.08 : 0.1),
+          color: color.withValues(alpha: isDestructive ? 0.1 : 0.1),
           borderRadius: BorderRadius.circular(16),
           border: Border.all(color: color.withValues(alpha: 0.2)),
         ),
@@ -1805,7 +1803,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
       label: const Text('Chat Support'),
       onPressed: () async {
         HapticFeedback.lightImpact();
-        final user = AuthService().currentUser;
+        final user = getIt<TokenService>().currentUser;
         const phone = '+919996166186';
         final message = Uri.encodeComponent(
           'Hi! I need help with my order.\n\n'
@@ -1947,7 +1945,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
       return _currentOrder!.recipientName;
     }
 
-    final user = AuthService().currentUser;
+    final user = getIt<TokenService>().currentUser;
     if (user != null) {
       final firstName = user.firstName;
       final lastName = user.lastName;

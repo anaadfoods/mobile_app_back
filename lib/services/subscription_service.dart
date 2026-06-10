@@ -1,28 +1,11 @@
 import 'package:grocery_app/common_widgets/global_import.dart';
+import 'package:dio/dio.dart' as dio;
 
-import 'package:flutter/foundation.dart';
-import 'package:http/http.dart' as http;
-import 'package:permission_handler/permission_handler.dart';
-import 'package:open_filex/open_filex.dart';
-import 'package:path_provider/path_provider.dart';
-import 'dart:io';
-
-// Top-level function for background JSON parsing
-Map<String, dynamic> _parseJson(String jsonString) {
-  return jsonDecode(jsonString) as Map<String, dynamic>;
-}
-
-// Top-level function for background JSON list parsing
-List<dynamic> _parseJsonList(String jsonString) {
-  return jsonDecode(jsonString) as List<dynamic>;
-}
-
-List<Subscription> _parseSubscriptions(String responseBody) {
-  final parsed = json.decode(responseBody);
-  final subscriptionsMap = parsed['subscriptions'] as Map<String, dynamic>;
+List<Subscription> _parseSubscriptions(dynamic parsedData) {
+  if (parsedData is! Map) return [];
+  final subscriptionsMap = parsedData['subscriptions'] as Map<String, dynamic>;
   final List<Subscription> allSubscriptions = [];
 
-  // Iterate over all status lists (ACTIVE, PAUSED, etc.) and combine them
   subscriptionsMap.forEach((status, list) {
     if (list is List) {
       allSubscriptions.addAll(
@@ -36,35 +19,59 @@ List<Subscription> _parseSubscriptions(String responseBody) {
 
 class SubscriptionService {
   static final SubscriptionService _instance = SubscriptionService._internal();
-  factory SubscriptionService() => _instance;
+  factory SubscriptionService() => getIt<SubscriptionService>();
   SubscriptionService._internal();
+  static SubscriptionService create() => SubscriptionService._internal();
 
   static const String subscriptionsEndpoint = '/api/subscriptions';
-  final AuthService _authService = AuthService();
 
+  /// Creates a new subscription with payment initialization
+  ///
+  /// Authentication: Automatically handled by AuthInterceptor
+  /// Adds `Authorization: Bearer {token}` header to request
+  ///
+  /// Request Model Maps to API JSON:
+  /// - plan → plan (int)
+  /// - deliveryName → recipient_name (String)
+  /// - deliveryAddress → delivery_address (String)
+  /// - deliveryCity → delivery_city (String)
+  /// - deliveryState → delivery_state (String)
+  /// - deliveryPincode → delivery_pincode (String)
+  /// - deliveryPhone → delivery_phone (String)
+  /// - paymentType → payment_type (PAID_FULL|INSTALLMENT)
+  /// - paymentMethod → payment_method (COD|UPI)
+  /// - deliveryFee → delivery_fee (double)
+  /// - expectedDeliveryDate → expected_delivery_date (ISO date string)
+  /// - items[] → items[] (array of {product_variant_id, quantity})
+  ///
+  /// Endpoint: POST /api/subscriptions/create/
+  ///
+  /// Response Scenarios:
+  /// 1. UPI Payment: Returns payment_links for gateway redirect
+  /// 2. COD Payment: Returns full subscription object immediately
+  /// 3. Error (401): AuthInterceptor handles token refresh automatically
+  /// 4. Error (4xx/5xx): Returns error message and validation errors
   Future<Map<String, dynamic>> createSubscription(
     SubscriptionCreateRequest request,
   ) async {
     try {
-      final token = await _authService.getAccessToken();
-      if (token == null) {
-        return {
-          'success': false,
-          'message': 'Not authenticated',
-          'requiresLogin': true,
-        };
-      }
-
-      final response = await http.post(
-        Uri.parse('${ApiConfig.baseUrl}$subscriptionsEndpoint/create/'),
-        headers: ApiConfig.getAuthHeaders(token),
-        body: jsonEncode(request.toJson()),
+      AppLogger.instance.log(
+        'Sending subscription request to $subscriptionsEndpoint/create/ with data: ${request.toJson()}',
       );
 
-      final responseData = await compute(_parseJson, response.body);
+      final response = await ApiClient.instance.post(
+        '$subscriptionsEndpoint/create/',
+        data: request.toJson(),
+      );
+      final responseData = response.data;
 
-      if (response.statusCode == 201) {
-        if (responseData.containsKey('payment_links') &&
+      AppLogger.instance.log(
+        'Subscription API response status: ${response.statusCode}, data: $responseData',
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        if (responseData is Map &&
+            responseData.containsKey('payment_links') &&
             responseData.containsKey('subscription_id')) {
           return {
             'success': true,
@@ -78,23 +85,17 @@ class SubscriptionService {
         } else {
           return {
             'success': true,
-            'data': Subscription.fromJson(responseData),
+            'subscription_id': responseData is Map ? responseData['id'] : null,
+            'data': Subscription.fromJson(
+              Map<String, dynamic>.from(responseData),
+            ),
             'message': 'Subscription created successfully',
           };
         }
-      } else if (response.statusCode == 401) {
-        final refreshResult = await _authService.refreshAccessToken();
-        if (refreshResult) {
-          return createSubscription(request);
-        } else {
-          return {
-            'success': false,
-            'message': 'Session expired',
-            'requiresLogin': true,
-          };
-        }
       } else {
-        print(responseData['errors']);
+        AppLogger.instance.log(
+          'Subscription API error - Status: ${response.statusCode}, Response: $responseData',
+        );
         return {
           'success': false,
           'message': responseData['message'] ?? 'Failed to create subscription',
@@ -102,6 +103,37 @@ class SubscriptionService {
         };
       }
     } catch (e) {
+      if (e is dio.DioException) {
+        AppLogger.instance.log(
+          'DioException in createSubscription - Status: ${e.response?.statusCode}, Error: ${e.message}',
+        );
+        AppLogger.instance.log('DioException response: ${e.response?.data}');
+
+        if (e.response?.statusCode == 401) {
+          return {
+            'success': false,
+            'message': 'Session expired - please login again',
+            'requiresLogin': true,
+          };
+        }
+        final responseData = e.response?.data;
+        if (responseData is Map) {
+          return {
+            'success': false,
+            'message':
+                responseData['message'] ??
+                responseData['detail'] ??
+                'Failed to create subscription',
+            'errors': responseData['errors'] ?? responseData,
+          };
+        }
+        return {
+          'success': false,
+          'message': e.message ?? 'Network error creating subscription',
+          'error': e.toString(),
+        };
+      }
+      AppLogger.instance.log('Unexpected error in createSubscription: $e');
       return {
         'success': false,
         'message': 'An error occurred while creating the subscription',
@@ -110,28 +142,11 @@ class SubscriptionService {
     }
   }
 
-  // NOTE: Based on your code, this function seems to fetch subscription *plans*, not subscriptions.
-  // The logic is preserved as-is.
   Future<Map<String, dynamic>> getSubscriptionsbyId(int id) async {
     try {
-      final token = await _authService.getAccessToken();
-      if (token == null) {
-        return {
-          'success': false,
-          'message': 'Not authenticated',
-          'requiresLogin': true,
-        };
-      }
-
-      final url =
-          '${ApiConfig.baseUrl}${ApiConfig.subscriptionsEndpoint}/plans/$id/';
-
-      final response = await http.get(
-        Uri.parse(url),
-        headers: ApiConfig.getAuthHeaders(token),
+      final response = await ApiClient.instance.get(
+        '${ApiConfig.subscriptionsEndpoint}/plans/$id/',
       );
-
-      print('Response status code: ${response.statusCode}');
 
       if (response.statusCode != 200) {
         return {
@@ -140,8 +155,7 @@ class SubscriptionService {
         };
       }
 
-      // The compute function handles both list and map responses by parsing first.
-      final dynamic parsedData = await compute(jsonDecode, response.body);
+      final parsedData = response.data;
 
       if (parsedData is List) {
         final subscriptions =
@@ -158,7 +172,7 @@ class SubscriptionService {
         };
       }
     } catch (e) {
-      print('Error fetching subscriptions: $e');
+      AppLogger.instance.log('Error fetching subscriptions: $e');
       return {
         'success': false,
         'message': 'An error occurred while fetching subscriptions',
@@ -169,40 +183,21 @@ class SubscriptionService {
 
   Future<Map<String, dynamic>> getSubscriptions() async {
     try {
-      final token = await _authService.getAccessToken();
-      if (token == null) {
-        return {'success': false, 'message': 'User not authenticated.'};
-      }
-
-      final url = '${ApiConfig.baseUrl}${ApiConfig.subscriptionsEndpoint}';
-      final response = await http.get(
-        Uri.parse(url),
-        headers: ApiConfig.getAuthHeaders(token),
+      final response = await ApiClient.instance.get(
+        ApiConfig.subscriptionsEndpoint,
       );
 
-      print('--- SUBSCRIPTION RESPONSE ---');
-      print('Status Code: ${response.statusCode}');
-      // print('Response Body: ${response.body}'); // You can keep this for debugging
-
       if (response.statusCode != 200) {
-        final errorBody = jsonDecode(response.body);
+        final errorBody = response.data;
         return {
           'success': false,
           'message': errorBody['detail'] ?? 'Failed to load subscriptions.',
         };
       }
 
-      // Use the compute function to parse the complex JSON in the background
-      final List<Subscription> allSubscriptions = await compute(
-        _parseSubscriptions,
-        response.body,
-      );
+      final allSubscriptions = _parseSubscriptions(response.data);
 
-      return {
-        'success': true,
-        'data':
-            allSubscriptions, // Return the combined list under the 'data' key
-      };
+      return {'success': true, 'data': allSubscriptions};
     } catch (e) {
       return {'success': false, 'message': e.toString()};
     }
@@ -212,26 +207,14 @@ class SubscriptionService {
     int subscriptionId,
   ) async {
     try {
-      final token = await _authService.getAccessToken();
-      if (token == null) {
-        return {
-          'success': false,
-          'message': 'Not authenticated',
-          'requiresLogin': true,
-        };
-      }
-
-      final response = await http.get(
-        Uri.parse(
-          '${ApiConfig.baseUrl}$subscriptionsEndpoint/$subscriptionId/',
-        ),
-        headers: ApiConfig.getAuthHeaders(token),
+      final response = await ApiClient.instance.get(
+        '$subscriptionsEndpoint/$subscriptionId/',
       );
 
       if (response.statusCode == 200) {
-        final responseData = await compute(_parseJson, response.body);
+        final responseData = response.data;
         final dataMap =
-            responseData.containsKey('data')
+            responseData is Map && responseData.containsKey('data')
                 ? responseData['data']
                 : responseData;
         return {
@@ -239,36 +222,24 @@ class SubscriptionService {
           'data': Subscription.fromJson(dataMap),
           'message': 'Subscription details fetched successfully',
         };
-      } else if (response.statusCode == 401) {
-        final refreshResult = await _authService.refreshAccessToken();
-        if (refreshResult) {
-          return getSubscriptionDetails(subscriptionId);
-        } else {
-          return {
-            'success': false,
-            'message': 'Session expired',
-            'requiresLogin': true,
-          };
-        }
       } else {
-        try {
-          final responseData = await compute(_parseJson, response.body);
-          return {
-            'success': false,
-            'message':
-                responseData['message'] ??
-                responseData['detail'] ??
-                'Failed to fetch subscription details',
-          };
-        } catch (_) {
-          return {
-            'success': false,
-            'message':
-                'Failed to fetch subscription (Status: ${response.statusCode})',
-          };
-        }
+        final responseData = response.data;
+        return {
+          'success': false,
+          'message':
+              responseData['message'] ??
+              responseData['detail'] ??
+              'Failed to fetch subscription details',
+        };
       }
     } catch (e) {
+      if (e is dio.DioException && e.response?.statusCode == 401) {
+        return {
+          'success': false,
+          'message': 'Session expired',
+          'requiresLogin': true,
+        };
+      }
       return {
         'success': false,
         'message': 'An error occurred while fetching subscription details',
@@ -279,40 +250,17 @@ class SubscriptionService {
 
   Future<Map<String, dynamic>> cancelSubscription(int subscriptionId) async {
     try {
-      final token = await _authService.getAccessToken();
-      if (token == null) {
-        return {
-          'success': false,
-          'message': 'Not authenticated',
-          'requiresLogin': true,
-        };
-      }
-
-      final response = await http.post(
-        Uri.parse(
-          '${ApiConfig.baseUrl}$subscriptionsEndpoint/$subscriptionId/cancel/',
-        ),
-        headers: ApiConfig.getAuthHeaders(token),
+      final response = await ApiClient.instance.post(
+        '$subscriptionsEndpoint/$subscriptionId/cancel/',
       );
 
-      final responseData = await compute(_parseJson, response.body);
+      final responseData = response.data;
 
       if (response.statusCode == 200) {
         return {
           'success': true,
           'message': 'Subscription cancelled successfully',
         };
-      } else if (response.statusCode == 401) {
-        final refreshResult = await _authService.refreshAccessToken();
-        if (refreshResult) {
-          return cancelSubscription(subscriptionId);
-        } else {
-          return {
-            'success': false,
-            'message': 'Session expired',
-            'requiresLogin': true,
-          };
-        }
       } else {
         return {
           'success': false,
@@ -320,7 +268,14 @@ class SubscriptionService {
         };
       }
     } catch (e) {
-      print('Error cancelling subscription: $e');
+      AppLogger.instance.log('Error cancelling subscription: $e');
+      if (e is dio.DioException && e.response?.statusCode == 401) {
+        return {
+          'success': false,
+          'message': 'Session expired',
+          'requiresLogin': true,
+        };
+      }
       return {
         'success': false,
         'message': 'An error occurred while cancelling the subscription',
@@ -331,12 +286,9 @@ class SubscriptionService {
 
   Future<Map<String, dynamic>> getSubscriptionPlans() async {
     try {
-      final response = await http.get(
-        Uri.parse('${ApiConfig.baseUrl}${ApiConfig.subscriptionPlansEndpoint}'),
-        headers: ApiConfig.getBaseHeaders(),
+      final response = await ApiClient.instance.get(
+        ApiConfig.subscriptionPlansEndpoint,
       );
-
-      print('Response status code: ${response.statusCode}');
 
       if (response.statusCode != 200) {
         return {
@@ -346,8 +298,7 @@ class SubscriptionService {
         };
       }
 
-      final responseData = await compute(_parseJsonList, response.body);
-
+      final List<dynamic> responseData = response.data;
       final plans =
           responseData.map((item) => SubscriptionPlan.fromJson(item)).toList();
 
@@ -357,7 +308,7 @@ class SubscriptionService {
         'message': 'Subscription plans fetched successfully',
       };
     } catch (e) {
-      print('Error fetching subscription plans: $e');
+      AppLogger.instance.log('Error fetching subscription plans: $e');
       return {
         'success': false,
         'message': 'An error occurred while fetching subscription plans',
@@ -368,23 +319,13 @@ class SubscriptionService {
 
   Future<Map<String, dynamic>> subscribeToPlan(int planId) async {
     try {
-      final token = await _authService.getAccessToken();
-      if (token == null) {
-        return {
-          'success': false,
-          'message': 'Not authenticated',
-          'requiresLogin': true,
-        };
-      }
-
-      final response = await http.post(
-        Uri.parse('${ApiConfig.baseUrl}$subscriptionsEndpoint/subscribe/'),
-        headers: ApiConfig.getAuthHeaders(token),
-        body: jsonEncode({'plan_id': planId}),
+      final response = await ApiClient.instance.post(
+        '$subscriptionsEndpoint/subscribe/',
+        data: {'plan_id': planId},
       );
 
-      final responseData = await compute(_parseJson, response.body);
-      print('Subscribe to plan response: $responseData');
+      final responseData = response.data;
+      AppLogger.instance.log('Subscribe to plan response: $responseData');
 
       if (response.statusCode == 201) {
         return {
@@ -392,19 +333,10 @@ class SubscriptionService {
           'data': Subscription.fromJson(responseData),
           'message': 'Successfully subscribed to plan',
         };
-      } else if (response.statusCode == 401) {
-        final refreshResult = await _authService.refreshAccessToken();
-        if (refreshResult) {
-          return subscribeToPlan(planId);
-        } else {
-          return {
-            'success': false,
-            'message': 'Session expired',
-            'requiresLogin': true,
-          };
-        }
       } else {
-        print('Subscribe to plan error: ${responseData['message']}');
+        AppLogger.instance.log(
+          'Subscribe to plan error: ${responseData['message']}',
+        );
         return {
           'success': false,
           'message': responseData['message'] ?? 'Failed to subscribe to plan',
@@ -412,7 +344,14 @@ class SubscriptionService {
         };
       }
     } catch (e) {
-      print('Error subscribing to plan: $e');
+      AppLogger.instance.log('Error subscribing to plan: $e');
+      if (e is dio.DioException && e.response?.statusCode == 401) {
+        return {
+          'success': false,
+          'message': 'Session expired',
+          'requiresLogin': true,
+        };
+      }
       return {
         'success': false,
         'message': 'An error occurred while subscribing to plan',
@@ -427,32 +366,20 @@ class SubscriptionService {
     DateTime? pauseEndDate,
   ) async {
     try {
-      final token = await _authService.getAccessToken();
-      if (token == null) {
-        return {
-          'success': false,
-          'message': 'Not authenticated',
-          'requiresLogin': true,
-        };
-      }
-
-      final response = await http.post(
-        Uri.parse(
-          '${ApiConfig.baseUrl}$subscriptionsEndpoint/$subscriptionId/pause/',
-        ),
-        headers: ApiConfig.getAuthHeaders(token),
-        body:
+      final response = await ApiClient.instance.post(
+        '$subscriptionsEndpoint/$subscriptionId/pause/',
+        data:
             pauseStartDate != null && pauseEndDate != null
-                ? jsonEncode({
+                ? {
                   'pause_start_date':
                       pauseStartDate.toIso8601String().split('T')[0],
                   'pause_end_date':
                       pauseEndDate.toIso8601String().split('T')[0],
-                })
+                }
                 : null,
       );
 
-      final responseData = await compute(_parseJson, response.body);
+      final responseData = response.data;
 
       if (response.statusCode == 200) {
         return {
@@ -462,21 +389,6 @@ class SubscriptionService {
           'pause_end_date': responseData['pause_end_date'],
           'next_delivery_date': responseData['next_delivery_date'],
         };
-      } else if (response.statusCode == 401) {
-        final refreshResult = await _authService.refreshAccessToken();
-        if (refreshResult) {
-          return togglePauseSubscription(
-            subscriptionId,
-            pauseStartDate,
-            pauseEndDate,
-          );
-        } else {
-          return {
-            'success': false,
-            'message': 'Session expired',
-            'requiresLogin': true,
-          };
-        }
       } else {
         return {
           'success': false,
@@ -484,7 +396,14 @@ class SubscriptionService {
         };
       }
     } catch (e) {
-      print('Error pausing subscription: $e');
+      AppLogger.instance.log('Error pausing subscription: $e');
+      if (e is dio.DioException && e.response?.statusCode == 401) {
+        return {
+          'success': false,
+          'message': 'Session expired',
+          'requiresLogin': true,
+        };
+      }
       return {
         'success': false,
         'message': 'An error occurred while pausing the subscription',
@@ -495,37 +414,31 @@ class SubscriptionService {
 
   Future<Map<String, dynamic>> getSubscriptionPlanProducts(int planId) async {
     try {
-      final response = await http.get(
-        Uri.parse(
-          '${ApiConfig.baseUrl}/api/subscriptions/plans/$planId/products',
-        ),
-        headers: ApiConfig.getBaseHeaders(),
+      final response = await ApiClient.instance.get(
+        '/api/subscriptions/plans/$planId/products',
       );
 
-      print('Response status code: ${response.statusCode}');
-
       if (response.statusCode == 200) {
-        final data = await compute(_parseJson, response.body);
+        final data = response.data;
         return {
           'success': true,
           'data': SubscriptionPlanProductsResponse.fromJson(data),
         };
-      } else if (response.statusCode == 401) {
-        final refreshResult = await _authService.refreshAccessToken();
-        if (refreshResult) {
-          return getSubscriptionPlanProducts(planId);
-        }
+      } else {
+        AppLogger.instance.log(
+          'Failed to fetch plan products. Status: ${response.statusCode}',
+        );
+        return {'success': false, 'message': 'Failed to fetch plan products'};
+      }
+    } catch (e) {
+      AppLogger.instance.log('Error fetching subscription plan products: $e');
+      if (e is dio.DioException && e.response?.statusCode == 401) {
         return {
           'success': false,
           'message': 'Authentication failed',
           'requiresLogin': true,
         };
-      } else {
-        print('Failed to fetch plan products. Status: ${response.statusCode}');
-        return {'success': false, 'message': 'Failed to fetch plan products'};
       }
-    } catch (e) {
-      print('Error fetching subscription plan products: $e');
       return {
         'success': false,
         'message': 'An error occurred while fetching plan products',
@@ -537,49 +450,33 @@ class SubscriptionService {
     int subscriptionId,
   ) async {
     try {
-      final token = await _authService.getAccessToken();
-      if (token == null) return null;
-      final url =
-          '${ApiConfig.baseUrl}/api/payments/subscription-status/$subscriptionId/';
-      final response = await http.get(
-        Uri.parse(url),
-        headers: ApiConfig.getAuthHeaders(token),
+      final response = await ApiClient.instance.get(
+        '/api/payments/subscription-status/$subscriptionId/',
       );
       if (response.statusCode == 200) {
-        final data = await compute(_parseJson, response.body);
+        final data = response.data;
         return SubscriptionPaymentStatus.fromJson(data);
       } else {
         return null;
       }
     } catch (e) {
-      print('Error fetching subscription payment status: $e');
+      AppLogger.instance.log('Error fetching subscription payment status: $e');
       return null;
     }
   }
 
   Future<Map<String, dynamic>> RepaymentSubscription(int planId) async {
     try {
-      final token = await _authService.getAccessToken();
-      if (token == null) {
-        return {
-          'success': false,
-          'message': 'Not authenticated',
-          'requiresLogin': true,
-        };
-      }
-
-      final response = await http.post(
-        Uri.parse(
-          '${ApiConfig.baseUrl}$subscriptionsEndpoint/$planId/next-installment-payment/',
-        ),
-        headers: ApiConfig.getAuthHeaders(token),
+      final response = await ApiClient.instance.post(
+        '$subscriptionsEndpoint/$planId/next-installment-payment/',
       );
 
-      final responseData = await compute(_parseJson, response.body);
-      print('Repayment subscription response: $responseData');
+      final responseData = response.data;
+      AppLogger.instance.log('Repayment subscription response: $responseData');
 
       if (response.statusCode == 201 || response.statusCode == 200) {
-        if (responseData.containsKey('payment_links') &&
+        if (responseData is Map &&
+            responseData.containsKey('payment_links') &&
             responseData.containsKey('subscription_id')) {
           return {
             'success': true,
@@ -606,7 +503,7 @@ class SubscriptionService {
         };
       }
     } catch (e) {
-      print('Error repaying subscription: $e');
+      AppLogger.instance.log('Error repaying subscription: $e');
       return {
         'success': false,
         'message': 'An error occurred while repaying the subscription',
@@ -617,74 +514,50 @@ class SubscriptionService {
 
   Future<ApiResponse> getSubscriptionInvoices(int subscriptionId) async {
     try {
-      ApiResponse parseApiResponse(String responseBody) {
-        return apiResponseFromJson(responseBody);
-      }
-
-      final token = await _authService.getAccessToken();
-      if (token == null) {
-        throw Exception('Authentication token is missing');
-      }
-
-      final response = await http.get(
-        Uri.parse(
-          '${ApiConfig.baseUrl}/api/invoicing/subscriptions/$subscriptionId/invoices/',
-        ),
-        headers: ApiConfig.getAuthHeaders(token),
+      final response = await ApiClient.instance.get(
+        '/api/invoicing/subscriptions/$subscriptionId/invoices/',
       );
 
       if (response.statusCode == 200) {
-        print(response.statusCode);
-        // Use compute to parse the JSON and create the model in a background isolate.
-        return await compute(parseApiResponse, response.body);
+        return ApiResponse.fromJson(response.data);
       } else {
-        // For errors, parse the generic JSON to get the message.
-        final errorData = await compute(_parseJson, response.body);
+        final errorData = response.data;
         throw Exception(
           errorData['message'] ??
               'Failed to load invoices: Status code ${response.statusCode}',
         );
       }
     } catch (e) {
-      // Log the original error for debugging, but throw a more user-friendly message.
-      print('Error getting subscription invoices: $e');
+      AppLogger.instance.log('Error getting subscription invoices: $e');
       throw Exception(
         'An error occurred while fetching your invoices. Please try again.',
       );
     }
   }
 
-  // File I/O should be handled carefully. It can still block the main thread.
   Future<String> downloadInvoice(String s3Url, String displayName) async {
     try {
-      // Check if the URL is internal (starts with our API base URL)
-      // If it is, we need to attach the auth token.
       final isInternalUrl = s3Url.startsWith(ApiConfig.baseUrl);
-      Map<String, String>? headers;
+      dio.Response<List<int>> pdfResponse;
 
       if (isInternalUrl) {
-        final token = await _authService.getAccessToken();
-        if (token != null) {
-          headers = ApiConfig.getAuthHeaders(token);
-        }
+        pdfResponse = await ApiClient.instance.get<List<int>>(
+          s3Url,
+          options: dio.Options(responseType: dio.ResponseType.bytes),
+        );
+      } else {
+        pdfResponse = await dio.Dio().get<List<int>>(
+          s3Url,
+          options: dio.Options(responseType: dio.ResponseType.bytes),
+        );
       }
 
-      print('Downloading invoice from: $s3Url');
-      print('Is internal URL: $isInternalUrl');
-
-      // Download the PDF
-      final pdfResponse = await http.get(Uri.parse(s3Url), headers: headers);
-
-      if (pdfResponse.statusCode == 200) {
+      if (pdfResponse.statusCode == 200 && pdfResponse.data != null) {
         String? savedPath;
-        bool savedToDownloads = false;
 
-        // Try to save to Downloads first (Android < 10 or with permissions)
         if (Platform.isAndroid) {
           try {
-            // Request storage permission
-            // ignore: unused_local_variable
-            var status = await Permission.storage.request();
+            await Permission.storage.request();
 
             final downloadsPath = '/storage/emulated/0/Download';
             final directory = Directory(downloadsPath);
@@ -697,17 +570,14 @@ class SubscriptionService {
               final filePath = '$downloadsPath/$sanitizedDisplayName.pdf';
               final file = File(filePath);
 
-              await file.writeAsBytes(pdfResponse.bodyBytes);
+              await file.writeAsBytes(pdfResponse.data!);
               savedPath = filePath;
-              savedToDownloads = true;
             }
           } catch (e) {
-            print('Could not save to Downloads: $e');
-            // Continue to fallback
+            AppLogger.instance.log('Could not save to Downloads: $e');
           }
         }
 
-        // Fallback to Application Documents or Temp directory
         if (savedPath == null) {
           final dir = await getTemporaryDirectory();
           final sanitizedDisplayName = displayName.replaceAll(
@@ -716,20 +586,22 @@ class SubscriptionService {
           );
           final filePath = '${dir.path}/$sanitizedDisplayName.pdf';
           final file = File(filePath);
-          await file.writeAsBytes(pdfResponse.bodyBytes);
+          await file.writeAsBytes(pdfResponse.data!);
           savedPath = filePath;
         }
 
-        print('Invoice downloaded successfully to: $savedPath');
+        AppLogger.instance.log(
+          'Invoice downloaded successfully to: $savedPath',
+        );
         await OpenFilex.open(savedPath);
         return savedPath;
       } else {
         throw Exception(
-          'Failed to download PDF: ${pdfResponse.statusCode} ${pdfResponse.reasonPhrase}',
+          'Failed to download PDF: ${pdfResponse.statusCode} ${pdfResponse.statusMessage}',
         );
       }
     } catch (e) {
-      print('Error downloading invoice: $e');
+      AppLogger.instance.log('Error downloading invoice: $e');
       throw Exception('Failed to download invoice: $e');
     }
   }

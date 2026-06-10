@@ -1,12 +1,13 @@
-import 'dart:convert';
+import 'package:grocery_app/utils/app_logger.dart';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:device_info_plus/device_info_plus.dart';
-import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
-import '../services/api_config.dart';
-import '../services/auth_service.dart';
+import 'package:dio/dio.dart';
+import '../services/token_service.dart';
+import '../services/api_client.dart';
 import '../models/notification_model.dart';
+import 'package:grocery_app/service_locator.dart';
 
 class NotificationException implements Exception {
   final String message;
@@ -15,18 +16,19 @@ class NotificationException implements Exception {
   String toString() => message;
 }
 
+
 class NotificationRepository {
-  final AuthService _authService;
+  final TokenService _tokenService;
   final DeviceInfoPlugin _deviceInfo = DeviceInfoPlugin();
 
-  NotificationRepository({AuthService? authService})
-      : _authService = authService ?? AuthService();
+  NotificationRepository({TokenService? tokenService})
+      : _tokenService = tokenService ?? getIt<TokenService>();
 
   Future<String> getDeviceId() async {
     try {
       if (Platform.isAndroid) {
         final androidInfo = await _deviceInfo.androidInfo;
-        return androidInfo.id; // androidId is deprecated, 'id' is the replacement
+        return androidInfo.id;
       } else if (Platform.isIOS) {
         final iosInfo = await _deviceInfo.iosInfo;
         return iosInfo.identifierForVendor ?? 'unknown_ios_id';
@@ -43,106 +45,75 @@ class NotificationRepository {
   }
 
   Future<void> registerToken(String fcmToken) async {
-    final token = await _authService.getAccessToken();
+    final token = await _tokenService.getAccessToken();
     if (token == null) {
-      print('Cannot register FCM token: User not authenticated.');
+      AppLogger.instance.log('Cannot register FCM token: User not authenticated.');
       return;
     }
 
     try {
       final deviceID = await getDeviceId();
-      final response = await http.post(
-        Uri.parse('${ApiConfig.baseUrl}/api/notifications/register-token/'),
-        headers: ApiConfig.getAuthHeaders(token),
-        body: jsonEncode({
+      final response = await ApiClient.instance.post(
+        '/api/notifications/register-token/',
+        data: {
           'token': fcmToken,
           'device_id': deviceID,
           'platform': Platform.isAndroid ? 'android' : 'ios',
-        }),
+        },
       );
       if (response.statusCode != 200) {
-        throw NotificationException('Backend failed to register token: ${response.body}');
+        throw NotificationException('Backend failed to register token: ${response.data}');
       }
-      print('FCM token registered with backend successfully.');
+      AppLogger.instance.log('FCM token registered with backend successfully.');
     } catch (e) {
-      print('Error registering FCM token with backend: $e');
+      AppLogger.instance.log('Error registering FCM token with backend: $e');
     }
   }
 
   Future<void> removeToken() async {
-    final token = await _authService.getAccessToken();
+    final token = await _tokenService.getAccessToken();
     final fcmToken = await getStoredFCMToken();
 
     if (token == null || fcmToken == null) {
-      print('Cannot remove FCM token: Missing auth token or FCM token.');
+      AppLogger.instance.log('Cannot remove FCM token: Missing auth token or FCM token.');
       return;
     }
 
     try {
       final deviceID = await getDeviceId();
-      final response = await http.post(
-        Uri.parse('${ApiConfig.baseUrl}/api/notifications/logout-device/'),
-        headers: ApiConfig.getAuthHeaders(token),
-        body: jsonEncode({'token': fcmToken, 'device_id': deviceID}),
+      final response = await ApiClient.instance.post(
+        '/api/notifications/logout-device/',
+        data: {'token': fcmToken, 'device_id': deviceID},
       );
       if (response.statusCode != 200) {
-        throw NotificationException('Backend failed to remove token: ${response.body}');
+        throw NotificationException('Backend failed to remove token: ${response.data}');
       }
-      print('FCM token removed from backend successfully.');
+      AppLogger.instance.log('FCM token removed from backend successfully.');
     } catch (e) {
-      print('Error removing FCM token from backend: $e');
+      AppLogger.instance.log('Error removing FCM token from backend: $e');
     }
   }
 
   // --- NEW SYNCHRONIZATION BACKEND ENDPOINTS ---
 
-  Future<http.Response> _sendWithRetry(Future<http.Response> Function() requestFn) async {
-    var response = await requestFn();
-    if (response.statusCode == 401) {
-      final refreshed = await _authService.refreshAccessToken();
-      if (refreshed) {
-        response = await requestFn();
-      }
-    }
-    return response;
+  Future<Response> _post(String endpoint, Map<String, dynamic> body) async {
+    debugPrint('[SyncManager] POST Request URL: $endpoint');
+    return await ApiClient.instance.post(endpoint, data: body);
   }
 
-  Future<http.Response> _post(String endpoint, Map<String, dynamic> body) async {
-    return _sendWithRetry(() async {
-      final token = await _authService.getAccessToken();
-      final uri = Uri.parse('${ApiConfig.baseUrl}$endpoint');
-      debugPrint('[SyncManager] POST Request URL: $uri');
-      return http.post(
-        uri,
-        headers: ApiConfig.getAuthHeaders(token ?? ''),
-        body: jsonEncode(body),
-      );
-    });
-  }
-
-  Future<http.Response> _get(String endpoint, {Map<String, String>? queryParams}) async {
-    return _sendWithRetry(() async {
-      final token = await _authService.getAccessToken();
-      var uri = Uri.parse('${ApiConfig.baseUrl}$endpoint');
-      if (queryParams != null) {
-        uri = uri.replace(queryParameters: queryParams);
-      }
-      debugPrint('[SyncManager] GET Request URL: $uri');
-      return http.get(
-        uri,
-        headers: ApiConfig.getAuthHeaders(token ?? ''),
-      );
-    });
+  Future<Response> _get(String endpoint, {Map<String, String>? queryParams}) async {
+    debugPrint('[SyncManager] GET Request URL: $endpoint');
+    return await ApiClient.instance.get(endpoint, queryParameters: queryParams);
   }
 
   /// Register a local notification with the backend database
   Future<NotificationModel> registerLocalNotification(NotificationModel notification) async {
     final response = await _post('/api/notifications/register-local/', notification.toJson());
     if (response.statusCode == 200 || response.statusCode == 201) {
-      final responseData = jsonDecode(response.body);
+      final responseData = response.data;
       return NotificationModel.fromJson(responseData);
     } else {
-      throw NotificationException('Failed to register local notification: ${response.body}');
+      throw NotificationException('Failed to register local notification: ${response.data}');
     }
   }
 
@@ -153,7 +124,7 @@ class NotificationRepository {
       queryParams: {'since_version': sinceVersion.toString()},
     );
     if (response.statusCode == 200) {
-      final responseData = jsonDecode(response.body);
+      final responseData = response.data;
       final List<dynamic> notifList = responseData['notifications'] ?? [];
       final List<NotificationModel> notifications = notifList
           .map((n) => NotificationModel.fromJson(n))
@@ -163,7 +134,7 @@ class NotificationRepository {
         'notifications': notifications,
       };
     } else {
-      throw NotificationException('Failed to sync notifications: ${response.body}');
+      throw NotificationException('Failed to sync notifications: ${response.data}');
     }
   }
 
@@ -175,9 +146,9 @@ class NotificationRepository {
       'origin_device_id': deviceId,
     });
     if (response.statusCode == 200) {
-      return jsonDecode(response.body);
+      return response.data;
     } else {
-      throw NotificationException('Failed to mark notifications as read: ${response.body}');
+      throw NotificationException('Failed to mark notifications as read: ${response.data}');
     }
   }
 
@@ -189,9 +160,9 @@ class NotificationRepository {
       'origin_device_id': deviceId,
     });
     if (response.statusCode == 200) {
-      return jsonDecode(response.body);
+      return response.data;
     } else {
-      throw NotificationException('Failed to mark notifications as dismissed: ${response.body}');
+      throw NotificationException('Failed to mark notifications as dismissed: ${response.data}');
     }
   }
 
@@ -199,10 +170,10 @@ class NotificationRepository {
   Future<int> getUnreadCount() async {
     final response = await _get('/api/notifications/unread-count/');
     if (response.statusCode == 200) {
-      final responseData = jsonDecode(response.body);
+      final responseData = response.data;
       return responseData['unread_count'] ?? 0;
     } else {
-      throw NotificationException('Failed to get unread count: ${response.body}');
+      throw NotificationException('Failed to get unread count: ${response.data}');
     }
   }
 }

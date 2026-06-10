@@ -1,6 +1,5 @@
 import 'dart:ui';
 
-import 'package:flutter/services.dart';
 import 'package:grocery_app/common_widgets/global_import.dart';
 
 /// Community card with press animation + shimmer effect.
@@ -28,10 +27,6 @@ class _AnimatedCommunityCardState extends State<AnimatedCommunityCard>
   late AnimationController _shimmerController;
   late Animation<double> _shimmerAnimation;
 
-  // Floating particles animation
-  late AnimationController _floatController;
-  late Animation<double> _floatAnimation;
-
   @override
   void initState() {
     super.initState();
@@ -44,21 +39,11 @@ class _AnimatedCommunityCardState extends State<AnimatedCommunityCard>
     _shimmerAnimation = Tween<double>(begin: -1.0, end: 2.0).animate(
       CurvedAnimation(parent: _shimmerController, curve: Curves.easeInOut),
     );
-
-    // Floating particles - slow gentle movement
-    _floatController = AnimationController(
-      duration: const Duration(milliseconds: 4000),
-      vsync: this,
-    )..repeat(reverse: true);
-    _floatAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _floatController, curve: Curves.easeInOutSine),
-    );
   }
 
   @override
   void dispose() {
     _shimmerController.dispose();
-    _floatController.dispose();
     super.dispose();
   }
 
@@ -80,8 +65,7 @@ class _AnimatedCommunityCardState extends State<AnimatedCommunityCard>
       onTapUp: (_) {
         setState(() => _isPressed = false);
         HapticFeedback.mediumImpact();
-        Navigator.push(
-          context,
+        Navigator.of(context, rootNavigator: true).push(
           AnimatedTransitions.fadeScale(
             CommunityDetailScreen(community: community),
           ),
@@ -185,76 +169,6 @@ class _AnimatedCommunityCardState extends State<AnimatedCommunityCard>
                   },
                 ),
 
-                // Floating Decorative Dots
-                AnimatedBuilder(
-                  animation: _floatAnimation,
-                  builder: (context, _) {
-                    final accentColor =
-                        isEvenCard ? AppColors.parchment : AppColors.parchment;
-                    return Stack(
-                      children: [
-                        // Dot 1 - top right
-                        Positioned(
-                          top: 50 + (_floatAnimation.value * 8),
-                          right: 25,
-                          child: Container(
-                            width: 6,
-                            height: 6,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: AppColors.parchment.withValues(alpha: 0.4),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: AppColors.parchment.withValues(alpha: 0.2),
-                                  blurRadius: 6,
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                        // Dot 2 - middle right
-                        Positioned(
-                          top: 90 + (_floatAnimation.value * -6),
-                          right: 40,
-                          child: Container(
-                            width: 4,
-                            height: 4,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: AppColors.parchment.withValues(alpha: 0.3),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: AppColors.parchment.withValues(alpha: 0.15),
-                                  blurRadius: 4,
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                        // Dot 3 - lower right
-                        Positioned(
-                          top: 130 + (_floatAnimation.value * 5),
-                          right: 20,
-                          child: Container(
-                            width: 5,
-                            height: 5,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: accentColor.withValues(alpha: 0.4),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: accentColor.withValues(alpha: 0.25),
-                                  blurRadius: 5,
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ],
-                    );
-                  },
-                ),
-
                 // Content
                 Padding(
                   padding: const EdgeInsets.all(AppColors.spacingL),
@@ -310,7 +224,7 @@ class _AnimatedCommunityCardState extends State<AnimatedCommunityCard>
                                     child: const Icon(
                                       Icons.auto_awesome,
                                       size: 12,
-                                      color: AppColors.parchment,
+                                      color: AppColors.harvestAmber,
                                     ),
                                   ),
                                   const SizedBox(width: 8),

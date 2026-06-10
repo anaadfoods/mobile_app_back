@@ -1,5 +1,6 @@
 // lib/models/favorite_model.dart
 
+import 'package:grocery_app/utils/app_logger.dart';
 import 'package:grocery_app/models/order_model.dart' show parseFlexibleDate;
 
 class FavoriteModel {
@@ -63,11 +64,11 @@ class FavoriteModel {
         createdAt: parseFlexibleDate(json['created_at']?.toString()),
       );
     } catch (e, stack) {
-      print('--- Error parsing FavoriteModel ---');
-      print('JSON: $json');
-      print('Error: $e');
-      print('Stack trace: $stack');
-      print('------------------------------------');
+      AppLogger.instance.log('--- Error parsing FavoriteModel ---');
+      AppLogger.instance.log('JSON: $json');
+      AppLogger.instance.log('Error: $e');
+      AppLogger.instance.log('Stack trace: $stack');
+      AppLogger.instance.log('------------------------------------');
       // Rethrowing the error helps in debugging during development.
       rethrow;
     }

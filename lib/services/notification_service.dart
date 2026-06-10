@@ -2,15 +2,17 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:grocery_app/common_widgets/global_import.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:http/http.dart' as http;
-import 'package:device_info_plus/device_info_plus.dart';
+import 'package:dio/dio.dart' as dio;
 import '../models/notification_model.dart';
 import 'notification_sync_manager.dart';
 
+import 'package:grocery_app/service_locator.dart';
+
 class NotificationService {
   static final NotificationService _instance = NotificationService._internal();
-  factory NotificationService() => _instance;
+  factory NotificationService() => getIt<NotificationService>();
   NotificationService._internal();
+  static NotificationService create() => NotificationService._internal();
 
   final FirebaseMessaging _firebaseMessaging = FirebaseMessaging.instance;
   final FlutterLocalNotificationsPlugin _localNotifications =
@@ -278,15 +280,17 @@ class NotificationService {
       if (token != null) {
         await _saveFCMToken(token);
         debugPrint('FCM Token: $token');
-        print('FCM Token: $token'); // Also print to console for easy access
+        AppLogger.instance.log(
+          'FCM Token: $token',
+        ); // Also print to console for easy access
       } else {
         debugPrint('Failed to get FCM token');
-        print('Failed to get FCM token');
+        AppLogger.instance.log('Failed to get FCM token');
       }
       return token;
     } catch (e) {
       debugPrint('Error getting FCM token: $e');
-      print('Error getting FCM token: $e');
+      AppLogger.instance.log('Error getting FCM token: $e');
       return null;
     }
   }
@@ -296,6 +300,61 @@ class NotificationService {
     // This method is kept as a placeholder for any additional setup.
     // Do NOT re-register onMessage / onMessageOpenedApp here to avoid
     // duplicate processing of every notification.
+  }
+
+  bool _shouldSuppressForegroundBanner(String title, String body, Map<String, dynamic> data) {
+    final titleLower = title.toLowerCase();
+    final bodyLower = body.toLowerCase();
+    final type = (data['type'] ?? '').toString().toLowerCase();
+    final action = (data['action'] ?? '').toString().toLowerCase();
+    final screen = (data['screen'] ?? '').toString().toLowerCase();
+
+    // 1. Order Creation
+    if (type == 'order' || action == 'view_order' || screen == 'order_tracking') {
+      if (titleLower.contains('placed') ||
+          titleLower.contains('created') ||
+          titleLower.contains('success') ||
+          bodyLower.contains('placed') ||
+          bodyLower.contains('created') ||
+          bodyLower.contains('success')) {
+        return true;
+      }
+    }
+
+    // 2. Subscription Creation
+    if (type == 'subscription' || action == 'view_subscription' || screen == 'subscription_detail') {
+      if (titleLower.contains('created') ||
+          titleLower.contains('success') ||
+          titleLower.contains('active') ||
+          titleLower.contains('activated') ||
+          bodyLower.contains('created') ||
+          bodyLower.contains('success') ||
+          bodyLower.contains('active') ||
+          bodyLower.contains('activated')) {
+        return true;
+      }
+    }
+
+    // 3. Profile Update
+    if (type == 'profile' || action == 'open_profile' || screen == 'profile') {
+      if (titleLower.contains('updated') ||
+          titleLower.contains('success') ||
+          titleLower.contains('change') ||
+          bodyLower.contains('updated') ||
+          bodyLower.contains('success') ||
+          bodyLower.contains('change')) {
+        return true;
+      }
+    }
+
+    // Fallback general substring check
+    if (titleLower.contains('order placed') ||
+        titleLower.contains('subscription created') ||
+        titleLower.contains('profile updated')) {
+      return true;
+    }
+
+    return false;
   }
 
   void _handleForegroundMessage(RemoteMessage message) {
@@ -310,11 +369,18 @@ class NotificationService {
 
     // Determine title and body from notification payload OR data payload.
     // This ensures data-only messages from the backend are also handled.
-    final String title = message.notification?.title ?? message.data['title'] ?? 'New Notification';
-    final String body = message.notification?.body ?? message.data['body'] ?? '';
+    final String title =
+        message.notification?.title ??
+        message.data['title'] ??
+        'New Notification';
+    final String body =
+        message.notification?.body ?? message.data['body'] ?? '';
 
     // Only skip truly empty messages (no notification AND no useful data)
-    if (message.notification == null && title == 'New Notification' && body.isEmpty && message.data.isEmpty) {
+    if (message.notification == null &&
+        title == 'New Notification' &&
+        body.isEmpty &&
+        message.data.isEmpty) {
       debugPrint('Skipping empty foreground message with no data');
       return;
     }
@@ -322,7 +388,10 @@ class NotificationService {
     // Save notification to local storage via sync manager
     try {
       final notif = NotificationModel(
-        id: message.data['id']?.toString() ?? message.messageId ?? DateTime.now().millisecondsSinceEpoch.toString(),
+        id:
+            message.data['id']?.toString() ??
+            message.messageId ??
+            DateTime.now().millisecondsSinceEpoch.toString(),
         title: title,
         body: body,
         type: message.data['type'] ?? 'general',
@@ -330,19 +399,29 @@ class NotificationService {
         source: 'SERVER',
         isRead: false,
         isDismissed: false,
-        syncVersion: int.tryParse(message.data['sync_version']?.toString() ?? '0') ?? 0,
+        syncVersion:
+            int.tryParse(message.data['sync_version']?.toString() ?? '0') ?? 0,
         timestamp: DateTime.now().millisecondsSinceEpoch,
-        image: message.data['image'] ?? message.data['image_url'] ?? message.notification?.android?.imageUrl ?? message.notification?.apple?.imageUrl,
+        image:
+            message.data['image'] ??
+            message.data['image_url'] ??
+            message.notification?.android?.imageUrl ??
+            message.notification?.apple?.imageUrl,
         priority: message.data['priority'] ?? 'medium',
         metadata: Map<String, dynamic>.from(message.data),
       );
-      NotificationSyncManager().saveServerPushNotification(notif);
+      getIt<NotificationSyncManager>().saveServerPushNotification(notif);
     } catch (e) {
       debugPrint('Error saving foreground notification: $e');
     }
 
-    // Show local notification (heads-up banner)
-    _showLocalNotification(message);
+    // Check if we should suppress the local notification banner
+    if (!_shouldSuppressForegroundBanner(title, body, message.data)) {
+      // Show local notification (heads-up banner)
+      _showLocalNotification(message);
+    } else {
+      debugPrint('Suppressing foreground banner for $title');
+    }
 
     // Add to stream for UI updates (badge, in-app list refresh)
     _onMessageReceivedController.add(message);
@@ -381,7 +460,10 @@ class NotificationService {
 
   Future<void> _showLocalNotification(RemoteMessage message) async {
     String channelId = _getChannelId(message.data);
-    String title = message.notification?.title ?? message.data['title'] ?? 'New Notification';
+    String title =
+        message.notification?.title ??
+        message.data['title'] ??
+        'New Notification';
     String body = message.notification?.body ?? message.data['body'] ?? '';
 
     // Get image URL from notification or data payload
@@ -396,12 +478,17 @@ class NotificationService {
 
     if (imageUrl != null && imageUrl.isNotEmpty) {
       try {
-        // Download image for BigPictureStyle notification
-        final response = await http.get(Uri.parse(imageUrl));
-        if (response.statusCode == 200) {
+        // Download image for BigPictureStyle notification using vanilla Dio
+        final dioClient = dio.Dio();
+        final response = await dioClient.get<List<int>>(
+          imageUrl,
+          options: dio.Options(responseType: dio.ResponseType.bytes),
+        );
+        if (response.statusCode == 200 && response.data != null) {
+          final bytes = Uint8List.fromList(response.data!);
           styleInformation = BigPictureStyleInformation(
-            ByteArrayAndroidBitmap(response.bodyBytes),
-            largeIcon: ByteArrayAndroidBitmap(response.bodyBytes),
+            ByteArrayAndroidBitmap(bytes),
+            largeIcon: ByteArrayAndroidBitmap(bytes),
             contentTitle: title,
             htmlFormatContentTitle: true,
             summaryText: body,
@@ -562,19 +649,24 @@ class NotificationService {
     }
 
     // Extract type and ID from metadata
-    final String? metadataType = metadata['type']?.toString() ?? metadata['screen']?.toString();
-    final String? metadataId = toStringId(metadata['id'] ??
-        metadata['order_id'] ??
-        metadata['product_id'] ??
-        metadata['subscription_id']);
+    final String? metadataType =
+        metadata['type']?.toString() ?? metadata['screen']?.toString();
+    final String? metadataId = toStringId(
+      metadata['id'] ??
+          metadata['order_id'] ??
+          metadata['product_id'] ??
+          metadata['subscription_id'],
+    );
 
-    final String? type = (metadataType != null && metadataType.isNotEmpty)
-        ? metadataType
-        : data['type'] as String?;
+    final String? type =
+        (metadataType != null && metadataType.isNotEmpty)
+            ? metadataType
+            : data['type'] as String?;
 
-    final String? genericId = (metadataId != null && metadataId.isNotEmpty)
-        ? metadataId
-        : toStringId(data['id']);
+    final String? genericId =
+        (metadataId != null && metadataId.isNotEmpty)
+            ? metadataId
+            : toStringId(data['id']);
 
     // Handle type-based routing (using 'type' field from backend)
     if (type != null && type.isNotEmpty) {
@@ -669,7 +761,8 @@ class NotificationService {
     String? type,
   }) async {
     String deviceId = await getDeviceId();
-    String localId = 'LOCAL_${deviceId}_${DateTime.now().millisecondsSinceEpoch}';
+    String localId =
+        'LOCAL_${deviceId}_${DateTime.now().millisecondsSinceEpoch}';
 
     // Parse metadata from payload if any
     Map<String, dynamic> metadataVal = {};
@@ -701,7 +794,7 @@ class NotificationService {
     );
 
     // Save and register local notification optimistically
-    await NotificationSyncManager().registerLocalNotification(model);
+    await getIt<NotificationSyncManager>().registerLocalNotification(model);
 
     String channelId = _getChannelId({'type': type ?? model.type});
 
@@ -783,17 +876,14 @@ class NotificationService {
       '${ApiConfig.baseUrl}/api/notifications/register-token/',
     );
     try {
-      final response = await http.post(
-        url,
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $bearerToken',
-        },
-        body: jsonEncode({
+      final response = await ApiClient.instance.post(
+        '/api/notifications/register-token/',
+        options: dio.Options(headers: {'Authorization': 'Bearer $bearerToken'}),
+        data: {
           'token': fcmToken.toString(),
           'device_id': deviceID.toString(),
           'platform': platform.toString(),
-        }),
+        },
       );
       if (response.statusCode == 200) {
         debugPrint('FCM token registered successfully with backend');
@@ -810,18 +900,12 @@ class NotificationService {
     String fcmToken,
     String bearerToken,
   ) async {
-    final url = Uri.parse(
-      '${ApiConfig.baseUrl}/api/notifications/logout-device/',
-    );
     try {
       String deviceID = await getDeviceId();
-      final response = await http.post(
-        url,
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $bearerToken',
-        },
-        body: jsonEncode({'token': fcmToken.toString(), 'device_id': deviceID}),
+      final response = await ApiClient.instance.post(
+        '/api/notifications/logout-device/',
+        options: dio.Options(headers: {'Authorization': 'Bearer $bearerToken'}),
+        data: {'token': fcmToken.toString(), 'device_id': deviceID},
       );
       if (response.statusCode == 200) {
         debugPrint('FCM token removed successfully from backend');
@@ -847,21 +931,32 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   // Parse and save notification via sync manager format
   try {
     final notif = NotificationModel(
-      id: message.data['id']?.toString() ?? message.messageId ?? DateTime.now().millisecondsSinceEpoch.toString(),
-      title: message.notification?.title ?? message.data['title'] ?? 'New Notification',
+      id:
+          message.data['id']?.toString() ??
+          message.messageId ??
+          DateTime.now().millisecondsSinceEpoch.toString(),
+      title:
+          message.notification?.title ??
+          message.data['title'] ??
+          'New Notification',
       body: message.notification?.body ?? message.data['body'] ?? '',
       type: message.data['type'] ?? 'general',
       action: message.data['action'],
       source: 'SERVER',
       isRead: false,
       isDismissed: false,
-      syncVersion: int.tryParse(message.data['sync_version']?.toString() ?? '0') ?? 0,
+      syncVersion:
+          int.tryParse(message.data['sync_version']?.toString() ?? '0') ?? 0,
       timestamp: DateTime.now().millisecondsSinceEpoch,
-      image: message.data['image'] ?? message.data['image_url'] ?? message.notification?.android?.imageUrl ?? message.notification?.apple?.imageUrl,
+      image:
+          message.data['image'] ??
+          message.data['image_url'] ??
+          message.notification?.android?.imageUrl ??
+          message.notification?.apple?.imageUrl,
       priority: message.data['priority'] ?? 'medium',
       metadata: Map<String, dynamic>.from(message.data),
     );
-    await NotificationSyncManager().saveServerPushNotification(notif);
+    await getIt<NotificationSyncManager>().saveServerPushNotification(notif);
   } catch (e) {
     debugPrint('Error saving background notification: $e');
   }

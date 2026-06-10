@@ -2,7 +2,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:grocery_app/core/theme/app_colors.dart';
-import 'package:grocery_app/services/auth_service.dart';
+import 'package:grocery_app/services/token_service.dart';
+import 'package:grocery_app/service_locator.dart';
 import 'package:grocery_app/services/product_service.dart';
 import 'package:grocery_app/models/product_model.dart';
 import 'package:grocery_app/models/user_model.dart';
@@ -90,7 +91,7 @@ class AppRouter {
 
     // Auth Guard Implementation
     redirect: (BuildContext context, GoRouterState state) async {
-      final bool isLoggedIn = await AuthService().isLoggedIn();
+      final bool isLoggedIn = await getIt<TokenService>().isLoggedIn();
 
       final String path = state.uri.path;
 
@@ -127,7 +128,7 @@ class AppRouter {
       return null;
     },
 
-    refreshListenable: _GoRouterRefreshStream(AuthService.authStateChanges),
+    refreshListenable: _GoRouterRefreshStream(TokenService.authStateChanges),
 
     routes: <RouteBase>[
       // --- Auth Routes (Full Screen) ---
@@ -283,9 +284,21 @@ class AppRouter {
         name: AppRoute.editProfile.name,
         parentNavigatorKey: _rootNavigatorKey,
         builder: (context, state) {
+          UserModel? userProfile;
+          final extra = state.extra;
+          if (extra is UserModel) {
+            userProfile = extra;
+          } else if (extra is Map<String, dynamic>) {
+            try {
+              userProfile = UserModel.fromJson(extra);
+            } catch (_) {
+              userProfile = null;
+            }
+          }
+          userProfile ??= getIt<TokenService>().currentUser;
           return EditProfileScreen(
             userProfile:
-                (state.extra as UserModel?) ??
+                userProfile ??
                 UserModel(
                   email: '',
                   username: '',
@@ -385,7 +398,8 @@ class AppRouter {
         name: AppRoute.featuredProducts.name,
         parentNavigatorKey: _rootNavigatorKey,
         builder: (context, state) {
-          final products = state.extra as List<Product>? ?? [];
+          final extraList = state.extra as List?;
+          final products = extraList?.map((e) => e as Product).toList() ?? [];
           return FeaturedProductsScreen(products: products);
         },
       ),
@@ -395,9 +409,10 @@ class AppRouter {
         parentNavigatorKey: _rootNavigatorKey,
         builder: (context, state) {
           final extra = state.extra as Map<String, dynamic>? ?? {};
+          final productsList = extra['products'] as List?;
           return CategoryItemsScreen(
             name: extra['name'] as String? ?? '',
-            allProducts: extra['products'] as List<Product>? ?? [],
+            allProducts: productsList?.map((e) => e as Product).toList() ?? [],
           );
         },
       ),

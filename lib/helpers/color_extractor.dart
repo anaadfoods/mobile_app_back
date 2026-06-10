@@ -1,5 +1,4 @@
 import 'package:grocery_app/core/theme/app_colors.dart';
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:palette_generator/palette_generator.dart';
 

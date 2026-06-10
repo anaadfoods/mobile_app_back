@@ -16,6 +16,8 @@ class _EditProfileScreenState extends State<EditProfileScreen>
   final _imagePicker = ImagePicker();
   bool _isLoading = false;
   File? _selectedImage;
+  String? _phoneError;
+  bool _isUpdatingPhone = false;
   late final TextEditingController _firstNameController;
   late final TextEditingController _lastNameController;
   late final TextEditingController _usernameController;
@@ -46,7 +48,7 @@ class _EditProfileScreenState extends State<EditProfileScreen>
   /// Listen for address updates from other parts of the app
   void _listenToAddressChanges() {
     // Listen to the stream for backwards compatibility
-    _addressSubscription = AuthService.addressChanges.listen((user) {
+    _addressSubscription = ProfileService.addressChanges.listen((user) {
       _updateAddressFields(user);
     });
   }
@@ -65,8 +67,8 @@ class _EditProfileScreenState extends State<EditProfileScreen>
   }
 
   void _initTextControllers() {
-    // Prefer the latest user data from AuthService (in case address was updated)
-    final user = AuthService().currentUser ?? widget.userProfile;
+    // Prefer the latest user data from the registered token service.
+    final user = getIt<TokenService>().currentUser ?? widget.userProfile;
 
     _firstNameController = TextEditingController(text: user.firstName ?? "");
     _lastNameController = TextEditingController(text: user.lastName ?? "");
@@ -293,6 +295,47 @@ class _EditProfileScreenState extends State<EditProfileScreen>
     }
   }
 
+  Future<void> _handlePhoneChange(String value) async {
+    if (value.length == 10) {
+      final currentUser = getIt<TokenService>().currentUser ?? widget.userProfile;
+      if (value == currentUser.phoneNumber) {
+        setState(() {
+          _phoneError = null;
+        });
+        return;
+      }
+
+      setState(() {
+        _phoneError = null;
+        _isUpdatingPhone = true;
+      });
+      try {
+        final updatedProfile = currentUser.copyWith(phoneNumber: value);
+        await context.read<AuthCubit>().updateUserProfile(
+              updatedData: updatedProfile,
+            );
+        
+        final state = context.read<AuthCubit>().state;
+        if (state is AuthError) {
+          if (mounted) setState(() => _phoneError = state.message);
+        } else {
+          if (mounted) {
+            SnackBarHelper.showSuccess(context, 'Phone number updated successfully');
+            FocusScope.of(context).unfocus();
+          }
+        }
+      } catch (e) {
+        if (mounted) setState(() => _phoneError = 'Failed to update phone number');
+      } finally {
+        if (mounted) setState(() => _isUpdatingPhone = false);
+      }
+    } else if (value.isNotEmpty && value.length != 10) {
+      setState(() => _phoneError = 'Phone number must be 10 digits');
+    } else {
+      setState(() => _phoneError = null);
+    }
+  }
+
   Future<void> _updateProfile() async {
     _triggerHaptic();
     setState(() => _isLoading = true);
@@ -429,13 +472,85 @@ class _EditProfileScreenState extends State<EditProfileScreen>
                                 accentColor: theme.colorScheme.primary,
                                 readOnly: true,
                               ),
-                              _buildModernTextField(
-                                theme: theme,
-                                label: 'Phone Number',
-                                controller: _phoneController,
-                                accentColor: theme.colorScheme.primary,
-                                readOnly: true,
-                                isLast: true,
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    children: [
+                                      Text(
+                                        'Phone Number',
+                                        style: TextStyle(
+                                          fontSize: 13,
+                                          fontWeight: FontWeight.w600,
+                                          color: theme.textTheme.bodyMedium?.color?.withAlpha(180),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 8),
+                                  TextFormField(
+                                    controller: _phoneController,
+                                    keyboardType: TextInputType.phone,
+                                    inputFormatters: [
+                                      FilteringTextInputFormatter.digitsOnly,
+                                      LengthLimitingTextInputFormatter(10),
+                                    ],
+                                    onChanged: _handlePhoneChange,
+                                    onTap: _triggerHaptic,
+                                    style: TextStyle(
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.w500,
+                                      color: theme.textTheme.bodyLarge?.color,
+                                    ),
+                                    decoration: InputDecoration(
+                                      filled: true,
+                                      fillColor: theme.brightness == Brightness.dark
+                                          ? AppColors.parchment.withAlpha(5)
+                                          : AppColors.parchment,
+                                      contentPadding: const EdgeInsets.symmetric(
+                                        horizontal: 16,
+                                        vertical: 14,
+                                      ),
+                                      border: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(12),
+                                        borderSide: BorderSide(color: theme.dividerColor.withAlpha(60)),
+                                      ),
+                                      enabledBorder: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(12),
+                                        borderSide: BorderSide(color: theme.dividerColor.withAlpha(60)),
+                                      ),
+                                      focusedBorder: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(12),
+                                        borderSide: BorderSide(color: theme.colorScheme.primary, width: 1.5),
+                                      ),
+                                      suffixIcon: _isUpdatingPhone
+                                          ? const Padding(
+                                              padding: EdgeInsets.all(12),
+                                              child: SizedBox(
+                                                width: 16,
+                                                height: 16,
+                                                child: CircularProgressIndicator(
+                                                  strokeWidth: 2,
+                                                  valueColor: AlwaysStoppedAnimation<Color>(AppColors.harvestAmber),
+                                                ),
+                                              ),
+                                            )
+                                          : null,
+                                      counterText: '',
+                                    ),
+                                  ),
+                                  if (_phoneError != null) ...[
+                                    const SizedBox(height: 6),
+                                    Text(
+                                      _phoneError!,
+                                      style: const TextStyle(
+                                        color: Colors.redAccent,
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                  ],
+                                ],
                               ),
                             ],
                           ),
@@ -552,9 +667,7 @@ class _EditProfileScreenState extends State<EditProfileScreen>
                         ).copyWith(cardColor: Theme.of(context).cardColor),
                         child: PopupMenuButton<String>(
                           onSelected: (value) {
-                            if (value == 'logout') {
-                              _showLogoutDialog(Theme.of(context), context);
-                            } else if (value == 'deactivate') {
+                            if (value == 'deactivate') {
                               _showDeactivationDialog();
                             }
                           },
@@ -569,25 +682,6 @@ class _EditProfileScreenState extends State<EditProfileScreen>
                           ),
                           itemBuilder:
                               (context) => [
-                                PopupMenuItem(
-                                  value: 'logout',
-                                  child: Row(
-                                    children: [
-                                      Icon(
-                                        Icons.logout_rounded,
-                                        color: AppColors.rawEarth,
-                                        size: 20,
-                                      ),
-                                      SizedBox(width: 12),
-                                      Text(
-                                        'Log Out',
-                                        style: TextStyle(
-                                          color: AppColors.rawEarth,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
                                 PopupMenuItem(
                                   value: 'deactivate',
                                   child: Row(
@@ -1299,93 +1393,7 @@ class _EditProfileScreenState extends State<EditProfileScreen>
     );
   }
 
-  // ==================== LOGOUT Logic ====================
-  void _handleLogout(BuildContext context) {
-    HapticFeedback.mediumImpact();
-    context.read<AuthCubit>().logout();
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => LoginScreen()),
-    );
-  }
 
-  void _showLogoutDialog(ThemeData theme, BuildContext context) {
-    _triggerHaptic();
-    showGeneralDialog(
-      context: context,
-      barrierDismissible: true,
-      barrierLabel: 'Logout Dialog',
-      barrierColor: AppColors.charcoal54,
-      transitionDuration: const Duration(milliseconds: 300),
-      pageBuilder: (context, anim1, anim2) => Container(),
-      transitionBuilder: (dialogContext, anim1, anim2, child) {
-        return ScaleTransition(
-          scale: CurvedAnimation(parent: anim1, curve: Curves.easeOutBack),
-          child: FadeTransition(
-            opacity: anim1,
-            child: AlertDialog(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(20),
-              ),
-              title: Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: AppColors.rawEarth.withAlpha(25),
-                      shape: BoxShape.circle,
-                    ),
-                    child: Icon(
-                      Icons.logout_rounded,
-                      color: AppColors.rawEarth,
-                      size: 24,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  const Text('Log Out'),
-                ],
-              ),
-              content: const Text(
-                'Are you sure you want to log out? You\'ll need to sign in again to access your account.',
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () {
-                    _triggerHaptic();
-                    Navigator.pop(dialogContext);
-                  },
-                  child: Text(
-                    'Cancel',
-                    style: TextStyle(
-                      color: theme.textTheme.bodyMedium?.color?.withAlpha(178),
-                    ),
-                  ),
-                ),
-                ElevatedButton(
-                  onPressed: () {
-                    Navigator.pop(dialogContext);
-                    _handleLogout(context);
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.rawEarth,
-                    foregroundColor: AppColors.parchment,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 20,
-                      vertical: 10,
-                    ),
-                  ),
-                  child: const Text('Log Out'),
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
 
   // ==================== DEACTIVATE Logic ====================
   void _showDeactivationDialog() {

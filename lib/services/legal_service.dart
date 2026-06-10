@@ -1,21 +1,21 @@
-import 'package:http/http.dart' as http;
-import 'dart:convert';
 import '../models/legal_document_model.dart';
 import 'api_config.dart';
+import 'api_client.dart';
+
+import 'package:grocery_app/service_locator.dart';
 
 /// Service for fetching legal documents (Terms & Conditions, Privacy Policy)
 class LegalService {
+  factory LegalService() => getIt<LegalService>();
+  LegalService.create();
   /// Fetches latest legal documents from the API
   /// This endpoint does not require authentication
   Future<List<LegalDocument>> fetchLegalDocuments() async {
     try {
-      final response = await http.get(
-        Uri.parse('${ApiConfig.baseUrl}${ApiConfig.legalEndpoint}'),
-        headers: ApiConfig.getBaseHeaders(),
-      );
+      final response = await ApiClient.instance.get(ApiConfig.legalEndpoint);
 
       if (response.statusCode == 200) {
-        final List<dynamic> jsonList = json.decode(response.body);
+        final List<dynamic> jsonList = response.data;
         return jsonList.map((json) => LegalDocument.fromJson(json)).toList();
       } else {
         throw Exception(

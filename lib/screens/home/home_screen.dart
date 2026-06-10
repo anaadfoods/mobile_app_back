@@ -1,8 +1,6 @@
 import "dart:math" as math;
 import "dart:ui" as ui;
-import "dart:ui";
 
-import "package:go_router/go_router.dart";
 import "package:grocery_app/common_widgets/global_import.dart";
 import "package:grocery_app/routes/app_routes.dart";
 import "package:grocery_app/common_widgets/subscription_table.dart";
@@ -13,8 +11,6 @@ import "package:grocery_app/screens/home/home_search_dropdown.dart";
 import "package:grocery_app/screens/home/home_category_showcase.dart";
 import "package:grocery_app/screens/home/home_communities_section.dart";
 import "package:grocery_app/screens/home/all_products_list.dart";
-import 'package:grocery_app/screens/innovations/panchang/panchang_home_screen.dart';
-import 'package:grocery_app/screens/innovations/solar_system_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -133,7 +129,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     _debounce = Timer(const Duration(milliseconds: 400), () async {
       setState(() => _isSearching = true);
       try {
-        List<Product> results = await CategoryService().searchProducts(query);
+        List<Product> results = await getIt<CategoryService>().searchProducts(
+          query,
+        );
         setState(() => _searchResults = results);
       } catch (e) {
         debugPrint("Search error: $e");
@@ -616,9 +614,12 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                           vertical: AppColors.spacingXS,
                         ),
                         decoration: BoxDecoration(
-                          color: theme.colorScheme.primary.withValues(
-                            alpha: 0.1,
-                          ),
+                          color:
+                              isDark
+                                  ? AppColors.darkSoftGold
+                                  : theme.colorScheme.primary.withValues(
+                                    alpha: 0.1,
+                                  ),
                           borderRadius: BorderRadius.circular(
                             AppColors.radiusRound,
                           ),
@@ -639,12 +640,27 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                     ),
                                   ),
                                 )
-                                : Text(
-                                  'See All →',
-                                  style: theme.textTheme.labelMedium?.copyWith(
-                                    color: theme.colorScheme.primary,
-                                    fontWeight: FontWeight.w600,
-                                  ),
+                                : Row(
+                                  children: [
+                                    Text(
+                                      "See All",
+                                      style: TextStyle(
+                                        color:
+                                            isDark
+                                                ? AppColors.deepSoilGreen
+                                                : AppColors.pureBlack,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 4),
+                                    Icon(
+                                      Icons.arrow_forward,
+                                      color:
+                                          isDark
+                                              ? AppColors.deepSoilGreen
+                                              : AppColors.pureBlack,
+                                      size: 16,
+                                    ),
+                                  ],
                                 ),
                       ),
                     ),
@@ -653,7 +669,10 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
               ),
               // Horizontal scrolling featured products
               SizedBox(
-                height: 290,
+                height: (MediaQuery.sizeOf(context).width * 0.75).clamp(
+                  260.0,
+                  320.0,
+                ),
                 child: ListView.builder(
                   scrollDirection: Axis.horizontal,
                   addAutomaticKeepAlives: false,
@@ -695,6 +714,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     VoidCallback? onPressed,
   ) {
     final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
     return Padding(
       padding: const EdgeInsets.fromLTRB(
         AppColors.spacingL,
@@ -720,13 +740,16 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                   vertical: AppColors.spacingXS,
                 ),
                 decoration: BoxDecoration(
-                  color: theme.colorScheme.primary.withValues(alpha: 0.1),
+                  color:
+                      isDark
+                          ? AppColors.harvestAmber
+                          : theme.colorScheme.primary.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(AppColors.radiusRound),
                 ),
                 child: Text(
                   all,
                   style: theme.textTheme.labelMedium?.copyWith(
-                    color: theme.colorScheme.primary,
+                    color: isDark ? Colors.green : theme.colorScheme.primary,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -1753,14 +1776,14 @@ class _RealisticPopupPainter extends CustomPainter {
 
     // ── Star field (multi-layer for depth) ───────────────────
     // -- Star field (multi-layer for depth) - uses pre-computed data ---------
-    final _sw = size.width;
-    final _sh = size.height;
+    final sw = size.width;
+    final sh = size.height;
     // Layer 1: Dense tiny stars
     for (final s in _popupStarData.layer1) {
       final twinkle =
           s.twinkles ? (0.5 + 0.5 * math.sin(t * s.freq + s.phase)) : 1.0;
       canvas.drawCircle(
-        Offset(s.xf * _sw, s.yf * _sh),
+        Offset(s.xf * sw, s.yf * sh),
         s.r,
         Paint()
           ..color = s.tint.withOpacity((s.baseOp * twinkle).clamp(0.03, 0.50)),
@@ -1772,14 +1795,14 @@ class _RealisticPopupPainter extends CustomPainter {
       final twinkle = 0.5 + 0.5 * math.sin(t * s.freq + s.phase);
       final op = (s.baseOp * twinkle).clamp(0.05, 0.70);
       canvas.drawCircle(
-        Offset(s.xf * _sw, s.yf * _sh),
+        Offset(s.xf * sw, s.yf * sh),
         s.r * 2.5,
         Paint()
           ..color = s.tint.withOpacity(op * 0.12)
           ..maskFilter = MaskFilter.blur(BlurStyle.normal, s.r * 2),
       );
       canvas.drawCircle(
-        Offset(s.xf * _sw, s.yf * _sh),
+        Offset(s.xf * sw, s.yf * sh),
         s.r,
         Paint()..color = s.tint.withOpacity(op),
       );
@@ -1789,7 +1812,7 @@ class _RealisticPopupPainter extends CustomPainter {
     for (final s in _popupStarData.layer3) {
       final twinkle = 0.4 + 0.6 * math.sin(t * s.freq + s.phase);
       final op = (s.baseOp * twinkle).clamp(0.08, 0.85);
-      final pos = Offset(s.xf * _sw, s.yf * _sh);
+      final pos = Offset(s.xf * sw, s.yf * sh);
       canvas.drawCircle(
         pos,
         s.r * 3.5,

@@ -1,4 +1,3 @@
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:grocery_app/common_widgets/global_import.dart';
 import 'package:grocery_app/screens/home/home_community_card.dart';
 
@@ -76,7 +75,9 @@ class HomeCategoryCard extends StatelessWidget {
                     Container(
                       padding: const EdgeInsets.all(4),
                       decoration: BoxDecoration(
-                        color: theme.colorScheme.primary.withValues(alpha: 0.9),
+                        color: theme.colorScheme.primary.withValues(
+                          alpha: 0.9,
+                        ),
                         borderRadius: BorderRadius.circular(6),
                       ),
                       child: Icon(icon, color: AppColors.parchment, size: 14),
@@ -90,7 +91,6 @@ class HomeCategoryCard extends StatelessWidget {
                           style: theme.textTheme.bodySmall?.copyWith(
                             color: AppColors.parchment,
                             fontWeight: FontWeight.bold,
-                            fontSize: 11,
                             shadows: [
                               Shadow(
                                 color: AppColors.charcoal.withValues(
@@ -108,7 +108,6 @@ class HomeCategoryCard extends StatelessWidget {
                           subtitle,
                           style: theme.textTheme.labelSmall?.copyWith(
                             color: AppColors.parchment.withValues(alpha: 0.9),
-                            fontSize: 9,
                             fontWeight: FontWeight.w500,
                             shadows: [
                               Shadow(

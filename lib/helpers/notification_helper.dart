@@ -1,12 +1,15 @@
+import 'package:grocery_app/utils/app_logger.dart';
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../services/notification_service.dart';
 import '../models/notification_model.dart';
 import '../services/notification_sync_manager.dart';
+import 'package:grocery_app/service_locator.dart';
 
 class NotificationHelper {
-  static final NotificationService _notificationService = NotificationService();
+  static late final NotificationService _notificationService =
+      getIt<NotificationService>();
 
   /// Initialize notification helper
   static Future<void> initialize() async {
@@ -27,11 +30,11 @@ class NotificationHelper {
   static Future<void> printFCMToken() async {
     String? token = await getFCMToken();
     if (token != null) {
-      print('=== FCM TOKEN ===');
-      print(token);
-      print('=================');
+      AppLogger.instance.log('=== FCM TOKEN ===');
+      AppLogger.instance.log(token);
+      AppLogger.instance.log('=================');
     } else {
-      print('Failed to get FCM token');
+      AppLogger.instance.log('Failed to get FCM token');
     }
   }
 
@@ -79,7 +82,7 @@ class NotificationHelper {
 
       // Delegate normal notifications to NotificationSyncManager to prevent duplicate serialization
       final model = NotificationModel.fromJson(notification);
-      await NotificationSyncManager().saveServerPushNotification(model);
+      await getIt<NotificationSyncManager>().saveServerPushNotification(model);
       debugPrint('Notification saved successfully via SyncManager');
     } catch (e) {
       debugPrint('Error saving notification: $e');

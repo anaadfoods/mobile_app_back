@@ -1,4 +1,3 @@
-import 'dart:ui';
 import 'package:collection/collection.dart';
 import 'package:grocery_app/common_widgets/global_import.dart';
 import 'package:grocery_app/utils/subscription_navigation_helper.dart';
@@ -94,29 +93,35 @@ class _GroceryItemCardWidgetState extends State<GroceryItemCardWidget> {
                 Row(
                   children: [
                     // Product Image Container
-                    Container(
-                      margin: const EdgeInsets.all(AppColors.spacingS),
-                      width: 100,
-                      height: 100,
-                      decoration: BoxDecoration(
-                        color:
-                            isDark ? AppColors.darkCanvas : AppColors.parchment,
-                        borderRadius: BorderRadius.circular(AppColors.radiusM),
-                        border: Border.all(
-                          color:
-                              isDark
-                                  ? AppColors.parchment.withValues(alpha: 0.05)
-                                  : AppColors.parchment,
-                          width: 1,
-                        ),
-                      ),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(AppColors.radiusM),
-                        child: Hero(
-                          tag: '${widget.item.id}-${widget.heroSuffix ?? ''}',
-                          child: _buildImageWidget(theme),
-                        ),
-                      ),
+                    Builder(
+                      builder: (context) {
+                        final screenWidth = MediaQuery.sizeOf(context).width;
+                        final size = (screenWidth * 0.28).clamp(80.0, 120.0);
+                        return Container(
+                          margin: const EdgeInsets.all(AppColors.spacingS),
+                          width: size,
+                          height: size,
+                          decoration: BoxDecoration(
+                            color:
+                                isDark ? AppColors.darkCanvas : AppColors.parchment,
+                            borderRadius: BorderRadius.circular(AppColors.radiusM),
+                            border: Border.all(
+                              color:
+                                  isDark
+                                      ? AppColors.parchment.withValues(alpha: 0.05)
+                                      : AppColors.parchment,
+                              width: 1,
+                            ),
+                          ),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(AppColors.radiusM),
+                            child: Hero(
+                              tag: '${widget.item.id}-${widget.heroSuffix ?? ''}',
+                              child: _buildImageWidget(theme),
+                            ),
+                          ),
+                        );
+                      },
                     ),
                     // Product Details
                     Expanded(
@@ -193,8 +198,8 @@ class _GroceryItemCardWidgetState extends State<GroceryItemCardWidget> {
                   Positioned.fill(
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(AppColors.radiusL),
-                      child: BackdropFilter(
-                        filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+                      child: ColoredBox(
+                        color: isDark ? Colors.black.withValues(alpha: 0.72) : Colors.white.withValues(alpha: 0.72),
                         child: const ComingSoonOverlay(),
                       ),
                     ),
@@ -203,8 +208,8 @@ class _GroceryItemCardWidgetState extends State<GroceryItemCardWidget> {
                   Positioned.fill(
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(AppColors.radiusL),
-                      child: BackdropFilter(
-                        filter: ImageFilter.blur(sigmaX: 4, sigmaY: 4),
+                      child: ColoredBox(
+                        color: isDark ? Colors.black.withValues(alpha: 0.72) : Colors.white.withValues(alpha: 0.72),
                         child: const OutOfStockOverlay(),
                       ),
                     ),

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:grocery_app/models/product_model.dart'; // Ensure you have this import
 import 'package:grocery_app/models/cart_model.dart';
@@ -7,6 +8,7 @@ import 'package:grocery_app/cubits/cart/cart_state.dart';
 
 class CartCubit extends Cubit<CartState> {
   final CartRepository _repo;
+  final Map<int, Timer> _debouncers = {};
 
   CartCubit(this._repo) : super(const CartInitial());
 
@@ -88,6 +90,9 @@ class CartCubit extends Cubit<CartState> {
       return;
     }
 
+    final id = variantId ?? product?.id;
+    if (id == null) return;
+
     // 1. Create the optimistic (fake) state immediately
     final optimisticCart = _createOptimisticCart(
       currentState.cart,
@@ -100,15 +105,22 @@ class CartCubit extends Cubit<CartState> {
       CartSuccess(optimisticCart, message: '', error: ''),
     ); // Emit the optimistic state to the UI
 
-    // 2. Perform the actual network call
-    try {
-      final realCart = await operation();
-      // 3. On success, emit the true state from the server
-      emit(CartSuccess(realCart, message: successMessage, error: ''));
-    } on CartException catch (e) {
-      // 4. On failure, roll back to the previous state and show an error
-      emit(CartSuccess(currentState.cart, error: e.message));
-    }
+    // 2. Debounce the actual network call
+    _debouncers[id]?.cancel();
+    _debouncers[id] = Timer(const Duration(milliseconds: 500), () async {
+      try {
+        final realCart = await operation();
+        // 3. On success, emit the true state from the server
+        if (!isClosed) {
+          emit(CartSuccess(realCart, message: successMessage, error: ''));
+        }
+      } on CartException catch (e) {
+        // 4. On failure, roll back to the previous state and show an error
+        if (!isClosed) {
+          emit(CartSuccess(currentState.cart, error: e.message));
+        }
+      }
+    });
   }
 
   /// Creates a temporary local CartModel for the optimistic update.
@@ -164,5 +176,13 @@ class CartCubit extends Cubit<CartState> {
       totalPrice: newTotalPrice.toString(),
       totalItems: newTotalItems,
     );
+  }
+
+  @override
+  Future<void> close() {
+    for (final timer in _debouncers.values) {
+      timer.cancel();
+    }
+    return super.close();
   }
 }

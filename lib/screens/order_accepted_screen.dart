@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'package:grocery_app/common_widgets/global_import.dart';
 
 class OrderAcceptedScreen extends StatefulWidget {

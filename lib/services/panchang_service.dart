@@ -1,8 +1,7 @@
-import 'dart:convert';
-
+import 'package:dio/dio.dart';
 import 'package:grocery_app/services/api_config.dart';
 import 'package:grocery_app/services/api_exception.dart';
-import 'package:http/http.dart' as http;
+import 'package:grocery_app/services/api_client.dart';
 
 import '../models/panchang/panchang_day_models.dart';
 import '../models/panchang/panchang_month_models.dart';
@@ -12,14 +11,17 @@ import '../models/panchang/panchang_muhurats_models.dart';
 import '../models/panchang/panchang_vrat_models.dart';
 import '../models/panchang/panchang_guidance_models.dart';
 
+
+
+import 'package:grocery_app/service_locator.dart';
 void logApi(String message) {
   // Logging removed
 }
-
 class PanchangService {
   static final PanchangService _instance = PanchangService._internal();
-  factory PanchangService() => _instance;
+  factory PanchangService() => getIt<PanchangService>();
   PanchangService._internal();
+  static PanchangService create() => PanchangService._internal();
 
   Future<PanchangDayResponse> getDay({
     required String token,
@@ -31,7 +33,7 @@ class PanchangService {
     double? lat,
     double? lon,
   }) async {
-    final uri = _buildUri(ApiConfig.panchangDayEndpoint, {
+    final Map<String, dynamic> queryParams = {
       if (date != null) 'date': date,
       'tz': tz,
       'locale': locale,
@@ -39,27 +41,27 @@ class PanchangService {
       'profile': profile,
       if (lat != null) 'lat': lat.toString(),
       if (lon != null) 'lon': lon.toString(),
-    });
+    };
 
-    logApi('Panchang requesting: $uri');
-
-    final response = await http
-        .get(uri, headers: ApiConfig.getAuthHeaders(token))
-        .timeout(const Duration(seconds: 20));
-
-    logApi(
-      'Panchang GET $uri -> ${response.statusCode}\nResponse body: ${response.body}',
+    final response = await ApiClient.instance.get(
+      ApiConfig.panchangDayEndpoint,
+      queryParameters: queryParams,
+      options: Options(
+        headers: ApiConfig.getAuthHeaders(token),
+        sendTimeout: const Duration(seconds: 20),
+        receiveTimeout: const Duration(seconds: 20),
+      ),
     );
 
-    if (response.statusCode >= 200 && response.statusCode < 300) {
-      final body = jsonDecode(response.body);
+    if (response.statusCode != null && response.statusCode! >= 200 && response.statusCode! < 300) {
+      final body = response.data;
       if (body is Map<String, dynamic>) {
         return PanchangDayResponse.fromJson(body);
       }
-      throw ApiException('Unexpected response format', response.statusCode);
+      throw ApiException('Unexpected response format', response.statusCode ?? 500);
     }
 
-    throw ApiException.fromStatusCode(response.statusCode, response.body);
+    throw ApiException.fromStatusCode(response.statusCode ?? 500, response.data?.toString() ?? '');
   }
 
   Future<PanchangMonthResponse> getMonth({
@@ -73,7 +75,7 @@ class PanchangService {
     double? lat,
     double? lon,
   }) async {
-    final uri = _buildUri(ApiConfig.panchangMonthEndpoint, {
+    final Map<String, dynamic> queryParams = {
       'year': year.toString(),
       'month': month.toString(),
       'tz': tz,
@@ -82,27 +84,27 @@ class PanchangService {
       'profile': profile,
       if (lat != null) 'lat': lat.toString(),
       if (lon != null) 'lon': lon.toString(),
-    });
+    };
 
-    logApi('Panchang requesting: $uri');
-
-    final response = await http
-        .get(uri, headers: ApiConfig.getAuthHeaders(token))
-        .timeout(const Duration(seconds: 20));
-
-    logApi(
-      'Panchang GET $uri -> ${response.statusCode}\nResponse body: ${response.body}',
+    final response = await ApiClient.instance.get(
+      ApiConfig.panchangMonthEndpoint,
+      queryParameters: queryParams,
+      options: Options(
+        headers: ApiConfig.getAuthHeaders(token),
+        sendTimeout: const Duration(seconds: 20),
+        receiveTimeout: const Duration(seconds: 20),
+      ),
     );
 
-    if (response.statusCode >= 200 && response.statusCode < 300) {
-      final body = jsonDecode(response.body);
+    if (response.statusCode != null && response.statusCode! >= 200 && response.statusCode! < 300) {
+      final body = response.data;
       if (body is Map<String, dynamic>) {
         return PanchangMonthResponse.fromJson(body);
       }
-      throw ApiException('Unexpected response format', response.statusCode);
+      throw ApiException('Unexpected response format', response.statusCode ?? 500);
     }
 
-    throw ApiException.fromStatusCode(response.statusCode, response.body);
+    throw ApiException.fromStatusCode(response.statusCode ?? 500, response.data?.toString() ?? '');
   }
 
   /// Fetch festivals in a date range
@@ -118,7 +120,7 @@ class PanchangService {
     double? lat,
     double? lon,
   }) async {
-    final uri = _buildUri(ApiConfig.panchangFestivalsEndpoint, {
+    final Map<String, dynamic> queryParams = {
       'start': startDate,
       'end': endDate,
       if (type != null && type.isNotEmpty) 'type': type,
@@ -128,28 +130,27 @@ class PanchangService {
       'profile': profile,
       if (lat != null) 'lat': lat.toString(),
       if (lon != null) 'lon': lon.toString(),
-    });
+    };
 
-    logApi('Panchang Festivals requesting: $uri');
-
-    final response = await http
-        .get(uri, headers: ApiConfig.getAuthHeaders(token))
-        .timeout(const Duration(seconds: 45));
-
-    logApi(
-      'Panchang Festivals GET $uri -> ${response.statusCode}\nResponse body: ${response.body}',
+    final response = await ApiClient.instance.get(
+      ApiConfig.panchangFestivalsEndpoint,
+      queryParameters: queryParams,
+      options: Options(
+        headers: ApiConfig.getAuthHeaders(token),
+        sendTimeout: const Duration(seconds: 45),
+        receiveTimeout: const Duration(seconds: 45),
+      ),
     );
 
-    if (response.statusCode >= 200 && response.statusCode < 300) {
-      final body = jsonDecode(response.body);
-      logApi('Parsed festivals response: $body');
+    if (response.statusCode != null && response.statusCode! >= 200 && response.statusCode! < 300) {
+      final body = response.data;
       if (body is Map<String, dynamic>) {
         return PanchangFestivalsResponse.fromJson(body);
       }
-      throw ApiException('Unexpected response format', response.statusCode);
+      throw ApiException('Unexpected response format', response.statusCode ?? 500);
     }
 
-    throw ApiException.fromStatusCode(response.statusCode, response.body);
+    throw ApiException.fromStatusCode(response.statusCode ?? 500, response.data?.toString() ?? '');
   }
 
   /// Search festivals by query
@@ -165,7 +166,7 @@ class PanchangService {
     double? lat,
     double? lon,
   }) async {
-    final uri = _buildUri(ApiConfig.panchangFestivalSearchEndpoint, {
+    final Map<String, dynamic> queryParams = {
       'q': query,
       if (type != null && type.isNotEmpty) 'type': type,
       if (year != null) 'year': year.toString(),
@@ -175,27 +176,27 @@ class PanchangService {
       'profile': profile,
       if (lat != null) 'lat': lat.toString(),
       if (lon != null) 'lon': lon.toString(),
-    });
+    };
 
-    logApi('Panchang Search requesting: $uri');
-
-    final response = await http
-        .get(uri, headers: ApiConfig.getAuthHeaders(token))
-        .timeout(const Duration(seconds: 20));
-
-    logApi(
-      'Panchang Search GET $uri -> ${response.statusCode}\nResponse body: ${response.body}',
+    final response = await ApiClient.instance.get(
+      ApiConfig.panchangFestivalSearchEndpoint,
+      queryParameters: queryParams,
+      options: Options(
+        headers: ApiConfig.getAuthHeaders(token),
+        sendTimeout: const Duration(seconds: 20),
+        receiveTimeout: const Duration(seconds: 20),
+      ),
     );
 
-    if (response.statusCode >= 200 && response.statusCode < 300) {
-      final body = jsonDecode(response.body);
+    if (response.statusCode != null && response.statusCode! >= 200 && response.statusCode! < 300) {
+      final body = response.data;
       if (body is Map<String, dynamic>) {
         return FestivalSearchResponse.fromJson(body);
       }
-      throw ApiException('Unexpected response format', response.statusCode);
+      throw ApiException('Unexpected response format', response.statusCode ?? 500);
     }
 
-    throw ApiException.fromStatusCode(response.statusCode, response.body);
+    throw ApiException.fromStatusCode(response.statusCode ?? 500, response.data?.toString() ?? '');
   }
 
   /// Fetch highlights (main festival per day) for a month
@@ -210,7 +211,7 @@ class PanchangService {
     double? lat,
     double? lon,
   }) async {
-    final uri = _buildUri(ApiConfig.panchangHighlightsEndpoint, {
+    final Map<String, dynamic> queryParams = {
       'year': year.toString(),
       'month': month.toString(),
       'tz': tz,
@@ -219,27 +220,27 @@ class PanchangService {
       'profile': profile,
       if (lat != null) 'lat': lat.toString(),
       if (lon != null) 'lon': lon.toString(),
-    });
+    };
 
-    logApi('Panchang Highlights requesting: $uri');
-
-    final response = await http
-        .get(uri, headers: ApiConfig.getAuthHeaders(token))
-        .timeout(const Duration(seconds: 20));
-
-    logApi(
-      'Panchang Highlights GET $uri -> ${response.statusCode}\nResponse body: ${response.body}',
+    final response = await ApiClient.instance.get(
+      ApiConfig.panchangHighlightsEndpoint,
+      queryParameters: queryParams,
+      options: Options(
+        headers: ApiConfig.getAuthHeaders(token),
+        sendTimeout: const Duration(seconds: 20),
+        receiveTimeout: const Duration(seconds: 20),
+      ),
     );
 
-    if (response.statusCode >= 200 && response.statusCode < 300) {
-      final body = jsonDecode(response.body);
+    if (response.statusCode != null && response.statusCode! >= 200 && response.statusCode! < 300) {
+      final body = response.data;
       if (body is Map<String, dynamic>) {
         return PanchangHighlightsResponse.fromJson(body);
       }
-      throw ApiException('Unexpected response format', response.statusCode);
+      throw ApiException('Unexpected response format', response.statusCode ?? 500);
     }
 
-    throw ApiException.fromStatusCode(response.statusCode, response.body);
+    throw ApiException.fromStatusCode(response.statusCode ?? 500, response.data?.toString() ?? '');
   }
 
   /// Get muhurats and timings for a specific date
@@ -247,7 +248,7 @@ class PanchangService {
   Future<PanchangMuhuratsResponse> getMuhurats({
     required String token,
     String? date,
-    List<String>? types, // e.g., ['hora', 'choghadiya']
+    List<String>? types,
     String tz = 'Asia/Kolkata',
     String locale = 'en',
     String calendarSystem = 'amanta',
@@ -255,7 +256,7 @@ class PanchangService {
     double? lat,
     double? lon,
   }) async {
-    final uri = _buildUri(ApiConfig.panchangMuhuratsEndpoint, {
+    final Map<String, dynamic> queryParams = {
       if (date != null) 'date': date,
       if (types != null && types.isNotEmpty) 'types': types.join(','),
       'tz': tz,
@@ -264,32 +265,30 @@ class PanchangService {
       'profile': profile,
       if (lat != null) 'lat': lat.toString(),
       if (lon != null) 'lon': lon.toString(),
-    });
+    };
 
-    logApi('Panchang Muhurats requesting: $uri');
-
-    final response = await http
-        .get(uri, headers: ApiConfig.getAuthHeaders(token))
-        .timeout(const Duration(seconds: 20));
-
-    logApi(
-      'Panchang Muhurats GET $uri -> ${response.statusCode}\nResponse body: ${response.body}',
+    final response = await ApiClient.instance.get(
+      ApiConfig.panchangMuhuratsEndpoint,
+      queryParameters: queryParams,
+      options: Options(
+        headers: ApiConfig.getAuthHeaders(token),
+        sendTimeout: const Duration(seconds: 20),
+        receiveTimeout: const Duration(seconds: 20),
+      ),
     );
 
-    if (response.statusCode >= 200 && response.statusCode < 300) {
-      final body = jsonDecode(response.body);
+    if (response.statusCode != null && response.statusCode! >= 200 && response.statusCode! < 300) {
+      final body = response.data;
       if (body is Map<String, dynamic>) {
         return PanchangMuhuratsResponse.fromJson(body);
       }
-      throw ApiException('Unexpected response format', response.statusCode);
+      throw ApiException('Unexpected response format', response.statusCode ?? 500);
     }
 
-    throw ApiException.fromStatusCode(response.statusCode, response.body);
+    throw ApiException.fromStatusCode(response.statusCode ?? 500, response.data?.toString() ?? '');
   }
 
   /// Get Vrat Calendar (fasting days)
-  /// - Either provide [days] (default behavior on backend is typically 90)
-  /// - Or provide [start] and [end] in YYYY-MM-DD format
   Future<VratCalendarResponse> getVratCalendar({
     required String token,
     int? days,
@@ -302,7 +301,7 @@ class PanchangService {
     double? lat,
     double? lon,
   }) async {
-    final uri = _buildUri(ApiConfig.panchangVratCalendarEndpoint, {
+    final Map<String, dynamic> queryParams = {
       if (days != null) 'days': days.toString(),
       if (start != null) 'start': start,
       if (end != null) 'end': end,
@@ -312,27 +311,27 @@ class PanchangService {
       'profile': profile,
       if (lat != null) 'lat': lat.toString(),
       if (lon != null) 'lon': lon.toString(),
-    });
+    };
 
-    logApi('Panchang Vrat Calendar requesting: $uri');
-
-    final response = await http
-        .get(uri, headers: ApiConfig.getAuthHeaders(token))
-        .timeout(const Duration(seconds: 20));
-
-    logApi(
-      'Panchang Vrat Calendar GET $uri -> ${response.statusCode}\nResponse body: ${response.body}',
+    final response = await ApiClient.instance.get(
+      ApiConfig.panchangVratCalendarEndpoint,
+      queryParameters: queryParams,
+      options: Options(
+        headers: ApiConfig.getAuthHeaders(token),
+        sendTimeout: const Duration(seconds: 20),
+        receiveTimeout: const Duration(seconds: 20),
+      ),
     );
 
-    if (response.statusCode >= 200 && response.statusCode < 300) {
-      final body = jsonDecode(response.body);
+    if (response.statusCode != null && response.statusCode! >= 200 && response.statusCode! < 300) {
+      final body = response.data;
       if (body is Map<String, dynamic>) {
         return VratCalendarResponse.fromJson(body);
       }
-      throw ApiException('Unexpected response format', response.statusCode);
+      throw ApiException('Unexpected response format', response.statusCode ?? 500);
     }
 
-    throw ApiException.fromStatusCode(response.statusCode, response.body);
+    throw ApiException.fromStatusCode(response.statusCode ?? 500, response.data?.toString() ?? '');
   }
 
   /// Get today's guidance recommendations
@@ -346,7 +345,7 @@ class PanchangService {
     double? lat,
     double? lon,
   }) async {
-    final uri = _buildUri(ApiConfig.panchangGuidanceTodayEndpoint, {
+    final Map<String, dynamic> queryParams = {
       if (date != null) 'date': date,
       'tz': tz,
       'locale': locale,
@@ -354,56 +353,51 @@ class PanchangService {
       'profile': profile,
       if (lat != null) 'lat': lat.toString(),
       if (lon != null) 'lon': lon.toString(),
-    });
+    };
 
-    logApi('Panchang Guidance Today requesting: $uri');
-
-    final response = await http
-        .get(uri, headers: ApiConfig.getAuthHeaders(token))
-        .timeout(const Duration(seconds: 20));
-
-    logApi(
-      'Panchang Guidance Today GET $uri -> ${response.statusCode}\nResponse body: ${response.body}',
+    final response = await ApiClient.instance.get(
+      ApiConfig.panchangGuidanceTodayEndpoint,
+      queryParameters: queryParams,
+      options: Options(
+        headers: ApiConfig.getAuthHeaders(token),
+        sendTimeout: const Duration(seconds: 20),
+        receiveTimeout: const Duration(seconds: 20),
+      ),
     );
 
-    if (response.statusCode >= 200 && response.statusCode < 300) {
-      final body = jsonDecode(response.body);
+    if (response.statusCode != null && response.statusCode! >= 200 && response.statusCode! < 300) {
+      final body = response.data;
       if (body is Map<String, dynamic>) {
         return GuidanceTodayResponse.fromJson(body);
       }
-      throw ApiException('Unexpected response format', response.statusCode);
+      throw ApiException('Unexpected response format', response.statusCode ?? 500);
     }
 
-    throw ApiException.fromStatusCode(response.statusCode, response.body);
+    throw ApiException.fromStatusCode(response.statusCode ?? 500, response.data?.toString() ?? '');
   }
 
   /// Get user's guidance profile/preferences
   Future<GuidanceProfileResponse> getGuidanceProfile({
     required String token,
   }) async {
-    final uri = Uri.parse(
-      '${ApiConfig.panchangBaseUrl}${ApiConfig.panchangGuidanceProfileEndpoint}',
+    final response = await ApiClient.instance.get(
+      ApiConfig.panchangGuidanceProfileEndpoint,
+      options: Options(
+        headers: ApiConfig.getAuthHeaders(token),
+        sendTimeout: const Duration(seconds: 20),
+        receiveTimeout: const Duration(seconds: 20),
+      ),
     );
 
-    logApi('Panchang Guidance Profile requesting: $uri');
-
-    final response = await http
-        .get(uri, headers: ApiConfig.getAuthHeaders(token))
-        .timeout(const Duration(seconds: 20));
-
-    logApi(
-      'Panchang Guidance Profile GET $uri -> ${response.statusCode}\nResponse body: ${response.body}',
-    );
-
-    if (response.statusCode >= 200 && response.statusCode < 300) {
-      final body = jsonDecode(response.body);
+    if (response.statusCode != null && response.statusCode! >= 200 && response.statusCode! < 300) {
+      final body = response.data;
       if (body is Map<String, dynamic>) {
         return GuidanceProfileResponse.fromJson(body);
       }
-      throw ApiException('Unexpected response format', response.statusCode);
+      throw ApiException('Unexpected response format', response.statusCode ?? 500);
     }
 
-    throw ApiException.fromStatusCode(response.statusCode, response.body);
+    throw ApiException.fromStatusCode(response.statusCode ?? 500, response.data?.toString() ?? '');
   }
 
   /// Save user's guidance profile/preferences
@@ -411,41 +405,28 @@ class PanchangService {
     required String token,
     required GuidanceProfileRequest request,
   }) async {
-    final uri = Uri.parse(
-      '${ApiConfig.panchangBaseUrl}${ApiConfig.panchangGuidanceProfileEndpoint}',
+    final response = await ApiClient.instance.post(
+      ApiConfig.panchangGuidanceProfileEndpoint,
+      data: request.toJson(),
+      options: Options(
+        headers: ApiConfig.getAuthHeaders(token),
+        sendTimeout: const Duration(seconds: 20),
+        receiveTimeout: const Duration(seconds: 20),
+      ),
     );
 
-    logApi(
-      'Panchang Guidance Profile saving: $uri\nBody: ${jsonEncode(request.toJson())}',
-    );
-
-    final response = await http
-        .post(
-          uri,
-          headers: {
-            ...ApiConfig.getAuthHeaders(token),
-            'Content-Type': 'application/json',
-          },
-          body: jsonEncode(request.toJson()),
-        )
-        .timeout(const Duration(seconds: 20));
-
-    logApi(
-      'Panchang Guidance Profile POST $uri -> ${response.statusCode}\nResponse body: ${response.body}',
-    );
-
-    if (response.statusCode >= 200 && response.statusCode < 300) {
-      final body = jsonDecode(response.body);
+    if (response.statusCode != null && response.statusCode! >= 200 && response.statusCode! < 300) {
+      final body = response.data;
       if (body is Map<String, dynamic>) {
         return GuidanceProfileResponse.fromJson(body);
       }
-      throw ApiException('Unexpected response format', response.statusCode);
+      throw ApiException('Unexpected response format', response.statusCode ?? 500);
     }
 
     // Try to extract error message
     String errorMessage = 'Failed to save preferences';
     try {
-      final errorBody = jsonDecode(response.body);
+      final errorBody = response.data;
       if (errorBody is Map<String, dynamic>) {
         if (errorBody.containsKey('detail')) {
           errorMessage = errorBody['detail'].toString();
@@ -455,11 +436,6 @@ class PanchangService {
       }
     } catch (_) {}
 
-    throw ApiException(errorMessage, response.statusCode);
-  }
-
-  Uri _buildUri(String endpointPath, Map<String, String> queryParams) {
-    final base = Uri.parse('${ApiConfig.panchangBaseUrl}$endpointPath');
-    return base.replace(queryParameters: queryParams);
+    throw ApiException(errorMessage, response.statusCode ?? 500);
   }
 }

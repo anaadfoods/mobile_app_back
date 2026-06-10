@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:grocery_app/core/theme/theme.dart';
 
 /// A reusable empty state widget for showing when there's no data.
 ///

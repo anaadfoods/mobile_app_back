@@ -4,10 +4,12 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:grocery_app/service_locator.dart';
 import '../models/notification_model.dart';
 import '../repositories/notification_repository.dart';
 import 'connectivity_service.dart';
-import 'auth_service.dart';
+import 'token_service.dart';
+
 
 enum QueueActionType { registerLocal, markRead, dismiss }
 
@@ -60,16 +62,18 @@ class PendingQueueItem {
   }
 }
 
+
 class NotificationSyncManager {
   static final NotificationSyncManager _instance = NotificationSyncManager._internal();
-  factory NotificationSyncManager() => _instance;
+  factory NotificationSyncManager() => getIt<NotificationSyncManager>();
   NotificationSyncManager._internal() {
     _initConnectivityListener();
   }
+  static NotificationSyncManager create() => NotificationSyncManager._internal();
 
-  final NotificationRepository _repository = NotificationRepository();
-  final ConnectivityService _connectivityService = ConnectivityService();
-  final AuthService _authService = AuthService();
+  final NotificationRepository _repository = getIt<NotificationRepository>();
+  final ConnectivityService _connectivityService = getIt<ConnectivityService>();
+  final TokenService _tokenService = getIt<TokenService>();
 
   // Keys for SharedPreferences
   static const String _notificationsKey = 'notifications';
@@ -153,7 +157,7 @@ class NotificationSyncManager {
 
   /// Perform incremental synchronization with Django backend
   Future<void> syncWithBackend() async {
-    final isLoggedIn = await _authService.isLoggedIn();
+    final isLoggedIn = await _tokenService.isLoggedIn();
     if (!isLoggedIn) {
       debugPrint('[SyncManager] Sync skipped: user not logged in');
       return;
@@ -230,7 +234,7 @@ class NotificationSyncManager {
     await _saveLocalNotifications(localList);
 
     // 2. Try registering with backend
-    if (await _connectivityService.hasConnection && await _authService.isLoggedIn()) {
+    if (await _connectivityService.hasConnection && await _tokenService.isLoggedIn()) {
       try {
         debugPrint('[SyncManager] Pushing local notification to backend...');
         final registered = await _repository.registerLocalNotification(notification);
@@ -271,7 +275,7 @@ class NotificationSyncManager {
     }
 
     // 2. Call backend or queue
-    if (await _connectivityService.hasConnection && await _authService.isLoggedIn()) {
+    if (await _connectivityService.hasConnection && await _tokenService.isLoggedIn()) {
       try {
         final result = await _repository.markNotificationsAsRead(ids);
         if (result['sync_version'] != null) {
@@ -297,7 +301,7 @@ class NotificationSyncManager {
     await _saveLocalNotifications(updatedList);
 
     // 2. Call backend or queue
-    if (await _connectivityService.hasConnection && await _authService.isLoggedIn()) {
+    if (await _connectivityService.hasConnection && await _tokenService.isLoggedIn()) {
       try {
         final result = await _repository.markNotificationsAsDismissed(ids);
         if (result['sync_version'] != null) {
@@ -338,7 +342,7 @@ class NotificationSyncManager {
   /// Flush/process the offline action queue
   Future<void> flushPendingQueue() async {
     if (!await _connectivityService.hasConnection) return;
-    if (!await _authService.isLoggedIn()) return;
+    if (!await _tokenService.isLoggedIn()) return;
 
     final prefs = await SharedPreferences.getInstance();
     final queueStr = prefs.getString(_pendingQueueKey);
@@ -413,7 +417,7 @@ class NotificationSyncManager {
 
   /// Setup websocket-ready structure and stub routing
   Future<void> connectWebSocket() async {
-    final token = await _authService.getAccessToken();
+    final token = await _tokenService.getAccessToken();
     if (token == null) return;
     
     final deviceId = await _repository.getDeviceId();

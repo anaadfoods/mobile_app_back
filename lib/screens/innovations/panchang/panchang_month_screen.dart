@@ -16,6 +16,8 @@ import '../../../helpers/panchang_month_analyzer.dart';
 import '../../../models/panchang/panchang_month_models.dart';
 import '../../../repositories/panchang_repository.dart';
 
+import 'package:grocery_app/service_locator.dart';
+
 class PanchangMonthScreen extends StatefulWidget {
   const PanchangMonthScreen({super.key});
 
@@ -37,7 +39,7 @@ class _PanchangMonthScreenState extends State<PanchangMonthScreen>
   @override
   void initState() {
     super.initState();
-    _cubit = PanchangMonthCubit(repository: PanchangRepository());
+    _cubit = PanchangMonthCubit(repository: getIt<PanchangRepository>());
 
     _entranceController = AnimationController(
       duration: const Duration(milliseconds: 800),

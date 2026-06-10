@@ -1534,8 +1534,8 @@ class _RituChakraState extends State<RituChakraGameScreen>
                     decoration: BoxDecoration(
                       gradient: RadialGradient(
                         colors: [
-                          AppColors.harvestAmber!,
-                          AppColors.harvestAmber!,
+                          AppColors.harvestAmber,
+                          AppColors.harvestAmber,
                         ],
                       ),
                       shape: BoxShape.circle,
@@ -2917,8 +2917,8 @@ class _RituChakraState extends State<RituChakraGameScreen>
                           shape: BoxShape.circle,
                           gradient: RadialGradient(
                             colors: [
-                              AppColors.harvestAmber!,
-                              AppColors.harvestAmber!,
+                              AppColors.harvestAmber,
+                              AppColors.harvestAmber,
                             ],
                           ),
                           border: Border.all(
@@ -3631,7 +3631,7 @@ class _RituChakraState extends State<RituChakraGameScreen>
   Widget _buildPlot(int x, int y, bool isDark) {
     final plot = _farmGrid[y][x];
     final hasCrop = plot.crop != null;
-    Color plotColor = AppColors.rawEarth!;
+    Color plotColor = AppColors.rawEarth;
     String displayEmoji = '🟫';
 
     if (hasCrop) {

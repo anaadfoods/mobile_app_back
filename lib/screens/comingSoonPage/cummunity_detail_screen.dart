@@ -1,6 +1,5 @@
 import 'dart:ui';
 import 'package:grocery_app/common_widgets/global_import.dart';
-import 'package:grocery_app/common_widgets/global_import.dart' as http;
 
 class CommunityDetailScreen extends StatefulWidget {
   final Community community;
@@ -672,16 +671,18 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen>
   // Form validation
   String? _validateEmail(String? value) {
     if (value == null || value.isEmpty) return 'Please enter your email';
-    if (!_emailRegex.hasMatch(value))
+    if (!_emailRegex.hasMatch(value)) {
       return 'Please enter a valid email address';
+    }
     return null;
   }
 
   String? _validatePhone(String? value) {
     if (value == null || value.isEmpty) return 'Please enter your phone number';
     String cleanPhone = value.replaceAll(RegExp(r'[^\d]'), '');
-    if (!_phoneRegex.hasMatch(cleanPhone))
+    if (!_phoneRegex.hasMatch(cleanPhone)) {
       return 'Please enter a valid 10-digit phone number';
+    }
     return null;
   }
 
@@ -729,19 +730,24 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen>
                                 colors:
                                     isDark
                                         ? [
-                                            AppColors.charcoal,
-                                            AppColors.charcoal,
-                                          ]
+                                          AppColors.charcoal,
+                                          AppColors.charcoal,
+                                        ]
                                         : [
-                                            AppColors.parchment,
-                                            AppColors.parchment,
-                                          ],
+                                          AppColors.parchment,
+                                          AppColors.parchment,
+                                        ],
                               ),
                               borderRadius: BorderRadius.circular(24),
                               border: Border.all(
-                                color: AppColors.parchment.withValues(
-                                  alpha: 0.2,
-                                ),
+                                color:
+                                    isDark
+                                        ? AppColors.parchment.withValues(
+                                          alpha: 0.2,
+                                        )
+                                        : AppColors.charcoal.withValues(
+                                          alpha: 0.1,
+                                        ),
                                 width: 1,
                               ),
                               boxShadow: [
@@ -769,9 +775,8 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen>
                                           gradient: LinearGradient(
                                             colors: [
                                               AppColors.deepSoilGreen,
-                                              AppColors.deepSoilGreen.withValues(
-                                                alpha: 0.8,
-                                              ),
+                                              AppColors.deepSoilGreen
+                                                  .withValues(alpha: 0.8),
                                             ],
                                           ),
                                           borderRadius: BorderRadius.circular(
@@ -795,7 +800,11 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen>
                                       Text(
                                         'Be the first to know when we launch!',
                                         style: textTheme.bodyMedium?.copyWith(
-                                          color: AppColors.rawEarth70,
+                                          color:
+                                              isDark
+                                                  ? AppColors.parchment
+                                                      .withValues(alpha: 0.7)
+                                                  : AppColors.rawEarth70,
                                         ),
                                       ),
                                       const SizedBox(height: 24),
@@ -803,12 +812,14 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen>
                                         nameController,
                                         'Full Name *',
                                         Icons.person_outline_rounded,
+                                        isDark,
                                       ),
                                       const SizedBox(height: 12),
                                       _buildFormField(
                                         emailController,
                                         'Email Address',
                                         Icons.email_outlined,
+                                        isDark,
                                         keyboardType:
                                             TextInputType.emailAddress,
                                         validator: _validateEmail,
@@ -818,14 +829,16 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen>
                                         phoneController,
                                         'Phone Number',
                                         Icons.phone_outlined,
+                                        isDark,
                                         keyboardType: TextInputType.phone,
                                         validator: _validatePhone,
                                       ),
                                       const SizedBox(height: 12),
                                       _buildFormField(
                                         messageController,
-                                        'Message (optional)',
+                                        'Message',
                                         Icons.message_outlined,
+                                        isDark,
                                         validator:
                                             (v) =>
                                                 v!.isEmpty
@@ -841,22 +854,22 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen>
                                             HapticFeedback.mediumImpact();
                                             formKey.currentState!.save();
                                             try {
-                                              final response = await http.post(
-                                                Uri.parse(
-                                                  '${ApiConfig.baseUrl}/api/core/communities/${widget.community.name}/subscribe/',
-                                                ),
-                                                headers: {
-                                                  'Content-Type':
-                                                      'application/json',
-                                                },
-                                                body: jsonEncode({
-                                                  'name': nameController.text,
-                                                  'email': emailController.text,
-                                                  'phone': phoneController.text,
-                                                  'message':
-                                                      messageController.text,
-                                                }),
-                                              );
+                                              final response = await ApiClient
+                                                  .instance
+                                                  .post(
+                                                    '/api/core/communities/${widget.community.name}/subscribe/',
+                                                    data: {
+                                                      'name':
+                                                          nameController.text,
+                                                      'email':
+                                                          emailController.text,
+                                                      'phone':
+                                                          phoneController.text,
+                                                      'message':
+                                                          messageController
+                                                              .text,
+                                                    },
+                                                  );
                                               if (!context.mounted) return;
                                               if (response.statusCode == 200 ||
                                                   response.statusCode == 201) {
@@ -887,7 +900,10 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen>
                                           ),
                                           decoration: BoxDecoration(
                                             gradient: const LinearGradient(
-                                              colors: [AppColors.deepSoilGreen, AppColors.deepSoilGreen],
+                                              colors: [
+                                                AppColors.deepSoilGreen,
+                                                AppColors.deepSoilGreen,
+                                              ],
                                             ),
                                             borderRadius: BorderRadius.circular(
                                               16,
@@ -920,7 +936,11 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen>
                                         child: Text(
                                           'Maybe Later',
                                           style: textTheme.bodyMedium?.copyWith(
-                                            color: AppColors.rawEarth70,
+                                            color:
+                                                isDark
+                                                    ? AppColors.parchment
+                                                        .withValues(alpha: 0.7)
+                                                    : AppColors.rawEarth70,
                                           ),
                                         ),
                                       ),
@@ -946,26 +966,48 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen>
   Widget _buildFormField(
     TextEditingController controller,
     String hint,
-    IconData icon, {
+    IconData icon,
+    bool isDark, {
     TextInputType? keyboardType,
     String? Function(String?)? validator,
   }) {
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.rawEarth54.withValues(alpha: 0.1),
+        color:
+            isDark
+                ? AppColors.parchment.withValues(alpha: 0.05)
+                : AppColors.rawEarth54.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: AppColors.rawEarth54.withValues(alpha: 0.2),
+          color:
+              isDark
+                  ? AppColors.parchment.withValues(alpha: 0.2)
+                  : AppColors.rawEarth54.withValues(alpha: 0.2),
         ),
       ),
       child: TextFormField(
         controller: controller,
         keyboardType: keyboardType,
         validator: validator,
-        style: const TextStyle(fontWeight: FontWeight.w500),
+        style: TextStyle(
+          fontWeight: FontWeight.w500,
+          color: isDark ? AppColors.parchment : AppColors.charcoal,
+        ),
         decoration: InputDecoration(
           hintText: hint,
-          prefixIcon: Icon(icon, color: AppColors.rawEarth),
+          hintStyle: TextStyle(
+            color:
+                isDark
+                    ? AppColors.parchment.withValues(alpha: 0.5)
+                    : AppColors.charcoal.withValues(alpha: 0.5),
+          ),
+          prefixIcon: Icon(
+            icon,
+            color:
+                isDark
+                    ? AppColors.parchment.withValues(alpha: 0.7)
+                    : AppColors.rawEarth,
+          ),
           border: InputBorder.none,
           contentPadding: const EdgeInsets.symmetric(
             horizontal: 16,

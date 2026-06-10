@@ -1,9 +1,5 @@
 import 'dart:math' as math;
-import 'package:flutter/services.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:grocery_app/common_widgets/global_import.dart';
-import 'package:grocery_app/cubits/auth/auth_cubit.dart';
-import 'package:grocery_app/cubits/auth/auth_state.dart';
 import 'package:grocery_app/routes/app_routes.dart';
 
 class ExploreScreen extends StatefulWidget {
@@ -301,10 +297,10 @@ class _ExploreScreenState extends State<ExploreScreen>
                             )
                           else
                             const AnaadLogoMark(),
-                          GlassmorphicIconButton(
-                            icon: Icons.refresh_rounded,
-                            onTap: _handleRefresh,
-                          ),
+                          // GlassmorphicIconButton(
+                          //   icon: Icons.refresh_rounded,
+                          //   onTap: _handleRefresh,
+                          // ),
                         ],
                       ),
                       const SizedBox(height: 16),
@@ -414,9 +410,10 @@ class _ExploreScreenState extends State<ExploreScreen>
             hintText: 'Search categories...',
             filled: false,
             hintStyle: TextStyle(
-              color: isDark
-                  ? AppColors.parchment.withValues(alpha: 0.5)
-                  : theme.hintColor.withValues(alpha: 0.6),
+              color:
+                  isDark
+                      ? AppColors.parchment.withValues(alpha: 0.5)
+                      : theme.hintColor.withValues(alpha: 0.6),
             ),
             prefixIcon: Icon(
               Icons.search_rounded,
@@ -1059,7 +1056,9 @@ class _AnimatedProductCardState extends State<_AnimatedProductCard> {
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(12),
                         color:
-                            isDark ? AppColors.darkSurface : AppColors.parchment,
+                            isDark
+                                ? AppColors.darkSurface
+                                : AppColors.parchment,
                       ),
                       child: ClipRRect(
                         borderRadius: BorderRadius.circular(12),

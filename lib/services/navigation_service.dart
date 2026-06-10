@@ -2,11 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:grocery_app/routes/app_router.dart';
 import 'package:grocery_app/routes/app_routes.dart';
 
+import 'package:grocery_app/service_locator.dart';
+
 /// Centralized navigation service using AppRouter.
 class NavigationService {
   static final NavigationService _instance = NavigationService._internal();
-  factory NavigationService() => _instance;
+  factory NavigationService() => getIt<NavigationService>();
   NavigationService._internal();
+  static NavigationService create() => NavigationService._internal();
 
   /// Global navigator key - Wired to AppRouter
   final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();

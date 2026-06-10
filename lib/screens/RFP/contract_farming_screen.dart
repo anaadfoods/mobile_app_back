@@ -1,6 +1,5 @@
 import 'dart:ui';
 import 'package:grocery_app/common_widgets/global_import.dart';
-import 'package:http/http.dart' as http;
 
 class CombinedScreen extends StatefulWidget {
   const CombinedScreen({super.key});
@@ -280,7 +279,7 @@ class _CombinedScreenState extends State<CombinedScreen>
                             style: theme.textTheme.bodyMedium?.copyWith(
                               color:
                                   isDark
-                                      ? AppColors.rawEarth26
+                                      ? AppColors.parchment70
                                       : AppColors.rawEarth70,
                             ),
                           ),
@@ -293,7 +292,7 @@ class _CombinedScreenState extends State<CombinedScreen>
                 Text(
                   "We strictly adhere to natural(ICBN) farming protocols. This means no synthetic chemicals, toxins or pesticides and zero shortcuts. We grow crops that not only meet the highest Safety Standards but also redefine the Nutritional Standards. Here, you don't just buy produce; rather commit to the harvest",
                   style: theme.textTheme.bodyMedium?.copyWith(
-                    color: isDark ? AppColors.rawEarth12 : AppColors.charcoal60,
+                    color: isDark ? AppColors.parchment70 : AppColors.charcoal60,
                     height: 1.6,
                   ),
                 ),
@@ -479,10 +478,12 @@ class _CombinedScreenState extends State<CombinedScreen>
                 margin: const EdgeInsets.only(right: 12),
                 padding: const EdgeInsets.all(14),
                 decoration: BoxDecoration(
-                  color: isDark ? AppColors.charcoal : AppColors.parchment,
+                  color: isDark ? AppColors.darkSurface : AppColors.parchment,
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(
-                    color: AppColors.parchment.withValues(alpha: 0.2),
+                    color: isDark
+                        ? AppColors.parchment.withValues(alpha: 0.08)
+                        : AppColors.parchment.withValues(alpha: 0.2),
                     width: 1,
                   ),
                   boxShadow: [
@@ -530,7 +531,7 @@ class _CombinedScreenState extends State<CombinedScreen>
                           style: theme.textTheme.bodySmall?.copyWith(
                             color:
                                 isDark
-                                    ? AppColors.rawEarth26
+                                    ? AppColors.parchment70
                                     : AppColors.rawEarth70,
                             height: 1.2,
                           ),
@@ -561,15 +562,15 @@ class _CombinedScreenState extends State<CombinedScreen>
             colors:
                 isDark
                     ? [
-                      AppColors.charcoal.withValues(alpha: 0.6),
-                      AppColors.charcoal.withValues(alpha: 0.4),
+                      AppColors.darkSurfaceElevated,
+                      AppColors.darkSurface,
                     ]
                     : [AppColors.pureWhite, AppColors.pureWhite],
           ),
           borderRadius: BorderRadius.circular(24),
           boxShadow: [
             BoxShadow(
-              color: AppColors.charcoal.withValues(alpha: 0.1),
+              color: AppColors.charcoal.withValues(alpha: isDark ? 0.3 : 0.1),
               blurRadius: 20,
               offset: const Offset(0, 8),
             ),
@@ -608,7 +609,7 @@ class _CombinedScreenState extends State<CombinedScreen>
                         style: theme.textTheme.bodyMedium?.copyWith(
                           color:
                               isDark
-                                  ? AppColors.rawEarth26
+                                  ? AppColors.parchment70
                                   : AppColors.rawEarth70,
                         ),
                       ),
@@ -680,7 +681,7 @@ class _CombinedScreenState extends State<CombinedScreen>
                 Text(
                   desc,
                   style: theme.textTheme.bodySmall?.copyWith(
-                    color: AppColors.rawEarth70,
+                    color: isDark ? AppColors.parchment70 : AppColors.rawEarth70,
                   ),
                 ),
               ],
@@ -726,17 +727,25 @@ class _CombinedScreenState extends State<CombinedScreen>
                         Container(
                           padding: const EdgeInsets.all(14),
                           decoration: BoxDecoration(
-                            gradient: const LinearGradient(
-                              colors: [
-                                AppColors.deepSoilGreen,
-                                AppColors.deepSoilGreen,
-                              ],
+                            gradient: LinearGradient(
+                              colors: isDark
+                                  ? [
+                                      AppColors.darkSurfaceElevated,
+                                      AppColors.darkSurfaceElevated,
+                                    ]
+                                  : [
+                                      AppColors.deepSoilGreen,
+                                      AppColors.deepSoilGreen,
+                                    ],
                             ),
                             borderRadius: BorderRadius.circular(14),
                             boxShadow: [
                               BoxShadow(
-                                color: AppColors.deepSoilGreen.withValues(
-                                  alpha: 0.3,
+                                color: (isDark
+                                        ? AppColors.pureBlack
+                                        : AppColors.deepSoilGreen)
+                                    .withValues(
+                                  alpha: isDark ? 0.2 : 0.3,
                                 ),
                                 blurRadius: 10,
                                 offset: const Offset(0, 4),
@@ -768,6 +777,7 @@ class _CombinedScreenState extends State<CombinedScreen>
   }
 
   Widget _buildCTAButton(BuildContext context, ThemeData theme) {
+    final isDark = theme.brightness == Brightness.dark;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
       child: GestureDetector(
@@ -779,13 +789,16 @@ class _CombinedScreenState extends State<CombinedScreen>
           width: double.infinity,
           padding: const EdgeInsets.symmetric(vertical: 18),
           decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              colors: [AppColors.deepSoilGreen, AppColors.deepSoilGreen],
+            gradient: LinearGradient(
+              colors: isDark
+                  ? [AppColors.parchment, AppColors.parchment]
+                  : [AppColors.deepSoilGreen, AppColors.deepSoilGreen],
             ),
             borderRadius: BorderRadius.circular(16),
             boxShadow: [
               BoxShadow(
-                color: AppColors.deepSoilGreen.withValues(alpha: 0.4),
+                color: (isDark ? AppColors.parchment : AppColors.deepSoilGreen)
+                    .withValues(alpha: 0.4),
                 blurRadius: 15,
                 offset: const Offset(0, 6),
               ),
@@ -794,12 +807,15 @@ class _CombinedScreenState extends State<CombinedScreen>
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(Icons.eco_rounded, color: AppColors.parchment),
+              Icon(
+                Icons.eco_rounded,
+                color: isDark ? AppColors.deepSoilGreen : AppColors.parchment,
+              ),
               const SizedBox(width: 12),
               Text(
                 'Register Your Interest',
                 style: theme.textTheme.titleMedium?.copyWith(
-                  color: AppColors.parchment,
+                  color: isDark ? AppColors.deepSoilGreen : AppColors.parchment,
                   fontWeight: FontWeight.bold,
                 ),
               ),
@@ -855,14 +871,12 @@ Future<void> _showNotificationForm(BuildContext outerContext) async {
                               colors:
                                   isDark
                                       ? [
-                                        AppColors.parchment,
-                                        AppColors.parchment,
+                                        AppColors.darkSurface,
+                                        AppColors.darkSurfaceElevated,
                                       ]
                                       : [
                                         AppColors.parchment,
-                                        const Color(
-                                          0xFF4CAF50,
-                                        ).withValues(alpha: 0.1),
+                                        AppColors.deepSoilGreen.withValues(alpha: 0.15),
                                       ],
                             ),
                             borderRadius: BorderRadius.circular(24),
@@ -919,7 +933,9 @@ Future<void> _showNotificationForm(BuildContext outerContext) async {
                                       'Join our natural farming program',
                                       style: theme.textTheme.bodyMedium
                                           ?.copyWith(
-                                            color: AppColors.rawEarth70,
+                                            color: isDark
+                                                ? AppColors.parchment70
+                                                : AppColors.rawEarth70,
                                           ),
                                     ),
                                     const SizedBox(height: 24),
@@ -927,6 +943,7 @@ Future<void> _showNotificationForm(BuildContext outerContext) async {
                                       nameController,
                                       'Full Name *',
                                       Icons.person_outline,
+                                      isDark: isDark,
                                     ),
                                     const SizedBox(height: 12),
                                     _buildFormField(
@@ -934,13 +951,15 @@ Future<void> _showNotificationForm(BuildContext outerContext) async {
                                       'Phone Number *',
                                       Icons.phone_outlined,
                                       keyboardType: TextInputType.phone,
+                                      isDark: isDark,
                                     ),
                                     const SizedBox(height: 12),
                                     _buildFormField(
                                       emailController,
-                                      'Email (Optional)',
+                                      'Email*',
                                       Icons.email_outlined,
                                       keyboardType: TextInputType.emailAddress,
+                                      isDark: isDark,
                                     ),
                                     const SizedBox(height: 12),
                                     _buildFormField(
@@ -948,6 +967,7 @@ Future<void> _showNotificationForm(BuildContext outerContext) async {
                                       'Message *',
                                       Icons.message_outlined,
                                       maxLines: 3,
+                                      isDark: isDark,
                                     ),
                                     const SizedBox(height: 16),
                                     Container(
@@ -956,22 +976,35 @@ Future<void> _showNotificationForm(BuildContext outerContext) async {
                                         vertical: 4,
                                       ),
                                       decoration: BoxDecoration(
-                                        color: const Color(
-                                          0xFF4CAF50,
-                                        ).withValues(alpha: 0.08),
+                                        color: isDark ? AppColors.charcoal : AppColors.pureWhite,
                                         borderRadius: BorderRadius.circular(12),
                                         border: Border.all(
-                                          color: const Color(
-                                            0xFF4CAF50,
-                                          ).withValues(alpha: 0.3),
+                                          color: isDark 
+                                              ? AppColors.parchment.withValues(alpha: 0.1) 
+                                              : AppColors.charcoal.withValues(alpha: 0.1),
                                           width: 1,
                                         ),
+                                        boxShadow: [
+                                          if (!isDark)
+                                            BoxShadow(
+                                              color: AppColors.charcoal.withValues(alpha: 0.05),
+                                              blurRadius: 8,
+                                              offset: const Offset(0, 2),
+                                            ),
+                                        ],
                                       ),
                                       child: DropdownButtonFormField<String>(
                                         value: selectedRequirementType,
-                                        decoration: const InputDecoration(
+                                        dropdownColor: isDark ? AppColors.darkSurfaceElevated : AppColors.pureWhite,
+                                        style: TextStyle(color: isDark ? AppColors.parchment : AppColors.charcoal),
+                                        decoration: InputDecoration(
                                           border: InputBorder.none,
                                           labelText: 'Requirement Type',
+                                          labelStyle: TextStyle(
+                                            color: isDark 
+                                              ? AppColors.parchment.withValues(alpha: 0.7) 
+                                              : AppColors.charcoal.withValues(alpha: 0.6)
+                                          ),
                                         ),
                                         items:
                                             ['INDIVIDUAL', "B2B", 'FAMILY'].map(
@@ -995,15 +1028,9 @@ Future<void> _showNotificationForm(BuildContext outerContext) async {
                                       onTap: () async {
                                         if (formKey.currentState!.validate()) {
                                           try {
-                                            final response = await http.post(
-                                              Uri.parse(
-                                                '${ApiConfig.baseUrl}/api/user-queries/',
-                                              ),
-                                              headers: {
-                                                'Content-Type':
-                                                    'application/json',
-                                              },
-                                              body: jsonEncode({
+                                            final response = await ApiClient.instance.post(
+                                              '/api/user-queries/',
+                                              data: {
                                                 'name': nameController.text,
                                                 'phone_number':
                                                     phoneController.text,
@@ -1014,7 +1041,7 @@ Future<void> _showNotificationForm(BuildContext outerContext) async {
                                                     selectedRequirementType,
                                                 'is_from_rfp': true,
                                                 'redirection_from': 'RFP',
-                                              }),
+                                              },
                                             );
                                             if (!dialogContext.mounted) return;
                                             Navigator.of(dialogContext).pop();
@@ -1096,25 +1123,44 @@ Widget _buildFormField(
   IconData icon, {
   TextInputType? keyboardType,
   int maxLines = 1,
+  required bool isDark,
 }) {
   return Container(
     decoration: BoxDecoration(
-      color: AppColors.parchment.withValues(alpha: 0.08),
+      color: isDark ? AppColors.charcoal : AppColors.pureWhite,
       borderRadius: BorderRadius.circular(12),
       border: Border.all(
-        color: AppColors.parchment.withValues(alpha: 0.3),
+        color: isDark 
+            ? AppColors.parchment.withValues(alpha: 0.1) 
+            : AppColors.charcoal.withValues(alpha: 0.1),
         width: 1,
       ),
+      boxShadow: [
+        if (!isDark)
+          BoxShadow(
+            color: AppColors.charcoal.withValues(alpha: 0.05),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+      ],
     ),
     child: TextFormField(
       controller: controller,
       keyboardType: keyboardType,
       maxLines: maxLines,
+      style: TextStyle(color: isDark ? AppColors.parchment : AppColors.charcoal),
       decoration: InputDecoration(
         hintText: hint,
+        hintStyle: TextStyle(
+          color: isDark 
+              ? AppColors.parchment.withValues(alpha: 0.4) 
+              : AppColors.charcoal.withValues(alpha: 0.4),
+        ),
         prefixIcon: Icon(
           icon,
-          color: AppColors.parchment.withValues(alpha: 0.7),
+          color: isDark 
+              ? AppColors.parchment.withValues(alpha: 0.5) 
+              : AppColors.charcoal.withValues(alpha: 0.4),
         ),
         border: InputBorder.none,
         contentPadding: const EdgeInsets.symmetric(

@@ -1,7 +1,5 @@
-import 'package:flutter/material.dart';
 import 'package:grocery_app/common_widgets/global_import.dart';
 // ignore: unused_import
-import 'package:grocery_app/screens/product_details/product_details_screen.dart';
 
 class SubscriptionNavigationHelper {
   static Future<void> navigateToProductDetails(

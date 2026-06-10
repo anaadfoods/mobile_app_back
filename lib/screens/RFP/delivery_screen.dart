@@ -1,13 +1,13 @@
 import 'package:grocery_app/core/theme/app_colors.dart';
-import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:grocery_app/common_widgets/anaad_logo_mark.dart';
 import 'package:grocery_app/common_widgets/animated_screen_header.dart';
 import 'package:grocery_app/common_widgets/glassmorphic_icon_button.dart';
 import 'package:grocery_app/models/rfp_plan_model.dart';
 import 'package:grocery_app/screens/RFP/plan_deliveries_screen.dart';
 import 'package:grocery_app/services/rfp_services.dart';
+
+import 'package:grocery_app/service_locator.dart';
 
 class DeliveryScreen extends StatefulWidget {
   const DeliveryScreen({super.key});
@@ -18,7 +18,7 @@ class DeliveryScreen extends StatefulWidget {
 
 class _DeliveryScreenState extends State<DeliveryScreen>
     with TickerProviderStateMixin {
-  final DeliveryService _deliveryService = DeliveryService();
+  final DeliveryService _deliveryService = getIt<DeliveryService>();
   late Future<List<RfpPlan>> _plansFuture;
 
   late AnimationController _headerController;
@@ -141,10 +141,10 @@ class _DeliveryScreenState extends State<DeliveryScreen>
                           child: Column(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              const Icon(
+                              Icon(
                                 Icons.error_outline,
                                 size: 48,
-                                color: AppColors.rawEarth,
+                                color: isDark ? AppColors.darkSoftRed : AppColors.softRed,
                               ),
                               const SizedBox(height: 12),
                               Text(

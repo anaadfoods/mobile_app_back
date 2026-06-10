@@ -7,8 +7,10 @@ import '../models/subscription_model.dart';
 import '../models/subscription_plan_model.dart';
 import '../models/subscription_plan_product_model.dart';
 import '../models/subscription_request_create_model.dart';
-import '../services/auth_service.dart';
+import '../services/token_service.dart';
 import '../services/subscription_service.dart';
+import 'package:grocery_app/service_locator.dart';
+
 
 // A custom exception for handling subscription-related errors.
 class SubscriptionException implements Exception {
@@ -69,33 +71,17 @@ class RepaymentResult {
 }
 
 
-
 class SubscriptionRepository {
   final SubscriptionService _subscriptionService;
-  final AuthService _authService;
+  final TokenService _tokenService;
 
-  SubscriptionRepository({SubscriptionService? subscriptionService, AuthService? authService})
-      : _subscriptionService = subscriptionService ?? SubscriptionService(),
-        _authService = authService ?? AuthService();
+  SubscriptionRepository({SubscriptionService? subscriptionService, TokenService? tokenService})
+      : _subscriptionService = subscriptionService ?? getIt<SubscriptionService>(),
+        _tokenService = tokenService ?? getIt<TokenService>();
 
-  // Helper to centralize auth checks and token refresh logic.
-  Future<T> _makeAuthenticatedRequest<T>(Future<T> Function() apiCall) async {
-    try {
-      if (!await _authService.isLoggedIn()) {
-        throw SubscriptionException('You must be logged in to manage subscriptions.');
-      }
-      return await apiCall();
-    } on Exception catch (e) {
-      if (e.toString().contains('401') || e.toString().contains('Session expired')) {
-        final refreshed = await _authService.refreshAccessToken();
-        if (refreshed) {
-          return await apiCall(); // Retry the request once
-        } else {
-          throw SubscriptionException('Your session has expired. Please log in again.');
-        }
-      }
-      // Re-throw other exceptions to be caught by the Cubit
-      rethrow;
+  Future<void> _checkAuth() async {
+    if (!await _tokenService.isLoggedIn()) {
+      throw SubscriptionException('You must be logged in to manage subscriptions.');
     }
   }
 
@@ -119,93 +105,82 @@ class SubscriptionRepository {
     );
   }
 
-// ... inside your SubscriptionRepository class ...
-
-  // Find your existing getUserSubscriptions method and wrap the call in a try-catch.
   Future<List<Subscription>> getUserSubscriptions() async {
-    return _makeAuthenticatedRequest<List<Subscription>>(() async {
-      try {
-        // This is the line that calls your service
-        final result = await _subscriptionService.getSubscriptions();
+    await _checkAuth();
+    try {
+      final result = await _subscriptionService.getSubscriptions();
+      
+      if (result['success'] == true && result['data'] != null) {
+        final subscriptions = result['data'] as List<Subscription>;
         
-        if (result['success'] == true && result['data'] != null) {
-          final subscriptions = result['data'] as List<Subscription>;
-          
-          // Filter out UPI subscriptions that have failed or are still pending payment
-          return subscriptions.where((sub) {
-            if (sub.paymentMethod.toUpperCase() == 'UPI') {
-              final status = sub.paymentStatus.toUpperCase();
-              if (status == 'PAYMENT_PENDING' || status == 'PENDING' || status == 'FAILED') {
-                return false;
-              }
+        // Filter out UPI subscriptions that have failed or are still pending payment
+        return subscriptions.where((sub) {
+          if (sub.paymentMethod.toUpperCase() == 'UPI') {
+            final status = sub.paymentStatus.toUpperCase();
+            if (status == 'PAYMENT_PENDING' || status == 'PENDING' || status == 'FAILED') {
+              return false;
             }
-            return true;
-          }).toList();
-        } else {
-          throw SubscriptionException(result['message'] ?? 'Failed to get subscriptions from service.');
-        }
-      } catch (e, stackTrace) {
-        debugPrint('Subscription error: $e');
-        debugPrint('Stack: $stackTrace');
-        // User-friendly message - hide technical details
-        throw SubscriptionException("Couldn't load subscriptions right now 📶\n\n🌱 Natural farming saves farmers 70% on input costs compared to chemical farming!");
+          }
+          return true;
+        }).toList();
+      } else {
+        throw SubscriptionException(result['message'] ?? 'Failed to get subscriptions from service.');
       }
-    });
+    } catch (e, stackTrace) {
+      debugPrint('Subscription error: $e');
+      debugPrint('Stack: $stackTrace');
+      throw SubscriptionException("Couldn't load subscriptions right now 📶\n\n🌱 Natural farming saves farmers 70% on input costs compared to chemical farming!");
+    }
   }
   
   Future<Subscription> getSubscriptionDetails(int subscriptionId) async {
-    return _makeAuthenticatedRequest(() async {
-      return _handleServiceCall(
-        () => _subscriptionService.getSubscriptionDetails(subscriptionId),
-        (result) => Subscription.fromJson(result['data']),
-      );
-    });
+    await _checkAuth();
+    return _handleServiceCall(
+      () => _subscriptionService.getSubscriptionDetails(subscriptionId),
+      (result) => Subscription.fromJson(result['data']),
+    );
   }
 
   Future<SubscriptionCreationResult> createSubscription(SubscriptionCreateRequest request) async {
-    return _makeAuthenticatedRequest(() async {
-      return _handleServiceCall(
-        () => _subscriptionService.createSubscription(request),
-        (result) {
-          if (result.containsKey('payment_links')) {
-            return SubscriptionCreationResult(
-              paymentLinks: result['payment_links'],
-              subscriptionId: result['subscription_id'],
-              merchantTransactionId: result['merchant_transaction_id'],
-            );
-          } else {
-            return SubscriptionCreationResult(subscription: Subscription.fromJson(result['data']));
-          }
-        },
-      );
-    });
+    await _checkAuth();
+    return _handleServiceCall(
+      () => _subscriptionService.createSubscription(request),
+      (result) {
+        if (result.containsKey('payment_links')) {
+          return SubscriptionCreationResult(
+            paymentLinks: result['payment_links'],
+            subscriptionId: result['subscription_id'],
+            merchantTransactionId: result['merchant_transaction_id'],
+          );
+        } else {
+          return SubscriptionCreationResult(subscription: Subscription.fromJson(result['data']));
+        }
+      },
+    );
   }
 
    Future<PauseSubscriptionResponse> togglePauseSubscription(int subscriptionId, DateTime? pauseStartDate, DateTime? pauseEndDate) async {
-    return _makeAuthenticatedRequest(() async {
-      return _handleServiceCall(
-        () => _subscriptionService.togglePauseSubscription(subscriptionId, pauseStartDate, pauseEndDate),
-        (result) => PauseSubscriptionResponse.fromJson(result),
-      );
-    });
+    await _checkAuth();
+    return _handleServiceCall(
+      () => _subscriptionService.togglePauseSubscription(subscriptionId, pauseStartDate, pauseEndDate),
+      (result) => PauseSubscriptionResponse.fromJson(result),
+    );
   }
 
   Future<RepaymentResult> repaymentSubscription(int subscriptionId) async {
-    return _makeAuthenticatedRequest(() async {
-      return _handleServiceCall(
-        () => _subscriptionService.RepaymentSubscription(subscriptionId),
-        (result) => RepaymentResult.fromJson(result),
-      );
-    });
+    await _checkAuth();
+    return _handleServiceCall(
+      () => _subscriptionService.RepaymentSubscription(subscriptionId),
+      (result) => RepaymentResult.fromJson(result),
+    );
   }
 
   Future<void> cancelSubscription(int subscriptionId) async {
-    await _makeAuthenticatedRequest(() async {
-      final result = await _subscriptionService.cancelSubscription(subscriptionId);
-      if (result['success'] != true) {
-        throw SubscriptionException(result['message'] ?? 'Failed to cancel subscription.');
-      }
-    });
+    await _checkAuth();
+    final result = await _subscriptionService.cancelSubscription(subscriptionId);
+    if (result['success'] != true) {
+      throw SubscriptionException(result['message'] ?? 'Failed to cancel subscription.');
+    }
   }
   
   Future<SubscriptionPlanProductsResponse> getSubscriptionPlanProducts(int planId) async {
@@ -216,16 +191,15 @@ class SubscriptionRepository {
   }
   
   Future<ApiResponse> getSubscriptionInvoices(int subscriptionId) async {
-    return _makeAuthenticatedRequest(() => _subscriptionService.getSubscriptionInvoices(subscriptionId));
+    await _checkAuth();
+    return _subscriptionService.getSubscriptionInvoices(subscriptionId);
   }
+
   Future<List<PlanSearchResult>> searchPlansForVariant(int variantId) async {
     try {
-      // We call the static service method directly.
       return await PlanSearchService.fetchPlansForVariant(variantId);
     } catch (e) {
-      // Wrap any potential error in our custom exception type.
       throw SubscriptionException('Failed to find plans for the selected product.');
     }
   }
-
 }

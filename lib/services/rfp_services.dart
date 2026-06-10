@@ -1,31 +1,25 @@
-import 'package:http/http.dart' as http;
 import '../models/rfp_plan_model.dart';
 import '../models/rfp_delivery_model.dart';
 import '../common_widgets/global_import.dart';
 
-class DeliveryService {
-  final AuthService _authService = AuthService();
+import 'package:grocery_app/service_locator.dart';
 
-  final String _plansUrl = "${ApiConfig.baseUrl}/api/rfp/plans";
+class DeliveryService {
+  factory DeliveryService() => getIt<DeliveryService>();
+  DeliveryService.create();
+
+  final TokenService _tokenService = getIt<TokenService>();
 
   Future<String?> _getToken() async {
-    return await _authService.getAccessToken();
+    return await _tokenService.getAccessToken();
   }
 
   Future<List<RfpPlan>> fetchPlans() async {
     try {
-      final token = await _getToken();
-
-      final response = await http.get(
-        Uri.parse(_plansUrl),
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $token',
-        },
-      );
+      final response = await ApiClient.instance.get('/api/rfp/plans/');
 
       if (response.statusCode == 200) {
-        List<dynamic> jsonResponse = json.decode(response.body);
+        List<dynamic> jsonResponse = response.data;
         return jsonResponse.map((data) => RfpPlan.fromJson(data)).toList();
       } else {
         throw Exception('Failed to load plans: ${response.statusCode}');
@@ -37,18 +31,10 @@ class DeliveryService {
 
   Future<List<Delivery>> fetchPlanDeliveries(int planId) async {
     try {
-      final token = await _getToken();
-
-      final response = await http.get(
-        Uri.parse('$_plansUrl/$planId/deliveries'),
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $token',
-        },
-      );
+      final response = await ApiClient.instance.get('/api/rfp/plans/$planId/deliveries/');
 
       if (response.statusCode == 200) {
-        List<dynamic> jsonResponse = json.decode(response.body);
+        List<dynamic> jsonResponse = response.data;
         return jsonResponse.map((data) => Delivery.fromJson(data)).toList();
       } else {
         throw Exception(
@@ -62,18 +48,10 @@ class DeliveryService {
 
   Future<List<Delivery>> fetchDeliveries() async {
     try {
-      final token = await _getToken();
-
-      final response = await http.get(
-        Uri.parse("${ApiConfig.baseUrl}/api/rfp/deliveries"),
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $token',
-        },
-      );
+      final response = await ApiClient.instance.get('/api/rfp/deliveries/');
 
       if (response.statusCode == 200) {
-        List<dynamic> jsonResponse = json.decode(response.body);
+        List<dynamic> jsonResponse = response.data;
         return jsonResponse.map((data) => Delivery.fromJson(data)).toList();
       } else {
         throw Exception('Failed to load deliveries: ${response.statusCode}');
@@ -85,15 +63,10 @@ class DeliveryService {
 
   Future<DeliveryDetail> fetchDeliveryDetails(int deliveryId) async {
     try {
-      final token = await _getToken();
-
-      final response = await http.get(
-        Uri.parse('${ApiConfig.baseUrl}/api/rfp/deliveries/$deliveryId'),
-        headers: {'Authorization': 'Bearer $token'},
-      );
+      final response = await ApiClient.instance.get('/api/rfp/deliveries/$deliveryId/');
 
       if (response.statusCode == 200) {
-        return DeliveryDetail.fromJson(json.decode(response.body));
+        return DeliveryDetail.fromJson(response.data);
       } else {
         throw Exception(
           'Failed to load delivery details: ${response.statusCode}',

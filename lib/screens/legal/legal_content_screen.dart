@@ -1,5 +1,4 @@
 import 'package:grocery_app/core/theme/app_colors.dart';
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_html/flutter_html.dart';
 import 'package:grocery_app/models/legal_document_model.dart';

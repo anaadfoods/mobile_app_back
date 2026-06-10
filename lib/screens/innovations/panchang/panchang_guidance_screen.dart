@@ -5,6 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:grocery_app/core/theme/app_colors.dart';
 import 'package:intl/intl.dart';
 
+import 'package:grocery_app/service_locator.dart';
 import '../../../cubits/panchang/panchang_guidance_cubit.dart';
 import '../../../cubits/panchang/panchang_guidance_state.dart';
 import '../../../models/panchang/panchang_guidance_models.dart';
@@ -29,7 +30,7 @@ class _PanchangGuidanceScreenState extends State<PanchangGuidanceScreen>
   @override
   void initState() {
     super.initState();
-    _cubit = PanchangGuidanceCubit(repository: PanchangRepository());
+    _cubit = PanchangGuidanceCubit(repository: getIt<PanchangRepository>());
     _animController = AnimationController(
       duration: const Duration(milliseconds: 800),
       vsync: this,

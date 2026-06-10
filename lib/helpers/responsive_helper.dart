@@ -44,5 +44,11 @@ class ResponsiveHelper {
   // GRID/LAYOUT
   int get categoryCrossAxisCount => value(mobile: 2, tablet: 3, desktop: 4);
 
-  Null get screenHeight => null;
+  double get screenHeight => MediaQuery.sizeOf(context).height;
+  double get screenWidth => MediaQuery.sizeOf(context).width;
+
+  // Height percentage helper
+  double hp(double percentage) => (screenHeight * percentage) / 100;
+  // Width percentage helper
+  double wp(double percentage) => (screenWidth * percentage) / 100;
 }

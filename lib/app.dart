@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter/foundation.dart';
+// ignore: depend_on_referenced_packages
 import 'package:device_preview/device_preview.dart';
 
 // Cubits
@@ -10,7 +12,7 @@ import 'package:grocery_app/cubits/product/product_cubit.dart';
 import 'package:grocery_app/cubits/favorites/favorites_cubit.dart';
 import 'package:grocery_app/cubits/order/order_cubit.dart';
 import 'package:grocery_app/cubits/subscription/subscription_cubit.dart';
-import 'package:grocery_app/cubits/chats/chat_cubit.dart';
+import 'package:grocery_app/logic/cubits/chat_cubit.dart';
 import 'package:grocery_app/cubits/notification/notification_cubit.dart';
 import 'package:grocery_app/cubits/notification/notification_state.dart';
 import 'package:grocery_app/cubits/theme/theme_cubit.dart';
@@ -42,6 +44,8 @@ import 'package:grocery_app/routes/app_router.dart';
 
 import 'package:grocery_app/services/notification_sync_manager.dart';
 
+import 'package:grocery_app/service_locator.dart';
+
 class MyApp extends StatelessWidget {
   final bool hasSeenWelcome;
   const MyApp({super.key, required this.hasSeenWelcome});
@@ -50,14 +54,18 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiRepositoryProvider(
       providers: [
-        RepositoryProvider(create: (context) => AuthRepository()),
-        RepositoryProvider(create: (context) => ProductRepository()),
-        RepositoryProvider(create: (_) => CartRepository()),
-        RepositoryProvider(create: (context) => OrderRepository()),
-        RepositoryProvider(create: (context) => SubscriptionRepository()),
-        RepositoryProvider(create: (context) => FavoritesRepository()),
-        RepositoryProvider(create: (context) => NotificationRepository()),
-        RepositoryProvider(create: (context) => ChatRepository()),
+        RepositoryProvider(create: (context) => getIt<AuthRepository>()),
+        RepositoryProvider(create: (context) => getIt<ProductRepository>()),
+        RepositoryProvider(create: (_) => getIt<CartRepository>()),
+        RepositoryProvider(create: (context) => getIt<OrderRepository>()),
+        RepositoryProvider(
+          create: (context) => getIt<SubscriptionRepository>(),
+        ),
+        RepositoryProvider(create: (context) => getIt<FavoritesRepository>()),
+        RepositoryProvider(
+          create: (context) => getIt<NotificationRepository>(),
+        ),
+        RepositoryProvider(create: (context) => getIt<ChatRepository>()),
       ],
       child: MultiBlocProvider(
         providers: [
@@ -118,7 +126,7 @@ class MyApp extends StatelessWidget {
               // navigatorKey is now in AppRouter
               debugShowCheckedModeBanner: false,
               useInheritedMediaQuery: true,
-              locale: DevicePreview.locale(context),
+              locale: kDebugMode ? DevicePreview.locale(context) : null,
               theme: AppTheme.lightTheme,
               darkTheme: AppTheme.darkTheme,
               themeMode: themeMode,
@@ -126,9 +134,13 @@ class MyApp extends StatelessWidget {
               builder: (context, child) {
                 // Prevent app from using system font size settings
                 final widget = MediaQuery(
-                  data: MediaQuery.of(
-                    context,
-                  ).copyWith(textScaler: const TextScaler.linear(1.0)),
+                  data: MediaQuery.of(context).copyWith(
+                    textScaler: TextScaler.linear(
+                      MediaQuery.textScalerOf(
+                        context,
+                      ).scale(1.0).clamp(0.85, 1.3),
+                    ),
+                  ),
                   child: ConnectivityWrapper(
                     child: DoubleBackToExitApp(child: child!),
                   ),
@@ -137,7 +149,9 @@ class MyApp extends StatelessWidget {
                 // Wrap with AppGlobalListeners to handle init and bloc listeners
                 final wrappedWidget = AppGlobalListeners(child: widget);
 
-                return DevicePreview.appBuilder(context, wrappedWidget);
+                return kDebugMode
+                    ? DevicePreview.appBuilder(context, wrappedWidget)
+                    : wrappedWidget;
               },
             );
           },
@@ -155,14 +169,15 @@ class AppGlobalListeners extends StatefulWidget {
   State<AppGlobalListeners> createState() => _AppGlobalListenersState();
 }
 
-class _AppGlobalListenersState extends State<AppGlobalListeners> with WidgetsBindingObserver {
+class _AppGlobalListenersState extends State<AppGlobalListeners>
+    with WidgetsBindingObserver {
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
-        final notificationService = NotificationService();
+        final notificationService = getIt<NotificationService>();
         notificationService.initialize(context.read<NotificationCubit>());
 
         // Process any pending initial notification now that context/navigator is ready
@@ -181,8 +196,8 @@ class _AppGlobalListenersState extends State<AppGlobalListeners> with WidgetsBin
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
       context.read<AuthCubit>().verifyAndRefreshToken();
-      NotificationSyncManager().flushPendingQueue();
-      NotificationSyncManager().syncWithBackend();
+      getIt<NotificationSyncManager>().flushPendingQueue();
+      getIt<NotificationSyncManager>().syncWithBackend();
     }
   }
 
@@ -200,8 +215,8 @@ class _AppGlobalListenersState extends State<AppGlobalListeners> with WidgetsBin
               context.read<FavoritesCubit>().loadFavorites();
 
               // Trigger sync on authentication
-              NotificationSyncManager().flushPendingQueue();
-              NotificationSyncManager().syncWithBackend();
+              getIt<NotificationSyncManager>().flushPendingQueue();
+              getIt<NotificationSyncManager>().syncWithBackend();
             } else if (state is Unauthenticated) {
               context.read<NotificationCubit>().unregisterDevice();
               context.read<CartCubit>().clearCart();

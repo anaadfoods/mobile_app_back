@@ -3,6 +3,8 @@ import 'package:grocery_app/models/product_image_model.dart';
 import 'package:grocery_app/common_widgets/global_import.dart';
 import 'package:grocery_app/routes/app_routes.dart';
 
+import 'package:grocery_app/service_locator.dart';
+
 class FavouriteScreen extends StatefulWidget {
   const FavouriteScreen({super.key});
 
@@ -12,8 +14,10 @@ class FavouriteScreen extends StatefulWidget {
 
 class _FavouriteScreenState extends State<FavouriteScreen>
     with TickerProviderStateMixin {
-  final AuthService _authService = AuthService();
-  final FavoriteStateService _favoriteStateService = FavoriteStateService();
+  final TokenService _tokenService = getIt<TokenService>();
+  final ProfileService _profileService = getIt<ProfileService>();
+  final FavoriteStateService _favoriteStateService =
+      getIt<FavoriteStateService>();
 
   List<FavoriteModel> _favorites = [];
   final Set<int> _processingItems = {};
@@ -40,7 +44,7 @@ class _FavouriteScreenState extends State<FavouriteScreen>
     _initAnimations();
     _loadFavorites();
 
-    _authSubscription = AuthService.authStateChanges.listen((isLoggedIn) {
+    _authSubscription = TokenService.authStateChanges.listen((isLoggedIn) {
       if (!mounted) return;
       if (isLoggedIn) {
         _loadFavorites();
@@ -113,7 +117,7 @@ class _FavouriteScreenState extends State<FavouriteScreen>
     });
 
     try {
-      final isLoggedIn = await _authService.isLoggedIn();
+      final isLoggedIn = await _tokenService.isLoggedIn();
       if (!isLoggedIn) {
         if (mounted) {
           setState(() {
@@ -124,7 +128,7 @@ class _FavouriteScreenState extends State<FavouriteScreen>
         return;
       }
 
-      final favResult = await _authService.getFavorites();
+      final favResult = await _profileService.getFavorites();
 
       if (!mounted) return;
 
@@ -163,12 +167,12 @@ class _FavouriteScreenState extends State<FavouriteScreen>
 
     setState(() {
       _processingItems.add(favorite.productId);
-      _isUpdatingInternally = true;
+      _isUpdatingInternally = false;
       _favorites.removeAt(originalIndex);
     });
 
     try {
-      final result = await _authService.toggleFavorite(favorite.productId);
+      final result = await _profileService.toggleFavorite(favorite.productId);
       if (!mounted) return;
 
       final isSuccess =
@@ -384,31 +388,31 @@ class _FavouriteScreenState extends State<FavouriteScreen>
           child: Stack(
             children: [
               // Animated Heart
-              Positioned(
-                top: 25,
-                right: 30,
-                child: AnimatedBuilder(
-                  animation: _pulseController,
-                  builder: (context, child) {
-                    return Transform.scale(
-                      scale: _pulseAnimation.value,
-                      child: child,
-                    );
-                  },
-                  child: Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: AppColors.parchment.withValues(alpha: 0.2),
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(
-                      Icons.favorite_rounded,
-                      color: AppColors.parchment,
-                      size: 36,
-                    ),
-                  ),
-                ),
-              ),
+              // Positioned(
+              //   top: 25,
+              //   right: 30,
+              //   child: AnimatedBuilder(
+              //     animation: _pulseController,
+              //     builder: (context, child) {
+              //       return Transform.scale(
+              //         scale: _pulseAnimation.value,
+              //         child: child,
+              //       );
+              //     },
+              //     child: Container(
+              //       padding: const EdgeInsets.all(16),
+              //       decoration: BoxDecoration(
+              //         color: AppColors.parchment.withValues(alpha: 0.2),
+              //         shape: BoxShape.circle,
+              //       ),
+              //       child: const Icon(
+              //         Icons.favorite_rounded,
+              //         color: AppColors.parchment,
+              //         size: 36,
+              //       ),
+              //     ),
+              //   ),
+              // ),
 
               // Header Content
               SafeArea(
@@ -480,6 +484,7 @@ class _FavouriteScreenState extends State<FavouriteScreen>
             AppColors.harvestAmber,
             '${_favorites.length}',
             'Saved Items',
+            onTap: () => _loadFavorites(),
           ),
         ),
         const SizedBox(width: 12),
@@ -491,6 +496,7 @@ class _FavouriteScreenState extends State<FavouriteScreen>
             AppColors.deepSoilGreen,
             '$inCart',
             'In Cart',
+            onTap: () => context.goNamed(AppRoute.cart.name),
           ),
         ),
       ],
@@ -503,10 +509,18 @@ class _FavouriteScreenState extends State<FavouriteScreen>
     IconData icon,
     Color color,
     String value,
-    String label,
-  ) {
-    return Container(
-      padding: const EdgeInsets.all(16),
+    String label, {
+    VoidCallback? onTap,
+  }) {
+    return GestureDetector(
+      onTap: () {
+        if (onTap != null) {
+          HapticFeedback.lightImpact();
+          onTap();
+        }
+      },
+      child: Container(
+        padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: theme.cardColor,
         borderRadius: BorderRadius.circular(20),
@@ -547,6 +561,7 @@ class _FavouriteScreenState extends State<FavouriteScreen>
             ],
           ),
         ],
+      ),
       ),
     );
   }
@@ -625,7 +640,9 @@ class _FavouriteScreenState extends State<FavouriteScreen>
                       height: 80,
                       decoration: BoxDecoration(
                         color:
-                            isDark ? AppColors.darkSurfaceElevated : AppColors.parchment,
+                            isDark
+                                ? AppColors.darkSurfaceElevated
+                                : AppColors.parchment,
                         borderRadius: BorderRadius.circular(16),
                       ),
                       child: ClipRRect(
@@ -804,14 +821,14 @@ class _FavouriteScreenState extends State<FavouriteScreen>
           children: [
             const Icon(
               Icons.add_shopping_cart_rounded,
-              color: AppColors.harvestAmber,
+              color: AppColors.amberWarnBg,
               size: 18,
             ),
             const SizedBox(width: 4),
             Text(
               'Add',
               style: theme.textTheme.labelLarge?.copyWith(
-                color: AppColors.harvestAmber,
+                color: AppColors.amberWarnBg,
                 fontWeight: FontWeight.bold,
               ),
             ),
@@ -875,7 +892,7 @@ class _FavouriteScreenState extends State<FavouriteScreen>
           color: isDark ? AppColors.darkSurface : AppColors.parchment,
           borderRadius: BorderRadius.circular(8),
         ),
-        child: Icon(icon, size: 18, color: theme.colorScheme.primary),
+        child: Icon(icon, size: 18, color: theme.colorScheme.secondary),
       ),
     );
   }
@@ -886,16 +903,10 @@ class _FavouriteScreenState extends State<FavouriteScreen>
     final isLoginError = _error?.toLowerCase().contains('login') ?? false;
 
     if (isLoginError) {
-      return ErrorStateWidget(
-        title: 'Login Required',
-        subtitle: _error ?? 'Please login to view your favorites.',
-        errorType: ErrorType.permission,
-        retryText: 'Login',
-        onRetry:
-            () => Navigator.push(
-              context,
-              AnimatedTransitions.slideFromBottom(const LoginScreen()),
-            ),
+      return const GuestEmptyStateWidget(
+        title: 'Login to View Favorites',
+        subtitle: 'Log in to see and manage your saved items.',
+        icon: Icons.favorite_border_rounded,
       );
     }
 

@@ -1,3 +1,4 @@
+import 'package:grocery_app/utils/app_logger.dart';
 import 'package:flutter/material.dart';
 import 'package:grocery_app/helpers/animated_transitions.dart';
 import 'package:grocery_app/helpers/notification_helper.dart';
@@ -5,10 +6,11 @@ import 'package:grocery_app/helpers/snackbar_helper.dart';
 import 'package:grocery_app/screens/MySubscriptionPlan/subscription_plan_detail_single.dart';
 import 'package:grocery_app/screens/checkout/webview_page.dart';
 import 'package:grocery_app/services/subscription_service.dart';
+import 'package:grocery_app/service_locator.dart';
 // Make sure to import your other files like WebViewPage, AnimatedTransitions etc.
 
 class SubscriptionHandler {
-  final SubscriptionService _subscriptionService = SubscriptionService();
+  final SubscriptionService _subscriptionService = getIt<SubscriptionService>();
   final BuildContext context; // Pass context in constructor for clarity
 
   // The handler now requires a BuildContext to perform navigation and show dialogs.
@@ -53,12 +55,6 @@ class SubscriptionHandler {
 
       if (subscriptionDetails['success'] == true) {
         // Successful fetch and navigation
-        _showPaymentNotification(
-          title: 'Payment Successful!',
-          status: 'Paid',
-          subscriptionId: parsedId,
-        );
-
         Navigator.pushAndRemoveUntil(
           context,
           AnimatedTransitions.fadeScale(
@@ -74,22 +70,10 @@ class SubscriptionHandler {
     } catch (e) {
       // Failed to fetch details, but payment was likely successful.
       // Show generic success message and pop back.
-      print("Error fetching details after payment: $e");
+      AppLogger.instance.log("Error fetching details after payment: $e");
       Navigator.of(context).pop(); // Close WebView if it's open
       _showRepaymentSuccessMessage();
     }
-  }
-
-  /// **[REUSABLE]** Centralizes showing notifications.
-  void _showPaymentNotification({
-    required String title,
-    required String status,
-    required int subscriptionId,
-  }) {
-    NotificationHelper.showNotification(
-      title: title,
-      body: 'Subscription ID: $subscriptionId\nPayment Mode: Online Payment\nStatus: $status',
-    );
   }
 
   // --- REFACTORED HELPER METHODS ---
@@ -97,13 +81,6 @@ class SubscriptionHandler {
   Future<void> _launchSubscriptionWebView(String paymentUrl, dynamic subscriptionId) async {
     try {
       final parsedId = int.parse(subscriptionId.toString());
-
-      // Show a notification that payment is pending
-      _showPaymentNotification(
-        title: 'Repayment Initiated!',
-        status: 'Pending Payment',
-        subscriptionId: parsedId,
-      );
 
       await Navigator.push(
         context,
@@ -120,11 +97,6 @@ class SubscriptionHandler {
             },
             onPaymentFailure: (url) {
               Navigator.pop(context);
-              _showPaymentNotification(
-                title: 'Payment Failed!',
-                status: 'Failed',
-                subscriptionId: parsedId,
-              );
               SnackBarHelper.showError(context, 'Payment failed or cancelled');
             },
           ),

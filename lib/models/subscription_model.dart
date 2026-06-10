@@ -1,3 +1,55 @@
+/// Response model for subscription API
+///
+/// Field Mapping from API Response:
+/// - id ← id (int: subscription ID)
+/// - plan ← plan (int: plan ID)
+/// - planName ← plan_name (String)
+/// - startDate ← start_date (String: ISO date)
+/// - endDate ← end_date (String: ISO date)
+/// - status ← status (String: ACTIVE, PAUSED, CANCELLED)
+/// - paymentStatus ← payment_status (String: PAID_FULL, PAID_PARTIAL, PENDING)
+/// - paymentMethod ← payment_method (String: COD, UPI)
+/// - deliveryAddress ← delivery_address (String)
+/// - deliveryCity ← delivery_city (String)
+/// - deliveryState ← delivery_state (String)
+/// - deliveryPincode ← delivery_pincode (String)
+/// - deliveryPhone ← delivery_phone (String)
+/// - recipientName ← recipient_name (String)
+/// - notes ← notes (String)
+/// - subtotal ← subtotal (double: product cost)
+/// - deliveryCharges ← delivery_charges (double)
+/// - total ← total (double: total amount)
+/// - amountPaid ← amount_paid (double)
+/// - remainingAmount ← remaining_amount (double)
+/// - nextDeliveryDate ← next_delivery_date (String)
+/// - lastPaymentDate ← last_payment_date (String?)
+/// - nextPaymentDate ← next_payment_date (String?)
+/// - totalDeliveries ← total_deliveries (int)
+/// - completedDeliveries ← completed_deliveries (int)
+/// - remainingPauseDays ← remaining_pause_days (int)
+/// - remainingPauseTimes ← remaining_pause_times (int)
+/// - createdAt ← created_at (String)
+/// - totalDeliveryCharges ← total_delivery_charges (double)
+/// - canPayNextInstallment ← can_pay_next_installment (bool)
+/// - installmentInfo ← installment_info (InstallmentInfo?)
+/// - items ← items (List<SubscriptionItem>)
+///
+/// Example Response:
+/// ```json
+/// {
+///   "id": 4,
+///   "plan": 4,
+///   "plan_name": "SIDDH",
+///   "status": "ACTIVE",
+///   "payment_status": "PAID_FULL",
+///   "payment_method": "COD",
+///   "start_date": "2026-06-09",
+///   "end_date": "2027-06-04",
+///   "total": "4291.32",
+///   "items": [...],
+///   "installment_info": {...}
+/// }
+/// ```
 class Subscription {
   final int id;
   final int plan;
@@ -31,6 +83,8 @@ class Subscription {
   final InstallmentInfo? installmentInfo;
   final bool canPayNextInstallment;
   final List<SubscriptionItem> items;
+  final String? pauseStartDate;
+  final String? pauseEndDate;
 
   Subscription({
     required this.id,
@@ -65,6 +119,8 @@ class Subscription {
     required this.installmentInfo,
     required this.canPayNextInstallment,
     required this.items,
+    this.pauseStartDate,
+    this.pauseEndDate,
   });
 
   String get installmentPaymentStatus =>
@@ -109,13 +165,20 @@ class Subscription {
           ) ??
           0.0,
       canPayNextInstallment: json['can_pay_next_installment'] ?? false,
+      pauseStartDate: json['pause_start_date']?.toString(),
+      pauseEndDate: json['pause_end_date']?.toString(),
       installmentInfo:
           json['installment_info'] != null
-              ? InstallmentInfo.fromJson(json['installment_info'])
+              ? InstallmentInfo.fromJson(
+                Map<String, dynamic>.from(json['installment_info']),
+              )
               : null,
       items:
           (json['items'] as List?)
-              ?.map((item) => SubscriptionItem.fromJson(item))
+              ?.map(
+                (item) =>
+                    SubscriptionItem.fromJson(Map<String, dynamic>.from(item)),
+              )
               .toList() ??
           [],
     );

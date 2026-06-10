@@ -1,7 +1,7 @@
 import 'dart:ui';
 import 'dart:math' as math;
 import 'package:grocery_app/common_widgets/global_import.dart';
-import 'package:http/http.dart' as http;
+import 'package:dio/dio.dart';
 
 class ForgetPasswordScreen extends StatefulWidget {
   const ForgetPasswordScreen({super.key});
@@ -166,23 +166,30 @@ class _ForgetPasswordScreenState extends State<ForgetPasswordScreen>
     _identifierType = type;
 
     try {
-      final response = await http.post(
-        Uri.parse('${ApiConfig.baseUrl}/api/auth/forgot-password/send-otp/'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'identifier': identifier, 'type': type}),
+      final response = await ApiClient.instance.post(
+        '/api/auth/forgot-password/send-otp/',
+        data: {'identifier': identifier, 'type': type},
       );
-      final responseBody = jsonDecode(response.body);
 
       if (response.statusCode == 200) {
         _showOtpDialog();
       } else {
         setState(() {
-          _sendOtpError = responseBody['message'] ?? 'Failed to send OTP';
+          _sendOtpError = response.data['message'] ?? 'Failed to send OTP';
         });
       }
     } catch (e) {
+      String errorMessage = 'A network error occurred. Please try again.';
+      if (e is DioException && e.response?.data != null) {
+        final data = e.response!.data;
+        if (data is Map) {
+          errorMessage = data['message'] ?? data['error'] ?? errorMessage;
+        } else if (data is String) {
+          errorMessage = data;
+        }
+      }
       setState(() {
-        _sendOtpError = 'A network error occurred. Please try again.';
+        _sendOtpError = errorMessage;
       });
     } finally {
       if (mounted) {
@@ -219,17 +226,16 @@ class _ForgetPasswordScreenState extends State<ForgetPasswordScreen>
     }
 
     try {
-      final response = await http.post(
-        Uri.parse('${ApiConfig.baseUrl}/api/auth/forgot-password/reset/'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
+      final response = await ApiClient.instance.post(
+        '/api/auth/forgot-password/reset/',
+        data: {
           'identifier': identifier,
           'type': type,
           'new_password': newPassword,
-        }),
+        },
       );
 
-      final responseBody = jsonDecode(response.body);
+      final responseBody = response.data;
       if (response.statusCode == 200) {
         setState(() {
           _resetSuccess =
@@ -244,8 +250,17 @@ class _ForgetPasswordScreenState extends State<ForgetPasswordScreen>
         });
       }
     } catch (e) {
+      String errorMessage = 'A network error occurred. Please try again.';
+      if (e is DioException && e.response?.data != null) {
+        final data = e.response!.data;
+        if (data is Map) {
+          errorMessage = data['error'] ?? data['message'] ?? errorMessage;
+        } else if (data is String) {
+          errorMessage = data;
+        }
+      }
       setState(() {
-        _passwordError = 'A network error occurred. Please try again.';
+        _passwordError = errorMessage;
       });
     } finally {
       if (mounted) {
@@ -277,18 +292,15 @@ class _ForgetPasswordScreenState extends State<ForgetPasswordScreen>
               });
 
               try {
-                final response = await http.post(
-                  Uri.parse(
-                    '${ApiConfig.baseUrl}/api/auth/forgot-password/verify-otp/',
-                  ),
-                  headers: {'Content-Type': 'application/json'},
-                  body: jsonEncode({
+                final response = await ApiClient.instance.post(
+                  '/api/auth/forgot-password/verify-otp/',
+                  data: {
                     'identifier': _identifierController.text.trim(),
                     'otp': _otpController.text.trim(),
                     'type': _identifierType,
-                  }),
+                  },
                 );
-                final responseBody = jsonDecode(response.body);
+                final responseBody = response.data;
                 if (response.statusCode == 200) {
                   Navigator.of(context).pop(); // Close dialog on success
                   setState(() => _showPasswordFields = true);
@@ -298,7 +310,14 @@ class _ForgetPasswordScreenState extends State<ForgetPasswordScreen>
                   );
                 }
               } catch (e) {
-                setDialogState(() => dialogError = 'Network error');
+                String errorMessage = 'Network error';
+                if (e is DioException && e.response?.data != null) {
+                  final data = e.response!.data;
+                  if (data is Map) {
+                    errorMessage = data['error'] ?? data['message'] ?? errorMessage;
+                  }
+                }
+                setDialogState(() => dialogError = errorMessage);
               } finally {
                 if (mounted) {
                   setDialogState(() => isVerifying = false);
@@ -435,8 +454,8 @@ class _ForgetPasswordScreenState extends State<ForgetPasswordScreen>
                                 decoration: BoxDecoration(
                                   gradient: LinearGradient(
                                     colors: [
-                                      AppColors.deepSoilGreen,
-                                      AppColors.deepSoilGreen.withRed(200),
+                                      AppColors.harvestAmber,
+                                      AppColors.harvestAmber.withValues(alpha: 0.8),
                                     ],
                                   ),
                                   borderRadius: BorderRadius.circular(12),
@@ -1074,9 +1093,9 @@ class _ForgetPasswordScreenState extends State<ForgetPasswordScreen>
             borderRadius: BorderRadius.circular(AppColors.radiusRound),
             gradient: LinearGradient(
               colors: [
-                AppColors.deepSoilGreen,
-                AppColors.deepSoilGreen.withRed(200),
-                AppColors.deepSoilGreen,
+                AppColors.harvestAmber,
+                AppColors.harvestAmber.withValues(alpha: 0.8),
+                AppColors.harvestAmber,
               ],
               stops: [0.0, _shimmerController.value, 1.0],
             ),
@@ -1117,7 +1136,7 @@ class _ForgetPasswordScreenState extends State<ForgetPasswordScreen>
                             style: Theme.of(
                               context,
                             ).textTheme.titleMedium?.copyWith(
-                              color: AppColors.parchment,
+                              color: AppColors.pureWhite,
                               fontWeight: FontWeight.bold,
                               letterSpacing: 0.5,
                             ),

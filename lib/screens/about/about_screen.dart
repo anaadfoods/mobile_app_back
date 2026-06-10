@@ -1,5 +1,4 @@
 import 'dart:math' as math;
-import 'package:flutter/services.dart';
 import 'package:grocery_app/common_widgets/global_import.dart';
 
 class AboutScreen extends StatefulWidget {
@@ -197,7 +196,7 @@ class _AboutScreenState extends State<AboutScreen>
         clipBehavior: Clip.none,
         children: [
           // Background with gradient and image
-          Container(
+          SizedBox(
             height: size.height * 0.40 + statusBarHeight, // Increased height
             width: double.infinity,
             child: Stack(

@@ -2154,7 +2154,7 @@ class _CompostCommanderState extends State<CompostCommanderGameScreen>
                   ),
                 ),
                 Text(
-                  'Day $_daysElapsed • ${_turnsRemaining} turns left',
+                  'Day $_daysElapsed • $_turnsRemaining turns left',
                   style: TextStyle(
                     fontSize: 11,
                     color:
@@ -3110,16 +3110,21 @@ class _CompostCommanderState extends State<CompostCommanderGameScreen>
   }
 
   String _getDefeatTip() {
-    if (_carbon > 70)
+    if (_carbon > 70) {
       return 'Too much carbon (browns)! Add more nitrogen-rich greens like grass clippings or food scraps.';
-    if (_nitrogen > 70)
+    }
+    if (_nitrogen > 70) {
       return 'Too much nitrogen (greens)! Balance with browns like dried leaves or cardboard.';
-    if (_moisture < 30)
+    }
+    if (_moisture < 30) {
       return 'Compost was too dry! Remember to add water regularly.';
-    if (_moisture > 75)
+    }
+    if (_moisture > 75) {
       return 'Compost was waterlogged! Add dry browns to absorb excess moisture.';
-    if (_oxygen < 40)
+    }
+    if (_oxygen < 40) {
       return 'Not enough oxygen! Turn the pile more often to aerate it.';
+    }
     return 'Balance is key! Aim for ~60% carbon, ~40% nitrogen, moderate moisture, and turn regularly.';
   }
 
@@ -3752,7 +3757,7 @@ class _OrganicBackgroundPainter extends CustomPainter {
     // Maturity glow at bottom
     if (maturity > 0) {
       paint
-        ..shader = RadialGradient(
+        .shader = RadialGradient(
           center: const Alignment(0, 1),
           radius: 0.8,
           colors: [

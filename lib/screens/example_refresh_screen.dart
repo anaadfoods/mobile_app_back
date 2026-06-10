@@ -3,7 +3,7 @@ import 'package:grocery_app/core/theme/app_colors.dart';
 import '../common_widgets/short_pull_to_refresh.dart';
 
 class ExampleRefreshScreen extends StatefulWidget {
-  const ExampleRefreshScreen({Key? key}) : super(key: key);
+  const ExampleRefreshScreen({super.key});
 
   @override
   _ExampleRefreshScreenState createState() => _ExampleRefreshScreenState();

@@ -1,3 +1,4 @@
+import 'package:grocery_app/utils/app_logger.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../helpers/app_error_helper.dart';
@@ -67,12 +68,12 @@ class PanchangFestivalsCubit extends Cubit<PanchangFestivalsState> {
       if (isClosed) return;
       emit(const PanchangFestivalsLoading());
 
-      print('🔥 Starting loadFullYear for year: $year');
+      AppLogger.instance.log('🔥 Starting loadFullYear for year: $year');
       
       final startOfPeriod = DateTime(year, 1, 1);
       final endOfYear = DateTime(year, 12, 31);
       
-      print('🔥 Date range: $startOfPeriod to $endOfYear');
+      AppLogger.instance.log('🔥 Date range: $startOfPeriod to $endOfYear');
       
       // Split into 60-day chunks
       final List<DateTime> chunkStarts = [];
@@ -90,7 +91,7 @@ class PanchangFestivalsCubit extends Cubit<PanchangFestivalsState> {
       for (int i = 0; i < chunkStarts.length; i += 2) {
         if (isClosed) return;
         
-        print('🔥 Processing batch ${(i ~/ 2) + 1} of ${(chunkStarts.length / 2).ceil()}');
+        AppLogger.instance.log('🔥 Processing batch ${(i ~/ 2) + 1} of ${(chunkStarts.length / 2).ceil()}');
         
         final futures = <Future<PanchangFestivalsResponse>>[];
         
@@ -101,7 +102,7 @@ class PanchangFestivalsCubit extends Cubit<PanchangFestivalsState> {
             chunkEnd = endOfYear;
           }
           
-          print('🔥 Adding chunk: $chunkStart to $chunkEnd');
+          AppLogger.instance.log('🔥 Adding chunk: $chunkStart to $chunkEnd');
           
           futures.add(_repository.getFestivals(
             startDate: chunkStart,
@@ -111,7 +112,7 @@ class PanchangFestivalsCubit extends Cubit<PanchangFestivalsState> {
         }
 
         // Wait for batch to complete - allow individual failures
-        print('🔥 Waiting for ${futures.length} API calls...');
+        AppLogger.instance.log('🔥 Waiting for ${futures.length} API calls...');
         final results = await Future.wait(
           futures,
           eagerError: false,
@@ -143,23 +144,23 @@ class PanchangFestivalsCubit extends Cubit<PanchangFestivalsState> {
             }
             totalFestivals += response.metadata.totalFestivals;
           } catch (e) {
-            print('🔥 Warning: Failed to process chunk ${k + 1}: $e');
+            AppLogger.instance.log('🔥 Warning: Failed to process chunk ${k + 1}: $e');
             // Continue with other successful chunks
           }
         }
-        print('🔥 Batch completed: $successCount/${results.length} chunks successful');
+        AppLogger.instance.log('🔥 Batch completed: $successCount/${results.length} chunks successful');
       }
 
       if (isClosed) return;
       
-      print('🔥 Merging complete. Total unique dates: ${festivalsByDate.length}');
-      print('🔥 Total festivals: $totalFestivals');
+      AppLogger.instance.log('🔥 Merging complete. Total unique dates: ${festivalsByDate.length}');
+      AppLogger.instance.log('🔥 Total festivals: $totalFestivals');
       
       // Sort by date and create list
       final sortedDates = festivalsByDate.keys.toList()..sort();
       final allFestivals = sortedDates.map((date) => festivalsByDate[date]!).toList();
       
-      print('🔥 Creating combined response with ${allFestivals.length} date groups');
+      AppLogger.instance.log('🔥 Creating combined response with ${allFestivals.length} date groups');
       
       // Create combined response
       final combinedResponse = PanchangFestivalsResponse(
@@ -175,7 +176,7 @@ class PanchangFestivalsCubit extends Cubit<PanchangFestivalsState> {
       _startDate = startOfPeriod;
       _endDate = endOfYear;
 
-      print('🔥 Emitting success state');
+      AppLogger.instance.log('🔥 Emitting success state');
       
       emit(PanchangFestivalsSuccess(
         response: combinedResponse,
@@ -184,10 +185,10 @@ class PanchangFestivalsCubit extends Cubit<PanchangFestivalsState> {
         filterType: _filterType,
       ));
       
-      print('🔥 loadFullYear completed successfully');
+      AppLogger.instance.log('🔥 loadFullYear completed successfully');
     } catch (e, stackTrace) {
-      print('🔥 ERROR in loadFullYear: $e');
-      print('🔥 Stack trace: $stackTrace');
+      AppLogger.instance.log('🔥 ERROR in loadFullYear: $e');
+      AppLogger.instance.log('🔥 Stack trace: $stackTrace');
       if (isClosed) return;
       emit(PanchangFestivalsError(AppErrorHelper.getErrorMessage(e)));
     }

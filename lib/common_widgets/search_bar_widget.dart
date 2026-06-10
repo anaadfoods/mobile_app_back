@@ -1,9 +1,6 @@
-import 'package:grocery_app/core/theme/app_colors.dart';
-import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:grocery_app/core/theme/theme.dart';
-import 'package:grocery_app/services/api_config.dart';
-import 'package:http/http.dart' as http;
+import 'package:grocery_app/services/api_client.dart';
 
 class ProductSearchBar extends StatefulWidget {
   const ProductSearchBar({super.key});
@@ -33,15 +30,14 @@ class _ProductSearchBarState extends State<ProductSearchBar> {
       _errorMessage = '';
     });
 
-    final url = Uri.parse(
-      '${ApiConfig.baseUrl}/api/products/variants/search/?q=$query',
-    );
-
     try {
-      final response = await http.get(url);
+      final response = await ApiClient.instance.get(
+        '/api/products/variants/search/',
+        queryParameters: {'q': query},
+      );
 
       if (response.statusCode == 200) {
-        final List<dynamic> data = json.decode(response.body);
+        final List<dynamic> data = response.data;
         setState(() => _searchResults = data);
       } else {
         setState(() => _errorMessage = "Failed to load results");

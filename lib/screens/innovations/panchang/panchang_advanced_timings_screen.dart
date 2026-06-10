@@ -108,7 +108,7 @@ class _PanchangAdvancedTimingsScreenState
       symbol: '♄',
       emoji: '🔵',
       color: AppColors.charcoal,
-      gradientColors: [AppColors.charcoal, const Color(0xFF3A3A3A)],
+      gradientColors: [AppColors.charcoal, Color(0xFF3A3A3A)],
       deity: 'Shani Dev',
       day: 'Saturday',
       nature: 'Malefic (Krura)',

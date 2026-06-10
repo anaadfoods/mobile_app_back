@@ -1,4 +1,3 @@
-import 'package:grocery_app/core/theme/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:grocery_app/core/theme/theme.dart';
 import 'package:shimmer/shimmer.dart';

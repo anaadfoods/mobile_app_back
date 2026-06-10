@@ -4,6 +4,8 @@ import 'package:grocery_app/core/theme/app_colors.dart';
 import '../models/location_models.dart';
 import '../services/location_service.dart';
 
+import 'package:grocery_app/service_locator.dart';
+
 typedef StringCallback = void Function(String? value);
 
 class SelectState extends StatefulWidget {
@@ -15,21 +17,21 @@ class SelectState extends StatefulWidget {
   final String? initialCity; // Initial city name to pre-select
 
   const SelectState({
-    Key? key,
+    super.key,
     this.onCountryChanged,
     this.onStateChanged,
     this.onCityChanged,
     this.style,
     this.initialState,
     this.initialCity,
-  }) : super(key: key);
+  });
 
   @override
   State<SelectState> createState() => _SelectStateState();
 }
 
 class _SelectStateState extends State<SelectState> {
-  final LocationService _locationService = LocationService();
+  final LocationService _locationService = getIt<LocationService>();
 
   List<StateModel> _states = [];
   List<CityModel> _cities = [];
@@ -324,12 +326,12 @@ class _SearchableDialog<T> extends StatefulWidget {
   final void Function(T) onSelected;
 
   const _SearchableDialog({
-    Key? key,
+    super.key,
     required this.title,
     required this.items,
     required this.getDisplayName,
     required this.onSelected,
-  }) : super(key: key);
+  });
 
   @override
   State<_SearchableDialog<T>> createState() => _SearchableDialogState<T>();

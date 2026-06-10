@@ -19,6 +19,7 @@ class CartLoading extends CartState {
 }
 
 class CartSuccess extends CartState {
+  @override
   final CartModel cart;
   final String? message;
   final String? error;

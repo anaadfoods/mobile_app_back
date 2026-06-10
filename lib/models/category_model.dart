@@ -1,3 +1,4 @@
+import 'package:grocery_app/utils/app_logger.dart';
 class Category {
   final int id;
   final String name;
@@ -27,8 +28,8 @@ class Category {
         productsCount: json['products_count'] ?? 0,
       );
     } catch (e) {
-      print('Error parsing category: $e');
-      print('JSON data: $json');
+      AppLogger.instance.log('Error parsing category: $e');
+      AppLogger.instance.log('JSON data: $json');
       rethrow;
     }
   }

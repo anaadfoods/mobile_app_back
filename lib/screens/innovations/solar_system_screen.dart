@@ -199,7 +199,7 @@ class _SolarSystemScreenState extends State<SolarSystemScreen>
         systemOverlayStyle: SystemUiOverlayStyle.light,
         leading: const Padding(
           padding: EdgeInsets.all(4),
-          child: const AnaadLogoMark(),
+          child: AnaadLogoMark(),
         ),
         title: const Text(
           'SOLAR SYSTEM',

@@ -1,6 +1,5 @@
 import 'package:grocery_app/core/theme/app_colors.dart';
 import 'package:flutter/material.dart';
-import 'dart:ui';
 import 'package:grocery_app/styles/colors.dart';
 import 'package:grocery_app/models/cummunity_model.dart';
 
