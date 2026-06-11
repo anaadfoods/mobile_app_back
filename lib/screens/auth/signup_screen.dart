@@ -544,7 +544,20 @@ class _SignupScreenState extends State<SignupScreen>
             );
             context.go('/login');
           } else if (state is AuthError) {
-            SnackBarHelper.showError(context, state.message);
+            final errorMsg = state.message.toLowerCase();
+            if (errorMsg.contains('socket') ||
+                errorMsg.contains('network') ||
+                errorMsg.contains('failed host lookup') ||
+                errorMsg.contains('timeout') ||
+                errorMsg.contains('connection') ||
+                errorMsg.contains('clientexception')) {
+              SnackBarHelper.showWarning(
+                context,
+                "Looks like a network hiccup! Please check your internet and try again and check your details",
+              );
+            } else {
+              SnackBarHelper.showWarning(context, state.message);
+            }
           }
         },
         builder: (context, state) {

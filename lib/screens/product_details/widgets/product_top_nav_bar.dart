@@ -26,8 +26,24 @@ class ProductTopNavBar extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          // ANAAD Logo
-          AnaadLogoMark(onTap: () => Navigator.of(context).pop()),
+          // Back Button
+          GestureDetector(
+            onTap: () => Navigator.of(context).pop(),
+            child: Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: isDark
+                    ? AppColors.darkSurfaceElevated
+                    : AppColors.parchment,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(
+                Icons.arrow_back_rounded,
+                color: isDark ? AppColors.parchment : AppColors.pureBlack,
+                size: 20,
+              ),
+            ),
+          ),
 
           // Actions
           Row(

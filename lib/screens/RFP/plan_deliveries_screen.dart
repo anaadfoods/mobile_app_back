@@ -191,7 +191,10 @@ class _PlanDeliveriesScreenState extends State<PlanDeliveriesScreen> {
                 // Back button
                 Row(
                   children: [
-                    const AnaadLogoMark(),
+                    IconButton(
+                      icon: const Icon(Icons.arrow_back_rounded, color: AppColors.parchment),
+                      onPressed: () => Navigator.maybePop(context),
+                    ),
                     const Spacer(),
                     _buildGlassButton(
                       icon: Icons.refresh_rounded,

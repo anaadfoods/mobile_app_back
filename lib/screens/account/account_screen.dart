@@ -386,26 +386,16 @@ class _AccountScreenState extends State<AccountScreen>
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Top row: Logo left, settings icon right
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const AnaadLogoMark(
-                      size: 42,
-                      logoSize: 30,
-                      backgroundOpacity: 0.18,
-                      showShadow: false,
+                Center(
+                  child: Text(
+                    'My Account',
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.parchment.withAlpha(180),
+                      letterSpacing: 0.3,
                     ),
-                    Text(
-                      'My Account',
-                      style: TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.parchment.withAlpha(180),
-                        letterSpacing: 0.3,
-                      ),
-                    ),
-                  ],
+                  ),
                 ),
                 const Spacer(),
                 // Profile row: Avatar left, details right-aligned
@@ -413,6 +403,7 @@ class _AccountScreenState extends State<AccountScreen>
                   children: [
                     // Avatar
                     GestureDetector(
+                      behavior: HitTestBehavior.opaque,
                       onTap: () {
                         _triggerHaptic();
                         context.pushNamed(
@@ -729,7 +720,7 @@ class _AccountScreenState extends State<AccountScreen>
   void _handleLogout(BuildContext context) {
     _triggerMediumHaptic();
     context.read<AuthCubit>().logout();
-    context.go('/login');
+    context.go('/home');
   }
 
   void _showLogoutDialog(ThemeData theme, BuildContext context) {

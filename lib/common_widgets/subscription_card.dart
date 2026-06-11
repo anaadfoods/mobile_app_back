@@ -19,7 +19,10 @@ class _SubscriptionCarouselState extends State<SubscriptionCarousel>
   @override
   void initState() {
     super.initState();
-    context.read<SubscriptionCubit>().fetchUserSubscriptions();
+    final authState = context.read<AuthCubit>().state;
+    if (authState is Authenticated) {
+      context.read<SubscriptionCubit>().fetchUserSubscriptions();
+    }
   }
 
   @override
@@ -39,38 +42,49 @@ class _SubscriptionCarouselState extends State<SubscriptionCarousel>
       ),
     );
 
-    return BlocConsumer<SubscriptionCubit, SubscriptionState>(
-      listener: (context, state) {
-        if (state is SubscriptionActionSuccess) {
-          SnackBarHelper.showSuccess(context, state.message);
-          context.read<SubscriptionCubit>().fetchUserSubscriptions();
-        } else if (state is SubscriptionError) {
-          SnackBarHelper.showError(context, state.message);
-        }
-      },
-      builder: (context, state) {
-        if (state is SubscriptionInitial || state is SubscriptionLoading) {
-          return _buildSkeletonLoader(responsive);
+    return BlocBuilder<AuthCubit, AuthState>(
+      builder: (context, authState) {
+        if (authState is! Authenticated) {
+          return const SizedBox.shrink();
         }
 
-        if (state is SubscriptionSuccess) {
-          final subscriptions = state.userSubscriptions;
-          if (subscriptions.isEmpty) {
+        return BlocConsumer<SubscriptionCubit, SubscriptionState>(
+          listener: (context, state) {
+            if (state is SubscriptionActionSuccess) {
+              SnackBarHelper.showSuccess(context, state.message);
+              context.read<SubscriptionCubit>().fetchUserSubscriptions();
+            } else if (state is SubscriptionError) {
+              SnackBarHelper.showError(
+                context,
+                "Looks like a network hiccup! Please check your internet and try again.",
+              );
+            }
+          },
+          builder: (context, state) {
+            if (state is SubscriptionInitial || state is SubscriptionLoading) {
+              return _buildSkeletonLoader(responsive);
+            }
+
+            if (state is SubscriptionSuccess) {
+              final subscriptions = state.userSubscriptions;
+              if (subscriptions.isEmpty) {
+                return const SizedBox.shrink();
+              }
+              return _buildCarouselContent(subscriptions, responsive);
+            }
+
+            if (state is SubscriptionError) {
+              return Center(
+                child: Padding(
+                  padding: EdgeInsets.all(responsive.screenPadding),
+                  child: Text(""),
+                ),
+              );
+            }
+
             return const SizedBox.shrink();
-          }
-          return _buildCarouselContent(subscriptions, responsive);
-        }
-
-        if (state is SubscriptionError) {
-          return Center(
-            child: Padding(
-              padding: EdgeInsets.all(responsive.screenPadding),
-              child: Text(""),
-            ),
-          );
-        }
-
-        return const SizedBox.shrink();
+          },
+        );
       },
     );
   }
@@ -188,9 +202,13 @@ class _SubscriptionCarouselState extends State<SubscriptionCarousel>
             padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
               gradient: LinearGradient(
-                colors: isDark
-                    ? [AppColors.darkSurfaceElevated, AppColors.darkSurfaceElevated]
-                    : [AppColors.parchment, AppColors.parchment],
+                colors:
+                    isDark
+                        ? [
+                          AppColors.darkSurfaceElevated,
+                          AppColors.darkSurfaceElevated,
+                        ]
+                        : [AppColors.parchment, AppColors.parchment],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
@@ -238,7 +256,10 @@ class _SubscriptionCarouselState extends State<SubscriptionCarousel>
                       : 'Are you sure you want to resume your subscription? Your deliveries will restart from the next scheduled date.',
                   textAlign: TextAlign.center,
                   style: theme.textTheme.bodyMedium?.copyWith(
-                    color: isDark ? AppColors.pureWhite.withValues(alpha: 0.7) : AppColors.charcoal60,
+                    color:
+                        isDark
+                            ? AppColors.pureWhite.withValues(alpha: 0.7)
+                            : AppColors.charcoal60,
                     height: 1.4,
                   ),
                 ),
@@ -257,7 +278,10 @@ class _SubscriptionCarouselState extends State<SubscriptionCarousel>
                         child: Text(
                           'Cancel',
                           style: theme.textTheme.titleMedium?.copyWith(
-                            color: isDark ? AppColors.pureWhite.withValues(alpha: 0.7) : AppColors.charcoal60,
+                            color:
+                                isDark
+                                    ? AppColors.pureWhite.withValues(alpha: 0.7)
+                                    : AppColors.charcoal60,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
@@ -318,6 +342,14 @@ class _SubscriptionCarouselState extends State<SubscriptionCarousel>
 
   void _showToggleConfirmation(Subscription subscription) {
     final isCurrentlyPaused = subscription.status == 'PAUSED';
+
+    if (!isCurrentlyPaused && subscription.remainingPauseTimes <= 0) {
+      SnackBarHelper.showError(
+        context,
+        "Looks like you've used all your pauses for this plan!",
+      );
+      return;
+    }
 
     if (isCurrentlyPaused) {
       _showConfirmationPopup(
@@ -426,7 +458,10 @@ class _SubscriptionCardState extends State<SubscriptionCard> {
             gradient: LinearGradient(
               colors:
                   isDark
-                      ? [AppColors.darkSurfaceElevated, AppColors.darkSurfaceElevated]
+                      ? [
+                        AppColors.darkSurfaceElevated,
+                        AppColors.darkSurfaceElevated,
+                      ]
                       : [AppColors.parchment, AppColors.parchment],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
@@ -727,14 +762,16 @@ class _SubscriptionCardState extends State<SubscriptionCard> {
                                 const SizedBox(height: 10),
                                 Row(
                                   children: [
-                                      Text(
-                                        '₹${item.discountedPrice.toStringAsFixed(0)}',
-                                        style: theme.textTheme.titleLarge
-                                            ?.copyWith(
-                                              fontWeight: FontWeight.bold,
-                                              color: AppColors.getPriceColor(context),
+                                    Text(
+                                      '₹${item.discountedPrice.toStringAsFixed(0)}',
+                                      style: theme.textTheme.titleLarge
+                                          ?.copyWith(
+                                            fontWeight: FontWeight.bold,
+                                            color: AppColors.getPriceColor(
+                                              context,
                                             ),
-                                      ),
+                                          ),
+                                    ),
                                     const SizedBox(width: 8),
                                     Text(
                                       '₹${item.price.toStringAsFixed(0)}',
@@ -782,12 +819,12 @@ class _SubscriptionCardState extends State<SubscriptionCard> {
                                   child: CircularProgressIndicator(
                                     value: progress,
                                     strokeWidth: 4,
-                                    backgroundColor: AppColors.deepSoilGreen.withValues(
-                                      alpha: 0.15,
-                                    ),
-                                    valueColor: const AlwaysStoppedAnimation<Color>(
-                                      AppColors.deepSoilGreen,
-                                    ),
+                                    backgroundColor: AppColors.deepSoilGreen
+                                        .withValues(alpha: 0.15),
+                                    valueColor:
+                                        const AlwaysStoppedAnimation<Color>(
+                                          AppColors.deepSoilGreen,
+                                        ),
                                   ),
                                 ),
                                 Text(

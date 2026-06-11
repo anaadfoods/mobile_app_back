@@ -23,6 +23,11 @@ class OrderCubit extends Cubit<OrderState> {
     }
   }
 
+  /// Clears the orders when user logs out
+  void clearOrders() {
+    emit(OrderInitial());
+  }
+
   /// Fetches the details of a single order and updates the state.
   Future<void> fetchOrderDetails(int orderId) async {
     final currentState = state;

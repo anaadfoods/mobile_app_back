@@ -231,11 +231,14 @@ class _HelpScreenState extends State<HelpScreen> with TickerProviderStateMixin {
               children: [
                 // Floating particles
                 ..._buildFloatingParticles(),
-                // ANAAD Logo
+                // Back button
                 Positioned(
                   top: statusBarHeight + 8,
                   left: 12,
-                  child: const AnaadLogoMark(),
+                  child: IconButton(
+                    icon: const Icon(Icons.arrow_back_rounded, color: AppColors.parchment),
+                    onPressed: () => Navigator.maybePop(context),
+                  ),
                 ),
                 // Title and subtitle
                 Positioned(

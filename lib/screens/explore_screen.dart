@@ -274,6 +274,23 @@ class _ExploreScreenState extends State<ExploreScreen>
           ),
           child: Stack(
             children: [
+              // Explore icon with light white background
+              Positioned(
+                top: MediaQuery.of(context).padding.top + 12,
+                right: 20,
+                child: Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: AppColors.parchment.withValues(alpha: 0.2),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.grid_view_rounded,
+                    color: AppColors.parchment,
+                    size: 28,
+                  ),
+                ),
+              ),
               // Header Content
               SafeArea(
                 bottom: false,
@@ -296,7 +313,7 @@ class _ExploreScreenState extends State<ExploreScreen>
                               },
                             )
                           else
-                            const AnaadLogoMark(),
+                            const SizedBox.shrink(),
                           // GlassmorphicIconButton(
                           //   icon: Icons.refresh_rounded,
                           //   onTap: _handleRefresh,

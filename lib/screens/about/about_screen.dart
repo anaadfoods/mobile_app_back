@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 import 'package:grocery_app/common_widgets/global_import.dart';
+import 'package:grocery_app/core/theme/app_colors.dart';
 
 class AboutScreen extends StatefulWidget {
   const AboutScreen({super.key});
@@ -240,7 +241,10 @@ class _AboutScreenState extends State<AboutScreen>
                 Positioned(
                   top: statusBarHeight + 8,
                   left: 12,
-                  child: const AnaadLogoMark(),
+                  child: IconButton(
+                    icon: const Icon(Icons.arrow_back_rounded, color: AppColors.parchment),
+                    onPressed: () => Navigator.maybePop(context),
+                  ),
                 ),
                 // Logo and title
                 Positioned(

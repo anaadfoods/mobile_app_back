@@ -72,7 +72,7 @@ class _OrderScreenState extends State<OrderScreen>
     final isDark = theme.brightness == Brightness.dark;
 
     return PopScope(
-      canPop: context.canPop(),
+      canPop: false,
       onPopInvokedWithResult: (didPop, result) {
         if (didPop) return;
         context.goNamed(AppRoute.profile.name);
@@ -230,8 +230,13 @@ class _OrderScreenState extends State<OrderScreen>
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    // ANAAD Logo
-                    const AnaadLogoMark(),
+                    // Back button
+                    // IconButton(
+                    //   icon: const Icon(Icons.arrow_back_rounded, color: AppColors.parchment),
+                    //   padding: EdgeInsets.zero,
+                    //   constraints: const BoxConstraints(),
+                    //   onPressed: () => Navigator.maybePop(context),
+                    // ),
                     const SizedBox(height: 16),
                     // Title
                     FittedBox(
@@ -404,15 +409,28 @@ class _OrderScreenState extends State<OrderScreen>
 
   Future<void> _navigateToDetails(Order order) async {
     HapticFeedback.lightImpact();
-    final orderDetails = await _orderService.getOrderById(order.id);
-    if (!mounted) return;
-    final result = await context.pushNamed<bool>(
-      AppRoute.orderDetails.name,
-      pathParameters: {'id': order.id.toString()},
-      extra: orderDetails, // Passing down cached details if needed
-    );
-    if (result == true) {
-      await _fetchOrders();
+    try {
+      final orderDetails = await _orderService.getOrderById(order.id);
+      if (!mounted) return;
+      final result = await context.pushNamed<bool>(
+        AppRoute.orderDetails.name,
+        pathParameters: {'id': order.id.toString()},
+        extra: orderDetails, // Passing down cached details if needed
+      );
+      if (result == true) {
+        await _fetchOrders();
+      }
+    } catch (e) {
+      if (mounted) {
+        // Fallback: Navigate with just the ID, allowing the detail screen to fetch details with its own error boundaries.
+        final result = await context.pushNamed<bool>(
+          AppRoute.orderDetails.name,
+          pathParameters: {'id': order.id.toString()},
+        );
+        if (result == true) {
+          await _fetchOrders();
+        }
+      }
     }
   }
 }
@@ -888,7 +906,7 @@ class _EmptyState extends StatelessWidget {
                 ),
                 SizedBox(height: isSmallScreen ? 24 : 32),
                 ElevatedButton.icon(
-                  onPressed: () => Navigator.pop(context),
+                  onPressed: () => context.goNamed(AppRoute.categories.name),
                   icon: const Icon(Icons.shopping_cart_outlined),
                   label: const Text('Start Your Journey'),
                   style: ElevatedButton.styleFrom(

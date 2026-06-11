@@ -22,10 +22,13 @@ class OAuthService {
       final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
       if (googleUser == null) return null;
 
-      final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+      final GoogleSignInAuthentication googleAuth =
+          await googleUser.authentication;
       return googleAuth.idToken;
     } catch (error) {
-      AppLogger.instance.log('DEBUG: Google Sign-In Error in getGoogleIdToken: $error');
+      AppLogger.instance.log(
+        'DEBUG: Google Sign-In Error in getGoogleIdToken: $error',
+      );
       rethrow;
     }
   }
@@ -33,12 +36,33 @@ class OAuthService {
   Future<Map<String, String?>?> getAppleIdToken() async {
     AppLogger.instance.log('DEBUG: Starting Apple Sign-In flow...');
     try {
+      WebAuthenticationOptions? webOptions;
+      if (Platform.isAndroid) {
+        final serviceId =
+            dotenv.env["APPLE_SERVICE_ID"] ?? "com.anaad.foods.ios.signin";
+        final baseUrl = dotenv.env["API_BASE_URL"] ?? ApiConfig.baseUrl;
+        final redirectUrl =
+            dotenv.env["APPLE_REDIRECT_URI"] ??
+            "$baseUrl/api/auth/apple/callback/";
+
+        AppLogger.instance.log(
+          'DEBUG: Configuring Apple Sign-in for Android. Service ID: $serviceId, Redirect URL: $redirectUrl',
+        );
+        AppLogger.instance.log('APPLE_SERVICE_ID = $serviceId');
+        AppLogger.instance.log('APPLE_REDIRECT_URI = $redirectUrl');
+        webOptions = WebAuthenticationOptions(
+          clientId: serviceId,
+          redirectUri: Uri.parse(redirectUrl),
+        );
+      }
+
       final AuthorizationCredentialAppleID credential =
           await SignInWithApple.getAppleIDCredential(
             scopes: [
               AppleIDAuthorizationScopes.email,
               AppleIDAuthorizationScopes.fullName,
             ],
+            webAuthenticationOptions: webOptions,
           );
 
       return {
@@ -47,7 +71,9 @@ class OAuthService {
         'familyName': credential.familyName,
       };
     } catch (error) {
-      AppLogger.instance.log('DEBUG: Apple Sign-In Error in getAppleIdToken: $error');
+      AppLogger.instance.log(
+        'DEBUG: Apple Sign-In Error in getAppleIdToken: $error',
+      );
       rethrow;
     }
   }

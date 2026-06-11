@@ -121,28 +121,42 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
     final isDark = theme.brightness == Brightness.dark;
 
     return PopScope(
-      canPop: context.canPop(),
+      canPop: false,
       onPopInvokedWithResult: (didPop, result) {
         if (didPop) return;
         context.goNamed(AppRoute.profile.name);
       },
-      child: Scaffold(
-        backgroundColor: isDark ? AppColors.darkCanvas : AppColors.parchment,
-        body: RefreshIndicator(
-          onRefresh: _fetchSubscriptions,
-          color: theme.colorScheme.primary,
-          child: CustomScrollView(
-            physics: const AlwaysScrollableScrollPhysics(),
-            slivers: [
-              // Modern U-Shape Header
-              _buildAnimatedHeader(theme, isDark),
-              // Filter chips
-              SliverToBoxAdapter(child: _buildFilterTabs(theme, isDark)),
-              // Summary card
-              SliverToBoxAdapter(child: _buildSummaryCard(theme, isDark)),
-              // Content
-              _buildContent(theme, isDark),
-            ],
+      child: BlocListener<SubscriptionCubit, SubscriptionState>(
+        listener: (context, state) {
+          if (state is SubscriptionActionSuccess) {
+            SnackBarHelper.showSuccess(context, state.message);
+            _fetchSubscriptions();
+          } else if (state is SubscriptionError) {
+            SnackBarHelper.showError(
+              context,
+              "Looks like a network hiccup! Please check your internet and try again.",
+            );
+          }
+        },
+        child: Scaffold(
+          backgroundColor: isDark ? AppColors.darkCanvas : AppColors.parchment,
+          floatingActionButton: _buildWhatsAppFAB(),
+          body: RefreshIndicator(
+            onRefresh: _fetchSubscriptions,
+            color: theme.colorScheme.primary,
+            child: CustomScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              slivers: [
+                // Modern U-Shape Header
+                _buildAnimatedHeader(theme, isDark),
+                // Filter chips
+                SliverToBoxAdapter(child: _buildFilterTabs(theme, isDark)),
+                // Summary card
+                SliverToBoxAdapter(child: _buildSummaryCard(theme, isDark)),
+                // Content
+                _buildContent(theme, isDark),
+              ],
+            ),
           ),
         ),
       ),
@@ -219,7 +233,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
               ),
             ),
 
-            // Animated Icon - position dynamically
+            // // Subscription icon with light white background
             // Positioned(
             //   top: statusBarHeight + 16,
             //   right: 20,
@@ -246,24 +260,60 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    // ANAAD Logo with Back button
+                    // Back button
                     Row(
                       children: [
-                        const AnaadLogoMark(logoPath: "assets/images/2.png"),
+                        IconButton(
+                          icon: const Icon(
+                            Icons.arrow_back_rounded,
+                            color: AppColors.parchment,
+                          ),
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints(),
+                          onPressed: () => Navigator.maybePop(context),
+                        ),
+                        const Spacer(),
+                        IconButton(
+                          icon: const Icon(
+                            Icons.help_outline_rounded,
+                            color: AppColors.parchment,
+                          ),
+                          onPressed: () {
+                            HapticFeedback.lightImpact();
+                            context.pushNamed(AppRoute.help.name);
+                          },
+                        ),
                       ],
                     ),
                     const SizedBox(height: 16),
                     // Title
-                    FittedBox(
-                      fit: BoxFit.scaleDown,
-                      alignment: Alignment.centerLeft,
-                      child: Text(
-                        "My Subscriptions",
-                        style: theme.textTheme.headlineMedium?.copyWith(
-                          color: AppColors.parchment,
-                          fontWeight: FontWeight.bold,
+                    Row(
+                      children: [
+                        FittedBox(
+                          fit: BoxFit.scaleDown,
+                          alignment: Alignment.centerLeft,
+                          child: Text(
+                            "My Subscriptions",
+                            style: theme.textTheme.headlineMedium?.copyWith(
+                              color: AppColors.parchment,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
                         ),
-                      ),
+                        const Spacer(),
+                        Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: AppColors.parchment.withValues(alpha: 0.2),
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(
+                            Icons.autorenew_rounded,
+                            color: AppColors.parchment,
+                            size: 28,
+                          ),
+                        ),
+                      ],
                     ),
                     const SizedBox(height: 4),
                     Text(
@@ -737,7 +787,8 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                       ],
                     ),
                     child: ElevatedButton.icon(
-                      onPressed: () => Navigator.pop(context),
+                      onPressed:
+                          () => context.goNamed(AppRoute.categories.name),
                       icon: const Icon(Icons.shopping_bag_rounded),
                       label: const Text('Browse Products'),
                       style: ElevatedButton.styleFrom(
@@ -810,6 +861,34 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
       ),
     );
   }
+
+  FloatingActionButton _buildWhatsAppFAB() {
+    return FloatingActionButton.extended(
+      backgroundColor: AppColors.parchment,
+      foregroundColor: AppColors.charcoal,
+      icon: const Icon(Icons.chat_rounded),
+      label: const Text('Chat Support'),
+      onPressed: () async {
+        HapticFeedback.lightImpact();
+        final user = getIt<TokenService>().currentUser;
+        const phone = '+919996166186';
+        final message = Uri.encodeComponent(
+          'Hi! I need help with my subscriptions.\n\n'
+          'Name: ${user?.firstName ?? ''} ${user?.lastName ?? ''}\n'
+          'Phone: ${user?.phoneNumber ?? ''}',
+        );
+        final url = 'https://wa.me/$phone?text=$message';
+        try {
+          if (await canLaunchUrl(Uri.parse(url))) {
+            await launchUrl(Uri.parse(url));
+          }
+        } catch (e) {
+          if (!mounted) return;
+          SnackBarHelper.showError(context, 'Could not open WhatsApp');
+        }
+      },
+    );
+  }
 }
 
 // Tab data class
@@ -841,30 +920,14 @@ class _SubscriptionCard extends StatefulWidget {
 class _SubscriptionCardState extends State<_SubscriptionCard> {
   bool _isLoading = false;
 
-  Future<void> _togglePauseSubscription(
-    DateTime? startDate,
-    DateTime? endDate,
-  ) async {
-    setState(() => _isLoading = true);
-
-    // Use SubscriptionCubit to toggle pause - this updates state and refreshes list
-    await context.read<SubscriptionCubit>().togglePauseSubscription(
+  void _togglePauseSubscription(DateTime? startDate, DateTime? endDate) {
+    // Use SubscriptionCubit to toggle pause - this updates state
+    // The BlocListener in SubscriptionScreen will catch the success/error and refresh the UI
+    context.read<SubscriptionCubit>().togglePauseSubscription(
       widget.subscription.id,
       startDate,
       endDate,
     );
-
-    if (!mounted) return;
-
-    // Check cubit state for result
-    final state = context.read<SubscriptionCubit>().state;
-    if (state is SubscriptionActionSuccess) {
-      SnackBarHelper.showSuccess(context, state.message);
-    } else if (state is SubscriptionError) {
-      SnackBarHelper.showError(context, state.message);
-    }
-
-    if (mounted) setState(() => _isLoading = false);
   }
 
   void _showConfirmationPopup(
@@ -1031,6 +1094,14 @@ class _SubscriptionCardState extends State<_SubscriptionCard> {
 
   void _showToggleConfirmation() {
     final isCurrentlyPaused = widget.subscription.status == 'PAUSED';
+
+    if (!isCurrentlyPaused && widget.subscription.remainingPauseTimes <= 0) {
+      SnackBarHelper.showError(
+        context,
+        "Looks like you've used all your pauses for this plan!",
+      );
+      return;
+    }
 
     if (isCurrentlyPaused) {
       _showConfirmationPopup(

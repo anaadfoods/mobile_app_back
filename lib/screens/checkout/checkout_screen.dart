@@ -7,6 +7,7 @@ import 'package:grocery_app/common_widgets/global_import.dart';
 import 'package:grocery_app/routes/app_routes.dart';
 import 'package:grocery_app/services/referral_reward_service.dart';
 import 'package:grocery_app/utils/checkout_calculator.dart';
+import 'package:grocery_app/service_locator.dart';
 
 class CheckoutScreen extends StatefulWidget {
   final CartModel? cart;
@@ -41,11 +42,11 @@ class CheckoutScreen extends StatefulWidget {
 }
 
 class _CheckoutScreenState extends State<CheckoutScreen> {
-  final OrderService _orderService = OrderService();
+  final OrderService _orderService = getIt<OrderService>();
   // final CartService _cartService = CartService(); // Unused - commented out
   // final AuthService _authService = AuthService(); // Unused - commented out
-  final SubscriptionService _subscriptionService = SubscriptionService();
-  final ReferralRewardService _rewardService = ReferralRewardService();
+  final SubscriptionService _subscriptionService = getIt<SubscriptionService>();
+  final ReferralRewardService _rewardService = getIt<ReferralRewardService>();
 
   ShippingDetails? _shippingDetails;
   SubscriptionPlan? subscription;
@@ -182,11 +183,6 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     _setLoadingState(true);
 
     try {
-      if (widget.isSubscription) {
-        _selectedPaymentMethod = 'COD';
-        _selectedPaymentType = 'PAID_FULL';
-      }
-
       if (_selectedPaymentMethod == 'UPI') {
         await _handleUPIPayment();
       } else {
@@ -820,6 +816,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       body: Stack(
         children: [
           CustomScrollView(
+            physics: const BouncingScrollPhysics(),
             slivers: [
               // Animated Header
               _buildAnimatedHeader(theme, isDark),
@@ -902,8 +899,13 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // ANAAD Logo
-                const AnaadLogoMark(),
+                // Back button
+                IconButton(
+                  icon: const Icon(Icons.arrow_back_rounded, color: AppColors.parchment),
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(),
+                  onPressed: () => Navigator.maybePop(context),
+                ),
                 const SizedBox(height: 24),
                 // Title Row
                 Row(
@@ -1971,37 +1973,27 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 ),
               ),
               const SizedBox(height: 20),
-              if (widget.isSubscription) ...[
-                _buildPaymentOption(
-                  theme,
-                  isDark,
-                  'COD',
-                  'Cash on Delivery',
-                  'Pay when you receive your subscription',
-                  Icons.money_rounded,
-                  AppColors.harvestAmber,
-                ),
-              ] else ...[
-                _buildPaymentOption(
-                  theme,
-                  isDark,
-                  'COD',
-                  'Cash on Delivery',
-                  'Pay when you receive your order',
-                  Icons.money_rounded,
-                  AppColors.harvestAmber,
-                ),
-                const SizedBox(height: 12),
-                _buildPaymentOption(
-                  theme,
-                  isDark,
-                  'UPI',
-                  'Pay Online',
-                  'UPI / Card / NetBanking',
-                  Icons.payment_rounded,
-                  theme.colorScheme.primary,
-                ),
-              ],
+              _buildPaymentOption(
+                theme,
+                isDark,
+                'COD',
+                'Cash on Delivery',
+                widget.isSubscription
+                    ? 'Pay when you receive your subscription'
+                    : 'Pay when you receive your order',
+                Icons.money_rounded,
+                AppColors.harvestAmber,
+              ),
+              const SizedBox(height: 12),
+              _buildPaymentOption(
+                theme,
+                isDark,
+                'UPI',
+                'Pay Online',
+                'UPI / Card / NetBanking',
+                Icons.payment_rounded,
+                theme.colorScheme.primary,
+              ),
               const SizedBox(height: 20),
             ],
           ),

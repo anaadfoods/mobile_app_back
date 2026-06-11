@@ -387,32 +387,23 @@ class _FavouriteScreenState extends State<FavouriteScreen>
           ),
           child: Stack(
             children: [
-              // Animated Heart
-              // Positioned(
-              //   top: 25,
-              //   right: 30,
-              //   child: AnimatedBuilder(
-              //     animation: _pulseController,
-              //     builder: (context, child) {
-              //       return Transform.scale(
-              //         scale: _pulseAnimation.value,
-              //         child: child,
-              //       );
-              //     },
-              //     child: Container(
-              //       padding: const EdgeInsets.all(16),
-              //       decoration: BoxDecoration(
-              //         color: AppColors.parchment.withValues(alpha: 0.2),
-              //         shape: BoxShape.circle,
-              //       ),
-              //       child: const Icon(
-              //         Icons.favorite_rounded,
-              //         color: AppColors.parchment,
-              //         size: 36,
-              //       ),
-              //     ),
-              //   ),
-              // ),
+              // Heart icon with light white background
+              Positioned(
+                top: MediaQuery.of(context).padding.top + 12,
+                right: 20,
+                child: Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: AppColors.parchment.withValues(alpha: 0.2),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.favorite_rounded,
+                    color: AppColors.parchment,
+                    size: 28,
+                  ),
+                ),
+              ),
 
               // Header Content
               SafeArea(
@@ -421,15 +412,6 @@ class _FavouriteScreenState extends State<FavouriteScreen>
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Back Button
-                      // _buildIconButton(
-                      //   Icons.arrow_back_ios_new_rounded,
-                      //   () {
-                      //     HapticFeedback.lightImpact();
-                      //     Navigator.pop(context);
-                      //   },
-                      // ),
-                      const AnaadLogoMark(logoPath: "assets/images/2.png"),
                       const Spacer(),
                       // Title
                       Text(
@@ -521,47 +503,47 @@ class _FavouriteScreenState extends State<FavouriteScreen>
       },
       child: Container(
         padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: theme.cardColor,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: theme.shadowColor.withValues(alpha: 0.08),
-            blurRadius: 20,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.15),
-              borderRadius: BorderRadius.circular(12),
+        decoration: BoxDecoration(
+          color: theme.cardColor,
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: theme.shadowColor.withValues(alpha: 0.08),
+              blurRadius: 20,
+              offset: const Offset(0, 4),
             ),
-            child: Icon(icon, color: color, size: 22),
-          ),
-          const SizedBox(width: 12),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                value,
-                style: theme.textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
+          ],
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: color.withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(12),
               ),
-              Text(
-                label,
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: theme.hintColor,
+              child: Icon(icon, color: color, size: 22),
+            ),
+            const SizedBox(width: 12),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  value,
+                  style: theme.textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
-              ),
-            ],
-          ),
-        ],
-      ),
+                Text(
+                  label,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.hintColor,
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }

@@ -157,7 +157,20 @@ class _LoginScreenState extends State<LoginScreen>
               context.go('/home');
             }
           } else if (state is AuthError) {
-            SnackBarHelper.showError(context, state.message);
+            final errorMsg = state.message.toLowerCase();
+            if (errorMsg.contains('socket') ||
+                errorMsg.contains('network') ||
+                errorMsg.contains('failed host lookup') ||
+                errorMsg.contains('timeout') ||
+                errorMsg.contains('connection') ||
+                errorMsg.contains('clientexception')) {
+              SnackBarHelper.showWarning(
+                context,
+                "Looks like a network hiccup! Please check your internet and try again and check your details ",
+              );
+            } else {
+              SnackBarHelper.showWarning(context, state.message);
+            }
           }
         },
         builder: (context, state) {
@@ -679,6 +692,37 @@ class _LoginScreenState extends State<LoginScreen>
                       ),
                     );
                   },
+                ),
+              ),
+
+              // Glassmorphic Home button
+              Positioned(
+                top: MediaQuery.of(context).padding.top + 8,
+                left: 16,
+                child: ClipOval(
+                  child: BackdropFilter(
+                    filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: AppColors.parchment.withAlpha(40),
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: AppColors.parchment.withAlpha(60),
+                          width: 1,
+                        ),
+                      ),
+                      child: IconButton(
+                        icon: const Icon(
+                          Icons.home_rounded,
+                          color: AppColors.parchment,
+                        ),
+                        onPressed: () {
+                          HapticFeedback.lightImpact();
+                          context.go('/home');
+                        },
+                      ),
+                    ),
+                  ),
                 ),
               ),
             ],

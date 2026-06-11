@@ -1,4 +1,5 @@
 import 'package:grocery_app/common_widgets/global_import.dart';
+import 'package:grocery_app/routes/app_routes.dart';
 
 class SubscriptionTable extends StatefulWidget {
   final Function(SubscriptionPlan)? onPlanSelected;
@@ -149,10 +150,7 @@ class _SubscriptionTableState extends State<SubscriptionTable>
           });
         } else {
           if (result['requiresLogin'] == true) {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => const LoginScreen()),
-            );
+            context.pushNamed(AppRoute.login.name);
           }
         }
       }
@@ -299,24 +297,24 @@ class _SubscriptionTableState extends State<SubscriptionTable>
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 4),
-          Text(
-            "Check your connection and try again 📶",
-            style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
-            textAlign: TextAlign.center,
-          ),
+          // Text(
+          //   "Check your connection and try again 📶",
+          //   style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
+          //   textAlign: TextAlign.center,
+          // ),
           const SizedBox(height: 8),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24),
-            child: Text(
-              "🌾 Beejamrutham (cow-based seed treatment) improves germination by 20%!",
-              style: TextStyle(
-                color: Colors.green.shade700,
-                fontSize: 11,
-                fontStyle: FontStyle.italic,
-              ),
-              textAlign: TextAlign.center,
-            ),
-          ),
+          // Padding(
+          //   padding: const EdgeInsets.symmetric(horizontal: 24),
+          //   child: Text(
+          //     "🌾 Beejamrutham (cow-based seed treatment) improves germination by 20%!",
+          //     style: TextStyle(
+          //       color: Colors.green.shade700,
+          //       fontSize: 11,
+          //       fontStyle: FontStyle.italic,
+          //     ),
+          //     textAlign: TextAlign.center,
+          //   ),
+          // ),
           const SizedBox(height: 12),
           TextButton.icon(
             onPressed: _loadSubscriptionPlans,

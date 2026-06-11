@@ -10,6 +10,10 @@ class ChatCubit extends Cubit<ChatState> {
       : _repository = repository, 
         super(const ChatState());
 
+  void clearChat() {
+    emit(const ChatState());
+  }
+
   Future<void> sendMessage(String messageText) async {
     if (messageText.trim().isEmpty) return;
 

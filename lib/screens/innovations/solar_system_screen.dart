@@ -197,9 +197,9 @@ class _SolarSystemScreenState extends State<SolarSystemScreen>
         backgroundColor: AppColors.transparent,
         elevation: 0,
         systemOverlayStyle: SystemUiOverlayStyle.light,
-        leading: const Padding(
-          padding: EdgeInsets.all(4),
-          child: AnaadLogoMark(),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_rounded, color: AppColors.parchment60),
+          onPressed: () => Navigator.maybePop(context),
         ),
         title: const Text(
           'SOLAR SYSTEM',

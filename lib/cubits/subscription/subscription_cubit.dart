@@ -96,7 +96,11 @@ class SubscriptionCubit extends Cubit<SubscriptionState> {
         _getCurrentSuccessState().copyWith(userSubscriptions: subscriptions),
       );
     } on SubscriptionException catch (e) {
-      emit(SubscriptionError(e.message));
+      if (e.message.contains('must be logged in')) {
+        emit(_getCurrentSuccessState().copyWith(userSubscriptions: const []));
+      } else {
+        emit(SubscriptionError(e.message));
+      }
     } catch (e) {
       emit(const SubscriptionError('Failed to load your subscriptions.'));
     }

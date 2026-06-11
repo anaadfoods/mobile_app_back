@@ -56,9 +56,7 @@ class _NotificationsScreenState extends State<NotificationsScreen>
   }
 
   void _clearPromotionalNotifications() {
-    setState(() {
-      _promotionalNotifications.clear();
-    });
+    _promotionalNotifications.clear();
     _savePromotionalNotifications();
   }
 
@@ -584,30 +582,21 @@ class _NotificationsScreenState extends State<NotificationsScreen>
               ),
             ),
 
-            // Animated Bell Icon
+            // Bell icon with light white background
             // Positioned(
-            //   top: 60,
-            //   right: 30,
-            //   child: TweenAnimationBuilder<double>(
-            //     tween: Tween(begin: 0.0, end: 1.0),
-            //     duration: const Duration(milliseconds: 800),
-            //     builder: (context, value, child) {
-            //       return Transform.rotate(
-            //         angle: math.sin(value * math.pi * 4) * 0.15 * (1 - value),
-            //         child: Container(
-            //           padding: const EdgeInsets.all(16),
-            //           decoration: BoxDecoration(
-            //             color: AppColors.parchment.withValues(alpha: 0.2),
-            //             shape: BoxShape.circle,
-            //           ),
-            //           child: const Icon(
-            //             Icons.notifications_rounded,
-            //             color: AppColors.parchment,
-            //             size: 36,
-            //           ),
-            //         ),
-            //       );
-            //     },
+            //   top: MediaQuery.of(context).padding.top + 12,
+            //   right: 20,
+            //   child: Container(
+            //     padding: const EdgeInsets.all(12),
+            //     decoration: BoxDecoration(
+            //       color: AppColors.parchment.withValues(alpha: 0.2),
+            //       shape: BoxShape.circle,
+            //     ),
+            //     child: const Icon(
+            //       Icons.notifications_rounded,
+            //       color: AppColors.parchment,
+            //       size: 28,
+            //     ),
             //   ),
             // ),
 
@@ -622,7 +611,13 @@ class _NotificationsScreenState extends State<NotificationsScreen>
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const AnaadLogoMark(),
+                        IconButton(
+                          icon: const Icon(
+                            Icons.arrow_back_rounded,
+                            color: AppColors.parchment,
+                          ),
+                          onPressed: () => Navigator.maybePop(context),
+                        ),
                         if (hasNotifications)
                           GestureDetector(
                             onTap: _clearAllNotifications,
@@ -645,12 +640,32 @@ class _NotificationsScreenState extends State<NotificationsScreen>
                     ),
                     const Spacer(),
                     // Title
-                    Text(
-                      "Notifications",
-                      style: theme.textTheme.headlineMedium?.copyWith(
-                        color: AppColors.parchment,
-                        fontWeight: FontWeight.bold,
-                      ),
+                    Row(
+                      children: [
+                        FittedBox(
+                          fit: BoxFit.scaleDown,
+                          alignment: Alignment.centerLeft,
+                          child: Text(
+                            "Notifications",
+                            style: theme.textTheme.headlineMedium?.copyWith(
+                              color: AppColors.parchment,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                        // Container(
+                        //   padding: const EdgeInsets.all(12),
+                        //   decoration: BoxDecoration(
+                        //     color: AppColors.parchment.withValues(alpha: 0.2),
+                        //     shape: BoxShape.circle,
+                        //   ),
+                        //   child: const Icon(
+                        //     Icons.notifications_rounded,
+                        //     color: AppColors.parchment,
+                        //     size: 28,
+                        //   ),
+                        // ),
+                      ],
                     ),
                     const SizedBox(height: 4),
                     Text(

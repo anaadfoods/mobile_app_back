@@ -221,6 +221,9 @@ class _AppGlobalListenersState extends State<AppGlobalListeners>
               context.read<NotificationCubit>().unregisterDevice();
               context.read<CartCubit>().clearCart();
               context.read<FavoritesCubit>().clearFavoritesState();
+              context.read<OrderCubit>().clearOrders();
+              context.read<SubscriptionCubit>().clearSubscriptionState();
+              context.read<ChatCubit>().clearChat();
             }
           },
         ),

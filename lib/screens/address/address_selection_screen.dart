@@ -44,6 +44,7 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen>
   String? _error;
   Map<String, dynamic>? _deliveryDetails;
   Map<String, String>? _savedAddress;
+  String? _missingPhoneError;
 
   OrderType _orderType = OrderType.self;
   String _selectedAddressType = 'new';
@@ -151,6 +152,10 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen>
       _selectAddress(_savedAddress!);
     } else {
       _selectedAddressType = 'new';
+      _clearAddressForm();
+      if (user != null) {
+        _nameController.text = "${user.firstName} ${user.lastName}".trim();
+      }
     }
     setState(() {});
   }
@@ -249,6 +254,7 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen>
     _stateController.clear();
     _pincodeController.clear();
     _phoneController.clear();
+    _nameController.clear();
     setState(() {
       _deliveryDetails = null;
       _error = null;
@@ -287,12 +293,21 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen>
     }
 
     if (_orderType == OrderType.self && _selectedAddressType == 'saved') {
-      if (_phoneController.text.trim().length != 10) {
-        SnackBarHelper.showError(
-          context,
-          'Please enter a valid 10-digit phone number.',
-        );
+      final phone = _phoneController.text.trim();
+      if (phone.isEmpty) {
+        setState(() {
+          _missingPhoneError = 'Phone number is required';
+        });
         return;
+      } else if (!RegExp(r'^\d{10}$').hasMatch(phone)) {
+        setState(() {
+          _missingPhoneError = 'Phone number must be exactly 10 digits';
+        });
+        return;
+      } else {
+        setState(() {
+          _missingPhoneError = null;
+        });
       }
     }
 
@@ -591,8 +606,16 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen>
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      // ANAAD Logo
-                      const AnaadLogoMark(),
+                      // Back button
+                      IconButton(
+                        icon: const Icon(
+                          Icons.arrow_back_rounded,
+                          color: AppColors.parchment,
+                        ),
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(),
+                        onPressed: () => Navigator.maybePop(context),
+                      ),
                       const SizedBox(height: 12),
                       // Title Row
                       Row(
@@ -945,6 +968,10 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen>
         setState(() {
           _selectedAddressType = 'new';
           _clearAddressForm();
+          if (isForSelf && widget.user != null) {
+            _nameController.text =
+                "${widget.user!.firstName} ${widget.user!.lastName}".trim();
+          }
         });
       },
       child: AnimatedContainer(
@@ -1069,7 +1096,23 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen>
             controller: _phoneController,
             keyboardType: TextInputType.phone,
             maxLength: 10,
+            inputFormatters: [
+              FilteringTextInputFormatter.digitsOnly,
+              LengthLimitingTextInputFormatter(10),
+            ],
+            onChanged: (v) {
+              setState(() {
+                if (v.trim().isEmpty) {
+                  _missingPhoneError = 'Phone number is required';
+                } else if (!RegExp(r'^\d{10}$').hasMatch(v.trim())) {
+                  _missingPhoneError = 'Phone number must be exactly 10 digits';
+                } else {
+                  _missingPhoneError = null;
+                }
+              });
+            },
             decoration: InputDecoration(
+              errorText: _missingPhoneError,
               hintText: 'Enter 10-digit phone number',
               prefixIcon: const Icon(
                 Icons.phone_rounded,
@@ -1096,6 +1139,13 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen>
                 borderRadius: BorderRadius.circular(12),
                 borderSide: const BorderSide(
                   color: AppColors.harvestAmber,
+                  width: 1.5,
+                ),
+              ),
+              errorBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide(
+                  color: theme.colorScheme.error,
                   width: 1.5,
                 ),
               ),
@@ -1138,10 +1188,12 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen>
                   size: 24,
                 ),
                 const SizedBox(width: 12),
-                Text(
-                  isForSelf ? 'New Address' : "Recipient's Address",
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
+                Expanded(
+                  child: Text(
+                    isForSelf ? 'New Address' : "Recipient's Address",
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
               ],
@@ -1151,34 +1203,53 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen>
               theme,
               isDark,
               controller: _nameController,
-              label: 'Full Name',
-              hint: 'Enter your full name',
+              label: isForSelf ? 'Full Name' : "Recipient's Name",
+              hint:
+                  isForSelf
+                      ? 'Enter your full name'
+                      : "Enter recipient's full name",
               icon: Icons.person_outline_rounded,
               validator:
                   (v) =>
-                      v == null || v.trim().isEmpty ? 'Name is required' : null,
+                      v == null || v.trim().isEmpty
+                          ? (isForSelf
+                              ? 'Name is required'
+                              : "Recipient's name is required")
+                          : null,
             ),
             const SizedBox(height: 16),
             _buildModernInput(
               theme,
               isDark,
               controller: _addressController,
-              label: 'Full Address',
-              hint: 'House No, Street, Landmark',
+              label: isForSelf ? 'Full Address' : "Recipient's Address",
+              hint:
+                  isForSelf
+                      ? 'House No, Street, Landmark'
+                      : "Recipient's House No, Street, Landmark",
               icon: Icons.home_work_rounded,
               validator:
                   (v) =>
                       v == null || v.trim().isEmpty
-                          ? 'Address is required'
+                          ? (isForSelf
+                              ? 'Address is required'
+                              : "Recipient's address is required")
                           : null,
             ),
             const SizedBox(height: 16),
             SelectState(
+              key: ValueKey('${_stateController.text}_${_cityController.text}'),
               onCountryChanged: (_) {},
               onStateChanged:
                   (v) => setState(() => _stateController.text = v ?? ''),
               onCityChanged:
                   (v) => setState(() => _cityController.text = v ?? ''),
+              initialState:
+                  _stateController.text.isNotEmpty
+                      ? _stateController.text
+                      : null,
+              initialCity:
+                  _cityController.text.isNotEmpty ? _cityController.text : null,
               style: theme.textTheme.bodyLarge,
             ),
             const SizedBox(height: 16),
@@ -1190,10 +1261,14 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen>
               hint: '6 digits',
               icon: Icons.pin_drop_rounded,
               keyboardType: TextInputType.number,
+              inputFormatters: [
+                FilteringTextInputFormatter.digitsOnly,
+                LengthLimitingTextInputFormatter(6),
+              ],
               validator: (v) {
                 if (v == null || v.trim().isEmpty) return 'Required';
                 if (!RegExp(r'^\d{6}$').hasMatch(v.trim())) {
-                  return 'Invalid pincode';
+                  return 'Pincode must be exactly 6 digits';
                 }
                 return null;
               },
@@ -1203,14 +1278,21 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen>
               theme,
               isDark,
               controller: _phoneController,
-              label: 'Phone Number',
-              hint: '10 digit mobile number',
+              label: isForSelf ? 'Phone Number' : "Recipient's Phone Number",
+              hint:
+                  isForSelf
+                      ? '10 digit mobile number'
+                      : "10 digit mobile number of recipient",
               icon: Icons.phone_rounded,
               keyboardType: TextInputType.phone,
+              inputFormatters: [
+                FilteringTextInputFormatter.digitsOnly,
+                LengthLimitingTextInputFormatter(10),
+              ],
               validator: (v) {
                 if (v == null || v.trim().isEmpty) return 'Required';
                 if (!RegExp(r'^\d{10}$').hasMatch(v.trim())) {
-                  return 'Invalid number';
+                  return 'Phone number must be exactly 10 digits';
                 }
                 return null;
               },
@@ -1230,6 +1312,7 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen>
     required IconData icon,
     TextInputType? keyboardType,
     String? Function(String?)? validator,
+    List<TextInputFormatter>? inputFormatters,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -1246,6 +1329,8 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen>
           controller: controller,
           keyboardType: keyboardType,
           validator: validator,
+          autovalidateMode: AutovalidateMode.onUserInteraction,
+          inputFormatters: inputFormatters,
           style: theme.textTheme.bodyLarge,
           decoration: InputDecoration(
             hintText: hint,

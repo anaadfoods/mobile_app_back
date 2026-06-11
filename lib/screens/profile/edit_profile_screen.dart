@@ -1,7 +1,7 @@
 import 'dart:math' as math;
-import 'package:flutter/services.dart';
 import 'package:grocery_app/common_widgets/global_import.dart';
 import 'package:grocery_app/common_widgets/select_state.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 class EditProfileScreen extends StatefulWidget {
   final UserModel userProfile;
@@ -43,6 +43,11 @@ class _EditProfileScreenState extends State<EditProfileScreen>
     _initTextControllers();
     _initAnimations();
     _listenToAddressChanges();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        context.read<AuthCubit>().checkAuthStatus();
+      }
+    });
   }
 
   /// Listen for address updates from other parts of the app
@@ -70,9 +75,9 @@ class _EditProfileScreenState extends State<EditProfileScreen>
     // Prefer the latest user data from the registered token service.
     final user = getIt<TokenService>().currentUser ?? widget.userProfile;
 
-    _firstNameController = TextEditingController(text: user.firstName ?? "");
-    _lastNameController = TextEditingController(text: user.lastName ?? "");
-    _usernameController = TextEditingController(text: user.username ?? "");
+    _firstNameController = TextEditingController(text: user.firstName);
+    _lastNameController = TextEditingController(text: user.lastName);
+    _usernameController = TextEditingController(text: user.username);
     _emailController = TextEditingController(text: user.email);
     _phoneController = TextEditingController(text: user.phoneNumber);
     _addressController = TextEditingController(text: user.address ?? '');
@@ -297,7 +302,8 @@ class _EditProfileScreenState extends State<EditProfileScreen>
 
   Future<void> _handlePhoneChange(String value) async {
     if (value.length == 10) {
-      final currentUser = getIt<TokenService>().currentUser ?? widget.userProfile;
+      final currentUser =
+          getIt<TokenService>().currentUser ?? widget.userProfile;
       if (value == currentUser.phoneNumber) {
         setState(() {
           _phoneError = null;
@@ -310,22 +316,26 @@ class _EditProfileScreenState extends State<EditProfileScreen>
         _isUpdatingPhone = true;
       });
       try {
+        final authCubit = context.read<AuthCubit>();
         final updatedProfile = currentUser.copyWith(phoneNumber: value);
-        await context.read<AuthCubit>().updateUserProfile(
-              updatedData: updatedProfile,
-            );
-        
-        final state = context.read<AuthCubit>().state;
+        await authCubit.updateUserProfile(updatedData: updatedProfile);
+
+        final state = authCubit.state;
         if (state is AuthError) {
           if (mounted) setState(() => _phoneError = state.message);
         } else {
           if (mounted) {
-            SnackBarHelper.showSuccess(context, 'Phone number updated successfully');
+            SnackBarHelper.showSuccess(
+              context,
+              'Phone number updated successfully',
+            );
             FocusScope.of(context).unfocus();
           }
         }
       } catch (e) {
-        if (mounted) setState(() => _phoneError = 'Failed to update phone number');
+        if (mounted) {
+          setState(() => _phoneError = 'Failed to update phone number');
+        }
       } finally {
         if (mounted) setState(() => _isUpdatingPhone = false);
       }
@@ -388,7 +398,10 @@ class _EditProfileScreenState extends State<EditProfileScreen>
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final size = MediaQuery.of(context).size;
-    String userHandle = widget.userProfile.username ?? "edit_profile";
+    String userHandle =
+        widget.userProfile.username.isEmpty
+            ? "edit_profile"
+            : widget.userProfile.username;
 
     return BlocListener<AuthCubit, AuthState>(
       listener: (context, state) {
@@ -408,11 +421,12 @@ class _EditProfileScreenState extends State<EditProfileScreen>
           extendBodyBehindAppBar: true,
           extendBody: true,
           body: SingleChildScrollView(
+            clipBehavior: Clip.none,
             child: Column(
               children: [
                 // Animated Header with Avatar
                 _buildAnimatedHeader(theme, colorScheme, size, userHandle),
-                const SizedBox(height: 60),
+                const SizedBox(height: 15),
                 // Profile Completion Card
                 _buildProfileCompletionCard(theme, colorScheme),
                 const SizedBox(height: 20),
@@ -482,7 +496,11 @@ class _EditProfileScreenState extends State<EditProfileScreen>
                                         style: TextStyle(
                                           fontSize: 13,
                                           fontWeight: FontWeight.w600,
-                                          color: theme.textTheme.bodyMedium?.color?.withAlpha(180),
+                                          color: theme
+                                              .textTheme
+                                              .bodyMedium
+                                              ?.color
+                                              ?.withAlpha(180),
                                         ),
                                       ),
                                     ],
@@ -504,38 +522,58 @@ class _EditProfileScreenState extends State<EditProfileScreen>
                                     ),
                                     decoration: InputDecoration(
                                       filled: true,
-                                      fillColor: theme.brightness == Brightness.dark
-                                          ? AppColors.parchment.withAlpha(5)
-                                          : AppColors.parchment,
-                                      contentPadding: const EdgeInsets.symmetric(
-                                        horizontal: 16,
-                                        vertical: 14,
-                                      ),
+                                      fillColor:
+                                          theme.brightness == Brightness.dark
+                                              ? AppColors.parchment.withAlpha(5)
+                                              : AppColors.parchment,
+                                      contentPadding:
+                                          const EdgeInsets.symmetric(
+                                            horizontal: 16,
+                                            vertical: 14,
+                                          ),
                                       border: OutlineInputBorder(
                                         borderRadius: BorderRadius.circular(12),
-                                        borderSide: BorderSide(color: theme.dividerColor.withAlpha(60)),
+                                        borderSide: BorderSide(
+                                          color: theme.dividerColor.withAlpha(
+                                            60,
+                                          ),
+                                        ),
                                       ),
                                       enabledBorder: OutlineInputBorder(
                                         borderRadius: BorderRadius.circular(12),
-                                        borderSide: BorderSide(color: theme.dividerColor.withAlpha(60)),
+                                        borderSide: BorderSide(
+                                          color: theme.dividerColor.withAlpha(
+                                            60,
+                                          ),
+                                        ),
                                       ),
                                       focusedBorder: OutlineInputBorder(
                                         borderRadius: BorderRadius.circular(12),
-                                        borderSide: BorderSide(color: theme.colorScheme.primary, width: 1.5),
+                                        borderSide: BorderSide(
+                                          color: theme.colorScheme.primary,
+                                          width: 1.5,
+                                        ),
                                       ),
-                                      suffixIcon: _isUpdatingPhone
-                                          ? const Padding(
-                                              padding: EdgeInsets.all(12),
-                                              child: SizedBox(
-                                                width: 16,
-                                                height: 16,
-                                                child: CircularProgressIndicator(
-                                                  strokeWidth: 2,
-                                                  valueColor: AlwaysStoppedAnimation<Color>(AppColors.harvestAmber),
+                                      suffixIcon:
+                                          _isUpdatingPhone
+                                              ? const Padding(
+                                                padding: EdgeInsets.all(12),
+                                                child: SizedBox(
+                                                  width: 16,
+                                                  height: 16,
+                                                  child: CircularProgressIndicator(
+                                                    strokeWidth: 2,
+                                                    valueColor:
+                                                        AlwaysStoppedAnimation<
+                                                          Color
+                                                        >(
+                                                          AppColors
+                                                              .harvestAmber,
+                                                        ),
+                                                  ),
                                                 ),
-                                              ),
-                                            )
-                                          : null,
+                                              )
+                                              : null,
                                       counterText: '',
                                     ),
                                   ),
@@ -620,136 +658,152 @@ class _EditProfileScreenState extends State<EditProfileScreen>
   ) {
     final statusBarHeight = MediaQuery.of(context).padding.top;
 
-    return Stack(
-      clipBehavior: Clip.none,
-      alignment: Alignment.center,
-      children: [
-        // Gradient Background with shimmer
-        AnimatedBuilder(
-          animation: _shimmerController,
-          builder: (context, child) {
-            return Container(
-              height: size.height * 0.22 + statusBarHeight,
-              width: double.infinity,
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [
-                    colorScheme.primary.withAlpha(255),
-                    colorScheme.primary,
-                    colorScheme.primary.withAlpha(204),
-                  ],
-                ),
-              ),
-              child: Stack(
-                children: [
-                  // Shimmer overlay
-                  _buildShimmerOverlay(),
-                  // Floating circles
-                  ..._buildFloatingCircles(),
-                  // ANAAD Logo
-                  Positioned(
-                    top: statusBarHeight + 8,
-                    left: 8,
-                    child: const AnaadLogoMark(),
+    final headerHeight = size.height * 0.22 + statusBarHeight;
+
+    return SizedBox(
+      height: headerHeight + 50,
+      child: Stack(
+        clipBehavior: Clip.none,
+        alignment: Alignment.topCenter,
+        children: [
+          // Gradient Background with shimmer
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            height: headerHeight,
+            child: AnimatedBuilder(
+              animation: _shimmerController,
+              builder: (context, child) {
+                return Container(
+                  width: double.infinity,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [
+                        colorScheme.primary.withAlpha(255),
+                        colorScheme.primary,
+                        colorScheme.primary.withAlpha(204),
+                      ],
+                    ),
                   ),
-                  // Menu button
-                  Positioned(
-                    top: statusBarHeight + 8,
-                    right: 8,
-                    child: Material(
-                      color: AppColors.parchment.withAlpha(25),
-                      borderRadius: BorderRadius.circular(12),
-                      child: Theme(
-                        data: Theme.of(
-                          context,
-                        ).copyWith(cardColor: Theme.of(context).cardColor),
-                        child: PopupMenuButton<String>(
-                          onSelected: (value) {
-                            if (value == 'deactivate') {
-                              _showDeactivationDialog();
-                            }
-                          },
+                  child: Stack(
+                    children: [
+                      // Shimmer overlay
+                      _buildShimmerOverlay(),
+                      // Floating circles
+                      ..._buildFloatingCircles(),
+                      // Back button
+                      Positioned(
+                        top: statusBarHeight + 8,
+                        left: 8,
+                        child: IconButton(
                           icon: const Icon(
-                            Icons.more_vert_rounded,
+                            Icons.arrow_back_rounded,
                             color: AppColors.parchment,
-                            size: 24,
                           ),
-                          offset: const Offset(0, 45),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                          itemBuilder:
-                              (context) => [
-                                PopupMenuItem(
-                                  value: 'deactivate',
-                                  child: Row(
-                                    children: [
-                                      Icon(
-                                        Icons.delete_forever_rounded,
-                                        color: AppColors.rawEarth,
-                                        size: 20,
-                                      ),
-                                      SizedBox(width: 12),
-                                      Text(
-                                        'Deactivate Account',
-                                        style: TextStyle(
-                                          color: AppColors.rawEarth,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ],
+                          onPressed: () => Navigator.maybePop(context),
                         ),
                       ),
-                    ),
-                  ),
-                  // Title
-                  Positioned(
-                    top: statusBarHeight + 12,
-                    left: 0,
-                    right: 0,
-                    child: Center(
-                      child: Text(
-                        '@$userHandle',
-                        style: const TextStyle(
-                          color: AppColors.parchment,
-                          fontSize: 18,
-                          fontWeight: FontWeight.w600,
-                          letterSpacing: 0.5,
+                      // Menu button
+                      Positioned(
+                        top: statusBarHeight + 8,
+                        right: 8,
+                        child: Material(
+                          color: AppColors.parchment.withAlpha(25),
+                          borderRadius: BorderRadius.circular(12),
+                          child: Theme(
+                            data: Theme.of(
+                              context,
+                            ).copyWith(cardColor: Theme.of(context).cardColor),
+                            child: PopupMenuButton<String>(
+                              onSelected: (value) {
+                                if (value == 'deactivate') {
+                                  _showDeactivationDialog();
+                                }
+                              },
+                              icon: const Icon(
+                                Icons.more_vert_rounded,
+                                color: AppColors.parchment,
+                                size: 24,
+                              ),
+                              offset: const Offset(0, 45),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                              itemBuilder:
+                                  (context) => [
+                                    PopupMenuItem(
+                                      value: 'deactivate',
+                                      child: Row(
+                                        children: [
+                                          Icon(
+                                            Icons.delete_forever_rounded,
+                                            color: AppColors.rawEarth,
+                                            size: 20,
+                                          ),
+                                          SizedBox(width: 12),
+                                          Text(
+                                            'Deactivate Account',
+                                            style: TextStyle(
+                                              color: AppColors.rawEarth,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                            ),
+                          ),
                         ),
                       ),
-                    ),
+                      // Title
+                      Positioned(
+                        top: statusBarHeight + 12,
+                        left: 0,
+                        right: 0,
+                        child: Center(
+                          child: Text(
+                            '@$userHandle',
+                            style: const TextStyle(
+                              color: AppColors.parchment,
+                              fontSize: 18,
+                              fontWeight: FontWeight.w600,
+                              letterSpacing: 0.5,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
-                ],
-              ),
-            );
-          },
-        ),
-        // Curved bottom
-        Positioned(
-          bottom: 0,
-          left: 0,
-          right: 0,
-          child: Container(
-            height: 30,
-            decoration: BoxDecoration(
-              color: theme.scaffoldBackgroundColor,
-              borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(30),
-                topRight: Radius.circular(30),
+                );
+              },
+            ),
+          ),
+          // Curved bottom
+          Positioned(
+            bottom: 50,
+            left: 0,
+            right: 0,
+            child: Container(
+              height: 30,
+              decoration: BoxDecoration(
+                color: theme.scaffoldBackgroundColor,
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(30),
+                  topRight: Radius.circular(30),
+                ),
               ),
             ),
           ),
-        ),
-        // Avatar
-        Positioned(
-          bottom: -45,
-          child: _buildAnimatedAvatar(theme, colorScheme),
-        ),
-      ],
+          // Avatar
+          Positioned(
+            bottom: 0,
+            child: _buildAnimatedAvatar(theme, colorScheme),
+          ),
+        ],
+      ),
     );
   }
 
@@ -820,65 +874,80 @@ class _EditProfileScreenState extends State<EditProfileScreen>
   }
 
   Widget _buildAnimatedAvatar(ThemeData theme, ColorScheme colorScheme) {
-    return GestureDetector(
-      onTap: _pickImage,
-      child: Stack(
-        children: [
-          // Profile avatar with fallback icon
-          Container(
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        // Profile avatar with fallback icon
+        GestureDetector(
+          onTap: _pickImage,
+          behavior: HitTestBehavior.opaque,
+          child: Container(
             width: 104,
             height: 104,
             decoration: BoxDecoration(
-              color: colorScheme.primary.withAlpha(25),
+              color: colorScheme.secondary.withAlpha(100),
               shape: BoxShape.circle,
-              border: Border.all(
-                color: colorScheme.primary.withAlpha(50),
-                width: 2,
-              ),
+              border: Border.all(color: colorScheme.secondary, width: 2),
             ),
             child: Center(
-              child: CircleAvatar(
-                radius: 48,
-                backgroundColor: colorScheme.primary.withAlpha(25),
-                backgroundImage:
-                    _selectedImage != null
-                        ? FileImage(_selectedImage!)
-                        : (widget.userProfile.profilePicture != null &&
-                                    widget
-                                        .userProfile
-                                        .profilePicture!
-                                        .isNotEmpty &&
-                                    widget.userProfile.profilePicture != "null"
-                                ? NetworkImage(
-                                  widget.userProfile.profilePicture!,
-                                )
-                                : null)
-                            as ImageProvider?,
-                child:
-                    (_selectedImage == null &&
-                            (widget.userProfile.profilePicture == null ||
-                                widget.userProfile.profilePicture!.isEmpty ||
-                                widget.userProfile.profilePicture == "null"))
-                        ? const Icon(
-                          Icons.person_rounded,
-                          size: 50,
-                          color: AppColors.parchment,
-                        )
-                        : null,
+              child: SizedBox(
+                width: 96,
+                height: 96,
+                child: ClipOval(
+                  child:
+                      _selectedImage != null
+                          ? Image.file(_selectedImage!, fit: BoxFit.cover)
+                          : (widget.userProfile.profilePicture != null &&
+                                  widget
+                                      .userProfile
+                                      .profilePicture!
+                                      .isNotEmpty &&
+                                  widget.userProfile.profilePicture != "null"
+                              ? CachedNetworkImage(
+                                imageUrl: widget.userProfile.profilePicture!,
+                                cacheKey:
+                                    widget.userProfile.profilePicture!
+                                        .split('?')
+                                        .first,
+                                fit: BoxFit.cover,
+                                placeholder:
+                                    (context, url) => Center(
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                        color: colorScheme.primary,
+                                      ),
+                                    ),
+                                errorWidget:
+                                    (context, url, error) => const Icon(
+                                      Icons.person_rounded,
+                                      size: 48,
+                                      color: AppColors.parchment,
+                                    ),
+                              )
+                              : const Icon(
+                                Icons.person_rounded,
+                                size: 48,
+                                color: AppColors.parchment,
+                              )),
+                ),
               ),
             ),
           ),
-          // Camera badge
-          Positioned(
-            bottom: 4,
-            right: 4,
-            child: TweenAnimationBuilder<double>(
-              tween: Tween(begin: 0.0, end: 1.0),
-              duration: const Duration(milliseconds: 600),
-              curve: Curves.elasticOut,
-              builder: (context, value, child) {
-                return Transform.scale(
-                  scale: value,
+        ),
+        // Camera badge
+        Positioned(
+          bottom: 4,
+          right: 4,
+          child: TweenAnimationBuilder<double>(
+            tween: Tween(begin: 0.0, end: 1.0),
+            duration: const Duration(milliseconds: 600),
+            curve: Curves.elasticOut,
+            builder: (context, value, child) {
+              return Transform.scale(
+                scale: value,
+                child: GestureDetector(
+                  onTap: _pickImage,
+                  behavior: HitTestBehavior.opaque,
                   child: Container(
                     padding: const EdgeInsets.all(10),
                     decoration: BoxDecoration(
@@ -900,18 +969,18 @@ class _EditProfileScreenState extends State<EditProfileScreen>
                         ),
                       ],
                     ),
-                    child: const Icon(
+                    child: Icon(
                       Icons.camera_alt_rounded,
                       color: AppColors.parchment,
                       size: 18,
                     ),
                   ),
-                );
-              },
-            ),
+                ),
+              );
+            },
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
@@ -1393,8 +1462,6 @@ class _EditProfileScreenState extends State<EditProfileScreen>
     );
   }
 
-
-
   // ==================== DEACTIVATE Logic ====================
   void _showDeactivationDialog() {
     final passwordController = TextEditingController();
@@ -1534,8 +1601,9 @@ class _EditProfileScreenState extends State<EditProfileScreen>
                                                 setDialogState(
                                                   () => isLoading = true,
                                                 );
-                                                final result = await context
-                                                    .read<AuthCubit>()
+                                                final authCubit =
+                                                    context.read<AuthCubit>();
+                                                final result = await authCubit
                                                     .deactivateAccount(
                                                       passwordController.text,
                                                     );
@@ -1552,7 +1620,7 @@ class _EditProfileScreenState extends State<EditProfileScreen>
                                                     );
                                                   } else {
                                                     SnackBarHelper.showError(
-                                                      context,
+                                                      innerContext,
                                                       result['message'],
                                                     );
                                                   }
@@ -1689,8 +1757,9 @@ class _EditProfileScreenState extends State<EditProfileScreen>
                                                 setDialogState(
                                                   () => isLoading = true,
                                                 );
-                                                final result = await context
-                                                    .read<AuthCubit>()
+                                                final authCubit =
+                                                    context.read<AuthCubit>();
+                                                final result = await authCubit
                                                     .confirmDeactivation(
                                                       otpController.text,
                                                     );
@@ -1699,17 +1768,15 @@ class _EditProfileScreenState extends State<EditProfileScreen>
                                                     () => isLoading = false,
                                                   );
                                                   if (result['success']) {
-                                                    Navigator.pop(
-                                                      dialogContext,
-                                                    );
+                                                    Navigator.pop(innerContext);
                                                     Navigator.of(
-                                                      context,
+                                                      innerContext,
                                                     ).popUntil(
                                                       (route) => route.isFirst,
                                                     );
                                                   } else {
                                                     SnackBarHelper.showError(
-                                                      context,
+                                                      innerContext,
                                                       result['message'],
                                                     );
                                                   }

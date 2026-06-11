@@ -86,9 +86,9 @@ class _CombinedScreenState extends State<CombinedScreen>
       pinned: true,
       stretch: true,
       backgroundColor: theme.scaffoldBackgroundColor,
-      leading: const Padding(
-        padding: EdgeInsets.all(4),
-        child: AnaadLogoMark(),
+      leading: IconButton(
+        icon: const Icon(Icons.arrow_back_rounded),
+        onPressed: () => Navigator.maybePop(context),
       ),
       flexibleSpace: FlexibleSpaceBar(
         stretchModes: const [StretchMode.zoomBackground, StretchMode.fadeTitle],
@@ -828,350 +828,406 @@ class _CombinedScreenState extends State<CombinedScreen>
 }
 
 Future<void> _showNotificationForm(BuildContext outerContext) async {
-  final formKey = GlobalKey<FormState>();
-  final nameController = TextEditingController();
-  final phoneController = TextEditingController();
-  final emailController = TextEditingController();
-  final messageController = TextEditingController();
-  final theme = Theme.of(outerContext);
-  final isDark = theme.brightness == Brightness.dark;
-  String selectedRequirementType = 'INDIVIDUAL';
-
-  await showGeneralDialog(
+  HapticFeedback.lightImpact();
+  showModalBottomSheet(
     context: outerContext,
-    barrierDismissible: true,
-    barrierLabel: 'Dismiss',
-    barrierColor: AppColors.charcoal.withValues(alpha: 0.6),
-    transitionDuration: const Duration(milliseconds: 300),
-    pageBuilder: (context, animation, secondaryAnimation) => const SizedBox(),
-    transitionBuilder: (dialogContext, animation, secondaryAnimation, child) {
-      return ScaleTransition(
-        scale: Tween<double>(begin: 0.8, end: 1.0).animate(
-          CurvedAnimation(parent: animation, curve: Curves.easeOutBack),
-        ),
-        child: FadeTransition(
-          opacity: animation,
-          child: StatefulBuilder(
-            builder: (dialogContext, setDialogState) {
-              return Center(
-                child: Container(
-                  margin: const EdgeInsets.symmetric(horizontal: 24),
-                  constraints: const BoxConstraints(maxWidth: 400),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(24),
-                    child: BackdropFilter(
-                      filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
-                      child: Material(
-                        color: AppColors.transparent,
-                        child: Container(
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                              colors:
-                                  isDark
-                                      ? [
-                                        AppColors.darkSurface,
-                                        AppColors.darkSurfaceElevated,
-                                      ]
-                                      : [
-                                        AppColors.parchment,
-                                        AppColors.deepSoilGreen.withValues(alpha: 0.15),
-                                      ],
-                            ),
-                            borderRadius: BorderRadius.circular(24),
-                            border: Border.all(
-                              color: AppColors.parchment.withValues(alpha: 0.2),
-                              width: 1,
-                            ),
-                            boxShadow: [
-                              BoxShadow(
-                                color: AppColors.parchment.withValues(
-                                  alpha: 0.2,
-                                ),
-                                blurRadius: 30,
-                                offset: const Offset(0, 10),
-                              ),
-                            ],
-                          ),
-                          child: SingleChildScrollView(
-                            child: Padding(
-                              padding: const EdgeInsets.all(24),
-                              child: Form(
-                                key: formKey,
-                                child: Column(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Container(
-                                      padding: const EdgeInsets.all(16),
-                                      decoration: BoxDecoration(
-                                        gradient: LinearGradient(
-                                          colors: [
-                                            theme.colorScheme.primary,
-                                            theme.colorScheme.primary
-                                                .withValues(alpha: 0.8),
-                                          ],
-                                        ),
-                                        borderRadius: BorderRadius.circular(16),
-                                      ),
-                                      child: const Icon(
-                                        Icons.agriculture_rounded,
-                                        color: AppColors.parchment,
-                                        size: 32,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 16),
-                                    Text(
-                                      'Register Your Interest',
-                                      style: theme.textTheme.titleLarge
-                                          ?.copyWith(
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                    ),
-                                    const SizedBox(height: 8),
-                                    Text(
-                                      'Join our natural farming program',
-                                      style: theme.textTheme.bodyMedium
-                                          ?.copyWith(
-                                            color: isDark
-                                                ? AppColors.parchment70
-                                                : AppColors.rawEarth70,
-                                          ),
-                                    ),
-                                    const SizedBox(height: 24),
-                                    _buildFormField(
-                                      nameController,
-                                      'Full Name *',
-                                      Icons.person_outline,
-                                      isDark: isDark,
-                                    ),
-                                    const SizedBox(height: 12),
-                                    _buildFormField(
-                                      phoneController,
-                                      'Phone Number *',
-                                      Icons.phone_outlined,
-                                      keyboardType: TextInputType.phone,
-                                      isDark: isDark,
-                                    ),
-                                    const SizedBox(height: 12),
-                                    _buildFormField(
-                                      emailController,
-                                      'Email*',
-                                      Icons.email_outlined,
-                                      keyboardType: TextInputType.emailAddress,
-                                      isDark: isDark,
-                                    ),
-                                    const SizedBox(height: 12),
-                                    _buildFormField(
-                                      messageController,
-                                      'Message *',
-                                      Icons.message_outlined,
-                                      maxLines: 3,
-                                      isDark: isDark,
-                                    ),
-                                    const SizedBox(height: 16),
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 16,
-                                        vertical: 4,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        color: isDark ? AppColors.charcoal : AppColors.pureWhite,
-                                        borderRadius: BorderRadius.circular(12),
-                                        border: Border.all(
-                                          color: isDark 
-                                              ? AppColors.parchment.withValues(alpha: 0.1) 
-                                              : AppColors.charcoal.withValues(alpha: 0.1),
-                                          width: 1,
-                                        ),
-                                        boxShadow: [
-                                          if (!isDark)
-                                            BoxShadow(
-                                              color: AppColors.charcoal.withValues(alpha: 0.05),
-                                              blurRadius: 8,
-                                              offset: const Offset(0, 2),
-                                            ),
-                                        ],
-                                      ),
-                                      child: DropdownButtonFormField<String>(
-                                        value: selectedRequirementType,
-                                        dropdownColor: isDark ? AppColors.darkSurfaceElevated : AppColors.pureWhite,
-                                        style: TextStyle(color: isDark ? AppColors.parchment : AppColors.charcoal),
-                                        decoration: InputDecoration(
-                                          border: InputBorder.none,
-                                          labelText: 'Requirement Type',
-                                          labelStyle: TextStyle(
-                                            color: isDark 
-                                              ? AppColors.parchment.withValues(alpha: 0.7) 
-                                              : AppColors.charcoal.withValues(alpha: 0.6)
-                                          ),
-                                        ),
-                                        items:
-                                            ['INDIVIDUAL', "B2B", 'FAMILY'].map(
-                                              (value) {
-                                                return DropdownMenuItem(
-                                                  value: value,
-                                                  child: Text(value),
-                                                );
-                                              },
-                                            ).toList(),
-                                        onChanged:
-                                            (value) => setDialogState(
-                                              () =>
-                                                  selectedRequirementType =
-                                                      value!,
-                                            ),
-                                      ),
-                                    ),
-                                    const SizedBox(height: 24),
-                                    GestureDetector(
-                                      onTap: () async {
-                                        if (formKey.currentState!.validate()) {
-                                          try {
-                                            final response = await ApiClient.instance.post(
-                                              '/api/user-queries/',
-                                              data: {
-                                                'name': nameController.text,
-                                                'phone_number':
-                                                    phoneController.text,
-                                                'email': emailController.text,
-                                                'message':
-                                                    messageController.text,
-                                                'requirement_type':
-                                                    selectedRequirementType,
-                                                'is_from_rfp': true,
-                                                'redirection_from': 'RFP',
-                                              },
-                                            );
-                                            if (!dialogContext.mounted) return;
-                                            Navigator.of(dialogContext).pop();
-                                            if (!outerContext.mounted) return;
-                                            if (response.statusCode == 200 ||
-                                                response.statusCode == 201) {
-                                              SnackBarHelper.showSuccess(
-                                                outerContext,
-                                                'Thank you! We\'ll get back to you soon.',
-                                              );
-                                            } else {
-                                              SnackBarHelper.showError(
-                                                outerContext,
-                                                'Failed. Please try again.',
-                                              );
-                                            }
-                                          } catch (e) {
-                                            if (!dialogContext.mounted) return;
-                                            Navigator.of(dialogContext).pop();
-                                            if (!outerContext.mounted) return;
-                                            SnackBarHelper.showError(
-                                              outerContext,
-                                              'Error. Please try again.',
-                                            );
-                                          }
-                                        }
-                                      },
-                                      child: Container(
-                                        width: double.infinity,
-                                        padding: const EdgeInsets.symmetric(
-                                          vertical: 16,
-                                        ),
-                                        decoration: BoxDecoration(
-                                          gradient: LinearGradient(
-                                            colors: [
-                                              theme.colorScheme.primary,
-                                              theme.colorScheme.primary
-                                                  .withValues(alpha: 0.8),
-                                            ],
-                                          ),
-                                          borderRadius: BorderRadius.circular(
-                                            14,
-                                          ),
-                                        ),
-                                        child: const Center(
-                                          child: Text(
-                                            'Submit',
-                                            style: TextStyle(
-                                              color: AppColors.parchment,
-                                              fontWeight: FontWeight.bold,
-                                              fontSize: 16,
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              );
-            },
-          ),
-        ),
-      );
-    },
+    isScrollControlled: true,
+    backgroundColor: AppColors.transparent,
+    builder: (context) => const _RfpFormSheet(),
   );
 }
 
-Widget _buildFormField(
-  TextEditingController controller,
-  String hint,
-  IconData icon, {
-  TextInputType? keyboardType,
-  int maxLines = 1,
-  required bool isDark,
-}) {
-  return Container(
-    decoration: BoxDecoration(
-      color: isDark ? AppColors.charcoal : AppColors.pureWhite,
-      borderRadius: BorderRadius.circular(12),
-      border: Border.all(
-        color: isDark 
-            ? AppColors.parchment.withValues(alpha: 0.1) 
-            : AppColors.charcoal.withValues(alpha: 0.1),
-        width: 1,
-      ),
-      boxShadow: [
-        if (!isDark)
-          BoxShadow(
-            color: AppColors.charcoal.withValues(alpha: 0.05),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
+class _RfpFormSheet extends StatefulWidget {
+  const _RfpFormSheet();
+
+  @override
+  State<_RfpFormSheet> createState() => _RfpFormSheetState();
+}
+
+class _RfpFormSheetState extends State<_RfpFormSheet>
+    with SingleTickerProviderStateMixin {
+  final _formKey = GlobalKey<FormState>();
+  final _nameController = TextEditingController();
+  final _phoneController = TextEditingController();
+  final _emailController = TextEditingController();
+  final _messageController = TextEditingController();
+  String _selectedType = 'INDIVIDUAL';
+  bool _isLoading = false;
+
+  late AnimationController _animController;
+  late Animation<double> _fadeAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _animController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 400),
+    );
+    _fadeAnimation = CurvedAnimation(
+      parent: _animController,
+      curve: Curves.easeOut,
+    );
+    _animController.forward();
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _phoneController.dispose();
+    _emailController.dispose();
+    _messageController.dispose();
+    _animController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _submitForm() async {
+    if (!_formKey.currentState!.validate()) return;
+
+    HapticFeedback.mediumImpact();
+    setState(() => _isLoading = true);
+
+    try {
+      final response = await ApiClient.instance.post(
+        '/api/user-queries/',
+        data: {
+          'name': _nameController.text,
+          'phone_number': _phoneController.text,
+          'email': _emailController.text,
+          'message': _messageController.text,
+          'requirement_type': _selectedType,
+          'is_from_rfp': true,
+          'redirection_from': 'RFP',
+        },
+      );
+
+      if (!mounted) return;
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        Navigator.pop(context);
+        SnackBarHelper.showSuccess(
+          context,
+          'Thank you! We\'ll get back to you soon.',
+        );
+      } else {
+        throw Exception('Failed to submit');
+      }
+    } catch (e) {
+      if (!mounted) return;
+      SnackBarHelper.showError(context, 'Failed to submit. Please try again.');
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final bottomPadding = MediaQuery.of(context).viewInsets.bottom;
+
+    return FadeTransition(
+      opacity: _fadeAnimation,
+      child: Container(
+        margin: EdgeInsets.only(bottom: bottomPadding),
+        decoration: BoxDecoration(
+          color: theme.scaffoldBackgroundColor,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+        ),
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.fromLTRB(24, 16, 24, 32),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Handle bar
+                Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: theme.dividerColor,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+                const SizedBox(height: 24),
+                // Header
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: colorScheme.primary.withAlpha(20),
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                      child: Icon(
+                        Icons.agriculture_rounded,
+                        color: colorScheme.primary,
+                        size: 24,
+                      ),
+                    ),
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Register Your Interest',
+                            style: theme.textTheme.titleLarge?.copyWith(
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            'Join our natural farming program',
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: theme.hintColor,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 28),
+                // Form fields
+                _buildTextField(
+                  controller: _nameController,
+                  label: 'Full Name*',
+                  icon: Icons.person_outline_rounded,
+                  validator: (v) {
+                    if (v == null || v.trim().isEmpty) return 'Please enter your name';
+                    if (v.trim().length < 3) return 'Name must be at least 3 characters';
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 16),
+                _buildTextField(
+                  controller: _phoneController,
+                  label: 'Phone Number*',
+                  icon: Icons.phone_outlined,
+                  keyboardType: TextInputType.phone,
+                  validator: (v) {
+                    if (v == null || v.trim().isEmpty) return 'Please enter your phone number';
+                    if (!RegExp(r'^\d{10}$').hasMatch(v.trim())) return 'Phone number must be exactly 10 digits';
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 16),
+                _buildTextField(
+                  controller: _emailController,
+                  label: 'Email*',
+                  icon: Icons.email_outlined,
+                  keyboardType: TextInputType.emailAddress,
+                  validator: (v) {
+                    if (v == null || v.trim().isEmpty) return 'Please enter your email';
+                    if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(v.trim())) return 'Please enter a valid email';
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 16),
+                _buildTextField(
+                  controller: _messageController,
+                  label: 'Your Message*',
+                  icon: Icons.message_outlined,
+                  maxLines: 3,
+                  validator: (v) {
+                    if (v == null || v.trim().isEmpty) return 'Please enter your message';
+                    if (v.trim().length < 10) return 'Message must be at least 10 characters';
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 16),
+                // Requirement type selector
+                _buildTypeSelector(theme, colorScheme),
+                const SizedBox(height: 28),
+                // Submit button
+                SizedBox(
+                  width: double.infinity,
+                  height: 56,
+                  child: ElevatedButton(
+                    onPressed: _isLoading ? null : _submitForm,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: colorScheme.primary,
+                      foregroundColor: AppColors.parchment,
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                    ),
+                    child:
+                        _isLoading
+                            ? const SizedBox(
+                              width: 24,
+                              height: 24,
+                              child: CircularProgressIndicator(
+                                color: AppColors.parchment,
+                                strokeWidth: 2.5,
+                              ),
+                            )
+                            : const Text(
+                              'Submit',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                  ),
+                ),
+              ],
+            ),
           ),
-      ],
-    ),
-    child: TextFormField(
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTextField({
+    required TextEditingController controller,
+    required String label,
+    required IconData icon,
+    TextInputType? keyboardType,
+    int maxLines = 1,
+    String? Function(String?)? validator,
+  }) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    return TextFormField(
       controller: controller,
       keyboardType: keyboardType,
       maxLines: maxLines,
-      style: TextStyle(color: isDark ? AppColors.parchment : AppColors.charcoal),
+      validator: validator,
+      style: theme.textTheme.bodyLarge,
       decoration: InputDecoration(
-        hintText: hint,
-        hintStyle: TextStyle(
-          color: isDark 
-              ? AppColors.parchment.withValues(alpha: 0.4) 
-              : AppColors.charcoal.withValues(alpha: 0.4),
+        labelText: label,
+        prefixIcon: Icon(icon, color: colorScheme.primary, size: 22),
+        filled: true,
+        fillColor: colorScheme.primary.withAlpha(8),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(14),
+          borderSide: BorderSide(color: colorScheme.primary.withAlpha(40)),
         ),
-        prefixIcon: Icon(
-          icon,
-          color: isDark 
-              ? AppColors.parchment.withValues(alpha: 0.5) 
-              : AppColors.charcoal.withValues(alpha: 0.4),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(14),
+          borderSide: BorderSide(color: colorScheme.primary.withAlpha(30)),
         ),
-        border: InputBorder.none,
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(14),
+          borderSide: BorderSide(color: colorScheme.primary, width: 1.5),
+        ),
+        errorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(14),
+          borderSide: const BorderSide(color: AppColors.rawEarth),
+        ),
         contentPadding: const EdgeInsets.symmetric(
           horizontal: 16,
-          vertical: 14,
+          vertical: 16,
         ),
       ),
-      validator:
-          hint.contains('*')
-              ? (v) => v?.isEmpty == true ? 'Required' : null
-              : null,
-    ),
-  );
+    );
+  }
+
+  Widget _buildTypeSelector(ThemeData theme, ColorScheme colorScheme) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Requirement Type',
+          style: theme.textTheme.bodyMedium?.copyWith(
+            fontWeight: FontWeight.w500,
+            color: theme.hintColor,
+          ),
+        ),
+        const SizedBox(height: 10),
+        Row(
+          children: [
+            Expanded(
+              child: _buildTypeChip(
+                theme,
+                colorScheme,
+                'INDIVIDUAL',
+                'Individual',
+                Icons.person_rounded,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: _buildTypeChip(
+                theme,
+                colorScheme,
+                'B2B',
+                'Business',
+                Icons.business_rounded,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: _buildTypeChip(
+                theme,
+                colorScheme,
+                'FAMILY',
+                'Family',
+                Icons.family_restroom_rounded,
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildTypeChip(
+    ThemeData theme,
+    ColorScheme colorScheme,
+    String value,
+    String label,
+    IconData icon,
+  ) {
+    final isSelected = _selectedType == value;
+
+    return GestureDetector(
+      onTap: () {
+        HapticFeedback.selectionClick();
+        setState(() => _selectedType = value);
+      },
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(vertical: 14),
+        decoration: BoxDecoration(
+          color:
+              isSelected
+                  ? colorScheme.primary
+                  : colorScheme.primary.withAlpha(10),
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(
+            color:
+                isSelected
+                    ? colorScheme.primary
+                    : colorScheme.primary.withAlpha(40),
+            width: isSelected ? 2 : 1,
+          ),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              icon,
+              size: 20,
+              color: isSelected ? AppColors.parchment : colorScheme.primary,
+            ),
+            const SizedBox(width: 8),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: isSelected ? AppColors.parchment : colorScheme.primary,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }

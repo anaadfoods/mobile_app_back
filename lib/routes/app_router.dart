@@ -412,7 +412,11 @@ class AppRouter {
           final productsList = extra['products'] as List?;
           return CategoryItemsScreen(
             name: extra['name'] as String? ?? '',
-            allProducts: productsList?.map((e) => e as Product).toList() ?? [],
+            allProducts: productsList?.map((e) {
+              if (e is Product) return e;
+              if (e is Map<String, dynamic>) return Product.fromJson(e);
+              return e as Product;
+            }).toList() ?? [],
           );
         },
       ),

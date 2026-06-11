@@ -211,13 +211,6 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               // Modern Welcome Section with Avatar
-                              const AnaadLogoMark(
-                                size: 50,
-                                logoSize: 40,
-                                backgroundOpacity: 0.18,
-                                showShadow: false,
-                              ),
-                              const SizedBox(width: 6),
                               Expanded(
                                 child: BlocBuilder<AuthCubit, AuthState>(
                                   buildWhen: (prev, curr) => prev != curr,
@@ -443,11 +436,27 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                     ),
                     const SizedBox(height: 12),
                     const RepaintBoundary(child: AllProductsList()),
-                    padded(
-                      const RepaintBoundary(child: SubscriptionCarousel()),
+                    BlocBuilder<AuthCubit, AuthState>(
+                      builder: (context, authState) {
+                        if (authState is! Authenticated) {
+                          return const SizedBox.shrink();
+                        }
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            padded(
+                              const RepaintBoundary(
+                                child: SubscriptionCarousel(),
+                              ),
+                            ),
+                            _heading(context, "Subscription Plans", "", () {}),
+                            RepaintBoundary(
+                              child: _subscriptionSection(context),
+                            ),
+                          ],
+                        );
+                      },
                     ),
-                    _heading(context, "Subscription Plans", "", () {}),
-                    RepaintBoundary(child: _subscriptionSection(context)),
                     padded(
                       const RepaintBoundary(child: HomeCategoryShowcase()),
                     ),
@@ -562,20 +571,20 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                     ),
                   ),
                   const SizedBox(height: 4),
-                  Text(
-                    "Check your connection and try again ðŸ”„",
-                    style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
-                  ),
+                  // Text(
+                  //   "Check your connection and try again",
+                  //   style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
+                  // ),
                   const SizedBox(height: 8),
-                  Text(
-                    "ðŸŒ¿ Crops grown with cow-based manure have 40% more nutrients!",
-                    style: TextStyle(
-                      color: Colors.green.shade700,
-                      fontSize: 11,
-                      fontStyle: FontStyle.italic,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
+                  // Text(
+                  //   "Crops grown with cow-based manure have 40% more nutrients!",
+                  //   style: TextStyle(
+                  //     color: Colors.green.shade700,
+                  //     fontSize: 11,
+                  //     fontStyle: FontStyle.italic,
+                  //   ),
+                  //   textAlign: TextAlign.center,
+                  // ),
                 ],
               ),
             ),

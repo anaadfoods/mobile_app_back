@@ -437,7 +437,10 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const AnaadLogoMark(),
+                        IconButton(
+                          icon: const Icon(Icons.arrow_back_rounded, color: AppColors.parchment),
+                          onPressed: () => Navigator.maybePop(context),
+                        ),
                         // Action Buttons: Refresh, Invoice
                         Row(
                           children: [

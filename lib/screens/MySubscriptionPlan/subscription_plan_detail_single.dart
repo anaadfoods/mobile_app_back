@@ -191,29 +191,18 @@ class _SubscriptionPlanDetailScreenState
     }
   }
 
-  Future<void> _togglePauseSubscription(
+  void _togglePauseSubscription(
     Subscription subscription,
     DateTime? pauseStartDate,
     DateTime? pauseEndDate,
-  ) async {
-    // Use SubscriptionCubit to toggle pause - this updates state and refreshes list
-    await context.read<SubscriptionCubit>().togglePauseSubscription(
+  ) {
+    // Use SubscriptionCubit to toggle pause - this updates state
+    // The BlocListener in build() will catch the success/error and refresh the UI
+    context.read<SubscriptionCubit>().togglePauseSubscription(
       subscription.id,
       pauseStartDate,
       pauseEndDate,
     );
-
-    if (!mounted) return;
-
-    // Check cubit state for result
-    final state = context.read<SubscriptionCubit>().state;
-    if (state is SubscriptionActionSuccess) {
-      SnackBarHelper.showSuccess(context, state.message);
-      // Pop back to refresh the list
-      Navigator.pop(context);
-    } else if (state is SubscriptionError) {
-      SnackBarHelper.showError(context, state.message);
-    }
   }
 
   void _showConfirmationPopup(
@@ -550,6 +539,14 @@ class _SubscriptionPlanDetailScreenState
   void _showToggleConfirmation(Subscription subscription) {
     final isCurrentlyPaused = subscription.status == 'PAUSED';
 
+    if (!isCurrentlyPaused && subscription.remainingPauseTimes <= 0) {
+      SnackBarHelper.showError(
+        context,
+        "Looks like you've used all your pauses for this plan!",
+      );
+      return;
+    }
+
     if (isCurrentlyPaused) {
       _showConfirmationPopup(
         context,
@@ -711,14 +708,27 @@ class _SubscriptionPlanDetailScreenState
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
-    return PopScope(
-      canPop: false,
-      onPopInvokedWithResult: (didPop, result) {
-        if (didPop) return;
-        context.goNamed(AppRoute.subscriptionList.name);
+    return BlocListener<SubscriptionCubit, SubscriptionState>(
+      listener: (context, state) {
+        if (state is SubscriptionActionSuccess) {
+          SnackBarHelper.showSuccess(context, state.message);
+          // Reload the subscription details and invoices in-place
+          if (_currentOrder != null) {
+            _loadSubscription(_currentOrder!.id.toString());
+          } else if (widget.subscriptionId != null) {
+            _loadSubscription(widget.subscriptionId!);
+          }
+          _loadInvoices();
+        } else if (state is SubscriptionError) {
+          SnackBarHelper.showError(
+            context,
+            "Looks like a network hiccup! Please check your internet and try again.",
+          );
+        }
       },
       child: Scaffold(
         backgroundColor: isDark ? AppColors.darkCanvas : AppColors.parchment,
+        floatingActionButton: _buildWhatsAppFAB(),
         body: RefreshIndicator(
           onRefresh: () async {
             // Trigger a refresh of subscription details and invoices
@@ -864,48 +874,70 @@ class _SubscriptionPlanDetailScreenState
                     // Top Row with Back Button and Refresh
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      spacing: 12,
                       children: [
+                        IconButton(
+                          icon: const Icon(
+                            Icons.arrow_back_rounded,
+                            color: AppColors.parchment,
+                          ),
+                          onPressed: () => Navigator.maybePop(context),
+                        ),
                         Row(
                           mainAxisSize: MainAxisSize.min,
-                          children: [const AnaadLogoMark()],
-                        ),
-                        GestureDetector(
-                          onTap: () async {
-                            HapticFeedback.lightImpact();
-                            SnackBarHelper.showLoading(
-                              context,
-                              'Refreshing...',
-                            );
-
-                            // Re-load subscription details and invoices
-                            if (_currentOrder != null) {
-                              await _loadSubscription(
-                                _currentOrder!.id.toString(),
-                              );
-                            } else if (widget.subscriptionId != null) {
-                              await _loadSubscription(widget.subscriptionId!);
-                            }
-                            await _loadInvoices();
-
-                            if (mounted) {
-                              ScaffoldMessenger.of(
-                                context,
-                              ).hideCurrentSnackBar();
-                            }
-                          },
-                          child: Container(
-                            padding: const EdgeInsets.all(10),
-                            decoration: BoxDecoration(
-                              color: AppColors.parchment.withValues(alpha: 0.2),
-                              borderRadius: BorderRadius.circular(12),
+                          spacing: 12,
+                          children: [
+                            IconButton(
+                              icon: const Icon(
+                                Icons.help_outline_rounded,
+                                color: AppColors.parchment,
+                              ),
+                              onPressed: () {
+                                HapticFeedback.lightImpact();
+                                context.pushNamed(AppRoute.help.name);
+                              },
                             ),
-                            child: const Icon(
-                              Icons.refresh_rounded,
-                              color: AppColors.parchment,
-                              size: 20,
+                            GestureDetector(
+                              onTap: () async {
+                                HapticFeedback.lightImpact();
+                                SnackBarHelper.showLoading(
+                                  context,
+                                  'Refreshing...',
+                                );
+
+                                // Re-load subscription details and invoices
+                                if (_currentOrder != null) {
+                                  await _loadSubscription(
+                                    _currentOrder!.id.toString(),
+                                  );
+                                } else if (widget.subscriptionId != null) {
+                                  await _loadSubscription(
+                                    widget.subscriptionId!,
+                                  );
+                                }
+                                await _loadInvoices();
+
+                                if (mounted) {
+                                  ScaffoldMessenger.of(
+                                    context,
+                                  ).hideCurrentSnackBar();
+                                }
+                              },
+                              child: Container(
+                                padding: const EdgeInsets.all(10),
+                                decoration: BoxDecoration(
+                                  color: AppColors.parchment.withValues(
+                                    alpha: 0.2,
+                                  ),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: const Icon(
+                                  Icons.refresh_rounded,
+                                  color: AppColors.parchment,
+                                  size: 20,
+                                ),
+                              ),
                             ),
-                          ),
+                          ],
                         ),
                       ],
                     ),
@@ -2460,5 +2492,35 @@ class _SubscriptionPlanDetailScreenState
     }
 
     return 'Valued Customer';
+  }
+
+  FloatingActionButton _buildWhatsAppFAB() {
+    return FloatingActionButton.extended(
+      backgroundColor: AppColors.parchment,
+      foregroundColor: AppColors.charcoal,
+      icon: const Icon(Icons.chat_rounded),
+      label: const Text('Chat Support'),
+      onPressed: () async {
+        HapticFeedback.lightImpact();
+        final user = getIt<TokenService>().currentUser;
+        const phone = '+919996166186';
+        final message = Uri.encodeComponent(
+          'Hi! I need help with my subscription.\n\n'
+          'Subscription ID: ${_currentOrder?.id ?? ''}\n'
+          'Plan: ${_currentOrder?.items.isNotEmpty == true ? _currentOrder!.items.first.productName : 'N/A'}\n'
+          'Name: ${user?.firstName ?? ''} ${user?.lastName ?? ''}\n'
+          'Phone: ${user?.phoneNumber ?? ''}',
+        );
+        final url = 'https://wa.me/$phone?text=$message';
+        try {
+          if (await canLaunchUrl(Uri.parse(url))) {
+            await launchUrl(Uri.parse(url));
+          }
+        } catch (e) {
+          if (!mounted) return;
+          SnackBarHelper.showError(context, 'Could not open WhatsApp');
+        }
+      },
+    );
   }
 }

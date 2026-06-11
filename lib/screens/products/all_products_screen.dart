@@ -200,9 +200,9 @@ class _AllProductsScreenState extends State<AllProductsScreen> {
                 ),
               ),
             ),
-            leading: Padding(
-              padding: const EdgeInsets.all(4),
-              child: const AnaadLogoMark(),
+            leading: IconButton(
+              icon: const Icon(Icons.arrow_back_rounded, color: AppColors.parchment),
+              onPressed: () => Navigator.maybePop(context),
             ),
             actions: [
               IconButton(

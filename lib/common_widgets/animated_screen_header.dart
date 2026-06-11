@@ -166,7 +166,7 @@ class _AnimatedScreenHeaderState extends State<AnimatedScreenHeader>
                                 },
                           )
                         else if (widget.showLogo)
-                          const AnaadLogoMark()
+                          const SizedBox(width: 44)
                         else
                           const SizedBox(width: 44),
 
