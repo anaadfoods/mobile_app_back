@@ -72,7 +72,10 @@ class AuthCubit extends Cubit<AuthState> {
     } on AuthException catch (e) {
       emit(AuthError(e.message));
     } catch (e) {
-      emit(const AuthError('An unexpected error occurred. Please try again.'));
+      AppLogger.instance.log('DEBUG: googleLogin error: $e');
+      emit(AuthError(e.toString().contains('canceled') 
+        ? 'Google Sign-In was canceled.' 
+        : 'An unexpected error occurred. Please try again.'));
     }
   }
 

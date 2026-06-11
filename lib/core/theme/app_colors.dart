@@ -102,6 +102,10 @@ class AppColors {
 
   static const Color harvestAmber40 = Color(0x66C9943A);
 
+  // ─── Semantic Aliases for Backward Compatibility ──────────────────────────
+  static const Color primaryColor = deepSoilGreen;  // Primary brand color
+  static const Color error = softRed;               // Error/negative action color
+
   // ─── Border Radius Presets ─────────────────────────────────────────────────
   static const double radiusS = 8.0;
   static const double radiusM = 12.0;

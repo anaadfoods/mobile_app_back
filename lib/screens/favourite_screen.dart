@@ -3,8 +3,6 @@ import 'package:grocery_app/models/product_image_model.dart';
 import 'package:grocery_app/common_widgets/global_import.dart';
 import 'package:grocery_app/routes/app_routes.dart';
 
-import 'package:grocery_app/service_locator.dart';
-
 class FavouriteScreen extends StatefulWidget {
   const FavouriteScreen({super.key});
 
@@ -14,10 +12,9 @@ class FavouriteScreen extends StatefulWidget {
 
 class _FavouriteScreenState extends State<FavouriteScreen>
     with TickerProviderStateMixin {
-  final TokenService _tokenService = getIt<TokenService>();
   final ProfileService _profileService = getIt<ProfileService>();
-  final FavoriteStateService _favoriteStateService =
-      getIt<FavoriteStateService>();
+  final TokenService _tokenService = TokenService();
+  final FavoriteStateService _favoriteStateService = FavoriteStateService();
 
   List<FavoriteModel> _favorites = [];
   final Set<int> _processingItems = {};
@@ -31,6 +28,7 @@ class _FavouriteScreenState extends State<FavouriteScreen>
   // Animation Controllers
   late AnimationController _headerController;
   late AnimationController _contentController;
+  late AnimationController _particleController;
   late AnimationController _pulseController;
 
   late Animation<double> _headerSlide;
@@ -72,6 +70,11 @@ class _FavouriteScreenState extends State<FavouriteScreen>
       vsync: this,
     );
 
+    _particleController = AnimationController(
+      duration: const Duration(seconds: 20),
+      vsync: this,
+    )..repeat();
+
     _pulseController = AnimationController(
       duration: const Duration(milliseconds: 1500),
       vsync: this,
@@ -102,6 +105,7 @@ class _FavouriteScreenState extends State<FavouriteScreen>
   void dispose() {
     _headerController.dispose();
     _contentController.dispose();
+    _particleController.dispose();
     _pulseController.dispose();
     _authSubscription?.cancel();
     _favoriteSubscription?.cancel();
@@ -167,7 +171,7 @@ class _FavouriteScreenState extends State<FavouriteScreen>
 
     setState(() {
       _processingItems.add(favorite.productId);
-      _isUpdatingInternally = false;
+      _isUpdatingInternally = true;
       _favorites.removeAt(originalIndex);
     });
 
@@ -222,6 +226,7 @@ class _FavouriteScreenState extends State<FavouriteScreen>
       finalPrice: double.tryParse(favorite.price) ?? 0.0,
       isInStock: true,
       isActive: true,
+      tag: true,
       productName: favorite.name,
       productDescription: '',
       productCategory: '',
@@ -368,9 +373,9 @@ class _FavouriteScreenState extends State<FavouriteScreen>
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
               colors: [
-                AppColors.harvestAmber,
-                AppColors.harvestAmber,
-                AppColors.rawEarth,
+                Colors.pink.shade400,
+                Colors.pink.shade500,
+                Colors.red.shade400,
               ],
             ),
             borderRadius: const BorderRadius.only(
@@ -379,7 +384,7 @@ class _FavouriteScreenState extends State<FavouriteScreen>
             ),
             boxShadow: [
               BoxShadow(
-                color: AppColors.harvestAmber.withValues(alpha: 0.3),
+                color: Colors.pink.withValues(alpha: 0.3),
                 blurRadius: 20,
                 offset: const Offset(0, 10),
               ),
@@ -417,7 +422,7 @@ class _FavouriteScreenState extends State<FavouriteScreen>
                       Text(
                         "My Wishlist",
                         style: theme.textTheme.headlineMedium?.copyWith(
-                          color: AppColors.parchment,
+                          color: Colors.white,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -427,7 +432,7 @@ class _FavouriteScreenState extends State<FavouriteScreen>
                             ? "Start adding your favorites!"
                             : "${_favorites.length} item${_favorites.length != 1 ? 's' : ''} saved",
                         style: theme.textTheme.bodyMedium?.copyWith(
-                          color: AppColors.parchment.withValues(alpha: 0.9),
+                          color: Colors.white.withValues(alpha: 0.9),
                         ),
                       ),
                     ],
@@ -463,10 +468,9 @@ class _FavouriteScreenState extends State<FavouriteScreen>
             theme,
             isDark,
             Icons.favorite_rounded,
-            AppColors.harvestAmber,
+            Colors.pink,
             '${_favorites.length}',
             'Saved Items',
-            onTap: () => _loadFavorites(),
           ),
         ),
         const SizedBox(width: 12),
@@ -475,10 +479,9 @@ class _FavouriteScreenState extends State<FavouriteScreen>
             theme,
             isDark,
             Icons.shopping_cart_rounded,
-            AppColors.deepSoilGreen,
+            Colors.green,
             '$inCart',
             'In Cart',
-            onTap: () => context.goNamed(AppRoute.cart.name),
           ),
         ),
       ],
@@ -575,14 +578,10 @@ class _FavouriteScreenState extends State<FavouriteScreen>
         alignment: Alignment.centerRight,
         padding: const EdgeInsets.only(right: 20),
         decoration: BoxDecoration(
-          color: AppColors.rawEarth,
+          color: Colors.red.shade400,
           borderRadius: BorderRadius.circular(20),
         ),
-        child: const Icon(
-          Icons.delete_rounded,
-          color: AppColors.parchment,
-          size: 28,
-        ),
+        child: const Icon(Icons.delete_rounded, color: Colors.white, size: 28),
       ),
       child: GestureDetector(
         onTap: () async {
@@ -623,8 +622,8 @@ class _FavouriteScreenState extends State<FavouriteScreen>
                       decoration: BoxDecoration(
                         color:
                             isDark
-                                ? AppColors.darkSurfaceElevated
-                                : AppColors.parchment,
+                                ? Colors.grey.shade900
+                                : Colors.grey.shade100,
                         borderRadius: BorderRadius.circular(16),
                       ),
                       child: ClipRRect(
@@ -658,11 +657,11 @@ class _FavouriteScreenState extends State<FavouriteScreen>
                       child: Container(
                         padding: const EdgeInsets.all(6),
                         decoration: BoxDecoration(
-                          color: AppColors.rawEarth,
+                          color: Colors.red.shade400,
                           shape: BoxShape.circle,
                           boxShadow: [
                             BoxShadow(
-                              color: AppColors.rawEarth.withValues(alpha: 0.3),
+                              color: Colors.red.withValues(alpha: 0.3),
                               blurRadius: 8,
                               offset: const Offset(0, 2),
                             ),
@@ -675,12 +674,12 @@ class _FavouriteScreenState extends State<FavouriteScreen>
                                   height: 12,
                                   child: CircularProgressIndicator(
                                     strokeWidth: 2,
-                                    color: AppColors.parchment,
+                                    color: Colors.white,
                                   ),
                                 )
                                 : const Icon(
                                   Icons.favorite_rounded,
-                                  color: AppColors.parchment,
+                                  color: Colors.white,
                                   size: 12,
                                 ),
                       ),
@@ -713,8 +712,8 @@ class _FavouriteScreenState extends State<FavouriteScreen>
                         decoration: BoxDecoration(
                           color:
                               isDark
-                                  ? AppColors.charcoal87
-                                  : AppColors.parchment,
+                                  ? Colors.grey.shade800
+                                  : Colors.grey.shade100,
                           borderRadius: BorderRadius.circular(6),
                         ),
                         child: Text(
@@ -729,7 +728,7 @@ class _FavouriteScreenState extends State<FavouriteScreen>
                     Text(
                       '₹${favorite.price}',
                       style: theme.textTheme.titleMedium?.copyWith(
-                        color: AppColors.harvestAmber,
+                        color: theme.colorScheme.primary,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -786,13 +785,13 @@ class _FavouriteScreenState extends State<FavouriteScreen>
           gradient: LinearGradient(
             colors: [
               theme.colorScheme.primary,
-              theme.colorScheme.primary.withValues(alpha: 0.8),
+              theme.colorScheme.primary.withOpacity(0.8),
             ],
           ),
           borderRadius: BorderRadius.circular(14),
           boxShadow: [
             BoxShadow(
-              color: theme.colorScheme.primary.withValues(alpha: 0.3),
+              color: theme.colorScheme.primary.withOpacity(0.3),
               blurRadius: 8,
               offset: const Offset(0, 3),
             ),
@@ -803,14 +802,14 @@ class _FavouriteScreenState extends State<FavouriteScreen>
           children: [
             const Icon(
               Icons.add_shopping_cart_rounded,
-              color: AppColors.amberWarnBg,
+              color: Colors.white,
               size: 18,
             ),
             const SizedBox(width: 4),
             Text(
               'Add',
               style: theme.textTheme.labelLarge?.copyWith(
-                color: AppColors.amberWarnBg,
+                color: Colors.white,
                 fontWeight: FontWeight.bold,
               ),
             ),
@@ -830,7 +829,7 @@ class _FavouriteScreenState extends State<FavouriteScreen>
       width: 100,
       height: 44,
       decoration: BoxDecoration(
-        color: isDark ? AppColors.darkSurfaceElevated : AppColors.parchment,
+        color: isDark ? Colors.grey.shade800 : Colors.grey.shade100,
         borderRadius: BorderRadius.circular(14),
       ),
       child: Row(
@@ -871,10 +870,10 @@ class _FavouriteScreenState extends State<FavouriteScreen>
         width: 28,
         height: 28,
         decoration: BoxDecoration(
-          color: isDark ? AppColors.darkSurface : AppColors.parchment,
+          color: isDark ? Colors.grey.shade700 : Colors.white,
           borderRadius: BorderRadius.circular(8),
         ),
-        child: Icon(icon, size: 18, color: theme.colorScheme.secondary),
+        child: Icon(icon, size: 18, color: theme.colorScheme.primary),
       ),
     );
   }
@@ -885,10 +884,16 @@ class _FavouriteScreenState extends State<FavouriteScreen>
     final isLoginError = _error?.toLowerCase().contains('login') ?? false;
 
     if (isLoginError) {
-      return const GuestEmptyStateWidget(
-        title: 'Login to View Favorites',
-        subtitle: 'Log in to see and manage your saved items.',
-        icon: Icons.favorite_border_rounded,
+      return ErrorStateWidget(
+        title: 'Login Required',
+        subtitle: _error ?? 'Please login to view your favorites.',
+        errorType: ErrorType.permission,
+        retryText: 'Login',
+        onRetry:
+            () => Navigator.push(
+              context,
+              AnimatedTransitions.slideFromBottom(const LoginScreen()),
+            ),
       );
     }
 
@@ -929,8 +934,8 @@ class _FavouriteScreenState extends State<FavouriteScreen>
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
                         colors: [
-                          AppColors.harvestAmber.withValues(alpha: 0.15),
-                          AppColors.rawEarth.withValues(alpha: 0.1),
+                          Colors.pink.withOpacity(0.15),
+                          Colors.red.withOpacity(0.1),
                         ],
                       ),
                       shape: BoxShape.circle,
@@ -938,7 +943,7 @@ class _FavouriteScreenState extends State<FavouriteScreen>
                     child: Icon(
                       Icons.favorite_border_rounded,
                       size: iconSize,
-                      color: AppColors.harvestAmber,
+                      color: Colors.pink.shade300,
                     ),
                   ),
                 ),

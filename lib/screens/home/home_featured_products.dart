@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:grocery_app/common_widgets/coming_soon_overlay.dart';
 import 'package:grocery_app/common_widgets/global_import.dart';
 import 'package:grocery_app/common_widgets/out_of_stock_overlay.dart';
@@ -32,7 +33,7 @@ class FeaturedProductsSkeleton extends StatelessWidget {
         ),
         const SizedBox(height: 12),
         SizedBox(
-          height: (MediaQuery.sizeOf(context).width * 0.65).clamp(240.0, 280.0),
+          height: 260,
           child: ListView.builder(
             scrollDirection: Axis.horizontal,
             padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -44,7 +45,7 @@ class FeaturedProductsSkeleton extends StatelessWidget {
                   width: 165,
                   margin: const EdgeInsets.only(right: 14),
                   decoration: BoxDecoration(
-                    color: isDark ? AppColors.darkSurfaceElevated : AppColors.parchment,
+                    color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Column(
@@ -53,10 +54,7 @@ class FeaturedProductsSkeleton extends StatelessWidget {
                         flex: 3,
                         child: Container(
                           decoration: BoxDecoration(
-                            color:
-                                isDark
-                                    ? AppColors.charcoal87
-                                    : AppColors.parchment,
+                            color: isDark ? Colors.grey[800] : Colors.grey[200],
                             borderRadius: const BorderRadius.vertical(
                               top: Radius.circular(20),
                             ),
@@ -109,12 +107,12 @@ class FeaturedProductCard extends StatelessWidget {
   });
 
   static const _gradients = [
-    [AppColors.softCream, AppColors.parchment],
-    [AppColors.lightGold, AppColors.parchment],
-    [AppColors.softCream, AppColors.parchment],
-    [AppColors.lightGold, AppColors.parchment],
-    [AppColors.softCream, AppColors.parchment],
-    [AppColors.lightGold, AppColors.parchment],
+    [Color(0xFFFFF3E0), Color(0xFFFFE0B2)],
+    [Color(0xFFE8F5E9), Color(0xFFC8E6C9)],
+    [Color(0xFFFCE4EC), Color(0xFFF8BBD0)],
+    [Color(0xFFE3F2FD), Color(0xFFBBDEFB)],
+    [Color(0xFFF3E5F5), Color(0xFFE1BEE7)],
+    [Color(0xFFFFFDE7), Color(0xFFFFF9C4)],
   ];
 
   static const _icons = [
@@ -127,12 +125,12 @@ class FeaturedProductCard extends StatelessWidget {
   ];
 
   static const _iconColors = [
-    AppColors.deepSoilGreen,
-    AppColors.harvestAmber,
-    AppColors.deepSoilGreen,
-    AppColors.harvestAmber,
-    AppColors.deepSoilGreen,
-    AppColors.harvestAmber,
+    Color(0xFFE65100),
+    Color(0xFF2E7D32),
+    Color(0xFFD32F2F),
+    Color(0xFF7B1FA2),
+    Color(0xFFF9A825),
+    Color(0xFF795548),
   ];
 
   @override
@@ -143,21 +141,21 @@ class FeaturedProductCard extends StatelessWidget {
     return GestureDetector(
       onTap: (product.isInStock && product.isActive) ? onTap : null,
       child: Opacity(
-        opacity: product.isActive ? (product.isInStock ? 1.0 : 0.5) : 1.0,
+        opacity: (product.isInStock && product.isActive) ? 1.0 : 0.5,
         child: Stack(
           children: [
             Container(
               width: 165,
               margin: const EdgeInsets.only(right: 14),
               decoration: BoxDecoration(
-                color: isDark ? AppColors.darkSurfaceElevated : AppColors.parchment,
+                color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
                 borderRadius: BorderRadius.circular(20),
                 boxShadow: [
                   BoxShadow(
                     color:
                         isDark
-                            ? AppColors.charcoal26
-                            : AppColors.charcoal.withValues(alpha: 0.08),
+                            ? Colors.black26
+                            : Colors.black.withValues(alpha: 0.08),
                     blurRadius: 16,
                     offset: const Offset(0, 6),
                   ),
@@ -180,9 +178,7 @@ class FeaturedProductCard extends StatelessWidget {
                             gradient: LinearGradient(
                               begin: Alignment.topLeft,
                               end: Alignment.bottomRight,
-                              colors: isDark
-                                  ? [AppColors.darkCanvas, AppColors.darkCanvas]
-                                  : _gradients[index % _gradients.length],
+                              colors: _gradients[index % _gradients.length],
                             ),
                           ),
                           child: ClipRRect(
@@ -239,20 +235,13 @@ class FeaturedProductCard extends StatelessWidget {
                                 vertical: 4,
                               ),
                               decoration: BoxDecoration(
-                                color: AppColors.harvestAmber,
+                                color: Colors.red,
                                 borderRadius: BorderRadius.circular(8),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: AppColors.harvestAmber.withValues(alpha: 0.3),
-                                    blurRadius: 6,
-                                    offset: const Offset(0, 2),
-                                  ),
-                                ],
                               ),
                               child: Text(
                                 '${product.discountPercentage.toInt()}% OFF',
                                 style: const TextStyle(
-                                  color: AppColors.pureWhite,
+                                  color: Colors.white,
                                   fontSize: 10,
                                   fontWeight: FontWeight.bold,
                                 ),
@@ -294,10 +283,10 @@ class FeaturedProductCard extends StatelessWidget {
                                 '₹${product.finalPrice.toStringAsFixed(0)}',
                                 style: theme.textTheme.titleMedium?.copyWith(
                                   fontWeight: FontWeight.bold,
-                                  color: AppColors.getPriceColor(context),
-                                ),
+                                  color: Colors.green,
                                 overflow: TextOverflow.ellipsis,
                               ),
+                            )
                             ),
                             if (hasDiscount) ...[
                               const SizedBox(width: 4),
@@ -325,8 +314,8 @@ class FeaturedProductCard extends StatelessWidget {
               Positioned.fill(
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(20),
-                  child: ColoredBox(
-                    color: isDark ? Colors.black.withValues(alpha: 0.72) : Colors.white.withValues(alpha: 0.72),
+                  child: BackdropFilter(
+                    filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
                     child: const ComingSoonOverlay(),
                   ),
                 ),
@@ -335,8 +324,8 @@ class FeaturedProductCard extends StatelessWidget {
               Positioned.fill(
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(20),
-                  child: ColoredBox(
-                    color: isDark ? Colors.black.withValues(alpha: 0.72) : Colors.white.withValues(alpha: 0.72),
+                  child: BackdropFilter(
+                    filter: ImageFilter.blur(sigmaX: 4, sigmaY: 4),
                     child: const OutOfStockOverlay(),
                   ),
                 ),
