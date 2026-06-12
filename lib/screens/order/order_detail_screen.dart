@@ -220,6 +220,14 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
     }
   }
 
+  void _handleBack(BuildContext context) {
+    if (Navigator.canPop(context)) {
+      Navigator.pop(context);
+    } else {
+      context.goNamed(AppRoute.orderList.name);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
@@ -229,13 +237,22 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
       );
     }
 
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    final Widget scaffold;
+
     if (_currentOrder == null) {
-      return Scaffold(
+      scaffold = Scaffold(
         backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         appBar: AppBar(
           title: const Text('Invalid Link'),
           centerTitle: true,
           elevation: 0,
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back_rounded),
+            onPressed: () => _handleBack(context),
+          ),
         ),
         body: Center(
           child: Padding(
@@ -296,19 +313,9 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
           ),
         ),
       );
-    }
-
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-    final status = _getStatusInfo(_currentOrder!.status);
-
-    return PopScope(
-      canPop: false,
-      onPopInvokedWithResult: (didPop, result) {
-        if (didPop) return;
-        context.goNamed(AppRoute.orderList.name);
-      },
-      child: Scaffold(
+    } else {
+      final status = _getStatusInfo(_currentOrder!.status);
+      scaffold = Scaffold(
         backgroundColor: isDark ? AppColors.darkCanvas : AppColors.parchment,
         body: RefreshIndicator(
           onRefresh: () async {
@@ -368,7 +375,16 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
           ),
         ),
         floatingActionButton: _buildWhatsAppFAB(),
-      ),
+      );
+    }
+
+    return PopScope(
+      canPop: Navigator.canPop(context),
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) return;
+        context.goNamed(AppRoute.orderList.name);
+      },
+      child: scaffold,
     );
   }
 
@@ -439,7 +455,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
                       children: [
                         IconButton(
                           icon: const Icon(Icons.arrow_back_rounded, color: AppColors.parchment),
-                          onPressed: () => Navigator.maybePop(context),
+                          onPressed: () => _handleBack(context),
                         ),
                         // Action Buttons: Refresh, Invoice
                         Row(
@@ -730,10 +746,20 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
         borderRadius: BorderRadius.circular(11),
         child:
             imageUrl != null
-                ? Image.network(
-                  imageUrl,
+                ? CachedNetworkImage(
+                  imageUrl: imageUrl,
                   fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) => _buildImagePlaceholder(isDark),
+                  placeholder: (context, url) => Container(
+                    color: isDark ? AppColors.darkSurfaceElevated : AppColors.parchment,
+                    child: const Center(
+                      child: SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      ),
+                    ),
+                  ),
+                  errorWidget: (context, url, error) => _buildImagePlaceholder(isDark),
                 )
                 : _buildImagePlaceholder(isDark),
       ),
@@ -1262,12 +1288,20 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
                     borderRadius: BorderRadius.circular(11),
                     child:
                         imageUrl != null
-                            ? Image.network(
-                              imageUrl,
+                            ? CachedNetworkImage(
+                              imageUrl: imageUrl,
                               fit: BoxFit.cover,
-                              errorBuilder:
-                                  (_, __, ___) =>
-                                      _buildImagePlaceholder(isDark),
+                              placeholder: (context, url) => Container(
+                                color: isDark ? AppColors.darkSurfaceElevated : AppColors.parchment,
+                                child: const Center(
+                                  child: SizedBox(
+                                    width: 20,
+                                    height: 20,
+                                    child: CircularProgressIndicator(strokeWidth: 2),
+                                  ),
+                                ),
+                              ),
+                              errorWidget: (context, url, error) => _buildImagePlaceholder(isDark),
                             )
                             : _buildImagePlaceholder(isDark),
                   ),

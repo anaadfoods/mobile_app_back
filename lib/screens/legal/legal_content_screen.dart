@@ -142,7 +142,7 @@ class LegalContentScreen extends StatelessWidget {
           // HTML Content
           SliverToBoxAdapter(
             child: Container(
-              margin: const EdgeInsets.fromLTRB(16, 0, 16, 32),
+              margin: EdgeInsets.fromLTRB(16, 0, 16, 32 + MediaQuery.paddingOf(context).bottom),
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
                 color: theme.cardColor,

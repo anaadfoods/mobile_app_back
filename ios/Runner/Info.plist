@@ -31,34 +31,43 @@
 		<key>UISupportedInterfaceOrientations</key>
 		<array>
 			<string>UIInterfaceOrientationPortrait</string>
-			<string>UIInterfaceOrientationLandscapeLeft</string>
-			<string>UIInterfaceOrientationLandscapeRight</string>
 		</array>
 		<key>UISupportedInterfaceOrientations~ipad</key>
 		<array>
 			<string>UIInterfaceOrientationPortrait</string>
 			<string>UIInterfaceOrientationPortraitUpsideDown</string>
-			<string>UIInterfaceOrientationLandscapeLeft</string>
-			<string>UIInterfaceOrientationLandscapeRight</string>
 		</array>
 		<key>CADisableMinimumFrameDurationOnPhone</key>
 		<true/>
 		<key>UIApplicationSupportsIndirectInputEvents</key>
 		<true/>
-		<!-- Handle custom URL schemes for payment redirects -->
 		<key>CFBundleURLTypes</key>
-		<array>
-			<dict>
-				<key>CFBundleURLName</key>
-				<string>flutterpay</string>
-				<key>CFBundleURLSchemes</key>
-				<array>
-					<string>flutterpay</string>
-				</array>
-			</dict>
-		</array>
+<array>
+    <dict>
+        <key>CFBundleURLName</key>
+        <string>flutterpay</string>
+        <key>CFBundleURLSchemes</key>
+        <array>
+            <string>flutterpay</string>
+        </array>
+    </dict>
+
+    <dict>
+        <key>CFBundleURLName</key>
+        <string>google_sign_in</string>
+        <key>CFBundleURLSchemes</key>
+        <array>
+            <string>com.googleusercontent.apps.356514741847-jcknjeta1r4eg56bea8jmjb0ucg3v6n2</string>
+        </array>
+    </dict>
+</array>
 		<key>UIStatusBarHidden</key>
 		<false/>
+		<!-- Google Sign-In iOS configuration -->
+		<key>GIDClientID</key>
+		<string>356514741847-jcknjeta1r4eg56bea8jmjb0ucg3v6n2.apps.googleusercontent.com</string>
+		<key>GIDServerClientID</key>
+		<string>356514741847-1000gjfkvl9b1pmp9iqcc8do7vebo1ap.apps.googleusercontent.com</string>
 		<!-- Flutter Deep Linking -->
 		<key>FlutterDeepLinkingEnabled</key>
 		<true/>

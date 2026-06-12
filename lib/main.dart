@@ -36,6 +36,11 @@ Future<void> main() async {
   // Initialize deep link handling - MOVED TO GO_ROUTER
   // await DeepLinkService().initialize();
 
+  await SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitUp,
+    DeviceOrientation.portraitDown,
+  ]);
+
   SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(

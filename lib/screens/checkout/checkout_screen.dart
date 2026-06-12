@@ -293,7 +293,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                       int subId = int.parse(
                         result['subscription_id'].toString(),
                       );
-                      context.goNamed(
+                      context.goNamed(AppRoute.subscriptionList.name);
+                      context.pushNamed(
                         AppRoute.subscriptionDetails.name,
                         pathParameters: {'id': subId.toString()},
                       );
@@ -522,7 +523,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
                   if (subscriptionDetails['success'] == true && mounted) {
                     Navigator.pop(context); // Close WebView
-                    context.goNamed(
+                    context.goNamed(AppRoute.subscriptionList.name);
+                    context.pushNamed(
                       AppRoute.subscriptionDetails.name,
                       pathParameters: {'id': parsedSubscriptionId.toString()},
                       extra: subscriptionDetails['data'],
@@ -591,7 +593,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         final order = await _orderService.getOrderById(paymentStatus.orderId);
 
         Navigator.pop(context); // Close WebView
-        context.goNamed(
+        context.goNamed(AppRoute.orderList.name);
+        context.pushNamed(
           AppRoute.orderDetails.name,
           pathParameters: {'id': order.id.toString()},
           extra: order,
@@ -617,7 +620,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     } else {
       idStr = subscription.toString();
     }
-    context.goNamed(
+    context.goNamed(AppRoute.subscriptionList.name);
+    context.pushNamed(
       AppRoute.subscriptionDetails.name,
       pathParameters: {'id': idStr},
       extra: subscription,
@@ -625,7 +629,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   }
 
   void _navigateToOrderAccepted(Order order) {
-    context.goNamed(
+    context.goNamed(AppRoute.orderList.name);
+    context.pushNamed(
       AppRoute.orderDetails.name,
       pathParameters: {'id': order.id.toString()},
       extra: order,
@@ -847,7 +852,14 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                           _buildRewardNotificationCard(theme, isDark),
                         const SizedBox(height: 16),
                         _buildPaymentMethodCard(theme, isDark),
-                        const SizedBox(height: 180),
+                        SizedBox(
+                          height:
+                              (widget.isSubscription && subscription != null
+                                  ? 172.0
+                                  : 88.0) +
+                              MediaQuery.paddingOf(context).bottom +
+                              16.0,
+                        ),
                       ],
                     ),
                   ),
@@ -868,7 +880,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   Widget _buildAnimatedHeader(ThemeData theme, bool isDark) {
     return SliverToBoxAdapter(
       child: Container(
-        constraints: const BoxConstraints(minHeight: 180),
+        height: 160,
         decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topLeft,
@@ -893,76 +905,100 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             ),
           ],
         ),
-        child: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(20, 8, 20, 20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Back button
-                IconButton(
-                  icon: const Icon(Icons.arrow_back_rounded, color: AppColors.parchment),
-                  padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(),
-                  onPressed: () => Navigator.maybePop(context),
-                ),
-                const SizedBox(height: 24),
-                // Title Row
-                Row(
+        child: Stack(
+          children: [
+            // Header Content
+            SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(16, 8, 10, 20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: AppColors.parchment.withValues(alpha: 0.2),
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      child: Icon(
-                        widget.isSubscription
-                            ? Icons.card_membership_rounded
-                            : Icons.shopping_bag_rounded,
-                        color: AppColors.amberWarnBg,
-                        size: 28,
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          FittedBox(
-                            fit: BoxFit.scaleDown,
-                            alignment: Alignment.centerLeft,
-                            child: Text(
-                              widget.isSubscription
-                                  ? "Subscription"
-                                  : "Checkout",
-                              style: theme.textTheme.headlineMedium?.copyWith(
-                                color: AppColors.parchment,
-                                fontWeight: FontWeight.bold,
+                    const Spacer(),
+                    // Title Row
+                    Row(
+                      children: [
+                        // Back button
+                        IconButton(
+                          icon: const Icon(
+                            Icons.arrow_back_rounded,
+                            color: AppColors.parchment,
+                          ),
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints(),
+                          onPressed: () => Navigator.maybePop(context),
+                        ),
+                        // const SizedBox(width: 12),
+                        // Container(
+                        //   padding: const EdgeInsets.all(12),
+                        //   decoration: BoxDecoration(
+                        //     color: AppColors.parchment.withValues(alpha: 0.2),
+                        //     borderRadius: BorderRadius.circular(16),
+                        //   ),
+                        //   child: Icon(
+                        //     widget.isSubscription
+                        //         ? Icons.card_membership_rounded
+                        //         : Icons.shopping_bag_rounded,
+                        //     color: AppColors.amberWarnBg,
+                        //     size: 28,
+                        //   ),
+                        // ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              FittedBox(
+                                fit: BoxFit.scaleDown,
+                                alignment: Alignment.centerLeft,
+                                child: Text(
+                                  widget.isSubscription
+                                      ? "Subscription"
+                                      : "Checkout",
+                                  style: theme.textTheme.headlineMedium
+                                      ?.copyWith(
+                                        color: AppColors.parchment,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                ),
                               ),
-                            ),
+                              const SizedBox(height: 4),
+                              Text(
+                                "$totalItems item${totalItems > 1 ? 's' : ''} ready to order",
+                                style: theme.textTheme.bodyMedium?.copyWith(
+                                  color: AppColors.parchment.withValues(
+                                    alpha: 0.9,
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
-                          const SizedBox(height: 4),
-                          Text(
-                            "$totalItems item${totalItems > 1 ? 's' : ''} ready to order",
-                            style: theme.textTheme.bodyMedium?.copyWith(
-                              color: AppColors.parchment.withValues(alpha: 0.9),
-                            ),
+                        ),
+                        Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: AppColors.parchment.withValues(alpha: 0.2),
+                            borderRadius: BorderRadius.circular(16),
                           ),
-                        ],
-                      ),
+                          child: Icon(
+                            widget.isSubscription
+                                ? Icons.card_membership_rounded
+                                : Icons.shopping_bag_rounded,
+                            color: AppColors.amberWarnBg,
+                            size: 28,
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
-              ],
+              ),
             ),
-          ),
+          ],
         ),
       ),
     );
   }
-
-  // Removed unused _buildFloatingParticle
 
   Widget _buildIconButton(IconData icon, VoidCallback onTap) {
     return Material(
@@ -1985,16 +2021,6 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 AppColors.harvestAmber,
               ),
               const SizedBox(height: 12),
-              _buildPaymentOption(
-                theme,
-                isDark,
-                'UPI',
-                'Pay Online',
-                'UPI / Card / NetBanking',
-                Icons.payment_rounded,
-                theme.colorScheme.primary,
-              ),
-              const SizedBox(height: 20),
             ],
           ),
         );

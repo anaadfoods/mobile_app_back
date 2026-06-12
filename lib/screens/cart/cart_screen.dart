@@ -112,7 +112,6 @@ class _CartScreenState extends State<CartScreen> with TickerProviderStateMixin {
                       // icon: Icons.shopping_cart_rounded,
                       showBack: true,
                       hasParticles: true,
-                      height: 200,
                       animationController: _headerController,
                       actions: [
                         if (state is CartSuccess && state.cart.items.isNotEmpty)
@@ -143,7 +142,11 @@ class _CartScreenState extends State<CartScreen> with TickerProviderStateMixin {
                       _buildCartItemsList(theme, isDark, state.cart),
 
                       // Bottom padding for checkout section
-                      const SliverToBoxAdapter(child: SizedBox(height: 180)),
+                      SliverPadding(
+                        padding: EdgeInsets.only(
+                          bottom: 168.0 + MediaQuery.paddingOf(context).bottom,
+                        ),
+                      ),
                     ],
                   ],
                 ],

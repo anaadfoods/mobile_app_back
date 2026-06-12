@@ -76,10 +76,12 @@ class _PanchangGuidanceProfileScreenState
     try {
       await context.read<PanchangGuidanceCubit>().loadProfile();
     } catch (e) {
-      setState(() {
-        _errorMessage = e.toString();
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _errorMessage = e.toString();
+          _isLoading = false;
+        });
+      }
     }
   }
 

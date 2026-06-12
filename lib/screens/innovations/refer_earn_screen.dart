@@ -126,7 +126,7 @@ class _ReferEarnScreenState extends State<ReferEarnScreen>
                 onRefresh: _fetchReferralData,
                 child: SingleChildScrollView(
                   physics: const AlwaysScrollableScrollPhysics(),
-                  padding: const EdgeInsets.all(20),
+                  padding: EdgeInsets.fromLTRB(20, 20, 20, 20 + MediaQuery.paddingOf(context).bottom),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [

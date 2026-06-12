@@ -64,10 +64,14 @@ class _AnaadRobotsScreenState extends State<AnaadRobotsScreen>
           CustomScrollView(
             physics: const BouncingScrollPhysics(),
             slivers: [
-              _buildAppBar(context, theme, isDark),
+              SliverSafeArea(
+                top: true,
+                bottom: false,
+                sliver: _buildAppBar(context, theme, isDark),
+              ),
               SliverToBoxAdapter(
                 child: Padding(
-                  padding: const EdgeInsets.all(24),
+                  padding: EdgeInsets.fromLTRB(24, 24, 24, 24 + MediaQuery.paddingOf(context).bottom),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [

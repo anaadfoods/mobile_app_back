@@ -362,7 +362,7 @@ class _FavouriteScreenState extends State<FavouriteScreen>
           );
         },
         child: Container(
-          height: 200,
+          height: 160,
           decoration: BoxDecoration(
             gradient: LinearGradient(
               begin: Alignment.topLeft,

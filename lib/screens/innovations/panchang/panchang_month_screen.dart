@@ -980,26 +980,29 @@ class _CalendarGrid extends StatelessWidget {
           grid.asMap().entries.map((rowEntry) {
             return Padding(
               padding: const EdgeInsets.only(bottom: 8),
-              child: Row(
-                children:
-                    rowEntry.value.asMap().entries.map((cellEntry) {
-                      final day = cellEntry.value;
-                      return Expanded(
-                        child:
-                            day == null
-                                ? const SizedBox(height: 80)
-                                : _DayCell(
-                                  day: day,
-                                  isDark: isDark,
-                                  onTap: () => onDayTapped(day),
-                                  animationDelay: Duration(
-                                    milliseconds:
-                                        (rowEntry.key * 50) +
-                                        (cellEntry.key * 30),
+              child: IntrinsicHeight(
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children:
+                      rowEntry.value.asMap().entries.map((cellEntry) {
+                        final day = cellEntry.value;
+                        return Expanded(
+                          child:
+                              day == null
+                                  ? const SizedBox(height: 80)
+                                  : _DayCell(
+                                    day: day,
+                                    isDark: isDark,
+                                    onTap: () => onDayTapped(day),
+                                    animationDelay: Duration(
+                                      milliseconds:
+                                          (rowEntry.key * 50) +
+                                          (cellEntry.key * 30),
+                                    ),
                                   ),
-                                ),
-                      );
-                    }).toList(),
+                        );
+                      }).toList(),
+                ),
               ),
             );
           }).toList(),
@@ -1040,26 +1043,29 @@ class _CalendarGridWithMasa extends StatelessWidget {
                 // Calendar row
                 Padding(
                   padding: const EdgeInsets.only(bottom: 8),
-                  child: Row(
-                    children:
-                        rowEntry.value.asMap().entries.map((cellEntry) {
-                          final day = cellEntry.value;
-                          return Expanded(
-                            child:
-                                day == null
-                                    ? const SizedBox(height: 80)
-                                    : _DayCellWithMasa(
-                                      day: day,
-                                      isDark: isDark,
-                                      onTap: () => onDayTapped(day),
-                                      animationDelay: Duration(
-                                        milliseconds:
-                                            (rowEntry.key * 50) +
-                                            (cellEntry.key * 30),
+                  child: IntrinsicHeight(
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children:
+                          rowEntry.value.asMap().entries.map((cellEntry) {
+                            final day = cellEntry.value;
+                            return Expanded(
+                              child:
+                                  day == null
+                                      ? const SizedBox(height: 80)
+                                      : _DayCellWithMasa(
+                                        day: day,
+                                        isDark: isDark,
+                                        onTap: () => onDayTapped(day),
+                                        animationDelay: Duration(
+                                          milliseconds:
+                                              (rowEntry.key * 50) +
+                                              (cellEntry.key * 30),
+                                        ),
                                       ),
-                                    ),
-                          );
-                        }).toList(),
+                            );
+                          }).toList(),
+                    ),
                   ),
                 ),
               ],
@@ -1214,7 +1220,7 @@ class _DayCellState extends State<_DayCell>
         onTap: widget.onTap,
         onLongPress: _showDayDetails,
         child: Container(
-          height: 80,
+          constraints: const BoxConstraints(minHeight: 80),
           margin: const EdgeInsets.symmetric(horizontal: 2),
           decoration: BoxDecoration(
             color: cellColor,
@@ -1450,7 +1456,7 @@ class _DayCellWithMasaState extends State<_DayCellWithMasa>
         onTap: widget.onTap,
         onLongPress: _showDayDetails,
         child: Container(
-          height: 80,
+          constraints: const BoxConstraints(minHeight: 80),
           margin: const EdgeInsets.symmetric(horizontal: 2),
           decoration: BoxDecoration(
             color: cellColor,
@@ -2886,26 +2892,29 @@ class _RichCalendarGrid extends StatelessWidget {
           grid.asMap().entries.map((rowEntry) {
             return Padding(
               padding: const EdgeInsets.only(bottom: 6),
-              child: Row(
-                children:
-                    rowEntry.value.asMap().entries.map((cellEntry) {
-                      final day = cellEntry.value;
-                      return Expanded(
-                        child:
-                            day == null
-                                ? const SizedBox(height: 74)
-                                : _RichDayCell(
-                                  day: day,
-                                  isDark: isDark,
-                                  onTap: () => onDayTapped(day),
-                                  animationDelay: Duration(
-                                    milliseconds:
-                                        (rowEntry.key * 40) +
-                                        (cellEntry.key * 20),
+              child: IntrinsicHeight(
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children:
+                      rowEntry.value.asMap().entries.map((cellEntry) {
+                        final day = cellEntry.value;
+                        return Expanded(
+                          child:
+                              day == null
+                                  ? const SizedBox(height: 74)
+                                  : _RichDayCell(
+                                    day: day,
+                                    isDark: isDark,
+                                    onTap: () => onDayTapped(day),
+                                    animationDelay: Duration(
+                                      milliseconds:
+                                          (rowEntry.key * 40) +
+                                          (cellEntry.key * 20),
+                                    ),
                                   ),
-                                ),
-                      );
-                    }).toList(),
+                        );
+                      }).toList(),
+                ),
               ),
             );
           }).toList(),
@@ -3017,7 +3026,7 @@ class _RichDayCellState extends State<_RichDayCell>
         onTap: widget.onTap,
         onLongPress: _showDayDetails,
         child: Container(
-          height: 74,
+          constraints: const BoxConstraints(minHeight: 74),
           margin: const EdgeInsets.symmetric(horizontal: 2),
           decoration: BoxDecoration(
             gradient:
@@ -3237,26 +3246,29 @@ class _BeautifulCalendarGrid extends StatelessWidget {
           grid.asMap().entries.map((rowEntry) {
             return Padding(
               padding: const EdgeInsets.only(bottom: 6),
-              child: Row(
-                children:
-                    rowEntry.value.asMap().entries.map((cellEntry) {
-                      final day = cellEntry.value;
-                      return Expanded(
-                        child:
-                            day == null
-                                ? const SizedBox(height: 62)
-                                : _BeautifulDayCell(
-                                  day: day,
-                                  isDark: isDark,
-                                  onTap: () => onDayTapped(day),
-                                  animationDelay: Duration(
-                                    milliseconds:
-                                        (rowEntry.key * 40) +
-                                        (cellEntry.key * 20),
+              child: IntrinsicHeight(
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children:
+                      rowEntry.value.asMap().entries.map((cellEntry) {
+                        final day = cellEntry.value;
+                        return Expanded(
+                          child:
+                              day == null
+                                  ? const SizedBox(height: 62)
+                                  : _BeautifulDayCell(
+                                    day: day,
+                                    isDark: isDark,
+                                    onTap: () => onDayTapped(day),
+                                    animationDelay: Duration(
+                                      milliseconds:
+                                          (rowEntry.key * 40) +
+                                          (cellEntry.key * 20),
+                                    ),
                                   ),
-                                ),
-                      );
-                    }).toList(),
+                        );
+                      }).toList(),
+                ),
               ),
             );
           }).toList(),
@@ -3354,7 +3366,7 @@ class _BeautifulDayCellState extends State<_BeautifulDayCell>
         onTap: widget.onTap,
         onLongPress: _showDayDetails,
         child: Container(
-          height: 62,
+          constraints: const BoxConstraints(minHeight: 62),
           margin: const EdgeInsets.symmetric(horizontal: 2),
           decoration: BoxDecoration(
             gradient:

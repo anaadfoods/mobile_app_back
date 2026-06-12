@@ -155,7 +155,7 @@ class _AccountScreenState extends State<AccountScreen>
         slivers: [
           // Hero SliverAppBar with gradient + centered avatar
           SliverAppBar(
-            expandedHeight: 210,
+            expandedHeight: 150,
             floating: false,
             pinned: false,
             stretch: true,
@@ -386,18 +386,15 @@ class _AccountScreenState extends State<AccountScreen>
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Center(
-                  child: Text(
-                    'My Account',
-                    style: TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.parchment.withAlpha(180),
-                      letterSpacing: 0.3,
-                    ),
+                Text(
+                  'My Account',
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.parchment.withAlpha(180),
+                    letterSpacing: 0.3,
                   ),
                 ),
-                const Spacer(),
                 // Profile row: Avatar left, details right-aligned
                 Row(
                   children: [

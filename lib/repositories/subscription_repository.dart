@@ -129,7 +129,7 @@ class SubscriptionRepository {
     } catch (e, stackTrace) {
       debugPrint('Subscription error: $e');
       debugPrint('Stack: $stackTrace');
-      throw SubscriptionException("Couldn't load subscriptions right now 📶\n\n🌱 Natural farming saves farmers 70% on input costs compared to chemical farming!");
+      throw SubscriptionException("Sorry, we are not available right now. Please try again later.");
     }
   }
   

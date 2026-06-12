@@ -212,15 +212,17 @@ class _SolarSystemScreenState extends State<SolarSystemScreen>
         ),
         centerTitle: true,
       ),
-      body: AnimatedBuilder(
-        animation: _controller,
-        builder: (context, _) {
-          final t = _stopwatch.elapsed.inMilliseconds / 1000.0;
-          return CustomPaint(
-            painter: _SolarSystemPainter(t: t),
-            child: const SizedBox.expand(),
-          );
-        },
+      body: RepaintBoundary(
+        child: AnimatedBuilder(
+          animation: _controller,
+          builder: (context, _) {
+            final t = _stopwatch.elapsed.inMilliseconds / 1000.0;
+            return CustomPaint(
+              painter: _SolarSystemPainter(t: t),
+              child: const SizedBox.expand(),
+            );
+          },
+        ),
       ),
     );
   }
@@ -743,5 +745,7 @@ class _SolarSystemPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(_SolarSystemPainter old) => true;
+  bool shouldRepaint(_SolarSystemPainter old) {
+    return (t - old.t).abs() > 0.001;
+  }
 }

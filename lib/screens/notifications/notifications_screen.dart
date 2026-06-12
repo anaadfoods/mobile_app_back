@@ -1115,41 +1115,23 @@ class _NotificationsScreenState extends State<NotificationsScreen>
                         const SizedBox(height: 10),
                         ClipRRect(
                           borderRadius: BorderRadius.circular(12),
-                          child: Image.network(
-                            notification['image'] ?? notification['image_url'],
+                          child: CachedNetworkImage(
+                            imageUrl: notification['image'] ?? notification['image_url'],
                             height: 120,
                             width: double.infinity,
                             fit: BoxFit.cover,
-                            loadingBuilder: (context, child, loadingProgress) {
-                              if (loadingProgress == null) return child;
-                              return Container(
-                                height: 120,
-                                decoration: BoxDecoration(
-                                  color:
-                                      isDark
-                                          ? AppColors.charcoal87
-                                          : AppColors.parchment,
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                child: Center(
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                    value:
-                                        loadingProgress.expectedTotalBytes !=
-                                                null
-                                            ? loadingProgress
-                                                    .cumulativeBytesLoaded /
-                                                loadingProgress
-                                                    .expectedTotalBytes!
-                                            : null,
-                                  ),
-                                ),
-                              );
-                            },
-                            errorBuilder: (context, error, stackTrace) {
-                              debugPrint(
-                                'Error loading notification image: $error',
-                              );
+                            placeholder: (context, url) => Container(
+                              height: 120,
+                              decoration: BoxDecoration(
+                                color: isDark ? AppColors.charcoal87 : AppColors.parchment,
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: const Center(
+                                child: CircularProgressIndicator(strokeWidth: 2),
+                              ),
+                            ),
+                            errorWidget: (context, url, error) {
+                              AppLogger.instance.e('Error loading notification image: $error');
                               return const SizedBox.shrink();
                             },
                           ),

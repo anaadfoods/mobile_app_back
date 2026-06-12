@@ -658,7 +658,7 @@ class _EditProfileScreenState extends State<EditProfileScreen>
   ) {
     final statusBarHeight = MediaQuery.of(context).padding.top;
 
-    final headerHeight = size.height * 0.22 + statusBarHeight;
+    final headerHeight = 130.0 + statusBarHeight;
 
     return SizedBox(
       height: headerHeight + 50,

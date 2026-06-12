@@ -215,8 +215,10 @@ class _ChatScreenState extends State<ChatScreen>
           ),
 
           // ---------------- Input Area ----------------
-          Container(
-            padding: const EdgeInsets.all(16),
+          SafeArea(
+            top: false,
+            child: Container(
+              padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
               color: color.surface,
               boxShadow: [
@@ -265,7 +267,8 @@ class _ChatScreenState extends State<ChatScreen>
               ],
             ),
           ),
-        ],
+        ),
+      ],
       ),
     );
   }

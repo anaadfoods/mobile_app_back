@@ -67,15 +67,42 @@ class ProfileService {
         'pincode': addressDetails['pincode'] ?? '',
       };
 
-      final response = await ApiClient.instance.put(
-        ApiConfig.profileEndpoint,
-        data: bodyMap,
-      );
+      try {
+        final response = await ApiClient.instance.put(
+          ApiConfig.profileEndpoint,
+          data: bodyMap,
+        );
 
-      if (response.statusCode == 200) {
-        await getUserProfile();
-        _notifyAddressChange();
-        return true;
+        if (response.statusCode == 200) {
+          await getUserProfile();
+          _notifyAddressChange();
+          return true;
+        }
+      } catch (firstError) {
+        debugPrint('updateUserAddress: first attempt failed (possibly duplicate phone): $firstError');
+
+        // Fallback: If the user entered a phone number different from current profile phone number,
+        // try saving the address WITHOUT updating the profile's phone number.
+        if (addressDetails['phone'] != null && addressDetails['phone'] != currentUser.phoneNumber) {
+          debugPrint('updateUserAddress: retrying without updating profile phone number');
+          final fallbackBodyMap = Map<String, dynamic>.from(bodyMap);
+          // Revert phone number to the profile's existing value (null or whatever it was)
+          fallbackBodyMap['phone_number'] = currentUser.phoneNumber;
+
+          final response = await ApiClient.instance.put(
+            ApiConfig.profileEndpoint,
+            data: fallbackBodyMap,
+          );
+
+          if (response.statusCode == 200) {
+            await getUserProfile();
+            _notifyAddressChange();
+            return true;
+          }
+        } else {
+          // If phone was not changed, the error was due to something else. Re-throw.
+          rethrow;
+        }
       }
       return false;
     } catch (e, st) {

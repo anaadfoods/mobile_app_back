@@ -1146,6 +1146,47 @@ class _SignupScreenState extends State<SignupScreen>
                           ),
                         ),
                       ),
+                      const SizedBox(height: AppColors.spacingM),
+
+                      // Apple Button with animation
+                      AnimatedBuilder(
+                        animation: _inputController,
+                        builder: (context, child) {
+                          final slideValue =
+                              Tween<double>(begin: 30.0, end: 0.0)
+                                  .animate(
+                                    CurvedAnimation(
+                                      parent: _inputController,
+                                      curve: const Interval(
+                                        0.8,
+                                        1.0,
+                                        curve: Curves.easeOut,
+                                      ),
+                                    ),
+                                  )
+                                  .value;
+                          final opacity =
+                              Tween<double>(begin: 0.0, end: 1.0)
+                                  .animate(
+                                    CurvedAnimation(
+                                      parent: _inputController,
+                                      curve: const Interval(0.8, 1.0),
+                                    ),
+                                  )
+                                  .value;
+                          return Transform.translate(
+                            offset: Offset(0, slideValue),
+                            child: Opacity(opacity: opacity, child: child),
+                          );
+                        },
+                        child: Center(
+                          child: _AppleSignUpButton(
+                            isLoading: isLoading,
+                            onPressed:
+                                () => context.read<AuthCubit>().appleLogin(),
+                          ),
+                        ),
+                      ),
                       const SizedBox(height: AppColors.spacingXL),
                     ],
                   ),
@@ -1682,4 +1723,118 @@ class _GoogleLogoPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+}
+
+// Enhanced Apple Sign-up Button
+class _AppleSignUpButton extends StatefulWidget {
+  final bool isLoading;
+  final VoidCallback onPressed;
+
+  const _AppleSignUpButton({required this.isLoading, required this.onPressed});
+
+  @override
+  State<_AppleSignUpButton> createState() => _AppleSignUpButtonState();
+}
+
+class _AppleSignUpButtonState extends State<_AppleSignUpButton>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _hoverController;
+  bool _isHovered = false;
+  bool _isPressed = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _hoverController = AnimationController(
+      duration: const Duration(milliseconds: 200),
+      vsync: this,
+    );
+  }
+
+  @override
+  void dispose() {
+    _hoverController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return MouseRegion(
+      onEnter: (_) {
+        setState(() => _isHovered = true);
+        _hoverController.forward();
+      },
+      onExit: (_) {
+        setState(() => _isHovered = false);
+        _hoverController.reverse();
+      },
+      child: GestureDetector(
+        onTapDown: (_) => setState(() => _isPressed = true),
+        onTapUp: (_) => setState(() => _isPressed = false),
+        onTapCancel: () => setState(() => _isPressed = false),
+        onTap:
+            widget.isLoading
+                ? null
+                : () {
+                  HapticFeedback.lightImpact();
+                  widget.onPressed();
+                },
+        child: AnimatedScale(
+          scale: _isPressed ? 0.95 : 1.0,
+          duration: const Duration(milliseconds: 100),
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 200),
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppColors.spacingXL,
+              vertical: AppColors.spacingM,
+            ),
+            decoration: BoxDecoration(
+              color: AppColors.charcoal,
+              borderRadius: BorderRadius.circular(AppColors.radiusRound),
+              border: Border.all(
+                color: _isHovered ? AppColors.charcoal87 : AppColors.charcoal,
+                width: 1.5,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.charcoal.withValues(
+                    alpha: _isHovered ? 0.3 : 0.2,
+                  ),
+                  blurRadius: _isHovered ? 12 : 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                AnimatedScale(
+                  scale: _isHovered ? 1.1 : 1.0,
+                  duration: const Duration(milliseconds: 200),
+                  child: const SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: Icon(
+                      Icons.apple,
+                      color: AppColors.parchment,
+                      size: 24,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: AppColors.spacingM),
+                Text(
+                  "Sign up with Apple",
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: AppColors.parchment,
+                    fontWeight: FontWeight.w600,
+                    letterSpacing: 0.2,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 }

@@ -98,9 +98,23 @@ class _CombinedScreenState extends State<CombinedScreen>
             // Background image with parallax
             Transform.translate(
               offset: Offset(0, _scrollOffset * 0.3),
-              child: Image.network(
-                'https://images.unsplash.com/photo-1542838132-92c53300491e?q=80&w=1974&auto=format&fit=crop',
+              child: CachedNetworkImage(
+                imageUrl: 'https://images.unsplash.com/photo-1542838132-92c53300491e?q=80&w=1974&auto=format&fit=crop',
                 fit: BoxFit.cover,
+                placeholder: (context, url) => Container(
+                  color: isDark ? AppColors.charcoal : AppColors.parchment,
+                  child: const Center(
+                    child: CircularProgressIndicator(),
+                  ),
+                ),
+                errorWidget: (context, url, error) => Container(
+                  color: isDark ? AppColors.charcoal : AppColors.parchment,
+                  child: Icon(
+                    Icons.image_not_supported,
+                    color: theme.disabledColor,
+                    size: 40,
+                  ),
+                ),
               ),
             ),
             // Gradient overlay

@@ -160,24 +160,37 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen>
                 // Parallax Image
                 Transform.translate(
                   offset: Offset(0, parallaxOffset),
-                  child: Image.network(
-                    widget.community.image,
+                  child: CachedNetworkImage(
+                    imageUrl: widget.community.image,
                     fit: BoxFit.cover,
-                    errorBuilder:
-                        (context, error, stackTrace) => Container(
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              colors: _gradientColors,
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                            ),
-                          ),
-                          child: Icon(
-                            Icons.eco_rounded,
-                            size: 100,
-                            color: AppColors.parchment.withValues(alpha: 0.2),
-                          ),
+                    placeholder: (context, url) => Container(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: _gradientColors,
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
                         ),
+                      ),
+                      child: const Center(
+                        child: CircularProgressIndicator(
+                          color: AppColors.parchment,
+                        ),
+                      ),
+                    ),
+                    errorWidget: (context, url, error) => Container(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: _gradientColors,
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                      ),
+                      child: Icon(
+                        Icons.eco_rounded,
+                        size: 100,
+                        color: AppColors.parchment.withValues(alpha: 0.2),
+                      ),
+                    ),
                   ),
                 ),
 

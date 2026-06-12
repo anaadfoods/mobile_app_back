@@ -219,7 +219,7 @@ class _AppGlobalListenersState extends State<AppGlobalListeners>
               getIt<NotificationSyncManager>().syncWithBackend();
             } else if (state is Unauthenticated) {
               context.read<NotificationCubit>().unregisterDevice();
-              context.read<CartCubit>().clearCart();
+              context.read<CartCubit>().clearCartState();
               context.read<FavoritesCubit>().clearFavoritesState();
               context.read<OrderCubit>().clearOrders();
               context.read<SubscriptionCubit>().clearSubscriptionState();

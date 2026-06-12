@@ -4,6 +4,7 @@ import 'package:grocery_app/services/api_config.dart';
 import 'package:grocery_app/services/token_service.dart';
 import 'package:grocery_app/utils/app_logger.dart';
 import 'package:grocery_app/service_locator.dart';
+import 'package:grocery_app/services/api_client.dart';
 
 /// Specialized HTTP client for payment operations with certificate pinning.
 ///
@@ -22,6 +23,7 @@ class PaymentClient {
 
     _dio.interceptors.add(PaymentAuthInterceptor());
     _dio.interceptors.add(CertificatePinningInterceptor());
+    _dio.interceptors.add(RetryInterceptor(dio: _dio));
   }
 
   static PaymentClient get instance => getIt<PaymentClient>();

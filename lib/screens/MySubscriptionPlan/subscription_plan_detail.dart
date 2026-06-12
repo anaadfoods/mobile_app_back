@@ -115,18 +115,20 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
     return allSubscriptions.where((s) => s.status == status).length;
   }
 
+  void _handleBack(BuildContext context) {
+    if (Navigator.canPop(context)) {
+      Navigator.pop(context);
+    } else {
+      context.goNamed(AppRoute.home.name);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
-    return PopScope(
-      canPop: false,
-      onPopInvokedWithResult: (didPop, result) {
-        if (didPop) return;
-        context.goNamed(AppRoute.profile.name);
-      },
-      child: BlocListener<SubscriptionCubit, SubscriptionState>(
+    final scaffold = BlocListener<SubscriptionCubit, SubscriptionState>(
         listener: (context, state) {
           if (state is SubscriptionActionSuccess) {
             SnackBarHelper.showSuccess(context, state.message);
@@ -158,8 +160,16 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
               ],
             ),
           ),
-        ),
       ),
+    );
+
+    return PopScope(
+      canPop: Navigator.canPop(context),
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) return;
+        context.goNamed(AppRoute.home.name);
+      },
+      child: scaffold,
     );
   }
 
@@ -270,7 +280,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                           ),
                           padding: EdgeInsets.zero,
                           constraints: const BoxConstraints(),
-                          onPressed: () => Navigator.maybePop(context),
+                          onPressed: () => _handleBack(context),
                         ),
                         const Spacer(),
                         IconButton(

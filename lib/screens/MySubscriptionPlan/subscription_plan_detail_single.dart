@@ -627,6 +627,14 @@ class _SubscriptionPlanDetailScreenState
     return DateFormat(format).format(date);
   }
 
+  void _handleBack(BuildContext context) {
+    if (Navigator.canPop(context)) {
+      Navigator.pop(context);
+    } else {
+      context.goNamed(AppRoute.subscriptionList.name);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     if (_isLoadingSubscription) {
@@ -636,13 +644,19 @@ class _SubscriptionPlanDetailScreenState
       );
     }
 
+    final Widget scaffold;
+
     if (_currentOrder == null) {
-      return Scaffold(
+      scaffold = Scaffold(
         backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         appBar: AppBar(
           title: const Text('Invalid Link'),
           centerTitle: true,
           elevation: 0,
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back_rounded),
+            onPressed: () => _handleBack(context),
+          ),
         ),
         body: Center(
           child: Padding(
@@ -703,104 +717,113 @@ class _SubscriptionPlanDetailScreenState
           ),
         ),
       );
+    } else {
+      final theme = Theme.of(context);
+      final isDark = theme.brightness == Brightness.dark;
+
+      scaffold = BlocListener<SubscriptionCubit, SubscriptionState>(
+        listener: (context, state) {
+          if (state is SubscriptionActionSuccess) {
+            SnackBarHelper.showSuccess(context, state.message);
+            // Reload the subscription details and invoices in-place
+            if (_currentOrder != null) {
+              _loadSubscription(_currentOrder!.id.toString());
+            } else if (widget.subscriptionId != null) {
+              _loadSubscription(widget.subscriptionId!);
+            }
+            _loadInvoices();
+          } else if (state is SubscriptionError) {
+            SnackBarHelper.showError(
+              context,
+              "Looks like a network hiccup! Please check your internet and try again.",
+            );
+          }
+        },
+        child: Scaffold(
+          backgroundColor: isDark ? AppColors.darkCanvas : AppColors.parchment,
+          floatingActionButton: _buildWhatsAppFAB(),
+          body: RefreshIndicator(
+            onRefresh: () async {
+              // Trigger a refresh of subscription details and invoices
+              if (_currentOrder != null) {
+                await _loadSubscription(_currentOrder!.id.toString());
+              } else if (widget.subscriptionId != null) {
+                await _loadSubscription(widget.subscriptionId!);
+              }
+              await _loadInvoices();
+            },
+            color: theme.colorScheme.primary,
+            child: CustomScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              slivers: [
+                // Modern U-Shape Header
+                _buildAnimatedHeader(theme, isDark),
+                // Content
+                SliverToBoxAdapter(
+                  child:
+                      _isLoading
+                          ? const Center(child: CircularProgressIndicator())
+                          : Padding(
+                            padding: EdgeInsets.fromLTRB(
+                              16,
+                              20,
+                              16,
+                              MediaQuery.of(context).padding.bottom + 100,
+                            ),
+                            child: Column(
+                              children: [
+                                _buildPaymentPendingHeader(theme),
+                                _buildHeroProductCard(theme, isDark),
+                                const SizedBox(height: 20),
+                                _buildModernSummaryCard(theme, isDark),
+                                const SizedBox(height: 20),
+                                _buildBillingDetailsCard(theme, isDark),
+                                const SizedBox(height: 20),
+                                _buildDeliveryProgressCard(theme, isDark),
+                                const SizedBox(height: 20),
+                                _buildDeliveryAddressCard(theme, isDark),
+                                const SizedBox(height: 20),
+                                _buildModernPauseSection(theme, isDark),
+                                const SizedBox(height: 20),
+                                _buildModernSectionCard(
+                                  theme: theme,
+                                  isDark: isDark,
+                                  icon: Icons.description_rounded,
+                                  title: 'Invoices',
+                                  gradient: [
+                                    AppColors.deepSoilGreen,
+                                    AppColors.deepSoilGreen.withValues(
+                                      alpha: 0.7,
+                                    ),
+                                  ],
+                                  child: InvoiceTrackerWidget(
+                                    isLoading: _isLoadingInvoices,
+                                    error: _invoiceError,
+                                    invoices: _invoices,
+                                    onInvoiceTap: (invoice) {
+                                      _downloadAndOpenInvoice(invoice);
+                                    },
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                ),
+              ],
+            ),
+          ),
+          bottomNavigationBar: _buildModernBottomButtons(theme, isDark),
+        ),
+      );
     }
 
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-
-    return BlocListener<SubscriptionCubit, SubscriptionState>(
-      listener: (context, state) {
-        if (state is SubscriptionActionSuccess) {
-          SnackBarHelper.showSuccess(context, state.message);
-          // Reload the subscription details and invoices in-place
-          if (_currentOrder != null) {
-            _loadSubscription(_currentOrder!.id.toString());
-          } else if (widget.subscriptionId != null) {
-            _loadSubscription(widget.subscriptionId!);
-          }
-          _loadInvoices();
-        } else if (state is SubscriptionError) {
-          SnackBarHelper.showError(
-            context,
-            "Looks like a network hiccup! Please check your internet and try again.",
-          );
-        }
+    return PopScope(
+      canPop: Navigator.canPop(context),
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) return;
+        context.goNamed(AppRoute.subscriptionList.name);
       },
-      child: Scaffold(
-        backgroundColor: isDark ? AppColors.darkCanvas : AppColors.parchment,
-        floatingActionButton: _buildWhatsAppFAB(),
-        body: RefreshIndicator(
-          onRefresh: () async {
-            // Trigger a refresh of subscription details and invoices
-            if (_currentOrder != null) {
-              await _loadSubscription(_currentOrder!.id.toString());
-            } else if (widget.subscriptionId != null) {
-              await _loadSubscription(widget.subscriptionId!);
-            }
-            await _loadInvoices();
-          },
-          color: theme.colorScheme.primary,
-          child: CustomScrollView(
-            physics: const AlwaysScrollableScrollPhysics(),
-            slivers: [
-              // Modern U-Shape Header
-              _buildAnimatedHeader(theme, isDark),
-              // Content
-              SliverToBoxAdapter(
-                child:
-                    _isLoading
-                        ? const Center(child: CircularProgressIndicator())
-                        : Padding(
-                          padding: EdgeInsets.fromLTRB(
-                            16,
-                            20,
-                            16,
-                            MediaQuery.of(context).padding.bottom + 100,
-                          ),
-                          child: Column(
-                            children: [
-                              _buildPaymentPendingHeader(theme),
-                              _buildHeroProductCard(theme, isDark),
-                              const SizedBox(height: 20),
-                              _buildModernSummaryCard(theme, isDark),
-                              const SizedBox(height: 20),
-                              _buildBillingDetailsCard(theme, isDark),
-                              const SizedBox(height: 20),
-                              _buildDeliveryProgressCard(theme, isDark),
-                              const SizedBox(height: 20),
-                              _buildDeliveryAddressCard(theme, isDark),
-                              const SizedBox(height: 20),
-                              _buildModernPauseSection(theme, isDark),
-                              const SizedBox(height: 20),
-                              _buildModernSectionCard(
-                                theme: theme,
-                                isDark: isDark,
-                                icon: Icons.description_rounded,
-                                title: 'Invoices',
-                                gradient: [
-                                  AppColors.deepSoilGreen,
-                                  AppColors.deepSoilGreen.withValues(
-                                    alpha: 0.7,
-                                  ),
-                                ],
-                                child: InvoiceTrackerWidget(
-                                  isLoading: _isLoadingInvoices,
-                                  error: _invoiceError,
-                                  invoices: _invoices,
-                                  onInvoiceTap: (invoice) {
-                                    _downloadAndOpenInvoice(invoice);
-                                  },
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-              ),
-            ],
-          ),
-        ),
-        bottomNavigationBar: _buildModernBottomButtons(theme, isDark),
-      ),
+      child: scaffold,
     );
   }
 
@@ -880,7 +903,7 @@ class _SubscriptionPlanDetailScreenState
                             Icons.arrow_back_rounded,
                             color: AppColors.parchment,
                           ),
-                          onPressed: () => Navigator.maybePop(context),
+                          onPressed: () => _handleBack(context),
                         ),
                         Row(
                           mainAxisSize: MainAxisSize.min,

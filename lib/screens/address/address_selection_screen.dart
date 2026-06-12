@@ -270,12 +270,13 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen>
       addressDetails,
     );
 
+    if (!mounted) return success;
     setState(() => _isLoading = false);
 
     if (!success && mounted) {
-      SnackBarHelper.showError(
+      SnackBarHelper.showInfo(
         context,
-        'Failed to save address. Please try again.',
+        'Proceeding with checkout using this address (not saved to profile).',
       );
     } else if (success && mounted) {
       SnackBarHelper.showSuccess(context, 'Address saved to your profile!');
@@ -329,8 +330,7 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen>
     };
 
     if (_orderType == OrderType.self && _selectedAddressType == 'new') {
-      final wasSaved = await _updateUserAddress(shippingDetails);
-      if (!wasSaved) return;
+      await _updateUserAddress(shippingDetails);
     }
 
     _navigateToCheckout(shippingDetails);
@@ -541,7 +541,7 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen>
           );
         },
         child: Container(
-          height: 200,
+          height: 160,
           decoration: BoxDecoration(
             gradient: LinearGradient(
               begin: Alignment.topLeft,
@@ -568,9 +568,6 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen>
           ),
           child: Stack(
             children: [
-              // Floating Particles
-              ...List.generate(8, (index) => _buildFloatingParticle(index)),
-
               // Decorative circles
               Positioned(
                 top: -30,
@@ -599,38 +596,24 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen>
 
               // Header Content
               SafeArea(
-                bottom: false,
                 child: Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 8, 20, 16),
+                  padding: const EdgeInsets.fromLTRB(16, 8, 20, 20),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
                     children: [
-                      // Back button
-                      IconButton(
-                        icon: const Icon(
-                          Icons.arrow_back_rounded,
-                          color: AppColors.parchment,
-                        ),
-                        padding: EdgeInsets.zero,
-                        constraints: const BoxConstraints(),
-                        onPressed: () => Navigator.maybePop(context),
-                      ),
-                      const SizedBox(height: 12),
+                      const Spacer(),
                       // Title Row
                       Row(
                         children: [
-                          Container(
-                            padding: const EdgeInsets.all(10),
-                            decoration: BoxDecoration(
-                              color: AppColors.parchment.withValues(alpha: 0.2),
-                              borderRadius: BorderRadius.circular(14),
+                          // Back button
+                          IconButton(
+                            icon: const Icon(
+                              Icons.arrow_back_rounded,
+                              color: AppColors.parchment,
                             ),
-                            child: const Icon(
-                              Icons.location_on_rounded,
-                              color: AppColors.amberWarnBg,
-                              size: 24,
-                            ),
+                            padding: EdgeInsets.zero,
+                            constraints: const BoxConstraints(),
+                            onPressed: () => Navigator.maybePop(context),
                           ),
                           const SizedBox(width: 14),
                           Expanded(
@@ -663,6 +646,18 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen>
                               ],
                             ),
                           ),
+                          Container(
+                            padding: const EdgeInsets.all(10),
+                            decoration: BoxDecoration(
+                              color: AppColors.parchment.withValues(alpha: 0.2),
+                              borderRadius: BorderRadius.circular(14),
+                            ),
+                            child: const Icon(
+                              Icons.location_on_rounded,
+                              color: AppColors.amberWarnBg,
+                              size: 24,
+                            ),
+                          ),
                         ],
                       ),
                     ],
@@ -673,39 +668,6 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen>
           ),
         ),
       ),
-    );
-  }
-
-  Widget _buildFloatingParticle(int index) {
-    final random = math.Random(index);
-    final size = 4.0 + random.nextDouble() * 6;
-    final startX = random.nextDouble() * 400;
-    final startY = random.nextDouble() * 200;
-    final duration = 10 + random.nextInt(10);
-
-    return AnimatedBuilder(
-      animation: _particleController,
-      builder: (context, child) {
-        final progress = (_particleController.value * duration) % 1.0;
-        final x = startX + math.sin(progress * math.pi * 2 + index) * 25;
-        final y = startY + math.cos(progress * math.pi * 2 + index) * 15;
-        final opacity = 0.1 + (math.sin(progress * math.pi * 2) * 0.15);
-
-        return Positioned(
-          left: x,
-          top: y,
-          child: Container(
-            width: size,
-            height: size,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: AppColors.parchment.withValues(
-                alpha: opacity.clamp(0.05, 0.25),
-              ),
-            ),
-          ),
-        );
-      },
     );
   }
 

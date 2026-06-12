@@ -51,14 +51,14 @@ class _WebViewPageState extends State<WebViewPage> {
           allSubscriptions = data.map((item) => item as Subscription).toList();
         });
       } else {
-        print('Error fetching subscriptions: ${response['message']}');
+        AppLogger.instance.e('Error fetching subscriptions: ${response['message']}');
         SnackBarHelper.showError(
           context,
           response['message'] ?? 'Failed to fetch subscriptions',
         );
       }
     } catch (e) {
-      print('Error fetching subscriptions: $e');
+      AppLogger.instance.e('Error fetching subscriptions: $e');
       SnackBarHelper.showError(
         context,
         'An error occurred while fetching subscriptions',
@@ -88,7 +88,7 @@ class _WebViewPageState extends State<WebViewPage> {
                   _isLoading = false;
                 });
                 widget.onUrlChanged?.call(url);
-                print(url);
+                AppLogger.instance.log(url);
 
                 if (url.contains("${ApiConfig.baseUrl}/api/payments/success") ||
                     url.contains("${ApiConfig.baseUrl}/api/payment/success")) {
@@ -116,21 +116,21 @@ class _WebViewPageState extends State<WebViewPage> {
 
     try {
       if (widget.isSubscription) {
-        print("Is is Subscription call ${widget.isSubscription}");
+        AppLogger.instance.log("Is is Subscription call ${widget.isSubscription}");
         // Subscription payment status
-        print(widget.orderId);
+        AppLogger.instance.log(widget.orderId.toString());
         final debugpaymentone = await getIt<SubscriptionService>()
             .fetchSubscriptionPaymentStatus(widget.subID);
 
         if (debugpaymentone == null) {
-          print("Failed to fetch payment status");
+          AppLogger.instance.w("Failed to fetch payment status");
           // Check if we should still notify success if we can't verify immediately?
           // For now, let's assume if we can't verify, we shouldn't proceed blindly,
           // but since we are modifying to callback, we might want to pass this info back.
           // However, the original plan was just to delegate.
           // The parent (CheckoutScreen) will do its own verification.
         } else {
-          print(debugpaymentone.paymentStatus);
+          AppLogger.instance.log(debugpaymentone.paymentStatus);
 
           // Use the passed merchantTransactionId if available, otherwise use the one from status
           final transactionIdToPost =
@@ -141,7 +141,7 @@ class _WebViewPageState extends State<WebViewPage> {
           try {
             await _orderService.postOrderId(transactionIdToPost);
           } catch (e) {
-            print("Warning: Failed to post order ID to backup service: $e");
+            AppLogger.instance.w("Warning: Failed to post order ID to backup service: $e");
           }
         }
 
@@ -157,14 +157,14 @@ class _WebViewPageState extends State<WebViewPage> {
         try {
           await _orderService.postOrderId(debugpayment.orderNumber);
         } catch (e) {
-          print("Warning: Failed to post order ID: $e");
+          AppLogger.instance.w("Warning: Failed to post order ID: $e");
         }
 
         // Delegate to parent
         widget.onPaymentSuccess?.call(ApiConfig.baseUrl);
       }
     } catch (e) {
-      print("Error verifying payment: $e");
+      AppLogger.instance.e("Error verifying payment: $e");
       // Even on error, we might want to let the parent know or just handle failure?
       // If we fail here, it's safer to not call success.
       // User can manually exit or retry.
@@ -213,37 +213,44 @@ class _WebViewPageState extends State<WebViewPage> {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.title ?? 'Secure Payment'),
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back),
-          onPressed: () {
-            showDialog(
-              context: context,
-              builder:
-                  (_) => AlertDialog(
-                    title: Text('Cancel Payment?'),
-                    content: Text(
-                      'Are you sure you want to cancel the payment?',
-                    ),
-                    actions: [
-                      TextButton(
-                        onPressed: () => Navigator.of(context).pop(),
-                        child: Text('Continue Payment'),
-                      ),
-                      TextButton(
-                        onPressed: () {
-                          Navigator.of(context).pop();
-                          Navigator.of(context).pop();
-                        },
-                        child: Text('Cancel Payment'),
-                      ),
-                    ],
-                  ),
-            );
-          },
-        ),
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) async {
+        if (didPop) return;
+        final shouldPop = await showDialog<bool>(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('Cancel Payment?'),
+            content: const Text(
+              'Are you sure you want to cancel the payment?',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(false),
+                child: const Text('Continue Payment'),
+              ),
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(true),
+                child: const Text('Cancel Payment'),
+              ),
+            ],
+          ),
+        );
+        if (shouldPop == true) {
+          if (context.mounted) {
+            Navigator.of(context).pop();
+          }
+        }
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text(widget.title ?? 'Secure Payment'),
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back),
+            onPressed: () {
+              Navigator.of(context).maybePop();
+            },
+          ),
         actions:
             _isLoading
                 ? [
@@ -384,7 +391,7 @@ class _WebViewPageState extends State<WebViewPage> {
           ),
         ],
       ),
-    );
+    ));
   }
 }
 

@@ -56,14 +56,23 @@ class ChartItemWidget extends StatelessWidget {
                 item.productVariant.productImages.isNotEmpty
                     ? ClipRRect(
                       borderRadius: BorderRadius.circular(AppColors.radiusM),
-                      child: Image.network(
-                        item.productVariant.productImages.first.image,
+                      child: CachedNetworkImage(
+                        imageUrl: item.productVariant.productImages.first.image,
                         fit: BoxFit.cover,
-                        errorBuilder:
-                            (context, error, stackTrace) => Icon(
-                              Icons.image_not_supported,
-                              color: theme.disabledColor,
+                        placeholder: (context, url) => Container(
+                          color: isDark ? AppColors.charcoal : AppColors.parchment,
+                          child: const Center(
+                            child: SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(strokeWidth: 2),
                             ),
+                          ),
+                        ),
+                        errorWidget: (context, url, error) => Icon(
+                          Icons.image_not_supported,
+                          color: theme.disabledColor,
+                        ),
                       ),
                     )
                     : Icon(

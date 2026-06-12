@@ -66,25 +66,36 @@ class ProductRepository {
     }
   }
 
-  /// Returns user-friendly error message - no technical jargon!
+  /// Returns user-friendly error message
   String _getErrorMessage(dynamic e, String defaultMsg) {
     final s = e.toString().toLowerCase();
+    
     if (s.contains('socketexception') ||
         s.contains('connection refused') ||
         s.contains('network is unreachable') ||
         s.contains('timed out') ||
         s.contains('timeout') ||
-        s.contains('clientexception')) {
-      // Network issues - friendly message
-      return "Couldn't connect right now. Check your internet! 📶\n\n🐄 Did you know? Indian Gir cows produce A2 milk, which is easier to digest!";
+        s.contains('clientexception') ||
+        s.contains('500') || 
+        s.contains('502') || 
+        s.contains('503') || 
+        s.contains('server error') || 
+        s.contains('internal') ||
+        s.contains('dioexception')) {
+      return "Sorry, we are not available right now. Please try again later.";
     }
-    if (s.contains('500') || s.contains('server error') || s.contains('internal')) {
-      return "Our servers need a moment. Try again shortly! ☕\n\n🌿 Panchagavya made from 5 cow products can replace chemical fertilizers entirely!";
-    }
+    
     if (s.contains('404') || s.contains('not found')) {
-      return "Couldn't find what you're looking for 🔍\n\n🌾 Natural farming increases earthworm population by 10x in just one season!";
+      return "Couldn't find what you're looking for.";
     }
-    // Generic friendly message - hide technical details
-    return "Something went sideways. Let's try again! 🔄\n\n🐄 Desi cow urine (Gomutra) is a powerful natural pesticide used for centuries!";
+    
+    // Try to extract API message if available
+    final match = RegExp(r'"message"\s*:\s*"([^"]+)"').firstMatch(e.toString());
+    if (match != null) {
+      return match.group(1)!;
+    }
+    
+    // Generic friendly message
+    return "Sorry, we are not available right now. Please try again later.";
   }
 }

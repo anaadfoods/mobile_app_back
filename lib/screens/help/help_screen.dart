@@ -518,7 +518,7 @@ class _HelpScreenState extends State<HelpScreen> with TickerProviderStateMixin {
         'icon': Icons.schedule_rounded,
         'title': 'Delivery Timeline',
         'content':
-            'We deliver fresh products within 24-48 hours of order confirmation. Delivery times may vary based on your location.',
+            'We deliver fresh products within 24-48 hours from the time of dispatch . Delivery times may vary based on your location.',
       },
       {
         'icon': Icons.refresh_rounded,
@@ -552,6 +552,7 @@ class _HelpScreenState extends State<HelpScreen> with TickerProviderStateMixin {
           children:
               faqs.asMap().entries.map((entry) {
                 final index = entry.key;
+                
                 final faq = entry.value;
                 return _FaqItem(
                   icon: faq['icon'] as IconData,

@@ -264,15 +264,66 @@ class AppRouter {
         parentNavigatorKey: _rootNavigatorKey,
         builder: (context, state) {
           final extra = state.extra as Map<String, dynamic>? ?? {};
+
+          CartModel? cart;
+          final cartVal = extra['cart'];
+          if (cartVal is CartModel) {
+            cart = cartVal;
+          } else if (cartVal is Map<String, dynamic>) {
+            cart = CartModel.fromJson(cartVal);
+          }
+
+          Product? singleProduct;
+          final productVal = extra['singleProduct'];
+          if (productVal is Product) {
+            singleProduct = productVal;
+          } else if (productVal is Map<String, dynamic>) {
+            singleProduct = Product.fromJson(productVal);
+          }
+
+          int? quantity;
+          final quantityVal = extra['quantity'];
+          if (quantityVal is int) {
+            quantity = quantityVal;
+          } else if (quantityVal != null) {
+            quantity = int.tryParse(quantityVal.toString());
+          }
+
+          bool isSubscription = false;
+          final subVal = extra['isSubscription'];
+          if (subVal is bool) {
+            isSubscription = subVal;
+          } else if (subVal != null) {
+            isSubscription = subVal.toString().toLowerCase() == 'true';
+          }
+
+          int? selectedPlan;
+          final planVal = extra['selectedPlan'];
+          if (planVal is int) {
+            selectedPlan = planVal;
+          } else if (planVal != null) {
+            selectedPlan = int.tryParse(planVal.toString());
+          }
+
+          double? price;
+          final priceVal = extra['price'];
+          if (priceVal is num) {
+            price = priceVal.toDouble();
+          } else if (priceVal != null) {
+            price = double.tryParse(priceVal.toString());
+          }
+
           return CheckoutScreen(
-            cart: extra['cart'],
-            singleProduct: extra['singleProduct'],
-            quantity: extra['quantity'],
-            isSubscription: extra['isSubscription'] ?? false,
-            selectedPlan: extra['selectedPlan'],
+            cart: cart,
+            singleProduct: singleProduct,
+            price: price,
+            quantity: quantity,
+            isSubscription: isSubscription,
+            selectedPlan: selectedPlan,
             codDeliveryCharge: 0,
             prepaidDeliveryCharge: 0,
             expectedDeliveryDate: '',
+            paymentType: extra['paymentType'] as String?,
           );
         },
       ),
@@ -333,7 +384,13 @@ class AppRouter {
         name: AppRoute.productDetails.name,
         parentNavigatorKey: _rootNavigatorKey,
         builder: (context, state) {
-          final product = state.extra as Product?;
+          Product? product;
+          final extra = state.extra;
+          if (extra is Product) {
+            product = extra;
+          } else if (extra is Map<String, dynamic>) {
+            product = Product.fromJson(extra);
+          }
           return ProductDetailsRouteWrapper(
             productId: state.pathParameters['id'],
             initialProduct: product,
@@ -399,7 +456,11 @@ class AppRouter {
         parentNavigatorKey: _rootNavigatorKey,
         builder: (context, state) {
           final extraList = state.extra as List?;
-          final products = extraList?.map((e) => e as Product).toList() ?? [];
+          final products = extraList?.map((e) {
+            if (e is Product) return e;
+            if (e is Map<String, dynamic>) return Product.fromJson(e);
+            return e as Product;
+          }).toList() ?? [];
           return FeaturedProductsScreen(products: products);
         },
       ),
@@ -428,14 +489,65 @@ class AppRouter {
         parentNavigatorKey: _rootNavigatorKey,
         builder: (context, state) {
           final extra = state.extra as Map<String, dynamic>? ?? {};
+
+          CartModel? cart;
+          final cartVal = extra['cart'];
+          if (cartVal is CartModel) {
+            cart = cartVal;
+          } else if (cartVal is Map<String, dynamic>) {
+            cart = CartModel.fromJson(cartVal);
+          }
+
+          Product? singleProduct;
+          final productVal = extra['singleProduct'];
+          if (productVal is Product) {
+            singleProduct = productVal;
+          } else if (productVal is Map<String, dynamic>) {
+            singleProduct = Product.fromJson(productVal);
+          }
+
+          double? price;
+          final priceVal = extra['price'];
+          if (priceVal is num) {
+            price = priceVal.toDouble();
+          } else if (priceVal != null) {
+            price = double.tryParse(priceVal.toString());
+          }
+
+          int? quantity;
+          final quantityVal = extra['quantity'];
+          if (quantityVal is int) {
+            quantity = quantityVal;
+          } else if (quantityVal != null) {
+            quantity = int.tryParse(quantityVal.toString());
+          }
+
+          bool isSubscription = false;
+          final subVal = extra['isSubscription'];
+          if (subVal is bool) {
+            isSubscription = subVal;
+          } else if (subVal != null) {
+            isSubscription = subVal.toString().toLowerCase() == 'true';
+          }
+
+          int? selectedPlan;
+          final planVal = extra['selectedPlan'];
+          if (planVal is int) {
+            selectedPlan = planVal;
+          } else if (planVal != null) {
+            selectedPlan = int.tryParse(planVal.toString());
+          }
+
+          final paymentType = extra['paymentType'] as String?;
+
           return AddressSelectionScreen(
-            cart: extra['cart'] as CartModel?,
-            singleProduct: extra['singleProduct'] as Product?,
-            price: extra['price'] as double?,
-            quantity: extra['quantity'] as int?,
-            isSubscription: extra['isSubscription'] as bool? ?? false,
-            selectedPlan: extra['selectedPlan'] as int?,
-            paymentType: extra['paymentType'] as String?,
+            cart: cart,
+            singleProduct: singleProduct,
+            price: price,
+            quantity: quantity,
+            isSubscription: isSubscription,
+            selectedPlan: selectedPlan,
+            paymentType: paymentType,
           );
         },
       ),

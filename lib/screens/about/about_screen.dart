@@ -204,10 +204,27 @@ class _AboutScreenState extends State<AboutScreen>
               fit: StackFit.expand,
               children: [
                 // Background image
-                Image.network(
-                  'https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&q=80&w=1974',
+                CachedNetworkImage(
+                  imageUrl: 'https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&q=80&w=1974',
                   fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) {
+                  placeholder: (context, url) => Container(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [
+                          colorScheme.primary,
+                          colorScheme.primary.withAlpha(180),
+                        ],
+                      ),
+                    ),
+                    child: const Center(
+                      child: CircularProgressIndicator(
+                        color: AppColors.parchment,
+                      ),
+                    ),
+                  ),
+                  errorWidget: (context, url, error) {
                     return Container(
                       decoration: BoxDecoration(
                         gradient: LinearGradient(

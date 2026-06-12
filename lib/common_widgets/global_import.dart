@@ -99,7 +99,7 @@ export 'package:grocery_app/services/cummunity_service.dart';
 export 'package:grocery_app/common_widgets/grocery_item_card_widget.dart';
 export 'package:shimmer/shimmer.dart';
 export 'package:grocery_app/screens/account/account_screen.dart';
-export 'package:grocery_app/screens/account/auth_screen.dart';
+// export 'package:grocery_app/screens/account/auth_screen.dart';
 export 'package:grocery_app/models/order_model.dart';
 export 'package:grocery_app/models/subscription_plan_model.dart';
 export 'package:grocery_app/models/subscription_request_create_model.dart';

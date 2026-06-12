@@ -20,8 +20,9 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
-  List<Product> _searchResults = [];
-  bool _isSearching = false;
+  final ValueNotifier<List<Product>> _searchResultsNotifier = ValueNotifier<List<Product>>([]);
+  final ValueNotifier<bool> _isSearchingNotifier = ValueNotifier<bool>(false);
+  final ValueNotifier<bool> _isSearchActiveNotifier = ValueNotifier<bool>(false);
   bool _isNavigatingToFeatured = false;
   final TextEditingController _searchController = TextEditingController();
   final FocusNode _focusNode = FocusNode();
@@ -103,40 +104,53 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     Future.delayed(const Duration(milliseconds: 300), () {
       if (mounted) _contentController.forward();
     });
+
+    _focusNode.addListener(_updateSearchActive);
+    _isSearchingNotifier.addListener(_updateSearchActive);
+    _searchResultsNotifier.addListener(_updateSearchActive);
+  }
+
+  void _updateSearchActive() {
+    _isSearchActiveNotifier.value = _isSearchingNotifier.value ||
+        (_searchResultsNotifier.value.isNotEmpty && _focusNode.hasFocus);
   }
 
   @override
   void dispose() {
+    _focusNode.removeListener(_updateSearchActive);
+    _isSearchingNotifier.removeListener(_updateSearchActive);
+    _searchResultsNotifier.removeListener(_updateSearchActive);
     _searchController.dispose();
     _focusNode.dispose();
     _debounce?.cancel();
     _headerController.dispose();
     _contentController.dispose();
     _bgColorNotifier.dispose();
+    _searchResultsNotifier.dispose();
+    _isSearchingNotifier.dispose();
+    _isSearchActiveNotifier.dispose();
     super.dispose();
   }
 
   Future<void> _performSearch(String query) async {
     if (query.isEmpty) {
-      setState(() {
-        _searchResults = [];
-        _isSearching = false;
-      });
+      _searchResultsNotifier.value = [];
+      _isSearchingNotifier.value = false;
       return;
     }
 
     if (_debounce?.isActive ?? false) _debounce!.cancel();
     _debounce = Timer(const Duration(milliseconds: 400), () async {
-      setState(() => _isSearching = true);
+      _isSearchingNotifier.value = true;
       try {
         List<Product> results = await getIt<CategoryService>().searchProducts(
           query,
         );
-        setState(() => _searchResults = results);
+        _searchResultsNotifier.value = results;
       } catch (e) {
         debugPrint("Search error: $e");
       } finally {
-        setState(() => _isSearching = false);
+        _isSearchingNotifier.value = false;
       }
     });
   }
@@ -204,8 +218,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                           padding: EdgeInsets.only(
                             left: screenWidth * 0.05,
                             right: screenWidth * 0.05,
-                            top: MediaQuery.paddingOf(context).top + 12,
-                            bottom: 12,
+                            top: MediaQuery.paddingOf(context).top + 4,
+                            bottom: 8,
                           ),
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -233,58 +247,11 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                       child: Row(
                                         children: [
                                           // Animated Avatar with glow
-                                          // Container(
-                                          //   padding: const EdgeInsets.all(2),
-                                          //   decoration: BoxDecoration(
-                                          //     shape: BoxShape.circle,
-                                          //     gradient: LinearGradient(
-                                          //       colors: [
-                                          //         theme.colorScheme.primary,
-                                          //         theme.colorScheme.secondary,
-                                          //       ],
-                                          //     ),
-                                          //     boxShadow: [
-                                          //       BoxShadow(
-                                          //         color: theme
-                                          //             .colorScheme
-                                          //             .primary
-                                          //             .withValues(alpha: 0.4),
-                                          //         blurRadius: 8,
-                                          //         spreadRadius: 1,
-                                          //       ),
-                                          //     ],
-                                          //   ),
-                                          //   child: CircleAvatar(
-                                          //     radius: 20,
-                                          //     backgroundColor: theme.cardColor,
-                                          //     // backgroundImage:
-                                          //     //     profilePicture != null &&
-                                          //     //             profilePicture
-                                          //     //                 .isNotEmpty
-                                          //     //         ? CachedNetworkImageProvider(
-                                          //     //           profilePicture,
-                                          //     //         )
-                                          //     //         : null,
-                                          //     child:
-                                          //         profilePicture == null ||
-                                          //                 profilePicture.isEmpty
-                                          //             ? Text(
-                                          //               name[0].toUpperCase(),
-                                          //               style: textTheme
-                                          //                   .titleMedium
-                                          //                   ?.copyWith(
-                                          //                     fontWeight:
-                                          //                         FontWeight
-                                          //                             .bold,
-                                          //                     color:
-                                          //                         theme
-                                          //                             .colorScheme
-                                          //                             .primary,
-                                          //                   ),
-                                          //             )
-                                          //             : null,
-                                          //   ),
-                                          // ),
+                                          Image.asset(
+                                            'assets/images/1.png',
+                                            height: 40,
+                                            width: 40,
+                                          ),
                                           const SizedBox(width: 4),
                                           // Greeting Text Column
                                           Expanded(
@@ -390,17 +357,22 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                             ],
                           ),
                         ),
-                        HomeSearchBar(
-                          controller: _searchController,
-                          focusNode: _focusNode,
-                          onChanged: _performSearch,
-                          onClear: () {
-                            _searchController.clear();
-                            setState(() => _searchResults = []);
+                        ValueListenableBuilder<bool>(
+                          valueListenable: _isSearchingNotifier,
+                          builder: (context, isSearching, child) {
+                            return HomeSearchBar(
+                              controller: _searchController,
+                              focusNode: _focusNode,
+                              onChanged: _performSearch,
+                              onClear: () {
+                                _searchController.clear();
+                                _searchResultsNotifier.value = [];
+                              },
+                              isSearching: isSearching,
+                            );
                           },
-                          isSearching: _isSearching,
                         ),
-                        const SizedBox(height: 20), // Bottom padding for header
+                        const SizedBox(height: 12), // Bottom padding for header
                       ],
                     ),
                   ],
@@ -413,63 +385,84 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
             // Animated Content Section
             FadeTransition(
               opacity: _contentFade,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  if (_isSearching)
-                    const Center(child: CircularProgressIndicator())
-                  else if (_searchResults.isNotEmpty && _focusNode.hasFocus)
-                    HomeSearchDropdown(
-                      searchResults: _searchResults,
-                      onProductTap:
-                          (product) => _onProductClicked(context, product),
-                    )
-                  else ...[
-                    padded(
-                      RepaintBoundary(
-                        child: TopCurosel(
-                          onColorChanged: (color) {
-                            _bgColorNotifier.value = color;
-                          },
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    const RepaintBoundary(child: AllProductsList()),
-                    BlocBuilder<AuthCubit, AuthState>(
-                      builder: (context, authState) {
-                        if (authState is! Authenticated) {
-                          return const SizedBox.shrink();
+              child: ValueListenableBuilder<bool>(
+                valueListenable: _isSearchActiveNotifier,
+                builder: (context, isSearchActive, child) {
+                  if (isSearchActive) {
+                    return ValueListenableBuilder<bool>(
+                      valueListenable: _isSearchingNotifier,
+                      builder: (context, isSearching, child) {
+                        if (isSearching) {
+                          return const Padding(
+                            padding: EdgeInsets.symmetric(vertical: 40.0),
+                            child: Center(
+                              child: CircularProgressIndicator(),
+                            ),
+                          );
                         }
-                        return Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            padded(
-                              const RepaintBoundary(
-                                child: SubscriptionCarousel(),
-                              ),
-                            ),
-                            _heading(context, "Subscription Plans", "", () {}),
-                            RepaintBoundary(
-                              child: _subscriptionSection(context),
-                            ),
-                          ],
+                        return ValueListenableBuilder<List<Product>>(
+                          valueListenable: _searchResultsNotifier,
+                          builder: (context, searchResults, child) {
+                            return HomeSearchDropdown(
+                              searchResults: searchResults,
+                              onProductTap: (product) => _onProductClicked(context, product),
+                            );
+                          },
                         );
                       },
-                    ),
-                    padded(
-                      const RepaintBoundary(child: HomeCategoryShowcase()),
-                    ),
-                    RepaintBoundary(child: _buildFeaturedProducts()),
-                    const SizedBox(height: 4),
-                    RepaintBoundary(
-                      child: HomeCommunitiesSection(
-                        communitiesFuture: _communitiesFuture,
-                        buildCard: _buildCommunityCard,
+                    );
+                  }
+
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      padded(
+                        RepaintBoundary(
+                          child: TopCurosel(
+                            onColorChanged: (color) {
+                              _bgColorNotifier.value = color;
+                            },
+                          ),
+                        ),
                       ),
-                    ),
-                  ],
-                ],
+                      const SizedBox(height: 12),
+                      const RepaintBoundary(child: AllProductsList()),
+                      BlocBuilder<AuthCubit, AuthState>(
+                        builder: (context, authState) {
+                          if (authState is! Authenticated) {
+                            return const SizedBox.shrink();
+                          }
+                          return Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              padded(
+                                const RepaintBoundary(
+                                  child: SubscriptionCarousel(),
+                                ),
+                              ),
+                              _heading(context, "Subscription Plans", "", () {}),
+                              RepaintBoundary(
+                                child: _subscriptionSection(context),
+                              ),
+                            ],
+                          );
+                        },
+                      ),
+                      padded(
+                        const RepaintBoundary(child: HomeCategoryShowcase()),
+                      ),
+                      RepaintBoundary(child: _buildFeaturedProducts()),
+                      const SizedBox(height: 4),
+                      RepaintBoundary(
+                        child: HomeCommunitiesSection(
+                          communitiesFuture: _communitiesFuture,
+                          buildCard: _buildCommunityCard,
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+                    ],
+                  );
+                },
               ),
             ),
           ],

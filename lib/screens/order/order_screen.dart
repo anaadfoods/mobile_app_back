@@ -66,19 +66,21 @@ class _OrderScreenState extends State<OrderScreen>
   //   return DateFormat('MMM d').format(date);
   // }
 
+  void _handleBack(BuildContext context) {
+    if (Navigator.canPop(context)) {
+      Navigator.pop(context);
+    } else {
+      context.goNamed(AppRoute.home.name);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
-    return PopScope(
-      canPop: false,
-      onPopInvokedWithResult: (didPop, result) {
-        if (didPop) return;
-        context.goNamed(AppRoute.profile.name);
-      },
-      child: Scaffold(
-        backgroundColor: theme.scaffoldBackgroundColor,
+    final scaffold = Scaffold(
+      backgroundColor: theme.scaffoldBackgroundColor,
       body: RefreshIndicator(
         onRefresh: _fetchOrders,
         color: theme.colorScheme.primary,
@@ -121,7 +123,15 @@ class _OrderScreenState extends State<OrderScreen>
           ],
         ),
       ),
-      )
+    );
+
+    return PopScope(
+      canPop: Navigator.canPop(context),
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) return;
+        context.goNamed(AppRoute.home.name);
+      },
+      child: scaffold,
     );
   }
 
@@ -231,12 +241,12 @@ class _OrderScreenState extends State<OrderScreen>
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     // Back button
-                    // IconButton(
-                    //   icon: const Icon(Icons.arrow_back_rounded, color: AppColors.parchment),
-                    //   padding: EdgeInsets.zero,
-                    //   constraints: const BoxConstraints(),
-                    //   onPressed: () => Navigator.maybePop(context),
-                    // ),
+                    IconButton(
+                      icon: const Icon(Icons.arrow_back_rounded, color: AppColors.parchment),
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(),
+                      onPressed: () => _handleBack(context),
+                    ),
                     const SizedBox(height: 16),
                     // Title
                     FittedBox(
@@ -702,11 +712,20 @@ class _ModernOrderCard extends StatelessWidget {
                     borderRadius: BorderRadius.circular(10),
                     child:
                         imageUrl != null
-                            ? Image.network(
-                              imageUrl,
+                            ? CachedNetworkImage(
+                              imageUrl: imageUrl,
                               fit: BoxFit.cover,
-                              errorBuilder:
-                                  (_, __, ___) => _buildPlaceholder(isDark),
+                              placeholder: (context, url) => Container(
+                                color: isDark ? AppColors.darkSurfaceElevated : AppColors.parchment,
+                                child: const Center(
+                                  child: SizedBox(
+                                    width: 16,
+                                    height: 16,
+                                    child: CircularProgressIndicator(strokeWidth: 2),
+                                  ),
+                                ),
+                              ),
+                              errorWidget: (context, url, error) => _buildPlaceholder(isDark),
                             )
                             : _buildPlaceholder(isDark),
                   ),

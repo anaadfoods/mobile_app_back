@@ -246,9 +246,10 @@ class _PremiumBottomNavBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final bottomInset = MediaQuery.paddingOf(context).bottom;
     return Container(
       height: 75,
-      margin: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+      margin: EdgeInsets.fromLTRB(12, 0, 12, 12 + bottomInset),
       child: Stack(
         clipBehavior: Clip.none,
         alignment: Alignment.bottomCenter,
@@ -261,7 +262,7 @@ class _PremiumBottomNavBar extends StatelessWidget {
             child: ClipPath(
               clipper: _WaveClipper(notchRadius: 28, notchMargin: 6),
               child: BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 60, sigmaY: 60),
+                filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
                 child: Container(
                   height: 58,
                   decoration: BoxDecoration(
