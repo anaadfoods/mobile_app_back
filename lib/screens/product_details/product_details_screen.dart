@@ -351,6 +351,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+    final bottomInset = MediaQuery.of(context).padding.bottom + 180.0;
 
     final backgroundImage = widget.product.productImages.isNotEmpty
         ? widget.product.productImages.first.image
@@ -400,6 +401,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
                 Expanded(
                   child: SingleChildScrollView(
                     physics: const BouncingScrollPhysics(),
+                    padding: EdgeInsets.only(bottom: bottomInset),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -508,7 +510,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
                             },
                           ),
                         ),
-                        const SizedBox(height: 100),
+                        const SizedBox(height: 24),
                       ],
                     ),
                   ),

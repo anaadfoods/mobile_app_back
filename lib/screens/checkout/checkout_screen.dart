@@ -880,7 +880,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   Widget _buildAnimatedHeader(ThemeData theme, bool isDark) {
     return SliverToBoxAdapter(
       child: Container(
-        height: 160,
+        height: 170,
         decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topLeft,
@@ -1367,7 +1367,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
           // Subscription delivery info banner
           if (widget.isSubscription && subscription != null) ...[
-            const SizedBox(height: 16),
+            const SizedBox(height: 2),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
               decoration: BoxDecoration(
@@ -1382,7 +1382,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                     color: AppColors.parchment,
                     size: 20,
                   ),
-                  const SizedBox(width: 10),
+                  const SizedBox(width: 20),
                   Expanded(
                     child: Text(
                       'Products delivered every month for ${subscription!.durationMonths} months',
@@ -1825,7 +1825,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                             fontWeight: FontWeight.bold,
                           ),
                         ),
-                        SizedBox(width: 8),
+                        SizedBox(width: 3),
                         Icon(Icons.arrow_forward_rounded, size: 20),
                       ],
                     ),

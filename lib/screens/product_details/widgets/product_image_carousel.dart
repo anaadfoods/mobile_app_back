@@ -1,4 +1,5 @@
 import 'package:grocery_app/common_widgets/global_import.dart';
+import 'package:grocery_app/screens/product_details/widgets/product_image_zoom_viewer.dart';
 
 class ProductImageCarousel extends StatelessWidget {
   final Product product;
@@ -54,6 +55,7 @@ class ProductImageCarousel extends StatelessWidget {
             physics: const BouncingScrollPhysics(),
             onPageChanged: onPageChanged,
             itemBuilder: (context, index) {
+              final heroTag = 'product-image-${product.id}-$index';
               return Container(
                 margin: const EdgeInsets.symmetric(horizontal: 20),
                 decoration: BoxDecoration(
@@ -68,20 +70,38 @@ class ProductImageCarousel extends StatelessWidget {
                 ),
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(16),
-                  child: CachedNetworkImage(
-                    imageUrl: productImages[index].image,
-                    fit: BoxFit.cover,
-                    placeholder: (context, url) => Shimmer.fromColors(
-                      baseColor: AppColors.rawEarth12,
-                      highlightColor: AppColors.parchment,
-                      child: Container(color: AppColors.rawEarth12),
-                    ),
-                    errorWidget: (context, url, error) => Container(
-                      color: AppColors.parchment,
-                      child: const Icon(
-                        Icons.broken_image_outlined,
-                        color: AppColors.rawEarth54,
-                        size: 40,
+                  child: GestureDetector(
+                    onTap: () {
+                      onTriggerHaptic();
+                      showDialog(
+                        context: context,
+                        barrierColor: Colors.black.withValues(alpha: 0.96),
+                        builder: (context) {
+                          return ProductImageZoomViewer(
+                            imageUrl: productImages[index].image,
+                            heroTag: heroTag,
+                          );
+                        },
+                      );
+                    },
+                    child: Hero(
+                      tag: heroTag,
+                      child: CachedNetworkImage(
+                        imageUrl: productImages[index].image,
+                        fit: BoxFit.cover,
+                        placeholder: (context, url) => Shimmer.fromColors(
+                          baseColor: AppColors.rawEarth12,
+                          highlightColor: AppColors.parchment,
+                          child: Container(color: AppColors.rawEarth12),
+                        ),
+                        errorWidget: (context, url, error) => Container(
+                          color: AppColors.parchment,
+                          child: const Icon(
+                            Icons.broken_image_outlined,
+                            color: AppColors.rawEarth54,
+                            size: 40,
+                          ),
+                        ),
                       ),
                     ),
                   ),

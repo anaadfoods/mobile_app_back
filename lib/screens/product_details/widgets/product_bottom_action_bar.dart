@@ -51,41 +51,6 @@ class ProductBottomActionBar extends StatelessWidget {
               cartQuantity = cartItem?.quantity ?? 0;
             }
 
-            if (state is CartLoading || state is CartInitial) {
-              return Center(
-                child: ShimmerLoading(
-                  isLoading: true,
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: Container(
-                          height: 50,
-                          decoration: BoxDecoration(
-                            color: isDark
-                                ? AppColors.darkCanvas
-                                : AppColors.rawEarth54.withValues(alpha: 0.2),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Container(
-                          height: 50,
-                          decoration: BoxDecoration(
-                            color: isDark
-                                ? AppColors.darkCanvas
-                                : AppColors.rawEarth54.withValues(alpha: 0.2),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              );
-            }
-
             return AnimatedSwitcher(
               duration: const Duration(milliseconds: 350),
               transitionBuilder: (child, animation) {
