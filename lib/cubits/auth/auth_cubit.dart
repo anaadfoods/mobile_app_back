@@ -27,6 +27,26 @@ class AuthCubit extends Cubit<AuthState> {
     }
   }
 
+  /// Re-syncs the authenticated user from local storage without a loading state.
+  Future<void> refreshUserSilently() async {
+    if (state is! Authenticated) return;
+    try {
+      final user = await _authRepository.checkAuthStatus();
+      if (user != null) {
+        emit(Authenticated(user));
+      }
+    } catch (_) {
+      // Keep the current authenticated state on read failures.
+    }
+  }
+
+  /// Updates the in-memory authenticated user without a loading state.
+  void applyUserUpdate(UserModel user) {
+    if (state is Authenticated) {
+      emit(Authenticated(user));
+    }
+  }
+
   Future<void> verifyAndRefreshToken() async {
     try {
       if (state is Authenticated) {

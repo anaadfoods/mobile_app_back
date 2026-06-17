@@ -37,6 +37,30 @@ class _AccountScreenState extends State<AccountScreen>
       duration: const Duration(milliseconds: 2500),
     )..repeat();
     _fetchUserSummary();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _syncUserProfile();
+    });
+  }
+
+  Future<void> _syncUserProfile() async {
+    if (!mounted) return;
+    final authCubit = context.read<AuthCubit>();
+    if (authCubit.state is! Authenticated) return;
+
+    try {
+      final user = await getIt<ProfileService>().getUserProfile();
+      if (!mounted) return;
+      if (user != null) {
+        authCubit.applyUserUpdate(user);
+        return;
+      }
+    } catch (_) {
+      // Fall back to cached user data below.
+    }
+
+    if (mounted) {
+      await authCubit.refreshUserSilently();
+    }
   }
 
   @override
@@ -505,20 +529,45 @@ class _AccountScreenState extends State<AccountScreen>
         border: Border.all(color: AppColors.parchment.withAlpha(60), width: 1),
       ),
       child: Center(
-        child: CircleAvatar(
-          radius: 30,
-          backgroundColor: theme.colorScheme.primary.withAlpha(
-            hasImage ? 40 : 80,
+        child: ClipOval(
+          child: SizedBox(
+            width: 60,
+            height: 60,
+            child:
+                hasImage
+                    ? CachedNetworkImage(
+                      imageUrl: user.profilePicture!,
+                      cacheKey: user.profilePicture!.split('?').first,
+                      fit: BoxFit.cover,
+                      placeholder:
+                          (context, url) => ColoredBox(
+                            color: theme.colorScheme.primary.withAlpha(40),
+                            child: Center(
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: theme.colorScheme.primary,
+                              ),
+                            ),
+                          ),
+                      errorWidget:
+                          (context, url, error) => ColoredBox(
+                            color: theme.colorScheme.primary.withAlpha(80),
+                            child: const Icon(
+                              Icons.person_rounded,
+                              size: 34,
+                              color: AppColors.parchment,
+                            ),
+                          ),
+                    )
+                    : ColoredBox(
+                      color: theme.colorScheme.primary.withAlpha(80),
+                      child: const Icon(
+                        Icons.person_rounded,
+                        size: 34,
+                        color: AppColors.parchment,
+                      ),
+                    ),
           ),
-          backgroundImage: hasImage ? NetworkImage(user.profilePicture!) : null,
-          child:
-              !hasImage
-                  ? const Icon(
-                    Icons.person_rounded,
-                    size: 34,
-                    color: AppColors.parchment,
-                  )
-                  : null,
         ),
       ),
     );

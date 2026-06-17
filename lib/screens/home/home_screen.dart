@@ -185,29 +185,46 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                 opacity: _headerFade,
                 child: Stack(
                   children: [
-                    // Dynamic color header background with blur effect
+                    // Dynamic color header background driven by carousel
                     Positioned.fill(
-                      child: AnimatedContainer(
-                        duration: const Duration(milliseconds: 500),
-                        curve: Curves.easeInOut,
-                        width: double.infinity,
-                        child: ClipRRect(
-                          borderRadius: const BorderRadius.only(
-                            bottomLeft: Radius.circular(30),
-                            bottomRight: Radius.circular(30),
-                          ),
-                          child: Container(
-                            decoration: const BoxDecoration(
-                              gradient: LinearGradient(
-                                begin: Alignment.topLeft,
-                                end: Alignment.bottomRight,
-                                colors: [
-                                  AppColors.deepSoilGreen,
-                                  Color(0xFF3D6B28),
-                                ],
+                      child: ClipRRect(
+                        borderRadius: const BorderRadius.only(
+                          bottomLeft: Radius.circular(30),
+                          bottomRight: Radius.circular(30),
+                        ),
+                        child: ValueListenableBuilder<Color?>(
+                          valueListenable: _bgColorNotifier,
+                          builder: (context, dynamicColor, _) {
+                            return AnimatedContainer(
+                              duration: const Duration(milliseconds: 500),
+                              curve: Curves.easeInOut,
+                              width: double.infinity,
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                  colors:
+                                      dynamicColor != null
+                                          ? [
+                                            Color.lerp(
+                                              AppColors.deepSoilGreen,
+                                              dynamicColor,
+                                              0.55,
+                                            )!,
+                                            Color.lerp(
+                                              const Color(0xFF3D6B28),
+                                              dynamicColor,
+                                              0.45,
+                                            )!,
+                                          ]
+                                          : const [
+                                            AppColors.deepSoilGreen,
+                                            Color(0xFF3D6B28),
+                                          ],
+                                ),
                               ),
-                            ),
-                          ),
+                            );
+                          },
                         ),
                       ),
                     ),
