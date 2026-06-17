@@ -52,6 +52,7 @@ dependencies:
   collection: any
   sign_in_with_apple: ^7.0.1
   device_preview: any
+  image_cropper: ^12.2.1
 
 dev_dependencies:
   flutter_test:

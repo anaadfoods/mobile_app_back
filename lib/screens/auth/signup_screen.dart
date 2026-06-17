@@ -998,6 +998,8 @@ class _SignupScreenState extends State<SignupScreen>
                                         hintText: "Referral Code (Optional)",
                                         controller: _referralCodeController,
                                         onPrimary: true,
+                                        textInputAction: TextInputAction.done,
+                                        onFieldSubmitted: (_) => _handleSignup(),
                                       ),
                                     ),
                                     const SizedBox(height: 20),

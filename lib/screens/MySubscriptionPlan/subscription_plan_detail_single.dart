@@ -564,6 +564,7 @@ class _SubscriptionPlanDetailScreenState
       builder:
           (context) => PauseDatePickerSheet(
             maxPausesLeft: subscription.remainingPauseTimes,
+            maxPauseDaysLeft: subscription.remainingPauseDays,
             onConfirm: (start, end) {
               _showConfirmationPopup(
                 context,

@@ -2,6 +2,7 @@ import 'dart:math' as math;
 import 'package:grocery_app/common_widgets/global_import.dart';
 import 'package:grocery_app/common_widgets/select_state.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:image_cropper/image_cropper.dart';
 
 class EditProfileScreen extends StatefulWidget {
   final UserModel userProfile;
@@ -136,7 +137,7 @@ class _EditProfileScreenState extends State<EditProfileScreen>
   // Calculate profile completion percentage
   double _calculateProfileCompletion() {
     int filledFields = 0;
-    int totalFields = 9;
+    int totalFields = 10;
 
     if (_firstNameController.text.isNotEmpty) filledFields++;
     if (_lastNameController.text.isNotEmpty) filledFields++;
@@ -147,6 +148,7 @@ class _EditProfileScreenState extends State<EditProfileScreen>
     if (_cityController.text.isNotEmpty) filledFields++;
     if (_stateController.text.isNotEmpty) filledFields++;
     if (_pincodeController.text.isNotEmpty) filledFields++;
+    if (_selectedImage != null || (widget.userProfile.profilePicture != null && widget.userProfile.profilePicture!.isNotEmpty)) filledFields++;
 
     return filledFields / totalFields;
   }
@@ -291,9 +293,31 @@ class _EditProfileScreenState extends State<EditProfileScreen>
         imageQuality: 80,
       );
       if (pickedFile != null) {
-        setState(() {
-          _selectedImage = File(pickedFile.path);
-        });
+        final croppedFile = await ImageCropper().cropImage(
+          sourcePath: pickedFile.path,
+          compressFormat: ImageCompressFormat.jpg,
+          compressQuality: 90,
+          uiSettings: [
+            AndroidUiSettings(
+              toolbarTitle: 'Crop Photo',
+              toolbarColor: Theme.of(context).colorScheme.primary,
+              toolbarWidgetColor: Colors.white,
+              initAspectRatio: CropAspectRatioPreset.square,
+              lockAspectRatio: true,
+            ),
+            IOSUiSettings(
+              title: 'Crop Photo',
+              aspectRatioLockEnabled: true,
+              resetAspectRatioEnabled: false,
+            ),
+          ],
+        );
+
+        if (croppedFile != null) {
+          setState(() {
+            _selectedImage = File(croppedFile.path);
+          });
+        }
       }
     } catch (e) {
       if (mounted) SnackBarHelper.showError(context, 'Error picking image: $e');
@@ -631,6 +655,11 @@ class _EditProfileScreenState extends State<EditProfileScreen>
                                 accentColor: theme.colorScheme.primary,
                                 keyboardType: TextInputType.number,
                                 isLast: true,
+                                textInputAction: TextInputAction.done,
+                                onFieldSubmitted: (_) {
+                                  FocusScope.of(context).unfocus();
+                                  _updateProfile();
+                                },
                               ),
                             ],
                           ),
@@ -1359,6 +1388,8 @@ class _EditProfileScreenState extends State<EditProfileScreen>
     bool readOnly = false,
     TextInputType? keyboardType,
     bool isLast = false,
+    TextInputAction? textInputAction,
+    Function(String)? onFieldSubmitted,
   }) {
     final isDark = theme.brightness == Brightness.dark;
 
@@ -1420,6 +1451,8 @@ class _EditProfileScreenState extends State<EditProfileScreen>
             controller: controller,
             readOnly: readOnly,
             keyboardType: keyboardType,
+            textInputAction: textInputAction,
+            onFieldSubmitted: onFieldSubmitted,
             onTap: readOnly ? null : _triggerHaptic,
             style: TextStyle(
               fontSize: 15,

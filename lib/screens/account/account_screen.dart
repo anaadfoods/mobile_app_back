@@ -293,13 +293,13 @@ class _AccountScreenState extends State<AccountScreen>
                           context.pushNamed(AppRoute.help.name);
                         },
                       ),
-                      AccountMenuItem(
-                        icon: Icons.chat_bubble_outline_rounded,
-                        title: 'Chat on WhatsApp',
-                        subtitle: "We're here to help",
-                        iconColor: AppColors.deepSoilGreen,
-                        onTap: () => openWhatsApp(context),
-                      ),
+                      // AccountMenuItem(
+                      //   icon: Icons.chat_bubble_outline_rounded,
+                      //   title: 'Chat on WhatsApp',
+                      //   subtitle: "We're here to help",
+                      //   iconColor: AppColors.deepSoilGreen,
+                      //   onTap: () => openWhatsApp(context),
+                      // ),
                       AccountMenuItem(
                         icon: Icons.info_outline_rounded,
                         title: 'About Us',

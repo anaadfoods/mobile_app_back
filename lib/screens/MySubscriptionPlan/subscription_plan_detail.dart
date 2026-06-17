@@ -1130,6 +1130,7 @@ class _SubscriptionCardState extends State<_SubscriptionCard> {
       builder:
           (context) => PauseDatePickerSheet(
             maxPausesLeft: widget.subscription.remainingPauseTimes,
+            maxPauseDaysLeft: widget.subscription.remainingPauseDays,
             onConfirm: (start, end) {
               _showConfirmationPopup(
                 context,

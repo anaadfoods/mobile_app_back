@@ -620,7 +620,7 @@ class _ModernSubscriptionSheetState extends State<ModernSubscriptionSheet>
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
                       Text(
-                        '₹${planData.discountedPrice.toStringAsFixed(0)}',
+                        isEnabled ? '₹${planData.discountedPrice.toStringAsFixed(0)}' : 'Unavailable',
                         style: theme.textTheme.titleMedium?.copyWith(
                           fontWeight: FontWeight.bold,
                           color:
@@ -629,21 +629,22 @@ class _ModernSubscriptionSheetState extends State<ModernSubscriptionSheet>
                                   : AppColors.harvestAmber,
                         ),
                       ),
-                      Text(
-                        '/month',
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color:
-                              isSelected
-                                  ? AppColors.pureWhite.withValues(alpha: 0.6)
-                                  : (isDark
-                                      ? AppColors.parchment70
-                                      : theme.hintColor),
-                          fontWeight:
-                              (isDark && !isSelected)
-                                  ? FontWeight.bold
-                                  : FontWeight.normal,
+                      if (isEnabled)
+                        Text(
+                          plan.durationMonths == 1 ? '/one month' : '/month',
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color:
+                                isSelected
+                                    ? AppColors.pureWhite.withValues(alpha: 0.6)
+                                    : (isDark
+                                        ? AppColors.parchment70
+                                        : theme.hintColor),
+                            fontWeight:
+                                (isDark && !isSelected)
+                                    ? FontWeight.bold
+                                    : FontWeight.normal,
+                          ),
                         ),
-                      ),
                     ],
                   ),
                 ],

@@ -141,6 +141,7 @@ class _OrderScreenState extends State<OrderScreen>
             .where((o) => o.status != 'DELIVERED' && o.status != 'CANCELLED')
             .length;
     final completedOrders = orders.where((o) => o.status == 'DELIVERED').length;
+    final cancelledOrders = orders.where((o) => o.status == 'CANCELLED').length;
     final mediaQuery = MediaQuery.of(context);
     final statusBarHeight = mediaQuery.padding.top;
 
@@ -242,7 +243,10 @@ class _OrderScreenState extends State<OrderScreen>
                   children: [
                     // Back button
                     IconButton(
-                      icon: const Icon(Icons.arrow_back_rounded, color: AppColors.parchment),
+                      icon: const Icon(
+                        Icons.arrow_back_rounded,
+                        color: AppColors.parchment,
+                      ),
                       padding: EdgeInsets.zero,
                       constraints: const BoxConstraints(),
                       onPressed: () => _handleBack(context),
@@ -287,6 +291,14 @@ class _OrderScreenState extends State<OrderScreen>
                               icon: Icons.check_circle_outline,
                               label: 'Completed',
                               count: completedOrders,
+                              color: AppColors.deepSoilGreen,
+                            ),
+                            const SizedBox(width: 8),
+
+                            _buildStatChip(
+                              icon: Icons.cancel_outlined,
+                              label: 'Cancelled',
+                              count: cancelledOrders,
                               color: AppColors.deepSoilGreen,
                             ),
                           ],
@@ -697,7 +709,10 @@ class _ModernOrderCard extends StatelessWidget {
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
-                      color: isDark ? AppColors.darkSurfaceElevated : AppColors.parchment,
+                      color:
+                          isDark
+                              ? AppColors.darkSurfaceElevated
+                              : AppColors.parchment,
                       width: 2,
                     ),
                     boxShadow: [
@@ -715,17 +730,25 @@ class _ModernOrderCard extends StatelessWidget {
                             ? CachedNetworkImage(
                               imageUrl: imageUrl,
                               fit: BoxFit.cover,
-                              placeholder: (context, url) => Container(
-                                color: isDark ? AppColors.darkSurfaceElevated : AppColors.parchment,
-                                child: const Center(
-                                  child: SizedBox(
-                                    width: 16,
-                                    height: 16,
-                                    child: CircularProgressIndicator(strokeWidth: 2),
+                              placeholder:
+                                  (context, url) => Container(
+                                    color:
+                                        isDark
+                                            ? AppColors.darkSurfaceElevated
+                                            : AppColors.parchment,
+                                    child: const Center(
+                                      child: SizedBox(
+                                        width: 16,
+                                        height: 16,
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2,
+                                        ),
+                                      ),
+                                    ),
                                   ),
-                                ),
-                              ),
-                              errorWidget: (context, url, error) => _buildPlaceholder(isDark),
+                              errorWidget:
+                                  (context, url, error) =>
+                                      _buildPlaceholder(isDark),
                             )
                             : _buildPlaceholder(isDark),
                   ),
@@ -739,7 +762,8 @@ class _ModernOrderCard extends StatelessWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
             decoration: BoxDecoration(
-              color: isDark ? AppColors.darkSurfaceElevated : AppColors.parchment,
+              color:
+                  isDark ? AppColors.darkSurfaceElevated : AppColors.parchment,
               borderRadius: BorderRadius.circular(12),
             ),
             child: Text(
@@ -841,7 +865,10 @@ class _LoadingState extends StatelessWidget {
             child: Container(
               height: 140,
               decoration: BoxDecoration(
-                color: isDark ? AppColors.darkSurfaceElevated : AppColors.parchment,
+                color:
+                    isDark
+                        ? AppColors.darkSurfaceElevated
+                        : AppColors.parchment,
                 borderRadius: BorderRadius.circular(20),
               ),
             ),

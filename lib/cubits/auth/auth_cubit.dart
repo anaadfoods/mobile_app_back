@@ -70,12 +70,20 @@ class AuthCubit extends Cubit<AuthState> {
       final user = await _authRepository.googleLogin();
       emit(Authenticated(user));
     } on AuthException catch (e) {
-      emit(AuthError(e.message));
+      final errorString = e.message.toLowerCase();
+      if (errorString.contains('canceled') || errorString.contains('cancelled') || errorString.contains('sign in canceled')) {
+        emit(Unauthenticated());
+      } else {
+        emit(AuthError(e.message));
+      }
     } catch (e) {
       AppLogger.instance.log('DEBUG: googleLogin error: $e');
-      emit(AuthError(e.toString().contains('canceled') 
-        ? 'Google Sign-In was canceled.' 
-        : 'An unexpected error occurred. Please try again.'));
+      final errorString = e.toString().toLowerCase();
+      if (errorString.contains('canceled') || errorString.contains('cancelled') || errorString.contains('sign in canceled')) {
+        emit(Unauthenticated());
+      } else {
+        emit(const AuthError('An unexpected error occurred. Please try again.'));
+      }
     }
   }
 
@@ -85,9 +93,19 @@ class AuthCubit extends Cubit<AuthState> {
       final user = await _authRepository.appleLogin();
       emit(Authenticated(user));
     } on AuthException catch (e) {
-      emit(AuthError(e.message));
+      final errorString = e.message.toLowerCase();
+      if (errorString.contains('canceled') || errorString.contains('cancelled') || errorString.contains('sign in canceled')) {
+        emit(Unauthenticated());
+      } else {
+        emit(AuthError(e.message));
+      }
     } catch (e) {
-      emit(const AuthError('An unexpected error occurred. Please try again.'));
+      final errorString = e.toString().toLowerCase();
+      if (errorString.contains('canceled') || errorString.contains('cancelled') || errorString.contains('sign in canceled')) {
+        emit(Unauthenticated());
+      } else {
+        emit(const AuthError('An unexpected error occurred. Please try again.'));
+      }
     }
   }
 

@@ -76,7 +76,7 @@ class _TopCuroselState extends State<TopCurosel>
         subtitle:
             "Low RPM Natural Stone Milling of the flour preserves every bit of nutrition",
         buttonText: 'See the Product',
-        color: AppColors.parchment, // Brownish for grains/milling
+        color: Colors.amber, // Amber nature
         onTap: () {
           final dashboardState =
               context.findAncestorStateOfType<DashboardScreenState>();
@@ -88,7 +88,7 @@ class _TopCuroselState extends State<TopCurosel>
         title: 'We don’t manufacture. We grow',
         subtitle: 'A return to Truly Nutritional Food',
         buttonText: 'Read Our Roots',
-        color: AppColors.parchment, // Green for growing
+        color: Colors.green, // Green
         onTap: () {
           context.push('/about-us');
         },
@@ -98,7 +98,7 @@ class _TopCuroselState extends State<TopCurosel>
         title: 'Picked before the sun rose',
         subtitle: "Harvested only when you order. Not a moment sooner",
         buttonText: 'Visit our Plot',
-        color: AppColors.parchment, // Golden/Orange for sun/harvest
+        color: Colors.yellow, // Yellow
         onTap: () {
           context.push('/product/1');
         },
@@ -108,7 +108,7 @@ class _TopCuroselState extends State<TopCurosel>
         title: 'Remote Farming Program',
         subtitle: "You can’t be at the farm. So we bring the farm to you.",
         buttonText: 'Visit our Plot',
-        color: AppColors.parchment, // Teal for remote/tech+farm
+        color: Colors.white, // White
         onTap: () {
           final authState = context.read<AuthCubit>().state;
           final isRfp = authState is Authenticated && authState.user.isRfp;
@@ -320,8 +320,8 @@ class _TopCuroselState extends State<TopCurosel>
                                 borderRadius: BorderRadius.circular(14),
                                 child: BackdropFilter(
                                   filter: ImageFilter.blur(
-                                    sigmaX: 6,
-                                    sigmaY: 6,
+                                    sigmaX: 2,
+                                    sigmaY: 2,
                                   ),
                                   child: Container(
                                     padding: const EdgeInsets.symmetric(

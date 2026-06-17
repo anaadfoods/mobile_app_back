@@ -426,6 +426,8 @@ class _LoginScreenState extends State<LoginScreen>
                                                         _passwordController,
                                                     focusNode: _passwordFocus,
                                                     onPrimary: true,
+                                                    textInputAction: TextInputAction.done,
+                                                    onFieldSubmitted: (_) => _handleLogin(),
                                                     validator: (value) {
                                                       if (value == null ||
                                                           value.isEmpty) {

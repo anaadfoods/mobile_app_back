@@ -1,5 +1,7 @@
+import 'dart:ui';
 import 'dart:math' as math;
 import 'package:grocery_app/common_widgets/global_import.dart';
+import 'package:pinput/pinput.dart';
 
 class HelpScreen extends StatefulWidget {
   final String? orderNumber;
@@ -236,7 +238,10 @@ class _HelpScreenState extends State<HelpScreen> with TickerProviderStateMixin {
                   top: statusBarHeight + 8,
                   left: 12,
                   child: IconButton(
-                    icon: const Icon(Icons.arrow_back_rounded, color: AppColors.parchment),
+                    icon: const Icon(
+                      Icons.arrow_back_rounded,
+                      color: AppColors.parchment,
+                    ),
                     onPressed: () => Navigator.maybePop(context),
                   ),
                 ),
@@ -388,7 +393,7 @@ class _HelpScreenState extends State<HelpScreen> with TickerProviderStateMixin {
       {
         'icon': Icons.email_rounded,
         'title': 'Write to Us',
-        'subtitle': ' A detailed response within 3-5 business days',
+        'subtitle': 'wait for 48 hours',
         'color': AppColors.deepSoilGreen,
         'gradient': [AppColors.deepSoilGreen, AppColors.deepSoilGreen],
         'onTap': () => _launchEmail('complaints@anaadfoods.com'),
@@ -404,7 +409,7 @@ class _HelpScreenState extends State<HelpScreen> with TickerProviderStateMixin {
       {
         'icon': Icons.phone_rounded,
         'title': 'Speak to Us',
-        'subtitle': 'Real voices, no robots',
+        'subtitle': 'Real voices',
         'color': AppColors.harvestAmber,
         'gradient': [AppColors.harvestAmber, AppColors.harvestAmber],
         'onTap': () => _launchPhoneCall('9996166186'),
@@ -552,7 +557,7 @@ class _HelpScreenState extends State<HelpScreen> with TickerProviderStateMixin {
           children:
               faqs.asMap().entries.map((entry) {
                 final index = entry.key;
-                
+
                 final faq = entry.value;
                 return _FaqItem(
                   icon: faq['icon'] as IconData,
@@ -798,6 +803,11 @@ class _QueryFormSheetState extends State<_QueryFormSheet>
   String _selectedType = 'INDIVIDUAL';
   bool _isLoading = false;
 
+  bool _isEmailVerified = false;
+  bool _isPhoneVerified = false;
+  bool _isSendingEmailOtp = false;
+  bool _isSendingPhoneOtp = false;
+
   late AnimationController _animController;
   late Animation<double> _fadeAnimation;
 
@@ -827,6 +837,14 @@ class _QueryFormSheetState extends State<_QueryFormSheet>
 
   Future<void> _submitForm() async {
     if (!_formKey.currentState!.validate()) return;
+
+    if (!_isEmailVerified && !_isPhoneVerified) {
+      SnackBarHelper.showError(
+        context,
+        "Please verify either your email or phone number.",
+      );
+      return;
+    }
 
     HapticFeedback.mediumImpact();
     setState(() => _isLoading = true);
@@ -862,6 +880,361 @@ class _QueryFormSheetState extends State<_QueryFormSheet>
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
+  }
+
+  Future<void> _sendOtp(String type, String value) async {
+    if (value.trim().isEmpty) {
+      SnackBarHelper.showError(context, 'Please enter $type first.');
+      return;
+    }
+    
+    if (type == 'phone' && !RegExp(r'^\d{10}$').hasMatch(value.trim())) {
+      SnackBarHelper.showError(context, 'Enter a valid 10-digit phone number.');
+      return;
+    }
+    if (type == 'email' && !RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value.trim())) {
+      SnackBarHelper.showError(context, 'Enter a valid email.');
+      return;
+    }
+
+    setState(() {
+      if (type == 'email') _isSendingEmailOtp = true;
+      else _isSendingPhoneOtp = true;
+    });
+
+    try {
+      await context.read<AuthRepository>().sendOtp(value.trim(), type.toUpperCase());
+      if (!mounted) return;
+      _showOtpDialog(
+        type: type,
+        value: value.trim(),
+        onVerified: () {
+          setState(() {
+            if (type == 'email') _isEmailVerified = true;
+            else _isPhoneVerified = true;
+          });
+        },
+      );
+    } catch (e) {
+      if (mounted) SnackBarHelper.showError(context, e.toString().replaceAll('Exception:', '').trim());
+    } finally {
+      if (mounted) {
+        setState(() {
+          if (type == 'email') _isSendingEmailOtp = false;
+          else _isSendingPhoneOtp = false;
+        });
+      }
+    }
+  }
+
+  Future<void> _showOtpDialog({
+    required String type,
+    required String value,
+    required VoidCallback onVerified,
+  }) async {
+    final otpController = TextEditingController();
+    bool isVerifying = false;
+    String? dialogError;
+
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final textTheme = theme.textTheme;
+
+    await showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) {
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return Dialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(24),
+              ),
+              backgroundColor: AppColors.transparent,
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(24),
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 24.0,
+                      vertical: 32.0,
+                    ),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [
+                          colorScheme.primary,
+                          colorScheme.primary.withValues(alpha: 0.9),
+                        ],
+                      ),
+                      borderRadius: BorderRadius.circular(24),
+                      border: Border.all(
+                        color: AppColors.parchment.withValues(alpha: 0.2),
+                        width: 1.5,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: colorScheme.primary.withValues(alpha: 0.4),
+                          blurRadius: 30,
+                          offset: const Offset(0, 10),
+                        ),
+                      ],
+                    ),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        // Animated icon
+                        Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: AppColors.deepSoilGreen.withValues(
+                              alpha: 0.2,
+                            ),
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                              color: AppColors.deepSoilGreen.withValues(
+                                alpha: 0.4,
+                              ),
+                              width: 2,
+                            ),
+                          ),
+                          child: Icon(
+                            type == 'email'
+                                ? Icons.email_rounded
+                                : Icons.phone_android_rounded,
+                            color: AppColors.deepSoilGreen,
+                            size: 32,
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+                        Text(
+                          "OTP Verification",
+                          style: textTheme.headlineSmall?.copyWith(
+                            color: colorScheme.onPrimary,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        Text(
+                          "We've sent a 6-digit OTP to your $type",
+                          textAlign: TextAlign.center,
+                          style: textTheme.bodyMedium?.copyWith(
+                            color: colorScheme.onPrimary.withValues(alpha: 0.8),
+                            height: 1.5,
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+                        Pinput(
+                          length: 6,
+                          controller: otpController,
+                          forceErrorState: dialogError != null,
+                          onChanged:
+                              (_) => setDialogState(() => dialogError = null),
+                          defaultPinTheme: PinTheme(
+                            width: 45,
+                            height: 50,
+                            textStyle: const TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.parchment,
+                            ),
+                            decoration: BoxDecoration(
+                              color: AppColors.parchment.withValues(
+                                alpha: 0.15,
+                              ),
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: AppColors.parchment.withValues(
+                                  alpha: 0.3,
+                                ),
+                              ),
+                            ),
+                          ),
+                          focusedPinTheme: PinTheme(
+                            width: 45,
+                            height: 50,
+                            textStyle: const TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.parchment,
+                            ),
+                            decoration: BoxDecoration(
+                              color: AppColors.parchment.withValues(alpha: 0.2),
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: AppColors.deepSoilGreen,
+                                width: 2,
+                              ),
+                            ),
+                          ),
+                          submittedPinTheme: PinTheme(
+                            width: 45,
+                            height: 50,
+                            textStyle: const TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.parchment,
+                            ),
+                            decoration: BoxDecoration(
+                              color: AppColors.parchment.withValues(
+                                alpha: 0.25,
+                              ),
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: AppColors.parchment.withValues(
+                                  alpha: 0.5,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                        if (dialogError != null) ...[
+                          const SizedBox(height: 8),
+                          Text(
+                            dialogError!,
+                            style: TextStyle(
+                              color: colorScheme.error,
+                              fontSize: 12,
+                            ),
+                          ),
+                        ],
+                        const SizedBox(height: 24),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: TextButton(
+                                onPressed: () => Navigator.of(context).pop(),
+                                style: TextButton.styleFrom(
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 14,
+                                  ),
+                                  foregroundColor: colorScheme.onPrimary,
+                                ),
+                                child: Text(
+                                  "Cancel",
+                                  style: textTheme.labelLarge?.copyWith(
+                                    color: colorScheme.onPrimary.withValues(
+                                      alpha: 0.8,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              flex: 2,
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  gradient: LinearGradient(
+                                    colors: [
+                                      AppColors.amberWarn,
+                                      AppColors.amberWarn.withValues(
+                                        alpha: 0.8,
+                                      ),
+                                    ],
+                                  ),
+                                  borderRadius: BorderRadius.circular(12),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: AppColors.amberWarn.withValues(
+                                        alpha: 0.4,
+                                      ),
+                                      blurRadius: 12,
+                                      offset: const Offset(0, 4),
+                                    ),
+                                  ],
+                                ),
+                                child: ElevatedButton(
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: AppColors.transparent,
+                                    shadowColor: AppColors.transparent,
+                                    foregroundColor: AppColors.parchment,
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 14,
+                                    ),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                  ),
+                                  onPressed:
+                                      isVerifying
+                                          ? null
+                                          : () async {
+                                            if (otpController.text.length !=
+                                                6) {
+                                              setDialogState(
+                                                () =>
+                                                    dialogError =
+                                                        'Enter a valid 6-digit OTP',
+                                              );
+                                              return;
+                                            }
+                                            setDialogState(() {
+                                              isVerifying = true;
+                                              dialogError = null;
+                                            });
+                                            try {
+                                              await context
+                                                  .read<AuthRepository>()
+                                                  .verifyOtp(
+                                                    value,
+                                                    otpController.text,
+                                                    type.toUpperCase(),
+                                                  );
+                                              if (!mounted) return;
+                                              Navigator.of(context).pop();
+                                              onVerified();
+                                              SnackBarHelper.showSuccess(
+                                                context,
+                                                '$type verified successfully!',
+                                              );
+                                            } catch (e) {
+                                              setDialogState(
+                                                () => dialogError = e.toString().replaceAll('Exception:', '').trim(),
+                                              );
+                                            } finally {
+                                              if (mounted) {
+                                                setDialogState(
+                                                  () => isVerifying = false,
+                                                );
+                                              }
+                                            }
+                                          },
+                                  child:
+                                      isVerifying
+                                          ? const SizedBox(
+                                            width: 22,
+                                            height: 22,
+                                            child: CircularProgressIndicator(
+                                              strokeWidth: 2,
+                                              color: AppColors.parchment,
+                                            ),
+                                          )
+                                          : Text(
+                                            "Verify",
+                                            style: textTheme.labelLarge
+                                                ?.copyWith(
+                                                  color: AppColors.parchment,
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                          ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
   }
 
   @override
@@ -940,8 +1313,10 @@ class _QueryFormSheetState extends State<_QueryFormSheet>
                   label: 'Full Name*',
                   icon: Icons.person_outline_rounded,
                   validator: (v) {
-                    if (v == null || v.trim().isEmpty) return 'Please enter your name';
-                    if (v.trim().length < 3) return 'Name must be at least 3 characters';
+                    if (v == null || v.trim().isEmpty)
+                      return 'Please enter your name';
+                    if (v.trim().length < 3)
+                      return 'Name must be at least 3 characters';
                     return null;
                   },
                 ),
@@ -951,11 +1326,32 @@ class _QueryFormSheetState extends State<_QueryFormSheet>
                   label: 'Phone Number*',
                   icon: Icons.phone_outlined,
                   keyboardType: TextInputType.phone,
+                  onChanged: (_) {
+                    if (_isPhoneVerified) {
+                      setState(() => _isPhoneVerified = false);
+                    }
+                  },
                   validator: (v) {
-                    if (v == null || v.trim().isEmpty) return 'Please enter your phone number';
-                    if (!RegExp(r'^\d{10}$').hasMatch(v.trim())) return 'Phone number must be exactly 10 digits';
+                    if (v == null || v.trim().isEmpty)
+                      return 'Please enter your phone number';
+                    if (!RegExp(r'^\d{10}$').hasMatch(v.trim()))
+                      return 'Phone number must be exactly 10 digits';
                     return null;
                   },
+                  suffix: _isPhoneVerified
+                      ? const Icon(Icons.check_circle, color: AppColors.deepSoilGreen)
+                      : TextButton(
+                          onPressed: _isSendingPhoneOtp
+                              ? null
+                              : () => _sendOtp('phone', _phoneController.text),
+                          child: _isSendingPhoneOtp
+                              ? const SizedBox(
+                                  width: 16,
+                                  height: 16,
+                                  child: CircularProgressIndicator(strokeWidth: 2),
+                                )
+                              : const Text('Verify'),
+                        ),
                 ),
                 const SizedBox(height: 16),
                 _buildTextField(
@@ -963,11 +1359,34 @@ class _QueryFormSheetState extends State<_QueryFormSheet>
                   label: 'Email*',
                   icon: Icons.email_outlined,
                   keyboardType: TextInputType.emailAddress,
+                  onChanged: (_) {
+                    if (_isEmailVerified) {
+                      setState(() => _isEmailVerified = false);
+                    }
+                  },
                   validator: (v) {
-                    if (v == null || v.trim().isEmpty) return 'Please enter your email';
-                    if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(v.trim())) return 'Please enter a valid email';
+                    if (v == null || v.trim().isEmpty)
+                      return 'Please enter your email';
+                    if (!RegExp(
+                      r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
+                    ).hasMatch(v.trim()))
+                      return 'Please enter a valid email';
                     return null;
                   },
+                  suffix: _isEmailVerified
+                      ? const Icon(Icons.check_circle, color: AppColors.deepSoilGreen)
+                      : TextButton(
+                          onPressed: _isSendingEmailOtp
+                              ? null
+                              : () => _sendOtp('email', _emailController.text),
+                          child: _isSendingEmailOtp
+                              ? const SizedBox(
+                                  width: 16,
+                                  height: 16,
+                                  child: CircularProgressIndicator(strokeWidth: 2),
+                                )
+                              : const Text('Verify'),
+                        ),
                 ),
                 const SizedBox(height: 16),
                 _buildTextField(
@@ -976,9 +1395,16 @@ class _QueryFormSheetState extends State<_QueryFormSheet>
                   icon: Icons.message_outlined,
                   maxLines: 3,
                   validator: (v) {
-                    if (v == null || v.trim().isEmpty) return 'Please enter your message';
-                    if (v.trim().length < 10) return 'Message must be at least 10 characters';
+                    if (v == null || v.trim().isEmpty)
+                      return 'Please enter your message';
+                    if (v.trim().length < 10)
+                      return 'Message must be at least 10 characters';
                     return null;
+                  },
+                  textInputAction: TextInputAction.done,
+                  onFieldSubmitted: (_) {
+                    FocusScope.of(context).unfocus();
+                    _submitForm();
                   },
                 ),
                 const SizedBox(height: 16),
@@ -1033,6 +1459,10 @@ class _QueryFormSheetState extends State<_QueryFormSheet>
     TextInputType? keyboardType,
     int maxLines = 1,
     String? Function(String?)? validator,
+    Widget? suffix,
+    Function(String)? onChanged,
+    TextInputAction? textInputAction,
+    Function(String)? onFieldSubmitted,
   }) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
@@ -1042,10 +1472,14 @@ class _QueryFormSheetState extends State<_QueryFormSheet>
       keyboardType: keyboardType,
       maxLines: maxLines,
       validator: validator,
+      onChanged: onChanged,
+      textInputAction: textInputAction,
+      onFieldSubmitted: onFieldSubmitted,
       style: theme.textTheme.bodyLarge,
       decoration: InputDecoration(
         labelText: label,
         prefixIcon: Icon(icon, color: colorScheme.primary, size: 22),
+        suffixIcon: suffix,
         filled: true,
         fillColor: colorScheme.primary.withAlpha(8),
         border: OutlineInputBorder(

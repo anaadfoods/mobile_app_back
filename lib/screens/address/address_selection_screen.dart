@@ -1258,6 +1258,11 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen>
                 }
                 return null;
               },
+              textInputAction: TextInputAction.done,
+              onFieldSubmitted: (_) {
+                FocusScope.of(context).unfocus();
+                _onContinuePressed();
+              },
             ),
           ],
         ),
@@ -1275,6 +1280,8 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen>
     TextInputType? keyboardType,
     String? Function(String?)? validator,
     List<TextInputFormatter>? inputFormatters,
+    TextInputAction? textInputAction,
+    Function(String)? onFieldSubmitted,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -1293,6 +1300,8 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen>
           validator: validator,
           autovalidateMode: AutovalidateMode.onUserInteraction,
           inputFormatters: inputFormatters,
+          textInputAction: textInputAction,
+          onFieldSubmitted: onFieldSubmitted,
           style: theme.textTheme.bodyLarge,
           decoration: InputDecoration(
             hintText: hint,

@@ -138,34 +138,38 @@ class SubscriptionPlansSection extends StatelessWidget {
                           Row(
                             children: [
                               Text(
-                                "₹${availablePlanData.discountedPrice.toStringAsFixed(0)}",
+                                isEnabled 
+                                    ? "₹${availablePlanData.discountedPrice.toStringAsFixed(0)}"
+                                    : "Unavailable",
                                 style: TextStyle(
-                                  fontSize: 15,
+                                  fontSize: isEnabled ? 15 : 13,
                                   color: isSelected ? AppColors.pureWhite : AppColors.harvestAmber,
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
-                              const SizedBox(width: 4),
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                  vertical: 4,
-                                  horizontal: 6,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: isSelected
-                                      ? AppColors.pureWhite.withValues(alpha: 0.2)
-                                      : AppColors.harvestAmber.withValues(alpha: 0.12),
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: Text(
-                                  "Save ${availablePlanData.discountPercentage.toStringAsFixed(0)}%",
-                                  style: TextStyle(
-                                    fontSize: 10,
-                                    color: isSelected ? AppColors.pureWhite : AppColors.harvestAmber,
-                                    fontWeight: FontWeight.bold,
+                              if (isEnabled) ...[
+                                const SizedBox(width: 4),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 4,
+                                    horizontal: 6,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: isSelected
+                                        ? AppColors.pureWhite.withValues(alpha: 0.2)
+                                        : AppColors.harvestAmber.withValues(alpha: 0.12),
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: Text(
+                                    "Save ${availablePlanData.discountPercentage.toStringAsFixed(0)}%",
+                                    style: TextStyle(
+                                      fontSize: 10,
+                                      color: isSelected ? AppColors.pureWhite : AppColors.harvestAmber,
+                                      fontWeight: FontWeight.bold,
+                                    ),
                                   ),
                                 ),
-                              ),
+                              ],
                             ],
                           ),
                         ],

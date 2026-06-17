@@ -26,18 +26,22 @@ class _ReferEarnScreenState extends State<ReferEarnScreen>
   int get _totalReferrals => _referralData?.referralsCount ?? 0;
   int get _pendingReferrals =>
       _referralData?.referredUsers
-          .where((u) =>
-              u.status == 'PENDING' ||
-              u.status == 'REGISTERED' ||
-              u.status == 'QUALIFICATION_PENDING')
+          .where(
+            (u) =>
+                u.status == 'PENDING' ||
+                u.status == 'REGISTERED' ||
+                u.status == 'QUALIFICATION_PENDING',
+          )
           .length ??
       0;
   int get _acceptedReferrals =>
       _referralData?.referredUsers
-          .where((u) =>
-              u.status == 'QUALIFIED' ||
-              u.status == 'REWARD_AVAILABLE' ||
-              u.status == 'REWARD_REDEEMED')
+          .where(
+            (u) =>
+                u.status == 'QUALIFIED' ||
+                u.status == 'REWARD_AVAILABLE' ||
+                u.status == 'REWARD_REDEEMED',
+          )
           .length ??
       0;
 
@@ -76,11 +80,14 @@ class _ReferEarnScreenState extends State<ReferEarnScreen>
     SnackBarHelper.showCopied(context, what: 'Referral code');
   }
 
-  void _share() {
+  void _share(BuildContext context) {
     HapticFeedback.mediumImpact();
+    final box = context.findRenderObject() as RenderBox?;
     Share.share(
       'Join Anaad — where food meets farming! Use my referral code: $_referralCode to sign up & place your first order.\n\nDownload now: https://anaad.app/download',
       subject: 'Join Anaad — Fresh from the Farm!',
+      sharePositionOrigin:
+          box != null ? box.localToGlobal(Offset.zero) & box.size : null,
     );
   }
 
@@ -126,7 +133,12 @@ class _ReferEarnScreenState extends State<ReferEarnScreen>
                 onRefresh: _fetchReferralData,
                 child: SingleChildScrollView(
                   physics: const AlwaysScrollableScrollPhysics(),
-                  padding: EdgeInsets.fromLTRB(20, 20, 20, 20 + MediaQuery.paddingOf(context).bottom),
+                  padding: EdgeInsets.fromLTRB(
+                    20,
+                    20,
+                    20,
+                    20 + MediaQuery.paddingOf(context).bottom,
+                  ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
@@ -139,7 +151,7 @@ class _ReferEarnScreenState extends State<ReferEarnScreen>
                       const SizedBox(height: 24),
 
                       // Share Buttons
-                      _buildShareButtons(theme, isDark),
+                      _buildShareButtons(context, theme, isDark),
                       const SizedBox(height: 28),
 
                       // Stats Section
@@ -149,8 +161,7 @@ class _ReferEarnScreenState extends State<ReferEarnScreen>
                       // Referred Users List
                       if (_referralData != null)
                         _buildReferredUsersList(theme, isDark),
-                      if (_referralData != null)
-                        const SizedBox(height: 28),
+                      if (_referralData != null) const SizedBox(height: 28),
 
                       // How It Works
                       _buildHowItWorks(theme, isDark),
@@ -313,7 +324,7 @@ class _ReferEarnScreenState extends State<ReferEarnScreen>
                   ),
                   const SizedBox(height: 16),
                   GestureDetector(
-                    onTap: _share,
+                    onTap: () => _share(context),
                     child: Container(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 24,
@@ -359,7 +370,11 @@ class _ReferEarnScreenState extends State<ReferEarnScreen>
     );
   }
 
-  Widget _buildShareButtons(ThemeData theme, bool isDark) {
+  Widget _buildShareButtons(
+    BuildContext context,
+    ThemeData theme,
+    bool isDark,
+  ) {
     final platforms = [
       {
         'icon': Icons.message_rounded,
@@ -397,34 +412,39 @@ class _ReferEarnScreenState extends State<ReferEarnScreen>
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children:
               platforms.map((p) {
-                return GestureDetector(
-                  onTap: _share,
-                  child: Column(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(14),
-                        decoration: BoxDecoration(
-                          color: (p['color'] as Color).withValues(alpha: 0.15),
-                          borderRadius: BorderRadius.circular(14),
-                        ),
-                        child: Icon(
-                          p['icon'] as IconData,
-                          color: p['color'] as Color,
-                          size: 26,
+                return Builder(
+                  builder:
+                      (ctx) => GestureDetector(
+                        onTap: () => _share(ctx),
+                        child: Column(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(14),
+                              decoration: BoxDecoration(
+                                color: (p['color'] as Color).withValues(
+                                  alpha: 0.15,
+                                ),
+                                borderRadius: BorderRadius.circular(14),
+                              ),
+                              child: Icon(
+                                p['icon'] as IconData,
+                                color: p['color'] as Color,
+                                size: 26,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              p['name'] as String,
+                              style: theme.textTheme.labelSmall?.copyWith(
+                                color:
+                                    isDark
+                                        ? AppColors.parchment70
+                                        : AppColors.rawEarth70,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
-                      const SizedBox(height: 8),
-                      Text(
-                        p['name'] as String,
-                        style: theme.textTheme.labelSmall?.copyWith(
-                          color:
-                              isDark
-                                  ? AppColors.parchment70
-                                  : AppColors.rawEarth70,
-                        ),
-                      ),
-                    ],
-                  ),
                 );
               }).toList(),
         ),
@@ -594,17 +614,19 @@ class _ReferEarnScreenState extends State<ReferEarnScreen>
                     Icon(
                       Icons.people_outline_rounded,
                       size: 40,
-                      color: isDark
-                          ? AppColors.parchment.withValues(alpha: 0.4)
-                          : AppColors.rawEarth.withValues(alpha: 0.3),
+                      color:
+                          isDark
+                              ? AppColors.parchment.withValues(alpha: 0.4)
+                              : AppColors.rawEarth.withValues(alpha: 0.3),
                     ),
                     const SizedBox(height: 12),
                     Text(
                       'No referrals registered yet',
                       style: theme.textTheme.bodyMedium?.copyWith(
-                        color: isDark
-                            ? AppColors.parchment.withValues(alpha: 0.7)
-                            : AppColors.rawEarth.withValues(alpha: 0.7),
+                        color:
+                            isDark
+                                ? AppColors.parchment.withValues(alpha: 0.7)
+                                : AppColors.rawEarth.withValues(alpha: 0.7),
                       ),
                     ),
                   ],
@@ -699,7 +721,8 @@ class _ReferEarnScreenState extends State<ReferEarnScreen>
                 Text(
                   'Joined $dateStr',
                   style: theme.textTheme.bodySmall?.copyWith(
-                    color: isDark ? AppColors.parchment70 : AppColors.rawEarth70,
+                    color:
+                        isDark ? AppColors.parchment70 : AppColors.rawEarth70,
                     fontSize: 11,
                   ),
                 ),
@@ -762,7 +785,7 @@ class _ReferEarnScreenState extends State<ReferEarnScreen>
       {
         'icon': Icons.celebration_rounded,
         'title': 'Get Your Gift',
-        'desc': 'You receive a surprise gift from the Anaad team! 🎁',
+        'desc': 'Receive a surprise gift from Anaad team!',
       },
     ];
 
