@@ -16,7 +16,7 @@ class AnaadLogoMark extends StatelessWidget {
     this.onTap,
     this.backgroundOpacity = 0.16,
     this.showShadow = true,
-    this.logoPath = "assets/images/1.png",
+    this.logoPath = "assets/images/OnBoarding/logo.png",
   });
 
   @override

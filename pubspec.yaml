@@ -1,7 +1,7 @@
 name: grocery_app
 description: "A new Flutter project."
 publish_to: "none"
-version: 1.1.0
+version: 1.0.0
 
 environment:
   sdk: ^3.7.0
@@ -81,18 +81,16 @@ flutter:
           weight: 900
 
 flutter_launcher_icons:
-  image_path: "assets/icons/app_icons/splash_icon.jpeg"
+  image_path: "assets/images/OnBoarding/logo.png"
   android: true
   ios: true
   remove_alpha_ios: true
 
 flutter_native_splash:
-  color: "#FFFFFF"
-  image: assets/icons/app_icons/splash_icon.jpeg
+  color: "#F5F0E8"
+  color_dark: "#121212"
   android: true
   ios: true
-  android_gravity: center
-  ios_content_mode: scaleAspectFit
   android_12:
-    color: "#FFFFFF"
-    image: assets/icons/app_icons/splash_icon.jpeg
+    color: "#F5F0E8"
+    color_dark: "#121212"

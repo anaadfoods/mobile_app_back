@@ -43,6 +43,9 @@ class _SelectStateState extends State<SelectState> {
   bool _loadingCities = false;
   String? _error;
 
+  bool _isManualCity = false;
+  final TextEditingController _manualCityController = TextEditingController();
+
   @override
   void initState() {
     super.initState();
@@ -51,6 +54,12 @@ class _SelectStateState extends State<SelectState> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       widget.onCountryChanged?.call(null);
     });
+  }
+
+  @override
+  void dispose() {
+    _manualCityController.dispose();
+    super.dispose();
   }
 
   Future<void> _loadStates() async {
@@ -107,13 +116,24 @@ class _SelectStateState extends State<SelectState> {
       if (autoSelectCity &&
           widget.initialCity != null &&
           widget.initialCity!.isNotEmpty) {
-        final matchingCity = cities.firstWhere(
-          (c) => c.name.toLowerCase() == widget.initialCity!.toLowerCase(),
-          orElse: () => cities.first,
-        );
-        if (matchingCity.name.toLowerCase() ==
-            widget.initialCity!.toLowerCase()) {
-          setState(() => _selectedCityModel = matchingCity);
+        CityModel? matchingCity;
+        for (var c in cities) {
+          if (c.name.toLowerCase() == widget.initialCity!.toLowerCase()) {
+            matchingCity = c;
+            break;
+          }
+        }
+        if (matchingCity != null) {
+          setState(() {
+            _selectedCityModel = matchingCity;
+            _isManualCity = false;
+          });
+        } else {
+          setState(() {
+            _isManualCity = true;
+            _manualCityController.text = widget.initialCity!;
+          });
+          widget.onCityChanged?.call(widget.initialCity);
         }
       }
     } catch (e) {
@@ -194,31 +214,111 @@ class _SelectStateState extends State<SelectState> {
         const SizedBox(height: 16),
 
         // City label + searchable field
-        Text(
-          'City',
-          style: theme.textTheme.bodySmall?.copyWith(
-            color: theme.hintColor,
-            fontWeight: FontWeight.w600,
-          ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              'City',
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.hintColor,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            if (_selectedStateModel != null)
+              GestureDetector(
+                onTap: () {
+                  setState(() {
+                    _isManualCity = !_isManualCity;
+                    if (_isManualCity) {
+                      _selectedCityModel = null;
+                      widget.onCityChanged?.call(_manualCityController.text);
+                    } else {
+                      _manualCityController.clear();
+                      widget.onCityChanged?.call(null);
+                    }
+                  });
+                },
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      _isManualCity ? Icons.list_rounded : Icons.edit_rounded,
+                      size: 14,
+                      color: theme.colorScheme.primary,
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      _isManualCity ? 'Select from list' : 'Enter city manually',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: theme.colorScheme.primary,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+          ],
         ),
         const SizedBox(height: 8),
 
-        _loadingCities
-            ? _buildLoadingIndicator('Loading cities...')
-            : _buildSearchableField(
-              theme,
-              isDark,
-              value: _selectedCityModel?.name,
-              hint:
-                  _selectedStateModel == null
-                      ? 'Select a state first'
-                      : (_cities.isEmpty
-                          ? 'No cities available'
-                          : 'Search & select city'),
-              icon: Icons.apartment_rounded,
-              onTap: _cities.isEmpty ? null : _showSearchableCityDialog,
-              enabled: _selectedStateModel != null && _cities.isNotEmpty,
-            ),
+        _isManualCity
+            ? TextFormField(
+                controller: _manualCityController,
+                onChanged: (v) {
+                  widget.onCityChanged?.call(v.trim());
+                },
+                style: widget.style,
+                decoration: InputDecoration(
+                  hintText: 'Enter city name',
+                  prefixIcon: Icon(
+                    Icons.apartment_rounded,
+                    color: theme.colorScheme.primary.withValues(alpha: 0.7),
+                    size: 22,
+                  ),
+                  filled: true,
+                  fillColor: isDark ? AppColors.charcoal : AppColors.parchment,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(14),
+                    borderSide: BorderSide(
+                      color: isDark ? AppColors.charcoal87 : AppColors.parchment,
+                    ),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(14),
+                    borderSide: BorderSide(
+                      color: isDark ? AppColors.charcoal87 : AppColors.parchment,
+                    ),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(14),
+                    borderSide: BorderSide(
+                      color: theme.colorScheme.primary,
+                      width: 1.5,
+                    ),
+                  ),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 14,
+                  ),
+                ),
+              )
+            : (_loadingCities
+                ? _buildLoadingIndicator('Loading cities...')
+                : _buildSearchableField(
+                  theme,
+                  isDark,
+                  value: _selectedCityModel?.name,
+                  hint:
+                      _selectedStateModel == null
+                          ? 'Select a state first'
+                          : (_cities.isEmpty
+                              ? 'No cities available'
+                              : 'Search & select city'),
+                  icon: Icons.apartment_rounded,
+                  onTap: _cities.isEmpty ? null : _showSearchableCityDialog,
+                  enabled: _selectedStateModel != null && _cities.isNotEmpty,
+                )),
 
         if (_error != null) ...[
           const SizedBox(height: 12),

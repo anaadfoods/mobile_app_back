@@ -18,6 +18,14 @@ class DashboardScreenState extends State<DashboardScreen>
   late AnimationController _fabFloatController;
   bool _fabAnimationActive = true;
 
+  // ─── Swipe Navigation State ────────────────────────────────────────
+  late AnimationController _slideController;
+  double _dragOffset = 0.0; // Live drag offset in pixels
+  bool _isAnimating = false; // True during snap/spring-back animation
+  double _animStartOffset = 0.0; // Offset at animation start
+  double _animEndOffset = 0.0; // Target offset for animation
+  int? _pendingTabIndex; // Tab to switch to after slide-out completes
+
   // For double-back to exit
   DateTime? lastTimeBackPressed;
 
@@ -34,6 +42,13 @@ class DashboardScreenState extends State<DashboardScreen>
       vsync: this,
     )..repeat(reverse: true);
 
+    // Slide animation controller for snap/spring-back
+    _slideController = AnimationController(
+      duration: const Duration(milliseconds: 250),
+      vsync: this,
+    )..addListener(_onSlideAnimation)
+     ..addStatusListener(_onSlideAnimationStatus);
+
     WidgetsBinding.instance.addObserver(this);
 
     Future.delayed(const Duration(seconds: 6), () {
@@ -49,6 +64,9 @@ class DashboardScreenState extends State<DashboardScreen>
     WidgetsBinding.instance.removeObserver(this);
     _bounceController.dispose();
     _fabFloatController.dispose();
+    _slideController.removeListener(_onSlideAnimation);
+    _slideController.removeStatusListener(_onSlideAnimationStatus);
+    _slideController.dispose();
     super.dispose();
   }
 
@@ -77,6 +95,138 @@ class DashboardScreenState extends State<DashboardScreen>
       index,
       initialLocation: index == widget.navigationShell.currentIndex,
     );
+  }
+
+  // ─── Slide Animation Callbacks ─────────────────────────────────────
+  Curve _activeCurve = Curves.fastOutSlowIn;
+
+  void _onSlideAnimation() {
+    setState(() {
+      _dragOffset = lerpDouble(
+        _animStartOffset,
+        _animEndOffset,
+        _activeCurve.transform(_slideController.value),
+      )!;
+    });
+  }
+
+  void _onSlideAnimationStatus(AnimationStatus status) {
+    if (status == AnimationStatus.completed) {
+      if (_pendingTabIndex != null) {
+        // Slide-out complete — switch tab and animate new screen in
+        final targetTab = _pendingTabIndex!;
+        _pendingTabIndex = null;
+
+        // Switch tab (this changes the shell content instantly)
+        HapticFeedback.selectionClick();
+        _bounceController.forward(from: 0);
+        widget.navigationShell.goBranch(
+          targetTab,
+          initialLocation: targetTab == widget.navigationShell.currentIndex,
+        );
+
+        // New screen slides in from a small offset — keeps the transition seamless
+        final screenWidth = MediaQuery.sizeOf(context).width;
+        _animStartOffset = _dragOffset > 0 ? -screenWidth * 0.2 : screenWidth * 0.2;
+        _animEndOffset = 0.0;
+        _dragOffset = _animStartOffset;
+        _activeCurve = Curves.decelerate;
+        _slideController.duration = const Duration(milliseconds: 220);
+        _slideController.forward(from: 0);
+      } else {
+        // Spring-back or slide-in complete
+        setState(() {
+          _isAnimating = false;
+          _dragOffset = 0.0;
+        });
+      }
+    }
+  }
+
+  // ─── Swipe Gesture Handlers ────────────────────────────────────────
+  void _onHorizontalDragStart(DragStartDetails details) {
+    if (_isAnimating) {
+      _slideController.stop();
+      _isAnimating = false;
+    }
+  }
+
+  void _onHorizontalDragUpdate(DragUpdateDetails details) {
+    if (_isAnimating) return;
+
+    final delta = details.primaryDelta ?? 0;
+    final currentIndex = widget.navigationShell.currentIndex;
+    final totalTabs = navigatorItems.length;
+    final isAtStart = currentIndex == 0;
+    final isAtEnd = currentIndex == totalTabs - 1;
+
+    setState(() {
+      _dragOffset += delta;
+
+      // Apply rubber-band resistance at boundaries
+      if ((isAtStart && _dragOffset > 0) || (isAtEnd && _dragOffset < 0)) {
+        // Reduce the drag to 25% at boundaries for a rubber-band feel
+        _dragOffset -= delta * 0.75;
+      }
+    });
+  }
+
+  void _onHorizontalDragEnd(DragEndDetails details) {
+    if (_isAnimating) return;
+
+    final velocity = details.primaryVelocity ?? 0;
+    final absVelocity = velocity.abs();
+    final currentIndex = widget.navigationShell.currentIndex;
+    final totalTabs = navigatorItems.length;
+    final screenWidth = MediaQuery.sizeOf(context).width;
+
+    // Determine if we should switch tabs
+    // Threshold: either velocity > 250px/s OR drag > 20% of screen width
+    final dragThreshold = screenWidth * 0.20;
+    int targetIndex = currentIndex;
+
+    if (velocity < -250 || (_dragOffset < -dragThreshold && velocity <= 0)) {
+      // Swipe left → next tab
+      targetIndex = currentIndex + 1;
+    } else if (velocity > 250 || (_dragOffset > dragThreshold && velocity >= 0)) {
+      // Swipe right → previous tab
+      targetIndex = currentIndex - 1;
+    }
+
+    // Clamp to valid range
+    targetIndex = targetIndex.clamp(0, totalTabs - 1);
+
+    _isAnimating = true;
+
+    if (targetIndex != currentIndex) {
+      // Animate slide-out: slide to 40% of screen width
+      _pendingTabIndex = targetIndex;
+      _animStartOffset = _dragOffset;
+      _animEndOffset = targetIndex > currentIndex
+          ? -screenWidth * 0.4
+          : screenWidth * 0.4;
+
+      // Velocity-proportional duration: faster swipe = shorter animation
+      final remainingDistance = (_animEndOffset - _animStartOffset).abs();
+      final baseDuration = absVelocity > 500
+          ? 120  // Fast swipe — snappy
+          : absVelocity > 250
+              ? 160  // Medium swipe
+              : (remainingDistance / screenWidth * 280).clamp(100, 220).toInt(); // Drag-based
+
+      _activeCurve = Curves.decelerate;
+      _slideController.duration = Duration(milliseconds: baseDuration);
+      _slideController.forward(from: 0);
+    } else {
+      // Spring back to center — duration proportional to drag distance
+      _animStartOffset = _dragOffset;
+      _animEndOffset = 0.0;
+      _pendingTabIndex = null;
+      final springDuration = (_dragOffset.abs() / screenWidth * 300).clamp(120, 280).toInt();
+      _activeCurve = Curves.fastOutSlowIn;
+      _slideController.duration = Duration(milliseconds: springDuration);
+      _slideController.forward(from: 0);
+    }
   }
 
   /// Public method to switch tabs from child screens (kept for backward compatibility if accessed via key)
@@ -122,7 +272,18 @@ class DashboardScreenState extends State<DashboardScreen>
         }
       },
       child: Scaffold(
-        body: widget.navigationShell,
+        body: GestureDetector(
+          onHorizontalDragStart: _onHorizontalDragStart,
+          onHorizontalDragUpdate: _onHorizontalDragUpdate,
+          onHorizontalDragEnd: _onHorizontalDragEnd,
+          behavior: HitTestBehavior.translucent,
+          child: ClipRect(
+            child: Transform.translate(
+              offset: Offset(_dragOffset, 0),
+              child: widget.navigationShell,
+            ),
+          ),
+        ),
         bottomNavigationBar: _PremiumBottomNavBar(
           currentIndex: currentIndex,
           onTabChanged: _onTabChanged,
@@ -432,7 +593,7 @@ class _FloatingCartFab extends StatelessWidget {
           builder: (context, cartState) {
             int itemCount = 0;
             if (cartState is CartSuccess) {
-              itemCount = cartState.cart.totalItems;
+              itemCount = cartState.cart.items.length;
             }
 
             return Stack(

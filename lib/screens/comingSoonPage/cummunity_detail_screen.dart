@@ -163,34 +163,36 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen>
                   child: CachedNetworkImage(
                     imageUrl: widget.community.image,
                     fit: BoxFit.cover,
-                    placeholder: (context, url) => Container(
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: _gradientColors,
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
+                    placeholder:
+                        (context, url) => Container(
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: _gradientColors,
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                            ),
+                          ),
+                          child: const Center(
+                            child: CircularProgressIndicator(
+                              color: AppColors.parchment,
+                            ),
+                          ),
                         ),
-                      ),
-                      child: const Center(
-                        child: CircularProgressIndicator(
-                          color: AppColors.parchment,
+                    errorWidget:
+                        (context, url, error) => Container(
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: _gradientColors,
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                            ),
+                          ),
+                          child: Icon(
+                            Icons.eco_rounded,
+                            size: 100,
+                            color: AppColors.parchment.withValues(alpha: 0.2),
+                          ),
                         ),
-                      ),
-                    ),
-                    errorWidget: (context, url, error) => Container(
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: _gradientColors,
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        ),
-                      ),
-                      child: Icon(
-                        Icons.eco_rounded,
-                        size: 100,
-                        color: AppColors.parchment.withValues(alpha: 0.2),
-                      ),
-                    ),
                   ),
                 ),
 
@@ -682,16 +684,21 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen>
   }
 
   // Form validation
+  String? _validateName(String? value) {
+    if (value == null || value.trim().isEmpty) return 'Please enter your name';
+    return null;
+  }
+
   String? _validateEmail(String? value) {
-    if (value == null || value.isEmpty) return 'Please enter your email';
-    if (!_emailRegex.hasMatch(value)) {
+    if (value == null || value.trim().isEmpty) return null;
+    if (!_emailRegex.hasMatch(value.trim())) {
       return 'Please enter a valid email address';
     }
     return null;
   }
 
   String? _validatePhone(String? value) {
-    if (value == null || value.isEmpty) return 'Please enter your phone number';
+    if (value == null || value.trim().isEmpty) return null;
     String cleanPhone = value.replaceAll(RegExp(r'[^\d]'), '');
     if (!_phoneRegex.hasMatch(cleanPhone)) {
       return 'Please enter a valid 10-digit phone number';
@@ -716,7 +723,7 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen>
       barrierColor: AppColors.charcoal.withValues(alpha: 0.6),
       transitionDuration: const Duration(milliseconds: 300),
       pageBuilder: (context, animation, secondaryAnimation) => const SizedBox(),
-      transitionBuilder: (context, animation, secondaryAnimation, child) {
+      transitionBuilder: (dialogContext, animation, secondaryAnimation, child) {
         return ScaleTransition(
           scale: Tween<double>(begin: 0.8, end: 1.0).animate(
             CurvedAnimation(parent: animation, curve: Curves.easeOutBack),
@@ -724,230 +731,100 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen>
           child: FadeTransition(
             opacity: animation,
             child: StatefulBuilder(
-              builder: (context, setDialogState) {
-                return Center(
-                  child: Container(
-                    margin: const EdgeInsets.symmetric(horizontal: 24),
-                    constraints: const BoxConstraints(maxWidth: 400),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(24),
-                      child: BackdropFilter(
-                        filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
-                        child: Material(
-                          color: AppColors.transparent,
-                          child: Container(
-                            decoration: BoxDecoration(
-                              gradient: LinearGradient(
-                                begin: Alignment.topLeft,
-                                end: Alignment.bottomRight,
-                                colors:
-                                    isDark
-                                        ? [
-                                          AppColors.charcoal,
-                                          AppColors.charcoal,
-                                        ]
-                                        : [
-                                          AppColors.parchment,
-                                          AppColors.parchment,
-                                        ],
-                              ),
-                              borderRadius: BorderRadius.circular(24),
-                              border: Border.all(
-                                color:
-                                    isDark
-                                        ? AppColors.parchment.withValues(
-                                          alpha: 0.2,
-                                        )
-                                        : AppColors.charcoal.withValues(
-                                          alpha: 0.1,
-                                        ),
-                                width: 1,
-                              ),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: _gradientColors[0].withValues(
-                                    alpha: 0.2,
-                                  ),
-                                  blurRadius: 30,
-                                  offset: const Offset(0, 10),
+              builder: (innerContext, setDialogState) {
+                return AnimatedPadding(
+                  padding:
+                      MediaQuery.of(innerContext).viewInsets +
+                      const EdgeInsets.symmetric(vertical: 24),
+                  duration: const Duration(milliseconds: 100),
+                  curve: Curves.decelerate,
+                  child: Center(
+                    child: Container(
+                      margin: const EdgeInsets.symmetric(horizontal: 24),
+                      constraints: const BoxConstraints(maxWidth: 400),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(24),
+                        child: BackdropFilter(
+                          filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
+                          child: Material(
+                            color: AppColors.transparent,
+                            child: Container(
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                  colors:
+                                      isDark
+                                          ? [
+                                            AppColors.charcoal,
+                                            AppColors.charcoal,
+                                          ]
+                                          : [
+                                            AppColors.parchment,
+                                            AppColors.parchment,
+                                          ],
                                 ),
-                              ],
-                            ),
-                            child: SingleChildScrollView(
-                              child: Padding(
-                                padding: const EdgeInsets.all(24),
-                                child: Form(
-                                  key: formKey,
-                                  child: Column(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      // Header with icon
-                                      Container(
-                                        padding: const EdgeInsets.all(16),
-                                        decoration: BoxDecoration(
-                                          gradient: LinearGradient(
-                                            colors: [
-                                              AppColors.deepSoilGreen,
-                                              AppColors.deepSoilGreen
-                                                  .withValues(alpha: 0.8),
-                                            ],
+                                borderRadius: BorderRadius.circular(24),
+                                border: Border.all(
+                                  color:
+                                      isDark
+                                          ? AppColors.parchment.withValues(
+                                            alpha: 0.2,
+                                          )
+                                          : AppColors.charcoal.withValues(
+                                            alpha: 0.1,
                                           ),
-                                          borderRadius: BorderRadius.circular(
-                                            16,
-                                          ),
-                                        ),
-                                        child: const Icon(
-                                          Icons.notifications_active_rounded,
-                                          color: AppColors.parchment,
-                                          size: 32,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 16),
-                                      Text(
-                                        'Stay Updated',
-                                        style: textTheme.titleLarge?.copyWith(
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 8),
-                                      Text(
-                                        'Be the first to know when we launch!',
-                                        style: textTheme.bodyMedium?.copyWith(
-                                          color:
-                                              isDark
-                                                  ? AppColors.parchment
-                                                      .withValues(alpha: 0.7)
-                                                  : AppColors.rawEarth70,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 24),
-                                      _buildFormField(
-                                        nameController,
-                                        'Full Name *',
-                                        Icons.person_outline_rounded,
-                                        isDark,
-                                      ),
-                                      const SizedBox(height: 12),
-                                      _buildFormField(
-                                        emailController,
-                                        'Email Address',
-                                        Icons.email_outlined,
-                                        isDark,
-                                        keyboardType:
-                                            TextInputType.emailAddress,
-                                        validator: _validateEmail,
-                                      ),
-                                      const SizedBox(height: 12),
-                                      _buildFormField(
-                                        phoneController,
-                                        'Phone Number',
-                                        Icons.phone_outlined,
-                                        isDark,
-                                        keyboardType: TextInputType.phone,
-                                        validator: _validatePhone,
-                                      ),
-                                      const SizedBox(height: 12),
-                                      _buildFormField(
-                                        messageController,
-                                        'Message',
-                                        Icons.message_outlined,
-                                        isDark,
-                                        validator:
-                                            (v) =>
-                                                v!.isEmpty
-                                                    ? 'Enter a message'
-                                                    : null,
-                                      ),
-                                      const SizedBox(height: 20),
-                                      // Submit button
-                                      GestureDetector(
-                                        onTap: () async {
-                                          if (formKey.currentState!
-                                              .validate()) {
-                                            HapticFeedback.mediumImpact();
-                                            formKey.currentState!.save();
-                                            try {
-                                              final response = await ApiClient
-                                                  .instance
-                                                  .post(
-                                                    '/api/core/communities/${widget.community.name}/subscribe/',
-                                                    data: {
-                                                      'name':
-                                                          nameController.text,
-                                                      'email':
-                                                          emailController.text,
-                                                      'phone':
-                                                          phoneController.text,
-                                                      'message':
-                                                          messageController
-                                                              .text,
-                                                    },
-                                                  );
-                                              if (!context.mounted) return;
-                                              if (response.statusCode == 200 ||
-                                                  response.statusCode == 201) {
-                                                Navigator.pop(context);
-                                                SnackBarHelper.showSuccess(
-                                                  context,
-                                                  'Thank you! We\'ll keep you updated.',
-                                                );
-                                              } else {
-                                                throw Exception(
-                                                  'Failed to submit form',
-                                                );
-                                              }
-                                            } catch (e) {
-                                              if (!context.mounted) return;
-                                              Navigator.pop(context);
-                                              SnackBarHelper.showError(
-                                                context,
-                                                'Failed to submit. Please try again later.',
-                                              );
-                                            }
-                                          }
-                                        },
-                                        child: Container(
-                                          width: double.infinity,
-                                          padding: const EdgeInsets.symmetric(
-                                            vertical: 16,
-                                          ),
+                                  width: 1,
+                                ),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: _gradientColors[0].withValues(
+                                      alpha: 0.2,
+                                    ),
+                                    blurRadius: 30,
+                                    offset: const Offset(0, 10),
+                                  ),
+                                ],
+                              ),
+                              child: SingleChildScrollView(
+                                child: Padding(
+                                  padding: const EdgeInsets.all(24),
+                                  child: Form(
+                                    key: formKey,
+                                    child: Column(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        // Header with icon
+                                        Container(
+                                          padding: const EdgeInsets.all(16),
                                           decoration: BoxDecoration(
-                                            gradient: const LinearGradient(
+                                            gradient: LinearGradient(
                                               colors: [
                                                 AppColors.deepSoilGreen,
-                                                AppColors.deepSoilGreen,
+                                                AppColors.deepSoilGreen
+                                                    .withValues(alpha: 0.8),
                                               ],
                                             ),
                                             borderRadius: BorderRadius.circular(
                                               16,
                                             ),
-                                            boxShadow: [
-                                              BoxShadow(
-                                                color: AppColors.deepSoilGreen
-                                                    .withValues(alpha: 0.4),
-                                                blurRadius: 10,
-                                                offset: const Offset(0, 4),
-                                              ),
-                                            ],
                                           ),
-                                          child: Center(
-                                            child: Text(
-                                              'Notify Me',
-                                              style: textTheme.titleMedium
-                                                  ?.copyWith(
-                                                    color: AppColors.parchment,
-                                                    fontWeight: FontWeight.bold,
-                                                  ),
-                                            ),
+                                          child: const Icon(
+                                            Icons.notifications_active_rounded,
+                                            color: AppColors.parchment,
+                                            size: 32,
                                           ),
                                         ),
-                                      ),
-                                      const SizedBox(height: 16),
-                                      // Cancel button
-                                      TextButton(
-                                        onPressed: () => Navigator.pop(context),
-                                        child: Text(
-                                          'Maybe Later',
+                                        const SizedBox(height: 16),
+                                        Text(
+                                          'Stay Updated',
+                                          style: textTheme.titleLarge?.copyWith(
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 8),
+                                        Text(
+                                          'Be the first to know when we launch!',
                                           style: textTheme.bodyMedium?.copyWith(
                                             color:
                                                 isDark
@@ -956,8 +833,151 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen>
                                                     : AppColors.rawEarth70,
                                           ),
                                         ),
-                                      ),
-                                    ],
+                                        const SizedBox(height: 24),
+                                        _buildFormField(
+                                          nameController,
+                                          'Full Name *',
+                                          Icons.person_outline_rounded,
+                                          isDark,
+                                          validator: _validateName,
+                                        ),
+                                        const SizedBox(height: 12),
+                                        _buildFormField(
+                                          emailController,
+                                          'Email Address',
+                                          Icons.email_outlined,
+                                          isDark,
+                                          keyboardType:
+                                              TextInputType.emailAddress,
+                                          validator: _validateEmail,
+                                        ),
+                                        const SizedBox(height: 12),
+                                        _buildFormField(
+                                          phoneController,
+                                          'Phone Number',
+                                          Icons.phone_outlined,
+                                          isDark,
+                                          keyboardType: TextInputType.phone,
+                                          validator: _validatePhone,
+                                        ),
+                                        const SizedBox(height: 12),
+                                        _buildFormField(
+                                          messageController,
+                                          'Message',
+                                          Icons.message_outlined,
+                                          isDark,
+                                        ),
+                                        const SizedBox(height: 20),
+                                        // Submit button
+                                        GestureDetector(
+                                          onTap: () async {
+                                            if (formKey.currentState!
+                                                .validate()) {
+                                              HapticFeedback.mediumImpact();
+                                              formKey.currentState!.save();
+                                              try {
+                                                final response = await ApiClient
+                                                    .instance
+                                                    .post(
+                                                      '/api/core/communities/${widget.community.name}/subscribe/',
+                                                      data: {
+                                                        'name':
+                                                            nameController.text,
+                                                        'email':
+                                                            emailController
+                                                                .text,
+                                                        'phone':
+                                                            phoneController
+                                                                .text,
+                                                        'message':
+                                                            messageController
+                                                                .text,
+                                                      },
+                                                    );
+                                                if (!context.mounted) return;
+                                                if (response.statusCode ==
+                                                        200 ||
+                                                    response.statusCode ==
+                                                        201) {
+                                                  Navigator.pop(context);
+                                                  SnackBarHelper.showSuccess(
+                                                    context,
+                                                    'Thank you! We\'ll keep you updated.',
+                                                  );
+                                                } else {
+                                                  throw Exception(
+                                                    'Failed to submit form',
+                                                  );
+                                                }
+                                              } catch (e) {
+                                                if (!context.mounted) return;
+                                                Navigator.pop(context);
+                                                SnackBarHelper.showError(
+                                                  context,
+                                                  'Failed to submit. Please try again later.',
+                                                );
+                                              }
+                                            }
+                                          },
+                                          child: Container(
+                                            width: double.infinity,
+                                            padding: const EdgeInsets.symmetric(
+                                              vertical: 16,
+                                            ),
+                                            decoration: BoxDecoration(
+                                              gradient: const LinearGradient(
+                                                colors: [
+                                                  AppColors.deepSoilGreen,
+                                                  AppColors.deepSoilGreen,
+                                                ],
+                                              ),
+                                              borderRadius:
+                                                  BorderRadius.circular(16),
+                                              boxShadow: [
+                                                BoxShadow(
+                                                  color: AppColors.deepSoilGreen
+                                                      .withValues(alpha: 0.4),
+                                                  blurRadius: 10,
+                                                  offset: const Offset(0, 4),
+                                                ),
+                                              ],
+                                            ),
+                                            child: Center(
+                                              child: Text(
+                                                'Notify Me',
+                                                style: textTheme.titleMedium
+                                                    ?.copyWith(
+                                                      color:
+                                                          AppColors.parchment,
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                    ),
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                        const SizedBox(height: 16),
+                                        // Cancel button
+                                        TextButton(
+                                          onPressed:
+                                              () => Navigator.pop(context),
+                                          child: Text(
+                                            'Maybe Later',
+                                            style: textTheme.bodyMedium
+                                                ?.copyWith(
+                                                  color:
+                                                      isDark
+                                                          ? AppColors.parchment
+                                                              .withValues(
+                                                                alpha: 0.7,
+                                                              )
+                                                          : AppColors
+                                                              .rawEarth70,
+                                                ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
                                   ),
                                 ),
                               ),
@@ -984,48 +1004,68 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen>
     TextInputType? keyboardType,
     String? Function(String?)? validator,
   }) {
-    return Container(
-      decoration: BoxDecoration(
-        color:
-            isDark
-                ? AppColors.parchment.withValues(alpha: 0.05)
-                : AppColors.rawEarth54.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
+    final fillColor =
+        isDark
+            ? AppColors.parchment.withValues(alpha: 0.05)
+            : AppColors.rawEarth54.withValues(alpha: 0.1);
+    final borderColor =
+        isDark
+            ? AppColors.parchment.withValues(alpha: 0.2)
+            : AppColors.rawEarth54.withValues(alpha: 0.2);
+
+    return TextFormField(
+      controller: controller,
+      keyboardType: keyboardType,
+      validator: validator,
+      style: TextStyle(
+        fontWeight: FontWeight.w500,
+        color: isDark ? AppColors.parchment : AppColors.charcoal,
+      ),
+      decoration: InputDecoration(
+        hintText: hint,
+        hintStyle: TextStyle(
           color:
               isDark
-                  ? AppColors.parchment.withValues(alpha: 0.2)
-                  : AppColors.rawEarth54.withValues(alpha: 0.2),
+                  ? AppColors.parchment.withValues(alpha: 0.5)
+                  : AppColors.charcoal.withValues(alpha: 0.5),
         ),
-      ),
-      child: TextFormField(
-        controller: controller,
-        keyboardType: keyboardType,
-        validator: validator,
-        style: TextStyle(
+        prefixIcon: Icon(
+          icon,
+          color:
+              isDark
+                  ? AppColors.parchment.withValues(alpha: 0.7)
+                  : AppColors.rawEarth,
+        ),
+        filled: true,
+        fillColor: fillColor,
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 14,
+        ),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: borderColor),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: borderColor),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: _accentColor, width: 1.5),
+        ),
+        errorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: Colors.redAccent, width: 1.0),
+        ),
+        focusedErrorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: Colors.redAccent, width: 1.5),
+        ),
+        errorStyle: const TextStyle(
+          color: Colors.redAccent,
+          fontSize: 12,
           fontWeight: FontWeight.w500,
-          color: isDark ? AppColors.parchment : AppColors.charcoal,
-        ),
-        decoration: InputDecoration(
-          hintText: hint,
-          hintStyle: TextStyle(
-            color:
-                isDark
-                    ? AppColors.parchment.withValues(alpha: 0.5)
-                    : AppColors.charcoal.withValues(alpha: 0.5),
-          ),
-          prefixIcon: Icon(
-            icon,
-            color:
-                isDark
-                    ? AppColors.parchment.withValues(alpha: 0.7)
-                    : AppColors.rawEarth,
-          ),
-          border: InputBorder.none,
-          contentPadding: const EdgeInsets.symmetric(
-            horizontal: 16,
-            vertical: 14,
-          ),
         ),
       ),
     );

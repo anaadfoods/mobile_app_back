@@ -17,6 +17,7 @@ import 'package:grocery_app/screens/welcome_screen.dart';
 import 'package:grocery_app/screens/auth/login_screen.dart';
 import 'package:grocery_app/screens/auth/signup_screen.dart';
 import 'package:grocery_app/screens/auth/forget_password_screen.dart';
+import 'package:grocery_app/screens/splash/splash_screen.dart';
 
 import 'package:grocery_app/screens/dashboard/dashboard_screen.dart';
 import 'package:grocery_app/screens/home/home_screen.dart';
@@ -86,7 +87,7 @@ class AppRouter {
   // GoRouter configuration
   late final GoRouter router = GoRouter(
     navigatorKey: _rootNavigatorKey,
-    initialLocation: AppRoute.home.path,
+    initialLocation: AppRoute.splash.path,
     debugLogDiagnostics: true,
 
     // Auth Guard Implementation
@@ -131,6 +132,20 @@ class AppRouter {
     refreshListenable: _GoRouterRefreshStream(TokenService.authStateChanges),
 
     routes: <RouteBase>[
+      // --- Splash Route ---
+      GoRoute(
+        path: AppRoute.splash.path,
+        name: AppRoute.splash.name,
+        pageBuilder: (context, state) => CustomTransitionPage(
+          key: state.pageKey,
+          child: const SplashScreen(),
+          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            return FadeTransition(opacity: animation, child: child);
+          },
+          transitionDuration: const Duration(milliseconds: 400),
+        ),
+      ),
+
       // --- Auth Routes (Full Screen) ---
       GoRoute(
         path: AppRoute.welcome.path,

@@ -1,8 +1,8 @@
 import 'dart:math' as math;
 import 'package:grocery_app/common_widgets/global_import.dart';
 import 'package:grocery_app/common_widgets/select_state.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:image_cropper/image_cropper.dart';
+import 'package:grocery_app/routes/app_routes.dart';
 
 class EditProfileScreen extends StatefulWidget {
   final UserModel userProfile;
@@ -903,6 +903,7 @@ class _EditProfileScreenState extends State<EditProfileScreen>
   }
 
   Widget _buildAnimatedAvatar(ThemeData theme, ColorScheme colorScheme) {
+    final user = getIt<TokenService>().currentUser ?? widget.userProfile;
     return Stack(
       clipBehavior: Clip.none,
       children: [
@@ -926,38 +927,32 @@ class _EditProfileScreenState extends State<EditProfileScreen>
                   child:
                       _selectedImage != null
                           ? Image.file(_selectedImage!, fit: BoxFit.cover)
-                          : (widget.userProfile.profilePicture != null &&
-                                  widget
-                                      .userProfile
-                                      .profilePicture!
-                                      .isNotEmpty &&
-                                  widget.userProfile.profilePicture != "null"
-                              ? CachedNetworkImage(
-                                imageUrl: widget.userProfile.profilePicture!,
-                                cacheKey:
-                                    widget.userProfile.profilePicture!
-                                        .split('?')
-                                        .first,
-                                fit: BoxFit.cover,
-                                placeholder:
-                                    (context, url) => Center(
+                          : (user.profilePicture != null &&
+                                  user.profilePicture!.isNotEmpty &&
+                                  user.profilePicture != "null"
+                              ? Image.network(
+                                  user.profilePicture!,
+                                  fit: BoxFit.cover,
+                                  loadingBuilder: (context, child, loadingProgress) {
+                                    if (loadingProgress == null) return child;
+                                    return Center(
                                       child: CircularProgressIndicator(
                                         strokeWidth: 2,
                                         color: colorScheme.primary,
                                       ),
-                                    ),
-                                errorWidget:
-                                    (context, url, error) => const Icon(
-                                      Icons.person_rounded,
-                                      size: 48,
-                                      color: AppColors.parchment,
-                                    ),
-                              )
+                                    );
+                                  },
+                                  errorBuilder: (context, error, stackTrace) => const Icon(
+                                    Icons.person_rounded,
+                                    size: 48,
+                                    color: AppColors.parchment,
+                                  ),
+                                )
                               : const Icon(
-                                Icons.person_rounded,
-                                size: 48,
-                                color: AppColors.parchment,
-                              )),
+                                  Icons.person_rounded,
+                                  size: 48,
+                                  color: AppColors.parchment,
+                                )),
                 ),
               ),
             ),
@@ -1563,7 +1558,7 @@ class _EditProfileScreenState extends State<EditProfileScreen>
                               Text(
                                 'To continue, please enter your password. This will send an OTP to your email and phone.',
                                 style: TextStyle(
-                                  color: AppColors.charcoal60,
+                                  color: Theme.of(innerContext).textTheme.bodyMedium?.color?.withAlpha(153),
                                   fontSize: 14,
                                 ),
                               ),
@@ -1618,8 +1613,8 @@ class _EditProfileScreenState extends State<EditProfileScreen>
                                       style: TextStyle(
                                         color:
                                             isLoading
-                                                ? AppColors.rawEarth26
-                                                : AppColors.charcoal60,
+                                                ? Theme.of(innerContext).disabledColor
+                                                : Theme.of(innerContext).textTheme.bodyMedium?.color?.withAlpha(153),
                                       ),
                                     ),
                                   ),
@@ -1634,17 +1629,18 @@ class _EditProfileScreenState extends State<EditProfileScreen>
                                                 setDialogState(
                                                   () => isLoading = true,
                                                 );
-                                                final authCubit =
-                                                    context.read<AuthCubit>();
-                                                final result = await authCubit
-                                                    .deactivateAccount(
-                                                      passwordController.text,
-                                                    );
-                                                if (innerContext.mounted) {
+                                                try {
+                                                  final authCubit =
+                                                      context.read<AuthCubit>();
+                                                  final result = await authCubit
+                                                      .deactivateAccount(
+                                                        passwordController.text,
+                                                      );
+                                                  if (!innerContext.mounted) return;
                                                   setDialogState(
                                                     () => isLoading = false,
                                                   );
-                                                  if (result['success']) {
+                                                  if (result['success'] == true) {
                                                     pageController.nextPage(
                                                       duration: const Duration(
                                                         milliseconds: 300,
@@ -1654,7 +1650,17 @@ class _EditProfileScreenState extends State<EditProfileScreen>
                                                   } else {
                                                     SnackBarHelper.showError(
                                                       innerContext,
-                                                      result['message'],
+                                                      result['message'] ?? 'Failed to deactivate. Please try again.',
+                                                    );
+                                                  }
+                                                } catch (e) {
+                                                  if (innerContext.mounted) {
+                                                    setDialogState(
+                                                      () => isLoading = false,
+                                                    );
+                                                    SnackBarHelper.showError(
+                                                      innerContext,
+                                                      'An unexpected error occurred. Please try again.',
                                                     );
                                                   }
                                                 }
@@ -1728,7 +1734,7 @@ class _EditProfileScreenState extends State<EditProfileScreen>
                               Text(
                                 'An OTP has been sent to your email and phone. Please enter it below to complete deactivation.',
                                 style: TextStyle(
-                                  color: AppColors.charcoal60,
+                                  color: Theme.of(innerContext).textTheme.bodyMedium?.color?.withAlpha(153),
                                   fontSize: 14,
                                 ),
                               ),
@@ -1774,8 +1780,8 @@ class _EditProfileScreenState extends State<EditProfileScreen>
                                       style: TextStyle(
                                         color:
                                             isLoading
-                                                ? AppColors.rawEarth26
-                                                : AppColors.charcoal60,
+                                                ? Theme.of(innerContext).disabledColor
+                                                : Theme.of(innerContext).textTheme.bodyMedium?.color?.withAlpha(153),
                                       ),
                                     ),
                                   ),
@@ -1790,27 +1796,36 @@ class _EditProfileScreenState extends State<EditProfileScreen>
                                                 setDialogState(
                                                   () => isLoading = true,
                                                 );
-                                                final authCubit =
-                                                    context.read<AuthCubit>();
-                                                final result = await authCubit
-                                                    .confirmDeactivation(
-                                                      otpController.text,
-                                                    );
-                                                if (innerContext.mounted) {
+                                                try {
+                                                  final authCubit =
+                                                      context.read<AuthCubit>();
+                                                  final result = await authCubit
+                                                      .confirmDeactivation(
+                                                        otpController.text,
+                                                      );
+                                                  if (!innerContext.mounted) return;
                                                   setDialogState(
                                                     () => isLoading = false,
                                                   );
-                                                  if (result['success']) {
+                                                  if (result['success'] == true) {
                                                     Navigator.pop(innerContext);
-                                                    Navigator.of(
-                                                      innerContext,
-                                                    ).popUntil(
-                                                      (route) => route.isFirst,
-                                                    );
+                                                    if (context.mounted) {
+                                                      context.go(AppRoute.login.path);
+                                                    }
                                                   } else {
                                                     SnackBarHelper.showError(
                                                       innerContext,
-                                                      result['message'],
+                                                      result['message'] ?? 'Failed to confirm deactivation. Please try again.',
+                                                    );
+                                                  }
+                                                } catch (e) {
+                                                  if (innerContext.mounted) {
+                                                    setDialogState(
+                                                      () => isLoading = false,
+                                                    );
+                                                    SnackBarHelper.showError(
+                                                      innerContext,
+                                                      'An unexpected error occurred. Please try again.',
                                                     );
                                                   }
                                                 }

@@ -293,7 +293,7 @@ class _AboutScreenState extends State<AboutScreen>
                                 ),
                               ),
                               child: Image.asset(
-                                'assets/anaad_logo.png',
+                                'assets/images/OnBoarding/logo.png',
                                 height: 60,
                                 errorBuilder: (context, error, stackTrace) {
                                   return const Text(

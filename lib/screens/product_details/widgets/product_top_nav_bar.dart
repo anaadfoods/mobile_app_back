@@ -49,27 +49,34 @@ class ProductTopNavBar extends StatelessWidget {
           Row(
             children: [
               // Share
-              GestureDetector(
-                onTap: () {
-                  onTriggerHaptic();
-                  Share.share(
-                    'Check out this product: https://anaadfoods.com/product/${product.id}',
+              Builder(
+                builder: (ctx) {
+                  return GestureDetector(
+                    onTap: () {
+                      onTriggerHaptic();
+                      final box = ctx.findRenderObject() as RenderBox?;
+                      Share.share(
+                        'Check out this product: https://anaadfoods.com/product/${product.id}',
+                        sharePositionOrigin:
+                            box != null ? box.localToGlobal(Offset.zero) & box.size : null,
+                      );
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: isDark
+                            ? AppColors.darkSurfaceElevated
+                            : AppColors.parchment,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Icon(
+                        Icons.share_outlined,
+                        color: isDark ? AppColors.parchment : AppColors.pureBlack,
+                        size: 20,
+                      ),
+                    ),
                   );
                 },
-                child: Container(
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    color: isDark
-                        ? AppColors.darkSurfaceElevated
-                        : AppColors.parchment,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Icon(
-                    Icons.share_outlined,
-                    color: isDark ? AppColors.parchment : AppColors.pureBlack,
-                    size: 20,
-                  ),
-                ),
               ),
               const SizedBox(width: 12),
               // Favorite
