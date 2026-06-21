@@ -72,11 +72,11 @@ class _TopCuroselState extends State<TopCurosel>
     final List<CarouselItem> hardcodedDefaults = [
       CarouselItem(
         imagePath: '',
-        title: 'Ground slowly',
+        title: 'Milled this week. For your kitchen.',
         subtitle:
-            "Low RPM Natural Stone Milling of the flour preserves every bit of nutrition",
-        buttonText: 'See the Product',
-        color: Colors.amber, // Amber nature
+            "Every batch is stone-milled within 14 days of harvest and dispatched within 72 hours.",
+        buttonText: 'Shop Now',
+        color: AppColors.deepSoilGreen,
         onTap: () {
           final dashboardState =
               context.findAncestorStateOfType<DashboardScreenState>();
@@ -85,30 +85,30 @@ class _TopCuroselState extends State<TopCurosel>
       ),
       CarouselItem(
         imagePath: '',
-        title: 'We don’t manufacture. We grow',
-        subtitle: 'A return to Truly Nutritional Food',
-        buttonText: 'Read Our Roots',
-        color: Colors.green, // Green
+        title: "We don't buy grain. We grow it.",
+        subtitle: '28 acres in Sonipat. Six years without a single synthetic input.',
+        buttonText: 'How We Farm',
+        color: AppColors.deepSoilGreen,
         onTap: () {
           context.push('/about-us');
         },
       ),
       CarouselItem(
         imagePath: '',
-        title: 'Picked before the sun rose',
-        subtitle: "Harvested only when you order. Not a moment sooner",
-        buttonText: 'Visit our Plot',
-        color: Colors.yellow, // Yellow
+        title: 'Milled cold. Always below 40°C.',
+        subtitle: "High heat damages the grain's natural oils. Our stone mill never gets there.",
+        buttonText: 'Learn More',
+        color: AppColors.deepSoilGreen,
         onTap: () {
           context.push('/product/1');
         },
       ),
       CarouselItem(
         imagePath: '',
-        title: 'Remote Farming Program',
-        subtitle: "You can’t be at the farm. So we bring the farm to you.",
-        buttonText: 'Visit our Plot',
-        color: Colors.white, // White
+        title: 'Your name. Your field.',
+        subtitle: "Siddh subscribers receive a named plot, GPS coordinates, and seasonal soil reports — from their specific piece of land.",
+        buttonText: 'See Commitment Plans',
+        color: AppColors.deepSoilGreen,
         onTap: () {
           final authState = context.read<AuthCubit>().state;
           final isRfp = authState is Authenticated && authState.user.isRfp;
@@ -122,51 +122,6 @@ class _TopCuroselState extends State<TopCurosel>
       setState(() {
         _carouselItems = hardcodedDefaults;
       });
-    }
-
-    try {
-      final BannerService bannerService = getIt<BannerService>();
-      final List<BannerModel> apiBanners = await bannerService.fetchBanners();
-
-      if (apiBanners.isNotEmpty && mounted) {
-        List<CarouselItem> newItems = [];
-
-        // Map API banners to hardcoded styles based on index
-        for (int i = 0; i < apiBanners.length; i++) {
-          final banner = apiBanners[i];
-
-          // Use hardcoded styles from defaults if available, otherwise reuse last one or default
-          final styleSource =
-              i < hardcodedDefaults.length
-                  ? hardcodedDefaults[i]
-                  : hardcodedDefaults.last;
-
-          newItems.add(
-            CarouselItem(
-              imagePath: banner.image, // URL from API
-              title: banner.title,
-              subtitle: banner.subtitle,
-              buttonText: styleSource.buttonText, // Hardcoded
-              color: styleSource.color, // Hardcoded
-              onTap: styleSource.onTap, // Hardcoded
-            ),
-          );
-        }
-
-        setState(() {
-          _carouselItems = newItems;
-        });
-
-        // Notify color change for the new first item
-        if (_carouselItems.isNotEmpty && widget.onColorChanged != null) {
-          final color =
-              _carouselItems[0].color ?? Theme.of(context).colorScheme.primary;
-          widget.onColorChanged!(color);
-        }
-      }
-    } catch (e) {
-      AppLogger.instance.log("Error fetching banners: $e");
-      // Fallback to defaults (already set)
     }
   }
 
@@ -272,20 +227,13 @@ class _TopCuroselState extends State<TopCurosel>
                                         ),
                                       ),
                                   errorWidget:
-                                      (context, url, error) => const Center(
-                                        child: Icon(Icons.error),
+                                      (context, url, error) => Container(
+                                        color: itemColor,
                                       ),
                                 )
                                 : item.imagePath.isEmpty
                                 ? Container(
-                                  color: itemColor.withValues(alpha: 0.2),
-                                  child: Center(
-                                    child: Icon(
-                                      Icons.image_not_supported_outlined,
-                                      color: itemColor.withValues(alpha: 0.5),
-                                      size: 48,
-                                    ),
-                                  ),
+                                  color: itemColor,
                                 )
                                 : SvgPicture.asset(
                                   item.imagePath,

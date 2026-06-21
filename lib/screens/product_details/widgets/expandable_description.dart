@@ -37,7 +37,7 @@ class _ExpandableDescriptionState extends State<ExpandableDescription> {
         GestureDetector(
           onTap: () => setState(() => _isExpanded = !_isExpanded),
           child: Text(
-            _isExpanded ? "less" : "more",
+            _isExpanded ? "Show Less" : "Read More",
             style: TextStyle(
               color: isDark ? AppColors.harvestAmber : AppColors.rawEarth,
               fontWeight: FontWeight.bold,

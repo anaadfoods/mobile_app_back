@@ -41,32 +41,21 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   // Cached future for communities to prevent re-fetching on rebuild
   late Future<List<Community>> _communitiesFuture;
 
-  // Cached greeting (computed once, doesn't change during session)
-  late final int _greetingHour;
-  late final String _greetingText;
-  late final String _greetingEmoji;
+  String _formatFriendlyDate(String dateString) {
+    if (dateString.isEmpty) return '';
+    final parsed = DateTime.tryParse(dateString);
+    if (parsed == null) return dateString;
+    const monthsList = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    if (parsed.month < 1 || parsed.month > 12) return dateString;
+    return '${monthsList[parsed.month - 1]} ${parsed.day}';
+  }
 
   @override
   void initState() {
     super.initState();
     _initAnimations();
-    _initGreeting();
     // Cache the communities future so it doesn't re-fetch on every rebuild
     _communitiesFuture = CommunityService.fetchCommunities();
-  }
-
-  void _initGreeting() {
-    _greetingHour = DateTime.now().hour;
-    if (_greetingHour < 12) {
-      _greetingText = 'Good Morning';
-      _greetingEmoji = '🌅';
-    } else if (_greetingHour < 17) {
-      _greetingText = 'Good Afternoon';
-      _greetingEmoji = '☀️';
-    } else {
-      _greetingText = 'Good Evening';
-      _greetingEmoji = '🌙';
-    }
   }
 
   void _initAnimations() {
@@ -245,108 +234,83 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                               Expanded(
                                 child: BlocBuilder<AuthCubit, AuthState>(
                                   buildWhen: (prev, curr) => prev != curr,
-                                  builder: (context, state) {
+                                  builder: (context, authState) {
                                     String name = "User";
-                                    String? profilePicture;
-                                    if (state is Authenticated) {
+                                    if (authState is Authenticated) {
                                       name =
-                                          state.user.firstName[0]
+                                          authState.user.firstName[0]
                                               .toUpperCase() +
-                                          state.user.firstName.substring(1);
-                                      profilePicture =
-                                          state.user.profilePicture;
+                                          authState.user.firstName.substring(1);
                                     }
 
-                                    return GestureDetector(
-                                      onTap: () {
-                                        context.go(AppRoute.profile.path);
+                                    return BlocBuilder<SubscriptionCubit, SubscriptionState>(
+                                      builder: (context, subState) {
+                                        String? nextDeliveryDate;
+                                        if (subState is SubscriptionSuccess) {
+                                          for (final sub in subState.userSubscriptions) {
+                                            if (sub.status.toUpperCase() == 'ACTIVE') {
+                                              nextDeliveryDate = sub.nextDeliveryDate;
+                                              break;
+                                            }
+                                          }
+                                        }
+
+                                        final hour = DateTime.now().hour;
+                                        String greetingPrefix;
+                                        if (hour < 12) {
+                                          greetingPrefix = 'Good morning';
+                                        } else if (hour < 17) {
+                                          greetingPrefix = 'Good afternoon';
+                                        } else {
+                                          greetingPrefix = 'Good evening';
+                                        }
+
+                                        String greetingMessage;
+                                        if (nextDeliveryDate != null && nextDeliveryDate.isNotEmpty) {
+                                          final formattedDate = _formatFriendlyDate(nextDeliveryDate);
+                                          if (formattedDate.isNotEmpty) {
+                                            greetingMessage = '$greetingPrefix, $name. Your next delivery arrives $formattedDate.';
+                                          } else {
+                                            greetingMessage = '$greetingPrefix, $name.';
+                                          }
+                                        } else {
+                                          greetingMessage = '$greetingPrefix, $name.';
+                                        }
+
+                                        return GestureDetector(
+                                          onTap: () {
+                                            context.go(AppRoute.profile.path);
+                                          },
+                                          child: Row(
+                                            children: [
+                                              // Animated Avatar with glow
+                                              Hero(
+                                                tag: 'app_logo',
+                                                child: Image.asset(
+                                                  'assets/images/OnBoarding/logo.png',
+                                                  height: 40,
+                                                  width: 40,
+                                                ),
+                                              ),
+                                              const SizedBox(width: 8),
+                                              // Greeting Text Column
+                                              Expanded(
+                                                child: Text(
+                                                  greetingMessage,
+                                                  style: textTheme.titleMedium?.copyWith(
+                                                    color: theme.colorScheme.onPrimary,
+                                                    fontWeight: FontWeight.bold,
+                                                    letterSpacing: 0.2,
+                                                    fontSize: 14,
+                                                  ),
+                                                  maxLines: 2,
+                                                  overflow: TextOverflow.ellipsis,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        );
                                       },
-                                      child: Row(
-                                        children: [
-                                          // Animated Avatar with glow
-                                          Hero(
-                                            tag: 'app_logo',
-                                            child: Image.asset(
-                                              'assets/images/OnBoarding/logo.png',
-                                              height: 40,
-                                              width: 40,
-                                            ),
-                                          ),
-                                          const SizedBox(width: 4),
-                                          // Greeting Text Column
-                                          Expanded(
-                                            child: Column(
-                                              crossAxisAlignment:
-                                                  CrossAxisAlignment.start,
-                                              mainAxisSize: MainAxisSize.min,
-                                              children: [
-                                                // Time-based greeting with live emoji at end
-                                                Row(
-                                                  children: [
-                                                    Text(
-                                                      _greetingText,
-                                                      style: textTheme.bodySmall
-                                                          ?.copyWith(
-                                                            color: theme
-                                                                .colorScheme
-                                                                .onPrimary
-                                                                .withValues(
-                                                                  alpha: 0.8,
-                                                                ),
-                                                            fontWeight:
-                                                                FontWeight.w500,
-                                                            letterSpacing: 0.3,
-                                                          ),
-                                                    ),
-                                                    const SizedBox(width: 5),
-                                                    // Animated greeting emoji
-                                                    RepaintBoundary(
-                                                      child:
-                                                          _AnimatedGreetingEmoji(
-                                                            emoji:
-                                                                _greetingEmoji,
-                                                            hour: _greetingHour,
-                                                          ),
-                                                    ),
-                                                  ],
-                                                ),
-                                                const SizedBox(height: 2),
-                                                // Name with wave animation
-                                                Row(
-                                                  children: [
-                                                    Flexible(
-                                                      child: Text(
-                                                        name,
-                                                        style: textTheme
-                                                            .titleMedium
-                                                            ?.copyWith(
-                                                              color:
-                                                                  theme
-                                                                      .colorScheme
-                                                                      .onPrimary,
-                                                              fontWeight:
-                                                                  FontWeight
-                                                                      .bold,
-                                                              letterSpacing:
-                                                                  0.2,
-                                                            ),
-                                                        overflow:
-                                                            TextOverflow
-                                                                .ellipsis,
-                                                      ),
-                                                    ),
-                                                    const SizedBox(width: 6),
-                                                    // Waving hand emoji
-                                                    const RepaintBoundary(
-                                                      child: _WavingHandEmoji(),
-                                                    ),
-                                                  ],
-                                                ),
-                                              ],
-                                            ),
-                                          ),
-                                        ],
-                                      ),
                                     );
                                   },
                                 ),
@@ -460,7 +424,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                   child: SubscriptionCarousel(),
                                 ),
                               ),
-                              _heading(context, "Subscription Plans", "", () {}),
+                              _heading(context, "Commitment Plans", "", () {}),
                               RepaintBoundary(
                                 child: _subscriptionSection(context),
                               ),
@@ -622,7 +586,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      'Featured Products',
+                      'Newly Harvested',
                       style: theme.textTheme.titleLarge?.copyWith(
                         fontWeight: FontWeight.bold,
                       ),

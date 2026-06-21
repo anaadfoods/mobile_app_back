@@ -66,7 +66,7 @@ class HomeSearchBar extends StatelessWidget {
                   focusNode: focusNode,
                   style: theme.textTheme.bodyLarge,
                   decoration: InputDecoration(
-                    hintText: "Search products...",
+                    hintText: "Search by grain, flour, or variety...",
                     filled: false,
                     hintStyle: TextStyle(
                       color:

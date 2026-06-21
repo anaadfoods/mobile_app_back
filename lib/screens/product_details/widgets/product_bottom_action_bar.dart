@@ -161,7 +161,7 @@ class ProductBottomActionBar extends StatelessWidget {
               color: AppColors.pureWhite,
             ),
             label: const Text(
-              "Buy Now",
+              "Commit & Save",
               style: TextStyle(
                 fontWeight: FontWeight.w800,
                 fontSize: 16,

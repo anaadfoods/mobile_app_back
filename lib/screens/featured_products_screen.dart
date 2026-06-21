@@ -94,7 +94,7 @@ class _FeaturedProductsScreenState extends State<FeaturedProductsScreen> {
                         mainAxisAlignment: MainAxisAlignment.end,
                         children: [
                           Text(
-                            'Featured Products',
+                            'Newly Harvested',
                             style: theme.textTheme.headlineSmall?.copyWith(
                               color: AppColors.parchment,
                               fontWeight: FontWeight.bold,

@@ -7,7 +7,8 @@ class SubscriptionPlansSection extends StatelessWidget {
   final List<PlanSearchResult> availablePlansForProduct;
   final int? selectedPlanId;
   final ValueChanged<int?> onPlanSelected;
-  final Function(int initialPlanId, int initialPlanIndex) onShowSubscriptionSelectionSheet;
+  final Function(int initialPlanId, int initialPlanIndex)
+  onShowSubscriptionSelectionSheet;
 
   const SubscriptionPlansSection({
     super.key,
@@ -50,29 +51,37 @@ class SubscriptionPlansSection extends StatelessWidget {
             scrollDirection: Axis.horizontal,
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: List.generate(allPlans.length > 4 ? 4 : allPlans.length, (index) {
+              children: List.generate(allPlans.length > 4 ? 4 : allPlans.length, (
+                index,
+              ) {
                 final plan = allPlans[index];
 
                 final availablePlanData = availablePlansForProduct.firstWhere(
                   (p) => p.planName == plan.name,
-                  orElse: () => PlanSearchResult(
-                    planId: 0,
-                    planName: '',
-                    discountPercentage: 0.0,
-                    discountedPrice: 0.0,
-                  ),
+                  orElse:
+                      () => PlanSearchResult(
+                        planId: 0,
+                        planName: '',
+                        discountPercentage: 0.0,
+                        discountedPrice: 0.0,
+                      ),
                 );
 
                 final bool isEnabled = availablePlanData.planId != 0;
-                final bool isSelected = selectedPlanId == availablePlanData.planId;
+                final bool isSelected =
+                    selectedPlanId == availablePlanData.planId;
 
                 return GestureDetector(
-                  onTap: isEnabled
-                      ? () {
-                          onPlanSelected(availablePlanData.planId);
-                          onShowSubscriptionSelectionSheet(availablePlanData.planId, index);
-                        }
-                      : null,
+                  onTap:
+                      isEnabled
+                          ? () {
+                            onPlanSelected(availablePlanData.planId);
+                            onShowSubscriptionSelectionSheet(
+                              availablePlanData.planId,
+                              index,
+                            );
+                          }
+                          : null,
                   child: AnimatedContainer(
                     duration: const Duration(milliseconds: 250),
                     curve: Curves.easeOutCubic,
@@ -82,41 +91,45 @@ class SubscriptionPlansSection extends StatelessWidget {
                       horizontal: 18,
                     ),
                     decoration: BoxDecoration(
-                      gradient: isSelected
-                          ? const LinearGradient(
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                              colors: [
-                                AppColors.deepSoilGreen,
-                                AppColors.successGreen,
-                              ],
-                            )
-                          : null,
-                      color: isSelected
-                          ? null
-                          : (isDark
-                              ? AppColors.darkMintGreen
-                              : AppColors.pureWhite),
+                      gradient:
+                          isSelected
+                              ? const LinearGradient(
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                                colors: [
+                                  AppColors.deepSoilGreen,
+                                  AppColors.successGreen,
+                                ],
+                              )
+                              : null,
+                      color:
+                          isSelected
+                              ? null
+                              : (isDark
+                                  ? AppColors.darkMintGreen
+                                  : AppColors.pureWhite),
                       borderRadius: BorderRadius.circular(16),
                       border: Border.all(
-                        color: isSelected
-                            ? AppColors.deepSoilGreen
-                            : (isDark
-                                ? AppColors.parchment.withValues(alpha: 0.1)
-                                : AppColors.charcoal12),
+                        color:
+                            isSelected
+                                ? AppColors.deepSoilGreen
+                                : (isDark
+                                    ? AppColors.parchment.withValues(alpha: 0.1)
+                                    : AppColors.charcoal12),
                         width: isSelected ? 2.5 : 1.5,
                       ),
-                      boxShadow: isSelected
-                          ? [
-                              BoxShadow(
-                                color: AppColors.deepSoilGreen.withValues(
-                                  alpha: 0.3,
+                      boxShadow:
+                          isSelected
+                              ? [
+                                BoxShadow(
+                                  color: AppColors.deepSoilGreen.withValues(
+                                    alpha: 0.3,
+                                  ),
+                                  blurRadius: 12,
+                                  offset: const Offset(0, 4),
                                 ),
-                                blurRadius: 12,
-                                offset: const Offset(0, 4),
-                              ),
-                            ]
-                          : null,
+                              ]
+                              : null,
                     ),
                     child: Opacity(
                       opacity: isEnabled ? 1.0 : 0.4,
@@ -126,24 +139,31 @@ class SubscriptionPlansSection extends StatelessWidget {
                             plan.name,
                             style: TextStyle(
                               fontSize: 13,
-                              color: isSelected
-                                  ? AppColors.pureWhite
-                                  : (isDark ? AppColors.pureWhite : AppColors.pureBlack),
-                              fontWeight: (isDark && !isSelected)
-                                  ? FontWeight.w900
-                                  : FontWeight.bold,
+                              color:
+                                  isSelected
+                                      ? AppColors.pureWhite
+                                      : (isDark
+                                          ? AppColors.pureWhite
+                                          : AppColors.pureBlack),
+                              fontWeight:
+                                  (isDark && !isSelected)
+                                      ? FontWeight.w900
+                                      : FontWeight.bold,
                             ),
                           ),
                           const SizedBox(height: 8),
                           Row(
                             children: [
                               Text(
-                                isEnabled 
+                                isEnabled
                                     ? "₹${availablePlanData.discountedPrice.toStringAsFixed(0)}"
                                     : "Unavailable",
                                 style: TextStyle(
                                   fontSize: isEnabled ? 15 : 13,
-                                  color: isSelected ? AppColors.pureWhite : AppColors.harvestAmber,
+                                  color:
+                                      isSelected
+                                          ? AppColors.pureWhite
+                                          : AppColors.harvestAmber,
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
@@ -155,16 +175,24 @@ class SubscriptionPlansSection extends StatelessWidget {
                                     horizontal: 6,
                                   ),
                                   decoration: BoxDecoration(
-                                    color: isSelected
-                                        ? AppColors.pureWhite.withValues(alpha: 0.2)
-                                        : AppColors.harvestAmber.withValues(alpha: 0.12),
+                                    color:
+                                        isSelected
+                                            ? AppColors.pureWhite.withValues(
+                                              alpha: 0.2,
+                                            )
+                                            : AppColors.harvestAmber.withValues(
+                                              alpha: 0.12,
+                                            ),
                                     borderRadius: BorderRadius.circular(8),
                                   ),
                                   child: Text(
                                     "Save ${availablePlanData.discountPercentage.toStringAsFixed(0)}%",
                                     style: TextStyle(
                                       fontSize: 10,
-                                      color: isSelected ? AppColors.pureWhite : AppColors.harvestAmber,
+                                      color:
+                                          isSelected
+                                              ? AppColors.pureWhite
+                                              : AppColors.harvestAmber,
                                       fontWeight: FontWeight.bold,
                                     ),
                                   ),
@@ -172,6 +200,34 @@ class SubscriptionPlansSection extends StatelessWidget {
                               ],
                             ],
                           ),
+                          (() {
+                            String? planLabel;
+                            final planNameUpper = plan.name.toUpperCase().trim();
+                            if (planNameUpper == 'TAPASVI') {
+                              planLabel = 'Best for Families';
+                            } else if (planNameUpper == 'PATHIK') {
+                              planLabel = 'Most Popular';
+                            }
+
+                            if (planLabel != null) {
+                              return Padding(
+                                padding: const EdgeInsets.only(top: 6),
+                                child: Text(
+                                  planLabel,
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    color: isSelected
+                                        ? AppColors.pureWhite.withValues(alpha: 0.9)
+                                        : (isDark
+                                            ? AppColors.parchment.withValues(alpha: 0.7)
+                                            : AppColors.charcoal.withValues(alpha: 0.7)),
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              );
+                            }
+                            return const SizedBox.shrink();
+                          })(),
                         ],
                       ),
                     ),

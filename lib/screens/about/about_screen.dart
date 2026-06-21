@@ -402,16 +402,22 @@ class _AboutScreenState extends State<AboutScreen>
   }
 
   Widget _buildSectionTitle(ThemeData theme, String title) {
+    final isDark = theme.brightness == Brightness.dark;
     return Text(
       title,
-      style: theme.textTheme.titleLarge?.copyWith(
+      style: TextStyle(
+        fontSize: 18,
         fontWeight: FontWeight.bold,
         letterSpacing: 0.3,
+        color: isDark ? AppColors.parchment : AppColors.charcoal,
       ),
     );
   }
 
   Widget _buildMissionCard(ThemeData theme, ColorScheme colorScheme) {
+    final isDark = theme.brightness == Brightness.dark;
+    final bodyColor = isDark ? AppColors.parchment70 : AppColors.charcoal70;
+    
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(24),
@@ -420,13 +426,19 @@ class _AboutScreenState extends State<AboutScreen>
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            colorScheme.primary.withAlpha(12),
-            colorScheme.primary.withAlpha(6),
+            isDark
+                ? AppColors.deepSoilGreen.withValues(alpha: 0.15)
+                : colorScheme.primary.withValues(alpha: 0.08),
+            isDark
+                ? AppColors.deepSoilGreen.withValues(alpha: 0.05)
+                : colorScheme.primary.withValues(alpha: 0.03),
           ],
         ),
         borderRadius: BorderRadius.circular(24),
         border: Border.all(
-          color: colorScheme.primary.withAlpha(30),
+          color: isDark
+              ? AppColors.deepSoilGreen.withValues(alpha: 0.3)
+              : colorScheme.primary.withValues(alpha: 0.15),
           width: 1.5,
         ),
       ),
@@ -438,45 +450,58 @@ class _AboutScreenState extends State<AboutScreen>
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: colorScheme.primary.withAlpha(25),
+                  color: isDark
+                      ? AppColors.deepSoilGreen.withValues(alpha: 0.25)
+                      : colorScheme.primary.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(14),
                 ),
                 child: Icon(
                   Icons.lightbulb_outline_rounded,
-                  color: colorScheme.primary,
+                  color: isDark ? AppColors.harvestAmber : colorScheme.primary,
                   size: 24,
                 ),
               ),
               const SizedBox(width: 14),
               Text(
                 'Our Mission',
-                style: theme.textTheme.titleLarge?.copyWith(
+                style: TextStyle(
+                  fontSize: 18,
                   fontWeight: FontWeight.bold,
+                  color: isDark ? AppColors.parchment : AppColors.charcoal,
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 20),
           Text(
-            'It began with a disturbing question: Why is a generation obsessed with "healthy eating" still suffering from Modern Lifestyle Diseases?',
+            'It began with a question we couldn\'t stop asking: why is a generation obsessed with healthy eating still getting sicker?',
             style: theme.textTheme.bodyMedium?.copyWith(
               height: 1.6,
-              color: theme.textTheme.bodyMedium?.color?.withAlpha(200),
+              color: bodyColor,
             ),
           ),
           const SizedBox(height: 12),
           Text(
-            "We looked at our own dinner tables and realized the disconnect. The produce looked fresh, but the soil it came from was stripped of life due to synthetic inputs. We realized we were eating chemistry, not nutrients. We couldn't find a source we trusted, so we built the farm we needed. We returned to Toxin-Free ICBN (Indigenous Cow Based Natural) practices not to build a business, but to secure our own survival. To heal the human, we must heal the source. Our mission is to restore Environmental Health to the soil and provide economic security and dignity back to the Farmers at the grassroots. When the land breathes and the farmer thrives, your health is the inevitable harvest.",
+            'We looked at our own dinner tables and noticed the disconnect. The food looked fresh, but the soil it came from had been stripped of life by decades of synthetic inputs. We were eating chemistry, not nutrients.',
             style: theme.textTheme.bodyMedium?.copyWith(
               height: 1.6,
-              color: theme.textTheme.bodyMedium?.color?.withAlpha(200),
+              color: bodyColor,
             ),
           ),
+          const SizedBox(height: 12),
           Text(
-            'ANAAD is simply us sharing that lifeline with you',
+            'We couldn\'t find a source we trusted — so we built the farm we needed. We returned to Indigenous Cow-Based Natural (ICBN) farming not to build a business, but to answer a question honestly: could we feed this food to our own families?',
             style: theme.textTheme.bodyMedium?.copyWith(
               height: 1.6,
-              color: theme.textTheme.bodyMedium?.color?.withAlpha(200),
+              color: bodyColor,
+            ),
+          ),
+          const SizedBox(height: 12),
+          Text(
+            'When the land breathes and the farmer thrives, your health is the inevitable harvest. ANAAD is us sharing that with you.',
+            style: theme.textTheme.bodyMedium?.copyWith(
+              height: 1.6,
+              color: bodyColor,
             ),
           ),
         ],
@@ -495,44 +520,83 @@ class _AboutScreenState extends State<AboutScreen>
       {
         'icon': Icons.agriculture_rounded,
         'title': 'Zero Distance',
-        'subtitle': 'From the harvest directly to your hands',
+        'subtitle': 'No warehouse. No middlemen. Field to your kitchen.',
         'color': AppColors.harvestAmber,
       },
       {
         'icon': Icons.favorite_rounded,
-        'title': 'Healthy',
-        'subtitle': 'Nutrient rich',
+        'title': 'Nutrient-Rich',
+        'subtitle': 'Grown in living soil. Milled cold. Nothing removed.',
         'color': AppColors.rawEarth,
       },
       {
         'icon': Icons.verified_rounded,
-        'title': 'Quality',
-        'subtitle': 'Premium grade',
+        'title': 'Uncompromising Quality',
+        'subtitle': 'Every batch tested by SGS before it leaves the farm.',
         'color': AppColors.deepSoilGreen,
       },
     ];
 
-    return GridView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        crossAxisSpacing: 14,
-        mainAxisSpacing: 14,
-        childAspectRatio: 1.1,
-      ),
-      itemCount: values.length,
-      itemBuilder: (context, index) {
-        final value = values[index];
-        return _buildValueCard(
-          theme: theme,
-          icon: value['icon'] as IconData,
-          title: value['title'] as String,
-          subtitle: value['subtitle'] as String,
-          color: value['color'] as Color,
-          delay: index,
-        );
-      },
+    return Column(
+      children: [
+        IntrinsicHeight(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Expanded(
+                child: _buildValueCard(
+                  theme: theme,
+                  icon: values[0]['icon'] as IconData,
+                  title: values[0]['title'] as String,
+                  subtitle: values[0]['subtitle'] as String,
+                  color: values[0]['color'] as Color,
+                  delay: 0,
+                ),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: _buildValueCard(
+                  theme: theme,
+                  icon: values[1]['icon'] as IconData,
+                  title: values[1]['title'] as String,
+                  subtitle: values[1]['subtitle'] as String,
+                  color: values[1]['color'] as Color,
+                  delay: 1,
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 14),
+        IntrinsicHeight(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Expanded(
+                child: _buildValueCard(
+                  theme: theme,
+                  icon: values[2]['icon'] as IconData,
+                  title: values[2]['title'] as String,
+                  subtitle: values[2]['subtitle'] as String,
+                  color: values[2]['color'] as Color,
+                  delay: 2,
+                ),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: _buildValueCard(
+                  theme: theme,
+                  icon: values[3]['icon'] as IconData,
+                  title: values[3]['title'] as String,
+                  subtitle: values[3]['subtitle'] as String,
+                  color: values[3]['color'] as Color,
+                  delay: 3,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 
@@ -544,6 +608,8 @@ class _AboutScreenState extends State<AboutScreen>
     required Color color,
     required int delay,
   }) {
+    final isDark = theme.brightness == Brightness.dark;
+    
     return TweenAnimationBuilder<double>(
       tween: Tween(begin: 0.0, end: 1.0),
       duration: Duration(milliseconds: 400 + (delay * 100)),
@@ -556,22 +622,32 @@ class _AboutScreenState extends State<AboutScreen>
         decoration: BoxDecoration(
           color: theme.cardColor,
           borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: isDark
+                ? AppColors.parchment.withValues(alpha: 0.08)
+                : AppColors.charcoal12,
+            width: 1.5,
+          ),
           boxShadow: [
             BoxShadow(
-              color: color.withAlpha(30),
-              blurRadius: 12,
+              color: isDark
+                  ? AppColors.transparent
+                  : color.withValues(alpha: 0.05),
+              blurRadius: 10,
               offset: const Offset(0, 4),
             ),
           ],
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.start,
           children: [
             Container(
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                color: color.withAlpha(25),
+                color: isDark
+                    ? color.withValues(alpha: 0.15)
+                    : color.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Icon(icon, color: color, size: 22),
@@ -581,13 +657,15 @@ class _AboutScreenState extends State<AboutScreen>
               title,
               style: theme.textTheme.titleMedium?.copyWith(
                 fontWeight: FontWeight.bold,
+                color: isDark ? AppColors.parchment : AppColors.charcoal,
               ),
             ),
-            const SizedBox(height: 2),
+            const SizedBox(height: 6),
             Text(
               subtitle,
               style: theme.textTheme.bodySmall?.copyWith(
-                color: theme.hintColor,
+                color: isDark ? AppColors.parchment70 : AppColors.charcoal70,
+                height: 1.4,
               ),
             ),
           ],
@@ -598,23 +676,33 @@ class _AboutScreenState extends State<AboutScreen>
 
   Widget _buildBenefitsCard(ThemeData theme, ColorScheme colorScheme) {
     final benefits = [
-      'Harvested, Not Stored. (Food that breathes, delivered fresh).',
-      'Zero Tolerance for Toxins. (Strictly chemical-free, certified).',
-      'Profit for the Planter. (Fair profit margins for the hands that feed us.',
-      'Earth to Earth. (Packaging that leaves minimum trace.)'
-          'The Truth Test. (Every grain checked for absolute purity.)',
+      'Harvested Fresh, Never Stored',
+      'Zero Tolerance for Chemicals',
+      'Fair Returns for Farmers',
+      'Earth-Friendly Packaging',
+      'Every Batch Tested for Purity',
     ];
+
+    final isDark = theme.brightness == Brightness.dark;
 
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: theme.cardColor,
         borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: isDark
+              ? AppColors.parchment.withValues(alpha: 0.08)
+              : AppColors.charcoal12,
+          width: 1.5,
+        ),
         boxShadow: [
           BoxShadow(
-            color: colorScheme.primary.withAlpha(15),
-            blurRadius: 20,
-            offset: const Offset(0, 8),
+            color: isDark
+                ? AppColors.transparent
+                : colorScheme.primary.withValues(alpha: 0.05),
+            blurRadius: 15,
+            offset: const Offset(0, 6),
           ),
         ],
       ),
@@ -641,7 +729,10 @@ class _AboutScreenState extends State<AboutScreen>
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [colorScheme.primary, colorScheme.primary.withAlpha(220)],
+          colors: [
+            colorScheme.primary,
+            colorScheme.primary.withValues(alpha: 0.85),
+          ],
         ),
         borderRadius: BorderRadius.circular(24),
       ),
@@ -657,9 +748,9 @@ class _AboutScreenState extends State<AboutScreen>
           ),
           const SizedBox(height: 8),
           Text(
-            "We don't hide behind logos. Talk to us.",
+            "Speak directly with the people growing your food.",
             style: TextStyle(
-              color: AppColors.parchment.withAlpha(180),
+              color: AppColors.parchment.withValues(alpha: 0.75),
               fontSize: 14,
             ),
           ),
@@ -697,7 +788,7 @@ class _AboutScreenState extends State<AboutScreen>
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: AppColors.parchment.withAlpha(20),
+              color: AppColors.parchment.withValues(alpha: 0.08),
               borderRadius: BorderRadius.circular(16),
             ),
             child: Column(
@@ -729,7 +820,7 @@ class _AboutScreenState extends State<AboutScreen>
           Text(
             '© 2025 Anaad Foods. All rights reserved.',
             style: TextStyle(
-              color: AppColors.parchment.withAlpha(150),
+              color: AppColors.parchment.withValues(alpha: 0.6),
               fontSize: 12,
             ),
           ),
@@ -747,7 +838,7 @@ class _AboutScreenState extends State<AboutScreen>
       child: Container(
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: AppColors.parchment.withAlpha(30),
+          color: AppColors.parchment.withValues(alpha: 0.12),
           shape: BoxShape.circle,
         ),
         child: Icon(icon, color: AppColors.parchment, size: 18),
@@ -758,13 +849,13 @@ class _AboutScreenState extends State<AboutScreen>
   Widget _buildContactRow(IconData icon, String text) {
     return Row(
       children: [
-        Icon(icon, color: AppColors.parchment.withAlpha(200), size: 18),
+        Icon(icon, color: AppColors.parchment.withValues(alpha: 0.8), size: 18),
         const SizedBox(width: 12),
         Expanded(
           child: Text(
             text,
             style: TextStyle(
-              color: AppColors.parchment.withAlpha(220),
+              color: AppColors.parchment.withValues(alpha: 0.9),
               fontSize: 13,
               height: 1.4,
             ),
@@ -790,6 +881,7 @@ class _BenefitItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
 
     return TweenAnimationBuilder<double>(
       tween: Tween(begin: 0.0, end: 1.0),
@@ -813,7 +905,9 @@ class _BenefitItem extends StatelessWidget {
               padding: const EdgeInsets.all(4),
               decoration: BoxDecoration(
                 gradient: LinearGradient(
-                  colors: [AppColors.deepSoilGreen, AppColors.deepSoilGreen],
+                  colors: isDark
+                      ? [AppColors.harvestAmber, AppColors.harvestAmber]
+                      : [AppColors.deepSoilGreen, AppColors.deepSoilGreen],
                 ),
                 shape: BoxShape.circle,
               ),
@@ -827,7 +921,10 @@ class _BenefitItem extends StatelessWidget {
             Expanded(
               child: Text(
                 text,
-                style: theme.textTheme.bodyMedium?.copyWith(height: 1.4),
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  height: 1.4,
+                  color: isDark ? AppColors.parchment70 : AppColors.charcoal70,
+                ),
               ),
             ),
           ],

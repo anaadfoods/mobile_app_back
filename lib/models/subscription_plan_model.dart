@@ -1,4 +1,3 @@
-
 class SubscriptionPlan {
   final int id;
   final String name;
@@ -36,7 +35,8 @@ class SubscriptionPlan {
       name: json['name'],
       durationMonths: json['duration_months'],
       discountPercentage: json['discount_percentage'],
-      totalDiscountPercentage: (json['total_discount_percentage'] as num).toDouble(),
+      totalDiscountPercentage:
+          (json['total_discount_percentage'] as num).toDouble(),
       tagline: json['tagline'],
       description: json['description'],
       isActive: json['is_active'],

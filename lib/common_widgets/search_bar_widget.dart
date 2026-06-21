@@ -65,7 +65,7 @@ class _ProductSearchBarState extends State<ProductSearchBar> {
             controller: _controller,
             style: theme.textTheme.bodyLarge,
             decoration: InputDecoration(
-              hintText: "Search products...",
+              hintText: "Search by grain, flour, or variety...",
               prefixIcon: Icon(
                 Icons.search,
                 color:

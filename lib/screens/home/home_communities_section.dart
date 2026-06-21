@@ -88,7 +88,9 @@ class HomeCommunitiesSection extends StatelessWidget {
                           gradient: LinearGradient(
                             colors: [
                               AppColors.transparent,
-                              theme.colorScheme.onSurface.withValues(alpha: 0.2),
+                              theme.colorScheme.onSurface.withValues(
+                                alpha: 0.2,
+                              ),
                             ],
                           ),
                           borderRadius: BorderRadius.circular(2),
@@ -107,7 +109,9 @@ class HomeCommunitiesSection extends StatelessWidget {
                         decoration: BoxDecoration(
                           gradient: LinearGradient(
                             colors: [
-                              theme.colorScheme.onSurface.withValues(alpha: 0.2),
+                              theme.colorScheme.onSurface.withValues(
+                                alpha: 0.2,
+                              ),
                               AppColors.transparent,
                             ],
                           ),
@@ -119,7 +123,7 @@ class HomeCommunitiesSection extends StatelessWidget {
                   const SizedBox(height: 10),
                   // Main title
                   Text(
-                    'Join the Movement',
+                    'Beyond Food',
                     style: TextStyle(
                       fontSize: 22,
                       fontWeight: FontWeight.w800,
@@ -143,11 +147,13 @@ class HomeCommunitiesSection extends StatelessWidget {
                       ),
                       const SizedBox(width: 8),
                       Text(
-                        'Where good food finds good people.',
+                        'Two communities. One for kitchens and one for farms.',
                         style: TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.w500,
-                          color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
+                          color: theme.colorScheme.onSurface.withValues(
+                            alpha: 0.7,
+                          ),
                           letterSpacing: 0.3,
                           fontStyle: FontStyle.italic,
                         ),

@@ -210,7 +210,7 @@ class _ReferEarnScreenState extends State<ReferEarnScreen>
         ),
         const SizedBox(height: 8),
         Text(
-          'Invite your loved ones to Anaad. When your friend signs up and places their first order, you receive a surprise gift from the Anaad team! 🎁',
+          'Invite friends and family to ANAAD. When they place their first order, you\'ll receive a surprise gift from us. 🎁',
           style: theme.textTheme.bodyMedium?.copyWith(
             color: isDark ? AppColors.parchment70 : AppColors.rawEarth70,
           ),
@@ -402,9 +402,11 @@ class _ReferEarnScreenState extends State<ReferEarnScreen>
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Share via',
-          style: theme.textTheme.titleMedium?.copyWith(
+          'Share Your Code',
+          style: TextStyle(
+            fontSize: 18,
             fontWeight: FontWeight.bold,
+            color: isDark ? AppColors.parchment : AppColors.charcoal,
           ),
         ),
         const SizedBox(height: 16),
@@ -471,8 +473,10 @@ class _ReferEarnScreenState extends State<ReferEarnScreen>
         children: [
           Text(
             'Your Referral Stats',
-            style: theme.textTheme.titleMedium?.copyWith(
+            style: TextStyle(
+              fontSize: 18,
               fontWeight: FontWeight.bold,
+              color: isDark ? AppColors.parchment : AppColors.charcoal,
             ),
           ),
           const SizedBox(height: 20),
@@ -580,8 +584,10 @@ class _ReferEarnScreenState extends State<ReferEarnScreen>
               const SizedBox(width: 12),
               Text(
                 'Your Referrals',
-                style: theme.textTheme.titleMedium?.copyWith(
+                style: TextStyle(
+                  fontSize: 18,
                   fontWeight: FontWeight.bold,
+                  color: isDark ? AppColors.parchment : AppColors.charcoal,
                 ),
               ),
               const Spacer(),
@@ -621,7 +627,7 @@ class _ReferEarnScreenState extends State<ReferEarnScreen>
                     ),
                     const SizedBox(height: 12),
                     Text(
-                      'No referrals registered yet',
+                      'Your referral journey starts here.',
                       style: theme.textTheme.bodyMedium?.copyWith(
                         color:
                             isDark
@@ -775,7 +781,7 @@ class _ReferEarnScreenState extends State<ReferEarnScreen>
       {
         'icon': Icons.person_add_rounded,
         'title': 'Join',
-        'desc': 'They sign up and join the Anaad family',
+        'desc': 'They sign up and join the ANAAD community',
       },
       {
         'icon': Icons.shopping_cart_rounded,
@@ -785,7 +791,7 @@ class _ReferEarnScreenState extends State<ReferEarnScreen>
       {
         'icon': Icons.celebration_rounded,
         'title': 'Get Your Gift',
-        'desc': 'Receive a surprise gift from Anaad team!',
+        'desc': 'Receive a surprise gift from the ANAAD team.',
       },
     ];
 
@@ -822,8 +828,10 @@ class _ReferEarnScreenState extends State<ReferEarnScreen>
               const SizedBox(width: 12),
               Text(
                 'How It Works',
-                style: theme.textTheme.titleMedium?.copyWith(
+                style: TextStyle(
+                  fontSize: 18,
                   fontWeight: FontWeight.bold,
+                  color: isDark ? AppColors.parchment : AppColors.charcoal,
                 ),
               ),
             ],

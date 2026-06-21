@@ -784,7 +784,6 @@ class _CardColors {
   });
 }
 
-
 // ================= POPUP DIALOG (Kept intact) =================
 
 void showSubscriptionPopup({
@@ -1280,7 +1279,8 @@ class _SubscriptionPopupContentState extends State<_SubscriptionPopupContent> {
                                                               await CategoryService.fetchProductById(
                                                                 p.productId,
                                                               );
-                                                          if (!context.mounted) {
+                                                          if (!context
+                                                              .mounted) {
                                                             return;
                                                           }
                                                           Navigator.push(
@@ -1298,7 +1298,8 @@ class _SubscriptionPopupContentState extends State<_SubscriptionPopupContent> {
                                                             ),
                                                           );
                                                         } catch (e) {
-                                                          if (!context.mounted) {
+                                                          if (!context
+                                                              .mounted) {
                                                             return;
                                                           }
                                                           ScaffoldMessenger.of(

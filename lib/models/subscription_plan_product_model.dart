@@ -13,7 +13,8 @@ class SubscriptionPlanProduct {
     return SubscriptionPlanProduct(
       productId: json['variant_id'],
       productName: json['variant_name'],
-      maxWeightLimit: double.tryParse(json['max_weight_limit']?.toString() ?? '0') ?? 0.0,
+      maxWeightLimit:
+          double.tryParse(json['max_weight_limit']?.toString() ?? '0') ?? 0.0,
     );
   }
 
