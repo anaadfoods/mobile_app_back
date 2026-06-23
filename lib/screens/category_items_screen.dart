@@ -45,16 +45,17 @@ class _CategoryItemsScreenState extends State<CategoryItemsScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-
     return Scaffold(
       backgroundColor: isDark ? AppColors.darkCanvas : AppColors.parchment,
       body: CustomScrollView(
         slivers: [
           // ── Green banner app bar ──────────────────────────────────────
           SliverAppBar(
-            expandedHeight: 140,
-            floating: false,
             pinned: true,
+            floating: false,
+            centerTitle: false,
+            titleSpacing: 0,
+            toolbarHeight: 72.0,
             backgroundColor: AppColors.deepSoilGreen,
             shape: const RoundedRectangleBorder(
               borderRadius: BorderRadius.only(
@@ -65,6 +66,26 @@ class _CategoryItemsScreenState extends State<CategoryItemsScreen> {
             leading: IconButton(
               icon: const Icon(Icons.arrow_back_rounded, color: AppColors.parchment),
               onPressed: () => Navigator.maybePop(context),
+            ),
+            title: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  widget.name,
+                  style: theme.textTheme.titleLarge?.copyWith(
+                    color: AppColors.parchment,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  '${filteredProducts.length} products available',
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: AppColors.parchment.withValues(alpha: 0.85),
+                  ),
+                ),
+              ],
             ),
             actions: [
               PopupMenuButton<String>(
@@ -93,84 +114,6 @@ class _CategoryItemsScreenState extends State<CategoryItemsScreen> {
               ),
               const SizedBox(width: 8),
             ],
-            flexibleSpace: FlexibleSpaceBar(
-              background: ClipRRect(
-                borderRadius: const BorderRadius.only(
-                  bottomLeft: Radius.circular(32),
-                  bottomRight: Radius.circular(32),
-                ),
-                child: Container(
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: [
-                        AppColors.deepSoilGreen,
-                        AppColors.deepSoilGreen.withValues(alpha: 0.85),
-                        AppColors.deepSoilGreen,
-                      ],
-                    ),
-                  ),
-                  child: Stack(
-                    children: [
-                      // Decorative circles for depth
-                      Positioned(
-                        top: -20,
-                        right: -20,
-                        child: Container(
-                          width: 110,
-                          height: 110,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: AppColors.parchment.withValues(alpha: 0.07),
-                          ),
-                        ),
-                      ),
-                      Positioned(
-                        bottom: -30,
-                        left: -10,
-                        child: Container(
-                          width: 80,
-                          height: 80,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: AppColors.parchment.withValues(alpha: 0.05),
-                          ),
-                        ),
-                      ),
-                      SafeArea(
-                        bottom: false,
-                        child: Padding(
-                          padding: const EdgeInsets.fromLTRB(60, 16, 20, 16),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisAlignment: MainAxisAlignment.end,
-                            children: [
-                              Text(
-                                widget.name,
-                                style: theme.textTheme.headlineSmall?.copyWith(
-                                  color: AppColors.parchment,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                '${filteredProducts.length} products available',
-                                style: theme.textTheme.bodyMedium?.copyWith(
-                                  color: AppColors.parchment.withValues(
-                                    alpha: 0.85,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
           ),
 
           // ── Content: shimmer or real list ────────────────────────────

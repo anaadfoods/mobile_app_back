@@ -1,6 +1,7 @@
 import 'dart:ui';
 import 'dart:math' as math;
 import 'package:grocery_app/common_widgets/global_import.dart';
+import 'package:grocery_app/common_widgets/otp_resend_section.dart';
 import 'package:grocery_app/models/legal_document_model.dart';
 import 'package:grocery_app/service_locator.dart';
 import 'package:grocery_app/screens/legal/legal_content_screen.dart';
@@ -387,6 +388,25 @@ class _SignupScreenState extends State<SignupScreen>
                             ),
                           ),
                         ],
+                        OtpResendSection(
+                          onResend: () async {
+                            try {
+                              await context
+                                  .read<AuthRepository>()
+                                  .sendOtp(value.trim(), type.toUpperCase());
+                              SnackBarHelper.showSuccess(
+                                context,
+                                'OTP resent successfully!',
+                              );
+                            } catch (e) {
+                              SnackBarHelper.showError(
+                                context,
+                                e.toString().replaceAll('Exception:', '').trim(),
+                              );
+                              rethrow;
+                            }
+                          },
+                        ),
                         const SizedBox(height: 24),
                         Row(
                           children: [

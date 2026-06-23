@@ -1,4 +1,5 @@
 import 'package:grocery_app/common_widgets/coming_soon_overlay.dart';
+import 'package:grocery_app/common_widgets/out_of_stock_overlay.dart';
 import 'package:grocery_app/common_widgets/global_import.dart';
 import 'package:grocery_app/utils/subscription_navigation_helper.dart';
 import 'package:grocery_app/routes/app_routes.dart';
@@ -149,56 +150,32 @@ class _AllProductsScreenState extends State<AllProductsScreen> {
         slivers: [
           // App Bar
           SliverAppBar(
-            expandedHeight: 140,
-            floating: false,
             pinned: true,
+            floating: false,
+            centerTitle: false,
+            titleSpacing: 0,
+            toolbarHeight: 72.0,
             backgroundColor:
                 isDark ? AppColors.charcoal : AppColors.deepSoilGreen,
-            flexibleSpace: FlexibleSpaceBar(
-              background: Container(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors:
-                        isDark
-                            ? [
-                              AppColors.deepSoilGreen,
-                              AppColors.deepSoilGreen.withValues(alpha: 0.8),
-                            ]
-                            : [
-                              AppColors.deepSoilGreen,
-                              AppColors.deepSoilGreen.withValues(alpha: 0.8),
-                            ],
+            title: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  'Product Categories',
+                  style: theme.textTheme.titleLarge?.copyWith(
+                    color: AppColors.parchment,
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
-                child: SafeArea(
-                  bottom: false,
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(60, 16, 20, 16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        Text(
-                          'Product Categories',
-                          style: theme.textTheme.headlineSmall?.copyWith(
-                            color: AppColors.parchment,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          '${_products.length} products available',
-                          style: theme.textTheme.bodyMedium?.copyWith(
-                            color: AppColors.parchment.withValues(alpha: 0.8),
-                          ),
-                        ),
-                      ],
-                    ),
+                const SizedBox(height: 2),
+                Text(
+                  '${_products.length} products available',
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: AppColors.parchment.withValues(alpha: 0.8),
                   ),
                 ),
-              ),
+              ],
             ),
             leading: IconButton(
               icon: const Icon(Icons.arrow_back_rounded, color: AppColors.parchment),
@@ -409,6 +386,60 @@ class _FeaturedProductCard extends StatelessWidget {
     required this.onTap,
   });
 
+  Widget _buildCategoryCapsule(String category, ThemeData theme, bool isDark) {
+    if (category.isEmpty) return const SizedBox.shrink();
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      decoration: BoxDecoration(
+        color: isDark
+            ? AppColors.parchment.withValues(alpha: 0.1)
+            : AppColors.harvestAmber.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: isDark
+              ? AppColors.parchment.withValues(alpha: 0.15)
+              : AppColors.harvestAmber.withValues(alpha: 0.15),
+          width: 0.8,
+        ),
+      ),
+      child: Text(
+        category.toUpperCase(),
+        style: theme.textTheme.bodySmall?.copyWith(
+          color: isDark ? AppColors.pureWhite.withValues(alpha: 0.9) : AppColors.harvestAmber,
+          fontWeight: FontWeight.bold,
+          fontSize: 8,
+          letterSpacing: 0.5,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildQuantityTag(String weight, String unit, ThemeData theme, bool isDark) {
+    if (weight.isEmpty) return const SizedBox.shrink();
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      decoration: BoxDecoration(
+        color: isDark
+            ? AppColors.charcoal.withValues(alpha: 0.3)
+            : AppColors.parchment,
+        borderRadius: BorderRadius.circular(6),
+        border: Border.all(
+          color: isDark
+              ? AppColors.parchment.withValues(alpha: 0.1)
+              : theme.dividerColor.withValues(alpha: 0.2),
+          width: 0.8,
+        ),
+      ),
+      child: Text(
+        '$weight $unit',
+        style: theme.textTheme.bodySmall?.copyWith(
+          color: theme.hintColor,
+          fontSize: 10,
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -453,21 +484,46 @@ class _FeaturedProductCard extends StatelessWidget {
                             borderRadius: const BorderRadius.vertical(
                               top: Radius.circular(20),
                             ),
-                            gradient:
-                                isDark
-                                    ? LinearGradient(
-                                      colors: [
-                                        AppColors.darkCanvas,
-                                        AppColors.darkCanvas,
-                                      ],
-                                    )
-                                    : _getDummyGradient(index, isDark),
+                            gradient: isDark
+                                ? LinearGradient(
+                                  colors: [
+                                    AppColors.darkCanvas,
+                                    AppColors.darkCanvas,
+                                  ],
+                                )
+                                : LinearGradient(
+                                  colors: [
+                                    AppColors.parchment,
+                                    AppColors.parchment,
+                                  ],
+                                ),
                           ),
                           child: ClipRRect(
                             borderRadius: const BorderRadius.vertical(
                               top: Radius.circular(20),
                             ),
-                            child: _buildProductImage(product, index),
+                            child:
+                                product.productImages.isNotEmpty
+                                    ? CachedNetworkImage(
+                                      imageUrl: product.productImages[0].image,
+                                      fit: BoxFit.cover,
+                                      placeholder:
+                                          (context, url) => Center(
+                                            child: CircularProgressIndicator(
+                                              strokeWidth: 2,
+                                              color: theme.colorScheme.primary,
+                                            ),
+                                          ),
+                                      errorWidget:
+                                          (context, url, error) => Icon(
+                                            Icons.image_not_supported_rounded,
+                                            color: theme.disabledColor,
+                                          ),
+                                    )
+                                    : Icon(
+                                      Icons.image_not_supported_rounded,
+                                      color: theme.disabledColor,
+                                    ),
                           ),
                         ),
                         // Discount badge
@@ -534,6 +590,8 @@ class _FeaturedProductCard extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       mainAxisSize: MainAxisSize.min,
                       children: [
+                        _buildCategoryCapsule(product.productCategory, theme, isDark),
+                        const SizedBox(height: 4),
                         Text(
                           product.productName,
                           style: theme.textTheme.titleSmall?.copyWith(
@@ -543,14 +601,7 @@ class _FeaturedProductCard extends StatelessWidget {
                           overflow: TextOverflow.ellipsis,
                         ),
                         const SizedBox(height: 4),
-                        Text(
-                          '${product.weight} ${product.weightUnit}',
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: theme.hintColor,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
+                        _buildQuantityTag(product.weight, product.weightUnit, theme, isDark),
                         const SizedBox(height: 8),
                         Row(
                           children: [
@@ -596,68 +647,19 @@ class _FeaturedProductCard extends StatelessWidget {
                     child: const ComingSoonOverlay(),
                   ),
                 ),
+              )
+            else if (!product.isInStock)
+              Positioned.fill(
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(20),
+                  child: ColoredBox(
+                    color: isDark ? Colors.black.withValues(alpha: 0.72) : Colors.white.withValues(alpha: 0.72),
+                    child: const OutOfStockOverlay(),
+                  ),
+                ),
               ),
           ],
         ),
-      ),
-    );
-  }
-
-  LinearGradient _getDummyGradient(int index, bool isDark) {
-    if (isDark) {
-      return LinearGradient(
-        begin: Alignment.topLeft,
-        end: Alignment.bottomRight,
-        colors: [AppColors.darkSurface, AppColors.darkSurface],
-      );
-    }
-    final gradients = [
-      [AppColors.parchment, AppColors.parchment],
-      [AppColors.snowWhite, AppColors.snowWhite],
-      [AppColors.softCream, AppColors.softCream],
-    ];
-    final colors = gradients[index % gradients.length];
-    return LinearGradient(
-      begin: Alignment.topLeft,
-      end: Alignment.bottomRight,
-      colors: colors,
-    );
-  }
-
-  Widget _buildProductImage(Product product, int index) {
-    if (product.productImages.isNotEmpty) {
-      return CachedNetworkImage(
-        imageUrl: product.productImages[0].image,
-        fit: BoxFit.cover,
-        placeholder: (_, __) => _buildDummyFoodImage(index),
-        errorWidget: (_, __, ___) => _buildDummyFoodImage(index),
-      );
-    }
-    return _buildDummyFoodImage(index);
-  }
-
-  Widget _buildDummyFoodImage(int index) {
-    final icons = [
-      Icons.bakery_dining_rounded,
-      Icons.rice_bowl_rounded,
-      Icons.local_pizza_rounded,
-      Icons.icecream_rounded,
-      Icons.egg_alt_rounded,
-      Icons.breakfast_dining_rounded,
-    ];
-    final colors = [
-      AppColors.parchment,
-      AppColors.parchment,
-      AppColors.parchment,
-      AppColors.parchment,
-      AppColors.parchment,
-      AppColors.parchment,
-    ];
-    return Center(
-      child: Icon(
-        icons[index % icons.length],
-        size: 56,
-        color: colors[index % colors.length].withValues(alpha: 0.6),
       ),
     );
   }

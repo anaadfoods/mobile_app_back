@@ -205,25 +205,27 @@ class _AboutScreenState extends State<AboutScreen>
               children: [
                 // Background image
                 CachedNetworkImage(
-                  imageUrl: 'https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&q=80&w=1974',
+                  imageUrl:
+                      'https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&q=80&w=1974',
                   fit: BoxFit.cover,
-                  placeholder: (context, url) => Container(
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                        colors: [
-                          colorScheme.primary,
-                          colorScheme.primary.withAlpha(180),
-                        ],
+                  placeholder:
+                      (context, url) => Container(
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                            colors: [
+                              colorScheme.primary,
+                              colorScheme.primary.withAlpha(180),
+                            ],
+                          ),
+                        ),
+                        child: const Center(
+                          child: CircularProgressIndicator(
+                            color: AppColors.parchment,
+                          ),
+                        ),
                       ),
-                    ),
-                    child: const Center(
-                      child: CircularProgressIndicator(
-                        color: AppColors.parchment,
-                      ),
-                    ),
-                  ),
                   errorWidget: (context, url, error) {
                     return Container(
                       decoration: BoxDecoration(
@@ -259,7 +261,10 @@ class _AboutScreenState extends State<AboutScreen>
                   top: statusBarHeight + 8,
                   left: 12,
                   child: IconButton(
-                    icon: const Icon(Icons.arrow_back_rounded, color: AppColors.parchment),
+                    icon: const Icon(
+                      Icons.arrow_back_rounded,
+                      color: AppColors.parchment,
+                    ),
                     onPressed: () => Navigator.maybePop(context),
                   ),
                 ),
@@ -417,7 +422,7 @@ class _AboutScreenState extends State<AboutScreen>
   Widget _buildMissionCard(ThemeData theme, ColorScheme colorScheme) {
     final isDark = theme.brightness == Brightness.dark;
     final bodyColor = isDark ? AppColors.parchment70 : AppColors.charcoal70;
-    
+
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(24),
@@ -436,9 +441,10 @@ class _AboutScreenState extends State<AboutScreen>
         ),
         borderRadius: BorderRadius.circular(24),
         border: Border.all(
-          color: isDark
-              ? AppColors.deepSoilGreen.withValues(alpha: 0.3)
-              : colorScheme.primary.withValues(alpha: 0.15),
+          color:
+              isDark
+                  ? AppColors.deepSoilGreen.withValues(alpha: 0.3)
+                  : colorScheme.primary.withValues(alpha: 0.15),
           width: 1.5,
         ),
       ),
@@ -450,9 +456,10 @@ class _AboutScreenState extends State<AboutScreen>
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: isDark
-                      ? AppColors.deepSoilGreen.withValues(alpha: 0.25)
-                      : colorScheme.primary.withValues(alpha: 0.1),
+                  color:
+                      isDark
+                          ? AppColors.deepSoilGreen.withValues(alpha: 0.25)
+                          : colorScheme.primary.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(14),
                 ),
                 child: Icon(
@@ -609,7 +616,7 @@ class _AboutScreenState extends State<AboutScreen>
     required int delay,
   }) {
     final isDark = theme.brightness == Brightness.dark;
-    
+
     return TweenAnimationBuilder<double>(
       tween: Tween(begin: 0.0, end: 1.0),
       duration: Duration(milliseconds: 400 + (delay * 100)),
@@ -623,16 +630,18 @@ class _AboutScreenState extends State<AboutScreen>
           color: theme.cardColor,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color: isDark
-                ? AppColors.parchment.withValues(alpha: 0.08)
-                : AppColors.charcoal12,
+            color:
+                isDark
+                    ? AppColors.parchment.withValues(alpha: 0.08)
+                    : AppColors.charcoal12,
             width: 1.5,
           ),
           boxShadow: [
             BoxShadow(
-              color: isDark
-                  ? AppColors.transparent
-                  : color.withValues(alpha: 0.05),
+              color:
+                  isDark
+                      ? AppColors.transparent
+                      : color.withValues(alpha: 0.05),
               blurRadius: 10,
               offset: const Offset(0, 4),
             ),
@@ -645,9 +654,10 @@ class _AboutScreenState extends State<AboutScreen>
             Container(
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                color: isDark
-                    ? color.withValues(alpha: 0.15)
-                    : color.withValues(alpha: 0.1),
+                color:
+                    isDark
+                        ? color.withValues(alpha: 0.15)
+                        : color.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Icon(icon, color: color, size: 22),
@@ -691,16 +701,18 @@ class _AboutScreenState extends State<AboutScreen>
         color: theme.cardColor,
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: isDark
-              ? AppColors.parchment.withValues(alpha: 0.08)
-              : AppColors.charcoal12,
+          color:
+              isDark
+                  ? AppColors.parchment.withValues(alpha: 0.08)
+                  : AppColors.charcoal12,
           width: 1.5,
         ),
         boxShadow: [
           BoxShadow(
-            color: isDark
-                ? AppColors.transparent
-                : colorScheme.primary.withValues(alpha: 0.05),
+            color:
+                isDark
+                    ? AppColors.transparent
+                    : colorScheme.primary.withValues(alpha: 0.05),
             blurRadius: 15,
             offset: const Offset(0, 6),
           ),
@@ -811,14 +823,14 @@ class _AboutScreenState extends State<AboutScreen>
                 const SizedBox(height: 12),
                 _buildContactRow(
                   Icons.location_on_outlined,
-                  'Anaad, Farmlands of Bhuri, Sonipat, Haryana 131001',
+                  'Khasra/Murabba/Killa No 16/2/2, 18/1, 23, 24, 17/2, 25/1, Hadbast-96, Near Sandal Kalan Railway Station, Gannaur, Bhuri, Sonipat, Haryana, 131101',
                 ),
               ],
             ),
           ),
           const SizedBox(height: 20),
           Text(
-            '© 2025 Anaad Foods. All rights reserved.',
+            '© 2023 Anaad Foods. All rights reserved.',
             style: TextStyle(
               color: AppColors.parchment.withValues(alpha: 0.6),
               fontSize: 12,
@@ -905,9 +917,10 @@ class _BenefitItem extends StatelessWidget {
               padding: const EdgeInsets.all(4),
               decoration: BoxDecoration(
                 gradient: LinearGradient(
-                  colors: isDark
-                      ? [AppColors.harvestAmber, AppColors.harvestAmber]
-                      : [AppColors.deepSoilGreen, AppColors.deepSoilGreen],
+                  colors:
+                      isDark
+                          ? [AppColors.harvestAmber, AppColors.harvestAmber]
+                          : [AppColors.deepSoilGreen, AppColors.deepSoilGreen],
                 ),
                 shape: BoxShape.circle,
               ),

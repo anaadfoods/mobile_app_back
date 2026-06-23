@@ -1021,8 +1021,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
-            AppColors.parchment.withValues(alpha: 0.9),
-            AppColors.parchment.withValues(alpha: 0.85),
+            AppColors.deepSoilGreen,
+            AppColors.deepSoilGreen.withValues(alpha: 0.85),
           ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
@@ -1030,7 +1030,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: AppColors.parchment.withValues(alpha: 0.3),
+            color: AppColors.deepSoilGreen.withValues(alpha: 0.3),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
@@ -1369,20 +1369,20 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           if (widget.isSubscription && subscription != null) ...[
             const SizedBox(height: 2),
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 10),
               decoration: BoxDecoration(
                 color: AppColors.deepSoilGreen,
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(color: AppColors.deepSoilGreen),
               ),
               child: Row(
+                spacing: 10,
                 children: [
                   Icon(
                     Icons.autorenew_rounded,
                     color: AppColors.parchment,
                     size: 20,
                   ),
-                  const SizedBox(width: 20),
                   Expanded(
                     child: Text(
                       'Products delivered every month for ${subscription!.durationMonths} months',

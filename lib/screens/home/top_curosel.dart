@@ -72,9 +72,9 @@ class _TopCuroselState extends State<TopCurosel>
     final List<CarouselItem> hardcodedDefaults = [
       CarouselItem(
         imagePath: '',
-        title: 'Milled this week. For your kitchen.',
+        title: 'Seed Integrity',
         subtitle:
-            "Every batch is stone-milled within 14 days of harvest and dispatched within 72 hours.",
+            "We grow our produce using traditional variety seeds with over 5,000 years of lineage",
         buttonText: 'Shop Now',
         color: AppColors.deepSoilGreen,
         onTap: () {
@@ -85,8 +85,9 @@ class _TopCuroselState extends State<TopCurosel>
       ),
       CarouselItem(
         imagePath: '',
-        title: "We don't buy grain. We grow it.",
-        subtitle: '28 acres in Sonipat. Six years without a single synthetic input.',
+        title: "Soil Science",
+        subtitle:
+            'Our soil is alive with microbes that unlock nutrition naturally without any synthetics.',
         buttonText: 'How We Farm',
         color: AppColors.deepSoilGreen,
         onTap: () {
@@ -95,9 +96,10 @@ class _TopCuroselState extends State<TopCurosel>
       ),
       CarouselItem(
         imagePath: '',
-        title: 'Milled cold. Always below 40°C.',
-        subtitle: "High heat damages the grain's natural oils. Our stone mill never gets there.",
-        buttonText: 'Learn More',
+        title: 'Post-Harvest',
+        subtitle:
+            "We blend traditional wisdom with modern care, so nutrition stays intact when it reaches your kitchen.",
+        buttonText: 'See Subscriptions',
         color: AppColors.deepSoilGreen,
         onTap: () {
           context.push('/product/1');
@@ -105,14 +107,15 @@ class _TopCuroselState extends State<TopCurosel>
       ),
       CarouselItem(
         imagePath: '',
-        title: 'Your name. Your field.',
-        subtitle: "Siddh subscribers receive a named plot, GPS coordinates, and seasonal soil reports — from their specific piece of land.",
-        buttonText: 'See Commitment Plans',
+        title: 'Traceability',
+        subtitle:
+            "With batch being traceable, know exactly where your food came from, who grew it, and how.",
+        buttonText: 'Trace Your Batch',
         color: AppColors.deepSoilGreen,
         onTap: () {
           final authState = context.read<AuthCubit>().state;
           final isRfp = authState is Authenticated && authState.user.isRfp;
-          context.push(isRfp ? '/delivery' : '/contract-farming');
+          context.push('/profile');
         },
       ),
     ];
@@ -227,14 +230,11 @@ class _TopCuroselState extends State<TopCurosel>
                                         ),
                                       ),
                                   errorWidget:
-                                      (context, url, error) => Container(
-                                        color: itemColor,
-                                      ),
+                                      (context, url, error) =>
+                                          Container(color: itemColor),
                                 )
                                 : item.imagePath.isEmpty
-                                ? Container(
-                                  color: itemColor,
-                                )
+                                ? Container(color: itemColor)
                                 : SvgPicture.asset(
                                   item.imagePath,
                                   fit: BoxFit.cover,
@@ -312,7 +312,7 @@ class _TopCuroselState extends State<TopCurosel>
                                             fontWeight: FontWeight.w400,
                                             height: 1.4,
                                           ),
-                                          maxLines: 2,
+                                          maxLines: 3,
                                           overflow: TextOverflow.ellipsis,
                                         ),
                                         const SizedBox(height: 8),

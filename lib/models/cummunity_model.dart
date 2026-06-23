@@ -1,3 +1,5 @@
+import 'package:grocery_app/services/api_config.dart';
+
 class Community {
   final int id;
   final String name;
@@ -6,6 +8,15 @@ class Community {
   final String benefits;
   final bool comingSoon;
   final String? launchDate;
+
+  String get fullImageUrl {
+    if (image.isEmpty) return '';
+    if (image.startsWith('http://') || image.startsWith('https://')) {
+      return image;
+    }
+    final cleanPath = image.startsWith('/') ? image : '/$image';
+    return '${ApiConfig.baseUrl}$cleanPath';
+  }
 
   Community({
     required this.id,

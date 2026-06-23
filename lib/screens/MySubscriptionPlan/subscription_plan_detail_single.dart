@@ -786,6 +786,8 @@ class _SubscriptionPlanDetailScreenState
                                 const SizedBox(height: 20),
                                 _buildModernPauseSection(theme, isDark),
                                 const SizedBox(height: 20),
+                                _buildCancelSubscriptionButton(theme, isDark),
+                                const SizedBox(height: 20),
                                 _buildModernSectionCard(
                                   theme: theme,
                                   isDark: isDark,
@@ -2545,6 +2547,202 @@ class _SubscriptionPlanDetailScreenState
           SnackBarHelper.showError(context, 'Could not open WhatsApp');
         }
       },
+    );
+  }
+
+  Widget _buildCancelSubscriptionButton(ThemeData theme, bool isDark) {
+    final subscription = _currentOrder;
+    if (subscription == null || subscription.status == 'CANCELLED') {
+      return const SizedBox.shrink();
+    }
+
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: isDark
+            ? AppColors.darkSoftRed.withValues(alpha: 0.1)
+            : AppColors.softRed.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(
+          color: (isDark ? AppColors.darkSoftRed : AppColors.softRed).withValues(alpha: 0.2),
+          width: 1.0,
+        ),
+      ),
+      child: Material(
+        color: AppColors.transparent,
+        child: InkWell(
+          onTap: () => _handleCancelSubscription(subscription),
+          borderRadius: BorderRadius.circular(24),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.cancel_outlined,
+                  color: isDark ? AppColors.darkSoftRed : AppColors.softRed,
+                  size: 22,
+                ),
+                const SizedBox(width: 10),
+                Text(
+                  'Cancel Subscription',
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    color: isDark ? AppColors.darkSoftRed : AppColors.softRed,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _handleCancelSubscription(dynamic subscription) async {
+    final proceed = await showDialog<bool>(
+      context: context,
+      builder: (context) => const _CancelWarningDialog(type: 'subscription'),
+    );
+
+    if (proceed != true) return;
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => const _CancelConfirmDialog(type: 'subscription'),
+    );
+
+    if (confirmed == true) {
+      if (!mounted) return;
+      context.read<SubscriptionCubit>().cancelSubscription(subscription.id);
+    }
+  }
+}
+
+// Warning Dialog before cancellation
+class _CancelWarningDialog extends StatelessWidget {
+  final String type; // 'order' or 'subscription'
+
+  const _CancelWarningDialog({required this.type});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    return AlertDialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      backgroundColor: isDark ? AppColors.darkSurface : AppColors.softCream,
+      title: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: (isDark ? AppColors.darkSoftRed : AppColors.softRed).withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Icon(
+              Icons.warning_amber_rounded,
+              color: isDark ? AppColors.darkSoftRed : AppColors.softRed,
+              size: 24,
+            ),
+          ),
+          const SizedBox(width: 12),
+          const Text('Warning'),
+        ],
+      ),
+      content: Text(
+        type == 'order'
+            ? 'Cancelling this order is permanent. Once cancelled, it cannot be processed or shipped.'
+            : 'Cancelling this subscription will stop all future scheduled deliveries permanently.',
+        style: theme.textTheme.bodyMedium?.copyWith(
+          color: isDark ? AppColors.parchment.withValues(alpha: 0.7) : AppColors.charcoal54,
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context, false),
+          child: Text(
+            'Go Back',
+            style: TextStyle(
+              color: isDark ? AppColors.parchment.withValues(alpha: 0.6) : AppColors.charcoal40,
+            ),
+          ),
+        ),
+        ElevatedButton(
+          onPressed: () => Navigator.pop(context, true),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: isDark ? AppColors.darkSoftRed : AppColors.softRed,
+            foregroundColor: AppColors.pureWhite,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          ),
+          child: const Text('Proceed to Cancel'),
+        ),
+      ],
+    );
+  }
+}
+
+// Cancel Confirmation Dialog
+class _CancelConfirmDialog extends StatelessWidget {
+  final String type; // 'order' or 'subscription'
+
+  const _CancelConfirmDialog({required this.type});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    return AlertDialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      backgroundColor: isDark ? AppColors.darkSurface : AppColors.softCream,
+      title: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: (isDark ? AppColors.darkSoftRed : AppColors.softRed).withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Icon(
+              Icons.help_outline_rounded,
+              color: isDark ? AppColors.darkSoftRed : AppColors.softRed,
+              size: 24,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Text(type == 'order' ? 'Cancel Order?' : 'Cancel Subscription?'),
+        ],
+      ),
+      content: Text(
+        type == 'order'
+            ? 'Are you absolutely sure you want to cancel this order? This action cannot be undone.'
+            : 'Are you absolutely sure you want to cancel this subscription? All scheduled deliveries will be lost.',
+        style: theme.textTheme.bodyMedium?.copyWith(
+          color: isDark ? AppColors.parchment.withValues(alpha: 0.7) : AppColors.charcoal54,
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context, false),
+          child: Text(
+            'No, Keep It',
+            style: TextStyle(
+              color: isDark ? AppColors.parchment.withValues(alpha: 0.6) : AppColors.charcoal40,
+            ),
+          ),
+        ),
+        ElevatedButton(
+          onPressed: () => Navigator.pop(context, true),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: isDark ? AppColors.darkSoftRed : AppColors.softRed,
+            foregroundColor: AppColors.pureWhite,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          ),
+          child: const Text('Yes, Cancel'),
+        ),
+      ],
     );
   }
 }

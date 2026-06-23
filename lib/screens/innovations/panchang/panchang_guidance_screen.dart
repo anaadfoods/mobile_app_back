@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import '../../../core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:auto_size_text/auto_size_text.dart';
@@ -210,8 +211,15 @@ class _PanchangGuidanceScreenState extends State<PanchangGuidanceScreen>
   }
 
   Widget _buildAppBar(GuidanceTodayResponse guidance, bool isDark) {
+    final double statusBarHeight = MediaQuery.of(context).padding.top;
+    final double screenHeight = MediaQuery.of(context).size.height;
+    final double appBarHeight = (statusBarHeight + 140).clamp(
+      180.0,
+      math.max(180.0, screenHeight * 0.28).toDouble(),
+    );
+
     return SliverAppBar(
-      expandedHeight: 140,
+      expandedHeight: appBarHeight,
       floating: false,
       pinned: true,
       backgroundColor:

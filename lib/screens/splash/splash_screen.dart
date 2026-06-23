@@ -10,7 +10,8 @@ class SplashScreen extends StatefulWidget {
   State<SplashScreen> createState() => _SplashScreenState();
 }
 
-class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderStateMixin {
+class _SplashScreenState extends State<SplashScreen>
+    with SingleTickerProviderStateMixin {
   late AnimationController _fadeController;
   late Animation<double> _logoFadeAnimation;
   late Animation<double> _logoScaleAnimation;
@@ -19,7 +20,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
   @override
   void initState() {
     super.initState();
-    
+
     // Extended controller duration to 2500ms
     _fadeController = AnimationController(
       vsync: this,
@@ -102,7 +103,10 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                   Text(
                     'ANAAD FOODS',
                     style: TextStyle(
-                      color: isDark ? AppColors.parchment : AppColors.deepSoilGreen,
+                      color:
+                          isDark
+                              ? AppColors.parchment
+                              : AppColors.deepSoilGreen,
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
                       letterSpacing: 4,
@@ -110,9 +114,10 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'Not a Brand. A Commitment.',
+                    'SACRED TRACEABLE COMMITMENT',
                     style: TextStyle(
-                      color: (isDark ? AppColors.parchment : AppColors.charcoal).withValues(alpha: 0.6),
+                      color: (isDark ? AppColors.parchment : AppColors.charcoal)
+                          .withValues(alpha: 0.6),
                       fontSize: 12,
                       letterSpacing: 1.5,
                     ),

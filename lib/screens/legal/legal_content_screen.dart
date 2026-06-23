@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'package:grocery_app/core/theme/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_html/flutter_html.dart';
@@ -14,6 +15,12 @@ class LegalContentScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final double statusBarHeight = MediaQuery.of(context).padding.top;
+    final double screenHeight = MediaQuery.of(context).size.height;
+    final double appBarHeight = (statusBarHeight + 140).clamp(
+      180.0,
+      math.max(180.0, screenHeight * 0.28).toDouble(),
+    );
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
@@ -22,7 +29,7 @@ class LegalContentScreen extends StatelessWidget {
         slivers: [
           // Premium Header
           SliverAppBar(
-            expandedHeight: 140,
+            expandedHeight: appBarHeight,
             floating: false,
             pinned: true,
             backgroundColor: colorScheme.primary,

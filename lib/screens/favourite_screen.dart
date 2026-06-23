@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'package:collection/collection.dart';
 import 'package:grocery_app/models/product_image_model.dart';
 import 'package:grocery_app/common_widgets/global_import.dart';
@@ -224,7 +225,7 @@ class _FavouriteScreenState extends State<FavouriteScreen>
       isActive: true,
       productName: favorite.name,
       productDescription: '',
-      productCategory: '',
+      productCategory: favorite.productCategory,
       productImages: [
         ProductImage(image: favorite.image, altText: favorite.name),
       ],
@@ -352,6 +353,13 @@ class _FavouriteScreenState extends State<FavouriteScreen>
   }
 
   Widget _buildAnimatedHeader(ThemeData theme, bool isDark) {
+    final double statusBarHeight = MediaQuery.of(context).padding.top;
+    final double screenHeight = MediaQuery.of(context).size.height;
+    final double appBarHeight = (statusBarHeight + 140).clamp(
+      180.0,
+      math.max(180.0, screenHeight * 0.28).toDouble(),
+    );
+
     return SliverToBoxAdapter(
       child: AnimatedBuilder(
         animation: _headerController,
@@ -362,7 +370,7 @@ class _FavouriteScreenState extends State<FavouriteScreen>
           );
         },
         child: Container(
-          height: 160,
+          height: appBarHeight,
           decoration: BoxDecoration(
             gradient: LinearGradient(
               begin: Alignment.topLeft,
@@ -548,6 +556,60 @@ class _FavouriteScreenState extends State<FavouriteScreen>
     );
   }
 
+  Widget _buildCategoryCapsule(String category, ThemeData theme, bool isDark) {
+    if (category.isEmpty) return const SizedBox.shrink();
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      decoration: BoxDecoration(
+        color: isDark
+            ? AppColors.parchment.withValues(alpha: 0.1)
+            : AppColors.harvestAmber.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: isDark
+              ? AppColors.parchment.withValues(alpha: 0.15)
+              : AppColors.harvestAmber.withValues(alpha: 0.15),
+          width: 0.8,
+        ),
+      ),
+      child: Text(
+        category.toUpperCase(),
+        style: theme.textTheme.bodySmall?.copyWith(
+          color: isDark ? AppColors.pureWhite.withValues(alpha: 0.9) : AppColors.harvestAmber,
+          fontWeight: FontWeight.bold,
+          fontSize: 8,
+          letterSpacing: 0.5,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildQuantityTag(String weight, ThemeData theme, bool isDark) {
+    if (weight.isEmpty) return const SizedBox.shrink();
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      decoration: BoxDecoration(
+        color: isDark
+            ? AppColors.charcoal.withValues(alpha: 0.3)
+            : AppColors.parchment,
+        borderRadius: BorderRadius.circular(6),
+        border: Border.all(
+          color: isDark
+              ? AppColors.parchment.withValues(alpha: 0.1)
+              : theme.dividerColor.withValues(alpha: 0.2),
+          width: 0.8,
+        ),
+      ),
+      child: Text(
+        weight,
+        style: theme.textTheme.bodySmall?.copyWith(
+          color: theme.hintColor,
+          fontSize: 10,
+        ),
+      ),
+    );
+  }
+
   Widget _buildFavoriteCard(
     FavoriteModel favorite,
     int index,
@@ -695,6 +757,8 @@ class _FavouriteScreenState extends State<FavouriteScreen>
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    _buildCategoryCapsule(favorite.productCategory, theme, isDark),
+                    const SizedBox(height: 4),
                     Text(
                       favorite.name,
                       maxLines: 2,
@@ -704,27 +768,7 @@ class _FavouriteScreenState extends State<FavouriteScreen>
                       ),
                     ),
                     const SizedBox(height: 4),
-                    if (favorite.weight.isNotEmpty)
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 4,
-                        ),
-                        decoration: BoxDecoration(
-                          color:
-                              isDark
-                                  ? AppColors.charcoal87
-                                  : AppColors.parchment,
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                        child: Text(
-                          favorite.weight,
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: theme.hintColor,
-                            fontSize: 11,
-                          ),
-                        ),
-                      ),
+                    _buildQuantityTag(favorite.weight, theme, isDark),
                     const SizedBox(height: 8),
                     Text(
                       '₹${favorite.price}',

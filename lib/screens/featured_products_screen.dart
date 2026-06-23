@@ -1,4 +1,5 @@
 import 'package:grocery_app/common_widgets/coming_soon_overlay.dart';
+import 'package:grocery_app/common_widgets/out_of_stock_overlay.dart';
 import 'package:grocery_app/common_widgets/global_import.dart';
 import 'package:grocery_app/routes/app_routes.dart';
 
@@ -51,16 +52,17 @@ class _FeaturedProductsScreenState extends State<FeaturedProductsScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-
     return Scaffold(
       backgroundColor: isDark ? AppColors.darkCanvas : AppColors.parchment,
       body: CustomScrollView(
         slivers: [
           // App Bar
           SliverAppBar(
-            expandedHeight: 140,
-            floating: false,
             pinned: true,
+            floating: false,
+            centerTitle: false,
+            titleSpacing: 0,
+            toolbarHeight: 72.0,
             backgroundColor: AppColors.deepSoilGreen,
             shape: const RoundedRectangleBorder(
               borderRadius: BorderRadius.only(
@@ -68,51 +70,25 @@ class _FeaturedProductsScreenState extends State<FeaturedProductsScreen> {
                 bottomRight: Radius.circular(32),
               ),
             ),
-            flexibleSpace: FlexibleSpaceBar(
-              background: ClipRRect(
-                borderRadius: const BorderRadius.only(
-                  bottomLeft: Radius.circular(32),
-                  bottomRight: Radius.circular(32),
-                ),
-                child: Container(
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: [
-                        AppColors.deepSoilGreen,
-                        AppColors.deepSoilGreen.withValues(alpha: 0.8),
-                      ],
-                    ),
-                  ),
-                  child: SafeArea(
-                    bottom: false,
-                    child: Padding(
-                      padding: const EdgeInsets.fromLTRB(60, 16, 20, 16),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        children: [
-                          Text(
-                            'Newly Harvested',
-                            style: theme.textTheme.headlineSmall?.copyWith(
-                              color: AppColors.parchment,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            '${_products.length} products available',
-                            style: theme.textTheme.bodyMedium?.copyWith(
-                              color: AppColors.parchment.withValues(alpha: 0.8),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
+            title: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  'Newly Harvested',
+                  style: theme.textTheme.titleLarge?.copyWith(
+                    color: AppColors.parchment,
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
-              ),
+                const SizedBox(height: 2),
+                Text(
+                  '${_products.length} products available',
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: AppColors.parchment.withValues(alpha: 0.8),
+                  ),
+                ),
+              ],
             ),
             leading: IconButton(
               icon: const Icon(Icons.arrow_back_rounded, color: AppColors.parchment),
@@ -406,6 +382,60 @@ class _FeaturedProductCard extends StatelessWidget {
     required this.onTap,
   });
 
+  Widget _buildCategoryCapsule(String category, ThemeData theme, bool isDark) {
+    if (category.isEmpty) return const SizedBox.shrink();
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      decoration: BoxDecoration(
+        color: isDark
+            ? AppColors.parchment.withValues(alpha: 0.1)
+            : AppColors.harvestAmber.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: isDark
+              ? AppColors.parchment.withValues(alpha: 0.15)
+              : AppColors.harvestAmber.withValues(alpha: 0.15),
+          width: 0.8,
+        ),
+      ),
+      child: Text(
+        category.toUpperCase(),
+        style: theme.textTheme.bodySmall?.copyWith(
+          color: isDark ? AppColors.pureWhite.withValues(alpha: 0.9) : AppColors.harvestAmber,
+          fontWeight: FontWeight.bold,
+          fontSize: 8,
+          letterSpacing: 0.5,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildQuantityTag(String weight, String unit, ThemeData theme, bool isDark) {
+    if (weight.isEmpty) return const SizedBox.shrink();
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      decoration: BoxDecoration(
+        color: isDark
+            ? AppColors.charcoal.withValues(alpha: 0.3)
+            : AppColors.parchment,
+        borderRadius: BorderRadius.circular(6),
+        border: Border.all(
+          color: isDark
+              ? AppColors.parchment.withValues(alpha: 0.1)
+              : theme.dividerColor.withValues(alpha: 0.2),
+          width: 0.8,
+        ),
+      ),
+      child: Text(
+        '$weight $unit',
+        style: theme.textTheme.bodySmall?.copyWith(
+          color: theme.hintColor,
+          fontSize: 10,
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -525,6 +555,8 @@ class _FeaturedProductCard extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       mainAxisSize: MainAxisSize.min,
                       children: [
+                        _buildCategoryCapsule(product.productCategory, theme, isDark),
+                        const SizedBox(height: 4),
                         Text(
                           product.productName,
                           style: theme.textTheme.titleSmall?.copyWith(
@@ -534,14 +566,7 @@ class _FeaturedProductCard extends StatelessWidget {
                           overflow: TextOverflow.ellipsis,
                         ),
                         const SizedBox(height: 4),
-                        Text(
-                          '${product.weight} ${product.weightUnit}',
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: theme.hintColor,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
+                        _buildQuantityTag(product.weight, product.weightUnit, theme, isDark),
                         const SizedBox(height: 8),
                         Row(
                           children: [
@@ -585,6 +610,16 @@ class _FeaturedProductCard extends StatelessWidget {
                   child: ColoredBox(
                     color: isDark ? Colors.black.withValues(alpha: 0.72) : Colors.white.withValues(alpha: 0.72),
                     child: const ComingSoonOverlay(),
+                  ),
+                ),
+              )
+            else if (!product.isInStock)
+              Positioned.fill(
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(20),
+                  child: ColoredBox(
+                    color: isDark ? Colors.black.withValues(alpha: 0.72) : Colors.white.withValues(alpha: 0.72),
+                    child: const OutOfStockOverlay(),
                   ),
                 ),
               ),

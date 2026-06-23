@@ -1,5 +1,6 @@
 import 'dart:ui';
 import 'package:grocery_app/common_widgets/global_import.dart';
+import 'package:grocery_app/common_widgets/otp_resend_section.dart';
 import 'package:pinput/pinput.dart';
 
 class CombinedScreen extends StatefulWidget {
@@ -1166,6 +1167,25 @@ class _RfpFormSheetState extends State<_RfpFormSheet>
                             ),
                           ),
                         ],
+                        OtpResendSection(
+                          onResend: () async {
+                            try {
+                              await context
+                                  .read<AuthRepository>()
+                                  .sendOtp(value.trim(), type.toUpperCase());
+                              SnackBarHelper.showSuccess(
+                                context,
+                                'OTP resent successfully!',
+                              );
+                            } catch (e) {
+                              SnackBarHelper.showError(
+                                context,
+                                e.toString().replaceAll('Exception:', '').trim(),
+                              );
+                              rethrow;
+                            }
+                          },
+                        ),
                         const SizedBox(height: 24),
                         Row(
                           children: [
@@ -1373,6 +1393,37 @@ class _RfpFormSheetState extends State<_RfpFormSheet>
                   ],
                 ),
                 const SizedBox(height: 28),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  decoration: BoxDecoration(
+                    color: colorScheme.primary.withValues(alpha: 0.08),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: colorScheme.primary.withValues(alpha: 0.16),
+                      width: 1,
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.info_outline_rounded,
+                        color: colorScheme.primary,
+                        size: 20,
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          'Only one verification is required: mobile number or email address.',
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            color: theme.hintColor,
+                            fontSize: 13,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 20),
                 // Form fields
                 _buildTextField(
                   controller: _nameController,

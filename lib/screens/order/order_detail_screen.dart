@@ -116,9 +116,16 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
   }
 
   Future<void> _cancelOrder() async {
+    final proceed = await showDialog<bool>(
+      context: context,
+      builder: (context) => const _CancelWarningDialog(type: 'order'),
+    );
+
+    if (proceed != true) return;
+
     final confirmed = await showDialog<bool>(
       context: context,
-      builder: (context) => _CancelConfirmDialog(),
+      builder: (context) => const _CancelConfirmDialog(type: 'order'),
     );
 
     if (confirmed != true) return;
@@ -1145,17 +1152,16 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
-            AppColors.parchment.withValues(alpha: 0.15),
-            AppColors.parchment.withValues(alpha: 0.1),
+            AppColors.deepSoilGreen,
+            AppColors.deepSoilGreen.withValues(alpha: 0.85),
           ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.parchment, width: 2),
         boxShadow: [
           BoxShadow(
-            color: AppColors.parchment.withValues(alpha: 0.2),
+            color: AppColors.deepSoilGreen.withValues(alpha: 0.3),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
@@ -1166,21 +1172,12 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [AppColors.parchment, AppColors.parchment],
-              ),
+              color: AppColors.parchment.withValues(alpha: 0.25),
               shape: BoxShape.circle,
-              boxShadow: [
-                BoxShadow(
-                  color: AppColors.parchment.withValues(alpha: 0.4),
-                  blurRadius: 8,
-                  offset: const Offset(0, 2),
-                ),
-              ],
             ),
             child: const Icon(
               Icons.card_giftcard_rounded,
-              color: AppColors.parchment,
+              color: AppColors.harvestAmber,
               size: 24,
             ),
           ),
@@ -1200,8 +1197,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
                 Text(
                   'This order contains your referral reward. Enjoy your free gift!',
                   style: theme.textTheme.bodySmall?.copyWith(
-                    color:
-                        isDark ? AppColors.parchment70 : AppColors.charcoal60,
+                    color: AppColors.parchment.withValues(alpha: 0.9),
                   ),
                 ),
               ],
@@ -1726,7 +1722,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
               icon: Icons.cancel_outlined,
               title: 'Cancel Order',
               subtitle: 'Request order cancellation',
-              color: AppColors.rawEarth,
+              color: isDark ? AppColors.darkSoftRed : AppColors.softRed,
               isDestructive: true,
               isLoading: _isCancelling,
               onTap: _cancelOrder,
@@ -2053,44 +2049,127 @@ class _ModernCard extends StatelessWidget {
   }
 }
 
-// Cancel Confirmation Dialog
-class _CancelConfirmDialog extends StatelessWidget {
+// Warning Dialog before cancellation
+class _CancelWarningDialog extends StatelessWidget {
+  final String type; // 'order' or 'subscription'
+
+  const _CancelWarningDialog({required this.type});
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
 
     return AlertDialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      backgroundColor: isDark ? AppColors.darkSurface : AppColors.softCream,
       title: Row(
         children: [
           Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: AppColors.rawEarth.withValues(alpha: 0.1),
+              color: (isDark ? AppColors.darkSoftRed : AppColors.softRed).withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(10),
             ),
             child: Icon(
-              Icons.warning_rounded,
-              color: AppColors.rawEarth,
+              Icons.warning_amber_rounded,
+              color: isDark ? AppColors.darkSoftRed : AppColors.softRed,
               size: 24,
             ),
           ),
           const SizedBox(width: 12),
-          const Text('Cancel Order?'),
+          const Text('Warning'),
         ],
       ),
       content: Text(
-        'Are you sure you want to cancel this order? This action cannot be undone.',
-        style: theme.textTheme.bodyMedium?.copyWith(color: theme.hintColor),
+        type == 'order'
+            ? 'Cancelling this order is permanent. Once cancelled, it cannot be processed or shipped.'
+            : 'Cancelling this subscription will stop all future scheduled deliveries permanently.',
+        style: theme.textTheme.bodyMedium?.copyWith(
+          color: isDark ? AppColors.parchment.withValues(alpha: 0.7) : AppColors.charcoal54,
+        ),
       ),
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context, false),
-          child: const Text('No, Keep It'),
+          child: Text(
+            'Go Back',
+            style: TextStyle(
+              color: isDark ? AppColors.parchment.withValues(alpha: 0.6) : AppColors.charcoal40,
+            ),
+          ),
         ),
         ElevatedButton(
           onPressed: () => Navigator.pop(context, true),
-          style: ElevatedButton.styleFrom(backgroundColor: AppColors.rawEarth),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: isDark ? AppColors.darkSoftRed : AppColors.softRed,
+            foregroundColor: AppColors.pureWhite,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          ),
+          child: const Text('Proceed to Cancel'),
+        ),
+      ],
+    );
+  }
+}
+
+// Cancel Confirmation Dialog
+class _CancelConfirmDialog extends StatelessWidget {
+  final String type; // 'order' or 'subscription'
+
+  const _CancelConfirmDialog({required this.type});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    return AlertDialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      backgroundColor: isDark ? AppColors.darkSurface : AppColors.softCream,
+      title: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: (isDark ? AppColors.darkSoftRed : AppColors.softRed).withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Icon(
+              Icons.help_outline_rounded,
+              color: isDark ? AppColors.darkSoftRed : AppColors.softRed,
+              size: 24,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Text(type == 'order' ? 'Cancel Order?' : 'Cancel Subscription?'),
+        ],
+      ),
+      content: Text(
+        type == 'order'
+            ? 'Are you absolutely sure you want to cancel this order? This action cannot be undone.'
+            : 'Are you absolutely sure you want to cancel this subscription? All scheduled deliveries will be lost.',
+        style: theme.textTheme.bodyMedium?.copyWith(
+          color: isDark ? AppColors.parchment.withValues(alpha: 0.7) : AppColors.charcoal54,
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context, false),
+          child: Text(
+            'No, Keep It',
+            style: TextStyle(
+              color: isDark ? AppColors.parchment.withValues(alpha: 0.6) : AppColors.charcoal40,
+            ),
+          ),
+        ),
+        ElevatedButton(
+          onPressed: () => Navigator.pop(context, true),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: isDark ? AppColors.darkSoftRed : AppColors.softRed,
+            foregroundColor: AppColors.pureWhite,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          ),
           child: const Text('Yes, Cancel'),
         ),
       ],

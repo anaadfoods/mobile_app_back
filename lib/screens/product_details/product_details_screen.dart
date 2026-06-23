@@ -347,44 +347,44 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
     );
   }
 
-  String _rewriteDescription(String desc) {
-    String text = desc;
+  // String _rewriteDescription(String desc) {
+  //   String text = desc;
     
-    // Section 1 Body
-    text = text.replaceAll(
-      "This flour is made from indigenous Sona Moti wheat naturally grown and slowly ground on stone chakki using a cold-pressed method. Theres no blending, no artificial softness, and no nutrient loss from high-speed rollers. Just grain, tradition, and temperature-controlled truth.",
-      "This flour is made from indigenous Sona Moti wheat — grown on our own farm and slowly ground on a stone chakki using a cold-pressed method.\n\nThere's no blending, no artificial softness, and no nutrient loss from high-speed rollers.\nJust grain, tradition, and temperature-controlled truth."
-    );
+  //   // Section 1 Body
+  //   text = text.replaceAll(
+  //     "This flour is made from indigenous Sona Moti wheat naturally grown and slowly ground on stone chakki using a cold-pressed method. Theres no blending, no artificial softness, and no nutrient loss from high-speed rollers. Just grain, tradition, and temperature-controlled truth.",
+  //     "This flour is made from indigenous Sona Moti wheat — grown on our own farm and slowly ground on a stone chakki using a cold-pressed method.\n\nThere's no blending, no artificial softness, and no nutrient loss from high-speed rollers.\nJust grain, tradition, and temperature-controlled truth."
+  //   );
 
-    // Section 2 Body
-    text = text.replaceAll(
-      "Sona Moti wheat is known for its higher glutenin content, rich mineral profile, and longlasting energy. It supports better digestion, promotes strength, and is ideal for daily rotis that dont feel heavy post-meal.",
-      "Sona Moti wheat has a higher glutenin content than most commercial varieties — which means better dough structure, richer flavour, and rotis that don't leave you feeling heavy.\n\nIt's also naturally higher in minerals and sustains energy longer than refined flour."
-    );
+  //   // Section 2 Body
+  //   text = text.replaceAll(
+  //     "Sona Moti wheat is known for its higher glutenin content, rich mineral profile, and longlasting energy. It supports better digestion, promotes strength, and is ideal for daily rotis that dont feel heavy post-meal.",
+  //     "Sona Moti wheat has a higher glutenin content than most commercial varieties — which means better dough structure, richer flavour, and rotis that don't leave you feeling heavy.\n\nIt's also naturally higher in minerals and sustains energy longer than refined flour."
+  //   );
 
-    // Section 3 Sub-heading
-    text = text.replaceAll(
-      "What Youre Sold Instead",
-      "What Most Store-Bought Flour Contains"
-    );
-    text = text.replaceAll(
-      "What You're Sold Instead",
-      "What Most Store-Bought Flour Contains"
-    );
+  //   // Section 3 Sub-heading
+  //   text = text.replaceAll(
+  //     "What Youre Sold Instead",
+  //     "What Most Store-Bought Flour Contains"
+  //   );
+  //   text = text.replaceAll(
+  //     "What You're Sold Instead",
+  //     "What Most Store-Bought Flour Contains"
+  //   );
 
-    // Section 3 Body
-    text = text.replaceAll(
-      "Most wheat flour sold today is bleached, refined, or made from hybrid grain varieties designed for yield, not health. Fast-milled at high RPM, these flours lose thermal-sensitive nutrients and are often mixed with maida. It looks soft but weakens your gut over time.",
-      "Most wheat flour sold today is bleached, refined, or made from hybrid varieties selected for yield — not flavour or nutrition.\n\nAt high milling speeds, heat damages the grain's natural oils and micronutrients. Many commercial flours are also blended with maida to improve softness. The result looks fine in the packet but loses most of what made the grain worth eating."
-    );
+  //   // Section 3 Body
+  //   text = text.replaceAll(
+  //     "Most wheat flour sold today is bleached, refined, or made from hybrid grain varieties designed for yield, not health. Fast-milled at high RPM, these flours lose thermal-sensitive nutrients and are often mixed with maida. It looks soft but weakens your gut over time.",
+  //     "Most wheat flour sold today is bleached, refined, or made from hybrid varieties selected for yield — not flavour or nutrition.\n\nAt high milling speeds, heat damages the grain's natural oils and micronutrients. Many commercial flours are also blended with maida to improve softness. The result looks fine in the packet but loses most of what made the grain worth eating."
+  //   );
 
-    // Generic fixes (fallback)
-    text = text.replaceAll("Theres", "There's");
-    text = text.replaceAll("dont", "don't");
-    text = text.replaceAll("Youre", "You're");
+  //   // Generic fixes (fallback)
+  //   text = text.replaceAll("Theres", "There's");
+  //   text = text.replaceAll("dont", "don't");
+  //   text = text.replaceAll("Youre", "You're");
 
-    return text;
-  }
+  //   return text;
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -528,7 +528,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
                               ),
                               const SizedBox(height: 12),
                               ExpandableDescription(
-                                text: _rewriteDescription(widget.product.productDescription),
+                                text: widget.product.productDescription,
                               ),
                             ],
                           ),

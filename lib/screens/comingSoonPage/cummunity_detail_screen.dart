@@ -161,7 +161,7 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen>
                 Transform.translate(
                   offset: Offset(0, parallaxOffset),
                   child: CachedNetworkImage(
-                    imageUrl: widget.community.image,
+                    imageUrl: widget.community.fullImageUrl,
                     fit: BoxFit.cover,
                     placeholder:
                         (context, url) => Container(

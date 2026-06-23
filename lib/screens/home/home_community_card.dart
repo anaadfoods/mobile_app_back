@@ -103,7 +103,7 @@ class _AnimatedCommunityCardState extends State<AnimatedCommunityCard>
               children: [
                 // Background Image
                 CachedNetworkImage(
-                  imageUrl: community.image,
+                  imageUrl: community.fullImageUrl,
                   fit: BoxFit.cover,
                   width: double.infinity,
                   height: double.infinity,

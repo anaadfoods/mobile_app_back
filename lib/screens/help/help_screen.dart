@@ -1,6 +1,7 @@
 import 'dart:ui';
 import 'dart:math' as math;
 import 'package:grocery_app/common_widgets/global_import.dart';
+import 'package:grocery_app/common_widgets/otp_resend_section.dart';
 import 'package:pinput/pinput.dart';
 
 class HelpScreen extends StatefulWidget {
@@ -209,6 +210,11 @@ class _HelpScreenState extends State<HelpScreen> with TickerProviderStateMixin {
     Size size,
     double statusBarHeight,
   ) {
+    final double appBarHeight = (statusBarHeight + 180).clamp(
+      220.0,
+      math.max(220.0, size.height * 0.32).toDouble(),
+    );
+
     return FadeTransition(
       opacity: _headerFade,
       child: Stack(
@@ -216,7 +222,7 @@ class _HelpScreenState extends State<HelpScreen> with TickerProviderStateMixin {
         children: [
           // Gradient background
           Container(
-            height: size.height * 0.28 + statusBarHeight,
+            height: appBarHeight,
             width: double.infinity,
             decoration: BoxDecoration(
               gradient: LinearGradient(
@@ -245,70 +251,74 @@ class _HelpScreenState extends State<HelpScreen> with TickerProviderStateMixin {
                     onPressed: () => Navigator.maybePop(context),
                   ),
                 ),
-                // Title and subtitle
+                // Header Content (Title + Icon)
                 Positioned(
-                  top: statusBarHeight + 60,
                   left: 24,
-                  right: 100, // Increased to avoid overlap with icon
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                  right: 24,
+                  bottom: 40, // Keeps it nicely above the curved bottom (height 30)
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
-                      FittedBox(
-                        fit: BoxFit.scaleDown,
-                        alignment: Alignment.centerLeft,
-                        child: const Text(
-                          'The Community Desk',
-                          style: TextStyle(
-                            color: AppColors.parchment,
-                            fontSize: 28,
-                            fontWeight: FontWeight.bold,
-                            letterSpacing: 0.5,
-                          ),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            FittedBox(
+                              fit: BoxFit.scaleDown,
+                              alignment: Alignment.centerLeft,
+                              child: const Text(
+                                'The Community Desk',
+                                style: TextStyle(
+                                  color: AppColors.parchment,
+                                  fontSize: 28,
+                                  fontWeight: FontWeight.bold,
+                                  letterSpacing: 0.5,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            FittedBox(
+                              fit: BoxFit.scaleDown,
+                              alignment: Alignment.centerLeft,
+                              child: Text(
+                                'Questions about your food? Speak to us',
+                                style: TextStyle(
+                                  color: AppColors.parchment.withAlpha(200),
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w400,
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
-                      const SizedBox(height: 8),
-                      FittedBox(
-                        fit: BoxFit.scaleDown,
-                        alignment: Alignment.centerLeft,
-                        child: Text(
-                          'Questions about your food? Speak to us',
-                          style: TextStyle(
-                            color: AppColors.parchment.withAlpha(200),
-                            fontSize: 15,
-                            fontWeight: FontWeight.w400,
-                          ),
-                        ),
+                      const SizedBox(width: 16),
+                      AnimatedBuilder(
+                        animation: _particleController,
+                        builder: (context, child) {
+                          final scale =
+                              1.0 +
+                              math.sin(_particleController.value * math.pi * 2) *
+                                  0.08;
+                          return Transform.scale(
+                            scale: scale,
+                            child: Container(
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: AppColors.parchment.withAlpha(25),
+                                shape: BoxShape.circle,
+                              ),
+                              child: const Icon(
+                                Icons.support_agent_rounded,
+                                color: AppColors.parchment,
+                                size: 32,
+                              ),
+                            ),
+                          );
+                        },
                       ),
                     ],
-                  ),
-                ),
-                // Decorative icon
-                Positioned(
-                  top: statusBarHeight + 50,
-                  right: 20,
-                  child: AnimatedBuilder(
-                    animation: _particleController,
-                    builder: (context, child) {
-                      final scale =
-                          1.0 +
-                          math.sin(_particleController.value * math.pi * 2) *
-                              0.08;
-                      return Transform.scale(
-                        scale: scale,
-                        child: Container(
-                          padding: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(
-                            color: AppColors.parchment.withAlpha(25),
-                            shape: BoxShape.circle,
-                          ),
-                          child: const Icon(
-                            Icons.support_agent_rounded,
-                            color: AppColors.parchment,
-                            size: 40,
-                          ),
-                        ),
-                      );
-                    },
                   ),
                 ),
               ],
@@ -514,28 +524,112 @@ class _HelpScreenState extends State<HelpScreen> with TickerProviderStateMixin {
   Widget _buildFaqSection(ThemeData theme, ColorScheme colorScheme) {
     final faqs = [
       {
-        'icon': Icons.local_shipping_rounded,
-        'title': 'Track Your Order',
+        'icon': Icons.eco_rounded,
+        'title': 'What is ICBN?',
         'content':
-            'You can track your order from the "My Orders" section. Each order shows real-time status updates from processing to delivery.',
+            'ICBN stands for Indigenous Cow Based Natural farming. It is a farming approach rooted in natural inputs, living soil, and traditional agricultural knowledge, designed to grow food in a way that supports both human health and ecological balance.',
       },
       {
-        'icon': Icons.schedule_rounded,
-        'title': 'Delivery Timeline',
+        'icon': Icons.agriculture_rounded,
+        'title': 'Why does ANAAD follow ICBN farming?',
         'content':
-            'We deliver fresh products within 24-48 hours from the time of dispatch . Delivery times may vary based on your location.',
-      },
-      {
-        'icon': Icons.refresh_rounded,
-        'title': 'Returns & Cancellations',
-        'content':
-            'Orders can be cancelled before dispatch. For quality issues, please contact us within 24 hours of delivery with photos.',
+            'We follow ICBN farming because we believe food should begin with living soil, not chemical dependence. This approach allows us to grow staples with greater care for the land, the farmer, and the families who eat our food.',
       },
       {
         'icon': Icons.subscriptions_rounded,
-        'title': 'Subscription Plans',
+        'title': 'Why are ANAAD products offered through subscriptions?',
         'content':
-            'Manage your subscriptions from the "My Subscriptions" section. You can pause, modify, or cancel anytime.',
+            'Subscriptions allow us to grow with clarity and responsibility. They help us plan before sowing, share risk with committed households, and deliver food in a way that stays closer to the field and farther from speculation.',
+      },
+      {
+        'icon': Icons.handshake_rounded,
+        'title': 'What does risk sharing mean in your model?',
+        'content':
+            'Risk sharing means that instead of placing the full uncertainty on the farmer, the household commits in advance and helps anchor the season. This gives us the confidence to plan better, grow more responsibly, and reduce waste across the food system.',
+      },
+      {
+        'icon': Icons.verified_rounded,
+        'title': 'How do ANAAD Commitment Plans work?',
+        'content':
+            'When you choose a Commitment Plan, a portion of our harvest is reserved for your household. Your food is then handled in a planned cycle of harvesting, processing, packaging, and dispatch, so every batch remains connected to a clear origin and a defined purpose.',
+      },
+      {
+        'icon': Icons.track_changes_rounded,
+        'title': 'Why is traceability important?',
+        'content':
+            'Traceability is what makes trust visible. It allows you to see where your food came from, how it was grown, and how it moved through each stage before reaching your kitchen.',
+      },
+      {
+        'icon': Icons.visibility_rounded,
+        'title': 'How does ANAAD ensure transparency?',
+        'content':
+            'We share batch-level information, farm records, and process details so the journey of the food is not hidden from the household. Transparency, for us, is not a marketing claim — it is part of the product.',
+      },
+      {
+        'icon': Icons.health_and_safety_rounded,
+        'title': 'Why does ANAAD avoid chemicals in farming?',
+        'content':
+            'We avoid chemicals because they may increase yield, but they often come at the cost of soil health, ecological stability, and long-term food quality. Our work is built on the belief that clean food must also come from clean growing practices.',
+      },
+      {
+        'icon': Icons.grass_rounded,
+        'title': 'Why are desi seeds important?',
+        'content':
+            'Desi seeds are important because they are part of a living food heritage that is better adapted to local conditions. They help preserve biodiversity, support resilience in the field, and keep the character of the crop more intact.',
+      },
+      {
+        'icon': Icons.pets_rounded,
+        'title': 'Why does ANAAD use desi cows?',
+        'content':
+            'Desi cows are central to our natural farming system because they support the preparation of farm-made inputs and reflect a more balanced agricultural ecology. They are part of a farming practice that values nourishment over extraction.',
+      },
+      {
+        'icon': Icons.food_bank_rounded,
+        'title': 'Why do you use traditional processing methods?',
+        'content':
+            'We use traditional processing methods because we want to preserve the grain’s natural character. Slower, careful processing helps us protect taste, texture, and nutritional integrity without forcing the food through excessive heat or speed.',
+      },
+      {
+        'icon': Icons.people_rounded,
+        'title': 'How does ANAAD support farmer upliftment?',
+        'content':
+            'We work through a model that gives farmers more stability, clearer planning, and a stronger link to the people they grow for. When households commit early, farmers gain more certainty and can focus on growing with care rather than chasing unpredictable markets.',
+      },
+      {
+        'icon': Icons.nature_rounded,
+        'title': 'How does this model help the environment?',
+        'content':
+            'Our model reduces unnecessary movement, unnecessary storage, and unnecessary waste in the food chain. By growing more deliberately and closer to the people who consume the food, we aim to support healthier soil, lower waste, and a more respectful ecological footprint.',
+      },
+      {
+        'icon': Icons.currency_rupee_rounded,
+        'title': 'Why is ANAAD priced differently from regular store-bought food?',
+        'content':
+            'ANAAD is priced based on real farming practices, fresher handling, traceability, and the responsibility of growing food with care. It reflects the cost of doing things properly, not the cost of doing them cheaply.',
+      },
+      {
+        'icon': Icons.star_rounded,
+        'title': 'Why is ANAAD worth choosing?',
+        'content':
+            'Because it is not only food. It is a system of trust. When you choose ANAAD, you support cleaner farming, healthier soil, fairer farm economics, and food that stays visibly connected to the people and land behind it.',
+      },
+      {
+        'icon': Icons.verified_user_rounded,
+        'title': 'How can I trust that no chemicals are used?',
+        'content':
+            'Trust comes from process, not just promises. That is why we document batches, share farm records, and keep the food journey visible so you can understand how each product was grown and handled.',
+      },
+      {
+        'icon': Icons.lightbulb_rounded,
+        'title': 'What makes ANAAD different from other natural food brands?',
+        'content':
+            'ANAAD is built around a complete chain of responsibility — from natural farming and traceable batches to commitment-based planning and direct household connection. We are not just selling staples; we are rebuilding the relationship between food, farmer, and family.',
+      },
+      {
+        'icon': Icons.shopping_basket_rounded,
+        'title': 'Can I start with one product before committing fully?',
+        'content':
+            'Yes. Many households begin with one product and then move into a Commitment Plan once they experience the difference. It is a simple way to understand the food, the process, and the value of consistency.',
       },
     ];
 
@@ -1100,6 +1194,25 @@ class _QueryFormSheetState extends State<_QueryFormSheet>
                             ),
                           ),
                         ],
+                        OtpResendSection(
+                          onResend: () async {
+                            try {
+                              await context
+                                  .read<AuthRepository>()
+                                  .sendOtp(value.trim(), type.toUpperCase());
+                              SnackBarHelper.showSuccess(
+                                context,
+                                'OTP resent successfully!',
+                              );
+                            } catch (e) {
+                              SnackBarHelper.showError(
+                                context,
+                                e.toString().replaceAll('Exception:', '').trim(),
+                              );
+                              rethrow;
+                            }
+                          },
+                        ),
                         const SizedBox(height: 24),
                         Row(
                           children: [
@@ -1307,6 +1420,37 @@ class _QueryFormSheetState extends State<_QueryFormSheet>
                   ],
                 ),
                 const SizedBox(height: 28),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  decoration: BoxDecoration(
+                    color: colorScheme.primary.withValues(alpha: 0.08),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: colorScheme.primary.withValues(alpha: 0.16),
+                      width: 1,
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.info_outline_rounded,
+                        color: colorScheme.primary,
+                        size: 20,
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          'Only one verification is required: mobile number or email address.',
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            color: theme.hintColor,
+                            fontSize: 13,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 20),
                 // Form fields
                 _buildTextField(
                   controller: _nameController,

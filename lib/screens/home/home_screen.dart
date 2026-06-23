@@ -20,9 +20,12 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
-  final ValueNotifier<List<Product>> _searchResultsNotifier = ValueNotifier<List<Product>>([]);
+  final ValueNotifier<List<Product>> _searchResultsNotifier =
+      ValueNotifier<List<Product>>([]);
   final ValueNotifier<bool> _isSearchingNotifier = ValueNotifier<bool>(false);
-  final ValueNotifier<bool> _isSearchActiveNotifier = ValueNotifier<bool>(false);
+  final ValueNotifier<bool> _isSearchActiveNotifier = ValueNotifier<bool>(
+    false,
+  );
   bool _isNavigatingToFeatured = false;
   final TextEditingController _searchController = TextEditingController();
   final FocusNode _focusNode = FocusNode();
@@ -45,7 +48,20 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     if (dateString.isEmpty) return '';
     final parsed = DateTime.tryParse(dateString);
     if (parsed == null) return dateString;
-    const monthsList = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const monthsList = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
+    ];
     if (parsed.month < 1 || parsed.month > 12) return dateString;
     return '${monthsList[parsed.month - 1]} ${parsed.day}';
   }
@@ -100,7 +116,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   }
 
   void _updateSearchActive() {
-    _isSearchActiveNotifier.value = _isSearchingNotifier.value ||
+    _isSearchActiveNotifier.value =
+        _isSearchingNotifier.value ||
         (_searchResultsNotifier.value.isNotEmpty && _focusNode.hasFocus);
   }
 
@@ -243,13 +260,19 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                           authState.user.firstName.substring(1);
                                     }
 
-                                    return BlocBuilder<SubscriptionCubit, SubscriptionState>(
+                                    return BlocBuilder<
+                                      SubscriptionCubit,
+                                      SubscriptionState
+                                    >(
                                       builder: (context, subState) {
                                         String? nextDeliveryDate;
                                         if (subState is SubscriptionSuccess) {
-                                          for (final sub in subState.userSubscriptions) {
-                                            if (sub.status.toUpperCase() == 'ACTIVE') {
-                                              nextDeliveryDate = sub.nextDeliveryDate;
+                                          for (final sub
+                                              in subState.userSubscriptions) {
+                                            if (sub.status.toUpperCase() ==
+                                                'ACTIVE') {
+                                              nextDeliveryDate =
+                                                  sub.nextDeliveryDate;
                                               break;
                                             }
                                           }
@@ -266,15 +289,22 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                         }
 
                                         String greetingMessage;
-                                        if (nextDeliveryDate != null && nextDeliveryDate.isNotEmpty) {
-                                          final formattedDate = _formatFriendlyDate(nextDeliveryDate);
+                                        if (nextDeliveryDate != null &&
+                                            nextDeliveryDate.isNotEmpty) {
+                                          final formattedDate =
+                                              _formatFriendlyDate(
+                                                nextDeliveryDate,
+                                              );
                                           if (formattedDate.isNotEmpty) {
-                                            greetingMessage = '$greetingPrefix, $name. Your next delivery arrives $formattedDate.';
+                                            greetingMessage =
+                                                '$greetingPrefix,$name\nNext delivery: $formattedDate';
                                           } else {
-                                            greetingMessage = '$greetingPrefix, $name.';
+                                            greetingMessage =
+                                                '$greetingPrefix,\n$name';
                                           }
                                         } else {
-                                          greetingMessage = '$greetingPrefix, $name.';
+                                          greetingMessage =
+                                              '$greetingPrefix,\n$name';
                                         }
 
                                         return GestureDetector(
@@ -297,14 +327,20 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                               Expanded(
                                                 child: Text(
                                                   greetingMessage,
-                                                  style: textTheme.titleMedium?.copyWith(
-                                                    color: theme.colorScheme.onPrimary,
-                                                    fontWeight: FontWeight.bold,
-                                                    letterSpacing: 0.2,
-                                                    fontSize: 14,
-                                                  ),
-                                                  maxLines: 2,
-                                                  overflow: TextOverflow.ellipsis,
+                                                  style: textTheme.titleMedium
+                                                      ?.copyWith(
+                                                        color:
+                                                            theme
+                                                                .colorScheme
+                                                                .onPrimary,
+                                                        fontWeight:
+                                                            FontWeight.bold,
+                                                        letterSpacing: 0.2,
+                                                        fontSize: 14,
+                                                      ),
+                                                  maxLines: 3,
+                                                  overflow:
+                                                      TextOverflow.ellipsis,
                                                 ),
                                               ),
                                             ],
@@ -379,9 +415,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                         if (isSearching) {
                           return const Padding(
                             padding: EdgeInsets.symmetric(vertical: 40.0),
-                            child: Center(
-                              child: CircularProgressIndicator(),
-                            ),
+                            child: Center(child: CircularProgressIndicator()),
                           );
                         }
                         return ValueListenableBuilder<List<Product>>(
@@ -389,7 +423,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                           builder: (context, searchResults, child) {
                             return HomeSearchDropdown(
                               searchResults: searchResults,
-                              onProductTap: (product) => _onProductClicked(context, product),
+                              onProductTap:
+                                  (product) =>
+                                      _onProductClicked(context, product),
                             );
                           },
                         );
@@ -424,7 +460,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                   child: SubscriptionCarousel(),
                                 ),
                               ),
-                              _heading(context, "Commitment Plans", "", () {}),
+                              _heading(context, "Subscription Plans", "", () {}),
                               RepaintBoundary(
                                 child: _subscriptionSection(context),
                               ),

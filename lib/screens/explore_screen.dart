@@ -1,4 +1,6 @@
 import 'dart:math' as math;
+import 'package:grocery_app/common_widgets/coming_soon_overlay.dart';
+import 'package:grocery_app/common_widgets/out_of_stock_overlay.dart';
 import 'package:grocery_app/common_widgets/global_import.dart';
 import 'package:grocery_app/routes/app_routes.dart';
 
@@ -331,7 +333,7 @@ class _ExploreScreenState extends State<ExploreScreen>
                           // ),
                           Expanded(
                             child: Text(
-                              "The Earth’s Catalog",
+                              "Farm Offerings",
                               style: theme.textTheme.headlineMedium?.copyWith(
                                 color: AppColors.parchment,
                                 fontWeight: FontWeight.bold,
@@ -1005,11 +1007,67 @@ class _AnimatedProductCard extends StatefulWidget {
 class _AnimatedProductCardState extends State<_AnimatedProductCard> {
   bool _isPressed = false;
 
+  Widget _buildCategoryCapsule(String category, ThemeData theme, bool isDark) {
+    if (category.isEmpty) return const SizedBox.shrink();
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      decoration: BoxDecoration(
+        color: isDark
+            ? AppColors.parchment.withValues(alpha: 0.1)
+            : AppColors.harvestAmber.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: isDark
+              ? AppColors.parchment.withValues(alpha: 0.15)
+              : AppColors.harvestAmber.withValues(alpha: 0.15),
+          width: 0.8,
+        ),
+      ),
+      child: Text(
+        category.toUpperCase(),
+        style: theme.textTheme.bodySmall?.copyWith(
+          color: isDark ? AppColors.pureWhite.withValues(alpha: 0.9) : AppColors.harvestAmber,
+          fontWeight: FontWeight.bold,
+          fontSize: 9,
+          letterSpacing: 0.5,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildQuantityTag(String weight, String unit, ThemeData theme, bool isDark) {
+    if (weight.isEmpty) return const SizedBox.shrink();
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      decoration: BoxDecoration(
+        color: isDark
+            ? AppColors.charcoal.withValues(alpha: 0.3)
+            : AppColors.parchment,
+        borderRadius: BorderRadius.circular(6),
+        border: Border.all(
+          color: isDark
+              ? AppColors.parchment.withValues(alpha: 0.1)
+              : theme.dividerColor.withValues(alpha: 0.2),
+          width: 0.8,
+        ),
+      ),
+      child: Text(
+        '$weight $unit',
+        style: theme.textTheme.bodySmall?.copyWith(
+          color: theme.hintColor,
+          fontSize: 10,
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     final isInStock = widget.product.isInStock;
+    final isActive = widget.product.isActive;
+    final hasDiscount = widget.product.discountPercentage > 0;
 
     // Staggered animation delay based on index
     final delay = 300 + (widget.index * 80);
@@ -1026,168 +1084,229 @@ class _AnimatedProductCardState extends State<_AnimatedProductCard> {
         );
       },
       child: GestureDetector(
-        onTapDown: isInStock ? (_) => setState(() => _isPressed = true) : null,
-        onTapUp: isInStock ? (_) => setState(() => _isPressed = false) : null,
+        onTapDown: (isInStock && isActive) ? (_) => setState(() => _isPressed = true) : null,
+        onTapUp: (isInStock && isActive) ? (_) => setState(() => _isPressed = false) : null,
         onTapCancel:
-            isInStock ? () => setState(() => _isPressed = false) : null,
-        onTap: isInStock ? widget.onTap : null,
+            (isInStock && isActive) ? () => setState(() => _isPressed = false) : null,
+        onTap: (isInStock && isActive) ? widget.onTap : null,
         child: AnimatedScale(
           scale: _isPressed ? 0.98 : 1.0,
           duration: const Duration(milliseconds: 100),
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 200),
-            margin: const EdgeInsets.only(bottom: 12),
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: theme.cardColor,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                color:
-                    _isPressed
-                        ? theme.colorScheme.primary.withValues(alpha: 0.5)
-                        : isDark
-                        ? AppColors.darkSurfaceElevated
-                        : AppColors.parchment,
-                width: _isPressed ? 2 : 1,
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: theme.shadowColor.withValues(
-                    alpha: _isPressed ? 0.15 : 0.08,
+          child: Stack(
+            children: [
+              AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                margin: const EdgeInsets.only(bottom: 12),
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: theme.cardColor,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color:
+                        _isPressed
+                            ? theme.colorScheme.primary.withValues(alpha: 0.5)
+                            : isDark
+                            ? AppColors.darkSurfaceElevated
+                            : AppColors.parchment,
+                    width: _isPressed ? 2 : 1,
                   ),
-                  blurRadius: _isPressed ? 16 : 8,
-                  offset: Offset(0, _isPressed ? 8 : 4),
-                ),
-              ],
-            ),
-            child: Opacity(
-              opacity: isInStock ? 1.0 : 0.5,
-              child: Row(
-                children: [
-                  // Product Image
-                  Hero(
-                    tag: 'product_${widget.product.id}_explore',
-                    child: Container(
-                      width: 80,
-                      height: 80,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(12),
-                        color:
-                            isDark
-                                ? AppColors.darkSurface
-                                : AppColors.parchment,
+                  boxShadow: [
+                    BoxShadow(
+                      color: theme.shadowColor.withValues(
+                        alpha: _isPressed ? 0.15 : 0.08,
                       ),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(12),
-                        child:
-                            widget.product.productImages.isNotEmpty
-                                ? CachedNetworkImage(
-                                  imageUrl:
-                                      widget.product.productImages[0].image,
-                                  fit: BoxFit.cover,
-                                  placeholder:
-                                      (context, url) => Center(
-                                        child: CircularProgressIndicator(
-                                          strokeWidth: 2,
-                                          color: theme.colorScheme.primary,
-                                        ),
-                                      ),
-                                  errorWidget:
-                                      (context, url, error) => Icon(
-                                        Icons.image_not_supported_rounded,
-                                        color: theme.disabledColor,
-                                      ),
-                                )
-                                : Icon(
-                                  Icons.image_not_supported_rounded,
-                                  color: theme.disabledColor,
-                                ),
-                      ),
+                      blurRadius: _isPressed ? 16 : 8,
+                      offset: Offset(0, _isPressed ? 8 : 4),
                     ),
-                  ),
-                  const SizedBox(width: 16),
-
-                  // Product Details
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          widget.product.productName,
-                          style: theme.textTheme.titleSmall?.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          widget.product.productCategory,
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: theme.hintColor,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Row(
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 8,
-                                vertical: 4,
-                              ),
+                  ],
+                ),
+                child: Opacity(
+                  opacity: isActive ? (isInStock ? 1.0 : 0.5) : 1.0,
+                  child: Row(
+                    children: [
+                      // Product Image Stack
+                      Stack(
+                        children: [
+                          Hero(
+                            tag: 'product_${widget.product.id}_explore',
+                            child: Container(
+                              width: 80,
+                              height: 80,
                               decoration: BoxDecoration(
-                                color: theme.colorScheme.primary.withValues(
-                                  alpha: 0.1,
-                                ),
-                                borderRadius: BorderRadius.circular(8),
+                                borderRadius: BorderRadius.circular(12),
+                                color:
+                                    isDark
+                                        ? AppColors.darkSurface
+                                        : AppColors.parchment,
                               ),
-                              child: Text(
-                                '₹${widget.product.finalPrice.toStringAsFixed(0)}',
-                                style: TextStyle(
-                                  color: AppColors.getPriceColor(context),
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 14,
-                                ),
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(12),
+                                child:
+                                    widget.product.productImages.isNotEmpty
+                                        ? CachedNetworkImage(
+                                          imageUrl:
+                                              widget.product.productImages[0].image,
+                                          fit: BoxFit.cover,
+                                          placeholder:
+                                              (context, url) => Center(
+                                                child: CircularProgressIndicator(
+                                                  strokeWidth: 2,
+                                                  color: theme.colorScheme.primary,
+                                                ),
+                                              ),
+                                          errorWidget:
+                                              (context, url, error) => Icon(
+                                                Icons.image_not_supported_rounded,
+                                                color: theme.disabledColor,
+                                              ),
+                                        )
+                                        : Icon(
+                                          Icons.image_not_supported_rounded,
+                                          color: theme.disabledColor,
+                                        ),
                               ),
                             ),
-                            const Spacer(),
-                            if (!isInStock)
-                              Container(
+                          ),
+                          if (hasDiscount)
+                            Positioned(
+                              top: 4,
+                              left: 4,
+                              child: Container(
                                 padding: const EdgeInsets.symmetric(
-                                  horizontal: 8,
-                                  vertical: 4,
+                                  horizontal: 5,
+                                  vertical: 2,
                                 ),
                                 decoration: BoxDecoration(
-                                  color: AppColors.rawEarth,
-                                  borderRadius: BorderRadius.circular(8),
+                                  color: AppColors.harvestAmber,
+                                  borderRadius: BorderRadius.circular(4),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: AppColors.harvestAmber.withValues(alpha: 0.3),
+                                      blurRadius: 4,
+                                      offset: const Offset(0, 1),
+                                    ),
+                                  ],
                                 ),
-                                child: const Text(
-                                  'Out of Stock',
-                                  style: TextStyle(
-                                    color: AppColors.parchment,
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.w600,
+                                child: Text(
+                                  '${widget.product.discountPercentage.toInt()}% off',
+                                  style: const TextStyle(
+                                    color: AppColors.pureWhite,
+                                    fontSize: 7,
+                                    fontWeight: FontWeight.bold,
                                   ),
                                 ),
                               ),
+                            ),
+                        ],
+                      ),
+                      const SizedBox(width: 16),
+
+                      // Product Details
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            _buildCategoryCapsule(widget.product.productCategory, theme, isDark),
+                            const SizedBox(height: 4),
+                            Text(
+                              widget.product.productName,
+                              style: theme.textTheme.titleSmall?.copyWith(
+                                fontWeight: FontWeight.bold,
+                              ),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            const SizedBox(height: 4),
+                            _buildQuantityTag(widget.product.weight, widget.product.weightUnit, theme, isDark),
+                            const SizedBox(height: 6),
+                            Row(
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 8,
+                                    vertical: 4,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: theme.colorScheme.primary.withValues(
+                                      alpha: 0.1,
+                                    ),
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: Text(
+                                    '₹${widget.product.finalPrice.toStringAsFixed(0)}',
+                                    style: TextStyle(
+                                      color: AppColors.getPriceColor(context),
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 14,
+                                    ),
+                                  ),
+                                ),
+                                const Spacer(),
+                                if (!isInStock)
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 8,
+                                      vertical: 4,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: AppColors.rawEarth,
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    child: const Text(
+                                      'Out of Stock',
+                                      style: TextStyle(
+                                        color: AppColors.parchment,
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                  ),
+                              ],
+                            ),
                           ],
                         ),
+                      ),
+
+                      // Arrow Icon
+                      if (isInStock) ...[
+                        const SizedBox(width: 8),
+                        Icon(
+                          Icons.arrow_forward_ios_rounded,
+                          size: 16,
+                          color: theme.colorScheme.primary.withValues(alpha: 0.7),
+                        ),
                       ],
+                    ],
+                  ),
+                ),
+              ),
+              if (!isActive)
+                Positioned.fill(
+                  child: Container(
+                    margin: const EdgeInsets.only(bottom: 12),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(16),
+                      child: ColoredBox(
+                        color: isDark ? Colors.black.withValues(alpha: 0.72) : Colors.white.withValues(alpha: 0.72),
+                        child: const ComingSoonOverlay(),
+                      ),
                     ),
                   ),
-
-                  // Arrow Icon
-                  if (isInStock) ...[
-                    const SizedBox(width: 8),
-                    Icon(
-                      Icons.arrow_forward_ios_rounded,
-                      size: 16,
-                      color: theme.colorScheme.primary.withValues(alpha: 0.7),
+                )
+              else if (!isInStock)
+                Positioned.fill(
+                  child: Container(
+                    margin: const EdgeInsets.only(bottom: 12),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(16),
+                      child: ColoredBox(
+                        color: isDark ? Colors.black.withValues(alpha: 0.72) : Colors.white.withValues(alpha: 0.72),
+                        child: const OutOfStockOverlay(),
+                      ),
                     ),
-                  ],
-                ],
-              ),
-            ),
+                  ),
+                ),
+            ],
           ),
         ),
       ),

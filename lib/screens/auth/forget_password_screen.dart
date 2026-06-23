@@ -1,6 +1,7 @@
 import 'dart:ui';
 import 'dart:math' as math;
 import 'package:grocery_app/common_widgets/global_import.dart';
+import 'package:grocery_app/common_widgets/otp_resend_section.dart';
 import 'package:dio/dio.dart';
 
 class ForgetPasswordScreen extends StatefulWidget {
@@ -421,17 +422,38 @@ class _ForgetPasswordScreenState extends State<ForgetPasswordScreen>
                           errorText: dialogError,
                         ),
                         const SizedBox(height: 24),
+                        OtpResendSection(
+                          onResend: () async {
+                            final identifier = _identifierController.text.trim();
+                            final type = _identifierType ?? (_isEmail(identifier) ? 'EMAIL' : 'PHONE');
+                            try {
+                              await ApiClient.instance.post(
+                                '/api/auth/forgot-password/send-otp/',
+                                data: {'identifier': identifier, 'type': type},
+                              );
+                              SnackBarHelper.showSuccess(
+                                context,
+                                'OTP resent successfully!',
+                              );
+                            } catch (e) {
+                              String errorMessage = 'Failed to resend OTP';
+                              if (e is DioException && e.response?.data != null) {
+                                final data = e.response!.data;
+                                if (data is Map) {
+                                  errorMessage = data['message'] ?? data['error'] ?? errorMessage;
+                                }
+                              }
+                              SnackBarHelper.showError(context, errorMessage);
+                              rethrow;
+                            }
+                          },
+                        ),
+                        const SizedBox(height: 24),
                         Row(
                           children: [
                             Expanded(
                               child: TextButton(
-                                onPressed:
-                                    isVerifying
-                                        ? null
-                                        : () {
-                                          Navigator.of(context).pop();
-                                          _sendOtp();
-                                        },
+                                onPressed: () => Navigator.of(context).pop(),
                                 style: TextButton.styleFrom(
                                   padding: const EdgeInsets.symmetric(
                                     vertical: 14,
@@ -439,7 +461,7 @@ class _ForgetPasswordScreenState extends State<ForgetPasswordScreen>
                                   foregroundColor: theme.colorScheme.onPrimary,
                                 ),
                                 child: Text(
-                                  'Resend',
+                                  'Cancel',
                                   style: theme.textTheme.labelLarge?.copyWith(
                                     color: theme.colorScheme.onPrimary
                                         .withValues(alpha: 0.8),
