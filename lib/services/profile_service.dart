@@ -9,8 +9,10 @@ class ProfileService {
   ProfileService._internal();
   static ProfileService create() => ProfileService._internal();
 
-  static final _addressChangeController = StreamController<UserModel?>.broadcast();
-  static Stream<UserModel?> get addressChanges => _addressChangeController.stream;
+  static final _addressChangeController =
+      StreamController<UserModel?>.broadcast();
+  static Stream<UserModel?> get addressChanges =>
+      _addressChangeController.stream;
 
   static final Map<int, int> _favoriteToggleCounts = {};
   static final Map<int, Timer> _favoriteDebouncers = {};
@@ -32,24 +34,25 @@ class ProfileService {
       );
 
       if (response.statusCode == 200) {
-        return {'success': true, 'message': 'Profile image updated successfully'};
+        return {
+          'success': true,
+          'message': 'Profile image updated successfully',
+        };
       } else {
         return {
           'success': false,
-          'message': 'Failed to update profile image: ${response.statusCode}'
+          'message': 'Failed to update profile image: ${response.statusCode}',
         };
       }
     } catch (e) {
-      return {
-        'success': false,
-        'message': 'Error uploading profile image: $e'
-      };
+      return {'success': false, 'message': 'Error uploading profile image: $e'};
     }
   }
 
   Future<bool> updateUserAddress(Map<String, String> addressDetails) async {
     try {
-      final currentUser = TokenService().currentUser ?? await TokenService().getUserData();
+      final currentUser =
+          TokenService().currentUser ?? await TokenService().getUserData();
       if (currentUser == null) {
         debugPrint('updateUserAddress: no current user data');
         return false;
@@ -79,12 +82,17 @@ class ProfileService {
           return true;
         }
       } catch (firstError) {
-        debugPrint('updateUserAddress: first attempt failed (possibly duplicate phone): $firstError');
+        debugPrint(
+          'updateUserAddress: first attempt failed (possibly duplicate phone): $firstError',
+        );
 
         // Fallback: If the user entered a phone number different from current profile phone number,
         // try saving the address WITHOUT updating the profile's phone number.
-        if (addressDetails['phone'] != null && addressDetails['phone'] != currentUser.phoneNumber) {
-          debugPrint('updateUserAddress: retrying without updating profile phone number');
+        if (addressDetails['phone'] != null &&
+            addressDetails['phone'] != currentUser.phoneNumber) {
+          debugPrint(
+            'updateUserAddress: retrying without updating profile phone number',
+          );
           final fallbackBodyMap = Map<String, dynamic>.from(bodyMap);
           // Revert phone number to the profile's existing value (null or whatever it was)
           fallbackBodyMap['phone_number'] = currentUser.phoneNumber;
@@ -123,33 +131,38 @@ class ProfileService {
       }
 
       // Record the tap
-      _favoriteToggleCounts[productId] = (_favoriteToggleCounts[productId] ?? 0) + 1;
+      _favoriteToggleCounts[productId] =
+          (_favoriteToggleCounts[productId] ?? 0) + 1;
       _favoriteDebouncers[productId]?.cancel();
 
       // Return a fake optimistic success immediately so the UI can update
       final immediateResult = {
         'success': true,
         'message': 'Favorite updated',
-        'isAdded': true, // The UI just toggles its boolean, so this exact value is less critical
+        'isAdded':
+            true, // The UI just toggles its boolean, so this exact value is less critical
       };
 
       // Set a 500ms debounce timer
-      _favoriteDebouncers[productId] = Timer(const Duration(milliseconds: 500), () async {
-        final tapCount = _favoriteToggleCounts[productId] ?? 0;
-        _favoriteToggleCounts[productId] = 0; // Reset
+      _favoriteDebouncers[productId] = Timer(
+        const Duration(milliseconds: 500),
+        () async {
+          final tapCount = _favoriteToggleCounts[productId] ?? 0;
+          _favoriteToggleCounts[productId] = 0; // Reset
 
-        // If even number of taps, the net state is unchanged. Do nothing.
-        if (tapCount % 2 == 0) return;
+          // If even number of taps, the net state is unchanged. Do nothing.
+          if (tapCount % 2 == 0) return;
 
-        try {
-          // If odd number of taps, execute the backend toggle
-          await ApiClient.instance.post(
-            '${ApiConfig.favoritesEndpoint}$productId/toggle/',
-          );
-        } catch (e) {
-          AppLogger.instance.log('Background toggle favorite error: $e');
-        }
-      });
+          try {
+            // If odd number of taps, execute the backend toggle
+            await ApiClient.instance.post(
+              '${ApiConfig.favoritesEndpoint}$productId/toggle/',
+            );
+          } catch (e) {
+            AppLogger.instance.log('Background toggle favorite error: $e');
+          }
+        },
+      );
 
       return immediateResult;
     } catch (e, stackTrace) {
@@ -161,7 +174,9 @@ class ProfileService {
 
   Future<Map<String, dynamic>> getFavorites() async {
     try {
-      final response = await ApiClient.instance.get(ApiConfig.favoritesEndpoint);
+      final response = await ApiClient.instance.get(
+        ApiConfig.favoritesEndpoint,
+      );
 
       if (response.statusCode == 200) {
         final List<dynamic> favoritesJson = response.data;
@@ -174,7 +189,9 @@ class ProfileService {
           'message': 'Favorites fetched successfully',
         };
       } else {
-        AppLogger.instance.log('Failed to fetch favorites. Status code: ${response.statusCode}');
+        AppLogger.instance.log(
+          'Failed to fetch favorites. Status code: ${response.statusCode}',
+        );
         AppLogger.instance.log('Response data: ${response.data}');
         return {
           'success': false,
@@ -239,7 +256,9 @@ class ProfileService {
         },
       );
 
-      AppLogger.instance.log('Update Profile Response Status: ${response.statusCode}');
+      AppLogger.instance.log(
+        'Update Profile Response Status: ${response.statusCode}',
+      );
       AppLogger.instance.log('Response Body: ${response.data}');
 
       if (response.statusCode == 200) {
@@ -359,7 +378,7 @@ class ProfileService {
 
       final responseData = response.data;
 
-      if (response.statusCode == 200) {
+      if (response.statusCode == 200 || response.statusCode == 201) {
         return {
           'success': true,
           'message': responseData['message'] ?? 'OTP sent successfully',
@@ -373,11 +392,27 @@ class ProfileService {
               'Failed to request deactivation',
         };
       }
+    } on dio.DioException catch (e) {
+      AppLogger.instance.log('Deactivate account DioException: $e');
+      String errorMessage = 'Failed to deactivate account';
+      if (e.response != null && e.response!.data != null) {
+        final responseData = e.response!.data;
+        if (responseData is Map) {
+          errorMessage =
+              responseData['message'] ??
+              responseData['detail'] ??
+              responseData['error'] ??
+              errorMessage;
+        } else if (responseData is String && responseData.isNotEmpty) {
+          errorMessage = responseData;
+        }
+      }
+      return {'success': false, 'message': errorMessage, 'error': e.toString()};
     } catch (e) {
       AppLogger.instance.log('Deactivate account error: $e');
       return {
         'success': false,
-        'message': 'Network error occurred',
+        'message': 'An unexpected error occurred',
         'error': e.toString(),
       };
     }
@@ -392,7 +427,7 @@ class ProfileService {
 
       final responseData = response.data;
 
-      if (response.statusCode == 200) {
+      if (response.statusCode == 200 || response.statusCode == 201) {
         await TokenService().clearToken();
         return {
           'success': true,
@@ -408,11 +443,27 @@ class ProfileService {
               'Failed to confirm deactivation',
         };
       }
+    } on dio.DioException catch (e) {
+      AppLogger.instance.log('Confirm deactivate account DioException: $e');
+      String errorMessage = 'Failed to confirm deactivation';
+      if (e.response != null && e.response!.data != null) {
+        final responseData = e.response!.data;
+        if (responseData is Map) {
+          errorMessage =
+              responseData['message'] ??
+              responseData['detail'] ??
+              responseData['error'] ??
+              errorMessage;
+        } else if (responseData is String && responseData.isNotEmpty) {
+          errorMessage = responseData;
+        }
+      }
+      return {'success': false, 'message': errorMessage, 'error': e.toString()};
     } catch (e) {
       AppLogger.instance.log('Confirm deactivate account error: $e');
       return {
         'success': false,
-        'message': 'Network error occurred',
+        'message': 'An unexpected error occurred',
         'error': e.toString(),
       };
     }

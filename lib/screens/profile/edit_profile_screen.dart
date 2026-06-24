@@ -1809,7 +1809,7 @@ class _EditProfileScreenState extends State<EditProfileScreen>
                                                   );
                                                   if (result['success'] == true) {
                                                     Navigator.pop(innerContext);
-                                                    if (context.mounted) {
+                                                    if (mounted) {
                                                       context.go(AppRoute.login.path);
                                                     }
                                                   } else {

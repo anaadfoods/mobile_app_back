@@ -62,6 +62,7 @@ class TokenService {
     await _secureStorage.delete(key: 'access_token');
     await _secureStorage.delete(key: 'refresh_token');
     await prefs.remove('user_data');
+    await prefs.remove('user_profile');
     _currentUser = null;
     _authStateController.add(false);
   }
@@ -251,7 +252,17 @@ class TokenService {
       );
 
       if (response.statusCode == 200 && response.data['access'] != null) {
-        await _secureStorage.write(key: 'access_token', value: response.data['access']);
+        await _secureStorage.write(
+          key: 'access_token',
+          value: response.data['access'],
+        );
+        // Save rotated refresh token — the old one is now invalidated
+        if (response.data['refresh'] != null) {
+          await _secureStorage.write(
+            key: 'refresh_token',
+            value: response.data['refresh'],
+          );
+        }
         return true;
       }
     } catch (e) {
