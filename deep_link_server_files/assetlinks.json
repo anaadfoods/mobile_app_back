@@ -22,5 +22,17 @@
         "AC:DF:8F:5F:37:16:2D:23:44:F0:27:A9:87:83:CA:F8:BD:D9:7E:FF:0C:E8:3D:62:67:5E:F1:35:BB:90:28:E0"
       ]
     }
+  },
+  {
+    "relation": [
+      "delegate_permission/common.handle_all_urls"
+    ],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.anhadnaad.anaadfoodsui",
+      "sha256_cert_fingerprints": [
+        "42:5B:47:8D:68:88:04:47:CD:5F:47:3B:9A:54:55:F4:3E:D1:32:A2:B8:21:2A:87:D9:97:51:53:D7:E3:D0:FE"
+      ]
+    }
   }
 ]

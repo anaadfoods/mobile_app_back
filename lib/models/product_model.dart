@@ -15,6 +15,7 @@ class Product {
   final String productDescription;
   final String productCategory;
   final List<ProductImage> productImages;
+  final String? cropCycleId;
 
   Product({
     required this.id,
@@ -30,6 +31,7 @@ class Product {
     required this.productDescription,
     required this.productCategory,
     required this.productImages,
+    this.cropCycleId,
   });
 
   // Convert Product to ProductVariant
@@ -49,6 +51,7 @@ class Product {
       productDescription: productDescription,
       productCategory: productCategory,
       productImages: productImages,
+      cropCycleId: cropCycleId,
     );
   }
 
@@ -72,6 +75,7 @@ class Product {
               ?.map((img) => ProductImage.fromJson(img))
               .toList() ??
           [],
+      cropCycleId: json['crop_cycle_id'],
     );
   }
 
@@ -92,6 +96,7 @@ class Product {
       'product_category': productCategory,
       // This maps each ProductImage in the list to its JSON representation
       'product_images': productImages.map((image) => image.toJson()).toList(),
+      if (cropCycleId != null) 'crop_cycle_id': cropCycleId,
     };
   }
 }

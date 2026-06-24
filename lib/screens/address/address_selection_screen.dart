@@ -1200,7 +1200,7 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen>
             ),
             const SizedBox(height: 16),
             SelectState(
-              key: ValueKey('${_stateController.text}_${_cityController.text}'),
+              key: const ValueKey('address_select_state'),
               onCountryChanged: (_) {},
               onStateChanged:
                   (v) => setState(() => _stateController.text = v ?? ''),

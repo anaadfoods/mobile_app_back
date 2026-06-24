@@ -615,16 +615,11 @@ class _ExploreScreenState extends State<ExploreScreen>
       category.name,
     );
     if (!mounted) return;
-    if (category.name == "Vegetables") {
-      final authState = context.read<AuthCubit>().state;
-      final isRfp = authState is Authenticated && authState.user.isRfp;
-      context.push(isRfp ? '/delivery' : '/contract-farming');
-    } else {
-      context.push(
-        '/category-items',
-        extra: {'name': category.name, 'products': products},
-      );
-    }
+   
+    context.push(
+      '/category-items',
+      extra: {'name': category.name, 'products': products},
+    );
   }
 
   Widget _buildSkeletonLoader(ThemeData theme) {

@@ -1065,13 +1065,7 @@ class _SignupScreenState extends State<SignupScreen>
                                             onPressed:
                                                 isLoading
                                                     ? null
-                                                    : () =>
-                                                        Navigator.pushReplacement(
-                                                          context,
-                                                          _buildPageRoute(
-                                                            const LoginScreen(),
-                                                          ),
-                                                        ),
+                                                    : () => context.go('/login'),
                                             child: Text(
                                               "Login",
                                               style: textTheme.bodyMedium
@@ -1337,24 +1331,6 @@ class _SignupScreenState extends State<SignupScreen>
           ),
         );
       },
-    );
-  }
-
-  PageRouteBuilder _buildPageRoute(Widget page) {
-    return PageRouteBuilder(
-      pageBuilder: (context, animation, secondaryAnimation) => page,
-      transitionsBuilder: (context, animation, secondaryAnimation, child) {
-        return SlideTransition(
-          position: Tween<Offset>(
-            begin: const Offset(1.0, 0.0),
-            end: Offset.zero,
-          ).animate(
-            CurvedAnimation(parent: animation, curve: Curves.easeOutCubic),
-          ),
-          child: FadeTransition(opacity: animation, child: child),
-        );
-      },
-      transitionDuration: const Duration(milliseconds: 400),
     );
   }
 

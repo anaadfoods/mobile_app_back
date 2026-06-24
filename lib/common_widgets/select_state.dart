@@ -57,6 +57,30 @@ class _SelectStateState extends State<SelectState> {
   }
 
   @override
+  void didUpdateWidget(covariant SelectState oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    
+    final currentSelectedState = _selectedStateModel?.name;
+    final currentSelectedCity = _isManualCity 
+        ? _manualCityController.text 
+        : _selectedCityModel?.name;
+
+    final hasStateChanged = (widget.initialState?.trim() ?? '') != (oldWidget.initialState?.trim() ?? '') &&
+        (widget.initialState?.trim() ?? '') != (currentSelectedState?.trim() ?? '');
+        
+    final hasCityChanged = (widget.initialCity?.trim() ?? '') != (oldWidget.initialCity?.trim() ?? '') &&
+        (widget.initialCity?.trim() ?? '') != (currentSelectedCity?.trim() ?? '');
+
+    if (hasStateChanged || hasCityChanged) {
+      _selectedStateModel = null;
+      _selectedCityModel = null;
+      _isManualCity = false;
+      _manualCityController.clear();
+      _loadStates();
+    }
+  }
+
+  @override
   void dispose() {
     _manualCityController.dispose();
     super.dispose();

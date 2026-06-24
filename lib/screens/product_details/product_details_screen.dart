@@ -1,5 +1,6 @@
 import 'dart:ui';
 import 'package:collection/collection.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:grocery_app/common_widgets/coming_soon_overlay.dart';
 import 'package:grocery_app/common_widgets/global_import.dart';
 import 'package:grocery_app/routes/app_routes.dart';
@@ -390,7 +391,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    final bottomInset = MediaQuery.of(context).padding.bottom + 180.0;
+    final bottomInset = MediaQuery.of(context).padding.bottom + 24.0;
 
     final backgroundImage = widget.product.productImages.isNotEmpty
         ? widget.product.productImages.first.image
@@ -530,6 +531,35 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
                               ExpandableDescription(
                                 text: widget.product.productDescription,
                               ),
+                              if (widget.product.cropCycleId != null) ...[
+                                const SizedBox(height: 24),
+                                SizedBox(
+                                  width: double.infinity,
+                                  child: ElevatedButton(
+                                    onPressed: () async {
+                                      final url = Uri.parse('https://anaadfoods.com/traceability-journey?crop_id=${widget.product.cropCycleId}');
+                                      if (await canLaunchUrl(url)) {
+                                        await launchUrl(url);
+                                      } else {
+                                        SnackBarHelper.showError(context, 'Could not launch URL');
+                                      }
+                                    },
+                                    style: ElevatedButton.styleFrom(
+                                      padding: const EdgeInsets.symmetric(vertical: 16),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                    ),
+                                    child: const Text(
+                                      'Traceability Journey',
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ],
                           ),
                         ),

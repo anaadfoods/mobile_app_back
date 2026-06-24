@@ -103,6 +103,39 @@ class TokenService {
           'errors': responseData['errors'] ?? {},
         };
       }
+    } on dio.DioException catch (e) {
+      String errorMessage = 'Registration failed.';
+      if (e.response != null && e.response!.data != null) {
+        final responseData = e.response!.data;
+        if (responseData is Map) {
+          if (responseData['detail'] != null) {
+            errorMessage = responseData['detail'].toString();
+          } else if (responseData['message'] != null) {
+            errorMessage = responseData['message'].toString();
+          } else if (responseData['error'] != null) {
+            errorMessage = responseData['error'].toString();
+          } else if (responseData.isNotEmpty) {
+            final errors = <String>[];
+            responseData.forEach((key, value) {
+              if (value is List) {
+                errors.add('$key: ${value.join(", ")}');
+              } else {
+                errors.add('$key: $value');
+              }
+            });
+            errorMessage = errors.join('; ');
+          }
+        } else if (responseData is String && responseData.isNotEmpty) {
+          errorMessage = responseData;
+        }
+      } else {
+        errorMessage = 'Network error occurred: ${e.message ?? e.toString()}';
+      }
+      return {
+        'success': false,
+        'message': errorMessage,
+        'error': e.toString(),
+      };
     } catch (e) {
       return {
         'success': false,
@@ -151,6 +184,39 @@ class TokenService {
           'errors': responseData['errors'] ?? {},
         };
       }
+    } on dio.DioException catch (e) {
+      String errorMessage = 'Invalid email or password';
+      if (e.response != null && e.response!.data != null) {
+        final responseData = e.response!.data;
+        if (responseData is Map) {
+          if (responseData['detail'] != null) {
+            errorMessage = responseData['detail'].toString();
+          } else if (responseData['message'] != null) {
+            errorMessage = responseData['message'].toString();
+          } else if (responseData['error'] != null) {
+            errorMessage = responseData['error'].toString();
+          } else if (responseData.isNotEmpty) {
+            final errors = <String>[];
+            responseData.forEach((key, value) {
+              if (value is List) {
+                errors.add('$key: ${value.join(", ")}');
+              } else {
+                errors.add('$key: $value');
+              }
+            });
+            errorMessage = errors.join('; ');
+          }
+        } else if (responseData is String && responseData.isNotEmpty) {
+          errorMessage = responseData;
+        }
+      } else {
+        errorMessage = 'Network error occurred: ${e.message ?? e.toString()}';
+      }
+      return {
+        'success': false,
+        'message': errorMessage,
+        'error': e.toString(),
+      };
     } catch (e) {
       return {
         'success': false,

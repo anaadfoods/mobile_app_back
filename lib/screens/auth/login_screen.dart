@@ -515,12 +515,7 @@ class _LoginScreenState extends State<LoginScreen>
                                                       onPressed:
                                                           isLoading
                                                               ? null
-                                                              : () => Navigator.push(
-                                                                context,
-                                                                _buildPageRoute(
-                                                                  const SignupScreen(),
-                                                                ),
-                                                              ),
+                                                      : () => context.push('/signup'),
                                                       child: Text(
                                                         "Register",
                                                         style: textTheme

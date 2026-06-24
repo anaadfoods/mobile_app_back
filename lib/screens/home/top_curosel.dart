@@ -102,7 +102,7 @@ class _TopCuroselState extends State<TopCurosel>
         buttonText: 'See Subscriptions',
         color: AppColors.deepSoilGreen,
         onTap: () {
-          context.push('/product/1');
+          context.push('/subscriptions');
         },
       ),
       CarouselItem(
@@ -115,7 +115,9 @@ class _TopCuroselState extends State<TopCurosel>
         onTap: () {
           final authState = context.read<AuthCubit>().state;
           final isRfp = authState is Authenticated && authState.user.isRfp;
-          context.push('/profile');
+          final dashboardState =
+              context.findAncestorStateOfType<DashboardScreenState>();
+          dashboardState?.switchToTab(1);
         },
       ),
     ];

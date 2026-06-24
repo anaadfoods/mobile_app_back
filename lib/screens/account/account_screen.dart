@@ -881,7 +881,7 @@ class _AccountScreenState extends State<AccountScreen>
                       ),
                     ),
                     const SizedBox(width: 12),
-                    const Text('Deactivate Account'),
+                    const Text('Delete Account'),
                   ],
                 ),
                 content: Form(
@@ -891,9 +891,11 @@ class _AccountScreenState extends State<AccountScreen>
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Are you sure you want to deactivate your account? This action cannot be undone immediately.',
+                        'Are you sure you want to delete your account? This action cannot be undone immediately.',
                         style: TextStyle(
-                          color: Theme.of(innerContext).textTheme.bodyMedium?.color?.withAlpha(153),
+                          color: Theme.of(
+                            innerContext,
+                          ).textTheme.bodyMedium?.color?.withAlpha(153),
                           fontSize: 14,
                         ),
                       ),
@@ -945,7 +947,9 @@ class _AccountScreenState extends State<AccountScreen>
                         color:
                             isLoading
                                 ? Theme.of(innerContext).disabledColor
-                                : Theme.of(innerContext).textTheme.bodyMedium?.color?.withAlpha(153),
+                                : Theme.of(
+                                  innerContext,
+                                ).textTheme.bodyMedium?.color?.withAlpha(153),
                       ),
                     ),
                   ),
@@ -961,7 +965,9 @@ class _AccountScreenState extends State<AccountScreen>
                                   final authCubit =
                                       innerContext.read<AuthCubit>();
                                   final result = await authCubit
-                                      .deactivateAccount(passwordController.text);
+                                      .deactivateAccount(
+                                        passwordController.text,
+                                      );
 
                                   if (!innerContext.mounted) return;
 
@@ -971,7 +977,7 @@ class _AccountScreenState extends State<AccountScreen>
                                       SnackBarHelper.showSuccess(
                                         context,
                                         result['message'] ??
-                                            'Your account has been deactivated successfully.',
+                                            'Your account has been deleted successfully.',
                                       );
                                     }
                                   } else {
@@ -980,7 +986,7 @@ class _AccountScreenState extends State<AccountScreen>
                                       SnackBarHelper.showError(
                                         innerContext,
                                         result['message'] ??
-                                            'Failed to deactivate account. Please try again.',
+                                            'Failed to delete account. Please try again.',
                                       );
                                     }
                                   }
@@ -1017,7 +1023,7 @@ class _AccountScreenState extends State<AccountScreen>
                                 color: AppColors.parchment,
                               ),
                             )
-                            : const Text('Deactivate'),
+                            : const Text('Delete'),
                   ),
                 ],
               );
