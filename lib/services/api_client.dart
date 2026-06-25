@@ -163,6 +163,13 @@ class AuthInterceptor extends Interceptor {
         return handler.next(err);
       }
 
+      // If it is a deactivation endpoint, do not attempt to refresh token on 401.
+      // 401 here represents invalid credentials/password or invalid OTP, not an expired token.
+      if (options.path.contains(ApiConfig.deactivateEndpoint) ||
+          options.path.contains(ApiConfig.deactivateConfirmEndpoint)) {
+        return handler.next(err);
+      }
+
       if (_isRefreshing) {
         _requestQueue.add({
           'options': options,

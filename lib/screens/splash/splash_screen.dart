@@ -114,7 +114,7 @@ class _SplashScreenState extends State<SplashScreen>
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'SACRED TRACEABLE COMMITMENT',
+                    'A Sacred Traceable Commitment',
                     style: TextStyle(
                       color: (isDark ? AppColors.parchment : AppColors.charcoal)
                           .withValues(alpha: 0.6),

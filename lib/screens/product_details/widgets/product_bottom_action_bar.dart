@@ -41,45 +41,77 @@ class ProductBottomActionBar extends StatelessWidget {
       ),
       child: SizedBox(
         height: 55,
-        child: BlocBuilder<CartCubit, CartState>(
-          builder: (context, state) {
-            int cartQuantity = 0;
-            if (state is CartSuccess) {
-              final cartItem = state.cart.items.firstWhereOrNull(
-                (item) => item.productVariant.id == product.id,
-              );
-              cartQuantity = cartItem?.quantity ?? 0;
-            }
+        child: !product.isActive || !product.isInStock
+            ? _buildDisabledActionBar(isDark)
+            : BlocBuilder<CartCubit, CartState>(
+                builder: (context, state) {
+                  int cartQuantity = 0;
+                  if (state is CartSuccess) {
+                    final cartItem = state.cart.items.firstWhereOrNull(
+                      (item) => item.productVariant.id == product.id,
+                    );
+                    cartQuantity = cartItem?.quantity ?? 0;
+                  }
 
-            return AnimatedSwitcher(
-              duration: const Duration(milliseconds: 350),
-              transitionBuilder: (child, animation) {
-                final slideAnimation = Tween<Offset>(
-                  begin: const Offset(0.0, 0.5),
-                  end: Offset.zero,
-                ).animate(
-                  CurvedAnimation(
-                    parent: animation,
-                    curve: Curves.easeInOutCubic,
-                  ),
-                );
-                return FadeTransition(
-                  opacity: animation,
-                  child: SlideTransition(
-                    position: slideAnimation,
-                    child: child,
-                  ),
-                );
-              },
-              child: cartQuantity == 0
-                  ? _buildAddToCartBar(context, key: const ValueKey('addToCartBar'))
-                  : _buildQuantitySelectorBar(
-                      context,
-                      key: const ValueKey('quantitySelectorBar'),
-                      quantity: cartQuantity,
-                    ),
-            );
-          },
+                  return AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 350),
+                    transitionBuilder: (child, animation) {
+                      final slideAnimation = Tween<Offset>(
+                        begin: const Offset(0.0, 0.5),
+                        end: Offset.zero,
+                      ).animate(
+                        CurvedAnimation(
+                          parent: animation,
+                          curve: Curves.easeInOutCubic,
+                        ),
+                      );
+                      return FadeTransition(
+                        opacity: animation,
+                        child: SlideTransition(
+                          position: slideAnimation,
+                          child: child,
+                        ),
+                      );
+                    },
+                    child: cartQuantity == 0
+                        ? _buildAddToCartBar(context, key: const ValueKey('addToCartBar'))
+                        : _buildQuantitySelectorBar(
+                            context,
+                            key: const ValueKey('quantitySelectorBar'),
+                            quantity: cartQuantity,
+                          ),
+                  );
+                },
+              ),
+      ),
+    );
+  }
+
+  Widget _buildDisabledActionBar(bool isDark) {
+    final label = !product.isActive ? 'Currently Unavailable' : 'Out of Stock';
+    return SizedBox(
+      width: double.infinity,
+      child: ElevatedButton(
+        onPressed: null,
+        style: ElevatedButton.styleFrom(
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          disabledBackgroundColor: isDark
+              ? AppColors.pureWhite.withValues(alpha: 0.08)
+              : AppColors.charcoal.withValues(alpha: 0.08),
+          disabledForegroundColor: isDark
+              ? AppColors.parchment.withValues(alpha: 0.3)
+              : AppColors.charcoal.withValues(alpha: 0.4),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          elevation: 0,
+        ),
+        child: Text(
+          label,
+          style: const TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+          ),
         ),
       ),
     );

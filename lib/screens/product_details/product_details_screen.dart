@@ -487,9 +487,11 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
                           ],
                         ),
                         const SizedBox(height: 16),
-                        if (_isLoadingPlans ||
-                            (availablePlansForProduct.isNotEmpty &&
-                                allPlans.isNotEmpty))
+                        if (widget.product.isActive &&
+                            widget.product.isInStock &&
+                            (_isLoadingPlans ||
+                                (availablePlansForProduct.isNotEmpty &&
+                                    allPlans.isNotEmpty)))
                           Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 16),
                             child: SubscriptionPlansSection(

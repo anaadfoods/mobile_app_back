@@ -189,7 +189,17 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen>
         );
       }
 
-      final body = jsonEncode({'delivery_pincode': pincode, 'items': items});
+      final Map<String, dynamic> requestPayload = {
+        'delivery_pincode': pincode,
+        'items': items,
+        'is_subscription_checkout': widget.isSubscription,
+      };
+
+      if (widget.isSubscription && widget.selectedPlan != null) {
+        requestPayload['plan_id'] = widget.selectedPlan;
+      }
+
+      final body = jsonEncode(requestPayload);
 
       final response = await http.post(
         Uri.parse('${ApiConfig.baseUrl}/api/core/delivery/calculate-charges/'),
