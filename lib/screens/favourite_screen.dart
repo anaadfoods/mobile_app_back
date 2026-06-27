@@ -561,21 +561,26 @@ class _FavouriteScreenState extends State<FavouriteScreen>
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: BoxDecoration(
-        color: isDark
-            ? AppColors.parchment.withValues(alpha: 0.1)
-            : AppColors.harvestAmber.withValues(alpha: 0.08),
+        color:
+            isDark
+                ? AppColors.parchment.withValues(alpha: 0.1)
+                : AppColors.harvestAmber.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: isDark
-              ? AppColors.parchment.withValues(alpha: 0.15)
-              : AppColors.harvestAmber.withValues(alpha: 0.15),
+          color:
+              isDark
+                  ? AppColors.parchment.withValues(alpha: 0.15)
+                  : AppColors.harvestAmber.withValues(alpha: 0.15),
           width: 0.8,
         ),
       ),
       child: Text(
         category.toUpperCase(),
         style: theme.textTheme.bodySmall?.copyWith(
-          color: isDark ? AppColors.pureWhite.withValues(alpha: 0.9) : AppColors.harvestAmber,
+          color:
+              isDark
+                  ? AppColors.pureWhite.withValues(alpha: 0.9)
+                  : AppColors.harvestAmber,
           fontWeight: FontWeight.bold,
           fontSize: 8,
           letterSpacing: 0.5,
@@ -589,14 +594,16 @@ class _FavouriteScreenState extends State<FavouriteScreen>
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
       decoration: BoxDecoration(
-        color: isDark
-            ? AppColors.charcoal.withValues(alpha: 0.3)
-            : AppColors.parchment,
+        color:
+            isDark
+                ? AppColors.charcoal.withValues(alpha: 0.3)
+                : AppColors.parchment,
         borderRadius: BorderRadius.circular(6),
         border: Border.all(
-          color: isDark
-              ? AppColors.parchment.withValues(alpha: 0.1)
-              : theme.dividerColor.withValues(alpha: 0.2),
+          color:
+              isDark
+                  ? AppColors.parchment.withValues(alpha: 0.1)
+                  : theme.dividerColor.withValues(alpha: 0.2),
           width: 0.8,
         ),
       ),
@@ -757,7 +764,11 @@ class _FavouriteScreenState extends State<FavouriteScreen>
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _buildCategoryCapsule(favorite.productCategory, theme, isDark),
+                    _buildCategoryCapsule(
+                      favorite.productCategory,
+                      theme,
+                      isDark,
+                    ),
                     const SizedBox(height: 4),
                     Text(
                       favorite.name,
@@ -988,7 +999,7 @@ class _FavouriteScreenState extends State<FavouriteScreen>
                 ),
                 SizedBox(height: padding),
                 Text(
-                  "Your Wishlist is Empty",
+                  "Want toxin‑free food?",
                   style: theme.textTheme.titleLarge?.copyWith(
                     fontWeight: FontWeight.bold,
                     fontSize: isSmallScreen ? 20 : 24,
@@ -996,7 +1007,7 @@ class _FavouriteScreenState extends State<FavouriteScreen>
                 ),
                 const SizedBox(height: 12),
                 Text(
-                  "Browse products and tap the heart icon\nto save your favorites here!",
+                  "Subscribe to it now, because it’s the clearest way\n to signal demand to your farmer.",
                   textAlign: TextAlign.center,
                   style: theme.textTheme.bodyMedium?.copyWith(
                     color: theme.hintColor,
@@ -1014,7 +1025,7 @@ class _FavouriteScreenState extends State<FavouriteScreen>
                     dashboardState?.switchToTab(1);
                   },
                   icon: const Icon(Icons.explore_rounded),
-                  label: const Text('Explore Products'),
+                  label: const Text('Explore Offerings'),
                   style: ElevatedButton.styleFrom(
                     padding: EdgeInsets.symmetric(
                       horizontal: 32,

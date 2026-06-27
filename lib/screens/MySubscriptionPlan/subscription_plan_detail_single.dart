@@ -131,30 +131,6 @@ class _SubscriptionPlanDetailScreenState
   }
 
   Future<void> _downloadAndOpenInvoice(Invoice invoice) async {
-    if (Platform.isAndroid) {
-      final androidInfo = await DeviceInfoPlugin().androidInfo;
-      if (androidInfo.version.sdkInt <= 32) {
-        final status = await Permission.storage.status;
-        if (!status.isGranted) {
-          final result = await Permission.storage.request();
-          if (!result.isGranted) {
-            if (mounted) {
-              SnackBarHelper.showError(
-                context,
-                'Please provide media access to download the invoice.',
-                action: SnackBarAction(
-                  label: 'Settings',
-                  textColor: AppColors.parchment,
-                  onPressed: openAppSettings,
-                ),
-              );
-            }
-            return;
-          }
-        }
-      }
-    }
-
     SnackBarHelper.showInfo(context, 'Downloading ${invoice.displayName}...');
     try {
       final savedPath = await _subscriptionService.downloadInvoice(

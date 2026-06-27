@@ -806,10 +806,10 @@ class _AboutScreenState extends State<AboutScreen>
             child: Column(
               children: [
                 GestureDetector(
-                  onTap: () => _launchEmail('connect@anaadfoods.com'),
+                  onTap: () => _launchEmail('complaints@anaadfoods.com'),
                   child: _buildContactRow(
                     Icons.email_outlined,
-                    'connect@anaadfoods.com',
+                    'complaints@anaadfoods.com',
                   ),
                 ),
                 const SizedBox(height: 12),

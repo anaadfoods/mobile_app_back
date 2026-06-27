@@ -89,7 +89,7 @@ class _TopCuroselState extends State<TopCurosel>
         subtitle:
             'Our soil is alive with microbes that unlock nutrition naturally without any synthetics.',
         buttonText: 'How We Farm',
-        color: AppColors.deepSoilGreen,
+        color: AppColors.successGreen,
         onTap: () {
           context.push('/about-us');
         },
@@ -100,7 +100,7 @@ class _TopCuroselState extends State<TopCurosel>
         subtitle:
             "We blend traditional wisdom with modern care, so nutrition stays intact when it reaches your kitchen.",
         buttonText: 'See Subscriptions',
-        color: AppColors.deepSoilGreen,
+        color: AppColors.harvestAmber,
         onTap: () {
           context.push('/subscriptions');
         },
@@ -111,7 +111,7 @@ class _TopCuroselState extends State<TopCurosel>
         subtitle:
             "With batch being traceable, know exactly where your food came from, who grew it, and how.",
         buttonText: 'Trace Your Batch',
-        color: AppColors.deepSoilGreen,
+        color: AppColors.infoTeal,
         onTap: () {
           final authState = context.read<AuthCubit>().state;
           final isRfp = authState is Authenticated && authState.user.isRfp;
@@ -127,6 +127,75 @@ class _TopCuroselState extends State<TopCurosel>
       setState(() {
         _carouselItems = hardcodedDefaults;
       });
+    }
+
+    try {
+      final BannerService bannerService = getIt<BannerService>();
+      final List<BannerModel> apiBanners = await bannerService.fetchBanners();
+
+      if (apiBanners.isNotEmpty && mounted) {
+        // Sort by priority descending (highest priority first: 3, 2, 1, 0)
+        apiBanners.sort((a, b) => b.priority.compareTo(a.priority));
+
+        final List<CarouselItem> newItems = [];
+        for (final banner in apiBanners) {
+          final String titleLower = banner.title.toLowerCase();
+          CarouselItem matchedDefault = hardcodedDefaults[0];
+
+          if (banner.id == 2 ||
+              titleLower.contains('ground') ||
+              titleLower.contains('slowly') ||
+              titleLower.contains('milling') ||
+              titleLower.contains('integrity')) {
+            matchedDefault = hardcodedDefaults[0];
+          } else if (banner.id == 3 ||
+              titleLower.contains('manufacture') ||
+              titleLower.contains('grow') ||
+              titleLower.contains('soil') ||
+              titleLower.contains('science')) {
+            matchedDefault = hardcodedDefaults[1];
+          } else if (banner.id == 4 ||
+              titleLower.contains('picked') ||
+              titleLower.contains('sun') ||
+              titleLower.contains('harvest') ||
+              titleLower.contains('post')) {
+            matchedDefault = hardcodedDefaults[2];
+          } else if (banner.id == 5 ||
+              titleLower.contains('remote') ||
+              titleLower.contains('program') ||
+              titleLower.contains('traceability') ||
+              titleLower.contains('trace')) {
+            matchedDefault = hardcodedDefaults[3];
+          } else {
+            final fallbackIndex = newItems.length % hardcodedDefaults.length;
+            matchedDefault = hardcodedDefaults[fallbackIndex];
+          }
+
+          newItems.add(
+            CarouselItem(
+              imagePath: banner.image,
+              title: matchedDefault.title,
+              subtitle: matchedDefault.subtitle,
+              buttonText: matchedDefault.buttonText,
+              onTap: matchedDefault.onTap,
+              color: matchedDefault.color ?? AppColors.deepSoilGreen,
+            ),
+          );
+        }
+
+        setState(() {
+          _carouselItems = newItems;
+        });
+
+        // Notify parent of the color of the first item
+        if (widget.onColorChanged != null && _carouselItems.isNotEmpty) {
+          final color =
+              _carouselItems[0].color ?? Theme.of(context).colorScheme.primary;
+          widget.onColorChanged!(color);
+        }
+      }
+    } catch (e) {
+      AppLogger.instance.log("Error loading banners: $e");
     }
   }
 
@@ -190,7 +259,7 @@ class _TopCuroselState extends State<TopCurosel>
                 final itemColor = item.color ?? colorScheme.primary;
 
                 // Check if image path is a URL (http/https) or asset
-                final isNetworkImage = item.imagePath.startsWith('http');
+                final isNetworkImage = item.imagePath.startsWith('https');
 
                 return AnimatedScale(
                   scale: isActive ? 1.0 : 0.92,

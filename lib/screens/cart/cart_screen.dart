@@ -80,7 +80,8 @@ class _CartScreenState extends State<CartScreen> with TickerProviderStateMixin {
           if (authState is Unauthenticated) {
             return const GuestEmptyStateWidget(
               title: 'Login to View Cart',
-              subtitle: 'Please log in or sign up to see your cart and complete checkout.',
+              subtitle:
+                  'Please log in or sign up to see your cart and complete checkout.',
               icon: Icons.shopping_cart_outlined,
             );
           }
@@ -98,67 +99,69 @@ class _CartScreenState extends State<CartScreen> with TickerProviderStateMixin {
             },
             builder: (context, state) {
               return Stack(
-            children: [
-              CustomScrollView(
-                slivers: [
-                  // Animated Header
-                  SliverToBoxAdapter(
-                    child: AnimatedScreenHeader(
-                      title: "My Cart",
-                      subtitle:
-                          state is CartSuccess
-                              ? "${state.cart.totalItems} items ready for checkout"
-                              : "Your cart is empty",
-                      // icon: Icons.shopping_cart_rounded,
-                      showBack: true,
-                      hasParticles: true,
-                      animationController: _headerController,
-                      actions: [
-                        if (state is CartSuccess && state.cart.items.isNotEmpty)
-                          GlassmorphicIconButton(
-                            icon: Icons.delete_sweep_rounded,
-                            iconSize: 22,
-                            onTap: () {
-                              HapticFeedback.mediumImpact();
-                              _showClearCartDialog(context);
-                            },
-                          ),
-                      ],
-                    ),
-                  ),
-
-                  // Content
-                  if (state is CartLoading || state is CartInitial)
-                    SliverFillRemaining(child: const LoadingStateWidget())
-                  else if (state is CartError)
-                    SliverFillRemaining(
-                      child: _buildErrorState(theme, state.message),
-                    )
-                  else if (state is CartSuccess) ...[
-                    if (state.cart.items.isEmpty)
-                      SliverFillRemaining(child: _buildEmptyState(theme))
-                    else ...[
-                      // Cart Items
-                      _buildCartItemsList(theme, isDark, state.cart),
-
-                      // Bottom padding for checkout section
-                      SliverPadding(
-                        padding: EdgeInsets.only(
-                          bottom: 168.0 + MediaQuery.paddingOf(context).bottom,
+                children: [
+                  CustomScrollView(
+                    slivers: [
+                      // Animated Header
+                      SliverToBoxAdapter(
+                        child: AnimatedScreenHeader(
+                          title: "My Cart",
+                          subtitle:
+                              state is CartSuccess
+                                  ? "${state.cart.totalItems} items ready for checkout"
+                                  : "Want toxin‑free food?",
+                          // icon: Icons.shopping_cart_rounded,
+                          showBack: true,
+                          hasParticles: true,
+                          animationController: _headerController,
+                          actions: [
+                            if (state is CartSuccess &&
+                                state.cart.items.isNotEmpty)
+                              GlassmorphicIconButton(
+                                icon: Icons.delete_sweep_rounded,
+                                iconSize: 22,
+                                onTap: () {
+                                  HapticFeedback.mediumImpact();
+                                  _showClearCartDialog(context);
+                                },
+                              ),
+                          ],
                         ),
                       ),
-                    ],
-                  ],
-                ],
-              ),
 
-              // Checkout Section (fixed at bottom)
-              if (state is CartSuccess && state.cart.items.isNotEmpty)
-                _buildCheckoutSection(theme, isDark, state.cart),
-            ],
+                      // Content
+                      if (state is CartLoading || state is CartInitial)
+                        SliverFillRemaining(child: const LoadingStateWidget())
+                      else if (state is CartError)
+                        SliverFillRemaining(
+                          child: _buildErrorState(theme, state.message),
+                        )
+                      else if (state is CartSuccess) ...[
+                        if (state.cart.items.isEmpty)
+                          SliverFillRemaining(child: _buildEmptyState(theme))
+                        else ...[
+                          // Cart Items
+                          _buildCartItemsList(theme, isDark, state.cart),
+
+                          // Bottom padding for checkout section
+                          SliverPadding(
+                            padding: EdgeInsets.only(
+                              bottom:
+                                  168.0 + MediaQuery.paddingOf(context).bottom,
+                            ),
+                          ),
+                        ],
+                      ],
+                    ],
+                  ),
+
+                  // Checkout Section (fixed at bottom)
+                  if (state is CartSuccess && state.cart.items.isNotEmpty)
+                    _buildCheckoutSection(theme, isDark, state.cart),
+                ],
+              );
+            },
           );
-        },
-      );
         },
       ),
     );
@@ -501,7 +504,7 @@ class _CartScreenState extends State<CartScreen> with TickerProviderStateMixin {
                 ),
                 SizedBox(height: padding),
                 Text(
-                  'Your Cart is Empty',
+                  "Want toxin‑free food?",
                   style: theme.textTheme.headlineSmall?.copyWith(
                     fontWeight: FontWeight.bold,
                     fontSize: isSmallScreen ? 20 : 24,
@@ -510,7 +513,7 @@ class _CartScreenState extends State<CartScreen> with TickerProviderStateMixin {
                 ),
                 const SizedBox(height: 12),
                 Text(
-                  "Looks like you haven't added anything yet.\nStart shopping to fill it up!",
+                  "Subscribe to it now, because it’s the clearest way\nto signal demand to your farmer.",
                   style: theme.textTheme.bodyMedium?.copyWith(
                     color: theme.hintColor,
                     height: 1.5,
@@ -530,7 +533,7 @@ class _CartScreenState extends State<CartScreen> with TickerProviderStateMixin {
                     }
                   },
                   icon: const Icon(Icons.shopping_bag_outlined),
-                  label: const Text('Start Shopping'),
+                  label: const Text('Explore Offerings'),
                   style: ElevatedButton.styleFrom(
                     padding: EdgeInsets.symmetric(
                       horizontal: 32,

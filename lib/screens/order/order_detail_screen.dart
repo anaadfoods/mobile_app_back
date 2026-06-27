@@ -160,30 +160,6 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
     try {
       HapticFeedback.lightImpact();
 
-      if (Platform.isAndroid) {
-        final androidInfo = await DeviceInfoPlugin().androidInfo;
-        if (androidInfo.version.sdkInt <= 32) {
-          final status = await Permission.storage.status;
-          if (!status.isGranted) {
-            final result = await Permission.storage.request();
-            if (!result.isGranted) {
-              if (mounted) {
-                SnackBarHelper.showError(
-                  context,
-                  'Please provide media access to download the invoice.',
-                  action: SnackBarAction(
-                    label: 'Settings',
-                    textColor: AppColors.parchment,
-                    onPressed: openAppSettings,
-                  ),
-                );
-              }
-              return;
-            }
-          }
-        }
-      }
-
       SnackBarHelper.showLoading(context, 'Downloading invoice...');
 
       if (_currentOrder == null) return;

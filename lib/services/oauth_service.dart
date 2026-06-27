@@ -2,6 +2,8 @@ import 'package:flutter/services.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:sign_in_with_apple/sign_in_with_apple.dart';
+import 'dart:io';
+import 'package:grocery_app/core/utils/apple_auth_state.dart';
 import 'package:grocery_app/common_widgets/global_import.dart';
 
 import 'package:grocery_app/service_locator.dart';
@@ -108,6 +110,10 @@ class OAuthService {
         );
       }
 
+      final String platform =
+          Platform.isAndroid ? 'flutter_android' : 'flutter_ios';
+      final String appleState = AppleAuthState.build(platform);
+
       final AuthorizationCredentialAppleID credential =
           await SignInWithApple.getAppleIDCredential(
             scopes: [
@@ -115,6 +121,7 @@ class OAuthService {
               AppleIDAuthorizationScopes.fullName,
             ],
             webAuthenticationOptions: webOptions,
+            state: appleState,
           );
 
       return {

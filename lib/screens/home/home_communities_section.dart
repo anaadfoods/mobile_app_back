@@ -123,7 +123,7 @@ class HomeCommunitiesSection extends StatelessWidget {
                   const SizedBox(height: 10),
                   // Main title
                   Text(
-                    'Beyond Food',
+                    'एक ही थाली के चट्टे-बट्टे',
                     style: TextStyle(
                       fontSize: 22,
                       fontWeight: FontWeight.w800,
@@ -147,7 +147,7 @@ class HomeCommunitiesSection extends StatelessWidget {
                       ),
                       const SizedBox(width: 8),
                       Text(
-                        'Two communities. One for kitchens and one for farms.',
+                        'Birds of a feather, flock together!',
                         style: TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.w500,
@@ -155,6 +155,7 @@ class HomeCommunitiesSection extends StatelessWidget {
                             alpha: 0.7,
                           ),
                           letterSpacing: 0.3,
+
                           fontStyle: FontStyle.italic,
                         ),
                       ),

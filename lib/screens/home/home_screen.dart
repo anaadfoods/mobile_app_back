@@ -359,7 +359,10 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                     theme: theme,
                                     onTap: () {
                                       HapticFeedback.lightImpact();
-                                      context.push(AppRoute.panchang.path);
+                                      SnackBarHelper.showWarning(
+                                        context,
+                                        "Panchang feature is coming soon!",
+                                      );
                                     },
                                   ),
                                   const SizedBox(width: 8),
@@ -460,7 +463,12 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                   child: SubscriptionCarousel(),
                                 ),
                               ),
-                              _heading(context, "Subscription Plans", "", () {}),
+                              _heading(
+                                context,
+                                "Subscription Plans",
+                                "",
+                                () {},
+                              ),
                               RepaintBoundary(
                                 child: _subscriptionSection(context),
                               ),
@@ -471,7 +479,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                       // padded(
                       //   const RepaintBoundary(child: HomeCategoryShowcase()),
                       // ),
-                      RepaintBoundary(child: _buildFeaturedProducts()),
+                      // RepaintBoundary(child: _buildFeaturedProducts()),
                       const SizedBox(height: 4),
                       RepaintBoundary(
                         child: HomeCommunitiesSection(

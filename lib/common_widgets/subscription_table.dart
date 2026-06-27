@@ -72,7 +72,8 @@ class _SubscriptionTableState extends State<SubscriptionTable>
     if (_cachedPlans != null && _cachedPlans!.isNotEmpty) {
       if (mounted) {
         setState(() {
-          _plans = _cachedPlans!;
+          _plans = List<SubscriptionPlan>.from(_cachedPlans!)
+            ..sort((a, b) => a.id.compareTo(b.id));
           _isLoading = false;
         });
       }
@@ -96,7 +97,8 @@ class _SubscriptionTableState extends State<SubscriptionTable>
       if (mounted) {
         if (result['success']) {
           setState(() {
-            _plans = result['data'] as List<SubscriptionPlan>;
+            _plans = List<SubscriptionPlan>.from(result['data'] as List<SubscriptionPlan>)
+              ..sort((a, b) => a.id.compareTo(b.id));
             _cachedPlans = _plans;
             _isLoading = false;
           });
@@ -887,12 +889,15 @@ class _SubscriptionPopupContentState extends State<_SubscriptionPopupContent> {
   late PageController _pageController;
   final ScrollController _scrollController = ScrollController();
   bool _isDropdownOpen = false;
+  late List<SubscriptionPlan> _sortedPlans;
 
   @override
   void initState() {
     super.initState();
+    _sortedPlans = List<SubscriptionPlan>.from(widget.allPlans)
+      ..sort((a, b) => a.id.compareTo(b.id));
     _selectedPlan = widget.initialPlan;
-    final initialIndex = widget.allPlans.indexOf(widget.initialPlan);
+    final initialIndex = _sortedPlans.indexOf(widget.initialPlan);
     _pageController = PageController(
       initialPage: initialIndex != -1 ? initialIndex : 0,
     );
@@ -944,10 +949,10 @@ class _SubscriptionPopupContentState extends State<_SubscriptionPopupContent> {
           height: MediaQuery.of(context).size.height * 0.55,
           child: PageView.builder(
             controller: _pageController,
-            itemCount: widget.allPlans.length,
+            itemCount: _sortedPlans.length,
             onPageChanged: (index) {
               setState(() {
-                _selectedPlan = widget.allPlans[index];
+                _selectedPlan = _sortedPlans[index];
                 _selectedProduct = null;
                 _isDropdownOpen = false;
               });
@@ -957,7 +962,7 @@ class _SubscriptionPopupContentState extends State<_SubscriptionPopupContent> {
               }
             },
             itemBuilder: (context, index) {
-              final plan = widget.allPlans[index];
+              final plan = _sortedPlans[index];
               final currentProducts = widget.allProducts[plan.id] ?? [];
               final areProductsLoading =
                   widget.loadingProductsState[plan.id] == true;

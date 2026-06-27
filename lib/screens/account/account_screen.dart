@@ -291,12 +291,15 @@ class _AccountScreenState extends State<AccountScreen>
                     items: [
                       AccountMenuItem(
                         icon: Icons.auto_awesome_rounded,
-                        title: 'Panchang',
+                        title: 'Panchang (Coming Soon)',
                         subtitle: 'Daily cosmic insights',
-                        iconColor: AppColors.rawEarth,
+                        iconColor: AppColors.rawEarth.withOpacity(0.5),
                         onTap: () {
                           _triggerHaptic();
-                          context.pushNamed(AppRoute.panchang.name);
+                          SnackBarHelper.showWarning(
+                            context,
+                            "Panchang feature is coming soon!",
+                          );
                         },
                       ),
                     ],

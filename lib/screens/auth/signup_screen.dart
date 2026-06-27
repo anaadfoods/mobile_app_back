@@ -1641,10 +1641,10 @@ class _GoogleLogoPainter extends CustomPainter {
     final double innerRadius = s * 0.28;
 
     // Google brand colors
-    const Color blue = AppColors.parchment;
-    const Color red = AppColors.parchment;
-    const Color yellow = AppColors.parchment;
-    const Color green = AppColors.parchment;
+    const Color blue = Color(0xFF4285F4);
+    const Color red = Color(0xFFEA4335);
+    const Color yellow = Color(0xFFFBBC05);
+    const Color green = Color(0xFF34A853);
 
     final paint = Paint()..style = PaintingStyle.fill;
 

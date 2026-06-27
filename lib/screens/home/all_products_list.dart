@@ -53,7 +53,7 @@ class _AllProductsListState extends State<AllProductsList> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                "Products",
+                "Farm Offerings",
                 style: Theme.of(
                   context,
                 ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),

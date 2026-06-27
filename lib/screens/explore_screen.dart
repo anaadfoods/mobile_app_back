@@ -345,7 +345,7 @@ class _ExploreScreenState extends State<ExploreScreen>
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        "Seasonally curated. Harvested at the perfect moment. Processed to retain nutrition",
+                        "Explore what your farmers are growing for you.",
                         style: theme.textTheme.bodyMedium?.copyWith(
                           color: AppColors.parchment.withValues(alpha: 0.9),
                         ),
@@ -615,7 +615,7 @@ class _ExploreScreenState extends State<ExploreScreen>
       category.name,
     );
     if (!mounted) return;
-   
+
     context.push(
       '/category-items',
       extra: {'name': category.name, 'products': products},
@@ -1007,21 +1007,26 @@ class _AnimatedProductCardState extends State<_AnimatedProductCard> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: BoxDecoration(
-        color: isDark
-            ? AppColors.parchment.withValues(alpha: 0.1)
-            : AppColors.harvestAmber.withValues(alpha: 0.08),
+        color:
+            isDark
+                ? AppColors.parchment.withValues(alpha: 0.1)
+                : AppColors.harvestAmber.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: isDark
-              ? AppColors.parchment.withValues(alpha: 0.15)
-              : AppColors.harvestAmber.withValues(alpha: 0.15),
+          color:
+              isDark
+                  ? AppColors.parchment.withValues(alpha: 0.15)
+                  : AppColors.harvestAmber.withValues(alpha: 0.15),
           width: 0.8,
         ),
       ),
       child: Text(
         category.toUpperCase(),
         style: theme.textTheme.bodySmall?.copyWith(
-          color: isDark ? AppColors.pureWhite.withValues(alpha: 0.9) : AppColors.harvestAmber,
+          color:
+              isDark
+                  ? AppColors.pureWhite.withValues(alpha: 0.9)
+                  : AppColors.harvestAmber,
           fontWeight: FontWeight.bold,
           fontSize: 9,
           letterSpacing: 0.5,
@@ -1030,19 +1035,26 @@ class _AnimatedProductCardState extends State<_AnimatedProductCard> {
     );
   }
 
-  Widget _buildQuantityTag(String weight, String unit, ThemeData theme, bool isDark) {
+  Widget _buildQuantityTag(
+    String weight,
+    String unit,
+    ThemeData theme,
+    bool isDark,
+  ) {
     if (weight.isEmpty) return const SizedBox.shrink();
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
       decoration: BoxDecoration(
-        color: isDark
-            ? AppColors.charcoal.withValues(alpha: 0.3)
-            : AppColors.parchment,
+        color:
+            isDark
+                ? AppColors.charcoal.withValues(alpha: 0.3)
+                : AppColors.parchment,
         borderRadius: BorderRadius.circular(6),
         border: Border.all(
-          color: isDark
-              ? AppColors.parchment.withValues(alpha: 0.1)
-              : theme.dividerColor.withValues(alpha: 0.2),
+          color:
+              isDark
+                  ? AppColors.parchment.withValues(alpha: 0.1)
+                  : theme.dividerColor.withValues(alpha: 0.2),
           width: 0.8,
         ),
       ),
@@ -1079,10 +1091,18 @@ class _AnimatedProductCardState extends State<_AnimatedProductCard> {
         );
       },
       child: GestureDetector(
-        onTapDown: (isInStock && isActive) ? (_) => setState(() => _isPressed = true) : null,
-        onTapUp: (isInStock && isActive) ? (_) => setState(() => _isPressed = false) : null,
+        onTapDown:
+            (isInStock && isActive)
+                ? (_) => setState(() => _isPressed = true)
+                : null,
+        onTapUp:
+            (isInStock && isActive)
+                ? (_) => setState(() => _isPressed = false)
+                : null,
         onTapCancel:
-            (isInStock && isActive) ? () => setState(() => _isPressed = false) : null,
+            (isInStock && isActive)
+                ? () => setState(() => _isPressed = false)
+                : null,
         onTap: (isInStock && isActive) ? widget.onTap : null,
         child: AnimatedScale(
           scale: _isPressed ? 0.98 : 1.0,
@@ -1140,18 +1160,26 @@ class _AnimatedProductCardState extends State<_AnimatedProductCard> {
                                     widget.product.productImages.isNotEmpty
                                         ? CachedNetworkImage(
                                           imageUrl:
-                                              widget.product.productImages[0].image,
+                                              widget
+                                                  .product
+                                                  .productImages[0]
+                                                  .image,
                                           fit: BoxFit.cover,
                                           placeholder:
                                               (context, url) => Center(
-                                                child: CircularProgressIndicator(
-                                                  strokeWidth: 2,
-                                                  color: theme.colorScheme.primary,
-                                                ),
+                                                child:
+                                                    CircularProgressIndicator(
+                                                      strokeWidth: 2,
+                                                      color:
+                                                          theme
+                                                              .colorScheme
+                                                              .primary,
+                                                    ),
                                               ),
                                           errorWidget:
                                               (context, url, error) => Icon(
-                                                Icons.image_not_supported_rounded,
+                                                Icons
+                                                    .image_not_supported_rounded,
                                                 color: theme.disabledColor,
                                               ),
                                         )
@@ -1176,7 +1204,9 @@ class _AnimatedProductCardState extends State<_AnimatedProductCard> {
                                   borderRadius: BorderRadius.circular(4),
                                   boxShadow: [
                                     BoxShadow(
-                                      color: AppColors.harvestAmber.withValues(alpha: 0.3),
+                                      color: AppColors.harvestAmber.withValues(
+                                        alpha: 0.3,
+                                      ),
                                       blurRadius: 4,
                                       offset: const Offset(0, 1),
                                     ),
@@ -1201,7 +1231,11 @@ class _AnimatedProductCardState extends State<_AnimatedProductCard> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            _buildCategoryCapsule(widget.product.productCategory, theme, isDark),
+                            _buildCategoryCapsule(
+                              widget.product.productCategory,
+                              theme,
+                              isDark,
+                            ),
                             const SizedBox(height: 4),
                             Text(
                               widget.product.productName,
@@ -1212,7 +1246,12 @@ class _AnimatedProductCardState extends State<_AnimatedProductCard> {
                               overflow: TextOverflow.ellipsis,
                             ),
                             const SizedBox(height: 4),
-                            _buildQuantityTag(widget.product.weight, widget.product.weightUnit, theme, isDark),
+                            _buildQuantityTag(
+                              widget.product.weight,
+                              widget.product.weightUnit,
+                              theme,
+                              isDark,
+                            ),
                             const SizedBox(height: 6),
                             Row(
                               children: [
@@ -1268,7 +1307,9 @@ class _AnimatedProductCardState extends State<_AnimatedProductCard> {
                         Icon(
                           Icons.arrow_forward_ios_rounded,
                           size: 16,
-                          color: theme.colorScheme.primary.withValues(alpha: 0.7),
+                          color: theme.colorScheme.primary.withValues(
+                            alpha: 0.7,
+                          ),
                         ),
                       ],
                     ],
@@ -1282,7 +1323,10 @@ class _AnimatedProductCardState extends State<_AnimatedProductCard> {
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(16),
                       child: ColoredBox(
-                        color: isDark ? Colors.black.withValues(alpha: 0.72) : Colors.white.withValues(alpha: 0.72),
+                        color:
+                            isDark
+                                ? Colors.black.withValues(alpha: 0.72)
+                                : Colors.white.withValues(alpha: 0.72),
                         child: const ComingSoonOverlay(),
                       ),
                     ),
@@ -1295,7 +1339,10 @@ class _AnimatedProductCardState extends State<_AnimatedProductCard> {
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(16),
                       child: ColoredBox(
-                        color: isDark ? Colors.black.withValues(alpha: 0.72) : Colors.white.withValues(alpha: 0.72),
+                        color:
+                            isDark
+                                ? Colors.black.withValues(alpha: 0.72)
+                                : Colors.white.withValues(alpha: 0.72),
                         child: const OutOfStockOverlay(),
                       ),
                     ),

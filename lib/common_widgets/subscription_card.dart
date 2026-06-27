@@ -755,7 +755,7 @@ class _SubscriptionCardState extends State<SubscriptionCard> {
                                 ),
                                 const SizedBox(height: 4),
                                 Text(
-                                  '${item.quantity} units • ${subscription.planName}',
+                                  '${item.unitWeight} kg • ${item.quantity} units',
                                   style: theme.textTheme.bodySmall?.copyWith(
                                     color: theme.hintColor,
                                   ),

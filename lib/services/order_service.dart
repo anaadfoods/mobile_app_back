@@ -272,8 +272,6 @@ class OrderService {
 
             if (Platform.isAndroid) {
               try {
-                await Permission.storage.request();
-
                 final downloadsPath = '/storage/emulated/0/Download';
                 final directory = Directory(downloadsPath);
 
