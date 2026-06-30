@@ -2,6 +2,7 @@ import 'package:grocery_app/common_widgets/global_import.dart';
 import 'package:dio/dio.dart' as dio;
 
 import 'package:grocery_app/service_locator.dart';
+import 'package:grocery_app/services/favorite_state_service.dart';
 
 class ProfileService {
   static final ProfileService _instance = ProfileService._internal();
@@ -158,6 +159,7 @@ class ProfileService {
             await ApiClient.instance.post(
               '${ApiConfig.favoritesEndpoint}$productId/toggle/',
             );
+            FavoriteStateService().notifyFavoriteChanged();
           } catch (e) {
             AppLogger.instance.log('Background toggle favorite error: $e');
           }

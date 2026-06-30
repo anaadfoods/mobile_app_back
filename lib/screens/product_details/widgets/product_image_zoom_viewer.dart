@@ -2,12 +2,10 @@ import 'package:grocery_app/common_widgets/global_import.dart';
 
 class ProductImageZoomViewer extends StatefulWidget {
   final String imageUrl;
-  final String heroTag;
 
   const ProductImageZoomViewer({
     super.key,
     required this.imageUrl,
-    required this.heroTag,
   });
 
   @override
@@ -85,34 +83,31 @@ class _ProductImageZoomViewerState extends State<ProductImageZoomViewer> {
                 ),
                 Expanded(
                   child: Center(
-                    child: Hero(
-                      tag: widget.heroTag,
-                      child: SizedBox.expand(
-                        child: InteractiveViewer(
-                          key: _viewerKey,
-                          transformationController: _transformationController,
-                          minScale: 1,
-                          maxScale: 4,
-                          panEnabled: true,
-                          scaleEnabled: true,
-                          boundaryMargin: const EdgeInsets.all(80),
-                          onInteractionUpdate: (_) {
-                            if (mounted) setState(() {});
-                          },
-                          child: CachedNetworkImage(
-                            imageUrl: widget.imageUrl,
-                            fit: BoxFit.contain,
-                            width: double.infinity,
-                            height: double.infinity,
-                            placeholder: (context, url) => const Center(
-                              child: CircularProgressIndicator(color: Colors.white),
-                            ),
-                            errorWidget: (context, url, error) => const Center(
-                              child: Icon(
-                                Icons.broken_image_outlined,
-                                color: Colors.white70,
-                                size: 56,
-                              ),
+                    child: SizedBox.expand(
+                      child: InteractiveViewer(
+                        key: _viewerKey,
+                        transformationController: _transformationController,
+                        minScale: 1,
+                        maxScale: 4,
+                        panEnabled: true,
+                        scaleEnabled: true,
+                        boundaryMargin: const EdgeInsets.all(80),
+                        onInteractionUpdate: (_) {
+                          if (mounted) setState(() {});
+                        },
+                        child: CachedNetworkImage(
+                          imageUrl: widget.imageUrl,
+                          fit: BoxFit.contain,
+                          width: double.infinity,
+                          height: double.infinity,
+                          placeholder: (context, url) => const Center(
+                            child: CircularProgressIndicator(color: Colors.white),
+                          ),
+                          errorWidget: (context, url, error) => const Center(
+                            child: Icon(
+                              Icons.broken_image_outlined,
+                              color: Colors.white70,
+                              size: 56,
                             ),
                           ),
                         ),

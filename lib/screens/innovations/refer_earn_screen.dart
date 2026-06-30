@@ -1,3 +1,5 @@
+import 'package:flutter/services.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:grocery_app/common_widgets/global_import.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:grocery_app/services/referral_reward_service.dart';
@@ -83,8 +85,9 @@ class _ReferEarnScreenState extends State<ReferEarnScreen>
   void _share(BuildContext context) {
     HapticFeedback.mediumImpact();
     final box = context.findRenderObject() as RenderBox?;
+    final playStoreUrl = dotenv.env['PLAY_STORE_URL'] ?? 'https://play.google.com/store/apps/details?id=com.anhadnaad.anaadfoodsui';
     Share.share(
-      'Join Anaad — where food meets farming! Use my referral code: $_referralCode to sign up & place your first order.\n\nDownload now: https://anaad.app/download',
+      'Join Anaad — where food meets farming! Use my referral code: $_referralCode to sign up & place your first order.\n\nDownload now: $playStoreUrl',
       subject: 'Join Anaad — Fresh from the Farm!',
       sharePositionOrigin:
           box != null ? box.localToGlobal(Offset.zero) & box.size : null,
@@ -791,7 +794,7 @@ class _ReferEarnScreenState extends State<ReferEarnScreen>
       {
         'icon': Icons.celebration_rounded,
         'title': 'Get Your Gift',
-        'desc': 'Receive a surprise gift from the ANAAD team.',
+        'desc': 'Receive a surprise gift from the ANAAD with your next Order.',
       },
     ];
 

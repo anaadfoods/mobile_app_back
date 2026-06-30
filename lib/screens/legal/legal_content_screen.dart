@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_html/flutter_html.dart';
 import 'package:grocery_app/models/legal_document_model.dart';
 import 'package:grocery_app/styles/colors.dart';
+import 'package:grocery_app/routes/app_routes.dart';
 
 /// Screen to display legal document content in HTML format
 class LegalContentScreen extends StatelessWidget {
@@ -46,7 +47,7 @@ class LegalContentScreen extends StatelessWidget {
                   size: 20,
                 ),
               ),
-              onPressed: () => Navigator.of(context).pop(),
+              onPressed: () => context.safePop(fallbackLocation: AppRoute.home.path),
             ),
             flexibleSpace: FlexibleSpaceBar(
               centerTitle: true,

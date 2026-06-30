@@ -70,7 +70,7 @@
                 <data
                     android:scheme="flutterpay"/>
             </intent-filter>
-            <!-- Deep Links / App Links for app.anaadfoods.com -->
+            <!-- App Links: only routes that should open inside the Flutter app. -->
             <intent-filter
                 android:autoVerify="true">
                 <action
@@ -81,13 +81,159 @@
                     android:name="android.intent.category.BROWSABLE"/>
                 <data
                     android:scheme="https"
-                    android:host="app.anaadfoods.com"/>
+                    android:host="anaadfoods.com"
+                    android:pathPrefix="/product/"/>
                 <data
                     android:scheme="https"
-                    android:host="anaadfoods.com"/>
+                    android:host="anaadfoods.com"
+                    android:path="/all-products"/>
                 <data
                     android:scheme="https"
-                    android:host="www.anaadfoods.com"/>
+                    android:host="anaadfoods.com"
+                    android:pathPrefix="/order/"/>
+                <data
+                    android:scheme="https"
+                    android:host="anaadfoods.com"
+                    android:path="/orders"/>
+                <data
+                    android:scheme="https"
+                    android:host="anaadfoods.com"
+                    android:pathPrefix="/subscription/"/>
+                <data
+                    android:scheme="https"
+                    android:host="anaadfoods.com"
+                    android:path="/subscriptions"/>
+                <data
+                    android:scheme="https"
+                    android:host="anaadfoods.com"
+                    android:path="/categories"/>
+                <data
+                    android:scheme="https"
+                    android:host="anaadfoods.com"
+                    android:path="/home"/>
+            </intent-filter>
+            <intent-filter
+                android:autoVerify="true">
+                <action
+                    android:name="android.intent.action.VIEW"/>
+                <category
+                    android:name="android.intent.category.DEFAULT"/>
+                <category
+                    android:name="android.intent.category.BROWSABLE"/>
+                <data
+                    android:scheme="https"
+                    android:host="www.anaadfoods.com"
+                    android:pathPrefix="/product/"/>
+                <data
+                    android:scheme="https"
+                    android:host="www.anaadfoods.com"
+                    android:path="/all-products"/>
+                <data
+                    android:scheme="https"
+                    android:host="www.anaadfoods.com"
+                    android:pathPrefix="/order/"/>
+                <data
+                    android:scheme="https"
+                    android:host="www.anaadfoods.com"
+                    android:path="/orders"/>
+                <data
+                    android:scheme="https"
+                    android:host="www.anaadfoods.com"
+                    android:pathPrefix="/subscription/"/>
+                <data
+                    android:scheme="https"
+                    android:host="www.anaadfoods.com"
+                    android:path="/subscriptions"/>
+                <data
+                    android:scheme="https"
+                    android:host="www.anaadfoods.com"
+                    android:path="/categories"/>
+                <data
+                    android:scheme="https"
+                    android:host="www.anaadfoods.com"
+                    android:path="/home"/>
+            </intent-filter>
+            <intent-filter
+                android:autoVerify="true">
+                <action
+                    android:name="android.intent.action.VIEW"/>
+                <category
+                    android:name="android.intent.category.DEFAULT"/>
+                <category
+                    android:name="android.intent.category.BROWSABLE"/>
+                <data
+                    android:scheme="https"
+                    android:host="web.anaadfoods.com"
+                    android:pathPrefix="/product/"/>
+                <data
+                    android:scheme="https"
+                    android:host="web.anaadfoods.com"
+                    android:path="/all-products"/>
+                <data
+                    android:scheme="https"
+                    android:host="web.anaadfoods.com"
+                    android:pathPrefix="/order/"/>
+                <data
+                    android:scheme="https"
+                    android:host="web.anaadfoods.com"
+                    android:path="/orders"/>
+                <data
+                    android:scheme="https"
+                    android:host="web.anaadfoods.com"
+                    android:pathPrefix="/subscription/"/>
+                <data
+                    android:scheme="https"
+                    android:host="web.anaadfoods.com"
+                    android:path="/subscriptions"/>
+                <data
+                    android:scheme="https"
+                    android:host="web.anaadfoods.com"
+                    android:path="/categories"/>
+                <data
+                    android:scheme="https"
+                    android:host="web.anaadfoods.com"
+                    android:path="/home"/>
+            </intent-filter>
+            <intent-filter
+                android:autoVerify="true">
+                <action
+                    android:name="android.intent.action.VIEW"/>
+                <category
+                    android:name="android.intent.category.DEFAULT"/>
+                <category
+                    android:name="android.intent.category.BROWSABLE"/>
+                <data
+                    android:scheme="https"
+                    android:host="app.anaadfoods.com"
+                    android:pathPrefix="/product/"/>
+                <data
+                    android:scheme="https"
+                    android:host="app.anaadfoods.com"
+                    android:path="/all-products"/>
+                <data
+                    android:scheme="https"
+                    android:host="app.anaadfoods.com"
+                    android:pathPrefix="/order/"/>
+                <data
+                    android:scheme="https"
+                    android:host="app.anaadfoods.com"
+                    android:path="/orders"/>
+                <data
+                    android:scheme="https"
+                    android:host="app.anaadfoods.com"
+                    android:pathPrefix="/subscription/"/>
+                <data
+                    android:scheme="https"
+                    android:host="app.anaadfoods.com"
+                    android:path="/subscriptions"/>
+                <data
+                    android:scheme="https"
+                    android:host="app.anaadfoods.com"
+                    android:path="/categories"/>
+                <data
+                    android:scheme="https"
+                    android:host="app.anaadfoods.com"
+                    android:path="/home"/>
             </intent-filter>
             <!-- Flutter Deep Linking -->
             <meta-data

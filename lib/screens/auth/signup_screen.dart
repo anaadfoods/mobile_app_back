@@ -846,11 +846,12 @@ class _SignupScreenState extends State<SignupScreen>
                                           }
                                           return null;
                                         },
-                                        onValidationChanged:
-                                            (isValid) => _updateFieldValidity(
-                                              'email',
-                                              isValid,
-                                            ),
+                                        onValidationChanged: (isValid) {
+                                          _updateFieldValidity('email', isValid);
+                                          if (_isEmailVerified) {
+                                            setState(() => _isEmailVerified = false);
+                                          }
+                                        },
                                         suffixIcon: _buildVerifyButton(
                                           label:
                                               _isEmailVerified
@@ -912,11 +913,12 @@ class _SignupScreenState extends State<SignupScreen>
                                           }
                                           return null;
                                         },
-                                        onValidationChanged:
-                                            (isValid) => _updateFieldValidity(
-                                              'phone',
-                                              isValid,
-                                            ),
+                                        onValidationChanged: (isValid) {
+                                          _updateFieldValidity('phone', isValid);
+                                          if (_isPhoneVerified) {
+                                            setState(() => _isPhoneVerified = false);
+                                          }
+                                        },
                                         suffixIcon: _buildVerifyButton(
                                           label:
                                               _isPhoneVerified

@@ -75,8 +75,14 @@ class Product {
               ?.map((img) => ProductImage.fromJson(img))
               .toList() ??
           [],
-      cropCycleId: json['crop_cycle_id'],
+      cropCycleId: _readCropCycleId(json),
     );
+  }
+
+  static String? _readCropCycleId(Map<String, dynamic> json) {
+    final value = json['crop_cycle_id'] ?? json['cropCycleId'];
+    final cropCycleId = value?.toString().trim();
+    return cropCycleId == null || cropCycleId.isEmpty ? null : cropCycleId;
   }
 
   /// Converts the [Product] instance into a JSON map.

@@ -55,7 +55,6 @@ class ProductImageCarousel extends StatelessWidget {
             physics: const BouncingScrollPhysics(),
             onPageChanged: onPageChanged,
             itemBuilder: (context, index) {
-              final heroTag = 'product-image-${product.id}-$index';
               return Container(
                 margin: const EdgeInsets.symmetric(horizontal: 20),
                 decoration: BoxDecoration(
@@ -79,28 +78,24 @@ class ProductImageCarousel extends StatelessWidget {
                         builder: (context) {
                           return ProductImageZoomViewer(
                             imageUrl: productImages[index].image,
-                            heroTag: heroTag,
                           );
                         },
                       );
                     },
-                    child: Hero(
-                      tag: heroTag,
-                      child: CachedNetworkImage(
-                        imageUrl: productImages[index].image,
-                        fit: BoxFit.cover,
-                        placeholder: (context, url) => Shimmer.fromColors(
-                          baseColor: AppColors.rawEarth12,
-                          highlightColor: AppColors.parchment,
-                          child: Container(color: AppColors.rawEarth12),
-                        ),
-                        errorWidget: (context, url, error) => Container(
-                          color: AppColors.parchment,
-                          child: const Icon(
-                            Icons.broken_image_outlined,
-                            color: AppColors.rawEarth54,
-                            size: 40,
-                          ),
+                    child: CachedNetworkImage(
+                      imageUrl: productImages[index].image,
+                      fit: BoxFit.cover,
+                      placeholder: (context, url) => Shimmer.fromColors(
+                        baseColor: AppColors.rawEarth12,
+                        highlightColor: AppColors.parchment,
+                        child: Container(color: AppColors.rawEarth12),
+                      ),
+                      errorWidget: (context, url, error) => Container(
+                        color: AppColors.parchment,
+                        child: const Icon(
+                          Icons.broken_image_outlined,
+                          color: AppColors.rawEarth54,
+                          size: 40,
                         ),
                       ),
                     ),

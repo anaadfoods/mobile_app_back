@@ -1,5 +1,6 @@
 import 'package:grocery_app/common_widgets/global_import.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:grocery_app/routes/app_routes.dart';
 
 class ProductTopNavBar extends StatelessWidget {
   final Product product;
@@ -28,7 +29,7 @@ class ProductTopNavBar extends StatelessWidget {
         children: [
           // Back Button
           GestureDetector(
-            onTap: () => Navigator.of(context).pop(),
+            onTap: () => context.safePop(fallbackLocation: AppRoute.home.path),
             child: Container(
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(

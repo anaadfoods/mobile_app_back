@@ -2,6 +2,7 @@ import 'dart:ui';
 import 'package:collection/collection.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:grocery_app/common_widgets/coming_soon_overlay.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:grocery_app/common_widgets/global_import.dart';
 import 'package:grocery_app/routes/app_routes.dart';
 import 'package:grocery_app/screens/product_details/widgets/product_top_nav_bar.dart';
@@ -45,7 +46,8 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
   final PageController _pageController = PageController(viewportFraction: 0.85);
   int _currentPage = 0;
 
-  final FavoriteStateService _favoriteStateService = getIt<FavoriteStateService>();
+  final FavoriteStateService _favoriteStateService =
+      getIt<FavoriteStateService>();
   final SubscriptionService _subscriptionService = getIt<SubscriptionService>();
   final TokenService _tokenService = getIt<TokenService>();
   final ProfileService _profileService = getIt<ProfileService>();
@@ -172,7 +174,8 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
 
             _showSubscriptionSelectionSheet(
               initialPlanIndex: initialIndex,
-              initialPlanId: initialIndex != -1 ? allPlans[initialIndex].id : -1,
+              initialPlanId:
+                  initialIndex != -1 ? allPlans[initialIndex].id : -1,
             );
           });
         }
@@ -350,7 +353,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
 
   // String _rewriteDescription(String desc) {
   //   String text = desc;
-    
+
   //   // Section 1 Body
   //   text = text.replaceAll(
   //     "This flour is made from indigenous Sona Moti wheat naturally grown and slowly ground on stone chakki using a cold-pressed method. Theres no blending, no artificial softness, and no nutrient loss from high-speed rollers. Just grain, tradition, and temperature-controlled truth.",
@@ -393,216 +396,247 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
     final isDark = theme.brightness == Brightness.dark;
     final bottomInset = MediaQuery.of(context).padding.bottom + 24.0;
 
-    final backgroundImage = widget.product.productImages.isNotEmpty
-        ? widget.product.productImages.first.image
-        : 'https://via.placeholder.com/400';
+    final backgroundImage =
+        widget.product.productImages.isNotEmpty
+            ? widget.product.productImages.first.image
+            : 'https://via.placeholder.com/400';
 
     return Scaffold(
       backgroundColor: isDark ? AppColors.darkCanvas : AppColors.parchment,
       body: Stack(
         children: [
           Container(
-            decoration: BoxDecoration(
-              image: DecorationImage(
-                image: CachedNetworkImageProvider(backgroundImage),
-                fit: BoxFit.cover,
-              ),
-            ),
-            child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
-              child: Container(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [
-                      isDark
-                          ? AppColors.darkCanvas.withValues(alpha: 0.7)
-                          : AppColors.parchment.withValues(alpha: 0.85),
-                      isDark
-                          ? AppColors.darkCanvas.withValues(alpha: 0.85)
-                          : AppColors.parchment.withValues(alpha: 0.95),
-                    ],
-                  ),
+              decoration: BoxDecoration(
+                image: DecorationImage(
+                  image: CachedNetworkImageProvider(backgroundImage),
+                  fit: BoxFit.cover,
                 ),
               ),
-            ),
-          ),
-          SafeArea(
-            child: Column(
-              children: [
-                ProductTopNavBar(
-                  product: widget.product,
-                  isFavorite: isFavorite,
-                  isLoadingFavorite: _isLoadingFavorite,
-                  onFavoriteToggle: handleFavoriteToggle,
-                  onTriggerHaptic: _triggerHaptic,
-                ),
-                Expanded(
-                  child: SingleChildScrollView(
-                    physics: const BouncingScrollPhysics(),
-                    padding: EdgeInsets.only(bottom: bottomInset),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 20),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const SizedBox(height: 10),
-                              ProductHeader(product: widget.product),
-                              const SizedBox(height: 24),
-                            ],
-                          ),
-                        ),
-                        Stack(
-                          children: [
-                            ProductImageCarousel(
-                              product: widget.product,
-                              pageController: _pageController,
-                              currentPage: _currentPage,
-                              onPageChanged: (index) {
-                                setState(() {
-                                  _currentPage = index;
-                                });
-                              },
-                              onTriggerHaptic: _triggerHaptic,
-                            ),
-                            if (!widget.product.isActive)
-                              Positioned.fill(
-                                child: Padding(
-                                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                                  child: ClipRRect(
-                                    borderRadius: BorderRadius.circular(20),
-                                    child: ColoredBox(
-                                      color: isDark
-                                          ? Colors.black.withValues(alpha: 0.72)
-                                          : Colors.white.withValues(alpha: 0.72),
-                                      child: const ComingSoonOverlay(),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                          ],
-                        ),
-                        const SizedBox(height: 16),
-                        if (widget.product.isActive &&
-                            widget.product.isInStock &&
-                            (_isLoadingPlans ||
-                                (availablePlansForProduct.isNotEmpty &&
-                                    allPlans.isNotEmpty)))
-                          Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 16),
-                            child: SubscriptionPlansSection(
-                              product: widget.product,
-                              isLoadingPlans: _isLoadingPlans,
-                              allPlans: allPlans,
-                              availablePlansForProduct: availablePlansForProduct,
-                              selectedPlanId: _selectedPlanId,
-                              onPlanSelected: (planId) {
-                                setState(() {
-                                  _selectedPlanId = planId;
-                                });
-                              },
-                              onShowSubscriptionSelectionSheet: (planId, index) {
-                                _showSubscriptionSelectionSheet(
-                                  initialPlanIndex: index,
-                                  initialPlanId: planId,
-                                );
-                              },
-                            ),
-                          ),
-                        const SizedBox(height: 24),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 20),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                "Description",
-                                style: TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                  color: isDark
-                                      ? AppColors.parchment
-                                      : AppColors.charcoal,
-                                ),
-                              ),
-                              const SizedBox(height: 12),
-                              ExpandableDescription(
-                                text: widget.product.productDescription,
-                              ),
-                              if (widget.product.cropCycleId != null) ...[
-                                const SizedBox(height: 24),
-                                SizedBox(
-                                  width: double.infinity,
-                                  child: ElevatedButton(
-                                    onPressed: () async {
-                                      final url = Uri.parse('https://anaadfoods.com/traceability-journey?crop_id=${widget.product.cropCycleId}');
-                                      if (await canLaunchUrl(url)) {
-                                        await launchUrl(url);
-                                      } else {
-                                        SnackBarHelper.showError(context, 'Could not launch URL');
-                                      }
-                                    },
-                                    style: ElevatedButton.styleFrom(
-                                      padding: const EdgeInsets.symmetric(vertical: 16),
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(12),
-                                      ),
-                                    ),
-                                    child: const Text(
-                                      'Traceability Journey',
-                                      style: TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ],
-                          ),
-                        ),
-                        const SizedBox(height: 24),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 16),
-                          child: SimilarProductsSection(
-                            product: widget.product,
-                            isLoadingSimilarProduct: _isLoadingSimilarProduct,
-                            similarProducts: similarProducts,
-                            onProductClicked: (context, item) {
-                              context.pushNamed(
-                                AppRoute.productDetails.name,
-                                pathParameters: {'id': item.id.toString()},
-                                extra: item,
-                              );
-                            },
-                          ),
-                        ),
-                        const SizedBox(height: 24),
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+                child: Container(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        isDark
+                            ? AppColors.darkCanvas.withValues(alpha: 0.7)
+                            : AppColors.parchment.withValues(alpha: 0.85),
+                        isDark
+                            ? AppColors.darkCanvas.withValues(alpha: 0.85)
+                            : AppColors.parchment.withValues(alpha: 0.95),
                       ],
                     ),
                   ),
                 ),
-              ],
+              ),
             ),
-          ),
-        ],
-      ),
-      bottomNavigationBar: ProductBottomActionBar(
-        product: widget.product,
-        allPlans: allPlans,
-        availablePlansForProduct: availablePlansForProduct,
-        onQuantityChanged: _handleQuantityChanged,
-        onShowSubscriptionSelectionSheet: (index, planId) {
-          _showSubscriptionSelectionSheet(
-            initialPlanIndex: index,
-            initialPlanId: planId,
-          );
-        },
-      ),
-    );
+            SafeArea(
+              child: Column(
+                children: [
+                  ProductTopNavBar(
+                    product: widget.product,
+                    isFavorite: isFavorite,
+                    isLoadingFavorite: _isLoadingFavorite,
+                    onFavoriteToggle: handleFavoriteToggle,
+                    onTriggerHaptic: _triggerHaptic,
+                  ),
+                  Expanded(
+                    child: SingleChildScrollView(
+                      physics: const BouncingScrollPhysics(),
+                      padding: EdgeInsets.only(bottom: bottomInset),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 20),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const SizedBox(height: 10),
+                                ProductHeader(product: widget.product),
+                                const SizedBox(height: 24),
+                              ],
+                            ),
+                          ),
+                          Stack(
+                            children: [
+                              ProductImageCarousel(
+                                product: widget.product,
+                                pageController: _pageController,
+                                currentPage: _currentPage,
+                                onPageChanged: (index) {
+                                  setState(() {
+                                    _currentPage = index;
+                                  });
+                                },
+                                onTriggerHaptic: _triggerHaptic,
+                              ),
+                              if (!widget.product.isActive)
+                                Positioned.fill(
+                                  child: Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 20,
+                                    ),
+                                    child: ClipRRect(
+                                      borderRadius: BorderRadius.circular(20),
+                                      child: ColoredBox(
+                                        color:
+                                            isDark
+                                                ? Colors.black.withValues(
+                                                  alpha: 0.72,
+                                                )
+                                                : Colors.white.withValues(
+                                                  alpha: 0.72,
+                                                ),
+                                        child: const ComingSoonOverlay(),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                            ],
+                          ),
+                          const SizedBox(height: 16),
+                          if (widget.product.isActive &&
+                              widget.product.isInStock &&
+                              (_isLoadingPlans ||
+                                  (availablePlansForProduct.isNotEmpty &&
+                                      allPlans.isNotEmpty)))
+                            Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 16),
+                              child: SubscriptionPlansSection(
+                                product: widget.product,
+                                isLoadingPlans: _isLoadingPlans,
+                                allPlans: allPlans,
+                                availablePlansForProduct:
+                                    availablePlansForProduct,
+                                selectedPlanId: _selectedPlanId,
+                                onPlanSelected: (planId) {
+                                  setState(() {
+                                    _selectedPlanId = planId;
+                                  });
+                                },
+                                onShowSubscriptionSelectionSheet: (
+                                  planId,
+                                  index,
+                                ) {
+                                  _showSubscriptionSelectionSheet(
+                                    initialPlanIndex: index,
+                                    initialPlanId: planId,
+                                  );
+                                },
+                              ),
+                            ),
+                          const SizedBox(height: 24),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 20),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  "Description",
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                    color:
+                                        isDark
+                                            ? AppColors.parchment
+                                            : AppColors.charcoal,
+                                  ),
+                                ),
+                                const SizedBox(height: 12),
+                                ExpandableDescription(
+                                  text: widget.product.productDescription,
+                                ),
+                                if (widget.product.cropCycleId != null) ...[
+                                  const SizedBox(height: 24),
+                                  SizedBox(
+                                    width: double.infinity,
+                                    child: ElevatedButton(
+                                      onPressed: () async {
+                                        final webBaseUrl =
+                                            dotenv.env['WEB_BASE_URL'] ??
+                                            'https://web.anaadfoods.com';
+                                        final baseUri = Uri.parse(webBaseUrl);
+                                        final url = baseUri.replace(
+                                          path: '/traceability-journey/',
+                                          queryParameters: {
+                                            'crop_id':
+                                                widget.product.cropCycleId!,
+                                          },
+                                        );
+                                        if (await canLaunchUrl(url)) {
+                                          await launchUrl(
+                                            url,
+                                            mode: LaunchMode.externalApplication,
+                                          );
+                                        } else {
+                                          SnackBarHelper.showError(
+                                            context,
+                                            'Could not launch URL',
+                                          );
+                                        }
+                                      },
+                                      style: ElevatedButton.styleFrom(
+                                        padding: const EdgeInsets.symmetric(
+                                          vertical: 16,
+                                        ),
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(12),
+                                        ),
+                                      ),
+                                      child: const Text(
+                                        'Traceability Journey',
+                                        style: TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 24),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 16),
+                            child: SimilarProductsSection(
+                              product: widget.product,
+                              isLoadingSimilarProduct: _isLoadingSimilarProduct,
+                              similarProducts: similarProducts,
+                              onProductClicked: (context, item) {
+                                context.pushNamed(
+                                  AppRoute.productDetails.name,
+                                  pathParameters: {'id': item.id.toString()},
+                                  extra: item,
+                                );
+                              },
+                            ),
+                          ),
+                          const SizedBox(height: 24),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+        bottomNavigationBar: ProductBottomActionBar(
+          product: widget.product,
+          allPlans: allPlans,
+          availablePlansForProduct: availablePlansForProduct,
+          onQuantityChanged: _handleQuantityChanged,
+          onShowSubscriptionSelectionSheet: (index, planId) {
+            _showSubscriptionSelectionSheet(
+              initialPlanIndex: index,
+              initialPlanId: planId,
+            );
+          },
+        ),
+      );
   }
 }

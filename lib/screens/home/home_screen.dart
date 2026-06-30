@@ -463,18 +463,18 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                   child: SubscriptionCarousel(),
                                 ),
                               ),
-                              _heading(
-                                context,
-                                "Subscription Plans",
-                                "",
-                                () {},
-                              ),
-                              RepaintBoundary(
-                                child: _subscriptionSection(context),
-                              ),
                             ],
                           );
                         },
+                      ),
+                      _heading(
+                        context,
+                        "Subscription Plans",
+                        "",
+                        () {},
+                      ),
+                      RepaintBoundary(
+                        child: _subscriptionSection(context),
                       ),
                       // padded(
                       //   const RepaintBoundary(child: HomeCategoryShowcase()),

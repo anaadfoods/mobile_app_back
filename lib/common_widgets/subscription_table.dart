@@ -195,7 +195,55 @@ class _SubscriptionTableState extends State<SubscriptionTable>
       return _buildErrorState(theme);
     }
     if (_plans.isEmpty) {
-      return const SizedBox.shrink();
+      return Container(
+        padding: const EdgeInsets.all(24),
+        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+        decoration: BoxDecoration(
+          color: theme.cardColor,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: AppColors.deepSoilGreen.withOpacity(0.3)),
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(
+              Icons.calendar_today_outlined,
+              size: 48,
+              color: AppColors.deepSoilGreen,
+            ),
+            const SizedBox(height: 16),
+            Text(
+              "No Plans Available",
+              style: theme.textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.bold,
+                color: theme.colorScheme.onSurface,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              "There are no subscription plans available right now. Please check back later or log in to view personalized plans.",
+              textAlign: TextAlign.center,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.colorScheme.onSurface.withOpacity(0.7),
+                height: 1.5,
+              ),
+            ),
+            const SizedBox(height: 24),
+            ElevatedButton(
+              onPressed: () => context.pushNamed(AppRoute.login.name),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.deepSoilGreen,
+                foregroundColor: AppColors.parchment,
+                padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              child: const Text('Log In'),
+            ),
+          ],
+        ),
+      );
     }
 
     // Taller cards for more rectangular look
@@ -285,25 +333,19 @@ class _SubscriptionTableState extends State<SubscriptionTable>
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Icon(
-            Icons.calendar_today_outlined,
+            Icons.error_outline_rounded,
             size: 40,
             color: const Color(0xFF8B7355), // Warm mocha - friendly
           ),
           const SizedBox(height: 12),
           Text(
-            "Couldn't load subscription plans",
+            _error ?? "Couldn't load subscription plans",
             style: TextStyle(
               color: const Color(0xFF8B7355),
               fontWeight: FontWeight.w600,
             ),
             textAlign: TextAlign.center,
           ),
-          const SizedBox(height: 4),
-          // Text(
-          //   "Check your connection and try again 📶",
-          //   style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
-          //   textAlign: TextAlign.center,
-          // ),
           const SizedBox(height: 8),
           // Padding(
           //   padding: const EdgeInsets.symmetric(horizontal: 24),
@@ -330,7 +372,7 @@ class _SubscriptionTableState extends State<SubscriptionTable>
 
   Widget _buildPageIndicators(bool isDark) {
     final bestValIdx =
-        _plans.isEmpty ? -1 : _plans.indexWhere((p) => p.durationMonths == 12);
+        _plans.isEmpty ? -1 : _plans.indexWhere((p) => p.id == 1);
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: List.generate(_plans.length, (index) {
@@ -384,7 +426,7 @@ class _SubscriptionTableState extends State<SubscriptionTable>
     bool isDark,
   ) {
     final cardColors = _getCardColors(plan, isDark, isActive);
-    final isBestValue = plan.durationMonths == 12;
+    final isBestValue = plan.id == 1;
 
     return GestureDetector(
       onTap: () {
@@ -752,21 +794,21 @@ class _SubscriptionTableState extends State<SubscriptionTable>
     bool isDark,
     bool isActive,
   ) {
-    final isOneYear = plan.durationMonths == 12;
+    final isBestValuePlan = plan.id == 1;
 
     if (isActive) {
       return _CardColors(
         gradient: [AppColors.deepSoilGreen, AppColors.deepSoilGreen],
         shadow: AppColors.deepSoilGreen,
         icon: Icons.eco_rounded,
-        goldAccent: isOneYear,
+        goldAccent: isBestValuePlan,
       );
     } else {
       return _CardColors(
         gradient: [AppColors.rawEarth, AppColors.rawEarth],
         shadow: AppColors.rawEarth,
         icon: Icons.spa_rounded,
-        goldAccent: isOneYear,
+        goldAccent: isBestValuePlan,
       );
     }
   }
@@ -898,8 +940,9 @@ class _SubscriptionPopupContentState extends State<_SubscriptionPopupContent> {
       ..sort((a, b) => a.id.compareTo(b.id));
     _selectedPlan = widget.initialPlan;
     final initialIndex = _sortedPlans.indexOf(widget.initialPlan);
+    final baseOffset = _sortedPlans.length * 1000;
     _pageController = PageController(
-      initialPage: initialIndex != -1 ? initialIndex : 0,
+      initialPage: initialIndex != -1 ? baseOffset + initialIndex : baseOffset,
     );
     _loadProductsForPlan(_selectedPlan.id);
   }
@@ -949,10 +992,11 @@ class _SubscriptionPopupContentState extends State<_SubscriptionPopupContent> {
           height: MediaQuery.of(context).size.height * 0.55,
           child: PageView.builder(
             controller: _pageController,
-            itemCount: _sortedPlans.length,
+            itemCount: null, // Infinite scroll
             onPageChanged: (index) {
+              final actualIndex = index % _sortedPlans.length;
               setState(() {
-                _selectedPlan = _sortedPlans[index];
+                _selectedPlan = _sortedPlans[actualIndex];
                 _selectedProduct = null;
                 _isDropdownOpen = false;
               });
@@ -962,7 +1006,8 @@ class _SubscriptionPopupContentState extends State<_SubscriptionPopupContent> {
               }
             },
             itemBuilder: (context, index) {
-              final plan = _sortedPlans[index];
+              final actualIndex = index % _sortedPlans.length;
+              final plan = _sortedPlans[actualIndex];
               final currentProducts = widget.allProducts[plan.id] ?? [];
               final areProductsLoading =
                   widget.loadingProductsState[plan.id] == true;
@@ -1173,6 +1218,8 @@ class _SubscriptionPopupContentState extends State<_SubscriptionPopupContent> {
                                                       (currentProducts.isEmpty
                                                           ? 'No products available'
                                                           : 'Tap to choose a product'),
+                                                  maxLines: 1,
+                                                  overflow: TextOverflow.ellipsis,
                                                   style: TextStyle(
                                                     color:
                                                         _selectedProduct != null
@@ -1374,6 +1421,8 @@ class _SubscriptionPopupContentState extends State<_SubscriptionPopupContent> {
                                                                   Expanded(
                                                                     child: Text(
                                                                       p.productName,
+                                                                      maxLines: 1,
+                                                                      overflow: TextOverflow.ellipsis,
                                                                       style: TextStyle(
                                                                         color: textColor.withOpacity(
                                                                           isChosen

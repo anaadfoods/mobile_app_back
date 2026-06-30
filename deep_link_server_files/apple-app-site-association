@@ -5,7 +5,14 @@
             {
                 "appID": "8MSLRSD283.com.anaad.foods.ios",
                 "paths": [
-                    "*"
+                    "/product/*",
+                    "/all-products",
+                    "/order/*",
+                    "/orders",
+                    "/subscription/*",
+                    "/subscriptions",
+                    "/categories",
+                    "/home"
                 ]
             }
         ]

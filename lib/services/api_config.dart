@@ -1,5 +1,5 @@
 class ApiConfig {
-  static const String baseUrl = 'https://bck.anaadfoods.com';
+  static const String baseUrl = 'https://bck-dev.anaadfoods.com';
   //  static const String baseUrl = 'https://educated-carpentry-reverence.ngrok-free.dev';
 
   /// Juspay payment bridge - HTTPS endpoint with certificate pinning

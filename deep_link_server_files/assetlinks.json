@@ -7,32 +7,40 @@
       "namespace": "android_app",
       "package_name": "com.anhadnaad.anaadfoodsui",
       "sha256_cert_fingerprints": [
-        "72:96:F2:97:53:8C:6C:F7:53:21:FA:D7:38:81:83:D3:B6:C9:F2:35:D4:99:48:B1:B6:42:07:07:48:7A:1F:A0"
-      ]
-    }
-  },
-  {
-    "relation": [
-      "delegate_permission/common.handle_all_urls"
-    ],
-    "target": {
-      "namespace": "android_app",
-      "package_name": "com.anhadnaad.anaadfoodsui",
-      "sha256_cert_fingerprints": [
-        "AC:DF:8F:5F:37:16:2D:23:44:F0:27:A9:87:83:CA:F8:BD:D9:7E:FF:0C:E8:3D:62:67:5E:F1:35:BB:90:28:E0"
-      ]
-    }
-  },
-  {
-    "relation": [
-      "delegate_permission/common.handle_all_urls"
-    ],
-    "target": {
-      "namespace": "android_app",
-      "package_name": "com.anhadnaad.anaadfoodsui",
-      "sha256_cert_fingerprints": [
+        "72:96:F2:97:53:8C:6C:F7:53:21:FA:D7:38:81:83:D3:B6:C9:F2:35:D4:99:48:B1:B6:42:07:07:48:7A:1F:A0",
+        "AC:DF:8F:5F:37:16:2D:23:44:F0:27:A9:87:83:CA:F8:BD:D9:7E:FF:0C:E8:3D:62:67:5E:F1:35:BB:90:28:E0",
         "42:5B:47:8D:68:88:04:47:CD:5F:47:3B:9A:54:55:F4:3E:D1:32:A2:B8:21:2A:87:D9:97:51:53:D7:E3:D0:FE"
       ]
+    },
+    "relation_extensions": {
+      "delegate_permission/common.handle_all_urls": {
+        "dynamic_app_link_components": [
+          {
+            "/": "/product/*"
+          },
+          {
+            "/": "/all-products"
+          },
+          {
+            "/": "/order/*"
+          },
+          {
+            "/": "/orders"
+          },
+          {
+            "/": "/subscription/*"
+          },
+          {
+            "/": "/subscriptions"
+          },
+          {
+            "/": "/categories"
+          },
+          {
+            "/": "/home"
+          }
+        ]
+      }
     }
   }
 ]
