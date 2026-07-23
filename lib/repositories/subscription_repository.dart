@@ -175,12 +175,13 @@ class SubscriptionRepository {
     );
   }
 
-  Future<void> cancelSubscription(int subscriptionId) async {
+  Future<Map<String, dynamic>> cancelSubscription(int subscriptionId, {String? reason}) async {
     await _checkAuth();
-    final result = await _subscriptionService.cancelSubscription(subscriptionId);
+    final result = await _subscriptionService.cancelSubscription(subscriptionId, reason: reason);
     if (result['success'] != true) {
       throw SubscriptionException(result['message'] ?? 'Failed to cancel subscription.');
     }
+    return result;
   }
   
   Future<SubscriptionPlanProductsResponse> getSubscriptionPlanProducts(int planId) async {

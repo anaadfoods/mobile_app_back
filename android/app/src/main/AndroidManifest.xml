@@ -86,7 +86,7 @@
                 <data
                     android:scheme="https"
                     android:host="anaadfoods.com"
-                    android:path="/all-products"/>
+                    android:path="/products"/>
                 <data
                     android:scheme="https"
                     android:host="anaadfoods.com"
@@ -127,7 +127,7 @@
                 <data
                     android:scheme="https"
                     android:host="www.anaadfoods.com"
-                    android:path="/all-products"/>
+                    android:path="/products"/>
                 <data
                     android:scheme="https"
                     android:host="www.anaadfoods.com"
@@ -168,7 +168,7 @@
                 <data
                     android:scheme="https"
                     android:host="web.anaadfoods.com"
-                    android:path="/all-products"/>
+                    android:path="/products"/>
                 <data
                     android:scheme="https"
                     android:host="web.anaadfoods.com"
@@ -192,47 +192,6 @@
                 <data
                     android:scheme="https"
                     android:host="web.anaadfoods.com"
-                    android:path="/home"/>
-            </intent-filter>
-            <intent-filter
-                android:autoVerify="true">
-                <action
-                    android:name="android.intent.action.VIEW"/>
-                <category
-                    android:name="android.intent.category.DEFAULT"/>
-                <category
-                    android:name="android.intent.category.BROWSABLE"/>
-                <data
-                    android:scheme="https"
-                    android:host="app.anaadfoods.com"
-                    android:pathPrefix="/product/"/>
-                <data
-                    android:scheme="https"
-                    android:host="app.anaadfoods.com"
-                    android:path="/all-products"/>
-                <data
-                    android:scheme="https"
-                    android:host="app.anaadfoods.com"
-                    android:pathPrefix="/order/"/>
-                <data
-                    android:scheme="https"
-                    android:host="app.anaadfoods.com"
-                    android:path="/orders"/>
-                <data
-                    android:scheme="https"
-                    android:host="app.anaadfoods.com"
-                    android:pathPrefix="/subscription/"/>
-                <data
-                    android:scheme="https"
-                    android:host="app.anaadfoods.com"
-                    android:path="/subscriptions"/>
-                <data
-                    android:scheme="https"
-                    android:host="app.anaadfoods.com"
-                    android:path="/categories"/>
-                <data
-                    android:scheme="https"
-                    android:host="app.anaadfoods.com"
                     android:path="/home"/>
             </intent-filter>
             <!-- Flutter Deep Linking -->

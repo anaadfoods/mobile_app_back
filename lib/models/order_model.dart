@@ -579,6 +579,7 @@ class OrderModel {
   }
 }
 
+@Deprecated('The new API contract returns checkout_url directly — no more payment_links.')
 class PaymentLinks {
   final String web;
   final String? expiry;
@@ -591,33 +592,54 @@ class PaymentLinks {
       expiry: json['expiry'] as String?,
     );
   }
+
+  Map<String, dynamic> toJson() => {'web': web, 'expiry': expiry};
 }
 
+/// Response from `POST /api/orders/` for online payments.
+///
+/// Contains `checkout_url` (for web redirect), `access_key` (for mobile SDK),
+/// `order_number` (for status polling), and `merchant_transaction_id`.
 class OrderCreateResponse {
   final bool success;
-  final PaymentLinks? paymentLinks;
-  final String? orderId;
+  final String? orderNumber;
   final String? merchantTransactionId;
   final String? message;
 
+  /// Direct checkout URL — Web: redirect here.
+  final String? checkoutUrl;
+
+  /// Mobile SDK access key — Flutter SDK: use this.
+  final String? accessKey;
+
+  /// `true` when the order was created but payment initiation failed.
+  /// Show [paymentError] to the user and let them try creating again.
+  final bool paymentRequired;
+
+  /// The actual gateway error message when [paymentRequired] is true.
+  final String? paymentError;
+
   OrderCreateResponse({
     required this.success,
-    this.paymentLinks,
-    this.orderId,
+    this.orderNumber,
     this.merchantTransactionId,
     this.message,
+    this.checkoutUrl,
+    this.accessKey,
+    this.paymentRequired = false,
+    this.paymentError,
   });
 
   factory OrderCreateResponse.fromJson(Map<String, dynamic> json) {
     return OrderCreateResponse(
       success: json['success'] ?? false,
-      paymentLinks:
-          json['payment_links'] != null
-              ? PaymentLinks.fromJson(json['payment_links'])
-              : null,
-      orderId: json['order_id']?.toString(),
+      orderNumber: json['order_number']?.toString(),
       merchantTransactionId: json['merchant_transaction_id']?.toString(),
       message: json['message']?.toString(),
+      checkoutUrl: json['checkout_url']?.toString(),
+      accessKey: json['access_key']?.toString(),
+      paymentRequired: json['payment_required'] ?? false,
+      paymentError: json['payment_error']?.toString(),
     );
   }
 }

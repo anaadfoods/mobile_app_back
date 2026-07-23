@@ -63,17 +63,20 @@ class OrderCubit extends Cubit<OrderState> {
   }
 
   /// Cancels an order and refreshes the order list.
-  Future<void> cancelOrder(int orderId) async {
+  Future<Map<String, dynamic>?> cancelOrder(int orderId, {String? reason}) async {
     try {
       emit(OrderLoading());
-      await _orderRepository.cancelOrder(orderId);
-      emit(const OrderActionSuccess('Your order cancellation request has been submitted.'));
-      // Refresh the list to show the updated status
+      final result = await _orderRepository.cancelOrder(orderId, reason: reason);
+      final msg = result['message'] ?? 'Your order cancellation request has been submitted.';
+      emit(OrderActionSuccess(msg));
       await fetchOrders();
+      return result;
     } on OrderException catch (e) {
       emit(OrderError(e.message));
+      return null;
     } catch (_) {
       emit(const OrderError('Failed to cancel the order.'));
+      return null;
     }
   }
 

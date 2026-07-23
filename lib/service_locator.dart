@@ -19,6 +19,7 @@ import 'package:grocery_app/services/user_summary_service.dart';
 import 'package:grocery_app/services/favorite_state_service.dart';
 import 'package:grocery_app/services/connectivity_service.dart';
 import 'package:grocery_app/services/navigation_service.dart';
+import 'package:grocery_app/services/payment_service.dart';
 import 'package:grocery_app/services/notification_sync_manager.dart';
 
 import 'package:grocery_app/repositories/auth_repository.dart';
@@ -42,6 +43,7 @@ void setupLocator() {
   getIt.registerLazySingleton<OAuthService>(() => OAuthService.create());
   getIt.registerLazySingleton<ProfileService>(() => ProfileService.create());
   getIt.registerLazySingleton<OrderService>(() => OrderService.create());
+  getIt.registerLazySingleton<PaymentService>(() => PaymentService.create());
   getIt.registerLazySingleton<SubscriptionService>(
     () => SubscriptionService.create(),
   );

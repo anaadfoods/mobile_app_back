@@ -1,7 +1,6 @@
 import 'package:grocery_app/utils/app_logger.dart';
 import 'package:flutter/material.dart';
 import 'package:grocery_app/helpers/animated_transitions.dart';
-import 'package:grocery_app/helpers/notification_helper.dart';
 import 'package:grocery_app/helpers/snackbar_helper.dart';
 import 'package:grocery_app/screens/MySubscriptionPlan/subscription_plan_detail_single.dart';
 import 'package:grocery_app/screens/checkout/webview_page.dart';
@@ -9,8 +8,12 @@ import 'package:grocery_app/services/subscription_service.dart';
 import 'package:grocery_app/service_locator.dart';
 // Make sure to import your other files like WebViewPage, AnimatedTransitions etc.
 
+import 'package:grocery_app/services/payment_service.dart';
+import 'package:grocery_app/models/payment_status_model.dart';
+
 class SubscriptionHandler {
   final SubscriptionService _subscriptionService = getIt<SubscriptionService>();
+  final PaymentService _paymentService = getIt<PaymentService>();
   final BuildContext context; // Pass context in constructor for clarity
 
   // The handler now requires a BuildContext to perform navigation and show dialogs.
@@ -21,13 +24,17 @@ class SubscriptionHandler {
     try {
       final result = await _subscriptionService.RepaymentSubscription(subscriptionId);
 
-      // No need for mounted check if you handle context carefully
       if (result['success'] == true) {
-        final paymentLink = result['payment_links']?['web'];
+        final paymentLink = result['checkout_url'];
 
         if (paymentLink != null) {
           // Case 1: A payment link exists, open WebView
-          await _launchSubscriptionWebView(paymentLink, result['subscription_id']);
+          await _launchSubscriptionWebView(
+            paymentLink,
+            subscriptionId,
+            merchantTransactionId: result['merchant_transaction_id']?.toString(),
+            subscriptionNumber: result['subscription_number']?.toString(),
+          );
         } else {
           // Case 2: No payment link
           _showSubscriptionFailedDialog({'message': 'We couldn\'t start the payment process. Please check your connection and try again.'});
@@ -78,9 +85,15 @@ class SubscriptionHandler {
 
   // --- REFACTORED HELPER METHODS ---
 
-  Future<void> _launchSubscriptionWebView(String paymentUrl, dynamic subscriptionId) async {
+  Future<void> _launchSubscriptionWebView(
+    String paymentUrl,
+    dynamic subscriptionId, {
+    String? merchantTransactionId,
+    String? subscriptionNumber,
+  }) async {
     try {
-      final parsedId = int.parse(subscriptionId.toString());
+      final parsedId = int.tryParse(subscriptionId.toString()) ?? 0;
+      final ref = subscriptionNumber ?? merchantTransactionId ?? parsedId.toString();
 
       await Navigator.push(
         context,
@@ -91,9 +104,23 @@ class SubscriptionHandler {
             title: 'Secure Payment',
             subID: parsedId,
             isSubscription: true,
-            // NOW we just call our single reusable method!
+            merchantTransactionId: merchantTransactionId,
+            reference: ref,
             onPaymentSuccess: (url) async {
-              await _fetchDetailsAndNavigate(parsedId);
+              try {
+                PaymentStatusResponse? statusResponse;
+                statusResponse = await _paymentService.pollStatus(ref);
+
+                if (statusResponse.isSuccess) {
+                  await _fetchDetailsAndNavigate(parsedId);
+                } else {
+                  Navigator.pop(context);
+                  SnackBarHelper.showError(context, 'Payment not successful!');
+                }
+              } catch (e) {
+                Navigator.pop(context);
+                SnackBarHelper.showError(context, 'Failed to verify payment!');
+              }
             },
             onPaymentFailure: (url) {
               Navigator.pop(context);

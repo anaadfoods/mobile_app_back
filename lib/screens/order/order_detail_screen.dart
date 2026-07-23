@@ -1,3 +1,4 @@
+import 'package:grocery_app/common_widgets/cancellation_dialogs.dart';
 import 'package:grocery_app/common_widgets/global_import.dart';
 import 'package:grocery_app/models/order_tracking_model.dart';
 import 'package:grocery_app/routes/app_routes.dart';
@@ -123,29 +124,37 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
 
     if (proceed != true) return;
 
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (context) => const _CancelConfirmDialog(type: 'order'),
-    );
+    final reason = await CancellationReasonDialog.show(context, type: 'order');
 
-    if (confirmed != true) return;
+    if (reason == null || reason.isEmpty) return;
 
     if (_currentOrder == null) return;
 
     try {
       setState(() => _isCancelling = true);
-      final success = await _orderService.cancelOrder(_currentOrder!.id);
+      final result = await _orderService.cancelOrder(_currentOrder!.id, reason: reason);
       if (mounted) {
-        if (success) {
+        setState(() => _isCancelling = false);
+        if (result['success'] == true) {
           setState(() {
             _currentOrder = _currentOrder!.copyWith(status: "CANCELLED");
-            _isCancelling = false;
           });
-          SnackBarHelper.showSuccess(context, 'Order cancelled successfully');
-          Navigator.pop(context, true);
+
+          await CancellationResultDialog.show(
+            context: context,
+            title: 'Order Cancelled',
+            message: result['message'] ??
+                'Order cancelled. Your refund has been initiated and will be credited to your original payment method within 5-7 working days.',
+            refundInitiated: result['refund_initiated'] == true,
+            orderNumber: result['order_number'] ?? _currentOrder?.orderNumber,
+          );
+
+          if (mounted) {
+            Navigator.pop(context, true);
+          }
         } else {
-          setState(() => _isCancelling = false);
-          SnackBarHelper.showError(context, 'Failed to cancel order');
+          SnackBarHelper.showError(
+              context, result['message'] ?? 'Failed to cancel order');
         }
       }
     } catch (e) {
@@ -620,6 +629,10 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
       deliveryText = 'Order Cancelled';
       headerColor = AppColors.deepSoilGreen;
       headerIcon = Icons.local_shipping_rounded;
+    } else if (!ApiConfig.showExpectedDeliveryDate) {
+      deliveryText = ApiConfig.alternativeDeliveryText;
+      headerColor = AppColors.deepSoilGreen;
+      headerIcon = Icons.local_shipping_rounded;
     } else if (estimatedDelivery != null) {
       deliveryText =
           'Arriving by ${DateFormat('d MMM, h:mm a').format(estimatedDelivery)}';
@@ -675,8 +688,10 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
                   style: theme.textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.bold,
                     color: headerColor,
-                    fontSize: 18,
+                    fontSize: 12, // Reduced size
                   ),
+                  maxLines: 3,
+                  overflow: TextOverflow.visible,
                 ),
                 if (_orderTracking?.awbNumber != null) ...[
                   const SizedBox(height: 4),
@@ -1081,7 +1096,9 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
       }
     } else {
       // Show expected delivery date
-      if (_orderTracking?.estimatedDelivery != null &&
+      if (!ApiConfig.showExpectedDeliveryDate) {
+        deliveredSubtitle = ApiConfig.alternativeDeliveryText;
+      } else if (_orderTracking?.estimatedDelivery != null &&
           _orderTracking!.estimatedDelivery!.year != 1970) {
         deliveredSubtitle =
             'Expected: ${DateFormat('MMM d').format(_orderTracking!.estimatedDelivery!)}';
@@ -1609,7 +1626,9 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
                         ),
                       ),
                       Text(
-                        _formatDate(_currentOrder!.expectedDeliveryDate),
+                        ApiConfig.showExpectedDeliveryDate
+                            ? _formatDate(_currentOrder!.expectedDeliveryDate)
+                            : ApiConfig.alternativeDeliveryText,
                         style: theme.textTheme.titleSmall?.copyWith(
                           fontWeight: FontWeight.w600,
                           color: AppColors.harvestAmber,
@@ -1889,7 +1908,9 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
         subtitle:
             isDelivered
                 ? _formatShortDate(_currentOrder!.updatedAt)
-                : 'Expected: ${DateFormat('MMM d').format(_currentOrder!.expectedDeliveryDate)}',
+                : (ApiConfig.showExpectedDeliveryDate
+                    ? 'Expected: ${DateFormat('MMM d').format(_currentOrder!.expectedDeliveryDate)}'
+                    : ApiConfig.alternativeDeliveryText),
         icon: Icons.home_outlined,
         color: AppColors.harvestAmber,
         isCompleted: isDelivered,
@@ -2141,6 +2162,163 @@ class _CancelConfirmDialog extends StatelessWidget {
         ),
         ElevatedButton(
           onPressed: () => Navigator.pop(context, true),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: isDark ? AppColors.darkSoftRed : AppColors.softRed,
+            foregroundColor: AppColors.pureWhite,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          ),
+          child: const Text('Yes, Cancel'),
+        ),
+      ],
+    );
+  }
+}
+
+// Cancel Reason Collection Dialog
+class _CancelReasonDialog extends StatefulWidget {
+  final String type; // 'order' or 'subscription'
+
+  const _CancelReasonDialog({required this.type});
+
+  @override
+  State<_CancelReasonDialog> createState() => _CancelReasonDialogState();
+}
+
+class _CancelReasonDialogState extends State<_CancelReasonDialog> {
+  final List<String> _reasons = [
+    'Found a better alternative / price',
+    'No longer need the products / changed my mind',
+    'Delivery is taking too long / scheduling issues',
+    'Quality or quantity concerns',
+    'Other (Please specify)',
+  ];
+
+  String? _selectedReason;
+  final TextEditingController _customReasonController = TextEditingController();
+
+  @override
+  void dispose() {
+    _customReasonController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    return AlertDialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      backgroundColor: isDark ? AppColors.darkSurface : AppColors.softCream,
+      title: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: (isDark ? AppColors.darkSoftRed : AppColors.softRed).withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Icon(
+              Icons.help_outline_rounded,
+              color: isDark ? AppColors.darkSoftRed : AppColors.softRed,
+              size: 24,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Text(widget.type == 'order' ? 'Cancel Order?' : 'Cancel Subscription?'),
+        ],
+      ),
+      content: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Why are you cancelling?',
+              style: theme.textTheme.bodyMedium?.copyWith(
+                fontWeight: FontWeight.bold,
+                color: isDark ? AppColors.parchment : AppColors.charcoal,
+              ),
+            ),
+            const SizedBox(height: 12),
+            ..._reasons.map((reason) {
+              return Theme(
+                data: theme.copyWith(
+                  unselectedWidgetColor: isDark ? AppColors.parchment.withValues(alpha: 0.5) : AppColors.charcoal40,
+                ),
+                child: RadioListTile<String>(
+                  title: Text(
+                    reason,
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: isDark ? AppColors.parchment.withValues(alpha: 0.9) : AppColors.charcoal87,
+                    ),
+                  ),
+                  value: reason,
+                  groupValue: _selectedReason,
+                  activeColor: isDark ? AppColors.darkSoftRed : AppColors.softRed,
+                  contentPadding: EdgeInsets.zero,
+                  onChanged: (val) {
+                    setState(() {
+                      _selectedReason = val;
+                    });
+                  },
+                ),
+              );
+            }).toList(),
+            if (_selectedReason == 'Other (Please specify)') ...[
+              const SizedBox(height: 8),
+              TextField(
+                controller: _customReasonController,
+                maxLines: 3,
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: isDark ? AppColors.parchment : AppColors.charcoal,
+                ),
+                decoration: InputDecoration(
+                  hintText: 'Please write your reason here...',
+                  hintStyle: theme.textTheme.bodyMedium?.copyWith(
+                    color: isDark ? AppColors.parchment.withValues(alpha: 0.5) : AppColors.charcoal40,
+                  ),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: BorderSide(
+                      color: isDark ? AppColors.darkSoftRed : AppColors.softRed,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: Text(
+            'No, Keep It',
+            style: TextStyle(
+              color: isDark ? AppColors.parchment.withValues(alpha: 0.6) : AppColors.charcoal40,
+            ),
+          ),
+        ),
+        ElevatedButton(
+          onPressed: () {
+            if (_selectedReason == null) {
+              SnackBarHelper.showError(context, 'Please select a reason');
+              return;
+            }
+            String reason = _selectedReason!;
+            if (reason == 'Other (Please specify)') {
+              reason = _customReasonController.text.trim();
+              if (reason.isEmpty) {
+                SnackBarHelper.showError(context, 'Please write your reason');
+                return;
+              }
+            }
+            Navigator.pop(context, reason);
+          },
           style: ElevatedButton.styleFrom(
             backgroundColor: isDark ? AppColors.darkSoftRed : AppColors.softRed,
             foregroundColor: AppColors.pureWhite,

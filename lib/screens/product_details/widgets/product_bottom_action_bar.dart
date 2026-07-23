@@ -165,21 +165,20 @@ class ProductBottomActionBar extends StatelessWidget {
               }
               bool hasSubscriptions = availablePlansForProduct.isNotEmpty;
               if (hasSubscriptions && allPlans.isNotEmpty) {
-                int maxDurationIndex = -1;
-                int maxDuration = -1;
+                int selectedPlanIndex = -1;
 
                 for (int i = 0; i < allPlans.length; i++) {
                   final isAvailable = availablePlansForProduct.any(
                     (p) => p.planName == allPlans[i].name,
                   );
-                  if (isAvailable && allPlans[i].durationMonths > maxDuration) {
-                    maxDuration = allPlans[i].durationMonths;
-                    maxDurationIndex = i;
+                  if (isAvailable) {
+                    selectedPlanIndex = i;
+                    break; // Select the first available plan (shortest duration/index 0 in sorted list)
                   }
                 }
 
-                if (maxDurationIndex != -1) {
-                  onShowSubscriptionSelectionSheet(maxDurationIndex, allPlans[maxDurationIndex].id);
+                if (selectedPlanIndex != -1) {
+                  onShowSubscriptionSelectionSheet(selectedPlanIndex, allPlans[selectedPlanIndex].id);
                 } else {
                   onShowSubscriptionSelectionSheet(-1, -1);
                 }

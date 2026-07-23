@@ -2,23 +2,48 @@ import 'package:grocery_app/common_widgets/global_import.dart';
 import 'package:dio/dio.dart' as dio;
 
 List<Subscription> _parseSubscriptions(dynamic parsedData) {
-  if (parsedData is! Map) return [];
-  final subscriptionsMap = parsedData['subscriptions'] as Map<String, dynamic>;
+  if (parsedData == null) return [];
+
   final List<Subscription> allSubscriptions = [];
 
-  subscriptionsMap.forEach((status, list) {
-    if (list is List) {
+  // Format 1: Direct List
+  if (parsedData is List) {
+    allSubscriptions.addAll(
+      parsedData.map<Subscription>((item) => Subscription.fromJson(item)),
+    );
+    return allSubscriptions;
+  }
+
+  if (parsedData is Map) {
+    // Format 2: { "data": [...] } or { "results": [...] }
+    final listData = parsedData['data'] ?? parsedData['results'];
+    if (listData is List) {
       allSubscriptions.addAll(
-        list.map<Subscription>((item) => Subscription.fromJson(item)),
+        listData.map<Subscription>((item) => Subscription.fromJson(item)),
       );
+      return allSubscriptions;
     }
-  });
+
+    // Format 3: Legacy format { "subscriptions": { "ACTIVE": [...], ... } }
+    if (parsedData.containsKey('subscriptions')) {
+      final subscriptionsMap = parsedData['subscriptions'];
+      if (subscriptionsMap is Map) {
+        subscriptionsMap.forEach((status, list) {
+          if (list is List) {
+            allSubscriptions.addAll(
+              list.map<Subscription>((item) => Subscription.fromJson(item)),
+            );
+          }
+        });
+        return allSubscriptions;
+      }
+    }
+  }
 
   return allSubscriptions;
 }
 
 class SubscriptionService {
-  static final SubscriptionService _instance = SubscriptionService._internal();
   factory SubscriptionService() => getIt<SubscriptionService>();
   SubscriptionService._internal();
   static SubscriptionService create() => SubscriptionService._internal();
@@ -56,7 +81,7 @@ class SubscriptionService {
   ) async {
     try {
       AppLogger.instance.log(
-        'Sending subscription request to $subscriptionsEndpoint/create/ with data: ${request.toJson()}',
+        'Sending subscription request to $subscriptionsEndpoint with data: ${request.toJson()}',
       );
 
       final response = await ApiClient.instance.post(
@@ -70,14 +95,22 @@ class SubscriptionService {
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
+        // Online payment: backend returns checkout fields in the create response
         if (responseData is Map &&
-            responseData.containsKey('payment_links') &&
-            responseData.containsKey('subscription_id')) {
+            (responseData.containsKey('checkout_url') ||
+             responseData.containsKey('access_key') ||
+             responseData.containsKey('payment_required')) &&
+            (responseData.containsKey('subscription_number') ||
+             responseData.containsKey('subscription_id'))) {
           return {
             'success': true,
-            'payment_links': responseData['payment_links'],
             'subscription_id': responseData['subscription_id'],
+            'subscription_number': responseData['subscription_number'],
             'merchant_transaction_id': responseData['merchant_transaction_id'],
+            'checkout_url': responseData['checkout_url'],
+            'access_key': responseData['access_key'],
+            'payment_required': responseData['payment_required'] ?? false,
+            'payment_error': responseData['payment_error'],
             'message':
                 responseData['message'] ??
                 'Payment session created successfully',
@@ -86,6 +119,7 @@ class SubscriptionService {
           return {
             'success': true,
             'subscription_id': responseData is Map ? responseData['id'] : null,
+            'subscription_number': responseData is Map ? responseData['subscription_number'] : null,
             'data': Subscription.fromJson(
               Map<String, dynamic>.from(responseData),
             ),
@@ -98,8 +132,8 @@ class SubscriptionService {
         );
         return {
           'success': false,
-          'message': responseData['message'] ?? 'Failed to create subscription',
-          'errors': responseData['errors'],
+          'message': responseData['message'] ?? responseData['plan'] ?? 'Failed to create subscription',
+          'errors': responseData['errors'] ?? responseData,
         };
       }
     } catch (e) {
@@ -123,6 +157,7 @@ class SubscriptionService {
             'message':
                 responseData['message'] ??
                 responseData['detail'] ??
+                responseData['plan'] ??
                 'Failed to create subscription',
             'errors': responseData['errors'] ?? responseData,
           };
@@ -248,10 +283,11 @@ class SubscriptionService {
     }
   }
 
-  Future<Map<String, dynamic>> cancelSubscription(int subscriptionId) async {
+  Future<Map<String, dynamic>> cancelSubscription(int subscriptionId, {String? reason}) async {
     try {
       final response = await ApiClient.instance.post(
         '$subscriptionsEndpoint/$subscriptionId/cancel/',
+        data: reason != null ? {'reason': reason} : null,
       );
 
       final responseData = response.data;
@@ -259,7 +295,9 @@ class SubscriptionService {
       if (response.statusCode == 200) {
         return {
           'success': true,
-          'message': 'Subscription cancelled successfully',
+          'message': responseData['message'] ?? 'Subscription cancelled successfully',
+          'refund_initiated': responseData['refund_initiated'] ?? false,
+          'raw_data': responseData,
         };
       } else {
         return {
@@ -446,16 +484,16 @@ class SubscriptionService {
     }
   }
 
-  Future<SubscriptionPaymentStatus?> fetchSubscriptionPaymentStatus(
-    int subscriptionId,
+  Future<PaymentStatusResponse?> fetchSubscriptionPaymentStatus(
+    String subscriptionNumber,
   ) async {
     try {
       final response = await ApiClient.instance.get(
-        '/api/payments/subscription-status/$subscriptionId/',
+        '/api/payments/status/$subscriptionNumber/',
       );
       if (response.statusCode == 200) {
         final data = response.data;
-        return SubscriptionPaymentStatus.fromJson(data);
+        return PaymentStatusResponse.fromJson(Map<String, dynamic>.from(data));
       } else {
         return null;
       }
@@ -476,13 +514,20 @@ class SubscriptionService {
 
       if (response.statusCode == 201 || response.statusCode == 200) {
         if (responseData is Map &&
-            responseData.containsKey('payment_links') &&
-            responseData.containsKey('subscription_id')) {
+            (responseData.containsKey('checkout_url') ||
+             responseData.containsKey('access_key') ||
+             responseData.containsKey('payment_required')) &&
+            (responseData.containsKey('subscription_number') ||
+             responseData.containsKey('subscription_id'))) {
           return {
             'success': true,
-            'payment_links': responseData['payment_links'],
             'subscription_id': responseData['subscription_id'],
+            'subscription_number': responseData['subscription_number'],
             'merchant_transaction_id': responseData['merchant_transaction_id'],
+            'checkout_url': responseData['checkout_url'],
+            'access_key': responseData['access_key'],
+            'payment_required': responseData['payment_required'] ?? false,
+            'payment_error': responseData['payment_error'],
             'message':
                 responseData['message'] ??
                 'Payment session created successfully',

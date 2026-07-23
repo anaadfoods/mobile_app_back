@@ -9,10 +9,11 @@
 	<key>com.apple.developer.associated-domains</key>
 	<array>
 		<string>applinks:anaadfoods.com</string>
-		<string>applinks:app.anaadfoods.com</string>
 		<string>applinks:www.anaadfoods.com</string>
 		<string>applinks:web.anaadfoods.com</string>
 		<string>webcredentials:anaadfoods.com</string>
 	</array>
+	<key>aps-environment</key>
+	<string>production</string>
 </dict>
 </plist>

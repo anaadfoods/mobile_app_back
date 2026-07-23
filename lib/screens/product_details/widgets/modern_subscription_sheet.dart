@@ -702,6 +702,8 @@ class _ModernSubscriptionSheetState extends State<ModernSubscriptionSheet>
                       ),
                     ),
                     _buildPaymentChip('One Time', 0),
+                    if (plan.allowsInstallments)
+                      _buildPaymentChip('Installment', 1),
                   ],
                 ),
               ],

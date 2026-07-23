@@ -70,7 +70,7 @@ class _OrderScreenState extends State<OrderScreen>
     if (Navigator.canPop(context)) {
       Navigator.pop(context);
     } else {
-      context.goNamed(AppRoute.home.name);
+      context.goNamed(AppRoute.profile.name);
     }
   }
 
@@ -129,7 +129,7 @@ class _OrderScreenState extends State<OrderScreen>
       canPop: Navigator.canPop(context),
       onPopInvokedWithResult: (didPop, result) {
         if (didPop) return;
-        context.goNamed(AppRoute.home.name);
+        context.goNamed(AppRoute.profile.name);
       },
       child: scaffold,
     );
@@ -637,13 +637,20 @@ class _ModernOrderCard extends StatelessWidget {
                         color: theme.hintColor,
                       ),
                       const SizedBox(width: 6),
-                      Text(
-                        _formatDate(order.expectedDeliveryDate),
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: theme.hintColor,
+                      Expanded(
+                        child: Text(
+                          ApiConfig.showExpectedDeliveryDate
+                              ? _formatDate(order.expectedDeliveryDate)
+                              : ApiConfig.alternativeDeliveryText,
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: theme.hintColor,
+                            fontSize: 10,
+                          ),
+                          maxLines: 2,
+                          overflow: TextOverflow.visible,
                         ),
                       ),
-                      const Spacer(),
+                      const SizedBox(width: 8),
                       Container(
                         padding: const EdgeInsets.symmetric(
                           horizontal: 16,

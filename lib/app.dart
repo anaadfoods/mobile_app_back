@@ -45,6 +45,7 @@ import 'package:grocery_app/routes/app_router.dart';
 import 'package:grocery_app/services/notification_sync_manager.dart';
 
 import 'package:grocery_app/service_locator.dart';
+import 'package:grocery_app/services/token_service.dart';
 
 class MyApp extends StatelessWidget {
   final bool hasSeenWelcome;
@@ -175,13 +176,19 @@ class _AppGlobalListenersState extends State<AppGlobalListeners>
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
       if (mounted) {
         final notificationService = getIt<NotificationService>();
         notificationService.initialize(context.read<NotificationCubit>());
 
         // Process any pending initial notification now that context/navigator is ready
         notificationService.processInitialMessage();
+
+        // Connect WebSocket if already logged in
+        final isLoggedIn = await getIt<TokenService>().isLoggedIn();
+        if (isLoggedIn) {
+          getIt<NotificationSyncManager>().connectWebSocket();
+        }
       }
     });
   }
@@ -198,6 +205,9 @@ class _AppGlobalListenersState extends State<AppGlobalListeners>
       context.read<AuthCubit>().verifyAndRefreshToken();
       getIt<NotificationSyncManager>().flushPendingQueue();
       getIt<NotificationSyncManager>().syncWithBackend();
+      getIt<NotificationSyncManager>().connectWebSocket();
+    } else if (state == AppLifecycleState.paused) {
+      getIt<NotificationSyncManager>().disconnectWebSocket();
     }
   }
 
@@ -217,7 +227,9 @@ class _AppGlobalListenersState extends State<AppGlobalListeners>
               // Trigger sync on authentication
               getIt<NotificationSyncManager>().flushPendingQueue();
               getIt<NotificationSyncManager>().syncWithBackend();
+              getIt<NotificationSyncManager>().connectWebSocket();
             } else if (state is Unauthenticated) {
+              getIt<NotificationSyncManager>().disconnectWebSocket();
               context.read<NotificationCubit>().unregisterDevice();
               context.read<CartCubit>().clearCartState();
               context.read<FavoritesCubit>().clearFavoritesState();

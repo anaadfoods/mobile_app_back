@@ -1,6 +1,8 @@
 import 'dart:math' as math;
 import 'dart:ui';
 import 'package:grocery_app/common_widgets/global_import.dart';
+import 'package:grocery_app/service_locator.dart';
+import 'package:grocery_app/services/notification_service.dart';
 import 'navigator_item.dart';
 
 class DashboardScreen extends StatefulWidget {
@@ -50,6 +52,12 @@ class DashboardScreenState extends State<DashboardScreen>
      ..addStatusListener(_onSlideAnimationStatus);
 
     WidgetsBinding.instance.addObserver(this);
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        getIt<NotificationService>().requestNotificationPermission();
+      }
+    });
 
     Future.delayed(const Duration(seconds: 6), () {
       if (mounted) {

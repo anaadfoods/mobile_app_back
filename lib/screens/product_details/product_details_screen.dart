@@ -136,6 +136,8 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
         availablePlansForProduct = productPlans;
         if (allPlansResult['success']) {
           allPlans = allPlansResult['data'] as List<SubscriptionPlan>;
+          // Sort plans from 1 to 4 (ascending duration/months)
+          allPlans.sort((a, b) => a.durationMonths.compareTo(b.durationMonths));
         }
       });
     } catch (e) {
@@ -160,14 +162,13 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
             }
 
             if (initialIndex == -1) {
-              int maxDur = -1;
               for (int i = 0; i < allPlans.length; i++) {
                 final isAvailable = availablePlansForProduct.any(
                   (p) => p.planName == allPlans[i].name,
                 );
-                if (isAvailable && allPlans[i].durationMonths > maxDur) {
-                  maxDur = allPlans[i].durationMonths;
+                if (isAvailable) {
                   initialIndex = i;
+                  break; // Select the first available plan (shortest duration)
                 }
               }
             }
@@ -329,6 +330,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
                   (opt) => setModalState(() => paymentOption = opt),
               onSubscribe: () {
                 Navigator.pop(context);
+                final payType = paymentOption == 1 ? 'INSTALLMENT' : 'PAID_FULL';
                 if (selectedIndex == -1) {
                   _navigateToAddressScreen(
                     isSubscription: false,
@@ -340,7 +342,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
                     isSubscription: true,
                     selectedPlanIndex: selectedIndex,
                     quantity: quantity,
-                    paymentType: 'PAID_FULL',
+                    paymentType: payType,
                   );
                 }
               },

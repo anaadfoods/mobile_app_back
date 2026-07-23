@@ -4,6 +4,7 @@ import 'dart:math' as math;
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:grocery_app/common_widgets/global_import.dart';
+import 'package:grocery_app/common_widgets/error_dialog.dart';
 import 'package:grocery_app/routes/app_routes.dart';
 import 'package:grocery_app/services/referral_reward_service.dart';
 import 'package:grocery_app/utils/checkout_calculator.dart';
@@ -47,6 +48,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   // final AuthService _authService = AuthService(); // Unused - commented out
   final SubscriptionService _subscriptionService = getIt<SubscriptionService>();
   final ReferralRewardService _rewardService = getIt<ReferralRewardService>();
+  final PaymentService _paymentService = getIt<PaymentService>();
 
   ShippingDetails? _shippingDetails;
   SubscriptionPlan? subscription;
@@ -98,8 +100,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     super.initState();
     // Removed broken animations
     if (widget.isSubscription) {
-      _selectedPaymentType = 'PAID_FULL';
-      _selectedPaymentMethod = 'COD';
+      _selectedPaymentType = widget.paymentType ?? 'PAID_FULL';
+      _selectedPaymentMethod = 'UPI';
     } else {
       _selectedPaymentType = 'FULL';
       _selectedPaymentMethod = 'COD';
@@ -176,6 +178,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     }
   }
 
+  /// Whether the selected payment method is an online (non-COD) method.
+  bool get _isOnlinePayment => _selectedPaymentMethod != 'COD';
+
   Future<void> _createOrder() async {
     HapticFeedback.mediumImpact();
     if (!_validateShipping()) return;
@@ -183,10 +188,10 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     _setLoadingState(true);
 
     try {
-      if (_selectedPaymentMethod == 'UPI') {
-        await _handleUPIPayment();
+      if (_isOnlinePayment) {
+        await _handleOnlinePayment();
       } else {
-        await _handleNonUPIPayment();
+        await _handleCODPayment();
       }
     } catch (e) {
       _handleError(e);
@@ -195,29 +200,30 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     }
   }
 
-  Future<void> _handleUPIPayment() async {
+  Future<void> _handleOnlinePayment() async {
     if (widget.isSubscription) {
-      await _handleUPISubscription();
+      await _handleOnlineSubscription();
     } else {
-      await _handleUPIOrder();
+      await _handleOnlineOrder();
     }
   }
 
-  Future<void> _handleUPISubscription() async {
+  Future<void> _handleOnlineSubscription() async {
     final result = await _createSubscription();
 
     if (!mounted) return;
 
     if (result['success'] == true) {
-      if (result['payment_links'] != null) {
-        if (result['payment_links']['web'] != null) {
-          await _launchSubscriptionWebView(result);
-        } else {
-          _showSubscriptionFailedDialog({
-            'message':
-                'We couldn\'t start the payment process. Please check your connection and try again.',
-          });
-        }
+      final checkoutUrl = result['checkout_url'];
+
+      if (checkoutUrl != null) {
+        await _launchSubscriptionWebView(result);
+      } else if (result['payment_required'] == true) {
+        _showSubscriptionFailedDialog({
+          'message':
+              result['payment_error'] ??
+              'Payment initiation failed. Please try again.',
+        });
       } else {
         _showSubscriptionFailedDialog({
           'message':
@@ -229,7 +235,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     }
   }
 
-  Future<void> _handleNonUPISubscription() async {
+  Future<void> _handleCODSubscription() async {
     final result = await _createSubscription();
 
     if (!mounted) return;
@@ -273,6 +279,14 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   }
 
   void _showSubscriptionSuccessMessage(Map<String, dynamic> result) {
+    if (result['subscription_id'] != null) {
+      try {
+        int subId = int.parse(result['subscription_id'].toString());
+        _navigateToSubscriptionDetails(subId);
+        return;
+      } catch (_) {}
+    }
+
     showDialog(
       context: context,
       builder:
@@ -312,29 +326,34 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     );
   }
 
-  Future<void> _handleUPIOrder() async {
+  Future<void> _handleOnlineOrder() async {
     final order = _createOrderModel();
     final response = await _orderService.createOrder(order);
 
     if (!mounted) return;
 
-    if (response is OrderCreateResponse &&
+    if (response is OrderCreateResponse && response.paymentRequired) {
+      // Order created but payment initiation failed — show error with retry hint
+      _showOrderFailedDialog(
+        response.paymentError ?? 'Payment initiation failed. Please try again.',
+      );
+    } else if (response is OrderCreateResponse &&
         response.success &&
-        response.paymentLinks?.web != null) {
+        response.checkoutUrl != null) {
       await _launchOrderWebView(response);
     } else if (response is OrderCreateResponse && !response.success) {
       _showOrderFailedDialog(
         _parseServerError(response.message ?? 'Payment initiation failed.'),
       );
     } else {
-      // Missing payment_links means the third party gateway failed to initialize.
+      // Missing checkout URL means the third party gateway failed to initialize.
       _showOrderFailedDialog(
         'We couldn\'t start the payment process. Please check your connection and try again.',
       );
     }
   }
 
-  Future<void> _handleNonUPIOrder() async {
+  Future<void> _handleCODOrder() async {
     final order = _createOrderModel();
     final createdOrder = await _orderService.createOrder(order);
 
@@ -343,11 +362,11 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     _navigateToOrderAccepted(createdOrder);
   }
 
-  Future<void> _handleNonUPIPayment() async {
+  Future<void> _handleCODPayment() async {
     if (widget.isSubscription) {
-      await _handleNonUPISubscription();
+      await _handleCODSubscription();
     } else {
-      await _handleNonUPIOrder();
+      await _handleCODOrder();
     }
   }
 
@@ -481,20 +500,22 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
   Future<void> _launchSubscriptionWebView(Map<String, dynamic> result) async {
     try {
-      final paymentUrl = result['payment_links']['web'];
+      final paymentUrl = result['checkout_url'];
       final subscriptionId = result['subscription_id'];
+      final subscriptionNumber =
+          result['subscription_number']?.toString() ?? "";
       final merchantTransactionId =
           result['merchant_transaction_id'] as String?;
 
-      if (subscriptionId == null) {
-        throw Exception('Subscription ID is null');
+      if (paymentUrl == null) {
+        throw Exception('Payment URL is null');
       }
 
-      int parsedSubscriptionId;
-      try {
-        parsedSubscriptionId = int.parse(subscriptionId.toString());
-      } catch (e) {
-        throw Exception('Invalid subscription ID format: $subscriptionId');
+      int parsedSubscriptionId = 0;
+      if (subscriptionId != null) {
+        try {
+          parsedSubscriptionId = int.parse(subscriptionId.toString());
+        } catch (_) {}
       }
 
       if (!mounted) return;
@@ -509,24 +530,55 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             subID: parsedSubscriptionId,
             isSubscription: widget.isSubscription,
             merchantTransactionId: merchantTransactionId,
+            reference: subscriptionNumber,
             onPaymentSuccess: (url) async {
               try {
-                // Verify payment status first (robust check transferred from WebViewPage)
-                final subscriptionStatus = await _subscriptionService
-                    .fetchSubscriptionPaymentStatus(parsedSubscriptionId);
+                // Verify payment status first (robust check using PaymentService)
+                PaymentStatusResponse? statusResponse;
+                final ref =
+                    subscriptionNumber.isNotEmpty
+                        ? subscriptionNumber
+                        : merchantTransactionId ??
+                            parsedSubscriptionId.toString();
+                statusResponse = await _paymentService.pollStatus(ref);
 
-                if (subscriptionStatus != null &&
-                    (subscriptionStatus.transactionStatus == 'SUCCESS' ||
-                        subscriptionStatus.transactionStatus == 'ACTIVE')) {
+                if (statusResponse.isSuccess) {
+                  int? subId;
+                  try {
+                    final subscriptionsResult =
+                        await _subscriptionService.getSubscriptions();
+                    if (subscriptionsResult['success'] == true) {
+                      final subscriptions = List<Subscription>.from(
+                        subscriptionsResult['data'],
+                      );
+                      final matchingSub = subscriptions.firstWhere(
+                        (s) =>
+                            s.subscriptionNumber == subscriptionNumber ||
+                            (parsedSubscriptionId != 0 &&
+                                s.id == parsedSubscriptionId),
+                      );
+                      subId = matchingSub.id;
+                    }
+                  } catch (e) {
+                    AppLogger.instance.e("Error finding subscription: $e");
+                  }
+
+                  final targetId = subId ?? parsedSubscriptionId;
+                  if (targetId == 0) {
+                    Navigator.pop(context);
+                    _showSubscriptionSuccessMessage(result);
+                    return;
+                  }
+
                   final subscriptionDetails = await _subscriptionService
-                      .getSubscriptionDetails(parsedSubscriptionId);
+                      .getSubscriptionDetails(targetId);
 
                   if (subscriptionDetails['success'] == true && mounted) {
                     Navigator.pop(context); // Close WebView
                     context.goNamed(AppRoute.subscriptionList.name);
                     context.pushNamed(
                       AppRoute.subscriptionDetails.name,
-                      pathParameters: {'id': parsedSubscriptionId.toString()},
+                      pathParameters: {'id': targetId.toString()},
                       extra: subscriptionDetails['data'],
                     );
                   } else {
@@ -535,9 +587,6 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                   }
                 } else {
                   Navigator.pop(context);
-                  // If verification failed but we got a success URL, we might want to tell the user to check later
-                  // or just show the generic success message if we think it might be a lag.
-                  // But for now, let's treat it as a potential issue or just fall back to generic message.
                   _showSubscriptionSuccessMessage(result);
                 }
               } catch (e) {
@@ -547,7 +596,6 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             },
             onPaymentFailure: (url) {
               Navigator.pop(context);
-
               SnackBarHelper.showPaymentIssue(context);
             },
           ),
@@ -559,15 +607,19 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   }
 
   Future<void> _launchOrderWebView(OrderCreateResponse response) async {
-    final paymentUrl = response.paymentLinks!.web;
+    final paymentUrl = response.checkoutUrl!;
+    final merchantTxnId = response.merchantTransactionId;
+    final orderNumber = response.orderNumber ?? "";
 
     Navigator.push(
       context,
       AnimatedTransitions.slideFromBottom(
         WebViewPage(
           url: paymentUrl,
-          orderId: int.parse(response.orderId!),
+          orderId: 0, // Legacy field — order is identified by orderNumber now
           title: 'Secure Payment',
+          merchantTransactionId: merchantTxnId,
+          reference: orderNumber,
           onPaymentSuccess: (url) async {
             await _verifyAndHandlePaymentSuccess(response);
           },
@@ -584,30 +636,78 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     OrderCreateResponse response,
   ) async {
     try {
-      final paymentStatus = await _orderService.fetchPaymentStatus(
-        int.parse(response.orderId!),
-      );
+      // Use PaymentService polling for robust status verification
+      final orderNumber = response.orderNumber ?? "";
+      PaymentStatusResponse? statusResponse;
 
-      if (paymentStatus.paymentStatus == 'PAID' &&
-          paymentStatus.transactionStatus == 'SUCCESS') {
-        final order = await _orderService.getOrderById(paymentStatus.orderId);
+      if (orderNumber.isNotEmpty) {
+        statusResponse = await _paymentService.pollStatus(orderNumber);
+      } else {
+        // Fallback to merchant transaction ID if order number is missing
+        final txnId = response.merchantTransactionId;
+        if (txnId != null && txnId.isNotEmpty) {
+          statusResponse = await _paymentService.pollStatus(txnId);
+        } else {
+          throw Exception('No reference available for status polling');
+        }
+      }
 
-        Navigator.pop(context); // Close WebView
-        context.goNamed(AppRoute.orderList.name);
-        context.pushNamed(
-          AppRoute.orderDetails.name,
-          pathParameters: {'id': order.id.toString()},
-          extra: order,
-        );
+      if (statusResponse.isSuccess) {
+        int? orderId;
+        try {
+          final orders = await _orderService.getOrders();
+          final matchingOrder = orders.firstWhere(
+            (o) => o.orderNumber == orderNumber,
+          );
+          orderId = matchingOrder.id;
+        } catch (e) {
+          AppLogger.instance.e("Error finding order by order number: $e");
+        }
+
+        if (orderId == null || orderId == 0) {
+          if (mounted) Navigator.pop(context);
+          if (mounted) {
+            SnackBarHelper.showInfo(
+              context,
+              'Payment successful! Order is placed.',
+            );
+            context.goNamed(AppRoute.orderList.name);
+          }
+          return;
+        }
+
+        final order = await _orderService.getOrderById(orderId);
+
+        if (mounted) Navigator.pop(context); // Close WebView
+        if (mounted) {
+          context.goNamed(AppRoute.orderList.name);
+          context.pushNamed(
+            AppRoute.orderDetails.name,
+            pathParameters: {'id': order.id.toString()},
+            extra: order,
+          );
+        }
+      } else if (statusResponse.isPending) {
+        // Webhook hasn't arrived yet — tell user and navigate anyway
+        if (mounted) Navigator.pop(context);
+        if (mounted) {
+          SnackBarHelper.showInfo(
+            context,
+            'Payment is being processed. We\'ll notify you once confirmed.',
+          );
+          context.goNamed(AppRoute.orderList.name);
+        }
       } else {
         if (mounted) Navigator.pop(context);
-        if (mounted)
+        if (mounted) {
           SnackBarHelper.showError(context, 'Payment not successful!');
+        }
       }
     } catch (e) {
       if (mounted) Navigator.pop(context);
-      if (mounted)
+      if (mounted) {
         SnackBarHelper.showError(context, 'Failed to verify payment!');
+      }
     }
   }
 
@@ -624,7 +724,10 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     context.pushNamed(
       AppRoute.subscriptionDetails.name,
       pathParameters: {'id': idStr},
-      extra: subscription,
+      extra:
+          (subscription is Subscription || subscription is Map)
+              ? subscription
+              : null,
     );
   }
 
@@ -638,57 +741,31 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   }
 
   void _showSubscriptionFailedDialog(Map<String, dynamic> result) {
-    String errorMessage = _parseServerError(
-      result['message'] ?? result['errors'] ?? 'Failed to create subscription',
-    );
-
-    // Add detailed error information
-    if (result['error'] != null) {
-      errorMessage += '\n\nDetails: ${result['error']}';
-    }
-
-    // Add validation errors if present
-    if (result['errors'] is Map && (result['errors'] as Map).isNotEmpty) {
-      final errors = result['errors'] as Map;
-      String errorDetails = '';
-      errors.forEach((key, value) {
-        if (value is List && value.isNotEmpty) {
-          errorDetails += '\n• $key: ${value.join(', ')}';
-        } else {
-          errorDetails += '\n• $key: $value';
-        }
-      });
-      if (errorDetails.isNotEmpty) {
-        errorMessage += '\n\nValidation Errors:$errorDetails';
-      }
-    }
-
+    final errorMessage = _parseServerError(result);
     AppLogger.instance.log('Subscription error - Full response: $result');
 
     showDialog(
       context: context,
       builder:
-          (context) => AlertDialog(
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(20),
-            ),
-            title: const Text('Subscription Failed'),
-            content: SingleChildScrollView(child: Text(errorMessage)),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(),
-                child: const Text('Go Back'),
-              ),
-            ],
+          (context) => ErrorDialog(
+            title: 'Subscription Failed',
+            message:
+                errorMessage.isNotEmpty
+                    ? errorMessage
+                    : 'We couldn\'t create your subscription. Please try again.',
+            icon: Icons.card_giftcard_rounded,
+            iconColor: AppColors.harvestAmber,
+            showCloseButton: true,
           ),
     );
   }
 
   void _showOrderFailedDialog(String error) {
+    final cleanMsg = _parseServerError(error);
     showDialog(
       context: context,
       builder: (BuildContext context) {
-        return OrderFailedDialog(error: error);
+        return OrderFailedDialog(error: cleanMsg);
       },
     );
   }
@@ -696,14 +773,15 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   void _handleError(dynamic error) {
     if (!mounted) return;
 
+    final cleanMsg = _parseServerError(error);
     setState(() {
-      _error = _parseServerError(error);
+      _error = cleanMsg;
     });
 
     showDialog(
       context: context,
       builder: (BuildContext context) {
-        return OrderFailedDialog(error: _error);
+        return OrderFailedDialog(error: cleanMsg);
       },
     );
   }
@@ -761,52 +839,120 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   }
 
   String _parseServerError(dynamic error) {
-    if (error is String) {
-      return error;
+    if (error == null) return 'An unexpected error occurred. Please try again.';
+
+    final errorString = error.toString().toLowerCase();
+    if (errorString.contains('method not allowed') ||
+        (errorString.contains('post') && errorString.contains('not allowed')) ||
+        errorString.contains('405')) {
+      return 'Action not allowed. Please contact support.';
     }
 
-    if (error is Map<String, dynamic>) {
-      if (error.containsKey('items') && error['items'] is List) {
-        List<String> itemErrors = [];
-        for (var item in error['items']) {
-          if (item is Map<String, dynamic>) {
+    List<String> messages = [];
+
+    if (error is Map) {
+      final map = Map<String, dynamic>.from(error);
+
+      // 1. Check 'message'
+      if (map['message'] != null) {
+        final msg = _cleanSingleErrorMessage(map['message']);
+        if (msg.isNotEmpty) messages.add(msg);
+      }
+
+      // 2. Check 'detail' / 'error'
+      if (map['detail'] != null) {
+        final d = _cleanSingleErrorMessage(map['detail']);
+        if (d.isNotEmpty && !messages.contains(d)) messages.add(d);
+      } else if (map['error'] != null && map['error'] is String) {
+        final e = _cleanSingleErrorMessage(map['error']);
+        if (e.isNotEmpty && !messages.contains(e)) messages.add(e);
+      }
+
+      // 3. Check 'errors' (map or list or string)
+      if (map['errors'] != null) {
+        final errs = map['errors'];
+        if (errs is Map) {
+          errs.forEach((key, val) {
+            final parsedVal = _cleanSingleErrorMessage(val);
+            if (parsedVal.isNotEmpty && !messages.contains(parsedVal)) {
+              messages.add(parsedVal);
+            }
+          });
+        } else if (errs is List) {
+          for (var item in errs) {
+            final parsedVal = _cleanSingleErrorMessage(item);
+            if (parsedVal.isNotEmpty && !messages.contains(parsedVal)) {
+              messages.add(parsedVal);
+            }
+          }
+        } else if (errs is String) {
+          final parsedVal = _cleanSingleErrorMessage(errs);
+          if (parsedVal.isNotEmpty && !messages.contains(parsedVal)) {
+            messages.add(parsedVal);
+          }
+        }
+      }
+
+      // 4. Check 'items' (cart item validation)
+      if (map['items'] is List) {
+        for (var item in (map['items'] as List)) {
+          if (item is Map) {
             item.forEach((key, value) {
-              if (value is List) {
-                itemErrors.addAll(value.map((e) => e.toString()));
-              } else if (value is String) {
-                itemErrors.add(value);
+              final parsedVal = _cleanSingleErrorMessage(value);
+              if (parsedVal.isNotEmpty && !messages.contains(parsedVal)) {
+                messages.add(parsedVal);
               }
             });
           }
         }
-        if (itemErrors.isNotEmpty) {
-          return itemErrors.join('\n');
-        }
       }
 
-      if (error.containsKey('message')) {
-        return error['message'];
-      }
-
-      if (error.containsKey('errors')) {
-        var errors = error['errors'];
-        if (errors is Map<String, dynamic>) {
-          List<String> errorMessages = [];
-          errors.forEach((key, value) {
-            if (value is List) {
-              errorMessages.addAll(value.map((e) => e.toString()));
-            } else if (value is String) {
-              errorMessages.add(value);
-            }
-          });
-          return errorMessages.join('\n');
-        } else if (errors is String) {
-          return errors;
-        }
+      if (messages.isNotEmpty) {
+        return messages.join('\n\n');
       }
     }
 
-    return error.toString();
+    final singleClean = _cleanSingleErrorMessage(error);
+    return singleClean.isNotEmpty ? singleClean : error.toString();
+  }
+
+  String _cleanSingleErrorMessage(dynamic raw) {
+    if (raw == null) return '';
+    String text = '';
+
+    if (raw is List) {
+      text = raw
+          .map((e) => _cleanSingleErrorMessage(e))
+          .where((e) => e.isNotEmpty)
+          .join('\n\n');
+    } else if (raw is Map) {
+      List<String> list = [];
+      raw.forEach((key, val) {
+        final cleanVal = _cleanSingleErrorMessage(val);
+        if (cleanVal.isNotEmpty && !list.contains(cleanVal)) {
+          list.add(cleanVal);
+        }
+      });
+      text = list.join('\n\n');
+    } else {
+      text = raw.toString();
+    }
+
+    // Strip square brackets e.g. "[You have already used...]"
+    text = text
+        .replaceAll(RegExp(r'^\[\s*'), '')
+        .replaceAll(RegExp(r'\s*\]$'), '')
+        .trim();
+
+    // Strip field bullet prefixes e.g. "• plan: " or "plan: "
+    text = text.replaceAll(RegExp(r'^\s*•?\s*\w+:\s*'), '');
+
+    // Strip JSON string quotes if wrapped
+    if (text.startsWith('"') && text.endsWith('"') && text.length > 2) {
+      text = text.substring(1, text.length - 1);
+    }
+
+    return text.trim();
   }
 
   // --- MODERN UI BUILD METHODS ---
@@ -816,7 +962,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
-    return Scaffold(
+    final scaffold = Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
       body: Stack(
         children: [
@@ -875,6 +1021,19 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         ],
       ),
     );
+
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) return;
+        if (widget.isSubscription) {
+          context.goNamed(AppRoute.subscriptionList.name);
+        } else {
+          context.goNamed(AppRoute.orderList.name);
+        }
+      },
+      child: scaffold,
+    );
   }
 
   Widget _buildAnimatedHeader(ThemeData theme, bool isDark) {
@@ -926,7 +1085,13 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                           ),
                           padding: EdgeInsets.zero,
                           constraints: const BoxConstraints(),
-                          onPressed: () => Navigator.maybePop(context),
+                          onPressed: () {
+                            if (widget.isSubscription) {
+                              context.goNamed(AppRoute.subscriptionList.name);
+                            } else {
+                              context.goNamed(AppRoute.orderList.name);
+                            }
+                          },
                         ),
                         // const SizedBox(width: 12),
                         // Container(
@@ -1074,11 +1239,6 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               ],
             ),
           ),
-          Icon(
-            Icons.arrow_forward_ios_rounded,
-            color: AppColors.parchment.withValues(alpha: 0.7),
-            size: 18,
-          ),
         ],
       ),
     );
@@ -1128,11 +1288,16 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  widget.expectedDeliveryDate,
+                  ApiConfig.showExpectedDeliveryDate
+                      ? widget.expectedDeliveryDate
+                      : ApiConfig.alternativeDeliveryText,
                   style: theme.textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.bold,
                     color: AppColors.harvestAmber,
+                    fontSize: 12, // Reduced size
                   ),
+                  maxLines: 2,
+                  overflow: TextOverflow.visible,
                 ),
               ],
             ),
@@ -1672,6 +1837,39 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     );
   }
 
+  // ─── Payment method helpers ─────────────────────────────────────────
+  IconData _paymentMethodIcon(String method) {
+    switch (method) {
+      case 'UPI':
+        return Icons.account_balance_wallet_rounded;
+      case 'CARD':
+        return Icons.credit_card_rounded;
+      case 'NETBANKING':
+        return Icons.account_balance_rounded;
+      case 'INSTALLMENT':
+        return Icons.payment_rounded;
+      case 'COD':
+      default:
+        return Icons.money_rounded;
+    }
+  }
+
+  String _paymentMethodLabel(String method) {
+    switch (method) {
+      case 'UPI':
+        return 'UPI';
+      case 'CARD':
+        return 'Credit / Debit Card';
+      case 'NETBANKING':
+        return 'Net Banking';
+      case 'INSTALLMENT':
+        return 'Installment Plan';
+      case 'COD':
+      default:
+        return 'Cash on Delivery';
+    }
+  }
+
   Widget _buildPaymentMethodCard(ThemeData theme, bool isDark) {
     return GestureDetector(
       onTap: () {
@@ -1700,9 +1898,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 borderRadius: BorderRadius.circular(14),
               ),
               child: Icon(
-                _selectedPaymentMethod == 'COD'
-                    ? Icons.money_rounded
-                    : Icons.payment_rounded,
+                _paymentMethodIcon(_selectedPaymentMethod),
                 color: AppColors.harvestAmber,
                 size: 24,
               ),
@@ -1720,9 +1916,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                   ),
                   const SizedBox(height: 2),
                   Text(
-                    _selectedPaymentMethod == 'COD'
-                        ? 'Cash on Delivery'
-                        : 'UPI / Card / NetBanking',
+                    _paymentMethodLabel(_selectedPaymentMethod),
                     style: theme.textTheme.titleSmall?.copyWith(
                       fontWeight: FontWeight.bold,
                     ),
@@ -1845,8 +2039,11 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     SubscriptionPlan subscription,
   ) {
     final totalMonthlyPrice = double.tryParse(totalPrice) ?? 0.0;
-    final fullSubscriptionPrice =
-        totalMonthlyPrice * subscription.durationMonths;
+    final isInstallment = _selectedPaymentType == 'INSTALLMENT';
+    final displayPrice =
+        isInstallment
+            ? totalMonthlyPrice * subscription.installmentFrequencyMonths
+            : totalMonthlyPrice * subscription.durationMonths;
 
     return Positioned(
       left: 0,
@@ -1906,9 +2103,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                           ),
                         ),
                         Text(
-                          _selectedPaymentType == 'PAID_FULL'
-                              ? 'One-time payment'
-                              : 'Monthly installments',
+                          isInstallment
+                              ? 'Monthly installments'
+                              : 'One-time payment',
                           style: theme.textTheme.bodySmall?.copyWith(
                             color: theme.hintColor,
                           ),
@@ -1920,14 +2117,14 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
                       Text(
-                        '₹${fullSubscriptionPrice.toStringAsFixed(2)}',
+                        '₹${displayPrice.toStringAsFixed(2)}',
                         style: theme.textTheme.titleMedium?.copyWith(
                           color: theme.colorScheme.primary,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
                       Text(
-                        'total',
+                        isInstallment ? 'due now' : 'total',
                         style: theme.textTheme.bodySmall?.copyWith(
                           color: theme.hintColor,
                         ),
@@ -2012,15 +2209,47 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               _buildPaymentOption(
                 theme,
                 isDark,
-                'COD',
-                'Cash on Delivery',
-                widget.isSubscription
-                    ? 'Pay when you receive your subscription'
-                    : 'Pay when you receive your order',
-                Icons.money_rounded,
+                'UPI',
+                'UPI',
+                'Pay securely using any UPI app',
+                Icons.account_balance_wallet_rounded,
+                AppColors.deepSoilGreen,
+              ),
+              const SizedBox(height: 12),
+              _buildPaymentOption(
+                theme,
+                isDark,
+                'CARD',
+                'Credit / Debit Card',
+                'Visa, Mastercard, RuPay & more',
+                Icons.credit_card_rounded,
                 AppColors.harvestAmber,
               ),
               const SizedBox(height: 12),
+              if (widget.isSubscription) ...[
+                _buildPaymentOption(
+                  theme,
+                  isDark,
+                  'NETBANKING',
+                  'Net Banking',
+                  'Pay via your bank\'s online portal',
+                  Icons.account_balance_rounded,
+                  AppColors.rawEarth70,
+                ),
+                const SizedBox(height: 12),
+              ],
+              if (!widget.isSubscription) ...[
+                _buildPaymentOption(
+                  theme,
+                  isDark,
+                  'COD',
+                  'Cash on Delivery',
+                  'Pay when you receive your order',
+                  Icons.money_rounded,
+                  AppColors.rawEarth26,
+                ),
+                const SizedBox(height: 12),
+              ],
             ],
           ),
         );

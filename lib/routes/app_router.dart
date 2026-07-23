@@ -129,6 +129,11 @@ class AppRouter {
         return AppRoute.home.path;
       }
 
+      // Redirect bare /product to /products (product list)
+      if (path == '/product' || path == '/product/') {
+        return AppRoute.allProducts.path;
+      }
+
       return null;
     },
 

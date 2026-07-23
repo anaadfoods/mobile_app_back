@@ -85,9 +85,13 @@ class TokenService {
 
   Future<Map<String, dynamic>> registerUser(UserModel user) async {
     try {
+      final Map<String, dynamic> requestData = user.toJson();
+      final String deviceId = await NotificationService.getDeviceId();
+      requestData['device_id'] = deviceId;
+
       final response = await ApiClient.instance.post(
         ApiConfig.registerEndpoint,
-        data: user.toJson(),
+        data: requestData,
       );
 
       final responseData = response.data;

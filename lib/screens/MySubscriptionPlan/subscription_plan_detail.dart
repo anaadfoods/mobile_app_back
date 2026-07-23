@@ -67,10 +67,12 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
         List<Subscription> subscriptionsList = [];
 
         if (data is List<Subscription>) {
-          subscriptionsList = data;
+          subscriptionsList = List<Subscription>.from(data);
         } else if (data is List) {
           subscriptionsList = data.whereType<Subscription>().toList();
         }
+
+        subscriptionsList.sort((a, b) => b.id.compareTo(a.id));
 
         setState(() {
           allSubscriptions = subscriptionsList;
@@ -119,7 +121,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
     if (Navigator.canPop(context)) {
       Navigator.pop(context);
     } else {
-      context.goNamed(AppRoute.home.name);
+      context.goNamed(AppRoute.profile.name);
     }
   }
 
@@ -167,7 +169,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
       canPop: Navigator.canPop(context),
       onPopInvokedWithResult: (didPop, result) {
         if (didPop) return;
-        context.goNamed(AppRoute.home.name);
+        context.goNamed(AppRoute.profile.name);
       },
       child: scaffold,
     );
@@ -1311,38 +1313,46 @@ class _SubscriptionCardState extends State<_SubscriptionCard> {
                       ),
                     ),
                     const Spacer(),
-                    // Next delivery
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 6,
-                      ),
-                      decoration: BoxDecoration(
-                        color:
-                            isDark
-                                ? AppColors.charcoal
-                                : AppColors.parchment.withValues(alpha: 0.7),
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            Icons.local_shipping_rounded,
-                            size: 14,
-                            color: theme.hintColor,
-                          ),
-                          const SizedBox(width: 4),
-                          Text(
-                            _formatDate(subscription.nextDeliveryDate),
-                            style: theme.textTheme.labelSmall?.copyWith(
-                              color: theme.hintColor,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
+                     Flexible(
+                       child: Container(
+                         padding: const EdgeInsets.symmetric(
+                           horizontal: 10,
+                           vertical: 6,
+                         ),
+                         decoration: BoxDecoration(
+                           color:
+                               isDark
+                                   ? AppColors.charcoal
+                                   : AppColors.parchment.withValues(alpha: 0.7),
+                           borderRadius: BorderRadius.circular(10),
+                         ),
+                         child: Row(
+                           mainAxisSize: MainAxisSize.min,
+                           children: [
+                             Icon(
+                               Icons.local_shipping_rounded,
+                               size: 14,
+                               color: theme.hintColor,
+                             ),
+                             const SizedBox(width: 4),
+                             Flexible(
+                               child: Text(
+                                 ApiConfig.showExpectedDeliveryDate
+                                     ? _formatDate(subscription.nextDeliveryDate)
+                                     : ApiConfig.alternativeDeliveryText,
+                                 style: theme.textTheme.labelSmall?.copyWith(
+                                   color: theme.hintColor,
+                                   fontWeight: FontWeight.w600,
+                                   fontSize: 10,
+                                 ),
+                                 maxLines: 2,
+                                 overflow: TextOverflow.visible,
+                               ),
+                             ),
+                           ],
+                         ),
+                       ),
+                     ),
                   ],
                 ),
               ),
@@ -1577,12 +1587,7 @@ class _SubscriptionCardState extends State<_SubscriptionCard> {
                           ),
                         ),
                       ),
-                      if ((subscription
-                                      .installmentInfo
-                                      ?.installmentPaymentStatus ??
-                                  '')
-                              .toUpperCase() ==
-                          'PENDING') ...[
+                      if (subscription.canPayNextInstallment) ...[
                         const SizedBox(width: 12),
                         SubscriptionRepaymentButton(
                           subscription: subscription,

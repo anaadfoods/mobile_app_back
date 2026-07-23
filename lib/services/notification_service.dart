@@ -79,14 +79,15 @@ class NotificationService {
       // Initialize Local Notifications
       await _initializeLocalNotifications();
 
-      // Request permissions
-      await _requestPermissions();
-
-      // Get FCM token
-      await _getFCMToken();
-
       // Set up message handlers
       _setupMessageHandlers();
+
+      // Check if permission is already granted to fetch the token silently
+      final settings = await _firebaseMessaging.getNotificationSettings();
+      if (settings.authorizationStatus == AuthorizationStatus.authorized ||
+          settings.authorizationStatus == AuthorizationStatus.provisional) {
+        await _getFCMToken();
+      }
 
       debugPrint('NotificationService initialized successfully');
     } catch (e) {
@@ -235,7 +236,7 @@ class NotificationService {
     }
   }
 
-  Future<void> _requestPermissions() async {
+  Future<void> requestNotificationPermission() async {
     NotificationSettings settings = await _firebaseMessaging.requestPermission(
       alert: true,
       announcement: false,
@@ -247,19 +248,52 @@ class NotificationService {
     );
 
     debugPrint('User granted permission: ${settings.authorizationStatus}');
+
+    if (settings.authorizationStatus == AuthorizationStatus.authorized ||
+        settings.authorizationStatus == AuthorizationStatus.provisional) {
+      await _getFCMToken();
+      final token = await getFCMToken();
+      if (token != null) {
+        final isLoggedIn = await getIt<TokenService>().isLoggedIn();
+        if (isLoggedIn) {
+          final bearerToken = await getIt<TokenService>().getAccessToken();
+          if (bearerToken != null) {
+            await registerFcmTokenWithBackend(token, bearerToken);
+          }
+        }
+      }
+    }
   }
+
+
 
   Future<void> _getFCMToken() async {
     String? token = await _firebaseMessaging.getToken();
     if (token != null) {
       await _saveFCMToken(token);
       debugPrint('FCM Token: $token');
+
+      final isLoggedIn = await getIt<TokenService>().isLoggedIn();
+      if (isLoggedIn) {
+        final bearerToken = await getIt<TokenService>().getAccessToken();
+        if (bearerToken != null) {
+          await registerFcmTokenWithBackend(token, bearerToken);
+        }
+      }
     }
 
     // Listen for token refresh
-    _firebaseMessaging.onTokenRefresh.listen((newToken) {
-      _saveFCMToken(newToken);
+    _firebaseMessaging.onTokenRefresh.listen((newToken) async {
+      await _saveFCMToken(newToken);
       _onTokenRefreshController.add(newToken);
+
+      final isLoggedIn = await getIt<TokenService>().isLoggedIn();
+      if (isLoggedIn) {
+        final bearerToken = await getIt<TokenService>().getAccessToken();
+        if (bearerToken != null) {
+          await registerFcmTokenWithBackend(newToken, bearerToken);
+        }
+      }
     });
   }
 
@@ -924,40 +958,55 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   // Ensure Firebase is initialized
   await Firebase.initializeApp();
 
+  // Initialize service locator if not already registered
+  if (!getIt.isRegistered<NotificationSyncManager>()) {
+    setupLocator();
+  }
+
   debugPrint('Handling a background message: ${message.messageId}');
   debugPrint('Message data: ${message.data}');
-  debugPrint('Message notification: ${message.notification?.title}');
 
-  // Parse and save notification via sync manager format
+  final syncManager = getIt<NotificationSyncManager>();
+
+  // Parse and save notification via sync manager format if message contains useful data
+  if (message.data.isNotEmpty) {
+    try {
+      final notif = NotificationModel(
+        id:
+            message.data['id']?.toString() ??
+            message.messageId ??
+            DateTime.now().millisecondsSinceEpoch.toString(),
+        title:
+            message.data['title'] ??
+            message.notification?.title ??
+            'New Notification',
+        body: message.data['body'] ?? message.notification?.body ?? '',
+        type: message.data['type'] ?? 'general',
+        action: message.data['action'],
+        source: 'SERVER',
+        isRead: false,
+        isDismissed: false,
+        syncVersion:
+            int.tryParse(message.data['sync_version']?.toString() ?? '0') ?? 0,
+        timestamp: DateTime.now().millisecondsSinceEpoch,
+        image:
+            message.data['image'] ??
+            message.data['image_url'] ??
+            message.notification?.android?.imageUrl ??
+            message.notification?.apple?.imageUrl,
+        priority: message.data['priority'] ?? 'medium',
+        metadata: Map<String, dynamic>.from(message.data),
+      );
+      await syncManager.saveServerPushNotification(notif);
+    } catch (e) {
+      debugPrint('Error saving background notification: $e');
+    }
+  }
+
+  // Sync authoritatively with backend to catch up
   try {
-    final notif = NotificationModel(
-      id:
-          message.data['id']?.toString() ??
-          message.messageId ??
-          DateTime.now().millisecondsSinceEpoch.toString(),
-      title:
-          message.notification?.title ??
-          message.data['title'] ??
-          'New Notification',
-      body: message.notification?.body ?? message.data['body'] ?? '',
-      type: message.data['type'] ?? 'general',
-      action: message.data['action'],
-      source: 'SERVER',
-      isRead: false,
-      isDismissed: false,
-      syncVersion:
-          int.tryParse(message.data['sync_version']?.toString() ?? '0') ?? 0,
-      timestamp: DateTime.now().millisecondsSinceEpoch,
-      image:
-          message.data['image'] ??
-          message.data['image_url'] ??
-          message.notification?.android?.imageUrl ??
-          message.notification?.apple?.imageUrl,
-      priority: message.data['priority'] ?? 'medium',
-      metadata: Map<String, dynamic>.from(message.data),
-    );
-    await getIt<NotificationSyncManager>().saveServerPushNotification(notif);
+    await syncManager.syncWithBackend();
   } catch (e) {
-    debugPrint('Error saving background notification: $e');
+    debugPrint('Error syncing in background: $e');
   }
 }

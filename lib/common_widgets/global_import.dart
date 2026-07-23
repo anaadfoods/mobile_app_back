@@ -110,6 +110,7 @@ export 'package:grocery_app/services/order_service.dart';
 export 'package:grocery_app/screens/order_failed_dialog.dart';
 
 export 'package:grocery_app/services/subscription_service.dart';
+export 'package:grocery_app/services/payment_service.dart';
 export 'package:grocery_app/screens/checkout/webview_page.dart';
 export 'package:grocery_app/models/subscription_model.dart';
 export 'package:webview_flutter/webview_flutter.dart' hide X509Certificate;

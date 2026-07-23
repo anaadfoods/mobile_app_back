@@ -1,6 +1,21 @@
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+
 class ApiConfig {
   static const String baseUrl = 'https://bck-dev.anaadfoods.com';
   //  static const String baseUrl = 'https://educated-carpentry-reverence.ngrok-free.dev';
+
+  /// Toggle flag for expected delivery date
+  static bool get showExpectedDeliveryDate {
+    try {
+      return (dotenv.env['SHOW_EXPECTED_DELIVERY_DATE'] ?? 'true')
+              .toLowerCase() ==
+          'true';
+    } catch (_) {
+      return true;
+    }
+  }
+
+  static const String alternativeDeliveryText = "delivery will be start from Aug 2026 first week";
 
   /// Juspay payment bridge - HTTPS endpoint with certificate pinning
   static const String paymentUrl = 'https://payment.anaadfoods.com';
@@ -85,6 +100,16 @@ class ApiConfig {
   // Subscription endpoints
   static const String subscriptionsEndpoint = '/api/subscriptions/';
   static const String subscriptionPlansEndpoint = '/api/subscriptions/plans/';
+
+  // Payment endpoints (gateway-agnostic, currently backed by Easebuzz)
+  static const String paymentStatusEndpoint = '/api/payments/status/';
+  static const String paymentInitiateEndpoint = '/api/payments/initiate/';
+
+  /// Easebuzz callback paths used by WebViewPage to detect payment completion.
+  static const String easebuzzSuccessCallback =
+      '/api/payments/easebuzz/callback/success/';
+  static const String easebuzzFailureCallback =
+      '/api/payments/easebuzz/callback/failure/';
 
   // Legal endpoints
   static const String legalEndpoint = '/api/core/legal/latest/';

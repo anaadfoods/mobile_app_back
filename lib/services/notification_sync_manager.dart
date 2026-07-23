@@ -9,6 +9,7 @@ import '../models/notification_model.dart';
 import '../repositories/notification_repository.dart';
 import 'connectivity_service.dart';
 import 'token_service.dart';
+import 'api_config.dart';
 
 
 enum QueueActionType { registerLocal, markRead, dismiss }
@@ -409,56 +410,117 @@ class NotificationSyncManager {
     debugPrint('[SyncManager] Offline queue flush cycle completed. Remaining actions: ${failedItems.length}');
   }
 
-  // --- FUTURE WEBSOCKET ARCHITECTURE PREPARATION ---
+  // --- WEBSOCKET CLIENT IMPLEMENTATION ---
 
-  // Placeholder fields for WebSocket client connection
-  Object? _webSocketChannel; // Will be IOWebSocketChannel once imported
-  Timer? _wsReconnectTimer;
+  WebSocket? _socket;
+  Timer? _reconnectTimer;
+  bool _isConnecting = false;
 
-  /// Setup websocket-ready structure and stub routing
+  /// Setup WebSocket connection to the real-time channel
   Future<void> connectWebSocket() async {
+    if (_socket != null || _isConnecting) return;
+
     final token = await _tokenService.getAccessToken();
-    if (token == null) return;
+    if (token == null) {
+      debugPrint('[SyncManager] WS connection skipped: no access token.');
+      return;
+    }
     
     final deviceId = await _repository.getDeviceId();
     final platform = Platform.isAndroid ? 'android' : 'ios';
-    final wsUrl = 'wss://bck.anaadfoods.com/ws/notifications/?token=$token&device_id=$deviceId&platform=$platform';
+    final wsBase = ApiConfig.baseUrl.replaceAll('https://', 'wss://').replaceAll('http://', 'ws://');
+    final wsUrl = '$wsBase/ws/notifications/?token=$token&device_id=$deviceId&platform=$platform';
     
-    debugPrint('[SyncManager] Preparing WebSocket connection placeholder to: $wsUrl');
-    // In future integration:
-    // _webSocketChannel = IOWebSocketChannel.connect(Uri.parse(wsUrl));
-    // _webSocketChannel.stream.listen((message) => _handleWebSocketEvent(message), ...);
-  }
+    _isConnecting = true;
+    debugPrint('[SyncManager] Connecting to WebSocket: $wsUrl');
 
-  /// Stub event handler for incoming WebSocket synchronized packets
-  void handleWebSocketEventPlaceholder(String eventPayload) {
     try {
-      final Map<String, dynamic> event = jsonDecode(eventPayload);
-      final String type = event['type'] ?? '';
+      _socket = await WebSocket.connect(wsUrl).timeout(const Duration(seconds: 10));
+      _isConnecting = false;
+      debugPrint('[SyncManager] WebSocket connected successfully!');
       
-      switch (type) {
-        case 'NOTIFICATION_CREATED':
-          debugPrint('[SyncManager] WS: Notification created.');
-          // Sync dynamically or parse direct notification payload
-          syncWithBackend();
-          break;
-        case 'NOTIFICATION_READ':
-          debugPrint('[SyncManager] WS: Notification read.');
-          syncWithBackend();
-          break;
-        case 'NOTIFICATION_DISMISSED':
-          debugPrint('[SyncManager] WS: Notification dismissed.');
-          syncWithBackend();
-          break;
-      }
+      // Fallback to sync on connection to catch up
+      syncWithBackend();
+
+      _socket!.listen(
+        (message) {
+          _handleWebSocketMessage(message);
+        },
+        onError: (err) {
+          debugPrint('[SyncManager] WebSocket error: $err');
+          _scheduleReconnect();
+        },
+        onDone: () {
+          debugPrint('[SyncManager] WebSocket connection closed by server.');
+          _scheduleReconnect();
+        },
+        cancelOnError: true,
+      );
     } catch (e) {
-      debugPrint('[SyncManager] Error in WebSocket event parsing: $e');
+      _isConnecting = false;
+      debugPrint('[SyncManager] WebSocket connection failed: $e');
+      _scheduleReconnect();
     }
   }
 
+  void _scheduleReconnect() {
+    _socket = null;
+    _reconnectTimer?.cancel();
+    _reconnectTimer = Timer(const Duration(seconds: 10), () {
+      debugPrint('[SyncManager] Attempting to reconnect WebSocket...');
+      connectWebSocket();
+    });
+  }
+
+  void _handleWebSocketMessage(dynamic rawMessage) {
+    debugPrint('[SyncManager] WebSocket received raw message: $rawMessage');
+    try {
+      final Map<String, dynamic> event = jsonDecode(rawMessage);
+      final String eventName = event['event'] ?? '';
+      final data = event['data'];
+      final int? unreadCount = event['unread_count'];
+
+      if (unreadCount != null) {
+        _saveUnreadCountLocally(unreadCount);
+      }
+
+      switch (eventName) {
+        case 'NOTIFICATION_SYNC_ACK':
+          debugPrint('[SyncManager] WebSocket ACK received: $data');
+          break;
+        case 'NOTIFICATION_CREATED':
+          debugPrint('[SyncManager] WS event: NOTIFICATION_CREATED');
+          syncWithBackend();
+          break;
+        case 'NOTIFICATION_READ':
+          debugPrint('[SyncManager] WS event: NOTIFICATION_READ');
+          syncWithBackend();
+          break;
+        case 'NOTIFICATION_DISMISSED':
+          debugPrint('[SyncManager] WS event: NOTIFICATION_DISMISSED');
+          syncWithBackend();
+          break;
+        default:
+          debugPrint('[SyncManager] Unknown WS event: $eventName');
+          break;
+      }
+    } catch (e) {
+      debugPrint('[SyncManager] Error parsing WebSocket message: $e');
+    }
+  }
+
+  Future<void> _saveUnreadCountLocally(int count) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt(_unreadCountKey, count);
+    _syncEventController.add(null);
+  }
+
   void disconnectWebSocket() {
-    _wsReconnectTimer?.cancel();
-    // Close channel if initialized
+    _reconnectTimer?.cancel();
+    _socket?.close();
+    _socket = null;
+    _isConnecting = false;
+    debugPrint('[SyncManager] WebSocket disconnected.');
   }
 
   void dispose() {

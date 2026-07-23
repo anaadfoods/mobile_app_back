@@ -3,8 +3,6 @@ import 'package:grocery_app/models/order_tracking_model.dart';
 import 'package:grocery_app/services/payment_client.dart';
 import 'package:dio/dio.dart' as dio;
 
-import 'package:grocery_app/service_locator.dart';
-
 class OrderService {
   final String baseUrl = ApiConfig.baseUrl;
 
@@ -13,8 +11,6 @@ class OrderService {
   static const String userDetailsEndpoint = '/api/user/details/';
   static const int timeoutSeconds = 30;
 
-  // Singleton instance
-  static final OrderService _instance = OrderService._internal();
   factory OrderService() => getIt<OrderService>();
 
   OrderService._internal();
@@ -72,7 +68,11 @@ class OrderService {
       if (response.statusCode == 201) {
         final data = response.data;
         AppLogger.instance.log('Order created successfully: $data');
-        if (data is Map && data.containsKey('payment_links')) {
+        // Online payment: backend returns checkout fields in the create response
+        if (data is Map &&
+            (data.containsKey('checkout_url') ||
+             data.containsKey('access_key') ||
+             data.containsKey('payment_required'))) {
           return OrderCreateResponse.fromJson(Map<String, dynamic>.from(data));
         }
         return Order.fromJson(data);
@@ -170,10 +170,11 @@ class OrderService {
     }
   }
 
-  Future<bool> cancelOrder(int orderId) async {
+  Future<Map<String, dynamic>> cancelOrder(int orderId, {String? reason}) async {
     try {
       final response = await ApiClient.instance.post(
         '${ApiConfig.ordersEndpoint}$orderId/cancel-request/',
+        data: reason != null ? {'reason': reason} : null,
       );
 
       AppLogger.instance.log('Cancel order response: ${response.statusCode}');
@@ -181,11 +182,24 @@ class OrderService {
 
       if (response.statusCode == 200) {
         final responseData = response.data;
-        if (responseData['status'] == 'success') {
+        final isSuccess = responseData['status'] == 'success' ||
+            responseData['refund_initiated'] == true ||
+            responseData['message'] != null;
+        if (isSuccess) {
           await getOrders();
-          return true;
+          return {
+            'success': true,
+            'message': responseData['message'] ?? 'Order cancelled successfully',
+            'refund_initiated': responseData['refund_initiated'] ?? false,
+            'order_number': responseData['order_number'],
+            'current_status': responseData['current_status'],
+            'raw_data': responseData,
+          };
         }
-        return false;
+        return {
+          'success': false,
+          'message': responseData['message'] ?? 'Failed to cancel order',
+        };
       } else {
         final responseData = response.data;
         final message = responseData['message'] ?? 'Failed to cancel order';
@@ -205,21 +219,7 @@ class OrderService {
     }
   }
 
-  Future<PaymentStatus> fetchPaymentStatus(int orderId) async {
-    try {
-      final response = await ApiClient.instance.get(
-        '/api/payments/status/$orderId/',
-      );
-      if (response.statusCode == 200) {
-        final data = response.data;
-        return PaymentStatus.fromJson(data);
-      } else {
-        throw Exception('Failed to fetch payment status');
-      }
-    } catch (e) {
-      throw Exception('Failed to fetch payment status: $e');
-    }
-  }
+
 
   /// Posts the order_id to the Juspay response handler using secure payment client.
   /// Uses HTTPS with certificate pinning for financial endpoint protection.

@@ -1435,7 +1435,9 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen>
                   theme,
                   Icons.calendar_month_rounded,
                   'Expected Delivery',
-                  _deliveryDetails?['expected_delivery_date'] ?? 'N/A',
+                  ApiConfig.showExpectedDeliveryDate
+                      ? (_deliveryDetails?['expected_delivery_date'] ?? 'N/A')
+                      : ApiConfig.alternativeDeliveryText,
                 ),
               ),
             ],
@@ -1466,8 +1468,11 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen>
           style: theme.textTheme.titleSmall?.copyWith(
             fontWeight: FontWeight.bold,
             color: AppColors.harvestAmber,
+            fontSize: 12, // Reduced size
           ),
           textAlign: TextAlign.center,
+          maxLines: 3,
+          overflow: TextOverflow.visible,
         ),
       ],
     );

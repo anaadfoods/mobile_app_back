@@ -297,7 +297,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                               );
                                           if (formattedDate.isNotEmpty) {
                                             greetingMessage =
-                                                '$greetingPrefix,$name\nNext delivery: $formattedDate';
+                                                ApiConfig.showExpectedDeliveryDate
+                                                    ? '$greetingPrefix,$name\nNext delivery: $formattedDate'
+                                                    : '$greetingPrefix,$name\nNext delivery: ${ApiConfig.alternativeDeliveryText}';
                                           } else {
                                             greetingMessage =
                                                 '$greetingPrefix,\n$name';

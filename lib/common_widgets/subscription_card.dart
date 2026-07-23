@@ -427,7 +427,8 @@ class _SubscriptionCardState extends State<SubscriptionCard> {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     final subscription = widget.subscription;
-    final item = subscription.items.first;
+    final hasItems = subscription.items.isNotEmpty;
+    final item = hasItems ? subscription.items.first : null;
     final bool isPaused = subscription.status == 'PAUSED';
     final deliveriesLeft =
         subscription.totalDeliveries - subscription.completedDeliveries;
@@ -437,7 +438,7 @@ class _SubscriptionCardState extends State<SubscriptionCard> {
                 .clamp(0.0, 1.0)
             : 0.0;
     final double discountPercent =
-        item.price > 0
+        (hasItems && item != null && item.price > 0)
             ? ((item.price - item.discountedPrice) / item.price) * 100
             : 0;
 
@@ -598,198 +599,264 @@ class _SubscriptionCardState extends State<SubscriptionCard> {
                               ],
                             ),
                           ),
-                          // Delivery Badge
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 12,
-                              vertical: 6,
-                            ),
-                            decoration: BoxDecoration(
-                              color:
-                                  isDark
-                                      ? AppColors.darkCanvas
-                                      : AppColors.harvestAmber.withValues(
-                                        alpha: 0.08,
-                                      ),
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(
-                                color: AppColors.harvestAmber.withValues(
-                                  alpha: 0.2,
-                                ),
+                          Flexible(
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 6,
                               ),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(
-                                  Icons.local_shipping_rounded,
-                                  color: AppColors.harvestAmber,
-                                  size: 14,
-                                ),
-                                const SizedBox(width: 6),
-                                Text(
-                                  _formatDate(subscription.nextDeliveryDate),
-                                  style: theme.textTheme.labelSmall?.copyWith(
-                                    color: AppColors.harvestAmber,
-                                    fontWeight: FontWeight.bold,
+                              decoration: BoxDecoration(
+                                color:
+                                    isDark
+                                        ? AppColors.darkCanvas
+                                        : AppColors.harvestAmber.withValues(
+                                          alpha: 0.08,
+                                        ),
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(
+                                  color: AppColors.harvestAmber.withValues(
+                                    alpha: 0.2,
                                   ),
                                 ),
-                              ],
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    Icons.local_shipping_rounded,
+                                    color: AppColors.harvestAmber,
+                                    size: 14,
+                                  ),
+                                  const SizedBox(width: 6),
+                                  Flexible(
+                                    child: Text(
+                                      ApiConfig.showExpectedDeliveryDate
+                                          ? _formatDate(subscription.nextDeliveryDate)
+                                          : ApiConfig.alternativeDeliveryText,
+                                      style: theme.textTheme.labelSmall?.copyWith(
+                                        color: AppColors.harvestAmber,
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 10, // Reduced size
+                                      ),
+                                      maxLines: 2,
+                                      overflow: TextOverflow.visible,
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
                         ],
                       ),
                       SizedBox(height: widget.responsive.M),
                       // Product Row
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          // Product Image with modern styling
-                          Container(
-                            width: widget.responsive.value(
-                              mobile: 85,
-                              tablet: 100,
-                            ),
-                            height: widget.responsive.value(
-                              mobile: 85,
-                              tablet: 100,
-                            ),
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(18),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: AppColors.charcoal.withValues(
-                                    alpha: isDark ? 0.4 : 0.12,
+                      if (hasItems && item != null)
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            // Product Image with modern styling
+                            Container(
+                              width: widget.responsive.value(
+                                mobile: 85,
+                                tablet: 100,
+                              ),
+                              height: widget.responsive.value(
+                                mobile: 85,
+                                tablet: 100,
+                              ),
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(18),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: AppColors.charcoal.withValues(
+                                      alpha: isDark ? 0.4 : 0.12,
+                                    ),
+                                    blurRadius: 15,
+                                    offset: const Offset(0, 6),
                                   ),
-                                  blurRadius: 15,
-                                  offset: const Offset(0, 6),
-                                ),
-                              ],
-                            ),
-                            child: ClipRRect(
-                              borderRadius: BorderRadius.circular(18),
-                              child: Stack(
-                                children: [
-                                  CachedNetworkImage(
-                                    imageUrl: item.imageUrl ?? '',
-                                    height: double.infinity,
-                                    width: double.infinity,
-                                    fit: BoxFit.cover,
-                                    placeholder:
-                                        (context, url) => Container(
-                                          color:
-                                              isDark
-                                                  ? AppColors.darkCanvas
-                                                  : AppColors.parchment,
-                                          child: Center(
-                                            child: CircularProgressIndicator(
-                                              strokeWidth: 2,
-                                              color: AppColors.deepSoilGreen
-                                                  .withValues(alpha: 0.5),
+                                ],
+                              ),
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(18),
+                                child: Stack(
+                                  children: [
+                                    CachedNetworkImage(
+                                      imageUrl: item.imageUrl ?? '',
+                                      height: double.infinity,
+                                      width: double.infinity,
+                                      fit: BoxFit.cover,
+                                      placeholder:
+                                          (context, url) => Container(
+                                            color:
+                                                isDark
+                                                    ? AppColors.darkCanvas
+                                                    : AppColors.parchment,
+                                            child: Center(
+                                              child: CircularProgressIndicator(
+                                                strokeWidth: 2,
+                                                color: AppColors.deepSoilGreen
+                                                    .withValues(alpha: 0.5),
+                                              ),
                                             ),
                                           ),
-                                        ),
-                                    errorWidget:
-                                        (context, url, error) => Container(
-                                          color:
-                                              isDark
-                                                  ? AppColors.darkCanvas
-                                                  : AppColors.parchment,
-                                          child: Icon(
-                                            Icons.image_rounded,
-                                            color: theme.hintColor,
-                                            size: 32,
+                                      errorWidget:
+                                          (context, url, error) => Container(
+                                            color:
+                                                isDark
+                                                    ? AppColors.darkCanvas
+                                                    : AppColors.parchment,
+                                            child: Icon(
+                                              Icons.image_rounded,
+                                              color: theme.hintColor,
+                                              size: 32,
+                                            ),
                                           ),
-                                        ),
-                                  ),
-                                  // Discount Badge
-                                  if (discountPercent > 0)
-                                    Positioned(
-                                      top: 6,
-                                      left: 6,
-                                      child: Container(
-                                        padding: const EdgeInsets.symmetric(
-                                          horizontal: 6,
-                                          vertical: 3,
-                                        ),
-                                        decoration: BoxDecoration(
-                                          gradient: LinearGradient(
-                                            colors: [
-                                              AppColors.deepSoilGreen,
-                                              AppColors.deepSoilGreen
-                                                  .withValues(alpha: 0.85),
-                                            ],
+                                    ),
+                                    // Discount Badge
+                                    if (discountPercent > 0)
+                                      Positioned(
+                                        top: 6,
+                                        left: 6,
+                                        child: Container(
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 6,
+                                            vertical: 3,
                                           ),
-                                          borderRadius: BorderRadius.circular(
-                                            8,
+                                          decoration: BoxDecoration(
+                                            gradient: LinearGradient(
+                                              colors: [
+                                                AppColors.deepSoilGreen,
+                                                AppColors.deepSoilGreen
+                                                    .withValues(alpha: 0.85),
+                                              ],
+                                            ),
+                                            borderRadius: BorderRadius.circular(
+                                              8,
+                                            ),
                                           ),
-                                        ),
-                                        child: Text(
-                                          '${discountPercent.toStringAsFixed(0)}%',
-                                          style: const TextStyle(
-                                            color: AppColors.parchment,
-                                            fontSize: 10,
-                                            fontWeight: FontWeight.bold,
+                                          child: Text(
+                                            '${discountPercent.toStringAsFixed(0)}%',
+                                            style: const TextStyle(
+                                              color: AppColors.parchment,
+                                              fontSize: 10,
+                                              fontWeight: FontWeight.bold,
+                                            ),
                                           ),
                                         ),
                                       ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                            SizedBox(width: widget.responsive.M),
+                            // Product Details
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    item.productName,
+                                    style: theme.textTheme.titleMedium?.copyWith(
+                                      fontWeight: FontWeight.bold,
+                                      height: 1.2,
                                     ),
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    '${item.unitWeight} kg • ${item.quantity} units',
+                                    style: theme.textTheme.bodySmall?.copyWith(
+                                      color: theme.hintColor,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 10),
+                                  Row(
+                                    children: [
+                                      Text(
+                                        '₹${item.discountedPrice.toStringAsFixed(0)}',
+                                        style: theme.textTheme.titleLarge
+                                            ?.copyWith(
+                                              fontWeight: FontWeight.bold,
+                                              color: AppColors.getPriceColor(
+                                                context,
+                                              ),
+                                            ),
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Text(
+                                        '₹${item.price.toStringAsFixed(0)}',
+                                        style: theme.textTheme.bodyMedium
+                                            ?.copyWith(
+                                              decoration:
+                                                  TextDecoration.lineThrough,
+                                              color: theme.hintColor,
+                                            ),
+                                      ),
+                                    ],
+                                  ),
                                 ],
                               ),
                             ),
-                          ),
-                          SizedBox(width: widget.responsive.M),
-                          // Product Details
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  item.productName,
-                                  style: theme.textTheme.titleMedium?.copyWith(
-                                    fontWeight: FontWeight.bold,
-                                    height: 1.2,
-                                  ),
-                                  maxLines: 2,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  '${item.unitWeight} kg • ${item.quantity} units',
-                                  style: theme.textTheme.bodySmall?.copyWith(
-                                    color: theme.hintColor,
-                                  ),
-                                ),
-                                const SizedBox(height: 10),
-                                Row(
-                                  children: [
-                                    Text(
-                                      '₹${item.discountedPrice.toStringAsFixed(0)}',
-                                      style: theme.textTheme.titleLarge
-                                          ?.copyWith(
-                                            fontWeight: FontWeight.bold,
-                                            color: AppColors.getPriceColor(
-                                              context,
-                                            ),
-                                          ),
-                                    ),
-                                    const SizedBox(width: 8),
-                                    Text(
-                                      '₹${item.price.toStringAsFixed(0)}',
-                                      style: theme.textTheme.bodyMedium
-                                          ?.copyWith(
-                                            decoration:
-                                                TextDecoration.lineThrough,
-                                            color: theme.hintColor,
-                                          ),
-                                    ),
-                                  ],
-                                ),
-                              ],
+                          ],
+                        )
+                      else
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            Container(
+                              width: widget.responsive.value(
+                                mobile: 85,
+                                tablet: 100,
+                              ),
+                              height: widget.responsive.value(
+                                mobile: 85,
+                                tablet: 100,
+                              ),
+                              decoration: BoxDecoration(
+                                color: isDark ? AppColors.darkCanvas : AppColors.parchment,
+                                borderRadius: BorderRadius.circular(18),
+                              ),
+                              child: Icon(
+                                Icons.calendar_today_rounded,
+                                color: theme.colorScheme.primary,
+                                size: 36,
+                              ),
                             ),
-                          ),
-                        ],
-                      ),
+                            SizedBox(width: widget.responsive.M),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    '${subscription.planName} Plan',
+                                    style: theme.textTheme.titleMedium?.copyWith(
+                                      fontWeight: FontWeight.bold,
+                                      height: 1.2,
+                                    ),
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    'Total deliveries: ${subscription.totalDeliveries}',
+                                    style: theme.textTheme.bodySmall?.copyWith(
+                                      color: theme.hintColor,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 10),
+                                  Text(
+                                    '₹${subscription.total.toStringAsFixed(0)}',
+                                    style: theme.textTheme.titleLarge?.copyWith(
+                                      fontWeight: FontWeight.bold,
+                                      color: AppColors.getPriceColor(context),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
                       SizedBox(height: widget.responsive.M),
                       // Progress Section
                       Container(

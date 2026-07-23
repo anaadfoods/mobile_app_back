@@ -7,7 +7,7 @@ class SubscriptionNavigationHelper {
     Product product,
   ) async {
     // Navigate to ProductDetailsScreen with autoOpenSubscription set to true.
-    // The screen itself handles loading plans and selecting the default (max duration)
+    // The screen itself handles loading plans and selecting the first available plan by default
     // if no initialPlanId is provided.
     Navigator.push(
       context,

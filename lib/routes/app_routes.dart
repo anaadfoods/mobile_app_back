@@ -18,7 +18,7 @@ enum AppRoute {
 
   // Product & Order Routes
   productDetails(path: '/product/:id', name: 'product_details'),
-  allProducts(path: '/all-products', name: 'all_products'),
+  allProducts(path: '/products', name: 'products'),
   featuredProducts(path: '/featured-products', name: 'featured_products'),
   categoryItems(path: '/category-items', name: 'category_items'),
   orderList(path: '/orders', name: 'order_list'),

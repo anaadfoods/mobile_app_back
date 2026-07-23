@@ -125,22 +125,24 @@ class SubscriptionCubit extends Cubit<SubscriptionState> {
     }
   }
 
-  Future<void> cancelSubscription(int subscriptionId) async {
+  Future<Map<String, dynamic>?> cancelSubscription(int subscriptionId, {String? reason}) async {
     // Store current state to restore on error
     final previousState = _getCurrentSuccessState();
 
     try {
-      await _subscriptionRepository.cancelSubscription(subscriptionId);
-      emit(
-        const SubscriptionActionSuccess('Subscription cancelled successfully.'),
-      );
+      final result = await _subscriptionRepository.cancelSubscription(subscriptionId, reason: reason);
+      final msg = result['message'] ?? 'Subscription cancelled successfully.';
+      emit(SubscriptionActionSuccess(msg));
       await fetchUserSubscriptions();
+      return result;
     } on SubscriptionException catch (e) {
       emit(SubscriptionError(e.message));
       emit(previousState);
+      return null;
     } catch (e) {
       emit(const SubscriptionError('Failed to cancel the subscription.'));
       emit(previousState);
+      return null;
     }
   }
 

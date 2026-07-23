@@ -1,3 +1,4 @@
+@Deprecated('Use PaymentStatusResponse instead — the old status endpoint is removed.')
 class PaymentStatus {
   final int orderId;
   final String orderNumber;
@@ -45,6 +46,7 @@ class PaymentStatus {
   }
 }
 
+@Deprecated('Use PaymentStatusResponse instead — the old status endpoint is removed.')
 class SubscriptionPaymentStatus {
   final int subscriptionId;
   final String paymentStatus;
@@ -83,5 +85,39 @@ class SubscriptionPaymentStatus {
       respMessage: json['resp_message'],
       errorCode: json['error_code'],
     );
+  }
+}
+
+/// Lightweight model for the unified gateway-agnostic status endpoint.
+///
+/// `GET /api/payments/status/<reference>/`
+/// where `<reference>` is either `order_number` or `subscription_number`.
+///
+/// Response: `{ "transaction_status": "...", "resp_message": "..." }`
+///
+/// `transaction_status` ∈ INITIATED · PENDING · SUCCESS · FAILED · CANCELLED · ABANDONED · REFUNDED
+class PaymentStatusResponse {
+  final String status;
+  final String respMessage;
+
+  PaymentStatusResponse({
+    required this.status,
+    required this.respMessage,
+  });
+
+  factory PaymentStatusResponse.fromJson(Map<String, dynamic> json) {
+    return PaymentStatusResponse(
+      status: json['transaction_status']?.toString() ?? json['status']?.toString() ?? '',
+      respMessage: json['resp_message']?.toString() ?? json['message']?.toString() ?? '',
+    );
+  }
+
+  bool get isSuccess => status.toUpperCase() == 'SUCCESS';
+  bool get isPending =>
+      status.toUpperCase() == 'INITIATED' ||
+      status.toUpperCase() == 'PENDING';
+  bool get isFailed {
+    const failed = {'FAILED', 'CANCELLED', 'ABANDONED'};
+    return failed.contains(status.toUpperCase());
   }
 }

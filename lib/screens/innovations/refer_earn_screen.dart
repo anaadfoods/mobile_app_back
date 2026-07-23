@@ -1,11 +1,8 @@
-import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:grocery_app/common_widgets/global_import.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:grocery_app/services/referral_reward_service.dart';
 import 'package:grocery_app/models/referral_model.dart';
-
-import 'package:grocery_app/service_locator.dart';
 
 class ReferEarnScreen extends StatefulWidget {
   const ReferEarnScreen({super.key});
@@ -26,26 +23,9 @@ class _ReferEarnScreenState extends State<ReferEarnScreen>
 
   String get _referralCode => _referralData?.referralCode ?? 'LOADING...';
   int get _totalReferrals => _referralData?.referralsCount ?? 0;
-  int get _pendingReferrals =>
-      _referralData?.referredUsers
-          .where(
-            (u) =>
-                u.status == 'PENDING' ||
-                u.status == 'REGISTERED' ||
-                u.status == 'QUALIFICATION_PENDING',
-          )
-          .length ??
-      0;
-  int get _acceptedReferrals =>
-      _referralData?.referredUsers
-          .where(
-            (u) =>
-                u.status == 'QUALIFIED' ||
-                u.status == 'REWARD_AVAILABLE' ||
-                u.status == 'REWARD_REDEEMED',
-          )
-          .length ??
-      0;
+  int get _pendingReferrals => _referralData?.pendingCount ?? 0;
+  int get _acceptedReferrals => _referralData?.orderedCount ?? 0;
+  int get _pendingRewards => _referralData?.pendingRewardCount ?? 0;
 
   @override
   void initState() {
@@ -85,7 +65,9 @@ class _ReferEarnScreenState extends State<ReferEarnScreen>
   void _share(BuildContext context) {
     HapticFeedback.mediumImpact();
     final box = context.findRenderObject() as RenderBox?;
-    final playStoreUrl = dotenv.env['PLAY_STORE_URL'] ?? 'https://play.google.com/store/apps/details?id=com.anhadnaad.anaadfoodsui';
+    final playStoreUrl =
+        dotenv.env['PLAY_STORE_URL'] ??
+        'https://play.google.com/store/apps/details?id=com.anhadnaad.anaadfoodsui';
     Share.share(
       'Join Anaad — where food meets farming! Use my referral code: $_referralCode to sign up & place your first order.\n\nDownload now: $playStoreUrl',
       subject: 'Join Anaad — Fresh from the Farm!',
@@ -160,6 +142,11 @@ class _ReferEarnScreenState extends State<ReferEarnScreen>
                       // Stats Section
                       _buildStatsSection(theme, isDark),
                       const SizedBox(height: 28),
+                      // Referred By Card (if user was referred by someone)
+                      if (_referralData?.referredBy != null) ...[
+                        _buildReferredByCard(theme, isDark),
+                        const SizedBox(height: 24),
+                      ],
 
                       // Referred Users List
                       if (_referralData != null)
@@ -177,6 +164,18 @@ class _ReferEarnScreenState extends State<ReferEarnScreen>
   }
 
   Widget _buildHeroSection(ThemeData theme, bool isDark) {
+    final youGet = _referralData?.rewardsInfo?.youGet;
+    final theyGet = _referralData?.rewardsInfo?.theyGet;
+    final hasRewards =
+        youGet != null &&
+        youGet.isNotEmpty &&
+        theyGet != null &&
+        theyGet.isNotEmpty;
+    final descText =
+        hasRewards
+            ? 'Invite friends and family to ANAAD. When they place their first order, they get $theyGet and you get $youGet! 🎁'
+            : 'Invite friends and family to ANAAD. When they place their first order, you\'ll receive a surprise gift from us. 🎁';
+
     return Column(
       children: [
         Container(
@@ -213,7 +212,7 @@ class _ReferEarnScreenState extends State<ReferEarnScreen>
         ),
         const SizedBox(height: 8),
         Text(
-          'Invite friends and family to ANAAD. When they place their first order, you\'ll receive a surprise gift from us. 🎁',
+          descText,
           style: theme.textTheme.bodyMedium?.copyWith(
             color: isDark ? AppColors.parchment70 : AppColors.rawEarth70,
           ),
@@ -484,31 +483,46 @@ class _ReferEarnScreenState extends State<ReferEarnScreen>
           ),
           const SizedBox(height: 20),
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              _buildStatItem(
-                theme,
-                isDark,
-                Icons.people_rounded,
-                '$_totalReferrals',
-                'Referrals',
-                AppColors.harvestAmber,
+              Expanded(
+                child: _buildStatItem(
+                  theme,
+                  isDark,
+                  Icons.people_rounded,
+                  '$_totalReferrals',
+                  'Referred',
+                  AppColors.harvestAmber,
+                ),
               ),
-              _buildStatItem(
-                theme,
-                isDark,
-                Icons.hourglass_top_rounded,
-                '$_pendingReferrals',
-                'Pending',
-                AppColors.rawEarth,
+              Expanded(
+                child: _buildStatItem(
+                  theme,
+                  isDark,
+                  Icons.shopping_cart_checkout_rounded,
+                  '$_acceptedReferrals',
+                  'Ordered',
+                  AppColors.deepSoilGreen,
+                ),
               ),
-              _buildStatItem(
-                theme,
-                isDark,
-                Icons.shopping_cart_checkout_rounded,
-                '$_acceptedReferrals',
-                'Ordered',
-                AppColors.deepSoilGreen,
+              Expanded(
+                child: _buildStatItem(
+                  theme,
+                  isDark,
+                  Icons.hourglass_top_rounded,
+                  '$_pendingReferrals',
+                  'Pending',
+                  AppColors.rawEarth,
+                ),
+              ),
+              Expanded(
+                child: _buildStatItem(
+                  theme,
+                  isDark,
+                  Icons.card_giftcard_rounded,
+                  '$_pendingRewards',
+                  'Rewards',
+                  theme.colorScheme.primary,
+                ),
               ),
             ],
           ),
@@ -526,6 +540,7 @@ class _ReferEarnScreenState extends State<ReferEarnScreen>
     Color color,
   ) {
     return Column(
+      mainAxisSize: MainAxisSize.min,
       children: [
         Container(
           padding: const EdgeInsets.all(12),
@@ -533,20 +548,26 @@ class _ReferEarnScreenState extends State<ReferEarnScreen>
             color: color.withValues(alpha: 0.15),
             borderRadius: BorderRadius.circular(12),
           ),
-          child: Icon(icon, color: color, size: 24),
+          child: Icon(icon, color: color, size: 22),
         ),
-        const SizedBox(height: 10),
+        const SizedBox(height: 8),
         Text(
           value,
-          style: theme.textTheme.titleLarge?.copyWith(
+          textAlign: TextAlign.center,
+          style: theme.textTheme.titleMedium?.copyWith(
             fontWeight: FontWeight.bold,
             color: isDark ? AppColors.parchment : AppColors.charcoal87,
           ),
         ),
+        const SizedBox(height: 2),
         Text(
           label,
+          textAlign: TextAlign.center,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
           style: theme.textTheme.labelSmall?.copyWith(
             color: isDark ? AppColors.parchment70 : AppColors.rawEarth70,
+            fontSize: 10,
           ),
         ),
       ],
@@ -676,99 +697,140 @@ class _ReferEarnScreenState extends State<ReferEarnScreen>
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: AppColors.transparent,
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(16),
         border: Border.all(
           color: isDark ? AppColors.charcoal60 : AppColors.rawEarth12,
         ),
       ),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Avatar
-          Container(
-            width: 46,
-            height: 46,
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [
-                  theme.colorScheme.primary.withAlpha(200),
-                  theme.colorScheme.primary,
-                ],
-              ),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Center(
-              child: Text(
-                user.fullName.isNotEmpty
-                    ? user.fullName[0].toUpperCase()
-                    : user.username[0].toUpperCase(),
-                style: const TextStyle(
-                  color: AppColors.parchment,
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(width: 12),
-          // Info
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  user.fullName.isNotEmpty ? user.fullName : user.username,
-                  style: theme.textTheme.titleSmall?.copyWith(
-                    fontWeight: FontWeight.w600,
+          Row(
+            children: [
+              // Avatar
+              Container(
+                width: 42,
+                height: 42,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      theme.colorScheme.primary.withAlpha(200),
+                      theme.colorScheme.primary,
+                    ],
                   ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
+                  borderRadius: BorderRadius.circular(10),
                 ),
-                const SizedBox(height: 2),
-                Text(
-                  'Joined $dateStr',
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color:
-                        isDark ? AppColors.parchment70 : AppColors.rawEarth70,
-                    fontSize: 11,
+                child: Center(
+                  child: Text(
+                    user.fullName.isNotEmpty
+                        ? user.fullName[0].toUpperCase()
+                        : user.username[0].toUpperCase(),
+                    style: const TextStyle(
+                      color: AppColors.parchment,
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              // Info
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      user.fullName.isNotEmpty ? user.fullName : user.username,
+                      style: theme.textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      'Joined $dateStr',
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color:
+                            isDark
+                                ? AppColors.parchment70
+                                : AppColors.rawEarth70,
+                        fontSize: 11,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 8),
+              // Status Badge
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 5,
+                ),
+                decoration: BoxDecoration(
+                  color: statusColor.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: statusColor.withValues(alpha: 0.3)),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      width: 6,
+                      height: 6,
+                      decoration: BoxDecoration(
+                        color: statusColor,
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      statusText,
+                      style: theme.textTheme.labelSmall?.copyWith(
+                        color: statusColor,
+                        fontWeight: FontWeight.w600,
+                        fontSize: 10,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          if (user.rewardYouGet != null && user.rewardYouGet!.isNotEmpty) ...[
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 10.0),
+              child: Divider(height: 1, thickness: 0.5),
+            ),
+            Row(
+              children: [
+                Icon(
+                  Icons.card_giftcard_rounded,
+                  size: 14,
+                  color:
+                      isDark ? AppColors.parchment70 : AppColors.deepSoilGreen,
+                ),
+                const SizedBox(width: 6),
+                Expanded(
+                  child: Text(
+                    'Your Reward: ${user.rewardYouGet}',
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color:
+                          isDark
+                              ? AppColors.parchment
+                              : AppColors.deepSoilGreen,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 12,
+                    ),
                   ),
                 ),
               ],
             ),
-          ),
-          // Status Badge
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-            decoration: BoxDecoration(
-              color: statusColor.withValues(alpha: 0.15),
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: statusColor.withValues(alpha: 0.3)),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  width: 6,
-                  height: 6,
-                  decoration: BoxDecoration(
-                    color: statusColor,
-                    shape: BoxShape.circle,
-                  ),
-                ),
-                const SizedBox(width: 5),
-                Text(
-                  statusText,
-                  style: theme.textTheme.labelSmall?.copyWith(
-                    color: statusColor,
-                    fontWeight: FontWeight.w600,
-                    fontSize: 10,
-                  ),
-                ),
-              ],
-            ),
-          ),
+          ],
         ],
       ),
     );
@@ -901,6 +963,109 @@ class _ReferEarnScreenState extends State<ReferEarnScreen>
               ),
             );
           }),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildReferredByCard(ThemeData theme, bool isDark) {
+    final referredBy = _referralData?.referredBy;
+    if (referredBy == null) return const SizedBox.shrink();
+
+    final name =
+        referredBy.fullName.isNotEmpty
+            ? referredBy.fullName
+            : referredBy.username;
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: theme.cardColor,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: theme.colorScheme.primary.withAlpha(50)),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.charcoal.withAlpha(12),
+            blurRadius: 15,
+            offset: const Offset(0, 5),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: theme.colorScheme.primary.withAlpha(30),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              Icons.person_pin_rounded,
+              color: theme.colorScheme.primary,
+              size: 24,
+            ),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Referred By',
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    color:
+                        isDark ? AppColors.parchment70 : AppColors.rawEarth70,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  name,
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: isDark ? AppColors.parchment : AppColors.charcoal,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          if (referredBy.rewardYouGet != null &&
+              referredBy.rewardYouGet!.isNotEmpty)
+            Flexible(
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 6,
+                ),
+                decoration: BoxDecoration(
+                  color: AppColors.harvestAmber.withAlpha(30),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(
+                      Icons.card_giftcard_rounded,
+                      size: 14,
+                      color: AppColors.harvestAmber,
+                    ),
+                    const SizedBox(width: 4),
+                    Flexible(
+                      child: Text(
+                        referredBy.rewardYouGet!,
+                        style: theme.textTheme.labelSmall?.copyWith(
+                          color: AppColors.harvestAmber,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 10,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
         ],
       ),
     );

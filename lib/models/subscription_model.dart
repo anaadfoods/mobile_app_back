@@ -85,6 +85,7 @@ class Subscription {
   final List<SubscriptionItem> items;
   final String? pauseStartDate;
   final String? pauseEndDate;
+  final String? subscriptionNumber;
 
   Subscription({
     required this.id,
@@ -121,6 +122,7 @@ class Subscription {
     required this.items,
     this.pauseStartDate,
     this.pauseEndDate,
+    this.subscriptionNumber,
   });
 
   String get installmentPaymentStatus =>
@@ -167,6 +169,7 @@ class Subscription {
       canPayNextInstallment: json['can_pay_next_installment'] ?? false,
       pauseStartDate: json['pause_start_date']?.toString(),
       pauseEndDate: json['pause_end_date']?.toString(),
+      subscriptionNumber: json['subscription_number']?.toString(),
       installmentInfo:
           json['installment_info'] != null
               ? InstallmentInfo.fromJson(

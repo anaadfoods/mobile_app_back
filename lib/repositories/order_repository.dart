@@ -11,14 +11,13 @@ class OrderException implements Exception {
   String toString() => message;
 }
 
-
 class OrderRepository {
   final OrderService _orderService;
   final TokenService _tokenService;
 
   OrderRepository({OrderService? orderService, TokenService? tokenService})
-      : _orderService = orderService ?? getIt<OrderService>(),
-        _tokenService = tokenService ?? getIt<TokenService>();
+    : _orderService = orderService ?? getIt<OrderService>(),
+      _tokenService = tokenService ?? getIt<TokenService>();
 
   Future<void> _checkAuth() async {
     final isAuthenticated = await _tokenService.isLoggedIn();
@@ -34,7 +33,9 @@ class OrderRepository {
     return orders.where((order) {
       if (order.paymentMethod.toUpperCase() == 'UPI') {
         final status = order.paymentStatus.toUpperCase();
-        if (status == 'PAYMENT_PENDING' || status == 'PENDING' || status == 'FAILED') {
+        if (status == 'PAYMENT_PENDING' ||
+            status == 'PENDING' ||
+            status == 'FAILED') {
           return false;
         }
       }
@@ -51,23 +52,24 @@ class OrderRepository {
   Future<OrderCreateResponse> createOrder(OrderModel order) async {
     await _checkAuth();
     final dynamic response = await _orderService.createOrder(order);
-    
+
     if (response is OrderCreateResponse) {
       return response;
     }
     if (response is OrderModel && response.orderNumber != null) {
       return OrderCreateResponse(
-        success: true, 
-        orderId: response.orderNumber,
-        paymentLinks: null
+        success: true,
+        orderNumber: response.orderNumber,
       );
     }
-    throw OrderException('Failed to create order due to an unknown response type.');
+    throw OrderException(
+      'Failed to create order due to an unknown response type.',
+    );
   }
 
-  Future<void> cancelOrder(int orderId) async {
+  Future<Map<String, dynamic>> cancelOrder(int orderId, {String? reason}) async {
     await _checkAuth();
-    await _orderService.cancelOrder(orderId);
+    return await _orderService.cancelOrder(orderId, reason: reason);
   }
 
   Future<String> downloadInvoice(String orderNumber) async {

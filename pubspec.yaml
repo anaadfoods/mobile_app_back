@@ -1,7 +1,7 @@
 name: grocery_app
 description: "A new Flutter project."
 publish_to: "none"
-version: 1.0.0
+version: 2.2.0+4
 
 environment:
   sdk: ^3.7.0
@@ -53,13 +53,13 @@ dependencies:
   sign_in_with_apple: ^7.0.1
   device_preview: any
   image_cropper: ^12.2.1
+  flutter_native_splash: ^2.4.4
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^6.0.0
   flutter_launcher_icons: ^0.14.3
-  flutter_native_splash: ^2.4.4
   bloc_test: ^10.0.0
   mocktail: ^1.0.4
 

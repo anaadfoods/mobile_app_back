@@ -1,5 +1,6 @@
 import "package:grocery_app/common_widgets/global_import.dart";
 import 'package:grocery_app/service_locator.dart';
+import 'dart:async';
 
 class WebViewPage extends StatefulWidget {
   final String url;
@@ -12,8 +13,8 @@ class WebViewPage extends StatefulWidget {
   final int orderId;
   final bool isSubscription;
   final int subID;
-  final String?
-  merchantTransactionId; // Added for explicit transaction ID tracking
+  final String? merchantTransactionId; // Added for explicit transaction ID tracking
+  final String? reference; // Added for unified status tracking (order_number/subscription_number)
 
   const WebViewPage({
     super.key,
@@ -28,6 +29,7 @@ class WebViewPage extends StatefulWidget {
     this.onPaymentResult,
     this.isSubscription = false,
     this.merchantTransactionId,
+    this.reference,
   });
 
   @override
@@ -38,38 +40,51 @@ class _WebViewPageState extends State<WebViewPage> {
   late WebViewController _controller;
   bool _isLoading = true;
   bool _isHandlingPayment = false;
-  final OrderService _orderService = getIt<OrderService>();
-  final SubscriptionService _subscriptionService = getIt<SubscriptionService>();
-  List<Subscription> allSubscriptions = [];
+  Timer? _pollTimer;
+  bool _isPolling = false;
+  
+  void _startPolling() {
+    final ref = widget.reference ??
+        widget.merchantTransactionId ??
+        (widget.isSubscription
+            ? widget.subID.toString()
+            : widget.orderId.toString());
 
-  Future<void> _fetchSubscriptions() async {
-    try {
-      final response = await _subscriptionService.getSubscriptions();
-      if (response['success'] == true && response['data'] != null) {
-        final List<dynamic> data = response['data'];
-        setState(() {
-          allSubscriptions = data.map((item) => item as Subscription).toList();
-        });
-      } else {
-        AppLogger.instance.e('Error fetching subscriptions: ${response['message']}');
-        SnackBarHelper.showError(
-          context,
-          response['message'] ?? 'Failed to fetch subscriptions',
-        );
+    if (ref.isEmpty || ref == '0') return;
+
+    _pollTimer = Timer.periodic(const Duration(seconds: 3), (timer) async {
+      if (_isPolling || _isHandlingPayment || !mounted) return;
+      _isPolling = true;
+      try {
+        final paymentService = getIt<PaymentService>();
+        final statusResponse = await paymentService.fetchStatus(ref);
+        
+        if (!statusResponse.isPending) {
+          timer.cancel();
+          if (statusResponse.isSuccess) {
+            await _handlePaymentSuccess();
+          } else if (statusResponse.isFailed) {
+            await _handlePaymentFailure();
+          }
+        }
+      } catch (e) {
+        // ignore errors during background polling
+      } finally {
+        if (mounted) _isPolling = false;
       }
-    } catch (e) {
-      AppLogger.instance.e('Error fetching subscriptions: $e');
-      SnackBarHelper.showError(
-        context,
-        'An error occurred while fetching subscriptions',
-      );
-    }
+    });
+  }
+
+  @override
+  void dispose() {
+    _pollTimer?.cancel();
+    super.dispose();
   }
 
   @override
   void initState() {
     super.initState();
-    _fetchSubscriptions();
+    _startPolling();
 
     _controller =
         WebViewController()
@@ -82,6 +97,19 @@ class _WebViewPageState extends State<WebViewPage> {
                   _isLoading = true;
                 });
                 widget.onUrlChanged?.call(url);
+
+                // Detect payment completion early when page starts loading
+                if (url.contains(ApiConfig.easebuzzSuccessCallback) ||
+                    url.contains("${ApiConfig.baseUrl}/api/payments/success") ||
+                    url.contains("${ApiConfig.baseUrl}/api/payment/success")) {
+                  _handlePaymentSuccess();
+                } else if (url.contains(ApiConfig.easebuzzFailureCallback) ||
+                    url.contains(
+                          "${ApiConfig.baseUrl}/api/payments/failure",
+                        ) ||
+                    url.contains("${ApiConfig.baseUrl}/api/payment/failure")) {
+                  _handlePaymentFailure();
+                }
               },
               onPageFinished: (String url) async {
                 setState(() {
@@ -90,23 +118,51 @@ class _WebViewPageState extends State<WebViewPage> {
                 widget.onUrlChanged?.call(url);
                 AppLogger.instance.log(url);
 
-                if (url.contains("${ApiConfig.baseUrl}/api/payments/success") ||
+                // Detect payment completion via Easebuzz callback URLs
+                // or legacy callback paths for backward compatibility
+                if (url.contains(ApiConfig.easebuzzSuccessCallback) ||
+                    url.contains("${ApiConfig.baseUrl}/api/payments/success") ||
                     url.contains("${ApiConfig.baseUrl}/api/payment/success")) {
                   await _handlePaymentSuccess();
-                } else if (url.contains(
-                      "${ApiConfig.baseUrl}/api/payments/failure",
-                    ) ||
+                } else if (url.contains(ApiConfig.easebuzzFailureCallback) ||
+                    url.contains(
+                          "${ApiConfig.baseUrl}/api/payments/failure",
+                        ) ||
                     url.contains("${ApiConfig.baseUrl}/api/payment/failure")) {
                   await _handlePaymentFailure();
                 }
               },
               onNavigationRequest: (NavigationRequest request) {
-                // Allow all navigation — onPageFinished handles payment callbacks
+                final url = request.url;
+
+                // Intercept callback URLs immediately to prevent loading the API endpoints in WebView
+                if (url.contains(ApiConfig.easebuzzSuccessCallback) ||
+                    url.contains("${ApiConfig.baseUrl}/api/payments/success") ||
+                    url.contains("${ApiConfig.baseUrl}/api/payment/success")) {
+                  _handlePaymentSuccess();
+                  return NavigationDecision.prevent;
+                } else if (url.contains(ApiConfig.easebuzzFailureCallback) ||
+                    url.contains(
+                          "${ApiConfig.baseUrl}/api/payments/failure",
+                        ) ||
+                    url.contains("${ApiConfig.baseUrl}/api/payment/failure")) {
+                  _handlePaymentFailure();
+                  return NavigationDecision.prevent;
+                }
+
+                if (!url.startsWith('http://') && !url.startsWith('https://')) {
+                  final uri = Uri.parse(url);
+                  launchUrl(uri, mode: LaunchMode.externalApplication).catchError((e) {
+                    AppLogger.instance.e("Error launching external url: $e");
+                    return false;
+                  });
+                  return NavigationDecision.prevent;
+                }
                 return NavigationDecision.navigate;
               },
             ),
           )
-          ..loadRequest(Uri.parse(widget.url), headers: widget.headers ?? {});
+          ..loadRequest(Uri.parse(widget.url), headers: widget.headers ?? const <String, String>{});
   }
 
   Future<void> _handlePaymentSuccess() async {
@@ -115,59 +171,22 @@ class _WebViewPageState extends State<WebViewPage> {
     _isHandlingPayment = true;
 
     try {
-      if (widget.isSubscription) {
-        AppLogger.instance.log("Is is Subscription call ${widget.isSubscription}");
-        // Subscription payment status
-        AppLogger.instance.log(widget.orderId.toString());
-        final debugpaymentone = await getIt<SubscriptionService>()
-            .fetchSubscriptionPaymentStatus(widget.subID);
+      final ref = widget.reference ??
+          widget.merchantTransactionId ??
+          (widget.isSubscription
+              ? widget.subID.toString()
+              : widget.orderId.toString());
 
-        if (debugpaymentone == null) {
-          AppLogger.instance.w("Failed to fetch payment status");
-          // Check if we should still notify success if we can't verify immediately?
-          // For now, let's assume if we can't verify, we shouldn't proceed blindly,
-          // but since we are modifying to callback, we might want to pass this info back.
-          // However, the original plan was just to delegate.
-          // The parent (CheckoutScreen) will do its own verification.
-        } else {
-          AppLogger.instance.log(debugpaymentone.paymentStatus);
+      AppLogger.instance.log("Verifying payment status for reference: $ref");
 
-          // Use the passed merchantTransactionId if available, otherwise use the one from status
-          final transactionIdToPost =
-              widget.merchantTransactionId ??
-              debugpaymentone.merchantTransactionId;
+      final paymentService = getIt<PaymentService>();
+      final statusResponse = await paymentService.pollStatus(ref);
+      AppLogger.instance.log("Verified payment status: ${statusResponse.status}");
 
-          // Attempt to post order ID to backup service, but don't block main flow if it fails
-          try {
-            await _orderService.postOrderId(transactionIdToPost);
-          } catch (e) {
-            AppLogger.instance.w("Warning: Failed to post order ID to backup service: $e");
-          }
-        }
-
-        // Delegate to parent
-        widget.onPaymentSuccess?.call(
-          ApiConfig.baseUrl,
-        ); // Passing a dummy valid URL or the actual current URL if accessible
-      } else {
-        // Order payment status (existing logic)
-        final debugpayment = await _orderService.fetchPaymentStatus(
-          widget.orderId,
-        );
-        try {
-          await _orderService.postOrderId(debugpayment.orderNumber);
-        } catch (e) {
-          AppLogger.instance.w("Warning: Failed to post order ID: $e");
-        }
-
-        // Delegate to parent
-        widget.onPaymentSuccess?.call(ApiConfig.baseUrl);
-      }
+      // Delegate to parent
+      widget.onPaymentSuccess?.call(ApiConfig.baseUrl);
     } catch (e) {
       AppLogger.instance.e("Error verifying payment: $e");
-      // Even on error, we might want to let the parent know or just handle failure?
-      // If we fail here, it's safer to not call success.
-      // User can manually exit or retry.
       _showDialog(
         "Error verifying payment info. Please check your dashboard.",
         false,
@@ -176,6 +195,10 @@ class _WebViewPageState extends State<WebViewPage> {
   }
 
   Future<void> _handlePaymentFailure() async {
+    // Guard against being called multiple times
+    if (_isHandlingPayment) return;
+    _isHandlingPayment = true;
+
     widget.onPaymentFailure?.call("flutterpay://payment/failure");
     _showDialog("Payment Failed!", false);
   }
@@ -208,6 +231,66 @@ class _WebViewPageState extends State<WebViewPage> {
     );
   }
 
+  Future<void> _confirmCancelAndVerifyStatus() async {
+    final shouldPop = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Cancel Payment?'),
+        content: const Text(
+          'Are you sure you want to cancel the payment?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Continue Payment'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text('Cancel Payment'),
+          ),
+        ],
+      ),
+    );
+
+    if (shouldPop == true) {
+      if (!mounted) return;
+
+      // Show loading spinner while verifying payment status
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => const Center(
+          child: CircularProgressIndicator(color: AppColors.parchment),
+        ),
+      );
+
+      try {
+        final paymentService = getIt<PaymentService>();
+        final ref = widget.reference ??
+            widget.merchantTransactionId ??
+            (widget.isSubscription
+                ? widget.subID.toString()
+                : widget.orderId.toString());
+        PaymentStatusResponse statusResponse = await paymentService.pollStatus(ref);
+
+        // Dismiss loading spinner
+        if (mounted) Navigator.of(context).pop();
+
+        if (statusResponse.isSuccess) {
+          await _handlePaymentSuccess();
+          return;
+        }
+      } catch (e) {
+        AppLogger.instance.e("Error verifying payment status on cancel: $e");
+        if (mounted) Navigator.of(context).pop();
+      }
+
+      if (mounted) {
+        Navigator.of(context).pop(); // Exit WebView
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -217,45 +300,21 @@ class _WebViewPageState extends State<WebViewPage> {
       canPop: false,
       onPopInvokedWithResult: (didPop, result) async {
         if (didPop) return;
-        final shouldPop = await showDialog<bool>(
-          context: context,
-          builder: (context) => AlertDialog(
-            title: const Text('Cancel Payment?'),
-            content: const Text(
-              'Are you sure you want to cancel the payment?',
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(false),
-                child: const Text('Continue Payment'),
-              ),
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(true),
-                child: const Text('Cancel Payment'),
-              ),
-            ],
-          ),
-        );
-        if (shouldPop == true) {
-          if (context.mounted) {
-            Navigator.of(context).pop();
-          }
-        }
+        await _confirmCancelAndVerifyStatus();
       },
       child: Scaffold(
         appBar: AppBar(
           title: Text(widget.title ?? 'Secure Payment'),
           leading: IconButton(
             icon: const Icon(Icons.arrow_back),
-            onPressed: () {
-              Navigator.of(context).maybePop();
+            onPressed: () async {
+              await _confirmCancelAndVerifyStatus();
             },
           ),
-        actions:
-            _isLoading
-                ? [
+          actions: _isLoading
+              ? [
                   Padding(
-                    padding: EdgeInsets.all(16.0),
+                    padding: const EdgeInsets.all(16.0),
                     child: CircularProgressIndicator(
                       strokeWidth: 2,
                       valueColor: AlwaysStoppedAnimation<Color>(
@@ -264,30 +323,30 @@ class _WebViewPageState extends State<WebViewPage> {
                     ),
                   ),
                 ]
-                : [],
-      ),
-      body: Column(
-        children: [
-          // Merchant Info Banner — shows Legal/DBA name & payment URL
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-            decoration: BoxDecoration(
-              color: isDark ? AppColors.parchment : AppColors.parchment,
-              border: Border(
-                bottom: BorderSide(
-                  color:
-                      isDark
-                          ? AppColors.deepSoilGreen
-                          : AppColors.deepSoilGreen,
-                  width: 1,
+              : [],
+        ),
+        body: Column(
+          children: [
+            // Merchant Info Banner — shows Legal/DBA name & payment URL
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+              decoration: BoxDecoration(
+                color: isDark ? AppColors.parchment : AppColors.parchment,
+                border: Border(
+                  bottom: BorderSide(
+                    color:
+                        isDark
+                            ? AppColors.deepSoilGreen
+                            : AppColors.deepSoilGreen,
+                    width: 1,
+                  ),
                 ),
               ),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
                   children: [
                     Icon(
                       Icons.verified_rounded,

@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:grocery_app/services/api_config.dart';
 import 'package:grocery_app/services/token_service.dart';
 import 'package:grocery_app/services/api_client.dart';
@@ -25,10 +26,11 @@ class ReferralRewardService {
 
       if (response.statusCode == 200) {
         final data = response.data;
-        return data['pending_rewards_count'] ?? 0;
+        return data['pending_reward_count'] ?? 0;
       }
       return 0;
-    } catch (e) {
+    } catch (e, stack) {
+      debugPrint('Error in getPendingRewardsCount: $e\n$stack');
       return 0;
     }
   }
@@ -48,8 +50,10 @@ class ReferralRewardService {
         return ReferralData.fromJson(data);
       }
       return null;
-    } catch (e) {
+    } catch (e, stack) {
+      debugPrint('Error in fetchReferrals: $e\n$stack');
       return null;
     }
   }
 }
+
