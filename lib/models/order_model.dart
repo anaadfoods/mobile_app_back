@@ -619,6 +619,9 @@ class OrderCreateResponse {
   /// The actual gateway error message when [paymentRequired] is true.
   final String? paymentError;
 
+  /// The order ID created on the backend.
+  final int? orderId;
+
   OrderCreateResponse({
     required this.success,
     this.orderNumber,
@@ -628,6 +631,7 @@ class OrderCreateResponse {
     this.accessKey,
     this.paymentRequired = false,
     this.paymentError,
+    this.orderId,
   });
 
   factory OrderCreateResponse.fromJson(Map<String, dynamic> json) {
@@ -640,6 +644,7 @@ class OrderCreateResponse {
       accessKey: json['access_key']?.toString(),
       paymentRequired: json['payment_required'] ?? false,
       paymentError: json['payment_error']?.toString(),
+      orderId: int.tryParse(json['order_id']?.toString() ?? ''),
     );
   }
 }

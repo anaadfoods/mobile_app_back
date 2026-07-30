@@ -2,7 +2,7 @@ import 'package:grocery_app/common_widgets/global_import.dart';
 import 'package:dio/dio.dart' as dio;
 
 import 'package:grocery_app/service_locator.dart';
-import 'package:grocery_app/services/favorite_state_service.dart';
+
 
 class ProfileService {
   static final ProfileService _instance = ProfileService._internal();
@@ -15,8 +15,7 @@ class ProfileService {
   static Stream<UserModel?> get addressChanges =>
       _addressChangeController.stream;
 
-  static final Map<int, int> _favoriteToggleCounts = {};
-  static final Map<int, Timer> _favoriteDebouncers = {};
+
 
   void _notifyAddressChange() {
     final user = TokenService().currentUser;
@@ -117,98 +116,6 @@ class ProfileService {
     } catch (e, st) {
       debugPrint('updateUserAddress: unexpected error: $e\n$st');
       return false;
-    }
-  }
-
-  Future<Map<String, dynamic>> toggleFavorite(int productId) async {
-    try {
-      final isAuthenticated = await TokenService().isLoggedIn();
-      if (!isAuthenticated) {
-        return {
-          'success': false,
-          'message': 'Please login to manage favorites',
-          'requiresLogin': true,
-        };
-      }
-
-      // Record the tap
-      _favoriteToggleCounts[productId] =
-          (_favoriteToggleCounts[productId] ?? 0) + 1;
-      _favoriteDebouncers[productId]?.cancel();
-
-      // Return a fake optimistic success immediately so the UI can update
-      final immediateResult = {
-        'success': true,
-        'message': 'Favorite updated',
-        'isAdded':
-            true, // The UI just toggles its boolean, so this exact value is less critical
-      };
-
-      // Set a 500ms debounce timer
-      _favoriteDebouncers[productId] = Timer(
-        const Duration(milliseconds: 500),
-        () async {
-          final tapCount = _favoriteToggleCounts[productId] ?? 0;
-          _favoriteToggleCounts[productId] = 0; // Reset
-
-          // If even number of taps, the net state is unchanged. Do nothing.
-          if (tapCount % 2 == 0) return;
-
-          try {
-            // If odd number of taps, execute the backend toggle
-            await ApiClient.instance.post(
-              '${ApiConfig.favoritesEndpoint}$productId/toggle/',
-            );
-            FavoriteStateService().notifyFavoriteChanged();
-          } catch (e) {
-            AppLogger.instance.log('Background toggle favorite error: $e');
-          }
-        },
-      );
-
-      return immediateResult;
-    } catch (e, stackTrace) {
-      AppLogger.instance.log('Toggle favorite error: $e');
-      AppLogger.instance.log('Stack Trace: $stackTrace');
-      return {'success': false, 'message': 'Unexpected error: ${e.toString()}'};
-    }
-  }
-
-  Future<Map<String, dynamic>> getFavorites() async {
-    try {
-      final response = await ApiClient.instance.get(
-        ApiConfig.favoritesEndpoint,
-      );
-
-      if (response.statusCode == 200) {
-        final List<dynamic> favoritesJson = response.data;
-        final favorites =
-            favoritesJson.map((json) => FavoriteModel.fromJson(json)).toList();
-
-        return {
-          'success': true,
-          'data': favorites,
-          'message': 'Favorites fetched successfully',
-        };
-      } else {
-        AppLogger.instance.log(
-          'Failed to fetch favorites. Status code: ${response.statusCode}',
-        );
-        AppLogger.instance.log('Response data: ${response.data}');
-        return {
-          'success': false,
-          'message': 'Failed to fetch favorites',
-          'code': 'fetch_error',
-        };
-      }
-    } catch (e, stack) {
-      AppLogger.instance.log('Error fetching favorites: $e');
-      AppLogger.instance.log('Stack trace: $stack');
-      return {
-        'success': false,
-        'message': 'An error occurred while fetching favorites',
-        'error': e.toString(),
-      };
     }
   }
 

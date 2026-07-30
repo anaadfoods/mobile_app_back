@@ -1,3 +1,4 @@
+import 'package:grocery_app/features/products/domain/entities/product_entity.dart';
 import 'package:grocery_app/models/cart_model.dart';
 import 'package:grocery_app/models/product_image_model.dart';
 
@@ -33,6 +34,27 @@ class Product {
     required this.productImages,
     this.cropCycleId,
   });
+
+  factory Product.fromEntity(ProductEntity entity) {
+    return Product(
+      id: entity.id,
+      sku: entity.sku,
+      weight: entity.weight,
+      weightUnit: entity.weightUnit,
+      price: entity.price,
+      discountPercentage: entity.discountPercentage,
+      finalPrice: entity.finalPrice,
+      isInStock: entity.isInStock,
+      isActive: entity.isActive,
+      productName: entity.productName,
+      productDescription: entity.productDescription,
+      productCategory: entity.productCategory,
+      productImages: entity.productImages
+          .map((img) => ProductImage(image: img.image, altText: img.altText))
+          .toList(),
+      cropCycleId: entity.cropCycleId,
+    );
+  }
 
   // Convert Product to ProductVariant
   ProductVariant toProductVariant() {

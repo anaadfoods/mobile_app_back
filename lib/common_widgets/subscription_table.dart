@@ -1,5 +1,9 @@
 import 'package:grocery_app/common_widgets/global_import.dart';
+import 'package:grocery_app/features/products/data/repositories/products_repository_impl.dart';
+import 'package:grocery_app/features/products/presentation/screens/product_details_screen.dart';
 import 'package:grocery_app/routes/app_routes.dart';
+import 'package:grocery_app/features/subscriptions/domain/usecases/get_subscription_plans_use_case.dart';
+import 'package:grocery_app/features/subscriptions/domain/usecases/get_subscription_plan_products_use_case.dart';
 
 class SubscriptionTable extends StatefulWidget {
   final Function(SubscriptionPlan)? onPlanSelected;
@@ -11,7 +15,8 @@ class SubscriptionTable extends StatefulWidget {
 
 class _SubscriptionTableState extends State<SubscriptionTable>
     with TickerProviderStateMixin {
-  final SubscriptionService _subscriptionService = getIt<SubscriptionService>();
+  final GetSubscriptionPlansUseCase _getSubscriptionPlansUseCase = getIt<GetSubscriptionPlansUseCase>();
+  final GetSubscriptionPlanProductsUseCase _getSubscriptionPlanProductsUseCase = getIt<GetSubscriptionPlanProductsUseCase>();
   List<SubscriptionPlan> _plans = [];
   bool _isLoading = true;
   String? _error;
@@ -93,23 +98,32 @@ class _SubscriptionTableState extends State<SubscriptionTable>
       });
     }
     try {
-      final result = await _subscriptionService.getSubscriptionPlans();
+      final plans = await _getSubscriptionPlansUseCase();
       if (mounted) {
-        if (result['success']) {
-          setState(() {
-            _plans = List<SubscriptionPlan>.from(result['data'] as List<SubscriptionPlan>)
-              ..sort((a, b) => a.id.compareTo(b.id));
-            _cachedPlans = _plans;
-            _isLoading = false;
-          });
-          for (var plan in _plans) {
-            _loadPlanProducts(plan.id);
-          }
-        } else {
-          setState(() {
-            _error = result['message'];
-            _isLoading = false;
-          });
+        setState(() {
+          _plans = plans
+              .map((e) => SubscriptionPlan(
+                    id: e.id,
+                    name: e.name,
+                    durationMonths: e.durationMonths,
+                    discountPercentage: '0',
+                    totalDiscountPercentage: 0,
+                    tagline: e.tagline,
+                    description: e.description,
+                    isActive: e.isActive,
+                    activationDate: '',
+                    isOneTimeOnly: false,
+                    allowsInstallments: false,
+                    installmentFrequencyMonths: 0,
+                    isAvailable: true,
+                  ))
+              .toList()
+            ..sort((a, b) => a.id.compareTo(b.id));
+          _cachedPlans = _plans;
+          _isLoading = false;
+        });
+        for (var plan in _plans) {
+          _loadPlanProducts(plan.id);
         }
       }
     } catch (e) {
@@ -140,21 +154,18 @@ class _SubscriptionTableState extends State<SubscriptionTable>
     }
 
     try {
-      final result = await _subscriptionService.getSubscriptionPlanProducts(
-        planId,
-      );
+      final products = await _getSubscriptionPlanProductsUseCase(planId);
       if (mounted) {
-        if (result['success']) {
-          final response = result['data'] as SubscriptionPlanProductsResponse;
-          setState(() {
-            _planProducts[planId] = response.products;
-            _cachedPlanProducts[planId] = response.products;
-          });
-        } else {
-          if (result['requiresLogin'] == true) {
-            context.pushNamed(AppRoute.login.name);
-          }
-        }
+        setState(() {
+          _planProducts[planId] = products
+              .map((e) => SubscriptionPlanProduct(
+                    productId: e.id,
+                    productName: e.name,
+                    maxWeightLimit: e.unitWeight,
+                  ))
+              .toList();
+          _cachedPlanProducts[planId] = _planProducts[planId]!;
+        });
       }
     } catch (e) {
       debugPrint('Error loading products: $e');
@@ -1339,8 +1350,7 @@ class _SubscriptionPopupContentState extends State<_SubscriptionPopupContent> {
                                                             context,
                                                             AnimatedTransitions.fadeScale(
                                                               ProductDetailsScreen(
-                                                                product:
-                                                                    product,
+                                                                product: product,
                                                                 autoOpenSubscription:
                                                                     true,
                                                                 initialPlanId:

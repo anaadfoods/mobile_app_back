@@ -1,4 +1,6 @@
+import 'package:grocery_app/features/products/domain/entities/category_entity.dart';
 import 'package:grocery_app/utils/app_logger.dart';
+
 class Category {
   final int id;
   final String name;
@@ -15,6 +17,17 @@ class Category {
     required this.isActive,
     required this.productsCount,
   });
+
+  factory Category.fromEntity(CategoryEntity entity) {
+    return Category(
+      id: entity.id,
+      name: entity.name,
+      description: entity.description,
+      image: entity.image,
+      isActive: entity.isActive,
+      productsCount: entity.productsCount,
+    );
+  }
 
   // Factory method to create a Category from JSON
   factory Category.fromJson(Map<String, dynamic> json) {

@@ -1,0 +1,4 @@
+enum PaymentGateway {
+  easebuzz,
+  juspay,
+}

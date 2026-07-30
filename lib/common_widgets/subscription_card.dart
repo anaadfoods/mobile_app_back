@@ -1,4 +1,5 @@
 import 'package:grocery_app/common_widgets/global_import.dart';
+import 'package:grocery_app/features/subscriptions/domain/entities/subscription_entity.dart';
 import 'package:grocery_app/common_widgets/pause_date_picker_sheet.dart';
 import 'package:grocery_app/routes/app_routes.dart';
 
@@ -90,7 +91,7 @@ class _SubscriptionCarouselState extends State<SubscriptionCarousel>
   }
 
   Widget _buildCarouselContent(
-    List<Subscription> subscriptions,
+    List<SubscriptionEntity> subscriptions,
     ResponsiveHelper responsive,
   ) {
     final theme = Theme.of(context);
@@ -140,8 +141,7 @@ class _SubscriptionCarouselState extends State<SubscriptionCarousel>
                       onTogglePause:
                           () => _showToggleConfirmation(subscription),
                       onRepayment: () {
-                        final handler = SubscriptionHandler(context);
-                        handler.processUPIRepayment(subscription.id);
+                        context.read<SubscriptionCubit>().handleRepayment(subscription.id);
                       },
                     ),
                   );
@@ -340,7 +340,7 @@ class _SubscriptionCarouselState extends State<SubscriptionCarousel>
     );
   }
 
-  void _showToggleConfirmation(Subscription subscription) {
+  void _showToggleConfirmation(SubscriptionEntity subscription) {
     final isCurrentlyPaused = subscription.status == 'PAUSED';
 
     if (!isCurrentlyPaused && subscription.remainingPauseTimes <= 0) {
@@ -394,7 +394,7 @@ class _SubscriptionCarouselState extends State<SubscriptionCarousel>
 }
 
 class SubscriptionCard extends StatefulWidget {
-  final Subscription subscription;
+  final SubscriptionEntity subscription;
   final VoidCallback onTogglePause;
   final VoidCallback onRepayment;
   final ResponsiveHelper responsive;
@@ -414,7 +414,7 @@ class SubscriptionCard extends StatefulWidget {
 class _SubscriptionCardState extends State<SubscriptionCard> {
   bool _isPressed = false;
 
-  void _navigateToDetails(BuildContext context, Subscription subscription) {
+  void _navigateToDetails(BuildContext context, SubscriptionEntity subscription) {
     context.pushNamed(
       AppRoute.subscriptionDetails.name,
       pathParameters: {'id': subscription.id.toString()},

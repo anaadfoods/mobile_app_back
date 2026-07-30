@@ -26,7 +26,7 @@ Future<void> main() async {
   await getIt<TokenService>().initializeAuthState();
   await NotificationHelper.initialize();
   await getIt<NotificationService>().initialize(
-    NotificationCubit(notificationRepository: getIt<NotificationRepository>()),
+    NotificationCubit(),
   );
 
   // Get and print FCM token

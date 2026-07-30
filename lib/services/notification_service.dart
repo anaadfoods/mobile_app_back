@@ -1,11 +1,12 @@
+import 'package:grocery_app/services/token_service.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:grocery_app/common_widgets/global_import.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:dio/dio.dart' as dio;
 import '../models/notification_model.dart';
-import 'notification_sync_manager.dart';
-
+import 'package:grocery_app/features/notifications/data/datasources/notifications_local_data_source.dart';
+import 'package:grocery_app/features/notifications/presentation/cubit/notification_cubit.dart';
 import 'package:grocery_app/service_locator.dart';
 
 class NotificationService {
@@ -419,32 +420,9 @@ class NotificationService {
       return;
     }
 
-    // Save notification to local storage via sync manager
+    // Save notification to local storage via data source
     try {
-      final notif = NotificationModel(
-        id:
-            message.data['id']?.toString() ??
-            message.messageId ??
-            DateTime.now().millisecondsSinceEpoch.toString(),
-        title: title,
-        body: body,
-        type: message.data['type'] ?? 'general',
-        action: message.data['action'],
-        source: 'SERVER',
-        isRead: false,
-        isDismissed: false,
-        syncVersion:
-            int.tryParse(message.data['sync_version']?.toString() ?? '0') ?? 0,
-        timestamp: DateTime.now().millisecondsSinceEpoch,
-        image:
-            message.data['image'] ??
-            message.data['image_url'] ??
-            message.notification?.android?.imageUrl ??
-            message.notification?.apple?.imageUrl,
-        priority: message.data['priority'] ?? 'medium',
-        metadata: Map<String, dynamic>.from(message.data),
-      );
-      getIt<NotificationSyncManager>().saveServerPushNotification(notif);
+      getIt<NotificationsLocalDataSource>().saveServerPushNotification(message.data);
     } catch (e) {
       debugPrint('Error saving foreground notification: $e');
     }
@@ -828,7 +806,7 @@ class NotificationService {
     );
 
     // Save and register local notification optimistically
-    await getIt<NotificationSyncManager>().registerLocalNotification(model);
+    await getIt<NotificationsLocalDataSource>().saveServerPushNotification(model.toLocalMap());
 
     String channelId = _getChannelId({'type': type ?? model.type});
 
@@ -959,54 +937,19 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await Firebase.initializeApp();
 
   // Initialize service locator if not already registered
-  if (!getIt.isRegistered<NotificationSyncManager>()) {
+  if (!getIt.isRegistered<NotificationsLocalDataSource>()) {
     setupLocator();
   }
 
   debugPrint('Handling a background message: ${message.messageId}');
   debugPrint('Message data: ${message.data}');
 
-  final syncManager = getIt<NotificationSyncManager>();
-
-  // Parse and save notification via sync manager format if message contains useful data
   if (message.data.isNotEmpty) {
     try {
-      final notif = NotificationModel(
-        id:
-            message.data['id']?.toString() ??
-            message.messageId ??
-            DateTime.now().millisecondsSinceEpoch.toString(),
-        title:
-            message.data['title'] ??
-            message.notification?.title ??
-            'New Notification',
-        body: message.data['body'] ?? message.notification?.body ?? '',
-        type: message.data['type'] ?? 'general',
-        action: message.data['action'],
-        source: 'SERVER',
-        isRead: false,
-        isDismissed: false,
-        syncVersion:
-            int.tryParse(message.data['sync_version']?.toString() ?? '0') ?? 0,
-        timestamp: DateTime.now().millisecondsSinceEpoch,
-        image:
-            message.data['image'] ??
-            message.data['image_url'] ??
-            message.notification?.android?.imageUrl ??
-            message.notification?.apple?.imageUrl,
-        priority: message.data['priority'] ?? 'medium',
-        metadata: Map<String, dynamic>.from(message.data),
-      );
-      await syncManager.saveServerPushNotification(notif);
+      final localDataSource = getIt<NotificationsLocalDataSource>();
+      await localDataSource.saveServerPushNotification(message.data);
     } catch (e) {
       debugPrint('Error saving background notification: $e');
     }
-  }
-
-  // Sync authoritatively with backend to catch up
-  try {
-    await syncManager.syncWithBackend();
-  } catch (e) {
-    debugPrint('Error syncing in background: $e');
   }
 }

@@ -15,6 +15,13 @@ class ShippingDetails {
     required this.phone,
   });
 
+  bool get isComplete =>
+      address.isNotEmpty &&
+      city.isNotEmpty &&
+      state.isNotEmpty &&
+      pincode.isNotEmpty &&
+      phone.isNotEmpty;
+
   factory ShippingDetails.fromJson(Map<String, dynamic> json) {
     return ShippingDetails(
       name: json['name'] ?? '',

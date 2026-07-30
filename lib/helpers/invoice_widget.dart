@@ -1,13 +1,13 @@
 import 'package:grocery_app/core/theme/app_colors.dart';
 import 'package:flutter/material.dart';
-import 'package:grocery_app/models/subscription_invoice_model.dart';
+import 'package:grocery_app/features/subscriptions/domain/repositories/subscriptions_repository.dart';
 import 'package:grocery_app/styles/colors.dart';
 
 class InvoiceTrackerWidget extends StatelessWidget {
   final bool isLoading;
   final String? error;
-  final List<Invoice> invoices;
-  final Function(Invoice) onInvoiceTap;
+  final List<InvoiceEntity> invoices;
+  final Function(InvoiceEntity) onInvoiceTap;
 
   const InvoiceTrackerWidget({
     super.key,
@@ -188,7 +188,7 @@ class InvoiceTrackerWidget extends StatelessWidget {
   }
 
   Widget _buildInvoiceCard(
-    Invoice invoice,
+    InvoiceEntity invoice,
     int index,
     ThemeData theme,
     bool isDark,
@@ -281,7 +281,7 @@ class InvoiceTrackerWidget extends StatelessWidget {
                           ),
                           const SizedBox(width: 3),
                           Text(
-                            invoice.odooInvoiceNumber,
+                            invoice.invoiceNumber,
                             style: theme.textTheme.bodySmall?.copyWith(
                               color: theme.colorScheme.onSurface.withValues(
                                 alpha: 0.5,

@@ -13,58 +13,61 @@ import 'package:grocery_app/models/subscription_model.dart';
 import 'package:grocery_app/routes/app_routes.dart';
 
 // Screens
-import 'package:grocery_app/screens/welcome_screen.dart';
-import 'package:grocery_app/screens/auth/login_screen.dart';
-import 'package:grocery_app/screens/auth/signup_screen.dart';
-import 'package:grocery_app/screens/auth/forget_password_screen.dart';
-import 'package:grocery_app/screens/splash/splash_screen.dart';
+import 'package:grocery_app/features/misc/presentation/screens/welcome_screen.dart';
+import 'package:grocery_app/features/auth/presentation/screens/login_screen.dart';
+import 'package:grocery_app/features/auth/presentation/screens/signup_screen.dart';
+import 'package:grocery_app/features/auth/presentation/screens/forget_password_screen.dart';
+import 'package:grocery_app/features/misc/presentation/screens/splash_screen.dart';
 
-import 'package:grocery_app/screens/dashboard/dashboard_screen.dart';
-import 'package:grocery_app/screens/home/home_screen.dart';
-import 'package:grocery_app/screens/innovations/anaad_innovations_screen.dart';
-import 'package:grocery_app/screens/innovations/anaad_games_screen.dart';
-import 'package:grocery_app/screens/innovations/anaad_robots_screen.dart';
-import 'package:grocery_app/screens/innovations/anaad_redemptions_screen.dart';
-import 'package:grocery_app/screens/innovations/refer_earn_screen.dart';
-import 'package:grocery_app/screens/innovations/games/seed_savior_game_screen.dart';
-import 'package:grocery_app/screens/innovations/games/ritu_chakra_game_screen.dart';
-import 'package:grocery_app/screens/innovations/games/microbe_mania_game_screen.dart';
-import 'package:grocery_app/screens/innovations/games/cow_to_soil_cycle_game_screen.dart';
-import 'package:grocery_app/screens/innovations/games/compost_commander_game_screen.dart';
-import 'package:grocery_app/screens/innovations/panchang/panchang_home_screen.dart';
-import 'package:grocery_app/screens/innovations/panchang/panchang_month_screen.dart';
-import 'package:grocery_app/screens/innovations/panchang/panchang_guidance_screen.dart';
-import 'package:grocery_app/screens/innovations/panchang/panchang_guidance_profile_screen.dart';
-import 'package:grocery_app/screens/innovations/panchang/panchang_festivals_screen.dart';
-import 'package:grocery_app/screens/innovations/panchang/panchang_advanced_timings_screen.dart';
-import 'package:grocery_app/screens/product_details/product_details_screen.dart';
+import 'package:grocery_app/features/home/presentation/screens/dashboard_screen.dart';
+import 'package:grocery_app/features/home/presentation/screens/home_screen.dart';
+import 'package:grocery_app/features/innovations/presentation/screens/anaad_innovations_screen.dart';
+import 'package:grocery_app/features/innovations/presentation/screens/anaad_games_screen.dart';
+import 'package:grocery_app/features/innovations/presentation/screens/anaad_robots_screen.dart';
+import 'package:grocery_app/features/innovations/presentation/screens/anaad_redemptions_screen.dart';
+import 'package:grocery_app/features/innovations/presentation/screens/refer_earn_screen.dart';
+import 'package:grocery_app/features/innovations/presentation/screens/games/seed_savior_game_screen.dart';
+import 'package:grocery_app/features/innovations/presentation/screens/games/ritu_chakra_game_screen.dart';
+import 'package:grocery_app/features/innovations/presentation/screens/games/microbe_mania_game_screen.dart';
+import 'package:grocery_app/features/innovations/presentation/screens/games/cow_to_soil_cycle_game_screen.dart';
+import 'package:grocery_app/features/innovations/presentation/screens/games/compost_commander_game_screen.dart';
+import 'package:grocery_app/features/innovations/presentation/screens/panchang/panchang_home_screen.dart';
+import 'package:grocery_app/features/innovations/presentation/screens/panchang/panchang_month_screen.dart';
+import 'package:grocery_app/features/innovations/presentation/screens/panchang/panchang_guidance_screen.dart';
+import 'package:grocery_app/features/innovations/presentation/screens/panchang/panchang_guidance_profile_screen.dart';
+import 'package:grocery_app/features/innovations/presentation/screens/panchang/panchang_festivals_screen.dart';
+import 'package:grocery_app/features/innovations/presentation/screens/panchang/panchang_advanced_timings_screen.dart';
+import 'package:grocery_app/features/products/presentation/screens/product_details_screen.dart';
+import 'package:grocery_app/features/products/domain/entities/product_entity.dart';
+import 'package:grocery_app/features/products/data/repositories/products_repository_impl.dart';
 
-import 'package:grocery_app/screens/explore_screen.dart';
-import 'package:grocery_app/screens/category_items_screen.dart';
-import 'package:grocery_app/screens/products/all_products_screen.dart';
-import 'package:grocery_app/screens/featured_products_screen.dart';
+import 'package:grocery_app/features/misc/presentation/screens/explore_screen.dart';
+import 'package:grocery_app/features/misc/presentation/screens/category_items_screen.dart';
+import 'package:grocery_app/features/products/presentation/screens/all_products_screen.dart';
+import 'package:grocery_app/features/products/presentation/screens/featured_products_screen.dart';
 
-import 'package:grocery_app/screens/cart/cart_screen.dart';
-import 'package:grocery_app/screens/checkout/checkout_screen.dart';
-import 'package:grocery_app/screens/address/address_selection_screen.dart';
+import 'package:grocery_app/features/cart/presentation/screens/cart_screen.dart';
+import 'package:grocery_app/features/payments/presentation/screens/checkout_screen.dart';
+import 'package:grocery_app/features/misc/presentation/screens/address_selection_screen.dart';
 
-import 'package:grocery_app/screens/favourite_screen.dart';
+import 'package:grocery_app/features/favorites/presentation/screens/favourite_screen.dart';
 
-import 'package:grocery_app/screens/account/account_screen_final.dart';
-import 'package:grocery_app/screens/profile/edit_profile_screen.dart';
-import 'package:grocery_app/screens/order/order_screen.dart';
-import 'package:grocery_app/screens/order/order_detail_screen.dart';
-import 'package:grocery_app/screens/MySubscriptionPlan/subscription_plan_detail.dart';
-import 'package:grocery_app/screens/MySubscriptionPlan/subscription_plan_detail_single.dart';
-import 'package:grocery_app/screens/notifications/notifications_screen.dart';
-import 'package:grocery_app/screens/about/about_screen.dart';
-import 'package:grocery_app/screens/help/help_screen.dart';
-import 'package:grocery_app/screens/legal/legal_content_screen.dart';
-import 'package:grocery_app/screens/RFP/delivery_screen.dart';
-import 'package:grocery_app/screens/RFP/contract_farming_screen.dart';
+import 'package:grocery_app/features/misc/presentation/screens/account_screen_final.dart';
+import 'package:grocery_app/features/misc/presentation/screens/edit_profile_screen.dart';
+import 'package:grocery_app/features/orders/presentation/screens/order_screen.dart';
+import 'package:grocery_app/features/orders/presentation/screens/order_detail_screen.dart';
+import 'package:grocery_app/features/orders/domain/entities/order_entity.dart';
+import 'package:grocery_app/features/subscriptions/presentation/screens/subscription_list_screen.dart';
+import 'package:grocery_app/features/subscriptions/presentation/screens/subscription_detail_screen.dart';
+import 'package:grocery_app/features/notifications/presentation/screens/notifications_screen.dart';
+import 'package:grocery_app/features/misc/presentation/screens/about_screen.dart';
+import 'package:grocery_app/features/misc/presentation/screens/help_screen.dart';
+import 'package:grocery_app/features/misc/presentation/screens/legal_content_screen.dart';
+import 'package:grocery_app/features/rfp/presentation/screens/delivery_screen.dart';
+import 'package:grocery_app/features/rfp/presentation/screens/contract_farming_screen.dart';
 import 'package:grocery_app/models/legal_document_model.dart';
 
-import 'package:grocery_app/screens/unknown_route_screen.dart';
+import 'package:grocery_app/features/misc/presentation/screens/unknown_route_screen.dart';
 
 final GlobalKey<NavigatorState> _rootNavigatorKey = GlobalKey<NavigatorState>(
   debugLabel: 'root',
@@ -390,9 +393,9 @@ class AppRouter {
             quantity: quantity,
             isSubscription: isSubscription,
             selectedPlan: selectedPlan,
-            codDeliveryCharge: 0,
-            prepaidDeliveryCharge: 0,
-            expectedDeliveryDate: '',
+            codDeliveryCharge: double.tryParse(extra['codDeliveryCharge']?.toString() ?? '0.0') ?? 0.0,
+            prepaidDeliveryCharge: double.tryParse(extra['prepaidDeliveryCharge']?.toString() ?? '0.0') ?? 0.0,
+            expectedDeliveryDate: extra['expectedDeliveryDate']?.toString() ?? '',
             paymentType: extra['paymentType'] as String?,
           );
         },
@@ -451,7 +454,7 @@ class AppRouter {
         parentNavigatorKey: _rootNavigatorKey,
         builder: (context, state) => DeepLinkFallbackWrapper(
           fallbackRoute: AppRoute.profile.path,
-          child: const SubscriptionScreen(),
+          child: const SubscriptionListScreen(),
         ),
       ),
       // These routes are directly under the root navigator.
@@ -485,18 +488,25 @@ class AppRouter {
         parentNavigatorKey: _rootNavigatorKey,
         builder: (context, state) {
           final extra = state.extra;
-          Order? order;
-          if (extra is Order) {
+          OrderEntity? order;
+          if (extra is OrderEntity) {
             order = extra;
           }
           final idParam = state.pathParameters['id'];
-          // Ensure we don't crash if the ID is not an integer
-          if (idParam != null && int.tryParse(idParam) == null) {
-            return const Scaffold(body: Center(child: Text('Invalid Link')));
+          String? orderId;
+          String? orderNumber;
+          
+          if (idParam != null) {
+            if (int.tryParse(idParam) != null) {
+              orderId = idParam;
+            } else {
+              orderNumber = idParam;
+            }
           }
+          
           return DeepLinkFallbackWrapper(
             fallbackRoute: AppRoute.orderList.path,
-            child: OrderDetailScreen(orderId: idParam, order: order),
+            child: OrderDetailScreen(orderId: orderId, orderNumber: orderNumber, order: order),
           );
         },
       ),
@@ -505,27 +515,11 @@ class AppRouter {
         name: AppRoute.subscriptionDetails.name,
         parentNavigatorKey: _rootNavigatorKey,
         builder: (context, state) {
-          final extra = state.extra;
-          Subscription? sub;
-          if (extra is Subscription) {
-            sub = extra;
-          } else if (extra is Map<String, dynamic>) {
-            try {
-              sub = Subscription.fromJson(extra);
-            } catch (e) {
-              sub = null;
-            }
-          }
           final idParam = state.pathParameters['id'];
-          // Ensure we don't crash if the ID is not an integer
-          if (idParam != null && int.tryParse(idParam) == null) {
-            return const Scaffold(body: Center(child: Text('Invalid Link')));
-          }
           return DeepLinkFallbackWrapper(
             fallbackRoute: AppRoute.subscriptionList.path,
-            child: SubscriptionPlanDetailScreen(
-              subscriptionId: idParam,
-              subscription: sub,
+            child: SubscriptionDetailScreen(
+              subscriptionId: idParam ?? '',
             ),
           );
         },
@@ -534,10 +528,19 @@ class AppRouter {
         path: AppRoute.allProducts.path,
         name: AppRoute.allProducts.name,
         parentNavigatorKey: _rootNavigatorKey,
-        builder: (context, state) => DeepLinkFallbackWrapper(
-          fallbackRoute: AppRoute.home.path,
-          child: const AllProductsScreen(),
-        ),
+        builder: (context, state) {
+          final extraList = state.extra as List?;
+          final products = extraList?.map((e) {
+            if (e is Product) return e.toDomain();
+            if (e is ProductEntity) return e;
+            if (e is Map<String, dynamic>) return Product.fromJson(e).toDomain();
+            return e as ProductEntity;
+          }).toList();
+          return DeepLinkFallbackWrapper(
+            fallbackRoute: AppRoute.home.path,
+            child: AllProductsScreen(products: products),
+          );
+        },
       ),
       GoRoute(
         path: AppRoute.featuredProducts.path,
@@ -546,9 +549,10 @@ class AppRouter {
         builder: (context, state) {
           final extraList = state.extra as List?;
           final products = extraList?.map((e) {
-            if (e is Product) return e;
-            if (e is Map<String, dynamic>) return Product.fromJson(e);
-            return e as Product;
+            if (e is Product) return e.toDomain();
+            if (e is ProductEntity) return e;
+            if (e is Map<String, dynamic>) return Product.fromJson(e).toDomain();
+            return e as ProductEntity;
           }).toList() ?? [];
           return DeepLinkFallbackWrapper(
             fallbackRoute: AppRoute.home.path,

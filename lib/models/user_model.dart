@@ -1,4 +1,5 @@
-import 'package:grocery_app/services/api_config.dart'; // ++ ADD THIS IMPORT ++
+import 'package:grocery_app/services/api_config.dart';
+import 'package:grocery_app/features/auth/domain/entities/user.dart';
 
 class UserModel {
   final String email;
@@ -140,6 +141,47 @@ class UserModel {
       referralCode: referralCode ?? this.referralCode,
       isEmailVerified: isEmailVerified ?? this.isEmailVerified,
       isRfp: isRfp ?? this.isRfp,
+    );
+  }
+
+  // Create UserModel from domain User entity
+  factory UserModel.fromDomain(dynamic domainUser) {
+    return UserModel(
+      email: domainUser.email,
+      username: domainUser.username,
+      password: '',
+      confirmPassword: '',
+      firstName: domainUser.firstName,
+      lastName: domainUser.lastName,
+      phoneNumber: domainUser.phoneNumber,
+      gender: domainUser.gender,
+      address: domainUser.address,
+      pincode: domainUser.pincode,
+      city: domainUser.city,
+      state: domainUser.state,
+      profilePicture: domainUser.profilePicture,
+      referralCode: domainUser.referralCode,
+      isEmailVerified: domainUser.isEmailVerified,
+      isRfp: domainUser.isRfp,
+    );
+  }
+
+  User toDomain() {
+    return User(
+      email: email,
+      username: username,
+      firstName: firstName,
+      lastName: lastName,
+      phoneNumber: phoneNumber,
+      gender: gender,
+      address: address,
+      pincode: pincode,
+      city: city,
+      state: state,
+      profilePicture: profilePicture,
+      referralCode: referralCode,
+      isEmailVerified: isEmailVerified,
+      isRfp: isRfp,
     );
   }
 }

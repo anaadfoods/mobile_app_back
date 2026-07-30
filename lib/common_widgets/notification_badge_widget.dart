@@ -1,7 +1,7 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:grocery_app/common_widgets/global_import.dart';
-import 'package:grocery_app/cubits/notification/notification_cubit.dart';
-import 'package:grocery_app/cubits/notification/notification_state.dart';
+import 'package:grocery_app/features/notifications/presentation/cubit/notification_cubit.dart';
+import 'package:grocery_app/features/notifications/presentation/cubit/notification_state.dart';
 
 class NotificationBadgeWidget extends StatelessWidget {
   final Widget child;
