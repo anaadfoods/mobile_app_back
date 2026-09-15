@@ -77,20 +77,13 @@ class ModernOrderCard extends StatelessWidget {
   final OrderEntity order;
   final VoidCallback onTap;
 
-  const ModernOrderCard({
-    super.key,
-    required this.order,
-    required this.onTap,
-  });
+  const ModernOrderCard({super.key, required this.order, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     final status = OrderStatusHelper.getStatusInfo(order.status);
-
-
-
 
     return GestureDetector(
       onTap: onTap,
@@ -100,9 +93,10 @@ class ModernOrderCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(20),
           boxShadow: [
             BoxShadow(
-              color: isDark
-                  ? AppColors.charcoal.withValues(alpha: 0.3)
-                  : AppColors.deepSoilGreen.withValues(alpha: 0.08),
+              color:
+                  isDark
+                      ? AppColors.charcoal.withValues(alpha: 0.3)
+                      : AppColors.deepSoilGreen.withValues(alpha: 0.08),
               blurRadius: 20,
               offset: const Offset(0, 8),
               spreadRadius: -4,
@@ -256,9 +250,10 @@ class ModernOrderCard extends StatelessWidget {
           child: Stack(
             children: List.generate(displayItems.length, (index) {
               final item = displayItems[index];
-              final imageUrl = item.productDetails.productImages.isNotEmpty
-                  ? item.productDetails.productImages[0].image
-                  : null;
+              final imageUrl =
+                  item.productDetails.productImages.isNotEmpty
+                      ? item.productDetails.productImages[0].image
+                      : null;
               return Positioned(
                 left: index * 20.0,
                 child: Container(
@@ -267,9 +262,10 @@ class ModernOrderCard extends StatelessWidget {
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
-                      color: isDark
-                          ? AppColors.darkSurfaceElevated
-                          : AppColors.parchment,
+                      color:
+                          isDark
+                              ? AppColors.darkSurfaceElevated
+                              : AppColors.parchment,
                       width: 2,
                     ),
                     boxShadow: [
@@ -282,28 +278,32 @@ class ModernOrderCard extends StatelessWidget {
                   ),
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(10),
-                    child: imageUrl != null
-                        ? CachedNetworkImage(
-                            imageUrl: imageUrl,
-                            fit: BoxFit.cover,
-                            placeholder: (context, url) => Container(
-                              color: isDark
-                                  ? AppColors.darkSurfaceElevated
-                                  : AppColors.parchment,
-                              child: const Center(
-                                child: SizedBox(
-                                  width: 16,
-                                  height: 16,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
+                    child:
+                        imageUrl != null
+                            ? CachedNetworkImage(
+                              imageUrl: imageUrl,
+                              fit: BoxFit.cover,
+                              placeholder:
+                                  (context, url) => Container(
+                                    color:
+                                        isDark
+                                            ? AppColors.darkSurfaceElevated
+                                            : AppColors.parchment,
+                                    child: const Center(
+                                      child: SizedBox(
+                                        width: 16,
+                                        height: 16,
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2,
+                                        ),
+                                      ),
+                                    ),
                                   ),
-                                ),
-                              ),
-                            ),
-                            errorWidget: (context, url, error) =>
-                                _buildPlaceholder(isDark),
-                          )
-                        : _buildPlaceholder(isDark),
+                              errorWidget:
+                                  (context, url, error) =>
+                                      _buildPlaceholder(isDark),
+                            )
+                            : _buildPlaceholder(isDark),
                   ),
                 ),
               );
@@ -315,7 +315,8 @@ class ModernOrderCard extends StatelessWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
             decoration: BoxDecoration(
-              color: isDark ? AppColors.darkSurfaceElevated : AppColors.parchment,
+              color:
+                  isDark ? AppColors.darkSurfaceElevated : AppColors.parchment,
               borderRadius: BorderRadius.circular(12),
             ),
             child: Text(
@@ -333,9 +334,9 @@ class ModernOrderCard extends StatelessWidget {
           flex: 2,
           child: Text(
             items.first.productDetails.productName,
-            style: Theme.of(context)
-                .textTheme.bodyMedium
-                ?.copyWith(fontWeight: FontWeight.w500),
+            style: Theme.of(
+              context,
+            ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w500),
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
           ),
@@ -358,5 +359,4 @@ class ModernOrderCard extends StatelessWidget {
   String _formatDate(DateTime date) {
     return DateFormat('MMM d, yyyy').format(date);
   }
-
 }

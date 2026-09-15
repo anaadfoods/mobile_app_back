@@ -238,9 +238,10 @@ class PaymentMethodCard extends StatelessWidget {
           color: isSelected ? color.withValues(alpha: 0.1) : theme.cardColor,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: isSelected
-                ? color
-                : (isDark ? AppColors.charcoal87 : AppColors.parchment),
+            color:
+                isSelected
+                    ? color
+                    : (isDark ? AppColors.charcoal87 : AppColors.parchment),
             width: isSelected ? 2 : 1,
           ),
         ),

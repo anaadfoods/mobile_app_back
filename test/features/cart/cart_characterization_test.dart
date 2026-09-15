@@ -83,110 +83,120 @@ void main() {
     await subscription.cancel();
   });
 
-  test('addItem immediately performs optimistic update and debounces sync API call', () async {
-    // Return cart with the item added when backend is finally called
-    final updatedCart = CartModel(
-      id: 1,
-      items: [
-        CartItem(
-          id: 12,
-          productVariant: testProduct,
-          quantity: 2,
-          totalPrice: '200.0',
-          createdAt: DateTime.now(),
-          updatedAt: DateTime.now(),
-        ),
-      ],
-      totalPrice: '200.0',
-      totalItems: 2,
-      createdAt: DateTime.now(),
-      updatedAt: DateTime.now(),
-    );
+  test(
+    'addItem immediately performs optimistic update and debounces sync API call',
+    () async {
+      // Return cart with the item added when backend is finally called
+      final updatedCart = CartModel(
+        id: 1,
+        items: [
+          CartItem(
+            id: 12,
+            productVariant: testProduct,
+            quantity: 2,
+            totalPrice: '200.0',
+            createdAt: DateTime.now(),
+            updatedAt: DateTime.now(),
+          ),
+        ],
+        totalPrice: '200.0',
+        totalItems: 2,
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
+      );
 
-    when(() => mockRepository.addToCart(101, 2)).thenAnswer((_) async => updatedCart);
+      when(
+        () => mockRepository.addToCart(101, 2),
+      ).thenAnswer((_) async => updatedCart);
 
-    cartCubit = createCubit();
-    await cartCubit.loadCart();
+      cartCubit = createCubit();
+      await cartCubit.loadCart();
 
-    final states = <CartState>[];
-    final subscription = cartCubit.stream.listen(states.add);
+      final states = <CartState>[];
+      final subscription = cartCubit.stream.listen(states.add);
 
-    // Perform the optimistic update add item
-    await cartCubit.addItem(testProduct, 2);
+      // Perform the optimistic update add item
+      await cartCubit.addItem(testProduct, 2);
 
-    // Verify immediate optimistic success state (before debounce timer triggers API call)
-    expect(states.isNotEmpty, true);
-    final optimisticState = states.last as CartSuccess;
-    expect(optimisticState.cart.totalItems, 2);
-    expect(optimisticState.cart.totalPrice, '200.0');
-    expect(optimisticState.itemStatuses[101]?.displayedQuantity, 2);
-    expect(optimisticState.itemStatuses[101]?.isSyncing, true);
-    expect(optimisticState.itemStatuses[101]?.requestInFlight, false);
+      // Verify immediate optimistic success state (before debounce timer triggers API call)
+      expect(states.isNotEmpty, true);
+      final optimisticState = states.last as CartSuccess;
+      expect(optimisticState.cart.totalItems, 2);
+      expect(optimisticState.cart.totalPrice, '200.0');
+      expect(optimisticState.itemStatuses[101]?.displayedQuantity, 2);
+      expect(optimisticState.itemStatuses[101]?.isSyncing, true);
+      expect(optimisticState.itemStatuses[101]?.requestInFlight, false);
 
-    // Wait for the 300ms debounce timer + network sync call to complete
-    await Future.delayed(const Duration(milliseconds: 400));
+      // Wait for the 300ms debounce timer + network sync call to complete
+      await Future.delayed(const Duration(milliseconds: 400));
 
-    // Verify repository call happened once
-    verify(() => mockRepository.addToCart(101, 2)).called(1);
+      // Verify repository call happened once
+      verify(() => mockRepository.addToCart(101, 2)).called(1);
 
-    // Verify final state matches the updated cart from server, with syncing = false
-    final finalState = cartCubit.state as CartSuccess;
-    expect(finalState.cart.totalItems, 2);
-    expect(finalState.itemStatuses[101]?.isSyncing, false);
-    expect(finalState.itemStatuses[101]?.requestInFlight, false);
+      // Verify final state matches the updated cart from server, with syncing = false
+      final finalState = cartCubit.state as CartSuccess;
+      expect(finalState.cart.totalItems, 2);
+      expect(finalState.itemStatuses[101]?.isSyncing, false);
+      expect(finalState.itemStatuses[101]?.requestInFlight, false);
 
-    await subscription.cancel();
-  });
+      await subscription.cancel();
+    },
+  );
 
-  test('rapid quantity changes reset debounce timer and execute only the latest quantity sync', () async {
-    final finalSyncCart = CartModel(
-      id: 1,
-      items: [
-        CartItem(
-          id: 12,
-          productVariant: testProduct,
-          quantity: 5,
-          totalPrice: '500.0',
-          createdAt: DateTime.now(),
-          updatedAt: DateTime.now(),
-        ),
-      ],
-      totalPrice: '500.0',
-      totalItems: 5,
-      createdAt: DateTime.now(),
-      updatedAt: DateTime.now(),
-    );
+  test(
+    'rapid quantity changes reset debounce timer and execute only the latest quantity sync',
+    () async {
+      final finalSyncCart = CartModel(
+        id: 1,
+        items: [
+          CartItem(
+            id: 12,
+            productVariant: testProduct,
+            quantity: 5,
+            totalPrice: '500.0',
+            createdAt: DateTime.now(),
+            updatedAt: DateTime.now(),
+          ),
+        ],
+        totalPrice: '500.0',
+        totalItems: 5,
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
+      );
 
-    when(() => mockRepository.addToCart(101, 5)).thenAnswer((_) async => finalSyncCart);
+      when(
+        () => mockRepository.addToCart(101, 5),
+      ).thenAnswer((_) async => finalSyncCart);
 
-    cartCubit = createCubit();
-    await cartCubit.loadCart();
+      cartCubit = createCubit();
+      await cartCubit.loadCart();
 
-    // Trigger rapid updates: quantity 2 -> 3 -> 5
-    await cartCubit.addItem(testProduct, 2);
-    await cartCubit.updateItem(101, 3);
-    await cartCubit.updateItem(101, 5);
+      // Trigger rapid updates: quantity 2 -> 3 -> 5
+      await cartCubit.addItem(testProduct, 2);
+      await cartCubit.updateItem(101, 3);
+      await cartCubit.updateItem(101, 5);
 
-    // Verify optimistic value is immediately 5
-    final optimisticState = cartCubit.state as CartSuccess;
-    expect(optimisticState.cart.totalItems, 5);
-    expect(optimisticState.itemStatuses[101]?.displayedQuantity, 5);
-    expect(optimisticState.itemStatuses[101]?.isSyncing, true);
+      // Verify optimistic value is immediately 5
+      final optimisticState = cartCubit.state as CartSuccess;
+      expect(optimisticState.cart.totalItems, 5);
+      expect(optimisticState.itemStatuses[101]?.displayedQuantity, 5);
+      expect(optimisticState.itemStatuses[101]?.isSyncing, true);
 
-    // Wait a brief period (< 300ms) and confirm no API call is made yet
-    await Future.delayed(const Duration(milliseconds: 150));
-    verifyNever(() => mockRepository.addToCart(any(), any()));
+      // Wait a brief period (< 300ms) and confirm no API call is made yet
+      await Future.delayed(const Duration(milliseconds: 150));
+      verifyNever(() => mockRepository.addToCart(any(), any()));
 
-    // Wait for the remainder of debounce + API sync to resolve
-    await Future.delayed(const Duration(milliseconds: 250));
+      // Wait for the remainder of debounce + API sync to resolve
+      await Future.delayed(const Duration(milliseconds: 250));
 
-    // Confirm only the final quantity was sent to the repository
-    verify(() => mockRepository.addToCart(101, 5)).called(1);
-    verifyNever(() => mockRepository.addToCart(101, 2));
-    verifyNever(() => mockRepository.updateCartItem(101, any()));
+      // Confirm only the final quantity was sent to the repository
+      verify(() => mockRepository.addToCart(101, 5)).called(1);
+      verifyNever(() => mockRepository.addToCart(101, 2));
+      verifyNever(() => mockRepository.updateCartItem(101, any()));
 
-    final finalState = cartCubit.state as CartSuccess;
-    expect(finalState.cart.totalItems, 5);
-    expect(finalState.itemStatuses[101]?.isSyncing, false);
-  });
+      final finalState = cartCubit.state as CartSuccess;
+      expect(finalState.cart.totalItems, 5);
+      expect(finalState.itemStatuses[101]?.isSyncing, false);
+    },
+  );
 }

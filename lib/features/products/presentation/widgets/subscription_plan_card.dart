@@ -65,9 +65,10 @@ class SubscriptionPaymentChip extends StatelessWidget {
         duration: const Duration(milliseconds: 200),
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
         decoration: BoxDecoration(
-          color: isSelected
-              ? AppColors.pureWhite
-              : AppColors.pureWhite.withValues(alpha: 0.15),
+          color:
+              isSelected
+                  ? AppColors.pureWhite
+                  : AppColors.pureWhite.withValues(alpha: 0.15),
           borderRadius: BorderRadius.circular(8),
         ),
         child: Text(
@@ -114,49 +115,54 @@ class SubscriptionPlanCard extends StatelessWidget {
     final accentColor = AppColors.harvestAmber;
 
     return GestureDetector(
-      onTap: isEnabled
-          ? () {
-              HapticFeedback.selectionClick();
-              onPlanSelected(index);
-            }
-          : null,
+      onTap:
+          isEnabled
+              ? () {
+                HapticFeedback.selectionClick();
+                onPlanSelected(index);
+              }
+              : null,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 300),
         curve: Curves.easeOutCubic,
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          gradient: isSelected
-              ? LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [accentColor, accentColor.withValues(alpha: 0.85)],
-                )
-              : null,
-          color: isSelected
-              ? null
-              : (isDark ? AppColors.darkMintGreen : AppColors.pureWhite),
+          gradient:
+              isSelected
+                  ? LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [accentColor, accentColor.withValues(alpha: 0.85)],
+                  )
+                  : null,
+          color:
+              isSelected
+                  ? null
+                  : (isDark ? AppColors.darkMintGreen : AppColors.pureWhite),
           borderRadius: BorderRadius.circular(18),
           border: Border.all(
-            color: isSelected
-                ? accentColor.withValues(alpha: 0.5)
-                : (isDark ? AppColors.rawEarth26 : AppColors.charcoal12),
+            color:
+                isSelected
+                    ? accentColor.withValues(alpha: 0.5)
+                    : (isDark ? AppColors.rawEarth26 : AppColors.charcoal12),
             width: isSelected ? 2 : 1.5,
           ),
-          boxShadow: isSelected
-              ? [
-                  BoxShadow(
-                    color: accentColor.withValues(alpha: 0.3),
-                    blurRadius: 16,
-                    offset: const Offset(0, 6),
-                  ),
-                ]
-              : [
-                  BoxShadow(
-                    color: AppColors.charcoal.withValues(alpha: 0.06),
-                    blurRadius: 8,
-                    offset: const Offset(0, 3),
-                  ),
-                ],
+          boxShadow:
+              isSelected
+                  ? [
+                    BoxShadow(
+                      color: accentColor.withValues(alpha: 0.3),
+                      blurRadius: 16,
+                      offset: const Offset(0, 6),
+                    ),
+                  ]
+                  : [
+                    BoxShadow(
+                      color: AppColors.charcoal.withValues(alpha: 0.06),
+                      blurRadius: 8,
+                      offset: const Offset(0, 3),
+                    ),
+                  ],
         ),
         child: Opacity(
           opacity: isEnabled ? 1.0 : 0.5,
@@ -171,23 +177,28 @@ class SubscriptionPlanCard extends StatelessWidget {
                     height: 26,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: isSelected
-                          ? AppColors.pureWhite.withValues(alpha: 0.2)
-                          : AppColors.transparent,
+                      color:
+                          isSelected
+                              ? AppColors.pureWhite.withValues(alpha: 0.2)
+                              : AppColors.transparent,
                       border: Border.all(
-                        color: isSelected
-                            ? AppColors.pureWhite
-                            : (isDark ? AppColors.parchment54 : AppColors.charcoal38),
+                        color:
+                            isSelected
+                                ? AppColors.pureWhite
+                                : (isDark
+                                    ? AppColors.parchment54
+                                    : AppColors.charcoal38),
                         width: 2,
                       ),
                     ),
-                    child: isSelected
-                        ? const Icon(
-                            Icons.check,
-                            size: 16,
-                            color: AppColors.pureWhite,
-                          )
-                        : null,
+                    child:
+                        isSelected
+                            ? const Icon(
+                              Icons.check,
+                              size: 16,
+                              color: AppColors.pureWhite,
+                            )
+                            : null,
                   ),
                   const SizedBox(width: 14),
                   Expanded(
@@ -197,24 +208,30 @@ class SubscriptionPlanCard extends StatelessWidget {
                         Text(
                           plan.name,
                           style: theme.textTheme.titleMedium?.copyWith(
-                            color: isSelected
-                                ? AppColors.pureWhite
-                                : (isDark ? AppColors.pureWhite : null),
-                            fontWeight: (isDark && !isSelected)
-                                ? FontWeight.w900
-                                : FontWeight.bold,
+                            color:
+                                isSelected
+                                    ? AppColors.pureWhite
+                                    : (isDark ? AppColors.pureWhite : null),
+                            fontWeight:
+                                (isDark && !isSelected)
+                                    ? FontWeight.w900
+                                    : FontWeight.bold,
                           ),
                         ),
                         const SizedBox(height: 2),
                         Text(
                           '${plan.durationMonths} months • ${planData.discountPercentage.toStringAsFixed(0)}% off',
                           style: theme.textTheme.bodySmall?.copyWith(
-                            color: isSelected
-                                ? AppColors.pureWhite.withValues(alpha: 0.7)
-                                : (isDark ? AppColors.parchment70 : theme.hintColor),
-                            fontWeight: (isDark && !isSelected)
-                                ? FontWeight.bold
-                                : FontWeight.normal,
+                            color:
+                                isSelected
+                                    ? AppColors.pureWhite.withValues(alpha: 0.7)
+                                    : (isDark
+                                        ? AppColors.parchment70
+                                        : theme.hintColor),
+                            fontWeight:
+                                (isDark && !isSelected)
+                                    ? FontWeight.bold
+                                    : FontWeight.normal,
                           ),
                         ),
                       ],
@@ -229,19 +246,26 @@ class SubscriptionPlanCard extends StatelessWidget {
                             : 'Unavailable',
                         style: theme.textTheme.titleMedium?.copyWith(
                           fontWeight: FontWeight.bold,
-                          color: isSelected ? AppColors.pureWhite : AppColors.harvestAmber,
+                          color:
+                              isSelected
+                                  ? AppColors.pureWhite
+                                  : AppColors.harvestAmber,
                         ),
                       ),
                       if (isEnabled)
                         Text(
                           plan.durationMonths == 1 ? '/one month' : '/month',
                           style: theme.textTheme.bodySmall?.copyWith(
-                            color: isSelected
-                                ? AppColors.pureWhite.withValues(alpha: 0.6)
-                                : (isDark ? AppColors.parchment70 : theme.hintColor),
-                            fontWeight: (isDark && !isSelected)
-                                ? FontWeight.bold
-                                : FontWeight.normal,
+                            color:
+                                isSelected
+                                    ? AppColors.pureWhite.withValues(alpha: 0.6)
+                                    : (isDark
+                                        ? AppColors.parchment70
+                                        : theme.hintColor),
+                            fontWeight:
+                                (isDark && !isSelected)
+                                    ? FontWeight.bold
+                                    : FontWeight.normal,
                           ),
                         ),
                     ],
@@ -261,18 +285,26 @@ class SubscriptionPlanCard extends StatelessWidget {
                     children: [
                       SubscriptionPriceRow(
                         label: 'Total (${plan.durationMonths}mo × $quantity)',
-                        amount: planData.discountedPrice * plan.durationMonths * quantity,
+                        amount:
+                            planData.discountedPrice *
+                            plan.durationMonths *
+                            quantity,
                       ),
                       const SizedBox(height: 8),
                       if (paymentOption == 0)
                         SubscriptionPriceRow(
                           label: 'Pay Now',
-                          amount: planData.discountedPrice * plan.durationMonths * quantity,
+                          amount:
+                              planData.discountedPrice *
+                              plan.durationMonths *
+                              quantity,
                         )
                       else
                         SubscriptionPriceRow(
-                          label: 'Installment (${plan.installmentFrequencyMonths}mo)',
-                          amount: planData.discountedPrice *
+                          label:
+                              'Installment (${plan.installmentFrequencyMonths}mo)',
+                          amount:
+                              planData.discountedPrice *
                               plan.installmentFrequencyMonths *
                               quantity,
                         ),

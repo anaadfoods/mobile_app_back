@@ -18,6 +18,8 @@ class Product {
   final List<ProductImage> productImages;
   final String? cropCycleId;
 
+  String get name => productName;
+
   Product({
     required this.id,
     required this.sku,
@@ -49,9 +51,12 @@ class Product {
       productName: entity.productName,
       productDescription: entity.productDescription,
       productCategory: entity.productCategory,
-      productImages: entity.productImages
-          .map((img) => ProductImage(image: img.image, altText: img.altText))
-          .toList(),
+      productImages:
+          entity.productImages
+              .map(
+                (img) => ProductImage(image: img.image, altText: img.altText),
+              )
+              .toList(),
       cropCycleId: entity.cropCycleId,
     );
   }

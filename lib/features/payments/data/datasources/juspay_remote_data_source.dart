@@ -7,16 +7,12 @@ class JuspayRemoteDataSource {
   final ApiClient _apiClient;
   final PaymentClient _paymentClient;
 
-  JuspayRemoteDataSource({
-    ApiClient? apiClient,
-    PaymentClient? paymentClient,
-  })  : _apiClient = apiClient ?? ApiClient.instance,
-        _paymentClient = paymentClient ?? PaymentClient.instance;
+  JuspayRemoteDataSource({ApiClient? apiClient, PaymentClient? paymentClient})
+    : _apiClient = apiClient ?? ApiClient.instance,
+      _paymentClient = paymentClient ?? PaymentClient.instance;
 
   Future<PaymentStatusModel> fetchStatus(String reference) async {
-    final response = await _apiClient.get(
-      '/api/payments/status/$reference/',
-    );
+    final response = await _apiClient.get('/api/payments/status/$reference/');
     return PaymentStatusModel.fromJson(
       Map<String, dynamic>.from(response.data),
     );

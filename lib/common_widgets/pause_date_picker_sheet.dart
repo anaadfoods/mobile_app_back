@@ -33,7 +33,10 @@ class _PauseDatePickerSheetState extends State<PauseDatePickerSheet> {
         gradient: LinearGradient(
           colors:
               isDark
-                  ? [AppColors.darkSurfaceElevated, AppColors.darkSurfaceElevated]
+                  ? [
+                    AppColors.darkSurfaceElevated,
+                    AppColors.darkSurfaceElevated,
+                  ]
                   : [AppColors.parchment, AppColors.parchment],
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
@@ -219,7 +222,9 @@ class _PauseDatePickerSheetState extends State<PauseDatePickerSheet> {
                       );
                       return;
                     }
-                    final durationInDays = selectedEndDate!.difference(selectedStartDate!).inDays + 1;
+                    final durationInDays =
+                        selectedEndDate!.difference(selectedStartDate!).inDays +
+                        1;
                     if (durationInDays > widget.maxPauseDaysLeft) {
                       SnackBarHelper.showError(
                         context,
@@ -279,7 +284,10 @@ class ResumeSubscriptionSheet extends StatelessWidget {
         gradient: LinearGradient(
           colors:
               isDark
-                  ? [AppColors.darkSurfaceElevated, AppColors.darkSurfaceElevated]
+                  ? [
+                    AppColors.darkSurfaceElevated,
+                    AppColors.darkSurfaceElevated,
+                  ]
                   : [AppColors.parchment, AppColors.parchment],
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
@@ -372,7 +380,10 @@ class DateButton extends StatelessWidget {
           gradient: LinearGradient(
             colors:
                 isDark
-                    ? [AppColors.darkSurfaceElevated, AppColors.darkSurfaceElevated]
+                    ? [
+                      AppColors.darkSurfaceElevated,
+                      AppColors.darkSurfaceElevated,
+                    ]
                     : [AppColors.parchment, AppColors.parchment],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,

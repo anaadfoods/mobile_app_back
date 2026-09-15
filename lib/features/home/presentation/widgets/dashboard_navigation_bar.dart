@@ -1,4 +1,3 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:grocery_app/core/theme/app_colors.dart';
 import 'dashboard_dock_nav_item.dart';
@@ -23,9 +22,9 @@ final List<NavigatorItem> navigatorItems = [
     activeIcon: Icons.home_rounded,
   ),
   const NavigatorItem(
-    label: 'Explore',
-    icon: Icons.grid_view_outlined,
-    activeIcon: Icons.grid_view_rounded,
+    label: 'Shop',
+    icon: Icons.storefront_outlined,
+    activeIcon: Icons.storefront_rounded,
   ),
   const NavigatorItem(
     label: 'Cart',
@@ -80,35 +79,36 @@ class PremiumBottomNavBar extends StatelessWidget {
           padding: const EdgeInsets.only(left: 12, right: 12, bottom: 8),
           child: ClipPath(
             clipper: WaveClipper(notchRadius: 26, notchMargin: 5),
-            child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
-              child: Container(
+            child: Container(
                 height: navBarHeight,
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
-                    colors: isDark
-                        ? [
-                            AppColors.deepSoilGreen.withValues(alpha: 0.95),
-                            AppColors.deepSoilGreen.withValues(alpha: 0.98),
-                          ]
-                        : [
-                            AppColors.softCream.withValues(alpha: 0.96),
-                            AppColors.parchment.withValues(alpha: 0.98),
-                          ],
+                    colors:
+                        isDark
+                            ? [
+                              AppColors.deepSoilGreen.withValues(alpha: 0.95),
+                              AppColors.deepSoilGreen.withValues(alpha: 0.98),
+                            ]
+                            : [
+                              AppColors.softCream.withValues(alpha: 0.96),
+                              AppColors.parchment.withValues(alpha: 0.98),
+                            ],
                   ),
                   border: Border.all(
-                    color: isDark
-                        ? AppColors.parchment.withValues(alpha: 0.1)
-                        : AppColors.rawEarth.withValues(alpha: 0.12),
+                    color:
+                        isDark
+                            ? AppColors.parchment.withValues(alpha: 0.1)
+                            : AppColors.rawEarth.withValues(alpha: 0.12),
                     width: 0.5,
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: isDark
-                          ? AppColors.pureBlack.withValues(alpha: 0.4)
-                          : AppColors.rawEarth.withValues(alpha: 0.15),
+                      color:
+                          isDark
+                              ? AppColors.pureBlack.withValues(alpha: 0.4)
+                              : AppColors.rawEarth.withValues(alpha: 0.15),
                       blurRadius: 20,
                       spreadRadius: 2,
                       offset: const Offset(0, -4),
@@ -148,7 +148,6 @@ class PremiumBottomNavBar extends StatelessWidget {
                     );
                   }),
                 ),
-              ),
             ),
           ),
         ),

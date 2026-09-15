@@ -27,7 +27,12 @@ class OrderDetailScreen extends StatefulWidget {
   final String? orderId;
   final String? orderNumber;
 
-  const OrderDetailScreen({super.key, this.order, this.orderId, this.orderNumber});
+  const OrderDetailScreen({
+    super.key,
+    this.order,
+    this.orderId,
+    this.orderNumber,
+  });
 
   @override
   State<OrderDetailScreen> createState() => _OrderDetailScreenState();
@@ -59,10 +64,12 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
       _currentOrder = widget.order;
       _animController.forward();
       _fetchTracking();
-    } else if (widget.orderId != null) {
+    } else if (widget.orderId != null && int.tryParse(widget.orderId!) != null) {
       context.read<OrderCubit>().fetchOrderDetails(int.parse(widget.orderId!));
-    } else if (widget.orderNumber != null) {
+    } else if (widget.orderNumber != null && widget.orderNumber!.isNotEmpty) {
       context.read<OrderCubit>().fetchOrderDetailsByNumber(widget.orderNumber!);
+    } else {
+      context.read<OrderCubit>().fetchOrderDetailsByNumber('latest');
     }
   }
 
@@ -77,7 +84,9 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
 
     setState(() => _isLoadingTracking = true);
     try {
-      final tracking = await getIt<GetOrderTrackingUseCase>()(_currentOrder!.orderNumber);
+      final tracking = await getIt<GetOrderTrackingUseCase>()(
+        _currentOrder!.orderNumber,
+      );
       if (mounted) {
         setState(() {
           _orderTracking = tracking;
@@ -92,13 +101,19 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
   }
 
   void _handleBack(BuildContext context) {
-    context.goNamed(AppRoute.orderList.name);
+    if (context.canPop()) {
+      context.pop();
+    } else {
+      context.goNamed(AppRoute.orderList.name);
+    }
   }
 
   Future<void> _downloadInvoice() async {
     if (_currentOrder == null) return;
     SnackBarHelper.showLoading(context, 'Downloading invoice...');
-    await context.read<OrderCubit>().downloadInvoice(_currentOrder!.orderNumber);
+    await context.read<OrderCubit>().downloadInvoice(
+      _currentOrder!.orderNumber,
+    );
   }
 
   Future<void> _cancelOrder() async {
@@ -124,9 +139,9 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
     if (!mounted) return;
     setState(() => _isCancelling = true);
     final result = await context.read<OrderCubit>().cancelOrder(
-          _currentOrder!.id,
-          reason: reason,
-        );
+      _currentOrder!.id,
+      reason: reason,
+    );
     if (mounted) {
       setState(() => _isCancelling = false);
       if (result != null && result['success'] == true) {
@@ -160,15 +175,74 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
       },
       builder: (context, state) {
         if (_currentOrder == null) {
-          return const Scaffold(
-            body: LoadingStateWidget(),
-          );
+          if (state is OrderError) {
+            return Scaffold(
+              appBar: AppBar(
+                title: const Text('Order Details'),
+                leading: IconButton(
+                  icon: const Icon(Icons.arrow_back),
+                  onPressed: () => _handleBack(context),
+                ),
+              ),
+              body: Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(24.0),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(
+                        Icons.receipt_long_outlined,
+                        size: 64,
+                        color: AppColors.harvestAmber,
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        state.message,
+                        textAlign: TextAlign.center,
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+                      ElevatedButton.icon(
+                        onPressed: () {
+                          if (widget.orderId != null &&
+                              int.tryParse(widget.orderId!) != null) {
+                            context.read<OrderCubit>().fetchOrderDetails(
+                              int.parse(widget.orderId!),
+                            );
+                          } else if (widget.orderNumber != null &&
+                              widget.orderNumber!.isNotEmpty) {
+                            context.read<OrderCubit>().fetchOrderDetailsByNumber(
+                              widget.orderNumber!,
+                            );
+                          } else {
+                            context.read<OrderCubit>().fetchOrderDetailsByNumber(
+                              'latest',
+                            );
+                          }
+                        },
+                        icon: const Icon(Icons.refresh),
+                        label: const Text('Retry'),
+                      ),
+                      const SizedBox(height: 12),
+                      TextButton(
+                        onPressed: () => _handleBack(context),
+                        child: const Text('Go Back'),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          }
+          return const Scaffold(body: LoadingStateWidget());
         }
 
         return PopScope(
           canPop: false,
           onPopInvokedWithResult: (didPop, result) {
-            context.goNamed(AppRoute.orderList.name);
+            _handleBack(context);
           },
           child: Scaffold(
             backgroundColor: theme.scaffoldBackgroundColor,
@@ -184,7 +258,9 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
                     order: _currentOrder!,
                     onBack: () => _handleBack(context),
                     onRefresh: () {
-                      context.read<OrderCubit>().fetchOrderDetails(_currentOrder!.id);
+                      context.read<OrderCubit>().fetchOrderDetails(
+                        _currentOrder!.id,
+                      );
                     },
                   ),
                   SliverToBoxAdapter(
@@ -244,7 +320,11 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
       ),
       child: Row(
         children: [
-          Icon(Icons.check_circle_rounded, color: theme.colorScheme.primary, size: 24),
+          Icon(
+            Icons.check_circle_rounded,
+            color: theme.colorScheme.primary,
+            size: 24,
+          ),
           const SizedBox(width: 14),
           Expanded(
             child: Column(
@@ -254,11 +334,15 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
                   ApiConfig.showExpectedDeliveryDate
                       ? 'Arriving ${_formatDate(_currentOrder!.expectedDeliveryDate)}'
                       : ApiConfig.alternativeDeliveryText,
-                  style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
                 Text(
                   'Order Number: #${_currentOrder!.orderNumber}',
-                  style: theme.textTheme.bodySmall?.copyWith(color: theme.hintColor),
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.hintColor,
+                  ),
                 ),
               ],
             ),
@@ -274,11 +358,17 @@ class _OrderDetailScreenState extends State<OrderDetailScreen>
       decoration: BoxDecoration(
         color: AppColors.harvestAmber.withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.harvestAmber.withValues(alpha: 0.3)),
+        border: Border.all(
+          color: AppColors.harvestAmber.withValues(alpha: 0.3),
+        ),
       ),
       child: Row(
         children: [
-          const Icon(Icons.redeem_rounded, color: AppColors.harvestAmber, size: 24),
+          const Icon(
+            Icons.redeem_rounded,
+            color: AppColors.harvestAmber,
+            size: 24,
+          ),
           const SizedBox(width: 14),
           Expanded(
             child: Text(

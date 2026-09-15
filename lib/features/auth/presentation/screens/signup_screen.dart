@@ -1,6 +1,7 @@
 import 'package:grocery_app/features/auth/presentation/cubit/auth_cubit.dart';
 import 'package:grocery_app/features/auth/presentation/cubit/auth_state.dart';
-import 'package:grocery_app/features/auth/domain/repositories/auth_repository.dart' as domain;
+import 'package:grocery_app/features/auth/domain/repositories/auth_repository.dart'
+    as domain;
 import 'package:grocery_app/features/auth/domain/failures/auth_failure.dart';
 import 'dart:ui';
 import 'dart:math' as math;
@@ -405,7 +406,10 @@ class _SignupScreenState extends State<SignupScreen>
                             } catch (e) {
                               SnackBarHelper.showError(
                                 context,
-                                e.toString().replaceAll('Exception:', '').trim(),
+                                e
+                                    .toString()
+                                    .replaceAll('Exception:', '')
+                                    .trim(),
                               );
                               rethrow;
                             }
@@ -851,9 +855,14 @@ class _SignupScreenState extends State<SignupScreen>
                                           return null;
                                         },
                                         onValidationChanged: (isValid) {
-                                          _updateFieldValidity('email', isValid);
+                                          _updateFieldValidity(
+                                            'email',
+                                            isValid,
+                                          );
                                           if (_isEmailVerified) {
-                                            setState(() => _isEmailVerified = false);
+                                            setState(
+                                              () => _isEmailVerified = false,
+                                            );
                                           }
                                         },
                                         suffixIcon: _buildVerifyButton(
@@ -918,9 +927,14 @@ class _SignupScreenState extends State<SignupScreen>
                                           return null;
                                         },
                                         onValidationChanged: (isValid) {
-                                          _updateFieldValidity('phone', isValid);
+                                          _updateFieldValidity(
+                                            'phone',
+                                            isValid,
+                                          );
                                           if (_isPhoneVerified) {
-                                            setState(() => _isPhoneVerified = false);
+                                            setState(
+                                              () => _isPhoneVerified = false,
+                                            );
                                           }
                                         },
                                         suffixIcon: _buildVerifyButton(
@@ -1025,7 +1039,8 @@ class _SignupScreenState extends State<SignupScreen>
                                         controller: _referralCodeController,
                                         onPrimary: true,
                                         textInputAction: TextInputAction.done,
-                                        onFieldSubmitted: (_) => _handleSignup(),
+                                        onFieldSubmitted:
+                                            (_) => _handleSignup(),
                                       ),
                                     ),
                                     const SizedBox(height: 20),
@@ -1071,7 +1086,8 @@ class _SignupScreenState extends State<SignupScreen>
                                             onPressed:
                                                 isLoading
                                                     ? null
-                                                    : () => context.go('/login'),
+                                                    : () =>
+                                                        context.go('/login'),
                                             child: Text(
                                               "Login",
                                               style: textTheme.bodyMedium

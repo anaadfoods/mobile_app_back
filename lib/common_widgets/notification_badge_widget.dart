@@ -42,7 +42,9 @@ class NotificationBadgeWidget extends StatelessWidget {
                 child: GestureDetector(
                   onTap: () {
                     onTap?.call();
-                    context.read<NotificationCubit>().resetNotificationBadgeCount();
+                    context
+                        .read<NotificationCubit>()
+                        .resetNotificationBadgeCount();
                   },
                   child: Container(
                     width: badgeSize ?? 22,

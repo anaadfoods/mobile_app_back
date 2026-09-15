@@ -64,8 +64,11 @@ class HomeCategoryShowcaseSection extends StatelessWidget {
                               child: Image.network(
                                 category.image,
                                 fit: BoxFit.cover,
-                                errorBuilder: (context, error, stackTrace) =>
-                                    Icon(Icons.category, color: theme.colorScheme.primary),
+                                errorBuilder:
+                                    (context, error, stackTrace) => Icon(
+                                      Icons.category,
+                                      color: theme.colorScheme.primary,
+                                    ),
                               ),
                             ),
                           ),

@@ -44,17 +44,17 @@ class _CartScreenState extends State<CartScreen> with TickerProviderStateMixin {
 
   void _initAnimations() {
     _headerController = AnimationController(
-      duration: const Duration(milliseconds: 800),
+      duration: const Duration(milliseconds: 420),
       vsync: this,
     );
 
     _contentController = AnimationController(
-      duration: const Duration(milliseconds: 600),
+      duration: const Duration(milliseconds: 320),
       vsync: this,
     );
 
     _checkoutController = AnimationController(
-      duration: const Duration(milliseconds: 500),
+      duration: const Duration(milliseconds: 280),
       vsync: this,
     );
 
@@ -97,7 +97,8 @@ class _CartScreenState extends State<CartScreen> with TickerProviderStateMixin {
           if (authState is Unauthenticated) {
             return const GuestEmptyStateWidget(
               title: 'Login to View Cart',
-              subtitle: 'Please log in or sign up to see your cart and complete checkout.',
+              subtitle:
+                  'Please log in or sign up to see your cart and complete checkout.',
               icon: Icons.shopping_cart_outlined,
             );
           }
@@ -121,9 +122,10 @@ class _CartScreenState extends State<CartScreen> with TickerProviderStateMixin {
                       SliverToBoxAdapter(
                         child: AnimatedScreenHeader(
                           title: "My Cart",
-                          subtitle: state is CartSuccess
-                              ? "${state.cart.totalItems} items ready for checkout"
-                              : "Want toxin‑free food?",
+                          subtitle:
+                              state is CartSuccess
+                                  ? "${state.cart.totalItems} items ready for checkout"
+                                  : "Want toxin‑free food?",
                           showBack: true,
                           hasParticles: true,
                           animationController: _headerController,
@@ -134,7 +136,8 @@ class _CartScreenState extends State<CartScreen> with TickerProviderStateMixin {
                               size: 28,
                             ),
                             const SizedBox(width: 12),
-                            if (state is CartSuccess && state.cart.items.isNotEmpty)
+                            if (state is CartSuccess &&
+                                state.cart.items.isNotEmpty)
                               GlassmorphicIconButton(
                                 icon: Icons.delete_sweep_rounded,
                                 iconSize: 22,
@@ -160,7 +163,8 @@ class _CartScreenState extends State<CartScreen> with TickerProviderStateMixin {
                           _buildCartItemsList(theme, isDark, state.cart),
                           SliverPadding(
                             padding: EdgeInsets.only(
-                              bottom: 168.0 + MediaQuery.paddingOf(context).bottom,
+                              bottom:
+                                  168.0 + MediaQuery.paddingOf(context).bottom,
                             ),
                           ),
                         ],
@@ -169,7 +173,10 @@ class _CartScreenState extends State<CartScreen> with TickerProviderStateMixin {
                   ),
 
                   if (state is CartSuccess && state.cart.items.isNotEmpty)
-                    CartCheckoutBar(cart: state.cart, slideAnimation: _checkoutSlide),
+                    CartCheckoutBar(
+                      cart: state.cart,
+                      slideAnimation: _checkoutSlide,
+                    ),
                 ],
               );
             },
@@ -215,8 +222,13 @@ class _CartScreenState extends State<CartScreen> with TickerProviderStateMixin {
                 onQuantityChanged: (newQty) {
                   HapticFeedback.selectionClick();
                   newQty == 0
-                      ? context.read<CartCubit>().removeItem(item.productVariant.id)
-                      : context.read<CartCubit>().updateItem(item.productVariant.id, newQty);
+                      ? context.read<CartCubit>().removeItem(
+                        item.productVariant.id,
+                      )
+                      : context.read<CartCubit>().updateItem(
+                        item.productVariant.id,
+                        newQty,
+                      );
                 },
                 onRemove: () {
                   HapticFeedback.mediumImpact();
@@ -234,53 +246,54 @@ class _CartScreenState extends State<CartScreen> with TickerProviderStateMixin {
     final theme = Theme.of(context);
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
-        ),
-        title: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: theme.colorScheme.error.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Icon(
-                Icons.delete_sweep_rounded,
-                color: theme.colorScheme.error,
-                size: 24,
-              ),
+      builder:
+          (context) => AlertDialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
             ),
-            const SizedBox(width: 12),
-            const Text('Clear Cart'),
-          ],
-        ),
-        content: const Text(
-          'Are you sure you want to remove all items from your cart?',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text('Cancel', style: TextStyle(color: theme.hintColor)),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              context.read<CartCubit>().clearCart();
-              Navigator.pop(context);
-              HapticFeedback.mediumImpact();
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: theme.colorScheme.error,
-              foregroundColor: AppColors.parchment,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
+            title: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.error.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Icon(
+                    Icons.delete_sweep_rounded,
+                    color: theme.colorScheme.error,
+                    size: 24,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                const Text('Clear Cart'),
+              ],
             ),
-            child: const Text('Clear All'),
+            content: const Text(
+              'Are you sure you want to remove all items from your cart?',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: Text('Cancel', style: TextStyle(color: theme.hintColor)),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  context.read<CartCubit>().clearCart();
+                  Navigator.pop(context);
+                  HapticFeedback.mediumImpact();
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: theme.colorScheme.error,
+                  foregroundColor: AppColors.parchment,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                child: const Text('Clear All'),
+              ),
+            ],
           ),
-        ],
-      ),
     );
   }
 

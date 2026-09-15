@@ -13,7 +13,9 @@ class GetUserSubscriptionsUseCase {
     return subscriptions.where((sub) {
       if (sub.paymentMethod.toUpperCase() == 'UPI') {
         final status = sub.paymentStatus.toUpperCase();
-        if (status == 'PAYMENT_PENDING' || status == 'PENDING' || status == 'FAILED') {
+        if (status == 'PAYMENT_PENDING' ||
+            status == 'PENDING' ||
+            status == 'FAILED') {
           return false;
         }
       }

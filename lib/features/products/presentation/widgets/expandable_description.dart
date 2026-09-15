@@ -22,15 +22,17 @@ class _ExpandableDescriptionState extends State<ExpandableDescription> {
           child: Text(
             widget.text.trim(),
             style: TextStyle(
-              color: isDark
-                  ? AppColors.parchment.withValues(alpha: 0.8)
-                  : AppColors.charcoal87,
+              color:
+                  isDark
+                      ? AppColors.parchment.withValues(alpha: 0.8)
+                      : AppColors.charcoal87,
               fontSize: 14,
               height: 1.6,
             ),
             textAlign: TextAlign.justify,
             maxLines: _isExpanded ? null : 3,
-            overflow: _isExpanded ? TextOverflow.visible : TextOverflow.ellipsis,
+            overflow:
+                _isExpanded ? TextOverflow.visible : TextOverflow.ellipsis,
           ),
         ),
         const SizedBox(height: 6),

@@ -38,17 +38,17 @@ class SubscriptionCubit extends Cubit<SubscriptionState> {
     required GetSubscriptionInvoicesUseCase getInvoices,
     required GetSubscriptionPlanProductsUseCase getPlanProducts,
     required SearchPlansForVariantUseCase searchPlans,
-  })  : _getUserSubscriptions = getUserSubscriptions,
-        _getSubscriptionDetails = getSubscriptionDetails,
-        _getSubscriptionPlans = getSubscriptionPlans,
-        _createSubscription = createSubscription,
-        _cancelSubscription = cancelSubscription,
-        _togglePause = togglePause,
-        _repayment = repayment,
-        _getInvoices = getInvoices,
-        _getPlanProducts = getPlanProducts,
-        _searchPlans = searchPlans,
-        super(SubscriptionInitial());
+  }) : _getUserSubscriptions = getUserSubscriptions,
+       _getSubscriptionDetails = getSubscriptionDetails,
+       _getSubscriptionPlans = getSubscriptionPlans,
+       _createSubscription = createSubscription,
+       _cancelSubscription = cancelSubscription,
+       _togglePause = togglePause,
+       _repayment = repayment,
+       _getInvoices = getInvoices,
+       _getPlanProducts = getPlanProducts,
+       _searchPlans = searchPlans,
+       super(SubscriptionInitial());
 
   SubscriptionSuccess _getCurrentSuccessState() {
     if (state is SubscriptionSuccess) {
@@ -66,9 +66,11 @@ class SubscriptionCubit extends Cubit<SubscriptionState> {
     } on SubscriptionFailure catch (e) {
       emit(SubscriptionError(e.message));
     } catch (e) {
-      emit(const SubscriptionError(
-        'An unexpected error occurred while fetching plans.',
-      ));
+      emit(
+        const SubscriptionError(
+          'An unexpected error occurred while fetching plans.',
+        ),
+      );
     }
   }
 
@@ -89,21 +91,23 @@ class SubscriptionCubit extends Cubit<SubscriptionState> {
 
       final updatedProducts =
           Map<int, List<SubscriptionPlanProductEntity>>.from(
-        latestState.planProducts,
-      );
+            latestState.planProducts,
+          );
       updatedProducts[planId] = products;
 
-      final finalLoadingIds =
-          Set<int>.from(latestState.loadingProductPlanIds)..remove(planId);
+      final finalLoadingIds = Set<int>.from(latestState.loadingProductPlanIds)
+        ..remove(planId);
 
-      emit(latestState.copyWith(
-        planProducts: updatedProducts,
-        loadingProductPlanIds: finalLoadingIds,
-      ));
+      emit(
+        latestState.copyWith(
+          planProducts: updatedProducts,
+          loadingProductPlanIds: finalLoadingIds,
+        ),
+      );
     } catch (_) {
       final currentState = _getCurrentSuccessState();
-      final finalLoadingIds =
-          Set<int>.from(currentState.loadingProductPlanIds)..remove(planId);
+      final finalLoadingIds = Set<int>.from(currentState.loadingProductPlanIds)
+        ..remove(planId);
       emit(currentState.copyWith(loadingProductPlanIds: finalLoadingIds));
     }
   }
@@ -114,13 +118,11 @@ class SubscriptionCubit extends Cubit<SubscriptionState> {
       if (currentState.userSubscriptions.isEmpty) emit(SubscriptionLoading());
       final subscriptions = await _getUserSubscriptions();
       emit(
-        _getCurrentSuccessState()
-            .copyWith(userSubscriptions: subscriptions),
+        _getCurrentSuccessState().copyWith(userSubscriptions: subscriptions),
       );
     } on SubscriptionFailure catch (e) {
       if (e.message.contains('must be logged in')) {
-        emit(_getCurrentSuccessState()
-            .copyWith(userSubscriptions: const []));
+        emit(_getCurrentSuccessState().copyWith(userSubscriptions: const []));
       } else {
         emit(SubscriptionError(e.message));
       }
@@ -134,14 +136,16 @@ class SubscriptionCubit extends Cubit<SubscriptionState> {
       emit(SubscriptionLoading());
       final result = await _createSubscription(requestData);
       if (result.requiresOnlinePayment && result.subscriptionId != null) {
-        emit(SubscriptionCreated(
-          result.paymentLinks ?? {},
-          result.subscriptionId!,
-        ));
+        emit(
+          SubscriptionCreated(
+            result.paymentLinks ?? {},
+            result.subscriptionId!,
+          ),
+        );
       } else {
-        emit(const SubscriptionActionSuccess(
-          'Subscription created successfully!',
-        ));
+        emit(
+          const SubscriptionActionSuccess('Subscription created successfully!'),
+        );
       }
       await fetchUserSubscriptions();
     } on SubscriptionFailure catch (e) {
@@ -157,10 +161,8 @@ class SubscriptionCubit extends Cubit<SubscriptionState> {
   }) async {
     final previousState = _getCurrentSuccessState();
     try {
-      final result =
-          await _cancelSubscription(subscriptionId, reason: reason);
-      final msg =
-          result['message'] ?? 'Subscription cancelled successfully.';
+      final result = await _cancelSubscription(subscriptionId, reason: reason);
+      final msg = result['message'] ?? 'Subscription cancelled successfully.';
       emit(SubscriptionActionSuccess(msg));
       await fetchUserSubscriptions();
       return result;
@@ -169,9 +171,7 @@ class SubscriptionCubit extends Cubit<SubscriptionState> {
       emit(previousState);
       return null;
     } catch (e) {
-      emit(const SubscriptionError(
-        'Failed to cancel the subscription.',
-      ));
+      emit(const SubscriptionError('Failed to cancel the subscription.'));
       emit(previousState);
       return null;
     }
@@ -184,17 +184,18 @@ class SubscriptionCubit extends Cubit<SubscriptionState> {
   ) async {
     final previousState = _getCurrentSuccessState();
     try {
-      final response =
-          await _togglePause(subscriptionId, startDate, endDate);
+      final response = await _togglePause(subscriptionId, startDate, endDate);
       emit(SubscriptionActionSuccess(response.message));
       await fetchUserSubscriptions();
     } on SubscriptionFailure catch (e) {
       emit(SubscriptionError(e.message));
       emit(previousState);
     } catch (e) {
-      emit(const SubscriptionError(
-        'An unexpected error occurred while updating status.',
-      ));
+      emit(
+        const SubscriptionError(
+          'An unexpected error occurred while updating status.',
+        ),
+      );
       emit(previousState);
     }
   }
@@ -216,9 +217,11 @@ class SubscriptionCubit extends Cubit<SubscriptionState> {
     } on SubscriptionFailure catch (e) {
       emit(SubscriptionError(e.message));
     } catch (e) {
-      emit(const SubscriptionError(
-        'An unexpected error occurred during repayment.',
-      ));
+      emit(
+        const SubscriptionError(
+          'An unexpected error occurred during repayment.',
+        ),
+      );
     }
   }
 
@@ -240,13 +243,17 @@ class SubscriptionCubit extends Cubit<SubscriptionState> {
       final currentState = _getCurrentSuccessState();
       // Don't emit SubscriptionLoading() — it wipes userSubscriptions and other data
       final searchResults = await _searchPlans(variantId);
-      emit(_getCurrentSuccessState().copyWith(planSearchResults: searchResults));
+      emit(
+        _getCurrentSuccessState().copyWith(planSearchResults: searchResults),
+      );
     } on SubscriptionFailure catch (e) {
       emit(SubscriptionError(e.message));
     } catch (e) {
-      emit(const SubscriptionError(
-        'An unexpected error occurred while searching for plans.',
-      ));
+      emit(
+        const SubscriptionError(
+          'An unexpected error occurred while searching for plans.',
+        ),
+      );
     }
   }
 

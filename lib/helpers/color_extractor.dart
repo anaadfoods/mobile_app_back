@@ -21,10 +21,10 @@ class ColorExtractor {
     try {
       final PaletteGenerator paletteGenerator =
           await PaletteGenerator.fromImageProvider(
-        NetworkImage(imageUrl),
-        size: const Size(100, 100), // Smaller size for faster processing
-        maximumColorCount: 10,
-      );
+            NetworkImage(imageUrl),
+            size: const Size(100, 100), // Smaller size for faster processing
+            maximumColorCount: 10,
+          );
 
       // Try to get the most vibrant/dominant color
       Color? extractedColor;
@@ -58,9 +58,10 @@ class ColorExtractor {
     List<String> imageUrls, {
     Color fallbackColor = AppColors.parchment,
   }) async {
-    final List<Future<Color>> futures = imageUrls.map((url) {
-      return extractDominantColor(url, fallbackColor: fallbackColor);
-    }).toList();
+    final List<Future<Color>> futures =
+        imageUrls.map((url) {
+          return extractDominantColor(url, fallbackColor: fallbackColor);
+        }).toList();
 
     return await Future.wait(futures);
   }

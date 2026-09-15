@@ -20,10 +20,7 @@ class AccountLoaded extends AccountState {
   final UserSummaryEntity? userSummary;
   final Map<String, dynamic>? userProfile;
 
-  const AccountLoaded({
-    this.userSummary,
-    this.userProfile,
-  });
+  const AccountLoaded({this.userSummary, this.userProfile});
 
   AccountLoaded copyWith({
     UserSummaryEntity? userSummary,

@@ -19,7 +19,10 @@ abstract class AuthRemoteDataSource {
   Future<bool> verifyToken();
   Future<Map<String, String>?> refreshAccessToken(String refreshToken);
   Future<UserModel> updateProfile(UserModel user);
-  Future<bool> updateAddress(UserModel currentUser, Map<String, String> addressDetails);
+  Future<bool> updateAddress(
+    UserModel currentUser,
+    Map<String, String> addressDetails,
+  );
   Future<void> uploadProfileImage(File imageFile);
   Future<UserModel> getUserProfile();
   Future<void> sendOtp(String identifier, String type);
@@ -30,9 +33,9 @@ abstract class AuthRemoteDataSource {
 
 class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   final ApiClient _apiClient;
-  
+
   AuthRemoteDataSourceImpl({ApiClient? apiClient})
-      : _apiClient = apiClient ?? ApiClient.instance;
+    : _apiClient = apiClient ?? ApiClient.instance;
 
   final String serverClientId = dotenv.env["GOOGLE_SERVER_CLIENT_ID"] ?? "";
   final String iosClientId = dotenv.env["GOOGLE_IOS_CLIENT_ID"] ?? "";
@@ -71,15 +74,14 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     final String deviceId = await NotificationService.getDeviceId();
     requestData['device_id'] = deviceId;
 
-    await _apiClient.post(
-      ApiConfig.registerEndpoint,
-      data: requestData,
-    );
+    await _apiClient.post(ApiConfig.registerEndpoint, data: requestData);
   }
 
   @override
   Future<AuthResponse> googleLogin() async {
-    AppLogger.instance.log('DEBUG: Starting Google Sign-In flow in data source...');
+    AppLogger.instance.log(
+      'DEBUG: Starting Google Sign-In flow in data source...',
+    );
     // Ensure previous sign-in is cleared to prevent issues
     try {
       await _googleSignIn.disconnect();
@@ -89,10 +91,14 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
 
     final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
     if (googleUser == null) {
-      throw PlatformException(code: 'CANCELED', message: 'Google Sign-In cancelled');
+      throw PlatformException(
+        code: 'CANCELED',
+        message: 'Google Sign-In cancelled',
+      );
     }
 
-    final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+    final GoogleSignInAuthentication googleAuth =
+        await googleUser.authentication;
     final idToken = googleAuth.idToken;
     if (idToken == null) {
       throw Exception('Failed to obtain Google ID token.');
@@ -113,9 +119,12 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   Future<AuthResponse> appleLogin() async {
     WebAuthenticationOptions? webOptions;
     if (Platform.isAndroid) {
-      final serviceId = dotenv.env["APPLE_SERVICE_ID"] ?? "com.anaad.foods.ios.signin";
+      final serviceId =
+          dotenv.env["APPLE_SERVICE_ID"] ?? "com.anaad.foods.ios.signin";
       final baseUrl = dotenv.env["API_BASE_URL"] ?? ApiConfig.baseUrl;
-      final redirectUrl = dotenv.env["APPLE_REDIRECT_URI"] ?? "$baseUrl/api/auth/apple/callback/";
+      final redirectUrl =
+          dotenv.env["APPLE_REDIRECT_URI"] ??
+          "$baseUrl/api/auth/apple/callback/";
 
       webOptions = WebAuthenticationOptions(
         clientId: serviceId,
@@ -123,17 +132,19 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       );
     }
 
-    final String platform = Platform.isAndroid ? 'flutter_android' : 'flutter_ios';
+    final String platform =
+        Platform.isAndroid ? 'flutter_android' : 'flutter_ios';
     final String appleState = AppleAuthState.build(platform);
 
-    final AuthorizationCredentialAppleID credential = await SignInWithApple.getAppleIDCredential(
-      scopes: [
-        AppleIDAuthorizationScopes.email,
-        AppleIDAuthorizationScopes.fullName,
-      ],
-      webAuthenticationOptions: webOptions,
-      state: appleState,
-    );
+    final AuthorizationCredentialAppleID credential =
+        await SignInWithApple.getAppleIDCredential(
+          scopes: [
+            AppleIDAuthorizationScopes.email,
+            AppleIDAuthorizationScopes.fullName,
+          ],
+          webAuthenticationOptions: webOptions,
+          state: appleState,
+        );
 
     final idToken = credential.identityToken;
     if (idToken == null) {
@@ -149,10 +160,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       body['name'] = name;
     }
 
-    final response = await _apiClient.post(
-      '/api/auth/apple/',
-      data: body,
-    );
+    final response = await _apiClient.post('/api/auth/apple/', data: body);
 
     if (response.statusCode == 200 && response.data != null) {
       return AuthResponse.fromJson(response.data);
@@ -165,8 +173,14 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     try {
       final response = await _apiClient.get(ApiConfig.testTokenEndpoint);
       return response.statusCode == 200;
+    } on dio.DioException catch (e) {
+      if (e.response?.statusCode == 401 || e.response?.statusCode == 403) {
+        return false;
+      }
+      // On network errors or connection failures, preserve session
+      return true;
     } catch (_) {
-      return false;
+      return true;
     }
   }
 
@@ -215,7 +229,10 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   }
 
   @override
-  Future<bool> updateAddress(UserModel currentUser, Map<String, String> addressDetails) async {
+  Future<bool> updateAddress(
+    UserModel currentUser,
+    Map<String, String> addressDetails,
+  ) async {
     final bodyMap = {
       'username': currentUser.username,
       'email': currentUser.email,
@@ -236,7 +253,8 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       return response.statusCode == 200;
     } catch (e) {
       // Fallback if phone was updated and failed due to duplicate
-      if (addressDetails['phone'] != null && addressDetails['phone'] != currentUser.phoneNumber) {
+      if (addressDetails['phone'] != null &&
+          addressDetails['phone'] != currentUser.phoneNumber) {
         final fallbackBodyMap = Map<String, dynamic>.from(bodyMap);
         fallbackBodyMap['phone_number'] = currentUser.phoneNumber;
         final response = await _apiClient.put(
@@ -261,7 +279,9 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     );
 
     if (response.statusCode != 200) {
-      throw Exception('Failed to upload profile picture: ${response.statusCode}');
+      throw Exception(
+        'Failed to upload profile picture: ${response.statusCode}',
+      );
     }
   }
 

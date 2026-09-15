@@ -15,8 +15,10 @@ class SubscriptionTable extends StatefulWidget {
 
 class _SubscriptionTableState extends State<SubscriptionTable>
     with TickerProviderStateMixin {
-  final GetSubscriptionPlansUseCase _getSubscriptionPlansUseCase = getIt<GetSubscriptionPlansUseCase>();
-  final GetSubscriptionPlanProductsUseCase _getSubscriptionPlanProductsUseCase = getIt<GetSubscriptionPlanProductsUseCase>();
+  final GetSubscriptionPlansUseCase _getSubscriptionPlansUseCase =
+      getIt<GetSubscriptionPlansUseCase>();
+  final GetSubscriptionPlanProductsUseCase _getSubscriptionPlanProductsUseCase =
+      getIt<GetSubscriptionPlanProductsUseCase>();
   List<SubscriptionPlan> _plans = [];
   bool _isLoading = true;
   String? _error;
@@ -101,24 +103,27 @@ class _SubscriptionTableState extends State<SubscriptionTable>
       final plans = await _getSubscriptionPlansUseCase();
       if (mounted) {
         setState(() {
-          _plans = plans
-              .map((e) => SubscriptionPlan(
-                    id: e.id,
-                    name: e.name,
-                    durationMonths: e.durationMonths,
-                    discountPercentage: '0',
-                    totalDiscountPercentage: 0,
-                    tagline: e.tagline,
-                    description: e.description,
-                    isActive: e.isActive,
-                    activationDate: '',
-                    isOneTimeOnly: false,
-                    allowsInstallments: false,
-                    installmentFrequencyMonths: 0,
-                    isAvailable: true,
-                  ))
-              .toList()
-            ..sort((a, b) => a.id.compareTo(b.id));
+          _plans =
+              plans
+                  .map(
+                    (e) => SubscriptionPlan(
+                      id: e.id,
+                      name: e.name,
+                      durationMonths: e.durationMonths,
+                      discountPercentage: '0',
+                      totalDiscountPercentage: 0,
+                      tagline: e.tagline,
+                      description: e.description,
+                      isActive: e.isActive,
+                      activationDate: '',
+                      isOneTimeOnly: false,
+                      allowsInstallments: false,
+                      installmentFrequencyMonths: 0,
+                      isAvailable: true,
+                    ),
+                  )
+                  .toList()
+                ..sort((a, b) => a.id.compareTo(b.id));
           _cachedPlans = _plans;
           _isLoading = false;
         });
@@ -157,13 +162,16 @@ class _SubscriptionTableState extends State<SubscriptionTable>
       final products = await _getSubscriptionPlanProductsUseCase(planId);
       if (mounted) {
         setState(() {
-          _planProducts[planId] = products
-              .map((e) => SubscriptionPlanProduct(
-                    productId: e.id,
-                    productName: e.name,
-                    maxWeightLimit: e.unitWeight,
-                  ))
-              .toList();
+          _planProducts[planId] =
+              products
+                  .map(
+                    (e) => SubscriptionPlanProduct(
+                      productId: e.id,
+                      productName: e.name,
+                      maxWeightLimit: e.unitWeight,
+                    ),
+                  )
+                  .toList();
           _cachedPlanProducts[planId] = _planProducts[planId]!;
         });
       }
@@ -245,7 +253,10 @@ class _SubscriptionTableState extends State<SubscriptionTable>
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.deepSoilGreen,
                 foregroundColor: AppColors.parchment,
-                padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 32,
+                  vertical: 12,
+                ),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
@@ -1230,7 +1241,8 @@ class _SubscriptionPopupContentState extends State<_SubscriptionPopupContent> {
                                                           ? 'No products available'
                                                           : 'Tap to choose a product'),
                                                   maxLines: 1,
-                                                  overflow: TextOverflow.ellipsis,
+                                                  overflow:
+                                                      TextOverflow.ellipsis,
                                                   style: TextStyle(
                                                     color:
                                                         _selectedProduct != null
@@ -1350,7 +1362,8 @@ class _SubscriptionPopupContentState extends State<_SubscriptionPopupContent> {
                                                             context,
                                                             AnimatedTransitions.fadeScale(
                                                               ProductDetailsScreen(
-                                                                product: product,
+                                                                product:
+                                                                    product,
                                                                 autoOpenSubscription:
                                                                     true,
                                                                 initialPlanId:
@@ -1431,8 +1444,11 @@ class _SubscriptionPopupContentState extends State<_SubscriptionPopupContent> {
                                                                   Expanded(
                                                                     child: Text(
                                                                       p.productName,
-                                                                      maxLines: 1,
-                                                                      overflow: TextOverflow.ellipsis,
+                                                                      maxLines:
+                                                                          1,
+                                                                      overflow:
+                                                                          TextOverflow
+                                                                              .ellipsis,
                                                                       style: TextStyle(
                                                                         color: textColor.withOpacity(
                                                                           isChosen

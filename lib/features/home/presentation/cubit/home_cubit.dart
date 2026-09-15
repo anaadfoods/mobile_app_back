@@ -10,9 +10,9 @@ class HomeCubit extends Cubit<HomeState> {
   HomeCubit({
     required GetBannersUseCase getBannersUseCase,
     required GetCommunitiesUseCase getCommunitiesUseCase,
-  })  : _getBannersUseCase = getBannersUseCase,
-        _getCommunitiesUseCase = getCommunitiesUseCase,
-        super(HomeInitial());
+  }) : _getBannersUseCase = getBannersUseCase,
+       _getCommunitiesUseCase = getCommunitiesUseCase,
+       super(HomeInitial());
 
   Future<void> loadHomeData() async {
     emit(HomeLoading());
@@ -20,16 +20,20 @@ class HomeCubit extends Cubit<HomeState> {
     var currentState = const HomeSuccess();
 
     await Future.wait([
-      Future.sync(() => _getBannersUseCase()).then((banners) {
-        currentState = currentState.copyWith(banners: banners);
-      }).catchError((_) {
-        // Handle section failure to allow partial UI rendering
-      }),
-      Future.sync(() => _getCommunitiesUseCase()).then((communities) {
-        currentState = currentState.copyWith(communities: communities);
-      }).catchError((_) {
-        // Handle section failure to allow partial UI rendering
-      }),
+      Future.sync(() => _getBannersUseCase())
+          .then((banners) {
+            currentState = currentState.copyWith(banners: banners);
+          })
+          .catchError((_) {
+            // Handle section failure to allow partial UI rendering
+          }),
+      Future.sync(() => _getCommunitiesUseCase())
+          .then((communities) {
+            currentState = currentState.copyWith(communities: communities);
+          })
+          .catchError((_) {
+            // Handle section failure to allow partial UI rendering
+          }),
     ]);
 
     emit(currentState);

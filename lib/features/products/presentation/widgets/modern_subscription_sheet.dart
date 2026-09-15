@@ -120,9 +120,10 @@ class _ModernSubscriptionSheetState extends State<ModernSubscriptionSheet>
                 width: 48,
                 height: 5,
                 decoration: BoxDecoration(
-                  color: isDark
-                      ? AppColors.parchment.withValues(alpha: 0.15)
-                      : AppColors.charcoal.withValues(alpha: 0.12),
+                  color:
+                      isDark
+                          ? AppColors.parchment.withValues(alpha: 0.15)
+                          : AppColors.charcoal.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(10),
                 ),
               ),
@@ -141,7 +142,10 @@ class _ModernSubscriptionSheetState extends State<ModernSubscriptionSheet>
                             'Choose Subscription',
                             style: theme.textTheme.headlineSmall?.copyWith(
                               fontWeight: FontWeight.w900,
-                              color: isDark ? AppColors.pureWhite : AppColors.charcoal,
+                              color:
+                                  isDark
+                                      ? AppColors.pureWhite
+                                      : AppColors.charcoal,
                               letterSpacing: -0.5,
                             ),
                           ),
@@ -181,9 +185,8 @@ class _ModernSubscriptionSheetState extends State<ModernSubscriptionSheet>
 
                       // Subscription Plans list
                       ...widget.allPlans.mapIndexed((index, plan) {
-                        final planData = widget.availablePlansForProduct.firstWhereOrNull(
-                          (p) => p.planName == plan.name,
-                        );
+                        final planData = widget.availablePlansForProduct
+                            .firstWhereOrNull((p) => p.planName == plan.name);
                         final isEnabled = planData != null;
                         final isSelected = widget.selectedIndex == index;
 
@@ -200,7 +203,8 @@ class _ModernSubscriptionSheetState extends State<ModernSubscriptionSheet>
                             quantity: widget.quantity,
                             paymentOption: widget.paymentOption,
                             onPlanSelected: widget.onPlanSelected,
-                            onPaymentOptionChanged: widget.onPaymentOptionChanged,
+                            onPaymentOptionChanged:
+                                widget.onPaymentOptionChanged,
                           ),
                         );
                       }),
@@ -221,12 +225,16 @@ class _ModernSubscriptionSheetState extends State<ModernSubscriptionSheet>
   Widget _buildQuantitySelector(ThemeData theme, bool isDark) {
     return Container(
       decoration: BoxDecoration(
-        color: isDark
-            ? AppColors.charcoal.withValues(alpha: 0.3)
-            : AppColors.pureWhite,
+        color:
+            isDark
+                ? AppColors.charcoal.withValues(alpha: 0.3)
+                : AppColors.pureWhite,
         borderRadius: BorderRadius.circular(14),
         border: Border.all(
-          color: isDark ? AppColors.parchment.withValues(alpha: 0.1) : AppColors.charcoal12,
+          color:
+              isDark
+                  ? AppColors.parchment.withValues(alpha: 0.1)
+                  : AppColors.charcoal12,
         ),
       ),
       child: Row(
@@ -234,12 +242,13 @@ class _ModernSubscriptionSheetState extends State<ModernSubscriptionSheet>
         children: [
           _buildQtyButton(
             icon: Icons.remove,
-            onPressed: widget.quantity > 1
-                ? () {
-                    HapticFeedback.lightImpact();
-                    widget.onQuantityChanged(widget.quantity - 1);
-                  }
-                : null,
+            onPressed:
+                widget.quantity > 1
+                    ? () {
+                      HapticFeedback.lightImpact();
+                      widget.onQuantityChanged(widget.quantity - 1);
+                    }
+                    : null,
             isDark: isDark,
           ),
           Padding(
@@ -280,9 +289,10 @@ class _ModernSubscriptionSheetState extends State<ModernSubscriptionSheet>
           child: Icon(
             icon,
             size: 16,
-            color: onPressed == null
-                ? Colors.grey
-                : (isDark ? AppColors.pureWhite : AppColors.charcoal),
+            color:
+                onPressed == null
+                    ? Colors.grey
+                    : (isDark ? AppColors.pureWhite : AppColors.charcoal),
           ),
         ),
       ),
@@ -294,11 +304,19 @@ class _ModernSubscriptionSheetState extends State<ModernSubscriptionSheet>
     final accentColor = AppColors.harvestAmber;
 
     return Container(
-      padding: EdgeInsets.fromLTRB(24, 16, 24, MediaQuery.of(context).padding.bottom + 20),
+      padding: EdgeInsets.fromLTRB(
+        24,
+        16,
+        24,
+        MediaQuery.of(context).padding.bottom + 20,
+      ),
       decoration: BoxDecoration(
         color: isDark ? AppColors.darkSurface : AppColors.parchment,
         border: Border.all(
-          color: isDark ? AppColors.parchment.withValues(alpha: 0.05) : AppColors.charcoal12,
+          color:
+              isDark
+                  ? AppColors.parchment.withValues(alpha: 0.05)
+                  : AppColors.charcoal12,
         ),
         borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -311,15 +329,18 @@ class _ModernSubscriptionSheetState extends State<ModernSubscriptionSheet>
             return Container(
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(16),
-                boxShadow: isSelected
-                    ? [
-                        BoxShadow(
-                          color: accentColor.withValues(alpha: _glowAnimation.value * 0.4),
-                          blurRadius: 16,
-                          spreadRadius: 2,
-                        ),
-                      ]
-                    : null,
+                boxShadow:
+                    isSelected
+                        ? [
+                          BoxShadow(
+                            color: accentColor.withValues(
+                              alpha: _glowAnimation.value * 0.4,
+                            ),
+                            blurRadius: 16,
+                            spreadRadius: 2,
+                          ),
+                        ]
+                        : null,
               ),
               child: child,
             );

@@ -28,9 +28,10 @@ class OrderDetailCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: isDark
-                ? AppColors.charcoal.withValues(alpha: 0.3)
-                : AppColors.deepSoilGreen.withValues(alpha: 0.08),
+            color:
+                isDark
+                    ? AppColors.charcoal.withValues(alpha: 0.3)
+                    : AppColors.deepSoilGreen.withValues(alpha: 0.08),
             blurRadius: 20,
             offset: const Offset(0, 8),
             spreadRadius: -4,

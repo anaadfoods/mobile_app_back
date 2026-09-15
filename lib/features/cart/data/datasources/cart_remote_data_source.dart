@@ -19,7 +19,7 @@ class CartRemoteDataSourceImpl implements CartRemoteDataSource {
   final TokenService _tokenService;
 
   CartRemoteDataSourceImpl({TokenService? tokenService})
-      : _tokenService = tokenService ?? getIt<TokenService>();
+    : _tokenService = tokenService ?? getIt<TokenService>();
 
   Future<void> _ensureAuth() async {
     if (!await _tokenService.isLoggedIn()) {
@@ -42,17 +42,15 @@ class CartRemoteDataSourceImpl implements CartRemoteDataSource {
     await _ensureAuth();
     final response = await ApiClient.instance.post(
       addCartItemEndpoint,
-      data: {
-        'product_variant_id': productVariantId,
-        'quantity': quantity,
-      },
+      data: {'product_variant_id': productVariantId, 'quantity': quantity},
     );
 
     if (response.statusCode == 200 || response.statusCode == 201) {
       return getCart();
     } else if (response.statusCode == 400) {
       final errorData = response.data;
-      final message = errorData['message'] ??
+      final message =
+          errorData['message'] ??
           errorData['error'] ??
           'Item cannot be added. Check stock limits.';
       throw Exception(message);
@@ -65,17 +63,15 @@ class CartRemoteDataSourceImpl implements CartRemoteDataSource {
     await _ensureAuth();
     final response = await ApiClient.instance.post(
       updateCartItemEndpoint,
-      data: {
-        'product_variant_id': productVariantId,
-        'quantity': quantity,
-      },
+      data: {'product_variant_id': productVariantId, 'quantity': quantity},
     );
 
     if (response.statusCode == 200) {
       return getCart();
     } else if (response.statusCode == 400) {
       final errorData = response.data;
-      final message = errorData['message'] ??
+      final message =
+          errorData['message'] ??
           errorData['error'] ??
           'Only limited items left in stock';
       throw Exception(message);

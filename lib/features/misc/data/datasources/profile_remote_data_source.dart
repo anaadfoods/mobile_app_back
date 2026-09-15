@@ -11,7 +11,7 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
   final ProfileService _profileService;
 
   ProfileRemoteDataSourceImpl({required ProfileService profileService})
-      : _profileService = profileService;
+    : _profileService = profileService;
 
   @override
   Future<Map<String, dynamic>> updateProfile(UserModel user) {

@@ -9,6 +9,7 @@ import '../../domain/usecases/add_to_cart_use_case.dart';
 import '../../domain/usecases/update_cart_item_use_case.dart';
 import '../../domain/usecases/remove_from_cart_use_case.dart';
 import '../../domain/usecases/clear_cart_use_case.dart';
+import 'package:grocery_app/core/analytics/analytics_service.dart';
 import 'cart_state.dart';
 
 class CartCubit extends Cubit<CartState> {
@@ -27,12 +28,12 @@ class CartCubit extends Cubit<CartState> {
     required UpdateCartItemUseCase updateCartItemUseCase,
     required RemoveFromCartUseCase removeFromCartUseCase,
     required ClearCartUseCase clearCartUseCase,
-  })  : _getCartUseCase = getCartUseCase,
-        _addToCartUseCase = addToCartUseCase,
-        _updateCartItemUseCase = updateCartItemUseCase,
-        _removeFromCartUseCase = removeFromCartUseCase,
-        _clearCartUseCase = clearCartUseCase,
-        super(const CartInitial());
+  }) : _getCartUseCase = getCartUseCase,
+       _addToCartUseCase = addToCartUseCase,
+       _updateCartItemUseCase = updateCartItemUseCase,
+       _removeFromCartUseCase = removeFromCartUseCase,
+       _clearCartUseCase = clearCartUseCase,
+       super(const CartInitial());
 
   /// Fetches the initial cart from the server.
   Future<void> loadCart() async {
@@ -58,9 +59,22 @@ class CartCubit extends Cubit<CartState> {
       await loadCart();
     }
 
-    final id = product.id;
     final controller = _getOrCreateController(product, 0);
     controller.updateQuantity(controller.displayedQuantity + quantity);
+
+    AnalyticsService().trackEvent(
+      eventName: 'cart_item_added',
+      feature: 'cart',
+      screen: 'Cart',
+      properties: {
+        'product_id': product.id,
+        'product_name': product.name,
+        'quantity': quantity,
+        'price': product.price,
+        'target_element': 'Added ${product.name} (Qty: $quantity)',
+        'element_text': 'Add to Cart: ${product.name}',
+      },
+    );
   }
 
   /// Updates an item's quantity with an optimistic update.
@@ -70,6 +84,34 @@ class CartCubit extends Cubit<CartState> {
       await loadCart();
     }
 
+    String? prodName;
+    if (state is CartSuccess) {
+      final item = (state as CartSuccess).cart.items.cast<CartItem?>().firstWhere(
+        (i) => i?.productVariant.id == variantId,
+        orElse: () => null,
+      );
+      prodName = item?.productVariant.name;
+    }
+    prodName ??= _syncControllers[variantId]?.product?.name;
+
+    final actionLabel = newQuantity == 0
+        ? 'Removed ${prodName ?? "Product #$variantId"} from Cart'
+        : 'Updated ${prodName ?? "Product #$variantId"} (Qty: $newQuantity)';
+
+    AnalyticsService().trackEvent(
+      eventName: newQuantity == 0 ? 'cart_item_removed' : 'cart_item_updated',
+      feature: 'cart',
+      screen: 'Cart',
+      properties: {
+        'variant_id': variantId,
+        'product_id': variantId,
+        if (prodName != null) 'product_name': prodName,
+        'quantity': newQuantity,
+        'target_element': actionLabel,
+        'element_text': actionLabel,
+      },
+    );
+
     final controller = _syncControllers[variantId];
     if (controller != null) {
       controller.updateQuantity(newQuantity);
@@ -77,11 +119,14 @@ class CartCubit extends Cubit<CartState> {
       final latestState = state;
       if (latestState is CartSuccess) {
         final item = latestState.cart.items.cast<CartItem?>().firstWhere(
-              (i) => i?.productVariant.id == variantId,
-              orElse: () => null,
-            );
+          (i) => i?.productVariant.id == variantId,
+          orElse: () => null,
+        );
         if (item != null) {
-          final newController = _getOrCreateController(item.productVariant, item.quantity);
+          final newController = _getOrCreateController(
+            item.productVariant,
+            item.quantity,
+          );
           newController.updateQuantity(newQuantity);
         }
       }
@@ -136,7 +181,10 @@ class CartCubit extends Cubit<CartState> {
     emit(const CartInitial());
   }
 
-  _CartSyncController _getOrCreateController(Product product, int initialQuantity) {
+  _CartSyncController _getOrCreateController(
+    Product product,
+    int initialQuantity,
+  ) {
     final id = product.id;
     var controller = _syncControllers[id];
     if (controller == null) {
@@ -163,7 +211,11 @@ class CartCubit extends Cubit<CartState> {
     if (qty == 0) {
       return _removeFromCartUseCase(variantId);
     } else {
-      final existsInServerCart = _serverCart?.items.any((item) => item.productVariant.id == variantId) ?? false;
+      final existsInServerCart =
+          _serverCart?.items.any(
+            (item) => item.productVariant.id == variantId,
+          ) ??
+          false;
       if (existsInServerCart) {
         return _updateCartItemUseCase(variantId, qty);
       } else {
@@ -216,10 +268,15 @@ class CartCubit extends Cubit<CartState> {
       final controller = _syncControllers[item.productVariant.id];
       if (controller != null) {
         if (controller.displayedQuantity > 0) {
-          updatedItems.add(item.copyWith(
-            quantity: controller.displayedQuantity,
-            totalPrice: (item.productVariant.finalPrice * controller.displayedQuantity).toString(),
-          ));
+          updatedItems.add(
+            item.copyWith(
+              quantity: controller.displayedQuantity,
+              totalPrice:
+                  (item.productVariant.finalPrice *
+                          controller.displayedQuantity)
+                      .toString(),
+            ),
+          );
         }
         statuses[item.productVariant.id] = CartItemSyncStatus(
           displayedQuantity: controller.displayedQuantity,
@@ -236,7 +293,9 @@ class CartCubit extends Cubit<CartState> {
 
     // Handle items not yet in base cart but are optimistically added or have active controllers
     _syncControllers.forEach((variantId, controller) {
-      final existsInBase = baseCart.items.any((item) => item.productVariant.id == variantId);
+      final existsInBase = baseCart.items.any(
+        (item) => item.productVariant.id == variantId,
+      );
       if (!existsInBase) {
         if (controller.displayedQuantity > 0 && controller.product != null) {
           updatedItems.add(
@@ -244,13 +303,18 @@ class CartCubit extends Cubit<CartState> {
               id: DateTime.now().millisecondsSinceEpoch,
               productVariant: controller.product!,
               quantity: controller.displayedQuantity,
-              totalPrice: (controller.product!.finalPrice * controller.displayedQuantity).toString(),
+              totalPrice:
+                  (controller.product!.finalPrice *
+                          controller.displayedQuantity)
+                      .toString(),
               createdAt: DateTime.now(),
               updatedAt: DateTime.now(),
             ),
           );
         }
-        if (controller.displayedQuantity > 0 || controller.isSyncing || controller.error != null) {
+        if (controller.displayedQuantity > 0 ||
+            controller.isSyncing ||
+            controller.error != null) {
           statuses[variantId] = CartItemSyncStatus(
             displayedQuantity: controller.displayedQuantity,
             confirmedQuantity: controller.confirmedQuantity,
@@ -267,7 +331,10 @@ class CartCubit extends Cubit<CartState> {
       0.0,
       (sum, item) => sum + (item.productVariant.finalPrice * item.quantity),
     );
-    final int newTotalItems = updatedItems.fold(0, (sum, item) => sum + item.quantity);
+    final int newTotalItems = updatedItems.fold(
+      0,
+      (sum, item) => sum + item.quantity,
+    );
 
     final finalCart = baseCart.copyWith(
       items: updatedItems,
@@ -275,12 +342,14 @@ class CartCubit extends Cubit<CartState> {
       totalItems: newTotalItems,
     );
 
-    emit(CartSuccess(
-      finalCart,
-      message: message,
-      error: error,
-      itemStatuses: statuses,
-    ));
+    emit(
+      CartSuccess(
+        finalCart,
+        message: message,
+        error: error,
+        itemStatuses: statuses,
+      ),
+    );
   }
 
   @override
@@ -315,8 +384,8 @@ class _CartSyncController {
     required this.confirmedQuantity,
     required this.performApiCall,
     required this.onStateChanged,
-  })  : displayedQuantity = confirmedQuantity,
-        pendingQuantity = confirmedQuantity;
+  }) : displayedQuantity = confirmedQuantity,
+       pendingQuantity = confirmedQuantity;
 
   void updateQuantity(int newQuantity) {
     displayedQuantity = newQuantity;
@@ -360,7 +429,10 @@ class _CartSyncController {
         _triggerSync();
       } else {
         isSyncing = false;
-        onStateChanged(quantityToSync == 0 ? 'Item removed from cart.' : 'Cart updated.', null);
+        onStateChanged(
+          quantityToSync == 0 ? 'Item removed from cart.' : 'Cart updated.',
+          null,
+        );
       }
     } catch (e) {
       if (version < _lastCompletedVersion) return;
@@ -370,7 +442,8 @@ class _CartSyncController {
       if (e is CartFailure) {
         error = e.message;
       } else {
-        error = "Sorry, we are not available right now. Please try again later.";
+        error =
+            "Sorry, we are not available right now. Please try again later.";
       }
 
       if (pendingQuantity == quantityToSync) {

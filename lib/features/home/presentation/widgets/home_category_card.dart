@@ -42,9 +42,10 @@ class HomeCategoryCard extends StatelessWidget {
           child: Stack(
             children: [
               Positioned.fill(
-                child: imagePath.toLowerCase().endsWith('.svg')
-                    ? SvgPicture.asset(imagePath, fit: BoxFit.cover)
-                    : Image.asset(imagePath, fit: BoxFit.cover),
+                child:
+                    imagePath.toLowerCase().endsWith('.svg')
+                        ? SvgPicture.asset(imagePath, fit: BoxFit.cover)
+                        : Image.asset(imagePath, fit: BoxFit.cover),
               ),
               Positioned.fill(
                 child: DecoratedBox(
@@ -70,9 +71,7 @@ class HomeCategoryCard extends StatelessWidget {
                     Container(
                       padding: const EdgeInsets.all(4),
                       decoration: BoxDecoration(
-                        color: theme.colorScheme.primary.withValues(
-                          alpha: 0.9,
-                        ),
+                        color: theme.colorScheme.primary.withValues(alpha: 0.9),
                         borderRadius: BorderRadius.circular(6),
                       ),
                       child: Icon(icon, color: AppColors.parchment, size: 14),

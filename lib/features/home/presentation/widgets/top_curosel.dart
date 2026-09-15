@@ -39,7 +39,8 @@ class TopCurosel extends StatefulWidget {
 
 class _TopCuroselState extends State<TopCurosel>
     with SingleTickerProviderStateMixin {
-  final CarouselSliderController _carouselController = CarouselSliderController();
+  final CarouselSliderController _carouselController =
+      CarouselSliderController();
   int _currentPage = 0;
   late AnimationController _pulseController;
 
@@ -153,7 +154,8 @@ class _TopCuroselState extends State<TopCurosel>
   Widget build(BuildContext context) {
     return BlocBuilder<HomeCubit, HomeState>(
       builder: (context, state) {
-        final banners = (state is HomeSuccess) ? state.banners : <BannerEntity>[];
+        final banners =
+            (state is HomeSuccess) ? state.banners : <BannerEntity>[];
         final carouselItems = _buildCarouselItems(context, banners);
 
         if (carouselItems.isEmpty) return const SizedBox.shrink();
@@ -246,42 +248,46 @@ class _TopCuroselState extends State<TopCurosel>
             ),
 
             Padding(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
                     item.title,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                     style: theme.textTheme.titleMedium?.copyWith(
                       color: AppColors.parchment,
                       fontWeight: FontWeight.bold,
                       letterSpacing: 0.5,
                     ),
                   ),
-                  const SizedBox(height: 6),
+                  const SizedBox(height: 4),
                   SizedBox(
                     width: 200,
                     child: Text(
                       item.subtitle,
                       style: theme.textTheme.bodySmall?.copyWith(
                         color: AppColors.parchment.withValues(alpha: 0.9),
-                        height: 1.3,
+                        height: 1.2,
                       ),
-                      maxLines: 3,
+                      maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 8),
                   ElevatedButton(
                     onPressed: item.onTap,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.parchment,
                       foregroundColor: cardColor,
                       padding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 8,
+                        horizontal: 14,
+                        vertical: 6,
                       ),
+                      minimumSize: const Size(60, 32),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),

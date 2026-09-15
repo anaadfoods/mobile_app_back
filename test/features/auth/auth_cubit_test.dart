@@ -4,7 +4,8 @@ import 'package:bloc_test/bloc_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:grocery_app/features/auth/presentation/cubit/auth_cubit.dart';
 import 'package:grocery_app/features/auth/presentation/cubit/auth_state.dart';
-import 'package:grocery_app/features/auth/domain/repositories/auth_repository.dart' as domain;
+import 'package:grocery_app/features/auth/domain/repositories/auth_repository.dart'
+    as domain;
 import 'package:grocery_app/features/auth/domain/entities/user.dart';
 import 'package:grocery_app/features/auth/domain/failures/auth_failure.dart';
 import 'package:grocery_app/features/auth/domain/usecases/check_auth_status_use_case.dart';
@@ -21,6 +22,7 @@ import 'package:grocery_app/features/auth/domain/usecases/confirm_deactivation_u
 import 'package:grocery_app/models/user_model.dart';
 
 class MockAuthRepository extends Mock implements domain.AuthRepository {}
+
 class MockFile extends Mock implements File {}
 
 void main() {
@@ -39,13 +41,15 @@ void main() {
   final testUserModel = UserModel.fromDomain(testUserEntity);
 
   setUpAll(() {
-    registerFallbackValue(User(
-      email: '',
-      username: '',
-      firstName: '',
-      lastName: '',
-      phoneNumber: '',
-    ));
+    registerFallbackValue(
+      User(
+        email: '',
+        username: '',
+        firstName: '',
+        lastName: '',
+        phoneNumber: '',
+      ),
+    );
     registerFallbackValue(File(''));
   });
 
@@ -62,7 +66,9 @@ void main() {
       updateProfileUseCase: UpdateProfileUseCase(mockAuthRepository),
       updateAddressUseCase: UpdateAddressUseCase(mockAuthRepository),
       deactivateAccountUseCase: DeactivateAccountUseCase(mockAuthRepository),
-      confirmDeactivationUseCase: ConfirmDeactivationUseCase(mockAuthRepository),
+      confirmDeactivationUseCase: ConfirmDeactivationUseCase(
+        mockAuthRepository,
+      ),
     );
   });
 
@@ -79,17 +85,24 @@ void main() {
       blocTest<AuthCubit, AuthState>(
         'emits [AuthLoading, Authenticated] and calls verifyAndRefreshToken when logged in',
         build: () {
-          when(() => mockAuthRepository.checkAuthStatus())
-              .thenAnswer((_) async => testUserEntity);
-          when(() => mockAuthRepository.verifyAndRefreshToken())
-              .thenAnswer((_) async => true);
+          when(
+            () => mockAuthRepository.checkAuthStatus(),
+          ).thenAnswer((_) async => testUserEntity);
+          when(
+            () => mockAuthRepository.verifyAndRefreshToken(),
+          ).thenAnswer((_) async => true);
           return authCubit;
         },
         act: (cubit) => cubit.checkAuthStatus(),
-        expect: () => [
-          AuthLoading(),
-          isA<Authenticated>().having((a) => a.user.email, 'email', testUserModel.email),
-        ],
+        expect:
+            () => [
+              AuthLoading(),
+              isA<Authenticated>().having(
+                (a) => a.user.email,
+                'email',
+                testUserModel.email,
+              ),
+            ],
         verify: (_) {
           verify(() => mockAuthRepository.checkAuthStatus()).called(1);
           verify(() => mockAuthRepository.verifyAndRefreshToken()).called(1);
@@ -99,29 +112,25 @@ void main() {
       blocTest<AuthCubit, AuthState>(
         'emits [AuthLoading, Unauthenticated] when not logged in',
         build: () {
-          when(() => mockAuthRepository.checkAuthStatus())
-              .thenAnswer((_) async => null);
+          when(
+            () => mockAuthRepository.checkAuthStatus(),
+          ).thenAnswer((_) async => null);
           return authCubit;
         },
         act: (cubit) => cubit.checkAuthStatus(),
-        expect: () => [
-          AuthLoading(),
-          Unauthenticated(),
-        ],
+        expect: () => [AuthLoading(), Unauthenticated()],
       );
 
       blocTest<AuthCubit, AuthState>(
         'emits [AuthLoading, Unauthenticated] when checkAuthStatus throws',
         build: () {
-          when(() => mockAuthRepository.checkAuthStatus())
-              .thenThrow(Exception('Failure'));
+          when(
+            () => mockAuthRepository.checkAuthStatus(),
+          ).thenThrow(Exception('Failure'));
           return authCubit;
         },
         act: (cubit) => cubit.checkAuthStatus(),
-        expect: () => [
-          AuthLoading(),
-          Unauthenticated(),
-        ],
+        expect: () => [AuthLoading(), Unauthenticated()],
       );
     });
 
@@ -129,29 +138,36 @@ void main() {
       blocTest<AuthCubit, AuthState>(
         'emits [AuthLoading, Authenticated] on success',
         build: () {
-          when(() => mockAuthRepository.login(any(), any()))
-              .thenAnswer((_) async => testUserEntity);
+          when(
+            () => mockAuthRepository.login(any(), any()),
+          ).thenAnswer((_) async => testUserEntity);
           return authCubit;
         },
         act: (cubit) => cubit.login('test@example.com', 'password123'),
-        expect: () => [
-          AuthLoading(),
-          isA<Authenticated>().having((a) => a.user.email, 'email', testUserModel.email),
-        ],
+        expect:
+            () => [
+              AuthLoading(),
+              isA<Authenticated>().having(
+                (a) => a.user.email,
+                'email',
+                testUserModel.email,
+              ),
+            ],
       );
 
       blocTest<AuthCubit, AuthState>(
         'emits [AuthLoading, AuthError] with error message on AuthFailure',
         build: () {
-          when(() => mockAuthRepository.login(any(), any()))
-              .thenThrow(const AuthFailure(type: AuthFailureType.invalidCredentials, message: 'Invalid credentials'));
+          when(() => mockAuthRepository.login(any(), any())).thenThrow(
+            const AuthFailure(
+              type: AuthFailureType.invalidCredentials,
+              message: 'Invalid credentials',
+            ),
+          );
           return authCubit;
         },
         act: (cubit) => cubit.login('test@example.com', 'wrong'),
-        expect: () => [
-          AuthLoading(),
-          const AuthError('Invalid credentials'),
-        ],
+        expect: () => [AuthLoading(), const AuthError('Invalid credentials')],
       );
     });
 
@@ -159,15 +175,13 @@ void main() {
       blocTest<AuthCubit, AuthState>(
         'emits [AuthLoading, AuthRegistrationSuccess] on success',
         build: () {
-          when(() => mockAuthRepository.register(any()))
-              .thenAnswer((_) async {});
+          when(
+            () => mockAuthRepository.register(any()),
+          ).thenAnswer((_) async {});
           return authCubit;
         },
         act: (cubit) => cubit.register(testUserModel),
-        expect: () => [
-          AuthLoading(),
-          AuthRegistrationSuccess(),
-        ],
+        expect: () => [AuthLoading(), AuthRegistrationSuccess()],
       );
     });
 
@@ -175,29 +189,36 @@ void main() {
       blocTest<AuthCubit, AuthState>(
         'emits [AuthLoading, Authenticated] on success',
         build: () {
-          when(() => mockAuthRepository.googleLogin())
-              .thenAnswer((_) async => testUserEntity);
+          when(
+            () => mockAuthRepository.googleLogin(),
+          ).thenAnswer((_) async => testUserEntity);
           return authCubit;
         },
         act: (cubit) => cubit.googleLogin(),
-        expect: () => [
-          AuthLoading(),
-          isA<Authenticated>().having((a) => a.user.email, 'email', testUserModel.email),
-        ],
+        expect:
+            () => [
+              AuthLoading(),
+              isA<Authenticated>().having(
+                (a) => a.user.email,
+                'email',
+                testUserModel.email,
+              ),
+            ],
       );
 
       blocTest<AuthCubit, AuthState>(
         'emits [AuthLoading, Unauthenticated] when user cancels Google Sign-In',
         build: () {
-          when(() => mockAuthRepository.googleLogin())
-              .thenThrow(const AuthFailure(type: AuthFailureType.cancelled, message: 'canceled'));
+          when(() => mockAuthRepository.googleLogin()).thenThrow(
+            const AuthFailure(
+              type: AuthFailureType.cancelled,
+              message: 'canceled',
+            ),
+          );
           return authCubit;
         },
         act: (cubit) => cubit.googleLogin(),
-        expect: () => [
-          AuthLoading(),
-          Unauthenticated(),
-        ],
+        expect: () => [AuthLoading(), Unauthenticated()],
       );
     });
 
@@ -205,29 +226,36 @@ void main() {
       blocTest<AuthCubit, AuthState>(
         'emits [AuthLoading, Authenticated] on success',
         build: () {
-          when(() => mockAuthRepository.appleLogin())
-              .thenAnswer((_) async => testUserEntity);
+          when(
+            () => mockAuthRepository.appleLogin(),
+          ).thenAnswer((_) async => testUserEntity);
           return authCubit;
         },
         act: (cubit) => cubit.appleLogin(),
-        expect: () => [
-          AuthLoading(),
-          isA<Authenticated>().having((a) => a.user.email, 'email', testUserModel.email),
-        ],
+        expect:
+            () => [
+              AuthLoading(),
+              isA<Authenticated>().having(
+                (a) => a.user.email,
+                'email',
+                testUserModel.email,
+              ),
+            ],
       );
 
       blocTest<AuthCubit, AuthState>(
         'emits [AuthLoading, Unauthenticated] when user cancels Apple Sign-In',
         build: () {
-          when(() => mockAuthRepository.appleLogin())
-              .thenThrow(const AuthFailure(type: AuthFailureType.cancelled, message: 'canceled'));
+          when(() => mockAuthRepository.appleLogin()).thenThrow(
+            const AuthFailure(
+              type: AuthFailureType.cancelled,
+              message: 'canceled',
+            ),
+          );
           return authCubit;
         },
         act: (cubit) => cubit.appleLogin(),
-        expect: () => [
-          AuthLoading(),
-          Unauthenticated(),
-        ],
+        expect: () => [AuthLoading(), Unauthenticated()],
       );
     });
 
@@ -235,15 +263,11 @@ void main() {
       blocTest<AuthCubit, AuthState>(
         'emits [AuthLoading, Unauthenticated] on success',
         build: () {
-          when(() => mockAuthRepository.logout())
-              .thenAnswer((_) async {});
+          when(() => mockAuthRepository.logout()).thenAnswer((_) async {});
           return authCubit;
         },
         act: (cubit) => cubit.logout(),
-        expect: () => [
-          AuthLoading(),
-          Unauthenticated(),
-        ],
+        expect: () => [AuthLoading(), Unauthenticated()],
       );
     });
 
@@ -254,31 +278,43 @@ void main() {
       blocTest<AuthCubit, AuthState>(
         'emits [AuthLoading, AuthProfileUpdateSuccess] when profile is updated successfully without file',
         build: () {
-          when(() => mockAuthRepository.updateProfile(any()))
-              .thenAnswer((_) async => updatedUserEntity);
+          when(
+            () => mockAuthRepository.updateProfile(any()),
+          ).thenAnswer((_) async => updatedUserEntity);
           return authCubit;
         },
         act: (cubit) => cubit.updateUserProfile(updatedData: updatedUserModel),
-        expect: () => [
-          AuthLoading(),
-          isA<AuthProfileUpdateSuccess>().having((a) => a.user.firstName, 'firstName', 'Updated'),
-        ],
+        expect:
+            () => [
+              AuthLoading(),
+              isA<AuthProfileUpdateSuccess>().having(
+                (a) => a.user.firstName,
+                'firstName',
+                'Updated',
+              ),
+            ],
       );
 
       blocTest<AuthCubit, AuthState>(
         'emits [AuthLoading, AuthError, Authenticated] on update failure when previously authenticated',
         seed: () => Authenticated(testUserModel),
         build: () {
-          when(() => mockAuthRepository.updateProfile(any()))
-              .thenThrow(Exception('Profile update failed'));
+          when(
+            () => mockAuthRepository.updateProfile(any()),
+          ).thenThrow(Exception('Profile update failed'));
           return authCubit;
         },
         act: (cubit) => cubit.updateUserProfile(updatedData: updatedUserModel),
-        expect: () => [
-          AuthLoading(),
-          const AuthError('Exception: Profile update failed'),
-          isA<Authenticated>().having((a) => a.user.email, 'email', testUserModel.email),
-        ],
+        expect:
+            () => [
+              AuthLoading(),
+              const AuthError('Exception: Profile update failed'),
+              isA<Authenticated>().having(
+                (a) => a.user.email,
+                'email',
+                testUserModel.email,
+              ),
+            ],
       );
     });
 
@@ -290,16 +326,23 @@ void main() {
         'emits [AuthAddressUpdated] on success and checkAuthStatus returns fresh user',
         seed: () => Authenticated(testUserModel),
         build: () {
-          when(() => mockAuthRepository.updateAddress(any()))
-              .thenAnswer((_) async => true);
-          when(() => mockAuthRepository.checkAuthStatus())
-              .thenAnswer((_) async => updatedUserEntity);
+          when(
+            () => mockAuthRepository.updateAddress(any()),
+          ).thenAnswer((_) async => true);
+          when(
+            () => mockAuthRepository.checkAuthStatus(),
+          ).thenAnswer((_) async => updatedUserEntity);
           return authCubit;
         },
         act: (cubit) => cubit.updateUserAddress({'address': 'New Address'}),
-        expect: () => [
-          isA<AuthAddressUpdated>().having((a) => a.user.address, 'address', 'New Address'),
-        ],
+        expect:
+            () => [
+              isA<AuthAddressUpdated>().having(
+                (a) => a.user.address,
+                'address',
+                'New Address',
+              ),
+            ],
       );
     });
 
@@ -308,15 +351,19 @@ void main() {
         'emits [AuthLoading, AuthDeactivationOtpSent] on success',
         seed: () => Authenticated(testUserModel),
         build: () {
-          when(() => mockAuthRepository.deactivateAccount(any()))
-              .thenAnswer((_) async {});
+          when(
+            () => mockAuthRepository.deactivateAccount(any()),
+          ).thenAnswer((_) async {});
           return authCubit;
         },
         act: (cubit) => cubit.deactivateAccount('password123'),
-        expect: () => [
-          AuthLoading(),
-          const AuthDeactivationOtpSent('OTP has been sent to your email and phone.'),
-        ],
+        expect:
+            () => [
+              AuthLoading(),
+              const AuthDeactivationOtpSent(
+                'OTP has been sent to your email and phone.',
+              ),
+            ],
       );
     });
   });

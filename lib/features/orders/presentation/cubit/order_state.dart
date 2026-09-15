@@ -16,10 +16,7 @@ class OrderSuccess extends OrderState {
   final List<OrderEntity> orders;
   final OrderEntity? selectedOrderDetails;
 
-  const OrderSuccess({
-    this.orders = const [],
-    this.selectedOrderDetails,
-  });
+  const OrderSuccess({this.orders = const [], this.selectedOrderDetails});
 
   OrderSuccess copyWith({
     List<OrderEntity>? orders,

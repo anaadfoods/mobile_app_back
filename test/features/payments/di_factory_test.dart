@@ -7,16 +7,23 @@ import 'package:grocery_app/features/payments/data/repositories/juspay_payments_
 import 'package:grocery_app/service_locator.dart';
 import 'package:mocktail/mocktail.dart';
 
-class MockJuspayRemoteDataSource extends Mock implements JuspayRemoteDataSource {}
-class MockEasebuzzRemoteDataSource extends Mock implements EasebuzzRemoteDataSource {}
+class MockJuspayRemoteDataSource extends Mock
+    implements JuspayRemoteDataSource {}
+
+class MockEasebuzzRemoteDataSource extends Mock
+    implements EasebuzzRemoteDataSource {}
 
 void main() {
   final getIt = GetIt.instance;
 
   setUpAll(() {
     // Register mock dependencies needed by createPaymentsRepository
-    getIt.registerLazySingleton<JuspayRemoteDataSource>(() => MockJuspayRemoteDataSource());
-    getIt.registerLazySingleton<EasebuzzRemoteDataSource>(() => MockEasebuzzRemoteDataSource());
+    getIt.registerLazySingleton<JuspayRemoteDataSource>(
+      () => MockJuspayRemoteDataSource(),
+    );
+    getIt.registerLazySingleton<EasebuzzRemoteDataSource>(
+      () => MockEasebuzzRemoteDataSource(),
+    );
   });
 
   tearDownAll(() async {
@@ -29,14 +36,20 @@ void main() {
       expect(repo, isA<JuspayPaymentsRepositoryImpl>());
     });
 
-    test('resolves to EasebuzzPaymentsRepositoryImpl when flag is easebuzz', () {
-      final repo = createPaymentsRepository('easebuzz');
-      expect(repo, isA<EasebuzzPaymentsRepositoryImpl>());
-    });
+    test(
+      'resolves to EasebuzzPaymentsRepositoryImpl when flag is easebuzz',
+      () {
+        final repo = createPaymentsRepository('easebuzz');
+        expect(repo, isA<EasebuzzPaymentsRepositoryImpl>());
+      },
+    );
 
-    test('resolves to EasebuzzPaymentsRepositoryImpl by default for unknown flags', () {
-      final repo = createPaymentsRepository('unknown_gateway');
-      expect(repo, isA<EasebuzzPaymentsRepositoryImpl>());
-    });
+    test(
+      'resolves to EasebuzzPaymentsRepositoryImpl by default for unknown flags',
+      () {
+        final repo = createPaymentsRepository('unknown_gateway');
+        expect(repo, isA<EasebuzzPaymentsRepositoryImpl>());
+      },
+    );
   });
 }

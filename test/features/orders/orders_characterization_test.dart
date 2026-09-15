@@ -13,6 +13,7 @@ import 'package:grocery_app/features/orders/presentation/cubit/order_cubit.dart'
 import 'package:grocery_app/features/orders/presentation/cubit/order_state.dart';
 
 class MockOrdersRepository extends Mock implements OrdersRepository {}
+
 class MockPaymentsRepository extends Mock implements PaymentsRepository {}
 
 void main() {
@@ -29,7 +30,10 @@ void main() {
     orderCubit = OrderCubit(
       getOrdersUseCase: GetOrdersUseCase(mockRepository),
       getOrderByIdUseCase: GetOrderByIdUseCase(mockRepository),
-      createOrderUseCase: CreateOrderUseCase(mockRepository, mockPaymentsRepository),
+      createOrderUseCase: CreateOrderUseCase(
+        mockRepository,
+        mockPaymentsRepository,
+      ),
       cancelOrderUseCase: CancelOrderUseCase(mockRepository),
       downloadInvoiceUseCase: DownloadInvoiceUseCase(mockRepository),
     );
@@ -131,101 +135,133 @@ void main() {
   });
 
   group('OrderCubit Clean Architecture Characterization Tests', () {
-    test('fetchOrders emits OrderLoading then OrderSuccess and filters out unpaid UPI orders', () async {
-      final allOrders = [activePaidUpiOrder, activeUnpaidUpiOrder, codOrder];
-      when(() => mockRepository.getOrders()).thenAnswer((_) async => allOrders);
+    test(
+      'fetchOrders emits OrderLoading then OrderSuccess and filters out unpaid UPI orders',
+      () async {
+        final allOrders = [activePaidUpiOrder, activeUnpaidUpiOrder, codOrder];
+        when(
+          () => mockRepository.getOrders(),
+        ).thenAnswer((_) async => allOrders);
 
-      final states = <OrderState>[];
-      final subscription = orderCubit.stream.listen(states.add);
+        final states = <OrderState>[];
+        final subscription = orderCubit.stream.listen(states.add);
 
-      await orderCubit.fetchOrders();
-      await Future.delayed(Duration.zero);
+        await orderCubit.fetchOrders();
+        await Future.delayed(Duration.zero);
 
-      expect(states.length, 2);
-      expect(states[0], isA<OrderLoading>());
-      expect(states[1], isA<OrderSuccess>());
+        expect(states.length, 2);
+        expect(states[0], isA<OrderLoading>());
+        expect(states[1], isA<OrderSuccess>());
 
-      final successState = states[1] as OrderSuccess;
-      expect(successState.orders.length, 2);
-      expect(successState.orders.contains(activePaidUpiOrder), true);
-      expect(successState.orders.contains(codOrder), true);
-      expect(successState.orders.contains(activeUnpaidUpiOrder), false);
+        final successState = states[1] as OrderSuccess;
+        expect(successState.orders.length, 2);
+        expect(successState.orders.contains(activePaidUpiOrder), true);
+        expect(successState.orders.contains(codOrder), true);
+        expect(successState.orders.contains(activeUnpaidUpiOrder), false);
 
-      await subscription.cancel();
-    });
+        await subscription.cancel();
+      },
+    );
 
-    test('fetchOrderDetails emits OrderLoading then OrderSuccess with selectedOrderDetails', () async {
-      when(() => mockRepository.getOrderById(1)).thenAnswer((_) async => activePaidUpiOrder);
+    test(
+      'fetchOrderDetails emits OrderLoading then OrderSuccess with selectedOrderDetails',
+      () async {
+        when(
+          () => mockRepository.getOrderById(1),
+        ).thenAnswer((_) async => activePaidUpiOrder);
 
-      final states = <OrderState>[];
-      final subscription = orderCubit.stream.listen(states.add);
+        final states = <OrderState>[];
+        final subscription = orderCubit.stream.listen(states.add);
 
-      await orderCubit.fetchOrderDetails(1);
-      await Future.delayed(Duration.zero);
+        await orderCubit.fetchOrderDetails(1);
+        await Future.delayed(Duration.zero);
 
-      expect(states.length, 2);
-      expect(states[0], isA<OrderLoading>());
-      expect(states[1], isA<OrderSuccess>());
-      expect((states[1] as OrderSuccess).selectedOrderDetails, activePaidUpiOrder);
+        expect(states.length, 2);
+        expect(states[0], isA<OrderLoading>());
+        expect(states[1], isA<OrderSuccess>());
+        expect(
+          (states[1] as OrderSuccess).selectedOrderDetails,
+          activePaidUpiOrder,
+        );
 
-      await subscription.cancel();
-    });
+        await subscription.cancel();
+      },
+    );
 
-    test('createOrder emits OrderLoading then OrderPlacementSuccess and refreshes orders', () async {
-      final mockResponse = OrderCreateResponseEntity(success: true, orderNumber: "ORD999");
-      when(() => mockRepository.createOrder(any())).thenAnswer((_) async => mockResponse);
-      when(() => mockRepository.getOrders()).thenAnswer((_) async => [codOrder]);
+    test(
+      'createOrder emits OrderLoading then OrderPlacementSuccess and refreshes orders',
+      () async {
+        final mockResponse = OrderCreateResponseEntity(
+          success: true,
+          orderNumber: "ORD999",
+        );
+        when(
+          () => mockRepository.createOrder(any()),
+        ).thenAnswer((_) async => mockResponse);
+        when(
+          () => mockRepository.getOrders(),
+        ).thenAnswer((_) async => [codOrder]);
 
-      final states = <OrderState>[];
-      final subscription = orderCubit.stream.listen(states.add);
+        final states = <OrderState>[];
+        final subscription = orderCubit.stream.listen(states.add);
 
-      final params = CreateOrderParams(
-        paymentMethod: "COD",
-        shippingAddress: "Address",
-        shippingCity: "City",
-        shippingState: "State",
-        shippingPincode: "123",
-        shippingPhone: "987",
-        shippingName: "Recipient",
-        items: [],
-      );
+        final params = CreateOrderParams(
+          paymentMethod: "COD",
+          shippingAddress: "Address",
+          shippingCity: "City",
+          shippingState: "State",
+          shippingPincode: "123",
+          shippingPhone: "987",
+          shippingName: "Recipient",
+          items: [],
+        );
 
-      await orderCubit.createOrder(params);
-      await Future.delayed(Duration.zero);
+        await orderCubit.createOrder(params);
+        await Future.delayed(Duration.zero);
 
-      expect(states.length, 4);
-      expect(states[0], isA<OrderLoading>());
-      expect(states[1], isA<OrderPlacementSuccess>());
-      expect((states[1] as OrderPlacementSuccess).response, mockResponse);
-      expect(states[2], isA<OrderLoading>());
-      expect(states[3], isA<OrderSuccess>());
+        expect(states.length, 4);
+        expect(states[0], isA<OrderLoading>());
+        expect(states[1], isA<OrderPlacementSuccess>());
+        expect((states[1] as OrderPlacementSuccess).response, mockResponse);
+        expect(states[2], isA<OrderLoading>());
+        expect(states[3], isA<OrderSuccess>());
 
-      await subscription.cancel();
-    });
+        await subscription.cancel();
+      },
+    );
 
-    test('cancelOrder emits OrderLoading then OrderActionSuccess and refreshes orders', () async {
-      final mockResult = {'success': true, 'message': 'Order cancelled'};
-      when(() => mockRepository.cancelOrder(1, reason: 'Too late')).thenAnswer((_) async => mockResult);
-      when(() => mockRepository.getOrders()).thenAnswer((_) async => [codOrder]);
+    test(
+      'cancelOrder emits OrderLoading then OrderActionSuccess and refreshes orders',
+      () async {
+        final mockResult = {'success': true, 'message': 'Order cancelled'};
+        when(
+          () => mockRepository.cancelOrder(1, reason: 'Too late'),
+        ).thenAnswer((_) async => mockResult);
+        when(
+          () => mockRepository.getOrders(),
+        ).thenAnswer((_) async => [codOrder]);
 
-      final states = <OrderState>[];
-      final subscription = orderCubit.stream.listen(states.add);
+        final states = <OrderState>[];
+        final subscription = orderCubit.stream.listen(states.add);
 
-      await orderCubit.cancelOrder(1, reason: 'Too late');
-      await Future.delayed(Duration.zero);
+        await orderCubit.cancelOrder(1, reason: 'Too late');
+        await Future.delayed(Duration.zero);
 
-      expect(states.length, 4);
-      expect(states[0], isA<OrderLoading>());
-      expect(states[1], isA<OrderActionSuccess>());
-      expect((states[1] as OrderActionSuccess).message, 'Order cancelled');
-      expect(states[2], isA<OrderLoading>());
-      expect(states[3], isA<OrderSuccess>());
+        expect(states.length, 4);
+        expect(states[0], isA<OrderLoading>());
+        expect(states[1], isA<OrderActionSuccess>());
+        expect((states[1] as OrderActionSuccess).message, 'Order cancelled');
+        expect(states[2], isA<OrderLoading>());
+        expect(states[3], isA<OrderSuccess>());
 
-      await subscription.cancel();
-    });
+        await subscription.cancel();
+      },
+    );
 
     test('downloadInvoice emits OrderActionSuccess with path', () async {
-      when(() => mockRepository.downloadInvoice("ORD123")).thenAnswer((_) async => "/path/to/invoice.pdf");
+      when(
+        () => mockRepository.downloadInvoice("ORD123"),
+      ).thenAnswer((_) async => "/path/to/invoice.pdf");
 
       final states = <OrderState>[];
       final subscription = orderCubit.stream.listen(states.add);
@@ -235,7 +271,10 @@ void main() {
 
       expect(states.length, 1);
       expect(states[0], isA<OrderActionSuccess>());
-      expect((states[0] as OrderActionSuccess).message, 'Invoice saved to /path/to/invoice.pdf');
+      expect(
+        (states[0] as OrderActionSuccess).message,
+        'Invoice saved to /path/to/invoice.pdf',
+      );
 
       await subscription.cancel();
     });

@@ -18,23 +18,29 @@ class AllProductsList extends StatelessWidget {
 
     return BlocBuilder<ProductCubit, ProductState>(
       builder: (context, state) {
-        final products = (state is ProductSuccess)
-            ? state.featuredProducts.map((e) => Product.fromEntity(e)).toList()
-            : <Product>[];
+        final products =
+            (state is ProductSuccess)
+                ? state.featuredProducts
+                    .map((e) => Product.fromEntity(e))
+                    .toList()
+                : <Product>[];
 
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Padding(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+              padding: const EdgeInsets.symmetric(
+                horizontal: 16.0,
+                vertical: 8.0,
+              ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
                     "Farm Offerings",
-                    style: theme.textTheme.titleLarge
-                        ?.copyWith(fontWeight: FontWeight.bold),
+                    style: theme.textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                   GestureDetector(
                     onTap: () {
@@ -55,17 +61,19 @@ class AllProductsList extends StatelessWidget {
                           Text(
                             "See All",
                             style: TextStyle(
-                              color: isDark
-                                  ? AppColors.deepSoilGreen
-                                  : AppColors.pureBlack,
+                              color:
+                                  isDark
+                                      ? AppColors.deepSoilGreen
+                                      : AppColors.pureBlack,
                             ),
                           ),
                           const SizedBox(width: 4),
                           Icon(
                             Icons.arrow_forward,
-                            color: isDark
-                                ? AppColors.deepSoilGreen
-                                : AppColors.pureBlack,
+                            color:
+                                isDark
+                                    ? AppColors.deepSoilGreen
+                                    : AppColors.pureBlack,
                             size: 16,
                           ),
                         ],
@@ -77,26 +85,27 @@ class AllProductsList extends StatelessWidget {
             ),
             SizedBox(
               height: 280,
-              child: state is ProductLoading
-                  ? const FeaturedProductsSkeleton()
-                  : products.isEmpty
+              child:
+                  state is ProductLoading
+                      ? const FeaturedProductsSkeleton()
+                      : products.isEmpty
                       ? const SizedBox.shrink()
                       : ListView.builder(
-                          scrollDirection: Axis.horizontal,
-                          padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
-                          itemCount: products.length,
-                          itemBuilder: (context, index) {
-                            final product = products[index];
-                            return FeaturedProductCard(
-                              product: product,
-                              index: index,
-                              isDark: isDark,
-                              onTap: () {
-                                context.push('/product/${product.id}');
-                              },
-                            );
-                          },
-                        ),
+                        scrollDirection: Axis.horizontal,
+                        padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+                        itemCount: products.length,
+                        itemBuilder: (context, index) {
+                          final product = products[index];
+                          return FeaturedProductCard(
+                            product: product,
+                            index: index,
+                            isDark: isDark,
+                            onTap: () {
+                              context.push('/product/${product.id}');
+                            },
+                          );
+                        },
+                      ),
             ),
           ],
         );

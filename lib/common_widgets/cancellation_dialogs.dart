@@ -33,13 +33,14 @@ class CancellationResultDialog extends StatefulWidget {
     return showDialog<void>(
       context: context,
       barrierDismissible: false,
-      builder: (context) => CancellationResultDialog(
-        title: title,
-        message: message,
-        refundInitiated: refundInitiated,
-        orderNumber: orderNumber,
-        onDismiss: onDismiss,
-      ),
+      builder:
+          (context) => CancellationResultDialog(
+            title: title,
+            message: message,
+            refundInitiated: refundInitiated,
+            orderNumber: orderNumber,
+            onDismiss: onDismiss,
+          ),
     );
   }
 
@@ -126,10 +127,7 @@ class _CancellationResultDialogState extends State<CancellationResultDialog>
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     gradient: const LinearGradient(
-                      colors: [
-                        AppColors.deepSoilGreen,
-                        AppColors.harvestAmber,
-                      ],
+                      colors: [AppColors.deepSoilGreen, AppColors.harvestAmber],
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                     ),
@@ -176,14 +174,16 @@ class _CancellationResultDialogState extends State<CancellationResultDialog>
                         width: double.infinity,
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
-                          color: isDark
-                              ? AppColors.charcoal.withAlpha(80)
-                              : AppColors.softCream,
+                          color:
+                              isDark
+                                  ? AppColors.charcoal.withAlpha(80)
+                                  : AppColors.softCream,
                           borderRadius: BorderRadius.circular(16),
                           border: Border.all(
-                            color: isDark
-                                ? AppColors.charcoal60
-                                : AppColors.rawEarth12,
+                            color:
+                                isDark
+                                    ? AppColors.charcoal60
+                                    : AppColors.rawEarth12,
                           ),
                         ),
                         child: Text(
@@ -191,9 +191,12 @@ class _CancellationResultDialogState extends State<CancellationResultDialog>
                           textAlign: TextAlign.center,
                           style: theme.textTheme.bodyMedium?.copyWith(
                             height: 1.45,
-                            color: isDark
-                                ? AppColors.parchment.withValues(alpha: 0.95)
-                                : AppColors.charcoal87,
+                            color:
+                                isDark
+                                    ? AppColors.parchment.withValues(
+                                      alpha: 0.95,
+                                    )
+                                    : AppColors.charcoal87,
                             fontWeight: FontWeight.w500,
                           ),
                         ),
@@ -205,7 +208,9 @@ class _CancellationResultDialogState extends State<CancellationResultDialog>
                         const SizedBox(height: 12),
                         Container(
                           padding: const EdgeInsets.symmetric(
-                              horizontal: 14, vertical: 6),
+                            horizontal: 14,
+                            vertical: 6,
+                          ),
                           decoration: BoxDecoration(
                             color: theme.colorScheme.primary.withAlpha(20),
                             borderRadius: BorderRadius.circular(20),
@@ -256,22 +261,23 @@ class _CancellationResultDialogState extends State<CancellationResultDialog>
                                   children: [
                                     Text(
                                       'Refund Initiated',
-                                      style:
-                                          theme.textTheme.labelMedium?.copyWith(
-                                        color: AppColors.harvestAmber,
-                                        fontWeight: FontWeight.bold,
-                                      ),
+                                      style: theme.textTheme.labelMedium
+                                          ?.copyWith(
+                                            color: AppColors.harvestAmber,
+                                            fontWeight: FontWeight.bold,
+                                          ),
                                     ),
                                     const SizedBox(height: 2),
                                     Text(
                                       '5–7 Working Days to original payment',
-                                      style:
-                                          theme.textTheme.bodySmall?.copyWith(
-                                        color: isDark
-                                            ? AppColors.parchment70
-                                            : AppColors.rawEarth70,
-                                        fontSize: 11,
-                                      ),
+                                      style: theme.textTheme.bodySmall
+                                          ?.copyWith(
+                                            color:
+                                                isDark
+                                                    ? AppColors.parchment70
+                                                    : AppColors.rawEarth70,
+                                            fontSize: 11,
+                                          ),
                                     ),
                                   ],
                                 ),
@@ -351,27 +357,27 @@ class CancellationReasonDialog extends StatefulWidget {
 class _CancellationReasonDialogState extends State<CancellationReasonDialog> {
   late List<String> _reasons;
   String? _selectedReason;
-  final TextEditingController _customReasonController =
-      TextEditingController();
+  final TextEditingController _customReasonController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
-    _reasons = widget.type == 'subscription'
-        ? [
-            'I am moving to a different city and no longer need this.',
-            'I found a better price elsewhere.',
-            'Delivery is taking too long / scheduling issues.',
-            'Quality or product selection concerns.',
-            'Other (Please specify)',
-          ]
-        : [
-            'I found a better price elsewhere.',
-            'I am moving to a different city and no longer need this.',
-            'No longer need the products / changed my mind.',
-            'Delivery is taking too long / scheduling issues.',
-            'Other (Please specify)',
-          ];
+    _reasons =
+        widget.type == 'subscription'
+            ? [
+              'I am moving to a different city and no longer need this.',
+              'I found a better price elsewhere.',
+              'Delivery is taking too long / scheduling issues.',
+              'Quality or product selection concerns.',
+              'Other (Please specify)',
+            ]
+            : [
+              'I found a better price elsewhere.',
+              'I am moving to a different city and no longer need this.',
+              'No longer need the products / changed my mind.',
+              'Delivery is taking too long / scheduling issues.',
+              'Other (Please specify)',
+            ];
   }
 
   @override
@@ -422,7 +428,8 @@ class _CancellationReasonDialogState extends State<CancellationReasonDialog> {
                 Text(
                   'Please select a reason',
                   style: theme.textTheme.labelSmall?.copyWith(
-                    color: isDark ? AppColors.parchment70 : AppColors.rawEarth70,
+                    color:
+                        isDark ? AppColors.parchment70 : AppColors.rawEarth70,
                   ),
                 ),
               ],
@@ -447,20 +454,26 @@ class _CancellationReasonDialogState extends State<CancellationReasonDialog> {
                   duration: const Duration(milliseconds: 200),
                   margin: const EdgeInsets.only(bottom: 8),
                   padding: const EdgeInsets.symmetric(
-                      horizontal: 14, vertical: 12),
+                    horizontal: 14,
+                    vertical: 12,
+                  ),
                   decoration: BoxDecoration(
-                    color: isSelected
-                        ? (isDark
-                            ? AppColors.darkSoftRed.withAlpha(40)
-                            : AppColors.softRed.withAlpha(20))
-                        : (isDark
-                            ? AppColors.charcoal.withAlpha(60)
-                            : AppColors.softCream.withAlpha(100)),
+                    color:
+                        isSelected
+                            ? (isDark
+                                ? AppColors.darkSoftRed.withAlpha(40)
+                                : AppColors.softRed.withAlpha(20))
+                            : (isDark
+                                ? AppColors.charcoal.withAlpha(60)
+                                : AppColors.softCream.withAlpha(100)),
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
-                      color: isSelected
-                          ? (isDark ? AppColors.darkSoftRed : AppColors.softRed)
-                          : AppColors.transparent,
+                      color:
+                          isSelected
+                              ? (isDark
+                                  ? AppColors.darkSoftRed
+                                  : AppColors.softRed)
+                              : AppColors.transparent,
                       width: 1.5,
                     ),
                   ),
@@ -471,25 +484,30 @@ class _CancellationReasonDialogState extends State<CancellationReasonDialog> {
                             ? Icons.radio_button_checked_rounded
                             : Icons.radio_button_off_rounded,
                         size: 20,
-                        color: isSelected
-                            ? (isDark
-                                ? AppColors.darkSoftRed
-                                : AppColors.softRed)
-                            : (isDark
-                                ? AppColors.parchment.withValues(alpha: 0.5)
-                                : AppColors.rawEarth.withValues(alpha: 0.5)),
+                        color:
+                            isSelected
+                                ? (isDark
+                                    ? AppColors.darkSoftRed
+                                    : AppColors.softRed)
+                                : (isDark
+                                    ? AppColors.parchment.withValues(alpha: 0.5)
+                                    : AppColors.rawEarth.withValues(
+                                      alpha: 0.5,
+                                    )),
                       ),
                       const SizedBox(width: 12),
                       Expanded(
                         child: Text(
                           reason,
                           style: theme.textTheme.bodyMedium?.copyWith(
-                            color: isDark
-                                ? AppColors.parchment
-                                : AppColors.charcoal87,
-                            fontWeight: isSelected
-                                ? FontWeight.w600
-                                : FontWeight.normal,
+                            color:
+                                isDark
+                                    ? AppColors.parchment
+                                    : AppColors.charcoal87,
+                            fontWeight:
+                                isSelected
+                                    ? FontWeight.w600
+                                    : FontWeight.normal,
                           ),
                         ),
                       ),
@@ -509,14 +527,16 @@ class _CancellationReasonDialogState extends State<CancellationReasonDialog> {
                 decoration: InputDecoration(
                   hintText: 'Please write your reason here...',
                   hintStyle: theme.textTheme.bodyMedium?.copyWith(
-                    color: isDark
-                        ? AppColors.parchment.withValues(alpha: 0.5)
-                        : AppColors.charcoal40,
+                    color:
+                        isDark
+                            ? AppColors.parchment.withValues(alpha: 0.5)
+                            : AppColors.charcoal40,
                   ),
                   filled: true,
-                  fillColor: isDark
-                      ? AppColors.charcoal.withAlpha(80)
-                      : AppColors.softCream,
+                  fillColor:
+                      isDark
+                          ? AppColors.charcoal.withAlpha(80)
+                          : AppColors.softCream,
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
                     borderSide: BorderSide.none,
@@ -524,8 +544,7 @@ class _CancellationReasonDialogState extends State<CancellationReasonDialog> {
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
                     borderSide: BorderSide(
-                      color:
-                          isDark ? AppColors.darkSoftRed : AppColors.softRed,
+                      color: isDark ? AppColors.darkSoftRed : AppColors.softRed,
                     ),
                   ),
                 ),
@@ -540,9 +559,10 @@ class _CancellationReasonDialogState extends State<CancellationReasonDialog> {
           child: Text(
             'Keep ${widget.type == 'order' ? 'Order' : 'Subscription'}',
             style: TextStyle(
-              color: isDark
-                  ? AppColors.parchment.withValues(alpha: 0.6)
-                  : AppColors.charcoal40,
+              color:
+                  isDark
+                      ? AppColors.parchment.withValues(alpha: 0.6)
+                      : AppColors.charcoal40,
             ),
           ),
         ),

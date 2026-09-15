@@ -66,7 +66,10 @@ class _CategoryItemsScreenState extends State<CategoryItemsScreen> {
               ),
             ),
             leading: IconButton(
-              icon: const Icon(Icons.arrow_back_rounded, color: AppColors.parchment),
+              icon: const Icon(
+                Icons.arrow_back_rounded,
+                color: AppColors.parchment,
+              ),
               onPressed: () => Navigator.maybePop(context),
             ),
             title: Column(

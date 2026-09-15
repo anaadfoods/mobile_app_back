@@ -45,34 +45,38 @@ class SubscriptionsRepositoryImpl implements SubscriptionsRepository {
       createdAt: s.createdAt,
       totalDeliveryCharges: s.totalDeliveryCharges,
       canPayNextInstallment: s.canPayNextInstallment,
-      installmentInfo: s.installmentInfo != null
-          ? InstallmentInfoEntity(
-              currentInstallment: s.installmentInfo!.currentInstallment,
-              totalInstallments: s.installmentInfo!.totalInstallments,
-              remainingInstallments: s.installmentInfo!.remainingInstallments,
-              installmentAmount: s.installmentInfo!.installmentAmount,
-              nextInstallmentAmount: s.installmentInfo!.nextInstallmentAmount,
-              installmentFrequencyMonths:
-                  s.installmentInfo!.installmentFrequencyMonths,
-              installmentPaymentStatus:
-                  s.installmentInfo!.installmentPaymentStatus,
-            )
-          : null,
-      items: s.items
-          .map((i) => SubscriptionItemEntity(
-                id: i.id,
-                productVariant: i.productVariant,
-                productName: i.productName,
-                productCategory: i.productCategory,
-                quantity: i.quantity,
-                price: i.price,
-                discountedPrice: i.discountedPrice,
-                unitWeight: i.unitWeight,
-                weightUnit: i.weightUnit,
-                totalWeight: i.totalWeight,
-                imageUrl: i.imageUrl,
-              ))
-          .toList(),
+      installmentInfo:
+          s.installmentInfo != null
+              ? InstallmentInfoEntity(
+                currentInstallment: s.installmentInfo!.currentInstallment,
+                totalInstallments: s.installmentInfo!.totalInstallments,
+                remainingInstallments: s.installmentInfo!.remainingInstallments,
+                installmentAmount: s.installmentInfo!.installmentAmount,
+                nextInstallmentAmount: s.installmentInfo!.nextInstallmentAmount,
+                installmentFrequencyMonths:
+                    s.installmentInfo!.installmentFrequencyMonths,
+                installmentPaymentStatus:
+                    s.installmentInfo!.installmentPaymentStatus,
+              )
+              : null,
+      items:
+          s.items
+              .map(
+                (i) => SubscriptionItemEntity(
+                  id: i.id,
+                  productVariant: i.productVariant,
+                  productName: i.productName,
+                  productCategory: i.productCategory,
+                  quantity: i.quantity,
+                  price: i.price,
+                  discountedPrice: i.discountedPrice,
+                  unitWeight: i.unitWeight,
+                  weightUnit: i.weightUnit,
+                  totalWeight: i.totalWeight,
+                  imageUrl: i.imageUrl,
+                ),
+              )
+              .toList(),
       pauseStartDate: s.pauseStartDate,
       pauseEndDate: s.pauseEndDate,
       subscriptionNumber: s.subscriptionNumber,
@@ -113,21 +117,23 @@ class SubscriptionsRepositoryImpl implements SubscriptionsRepository {
     try {
       final plans = await _dataSource.getSubscriptionPlans();
       return plans
-          .map((p) => SubscriptionPlanEntity(
-                id: p.id,
-                name: p.name,
-                durationMonths: p.durationMonths,
-                discountPercentage: p.discountPercentage,
-                totalDiscountPercentage: p.totalDiscountPercentage,
-                tagline: p.tagline,
-                description: p.description,
-                isActive: p.isActive,
-                activationDate: p.activationDate,
-                isOneTimeOnly: p.isOneTimeOnly,
-                allowsInstallments: p.allowsInstallments,
-                installmentFrequencyMonths: p.installmentFrequencyMonths,
-                isAvailable: p.isAvailable,
-              ))
+          .map(
+            (p) => SubscriptionPlanEntity(
+              id: p.id,
+              name: p.name,
+              durationMonths: p.durationMonths,
+              discountPercentage: p.discountPercentage,
+              totalDiscountPercentage: p.totalDiscountPercentage,
+              tagline: p.tagline,
+              description: p.description,
+              isActive: p.isActive,
+              activationDate: p.activationDate,
+              isOneTimeOnly: p.isOneTimeOnly,
+              allowsInstallments: p.allowsInstallments,
+              installmentFrequencyMonths: p.installmentFrequencyMonths,
+              isAvailable: p.isAvailable,
+            ),
+          )
           .toList();
     } on ApiException catch (e) {
       throw SubscriptionFailure.server(e.message);
@@ -146,8 +152,7 @@ class SubscriptionsRepositoryImpl implements SubscriptionsRepository {
         return SubscriptionCreateResponseEntity(
           paymentLinks: result,
           subscriptionId: result['subscription_id'] as int?,
-          merchantTransactionId:
-              result['merchant_transaction_id']?.toString(),
+          merchantTransactionId: result['merchant_transaction_id']?.toString(),
           checkoutUrl: result['checkout_url']?.toString(),
           subscriptionNumber: result['subscription_number']?.toString(),
         );
@@ -156,7 +161,8 @@ class SubscriptionsRepositoryImpl implements SubscriptionsRepository {
         return SubscriptionCreateResponseEntity(
           subscription: sub != null ? _mapSubscription(sub) : null,
           subscriptionId: result['subscription_id'] as int? ?? sub?.id,
-          subscriptionNumber: result['subscription_number']?.toString() ??
+          subscriptionNumber:
+              result['subscription_number']?.toString() ??
               sub?.subscriptionNumber,
         );
       }
@@ -237,19 +243,23 @@ class SubscriptionsRepositoryImpl implements SubscriptionsRepository {
     int subscriptionId,
   ) async {
     try {
-      final response =
-          await _dataSource.getSubscriptionInvoices(subscriptionId);
+      final response = await _dataSource.getSubscriptionInvoices(
+        subscriptionId,
+      );
       return SubscriptionInvoiceResponse(
         success: response.success,
         subscriptionId: response.subscriptionId,
-        invoices: response.invoices
-            .map((i) => InvoiceEntity(
-                  id: i.id,
-                  invoiceNumber: i.odooInvoiceNumber,
-                  s3Url: i.s3Url,
-                  displayName: i.displayName,
-                ))
-            .toList(),
+        invoices:
+            response.invoices
+                .map(
+                  (i) => InvoiceEntity(
+                    id: i.id,
+                    invoiceNumber: i.odooInvoiceNumber,
+                    s3Url: i.s3Url,
+                    displayName: i.displayName,
+                  ),
+                )
+                .toList(),
         totalInvoices: response.totalInvoices,
       );
     } on ApiException catch (e) {
@@ -266,16 +276,18 @@ class SubscriptionsRepositoryImpl implements SubscriptionsRepository {
     try {
       final response = await _dataSource.getSubscriptionPlanProducts(planId);
       return response.products
-          .map((p) => SubscriptionPlanProductEntity(
-                id: p.productId,
-                name: p.productName,
-                category: '',
-                price: 0,
-                discountedPrice: 0,
-                unitWeight: p.maxWeightLimit,
-                weightUnit: 'kg',
-                variantId: p.productId,
-              ))
+          .map(
+            (p) => SubscriptionPlanProductEntity(
+              id: p.productId,
+              name: p.productName,
+              category: '',
+              price: 0,
+              discountedPrice: 0,
+              unitWeight: p.maxWeightLimit,
+              weightUnit: 'kg',
+              variantId: p.productId,
+            ),
+          )
           .toList();
     } on ApiException catch (e) {
       throw SubscriptionFailure.server(e.message);
@@ -291,12 +303,14 @@ class SubscriptionsRepositoryImpl implements SubscriptionsRepository {
     try {
       final results = await _dataSource.searchPlansForVariant(variantId);
       return results
-          .map((r) => PlanSearchResultEntity(
-                planId: r.planId,
-                planName: r.planName,
-                durationMonths: 1,
-                discountPercentage: r.discountPercentage.toString(),
-              ))
+          .map(
+            (r) => PlanSearchResultEntity(
+              planId: r.planId,
+              planName: r.planName,
+              durationMonths: 1,
+              discountPercentage: r.discountPercentage.toString(),
+            ),
+          )
           .toList();
     } catch (e) {
       throw SubscriptionFailure(

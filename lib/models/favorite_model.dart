@@ -64,7 +64,8 @@ class FavoriteModel {
         weight: product['weight'] ?? '',
         image: imageUrl, // Use the safely parsed image URL.
         createdAt: parseFlexibleDate(json['created_at']?.toString()),
-        productCategory: product['product_category'] ?? product['category'] ?? '',
+        productCategory:
+            product['product_category'] ?? product['category'] ?? '',
       );
     } catch (e, stack) {
       AppLogger.instance.log('--- Error parsing FavoriteModel ---');

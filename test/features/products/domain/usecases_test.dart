@@ -45,7 +45,9 @@ void main() {
   });
 
   test('GetCategoriesUseCase calls getCategories on repository', () async {
-    when(() => mockRepository.getCategories()).thenAnswer((_) async => [testCategory]);
+    when(
+      () => mockRepository.getCategories(),
+    ).thenAnswer((_) async => [testCategory]);
     final useCase = GetCategoriesUseCase(mockRepository);
 
     final result = await useCase();
@@ -53,35 +55,52 @@ void main() {
     verify(() => mockRepository.getCategories()).called(1);
   });
 
-  test('GetFeaturedProductsUseCase calls getFeaturedProducts on repository', () async {
-    when(() => mockRepository.getFeaturedProducts()).thenAnswer((_) async => [testProduct]);
-    final useCase = GetFeaturedProductsUseCase(mockRepository);
+  test(
+    'GetFeaturedProductsUseCase calls getFeaturedProducts on repository',
+    () async {
+      when(
+        () => mockRepository.getFeaturedProducts(),
+      ).thenAnswer((_) async => [testProduct]);
+      final useCase = GetFeaturedProductsUseCase(mockRepository);
 
-    final result = await useCase();
-    expect(result, [testProduct]);
-    verify(() => mockRepository.getFeaturedProducts()).called(1);
-  });
+      final result = await useCase();
+      expect(result, [testProduct]);
+      verify(() => mockRepository.getFeaturedProducts()).called(1);
+    },
+  );
 
-  test('GetBestsellerProductsUseCase calls getBestsellerProducts on repository', () async {
-    when(() => mockRepository.getBestsellerProducts()).thenAnswer((_) async => [testProduct]);
-    final useCase = GetBestsellerProductsUseCase(mockRepository);
+  test(
+    'GetBestsellerProductsUseCase calls getBestsellerProducts on repository',
+    () async {
+      when(
+        () => mockRepository.getBestsellerProducts(),
+      ).thenAnswer((_) async => [testProduct]);
+      final useCase = GetBestsellerProductsUseCase(mockRepository);
 
-    final result = await useCase();
-    expect(result, [testProduct]);
-    verify(() => mockRepository.getBestsellerProducts()).called(1);
-  });
+      final result = await useCase();
+      expect(result, [testProduct]);
+      verify(() => mockRepository.getBestsellerProducts()).called(1);
+    },
+  );
 
-  test('GetProductsByCategoryUseCase calls getProductsByCategory on repository', () async {
-    when(() => mockRepository.getProductsByCategory('Fruit')).thenAnswer((_) async => [testProduct]);
-    final useCase = GetProductsByCategoryUseCase(mockRepository);
+  test(
+    'GetProductsByCategoryUseCase calls getProductsByCategory on repository',
+    () async {
+      when(
+        () => mockRepository.getProductsByCategory('Fruit'),
+      ).thenAnswer((_) async => [testProduct]);
+      final useCase = GetProductsByCategoryUseCase(mockRepository);
 
-    final result = await useCase('Fruit');
-    expect(result, [testProduct]);
-    verify(() => mockRepository.getProductsByCategory('Fruit')).called(1);
-  });
+      final result = await useCase('Fruit');
+      expect(result, [testProduct]);
+      verify(() => mockRepository.getProductsByCategory('Fruit')).called(1);
+    },
+  );
 
   test('GetProductByIdUseCase calls getProductById on repository', () async {
-    when(() => mockRepository.getProductById(101)).thenAnswer((_) async => testProduct);
+    when(
+      () => mockRepository.getProductById(101),
+    ).thenAnswer((_) async => testProduct);
     final useCase = GetProductByIdUseCase(mockRepository);
 
     final result = await useCase(101);
@@ -90,7 +109,9 @@ void main() {
   });
 
   test('SearchProductsUseCase calls searchProducts on repository', () async {
-    when(() => mockRepository.searchProducts('Apple')).thenAnswer((_) async => [testProduct]);
+    when(
+      () => mockRepository.searchProducts('Apple'),
+    ).thenAnswer((_) async => [testProduct]);
     final useCase = SearchProductsUseCase(mockRepository);
 
     final result = await useCase('Apple');

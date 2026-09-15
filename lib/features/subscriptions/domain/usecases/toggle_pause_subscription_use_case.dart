@@ -10,6 +10,5 @@ class TogglePauseSubscriptionUseCase {
     int subscriptionId,
     DateTime? startDate,
     DateTime? endDate,
-  ) =>
-      _repository.togglePauseSubscription(subscriptionId, startDate, endDate);
+  ) => _repository.togglePauseSubscription(subscriptionId, startDate, endDate);
 }

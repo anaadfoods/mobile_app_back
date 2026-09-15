@@ -6,7 +6,7 @@ class AddressRepositoryImpl implements AddressRepository {
   final AddressRemoteDataSource _remoteDataSource;
 
   AddressRepositoryImpl({required AddressRemoteDataSource remoteDataSource})
-      : _remoteDataSource = remoteDataSource;
+    : _remoteDataSource = remoteDataSource;
 
   @override
   Future<bool> updateAddress(AddressEntity address) {

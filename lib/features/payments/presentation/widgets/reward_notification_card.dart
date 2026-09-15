@@ -4,10 +4,7 @@ import 'package:grocery_app/core/theme/app_colors.dart';
 class RewardNotificationCard extends StatelessWidget {
   final int pendingRewardsCount;
 
-  const RewardNotificationCard({
-    super.key,
-    required this.pendingRewardsCount,
-  });
+  const RewardNotificationCard({super.key, required this.pendingRewardsCount});
 
   @override
   Widget build(BuildContext context) {

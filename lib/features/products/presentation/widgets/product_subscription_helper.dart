@@ -83,7 +83,8 @@ class ProductSubscriptionHelper {
                   (opt) => setModalState(() => paymentOption = opt),
               onSubscribe: () {
                 Navigator.pop(context);
-                final payType = paymentOption == 1 ? 'INSTALLMENT' : 'PAID_FULL';
+                final payType =
+                    paymentOption == 1 ? 'INSTALLMENT' : 'PAID_FULL';
                 if (selectedIndex == -1) {
                   navigateToAddressScreen(
                     context: context,

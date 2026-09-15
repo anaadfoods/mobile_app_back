@@ -25,14 +25,14 @@ class BannerEntity extends Equatable {
 
   @override
   List<Object?> get props => [
-        id,
-        title,
-        subtitle,
-        image,
-        link,
-        isActive,
-        startDate,
-        endDate,
-        priority,
-      ];
+    id,
+    title,
+    subtitle,
+    image,
+    link,
+    isActive,
+    startDate,
+    endDate,
+    priority,
+  ];
 }

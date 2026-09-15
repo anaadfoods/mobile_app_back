@@ -46,9 +46,10 @@ class _CartItemCardState extends State<CartItemCard> {
             color: theme.cardColor,
             borderRadius: BorderRadius.circular(20),
             border: Border.all(
-              color: _isPressed
-                  ? theme.colorScheme.primary.withValues(alpha: 0.5)
-                  : isDark
+              color:
+                  _isPressed
+                      ? theme.colorScheme.primary.withValues(alpha: 0.5)
+                      : isDark
                       ? AppColors.darkSurfaceElevated
                       : AppColors.parchment,
               width: _isPressed ? 2 : 1,
@@ -73,30 +74,37 @@ class _CartItemCardState extends State<CartItemCard> {
                   height: 80,
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(16),
-                    color: isDark ? AppColors.darkSurfaceElevated : AppColors.parchment,
+                    color:
+                        isDark
+                            ? AppColors.darkSurfaceElevated
+                            : AppColors.parchment,
                   ),
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(16),
-                    child: item.productVariant.productImages.isNotEmpty
-                        ? CachedNetworkImage(
-                            imageUrl: item.productVariant.productImages.first.image,
-                            fit: BoxFit.cover,
-                            placeholder: (context, url) => Center(
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                color: theme.colorScheme.primary,
-                              ),
-                            ),
-                            errorWidget: (context, url, error) => Icon(
-                              Icons.image_not_supported_rounded,
+                    child:
+                        item.productVariant.productImages.isNotEmpty
+                            ? CachedNetworkImage(
+                              imageUrl:
+                                  item.productVariant.productImages.first.image,
+                              fit: BoxFit.cover,
+                              placeholder:
+                                  (context, url) => Center(
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      color: theme.colorScheme.primary,
+                                    ),
+                                  ),
+                              errorWidget:
+                                  (context, url, error) => Icon(
+                                    Icons.image_not_supported_rounded,
+                                    color: theme.disabledColor,
+                                  ),
+                            )
+                            : Icon(
+                              Icons.shopping_bag_outlined,
                               color: theme.disabledColor,
+                              size: 32,
                             ),
-                          )
-                        : Icon(
-                            Icons.shopping_bag_outlined,
-                            color: theme.disabledColor,
-                            size: 32,
-                          ),
                   ),
                 ),
               ),
@@ -152,7 +160,10 @@ class _CartItemCardState extends State<CartItemCard> {
                         // Quantity Controls
                         Container(
                           decoration: BoxDecoration(
-                            color: isDark ? AppColors.darkSurfaceElevated : AppColors.parchment,
+                            color:
+                                isDark
+                                    ? AppColors.darkSurfaceElevated
+                                    : AppColors.parchment,
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: FittedBox(
@@ -172,7 +183,8 @@ class _CartItemCardState extends State<CartItemCard> {
                                   ),
                                   child: Text(
                                     '${item.quantity}',
-                                    style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+                                    style: theme.textTheme.titleMedium
+                                        ?.copyWith(fontWeight: FontWeight.bold),
                                   ),
                                 ),
                                 _buildQuantityButton(
@@ -238,36 +250,37 @@ class _CartItemCardState extends State<CartItemCard> {
   void _showRemoveDialog(BuildContext context, ThemeData theme) {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
-        ),
-        title: const Text('Remove Item'),
-        content: const Text(
-          'Are you sure you want to remove this item from your cart?',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text('Cancel', style: TextStyle(color: theme.hintColor)),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              widget.onRemove();
-              Navigator.pop(context);
-              SnackBarHelper.showSuccess(context, 'Item removed from cart');
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: theme.colorScheme.error,
-              foregroundColor: AppColors.parchment,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
+      builder:
+          (context) => AlertDialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
             ),
-            child: const Text('Remove'),
+            title: const Text('Remove Item'),
+            content: const Text(
+              'Are you sure you want to remove this item from your cart?',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: Text('Cancel', style: TextStyle(color: theme.hintColor)),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  widget.onRemove();
+                  Navigator.pop(context);
+                  SnackBarHelper.showSuccess(context, 'Item removed from cart');
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: theme.colorScheme.error,
+                  foregroundColor: AppColors.parchment,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                child: const Text('Remove'),
+              ),
+            ],
           ),
-        ],
-      ),
     );
   }
 }

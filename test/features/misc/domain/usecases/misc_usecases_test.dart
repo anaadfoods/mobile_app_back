@@ -10,7 +10,9 @@ import 'package:grocery_app/features/misc/domain/usecases/update_user_profile_us
 import 'package:grocery_app/models/user_model.dart';
 
 class MockHelpRepository extends Mock implements HelpRepository {}
+
 class MockAddressRepository extends Mock implements AddressRepository {}
+
 class MockProfileRepository extends Mock implements ProfileRepository {}
 
 void main() {
@@ -24,12 +26,15 @@ void main() {
     });
 
     test('SendOtpUseCase calls repository sendOtp', () async {
-      when(() => mockRepo.sendOtp(identifier: '1234567890', type: 'phone'))
-          .thenAnswer((_) async => {'success': true, 'message': 'OTP sent'});
+      when(
+        () => mockRepo.sendOtp(identifier: '1234567890', type: 'phone'),
+      ).thenAnswer((_) async => {'success': true, 'message': 'OTP sent'});
 
       final res = await useCase(identifier: '1234567890', type: 'phone');
       expect(res['success'], isTrue);
-      verify(() => mockRepo.sendOtp(identifier: '1234567890', type: 'phone')).called(1);
+      verify(
+        () => mockRepo.sendOtp(identifier: '1234567890', type: 'phone'),
+      ).called(1);
     });
   });
 
@@ -81,8 +86,9 @@ void main() {
         gender: 'Other',
       );
 
-      when(() => mockRepo.updateProfile(user))
-          .thenAnswer((_) async => {'success': true});
+      when(
+        () => mockRepo.updateProfile(user),
+      ).thenAnswer((_) async => {'success': true});
 
       final res = await useCase(user);
       expect(res['success'], isTrue);

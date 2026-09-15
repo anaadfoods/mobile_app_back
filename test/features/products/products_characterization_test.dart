@@ -60,65 +60,89 @@ void main() {
     return ProductCubit(
       getCategoriesUseCase: GetCategoriesUseCase(mockRepository),
       getFeaturedProductsUseCase: GetFeaturedProductsUseCase(mockRepository),
-      getBestsellerProductsUseCase: GetBestsellerProductsUseCase(mockRepository),
-      getProductsByCategoryUseCase: GetProductsByCategoryUseCase(mockRepository),
+      getBestsellerProductsUseCase: GetBestsellerProductsUseCase(
+        mockRepository,
+      ),
+      getProductsByCategoryUseCase: GetProductsByCategoryUseCase(
+        mockRepository,
+      ),
       getProductByIdUseCase: GetProductByIdUseCase(mockRepository),
       searchProductsUseCase: SearchProductsUseCase(mockRepository),
     );
   }
 
-  test('loadHomePageData fetches categories, featured, and bestseller in parallel', () async {
-    when(() => mockRepository.getCategories()).thenAnswer((_) async => [testCategory]);
-    when(() => mockRepository.getFeaturedProducts()).thenAnswer((_) async => [testProduct]);
-    when(() => mockRepository.getBestsellerProducts()).thenAnswer((_) async => [testProduct]);
+  test(
+    'loadHomePageData fetches categories, featured, and bestseller in parallel',
+    () async {
+      when(
+        () => mockRepository.getCategories(),
+      ).thenAnswer((_) async => [testCategory]);
+      when(
+        () => mockRepository.getFeaturedProducts(),
+      ).thenAnswer((_) async => [testProduct]);
+      when(
+        () => mockRepository.getBestsellerProducts(),
+      ).thenAnswer((_) async => [testProduct]);
 
-    productCubit = createCubit();
-    final states = <ProductState>[];
-    final subscription = productCubit.stream.listen(states.add);
+      productCubit = createCubit();
+      final states = <ProductState>[];
+      final subscription = productCubit.stream.listen(states.add);
 
-    await productCubit.loadHomePageData();
-    await Future.delayed(Duration.zero);
+      await productCubit.loadHomePageData();
+      await Future.delayed(Duration.zero);
 
-    expect(states.length, 2);
-    expect(states[0], isA<ProductLoading>());
-    expect(states[1], isA<ProductSuccess>());
-    
-    final success = states[1] as ProductSuccess;
-    expect(success.categories.length, 1);
-    expect(success.featuredProducts.length, 1);
-    expect(success.bestsellerProducts.length, 1);
+      expect(states.length, 2);
+      expect(states[0], isA<ProductLoading>());
+      expect(states[1], isA<ProductSuccess>());
 
-    await subscription.cancel();
-  });
+      final success = states[1] as ProductSuccess;
+      expect(success.categories.length, 1);
+      expect(success.featuredProducts.length, 1);
+      expect(success.bestsellerProducts.length, 1);
 
-  test('fetchProductsByCategory fetches category products and copies state values', () async {
-    when(() => mockRepository.getCategories()).thenAnswer((_) async => [testCategory]);
-    when(() => mockRepository.getFeaturedProducts()).thenAnswer((_) async => [testProduct]);
-    when(() => mockRepository.getBestsellerProducts()).thenAnswer((_) async => [testProduct]);
-    when(() => mockRepository.getProductsByCategory(any())).thenAnswer((_) async => [testProduct]);
+      await subscription.cancel();
+    },
+  );
 
-    productCubit = createCubit();
-    
-    // Setup initial success state
-    await productCubit.loadHomePageData();
-    await Future.delayed(Duration.zero);
+  test(
+    'fetchProductsByCategory fetches category products and copies state values',
+    () async {
+      when(
+        () => mockRepository.getCategories(),
+      ).thenAnswer((_) async => [testCategory]);
+      when(
+        () => mockRepository.getFeaturedProducts(),
+      ).thenAnswer((_) async => [testProduct]);
+      when(
+        () => mockRepository.getBestsellerProducts(),
+      ).thenAnswer((_) async => [testProduct]);
+      when(
+        () => mockRepository.getProductsByCategory(any()),
+      ).thenAnswer((_) async => [testProduct]);
 
-    final states = <ProductState>[];
-    final subscription = productCubit.stream.listen(states.add);
+      productCubit = createCubit();
 
-    await productCubit.fetchProductsByCategory('Organic Fruits');
-    await Future.delayed(Duration.zero);
+      // Setup initial success state
+      await productCubit.loadHomePageData();
+      await Future.delayed(Duration.zero);
 
-    expect(states.length, 2);
-    expect(states[0], isA<ProductLoading>());
-    expect(states[1], isA<ProductSuccess>());
+      final states = <ProductState>[];
+      final subscription = productCubit.stream.listen(states.add);
 
-    final success = states[1] as ProductSuccess;
-    expect(success.productsForCategory.length, 1);
-    // Verify that featured/bestseller data was copied and preserved
-    expect(success.categories.length, 1);
-    expect(success.featuredProducts.length, 1);
+      await productCubit.fetchProductsByCategory('Organic Fruits');
+      await Future.delayed(Duration.zero);
 
-    await subscription.cancel();
-  });
+      expect(states.length, 2);
+      expect(states[0], isA<ProductLoading>());
+      expect(states[1], isA<ProductSuccess>());
+
+      final success = states[1] as ProductSuccess;
+      expect(success.productsForCategory.length, 1);
+      // Verify that featured/bestseller data was copied and preserved
+      expect(success.categories.length, 1);
+      expect(success.featuredProducts.length, 1);
+
+      await subscription.cancel();
+    },
+  );
 }

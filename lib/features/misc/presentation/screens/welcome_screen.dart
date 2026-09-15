@@ -241,44 +241,61 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                         children: [
                           // Top bar containing Skip Button
                           Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 20,
+                              vertical: 16,
+                            ),
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.end,
                               children: [
                                 AnimatedOpacity(
                                   duration: const Duration(milliseconds: 300),
-                                  opacity: _currentPage < onboardingData.length - 1 ? 1.0 : 0.0,
+                                  opacity:
+                                      _currentPage < onboardingData.length - 1
+                                          ? 1.0
+                                          : 0.0,
                                   child: GestureDetector(
                                     onTap: () {
                                       HapticFeedback.selectionClick();
                                       _pageController.animateToPage(
                                         onboardingData.length - 1,
-                                        duration: const Duration(milliseconds: 500),
+                                        duration: const Duration(
+                                          milliseconds: 500,
+                                        ),
                                         curve: Curves.easeInOutCubic,
                                       );
                                     },
                                     child: ClipRRect(
                                       borderRadius: BorderRadius.circular(20),
                                       child: BackdropFilter(
-                                        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                                        filter: ImageFilter.blur(
+                                          sigmaX: 10,
+                                          sigmaY: 10,
+                                        ),
                                         child: Container(
                                           padding: const EdgeInsets.symmetric(
                                             horizontal: 16,
                                             vertical: 8,
                                           ),
                                           decoration: BoxDecoration(
-                                            color: AppColors.parchment.withValues(alpha: 0.15),
-                                            borderRadius: BorderRadius.circular(20),
+                                            color: AppColors.parchment
+                                                .withValues(alpha: 0.15),
+                                            borderRadius: BorderRadius.circular(
+                                              20,
+                                            ),
                                             border: Border.all(
-                                              color: AppColors.parchment.withValues(alpha: 0.2),
+                                              color: AppColors.parchment
+                                                  .withValues(alpha: 0.2),
                                             ),
                                           ),
                                           child: Text(
                                             "Skip",
-                                            style: theme.textTheme.labelLarge?.copyWith(
-                                              color: AppColors.parchment.withValues(alpha: 0.9),
-                                              fontWeight: FontWeight.w500,
-                                            ),
+                                            style: theme.textTheme.labelLarge
+                                                ?.copyWith(
+                                                  color: AppColors.parchment
+                                                      .withValues(alpha: 0.9),
+                                                  fontWeight: FontWeight.w500,
+                                                ),
                                           ),
                                         ),
                                       ),
@@ -291,7 +308,10 @@ class _WelcomeScreenState extends State<WelcomeScreen>
 
                           // Logo Section
                           SizedBox(
-                            height: (constraints.maxHeight * 0.35).clamp(160.0, 240.0),
+                            height: (constraints.maxHeight * 0.35).clamp(
+                              160.0,
+                              240.0,
+                            ),
                             child: Stack(
                               alignment: Alignment.center,
                               children: [
@@ -299,18 +319,24 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                                 AnimatedBuilder(
                                   animation: _logoController,
                                   builder: (context, child) {
-                                    final circleSize = (constraints.maxHeight * 0.28).clamp(120.0, 190.0);
+                                    final circleSize = (constraints.maxHeight *
+                                            0.28)
+                                        .clamp(120.0, 190.0);
                                     return Transform.scale(
-                                      scale: _logoScale.value * _logoPulse.value,
+                                      scale:
+                                          _logoScale.value * _logoPulse.value,
                                       child: Container(
                                         width: circleSize,
                                         height: circleSize,
                                         decoration: BoxDecoration(
                                           shape: BoxShape.circle,
-                                          color: AppColors.parchment.withValues(alpha: 0.05),
+                                          color: AppColors.parchment.withValues(
+                                            alpha: 0.05,
+                                          ),
                                           boxShadow: [
                                             BoxShadow(
-                                              color: AppColors.deepSoilGreen.withValues(alpha: 0.2),
+                                              color: AppColors.deepSoilGreen
+                                                  .withValues(alpha: 0.2),
                                               blurRadius: 40,
                                               spreadRadius: 20,
                                             ),
@@ -318,13 +344,18 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                                         ),
                                         child: ClipOval(
                                           child: BackdropFilter(
-                                            filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
+                                            filter: ImageFilter.blur(
+                                              sigmaX: 15,
+                                              sigmaY: 15,
+                                            ),
                                             child: Container(
                                               decoration: BoxDecoration(
                                                 shape: BoxShape.circle,
-                                                color: AppColors.parchment.withValues(alpha: 0.1),
+                                                color: AppColors.parchment
+                                                    .withValues(alpha: 0.1),
                                                 border: Border.all(
-                                                  color: AppColors.parchment.withValues(alpha: 0.2),
+                                                  color: AppColors.parchment
+                                                      .withValues(alpha: 0.2),
                                                   width: 2,
                                                 ),
                                               ),
@@ -340,7 +371,9 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                                   child: AnimatedBuilder(
                                     animation: _logoController,
                                     builder: (context, child) {
-                                      final imgSize = (constraints.maxHeight * 0.20).clamp(80.0, 130.0);
+                                      final imgSize = (constraints.maxHeight *
+                                              0.20)
+                                          .clamp(80.0, 130.0);
                                       return Transform.scale(
                                         scale: _logoPulse.value,
                                         child: Image.asset(
@@ -359,7 +392,9 @@ class _WelcomeScreenState extends State<WelcomeScreen>
 
                           // Content Area
                           Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: AppColors.spacingXL),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: AppColors.spacingXL,
+                            ),
                             child: AnimatedBuilder(
                               animation: _textController,
                               builder: (context, child) {
@@ -375,7 +410,11 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                                       ).animate(
                                         CurvedAnimation(
                                           parent: _textController,
-                                          curve: const Interval(0.0, 0.5, curve: Curves.easeOutCubic),
+                                          curve: const Interval(
+                                            0.0,
+                                            0.5,
+                                            curve: Curves.easeOutCubic,
+                                          ),
                                         ),
                                       ),
                                       child: FadeTransition(
@@ -386,10 +425,14 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                                         child: Container(
                                           padding: const EdgeInsets.all(16),
                                           decoration: BoxDecoration(
-                                            color: AppColors.deepSoilGreen.withValues(alpha: 0.2),
-                                            borderRadius: BorderRadius.circular(20),
+                                            color: AppColors.deepSoilGreen
+                                                .withValues(alpha: 0.2),
+                                            borderRadius: BorderRadius.circular(
+                                              20,
+                                            ),
                                             border: Border.all(
-                                              color: AppColors.deepSoilGreen.withValues(alpha: 0.4),
+                                              color: AppColors.deepSoilGreen
+                                                  .withValues(alpha: 0.4),
                                               width: 1.5,
                                             ),
                                           ),
@@ -411,7 +454,11 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                                       ).animate(
                                         CurvedAnimation(
                                           parent: _textController,
-                                          curve: const Interval(0.2, 0.7, curve: Curves.easeOutCubic),
+                                          curve: const Interval(
+                                            0.2,
+                                            0.7,
+                                            curve: Curves.easeOutCubic,
+                                          ),
                                         ),
                                       ),
                                       child: FadeTransition(
@@ -420,22 +467,28 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                                           curve: const Interval(0.2, 0.7),
                                         ),
                                         child: ShaderMask(
-                                          shaderCallback: (bounds) => LinearGradient(
-                                            colors: [
-                                              AppColors.parchment,
-                                              AppColors.parchment.withValues(alpha: 0.9),
-                                              AppColors.deepSoilGreen.withValues(alpha: 0.8),
-                                            ],
-                                          ).createShader(bounds),
+                                          shaderCallback:
+                                              (bounds) => LinearGradient(
+                                                colors: [
+                                                  AppColors.parchment,
+                                                  AppColors.parchment
+                                                      .withValues(alpha: 0.9),
+                                                  AppColors.deepSoilGreen
+                                                      .withValues(alpha: 0.8),
+                                                ],
+                                              ).createShader(bounds),
                                           child: Text(
                                             data.title,
                                             textAlign: TextAlign.center,
-                                            style: theme.textTheme.headlineMedium?.copyWith(
-                                              color: AppColors.parchment,
-                                              fontWeight: FontWeight.bold,
-                                              letterSpacing: 0.5,
-                                              height: 1.2,
-                                            ),
+                                            style: theme
+                                                .textTheme
+                                                .headlineMedium
+                                                ?.copyWith(
+                                                  color: AppColors.parchment,
+                                                  fontWeight: FontWeight.bold,
+                                                  letterSpacing: 0.5,
+                                                  height: 1.2,
+                                                ),
                                           ),
                                         ),
                                       ),
@@ -450,7 +503,11 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                                       ).animate(
                                         CurvedAnimation(
                                           parent: _textController,
-                                          curve: const Interval(0.4, 0.9, curve: Curves.easeOutCubic),
+                                          curve: const Interval(
+                                            0.4,
+                                            0.9,
+                                            curve: Curves.easeOutCubic,
+                                          ),
                                         ),
                                       ),
                                       child: FadeTransition(
@@ -461,11 +518,13 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                                         child: Text(
                                           data.subtitle,
                                           textAlign: TextAlign.center,
-                                          style: theme.textTheme.bodyLarge?.copyWith(
-                                            color: AppColors.parchment.withValues(alpha: 0.85),
-                                            height: 1.6,
-                                            letterSpacing: 0.3,
-                                          ),
+                                          style: theme.textTheme.bodyLarge
+                                              ?.copyWith(
+                                                color: AppColors.parchment
+                                                    .withValues(alpha: 0.85),
+                                                height: 1.6,
+                                                letterSpacing: 0.3,
+                                              ),
                                         ),
                                       ),
                                     ),
@@ -477,54 +536,83 @@ class _WelcomeScreenState extends State<WelcomeScreen>
 
                           // Page Indicators and Next Button
                           Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: AppColors.spacingXL, vertical: 16),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: AppColors.spacingXL,
+                              vertical: 16,
+                            ),
                             child: Column(
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 Row(
                                   mainAxisAlignment: MainAxisAlignment.center,
-                                  children: List.generate(onboardingData.length, (index) {
-                                    final isActive = _currentPage == index;
-                                    final distance = (_pageOffset - index).abs();
-                                    final scale = (1 - distance * 0.3).clamp(0.7, 1.0);
+                                  children: List.generate(
+                                    onboardingData.length,
+                                    (index) {
+                                      final isActive = _currentPage == index;
+                                      final distance =
+                                          (_pageOffset - index).abs();
+                                      final scale = (1 - distance * 0.3).clamp(
+                                        0.7,
+                                        1.0,
+                                      );
 
-                                    return AnimatedContainer(
-                                      duration: const Duration(milliseconds: 300),
-                                      curve: Curves.easeOutCubic,
-                                      margin: const EdgeInsets.symmetric(horizontal: 6),
-                                      child: Transform.scale(
-                                        scale: scale,
-                                        child: Container(
-                                          height: 12,
-                                          width: isActive ? 36 : 12,
-                                          decoration: BoxDecoration(
-                                            borderRadius: BorderRadius.circular(6),
-                                            color: isActive
-                                                ? AppColors.deepSoilGreen
-                                                : AppColors.parchment.withValues(alpha: 0.4),
-                                            boxShadow: isActive
-                                                ? [
-                                                    BoxShadow(
-                                                      color: AppColors.deepSoilGreen.withValues(alpha: 0.5),
-                                                      blurRadius: 8,
-                                                      spreadRadius: 1,
-                                                    ),
-                                                  ]
-                                                : null,
+                                      return AnimatedContainer(
+                                        duration: const Duration(
+                                          milliseconds: 300,
+                                        ),
+                                        curve: Curves.easeOutCubic,
+                                        margin: const EdgeInsets.symmetric(
+                                          horizontal: 6,
+                                        ),
+                                        child: Transform.scale(
+                                          scale: scale,
+                                          child: Container(
+                                            height: 12,
+                                            width: isActive ? 36 : 12,
+                                            decoration: BoxDecoration(
+                                              borderRadius:
+                                                  BorderRadius.circular(6),
+                                              color:
+                                                  isActive
+                                                      ? AppColors.deepSoilGreen
+                                                      : AppColors.parchment
+                                                          .withValues(
+                                                            alpha: 0.4,
+                                                          ),
+                                              boxShadow:
+                                                  isActive
+                                                      ? [
+                                                        BoxShadow(
+                                                          color: AppColors
+                                                              .deepSoilGreen
+                                                              .withValues(
+                                                                alpha: 0.5,
+                                                              ),
+                                                          blurRadius: 8,
+                                                          spreadRadius: 1,
+                                                        ),
+                                                      ]
+                                                      : null,
+                                            ),
                                           ),
                                         ),
-                                      ),
-                                    );
-                                  }),
+                                      );
+                                    },
+                                  ),
                                 ),
                                 const SizedBox(height: 24),
                                 AnimatedBuilder(
                                   animation: _buttonController,
                                   builder: (context, child) {
-                                    final isLastPage = _currentPage == onboardingData.length - 1;
+                                    final isLastPage =
+                                        _currentPage ==
+                                        onboardingData.length - 1;
 
                                     return Transform.translate(
-                                      offset: Offset(0, isLastPage ? _buttonBounce.value : 0),
+                                      offset: Offset(
+                                        0,
+                                        isLastPage ? _buttonBounce.value : 0,
+                                      ),
                                       child: GestureDetector(
                                         onTap: () {
                                           HapticFeedback.lightImpact();
@@ -532,16 +620,23 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                                             onGetStartedClicked(context);
                                           } else {
                                             _pageController.nextPage(
-                                              duration: const Duration(milliseconds: 500),
+                                              duration: const Duration(
+                                                milliseconds: 500,
+                                              ),
                                               curve: Curves.easeInOutCubic,
                                             );
                                           }
                                         },
                                         child: AnimatedSwitcher(
-                                          duration: const Duration(milliseconds: 400),
+                                          duration: const Duration(
+                                            milliseconds: 400,
+                                          ),
                                           switchInCurve: Curves.easeOutBack,
                                           switchOutCurve: Curves.easeIn,
-                                          transitionBuilder: (child, animation) {
+                                          transitionBuilder: (
+                                            child,
+                                            animation,
+                                          ) {
                                             return ScaleTransition(
                                               scale: animation,
                                               child: FadeTransition(
@@ -550,9 +645,16 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                                               ),
                                             );
                                           },
-                                          child: isLastPage
-                                              ? _buildGetStartedButton(theme, colorScheme)
-                                              : _buildNextButton(theme, colorScheme),
+                                          child:
+                                              isLastPage
+                                                  ? _buildGetStartedButton(
+                                                    theme,
+                                                    colorScheme,
+                                                  )
+                                                  : _buildNextButton(
+                                                    theme,
+                                                    colorScheme,
+                                                  ),
                                         ),
                                       ),
                                     );

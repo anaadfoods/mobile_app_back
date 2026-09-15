@@ -5,6 +5,7 @@ import 'package:grocery_app/features/cart/presentation/cubit/cart_state.dart';
 import 'package:grocery_app/utils/subscription_navigation_helper.dart';
 import 'package:grocery_app/common_widgets/coming_soon_overlay.dart';
 import 'package:grocery_app/common_widgets/out_of_stock_overlay.dart';
+import 'package:grocery_app/common_widgets/anaad_network_image.dart';
 
 class GroceryItemCardWidget extends StatefulWidget {
   final Product item;
@@ -109,20 +110,29 @@ class _GroceryItemCardWidgetState extends State<GroceryItemCardWidget> {
                               height: size,
                               decoration: BoxDecoration(
                                 color:
-                                    isDark ? AppColors.darkCanvas : AppColors.parchment,
-                                borderRadius: BorderRadius.circular(AppColors.radiusM),
+                                    isDark
+                                        ? AppColors.darkCanvas
+                                        : AppColors.parchment,
+                                borderRadius: BorderRadius.circular(
+                                  AppColors.radiusM,
+                                ),
                                 border: Border.all(
                                   color:
                                       isDark
-                                          ? AppColors.parchment.withValues(alpha: 0.05)
+                                          ? AppColors.parchment.withValues(
+                                            alpha: 0.05,
+                                          )
                                           : AppColors.parchment,
                                   width: 1,
                                 ),
                               ),
                               child: ClipRRect(
-                                borderRadius: BorderRadius.circular(AppColors.radiusM),
+                                borderRadius: BorderRadius.circular(
+                                  AppColors.radiusM,
+                                ),
                                 child: Hero(
-                                  tag: '${widget.item.id}-${widget.heroSuffix ?? ''}',
+                                  tag:
+                                      '${widget.item.id}-${widget.heroSuffix ?? ''}',
                                   child: _buildImageWidget(theme),
                                 ),
                               ),
@@ -141,7 +151,8 @@ class _GroceryItemCardWidgetState extends State<GroceryItemCardWidget> {
                                     borderRadius: BorderRadius.circular(6),
                                     boxShadow: [
                                       BoxShadow(
-                                        color: AppColors.harvestAmber.withValues(alpha: 0.3),
+                                        color: AppColors.harvestAmber
+                                            .withValues(alpha: 0.3),
                                         blurRadius: 4,
                                         offset: const Offset(0, 1),
                                       ),
@@ -171,7 +182,11 @@ class _GroceryItemCardWidgetState extends State<GroceryItemCardWidget> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            _buildCategoryCapsule(widget.item.productCategory, theme, isDark),
+                            _buildCategoryCapsule(
+                              widget.item.productCategory,
+                              theme,
+                              isDark,
+                            ),
                             const SizedBox(height: 6),
                             AppText(
                               text: widget.item.productName,
@@ -185,7 +200,12 @@ class _GroceryItemCardWidgetState extends State<GroceryItemCardWidget> {
                             const SizedBox(height: 6),
                             Row(
                               children: [
-                                _buildQuantityTag(widget.item.weight, widget.item.weightUnit, theme, isDark),
+                                _buildQuantityTag(
+                                  widget.item.weight,
+                                  widget.item.weightUnit,
+                                  theme,
+                                  isDark,
+                                ),
                                 const Spacer(),
                                 Row(
                                   children: List.generate(
@@ -235,7 +255,10 @@ class _GroceryItemCardWidgetState extends State<GroceryItemCardWidget> {
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(AppColors.radiusL),
                       child: ColoredBox(
-                        color: isDark ? Colors.black.withValues(alpha: 0.72) : Colors.white.withValues(alpha: 0.72),
+                        color:
+                            isDark
+                                ? Colors.black.withValues(alpha: 0.72)
+                                : Colors.white.withValues(alpha: 0.72),
                         child: const ComingSoonOverlay(),
                       ),
                     ),
@@ -245,7 +268,10 @@ class _GroceryItemCardWidgetState extends State<GroceryItemCardWidget> {
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(AppColors.radiusL),
                       child: ColoredBox(
-                        color: isDark ? Colors.black.withValues(alpha: 0.72) : Colors.white.withValues(alpha: 0.72),
+                        color:
+                            isDark
+                                ? Colors.black.withValues(alpha: 0.72)
+                                : Colors.white.withValues(alpha: 0.72),
                         child: const OutOfStockOverlay(),
                       ),
                     ),
@@ -263,21 +289,26 @@ class _GroceryItemCardWidgetState extends State<GroceryItemCardWidget> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: BoxDecoration(
-        color: isDark
-            ? AppColors.parchment.withValues(alpha: 0.1)
-            : AppColors.harvestAmber.withValues(alpha: 0.08),
+        color:
+            isDark
+                ? AppColors.parchment.withValues(alpha: 0.1)
+                : AppColors.harvestAmber.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: isDark
-              ? AppColors.parchment.withValues(alpha: 0.15)
-              : AppColors.harvestAmber.withValues(alpha: 0.15),
+          color:
+              isDark
+                  ? AppColors.parchment.withValues(alpha: 0.15)
+                  : AppColors.harvestAmber.withValues(alpha: 0.15),
           width: 0.8,
         ),
       ),
       child: Text(
         category.toUpperCase(),
         style: theme.textTheme.bodySmall?.copyWith(
-          color: isDark ? AppColors.pureWhite.withValues(alpha: 0.9) : AppColors.harvestAmber,
+          color:
+              isDark
+                  ? AppColors.pureWhite.withValues(alpha: 0.9)
+                  : AppColors.harvestAmber,
           fontWeight: FontWeight.bold,
           fontSize: 9,
           letterSpacing: 0.5,
@@ -286,19 +317,26 @@ class _GroceryItemCardWidgetState extends State<GroceryItemCardWidget> {
     );
   }
 
-  Widget _buildQuantityTag(String weight, String unit, ThemeData theme, bool isDark) {
+  Widget _buildQuantityTag(
+    String weight,
+    String unit,
+    ThemeData theme,
+    bool isDark,
+  ) {
     if (weight.isEmpty) return const SizedBox.shrink();
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
       decoration: BoxDecoration(
-        color: isDark
-            ? AppColors.charcoal.withValues(alpha: 0.3)
-            : AppColors.parchment,
+        color:
+            isDark
+                ? AppColors.charcoal.withValues(alpha: 0.3)
+                : AppColors.parchment,
         borderRadius: BorderRadius.circular(6),
         border: Border.all(
-          color: isDark
-              ? AppColors.parchment.withValues(alpha: 0.1)
-              : theme.dividerColor.withValues(alpha: 0.2),
+          color:
+              isDark
+                  ? AppColors.parchment.withValues(alpha: 0.1)
+                  : theme.dividerColor.withValues(alpha: 0.2),
           width: 0.8,
         ),
       ),
@@ -314,15 +352,14 @@ class _GroceryItemCardWidgetState extends State<GroceryItemCardWidget> {
 
   Widget _buildImageWidget(ThemeData theme) {
     if (widget.item.productImages.isNotEmpty) {
-      return CachedNetworkImage(
+      return AnaadNetworkImage(
         imageUrl: widget.item.productImages[0].image,
-        fit: BoxFit.cover,
-        placeholder:
-            (context, url) =>
-                const Center(child: CircularProgressIndicator(strokeWidth: 2)),
-        errorWidget:
-            (context, url, error) =>
-                Icon(Icons.broken_image, size: 40, color: theme.disabledColor),
+        semanticLabel: widget.item.productName,
+        fallback: Icon(
+          Icons.eco_outlined,
+          size: 40,
+          color: theme.disabledColor,
+        ),
       );
     } else {
       return Icon(

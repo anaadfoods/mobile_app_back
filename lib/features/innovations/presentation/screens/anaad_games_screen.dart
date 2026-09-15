@@ -2345,10 +2345,7 @@ class _AnaadGamesScreenState extends State<AnaadGamesScreen>
                   margin: const EdgeInsets.all(6),
                   decoration: BoxDecoration(
                     gradient: RadialGradient(
-                      colors: [
-                        AppColors.harvestAmber,
-                        AppColors.harvestAmber,
-                      ],
+                      colors: [AppColors.harvestAmber, AppColors.harvestAmber],
                     ),
                     shape: BoxShape.circle,
                     border: Border.all(

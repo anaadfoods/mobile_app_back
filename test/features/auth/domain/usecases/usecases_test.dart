@@ -18,7 +18,7 @@ class MockDomainAuthRepository extends Mock implements AuthRepository {}
 
 void main() {
   late MockDomainAuthRepository mockRepository;
-  
+
   final testUser = User(
     email: 'test@example.com',
     username: 'test',
@@ -28,13 +28,15 @@ void main() {
   );
 
   setUpAll(() {
-    registerFallbackValue(User(
-      email: '',
-      username: '',
-      firstName: '',
-      lastName: '',
-      phoneNumber: '',
-    ));
+    registerFallbackValue(
+      User(
+        email: '',
+        username: '',
+        firstName: '',
+        lastName: '',
+        phoneNumber: '',
+      ),
+    );
   });
 
   setUp(() {
@@ -42,19 +44,26 @@ void main() {
   });
 
   group('Auth Domain Use Cases', () {
-    test('CheckAuthStatusUseCase calls checkAuthStatus on repository', () async {
-      final useCase = CheckAuthStatusUseCase(mockRepository);
-      when(() => mockRepository.checkAuthStatus()).thenAnswer((_) async => testUser);
+    test(
+      'CheckAuthStatusUseCase calls checkAuthStatus on repository',
+      () async {
+        final useCase = CheckAuthStatusUseCase(mockRepository);
+        when(
+          () => mockRepository.checkAuthStatus(),
+        ).thenAnswer((_) async => testUser);
 
-      final result = await useCase();
+        final result = await useCase();
 
-      expect(result, testUser);
-      verify(() => mockRepository.checkAuthStatus()).called(1);
-    });
+        expect(result, testUser);
+        verify(() => mockRepository.checkAuthStatus()).called(1);
+      },
+    );
 
     test('LoginUseCase calls login on repository', () async {
       final useCase = LoginUseCase(mockRepository);
-      when(() => mockRepository.login(any(), any())).thenAnswer((_) async => testUser);
+      when(
+        () => mockRepository.login(any(), any()),
+      ).thenAnswer((_) async => testUser);
 
       final result = await useCase('email', 'pass');
 
@@ -73,7 +82,9 @@ void main() {
 
     test('GoogleLoginUseCase calls googleLogin on repository', () async {
       final useCase = GoogleLoginUseCase(mockRepository);
-      when(() => mockRepository.googleLogin()).thenAnswer((_) async => testUser);
+      when(
+        () => mockRepository.googleLogin(),
+      ).thenAnswer((_) async => testUser);
 
       final result = await useCase();
 
@@ -100,35 +111,53 @@ void main() {
       verify(() => mockRepository.logout()).called(1);
     });
 
-    test('VerifyTokenUseCase calls verifyAndRefreshToken on repository', () async {
-      final useCase = VerifyTokenUseCase(mockRepository);
-      when(() => mockRepository.verifyAndRefreshToken()).thenAnswer((_) async => true);
+    test(
+      'VerifyTokenUseCase calls verifyAndRefreshToken on repository',
+      () async {
+        final useCase = VerifyTokenUseCase(mockRepository);
+        when(
+          () => mockRepository.verifyAndRefreshToken(),
+        ).thenAnswer((_) async => true);
 
-      final result = await useCase();
+        final result = await useCase();
 
-      expect(result, true);
-      verify(() => mockRepository.verifyAndRefreshToken()).called(1);
-    });
+        expect(result, true);
+        verify(() => mockRepository.verifyAndRefreshToken()).called(1);
+      },
+    );
 
-    test('UpdateProfileUseCase calls uploadProfileImage and updateProfile when imagePath is provided', () async {
-      final useCase = UpdateProfileUseCase(mockRepository);
-      final uploadedUser = testUser.copyWith(profilePicture: 'image_url');
-      final updatedUser = uploadedUser.copyWith(firstName: 'Updated');
+    test(
+      'UpdateProfileUseCase calls uploadProfileImage and updateProfile when imagePath is provided',
+      () async {
+        final useCase = UpdateProfileUseCase(mockRepository);
+        final uploadedUser = testUser.copyWith(profilePicture: 'image_url');
+        final updatedUser = uploadedUser.copyWith(firstName: 'Updated');
 
-      when(() => mockRepository.uploadProfileImage(any())).thenAnswer((_) async => uploadedUser);
-      when(() => mockRepository.updateProfile(any())).thenAnswer((_) async => updatedUser);
+        when(
+          () => mockRepository.uploadProfileImage(any()),
+        ).thenAnswer((_) async => uploadedUser);
+        when(
+          () => mockRepository.updateProfile(any()),
+        ).thenAnswer((_) async => updatedUser);
 
-      final result = await useCase(user: testUser, imagePath: 'local_path');
+        final result = await useCase(user: testUser, imagePath: 'local_path');
 
-      expect(result, updatedUser);
-      verify(() => mockRepository.uploadProfileImage('local_path')).called(1);
-      verify(() => mockRepository.updateProfile(testUser.copyWith(profilePicture: 'image_url'))).called(1);
-    });
+        expect(result, updatedUser);
+        verify(() => mockRepository.uploadProfileImage('local_path')).called(1);
+        verify(
+          () => mockRepository.updateProfile(
+            testUser.copyWith(profilePicture: 'image_url'),
+          ),
+        ).called(1);
+      },
+    );
 
     test('UpdateAddressUseCase calls updateAddress on repository', () async {
       final useCase = UpdateAddressUseCase(mockRepository);
       final addressData = {'address': 'address'};
-      when(() => mockRepository.updateAddress(any())).thenAnswer((_) async => true);
+      when(
+        () => mockRepository.updateAddress(any()),
+      ).thenAnswer((_) async => true);
 
       final result = await useCase(addressData);
 
@@ -136,22 +165,32 @@ void main() {
       verify(() => mockRepository.updateAddress(addressData)).called(1);
     });
 
-    test('DeactivateAccountUseCase calls deactivateAccount on repository', () async {
-      final useCase = DeactivateAccountUseCase(mockRepository);
-      when(() => mockRepository.deactivateAccount(any())).thenAnswer((_) async {});
+    test(
+      'DeactivateAccountUseCase calls deactivateAccount on repository',
+      () async {
+        final useCase = DeactivateAccountUseCase(mockRepository);
+        when(
+          () => mockRepository.deactivateAccount(any()),
+        ).thenAnswer((_) async {});
 
-      await useCase('password');
+        await useCase('password');
 
-      verify(() => mockRepository.deactivateAccount('password')).called(1);
-    });
+        verify(() => mockRepository.deactivateAccount('password')).called(1);
+      },
+    );
 
-    test('ConfirmDeactivationUseCase calls confirmDeactivateAccount on repository', () async {
-      final useCase = ConfirmDeactivationUseCase(mockRepository);
-      when(() => mockRepository.confirmDeactivateAccount(any())).thenAnswer((_) async {});
+    test(
+      'ConfirmDeactivationUseCase calls confirmDeactivateAccount on repository',
+      () async {
+        final useCase = ConfirmDeactivationUseCase(mockRepository);
+        when(
+          () => mockRepository.confirmDeactivateAccount(any()),
+        ).thenAnswer((_) async {});
 
-      await useCase('otp');
+        await useCase('otp');
 
-      verify(() => mockRepository.confirmDeactivateAccount('otp')).called(1);
-    });
+        verify(() => mockRepository.confirmDeactivateAccount('otp')).called(1);
+      },
+    );
   });
 }

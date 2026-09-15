@@ -38,8 +38,18 @@ class HomeHeaderWidget extends StatelessWidget {
     final parsed = DateTime.tryParse(dateString);
     if (parsed == null) return dateString;
     const monthsList = [
-      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
     ];
     if (parsed.month < 1 || parsed.month > 12) return dateString;
     return '${monthsList[parsed.month - 1]} ${parsed.day}';
@@ -49,6 +59,7 @@ class HomeHeaderWidget extends StatelessWidget {
     required IconData icon,
     required VoidCallback onTap,
     required ThemeData theme,
+    required String semanticLabel,
     bool hasBadge = false,
     Widget? customChild,
   }) {
@@ -75,7 +86,8 @@ class HomeHeaderWidget extends StatelessWidget {
           ),
           child: Transform.rotate(
             angle: math.sin(value * math.pi * 2) * 0.1,
-            child: customChild ??
+            child:
+                customChild ??
                 Icon(icon, color: theme.colorScheme.onPrimary, size: 24),
           ),
         );
@@ -86,12 +98,16 @@ class HomeHeaderWidget extends StatelessWidget {
       content = NotificationBadgeWidget(child: content);
     }
 
-    return GestureDetector(
-      onTap: () {
-        HapticFeedback.lightImpact();
-        onTap();
-      },
-      child: content,
+    return Semantics(
+      button: true,
+      label: semanticLabel,
+      child: GestureDetector(
+        onTap: () {
+          HapticFeedback.lightImpact();
+          onTap();
+        },
+        child: content,
+      ),
     );
   }
 
@@ -107,23 +123,13 @@ class HomeHeaderWidget extends StatelessWidget {
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: dynamicColor != null
-              ? [
-                  Color.lerp(
-                    AppColors.deepSoilGreen,
-                    dynamicColor,
-                    0.55,
-                  )!,
-                  Color.lerp(
-                    const Color(0xFF3D6B28),
-                    dynamicColor,
-                    0.45,
-                  )!,
-                ]
-              : const [
-                  AppColors.deepSoilGreen,
-                  Color(0xFF3D6B28),
-                ],
+          colors:
+              dynamicColor != null
+                  ? [
+                    Color.lerp(AppColors.deepSoilGreen, dynamicColor, 0.55)!,
+                    Color.lerp(const Color(0xFF3D6B28), dynamicColor, 0.45)!,
+                  ]
+                  : const [AppColors.deepSoilGreen, Color(0xFF3D6B28)],
         ),
       ),
       child: Column(
@@ -145,8 +151,13 @@ class HomeHeaderWidget extends StatelessWidget {
                     builder: (context, authState) {
                       String name = "User";
                       if (authState is Authenticated) {
-                        name = authState.user.firstName[0].toUpperCase() +
-                            authState.user.firstName.substring(1);
+                        final fn = authState.user.firstName.trim();
+                        final un = authState.user.username.trim();
+                        if (fn.isNotEmpty) {
+                          name = fn[0].toUpperCase() + (fn.length > 1 ? fn.substring(1) : '');
+                        } else if (un.isNotEmpty && !un.startsWith('+') && !un.contains('@')) {
+                          name = un[0].toUpperCase() + (un.length > 1 ? un.substring(1) : '');
+                        }
                       }
 
                       return BlocBuilder<SubscriptionCubit, SubscriptionState>(
@@ -162,9 +173,10 @@ class HomeHeaderWidget extends StatelessWidget {
                           }
 
                           final hour = DateTime.now().hour;
-                          String greetingPrefix = hour < 12
-                              ? 'Good morning'
-                              : hour < 17
+                          String greetingPrefix =
+                              hour < 12
+                                  ? 'Good morning'
+                                  : hour < 17
                                   ? 'Good afternoon'
                                   : 'Good evening';
 
@@ -172,10 +184,10 @@ class HomeHeaderWidget extends StatelessWidget {
                           if (nextDelivery != null && nextDelivery.isNotEmpty) {
                             final fmtDate = _formatFriendlyDate(nextDelivery);
                             if (fmtDate.isNotEmpty) {
-                              greetingMessage = ApiConfig
-                                      .showExpectedDeliveryDate
-                                  ? '$greetingPrefix,$name\nNext delivery: $fmtDate'
-                                  : '$greetingPrefix,$name\nNext delivery: ${ApiConfig.alternativeDeliveryText}';
+                              greetingMessage =
+                                  ApiConfig.showExpectedDeliveryDate
+                                      ? '$greetingPrefix,$name\nNext delivery: $fmtDate'
+                                      : '$greetingPrefix,$name\nNext delivery: ${ApiConfig.alternativeDeliveryText}';
                             }
                           }
 
@@ -233,9 +245,10 @@ class HomeHeaderWidget extends StatelessWidget {
                       icon: Icons.notifications_rounded,
                       onTap: () {
                         HapticFeedback.lightImpact();
-                        context.push(AppRoute.notifications.path);
+                        context.go(AppRoute.notifications.path);
                       },
                       theme: theme,
+                      semanticLabel: 'Notifications',
                       hasBadge: true,
                     ),
                   ],

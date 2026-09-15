@@ -48,7 +48,8 @@ class ErrorDialog extends StatelessWidget {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
-    final effectiveIconColor = iconColor ?? (isDark ? AppColors.rawEarth : AppColors.softRed);
+    final effectiveIconColor =
+        iconColor ?? (isDark ? AppColors.rawEarth : AppColors.softRed);
 
     return Dialog(
       backgroundColor: AppColors.transparent,

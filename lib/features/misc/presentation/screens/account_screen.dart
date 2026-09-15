@@ -148,10 +148,8 @@ class _AccountScreenState extends State<AccountScreen>
             if (state is Authenticated) {
               return _buildAccountView(context, state.user);
             }
-            return Center(
-              child: CircularProgressIndicator(
-                color: theme.colorScheme.primary,
-              ),
+            return const SafeArea(
+              child: LoadingStateWidget(itemCount: 3, itemHeight: 84),
             );
           },
         ),
@@ -231,7 +229,7 @@ class _AccountScreenState extends State<AccountScreen>
 
                   // Account Section
                   AccountMenuSection(
-                    title: 'Account',
+                    title: 'Account & Wellness',
                     items: [
                       AccountMenuItem(
                         icon: Icons.person_outline_rounded,
@@ -244,6 +242,26 @@ class _AccountScreenState extends State<AccountScreen>
                             AppRoute.editProfile.name,
                             extra: user,
                           );
+                        },
+                      ),
+                      AccountMenuItem(
+                        icon: Icons.psychology_outlined,
+                        title: 'Vedic Janam Kundli',
+                        subtitle: 'Planets, Dashas & Ayurvedic body sync',
+                        iconColor: AppColors.harvestAmber,
+                        onTap: () {
+                          _triggerHaptic();
+                          context.pushNamed(AppRoute.kundli.name);
+                        },
+                      ),
+                      AccountMenuItem(
+                        icon: Icons.health_and_safety_outlined,
+                        title: 'Ayurvedic Health Profile',
+                        subtitle: 'Prakriti, food logs & biomarkers',
+                        iconColor: AppColors.deepSoilGreen,
+                        onTap: () {
+                          _triggerHaptic();
+                          context.pushNamed(AppRoute.healthProfile.name);
                         },
                       ),
                     ],
@@ -293,15 +311,12 @@ class _AccountScreenState extends State<AccountScreen>
                     items: [
                       AccountMenuItem(
                         icon: Icons.auto_awesome_rounded,
-                        title: 'Panchang (Coming Soon)',
-                        subtitle: 'Daily cosmic insights',
-                        iconColor: AppColors.rawEarth.withOpacity(0.5),
+                        title: 'Panchang',
+                        subtitle: 'Daily cosmic insights & calendar',
+                        iconColor: AppColors.deepSoilGreen,
                         onTap: () {
                           _triggerHaptic();
-                          SnackBarHelper.showWarning(
-                            context,
-                            "Panchang feature is coming soon!",
-                          );
+                          context.pushNamed(AppRoute.panchang.name);
                         },
                       ),
                     ],

@@ -5,7 +5,7 @@ class HelpRepositoryImpl implements HelpRepository {
   final HelpRemoteDataSource _remoteDataSource;
 
   HelpRepositoryImpl({required HelpRemoteDataSource remoteDataSource})
-      : _remoteDataSource = remoteDataSource;
+    : _remoteDataSource = remoteDataSource;
 
   @override
   Future<Map<String, dynamic>> sendOtp({

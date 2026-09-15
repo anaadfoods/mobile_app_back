@@ -20,7 +20,7 @@ class GuestEmptyStateWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    
+
     return LayoutBuilder(
       builder: (context, constraints) {
         final isSmallScreen = constraints.maxHeight < 600;
@@ -162,11 +162,7 @@ class GuestAuthHelper {
                     color: theme.colorScheme.primary.withValues(alpha: 0.1),
                     shape: BoxShape.circle,
                   ),
-                  child: Icon(
-                    icon,
-                    size: 32,
-                    color: theme.colorScheme.primary,
-                  ),
+                  child: Icon(icon, size: 32, color: theme.colorScheme.primary),
                 ),
                 const SizedBox(height: 20),
                 Text(

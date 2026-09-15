@@ -11,8 +11,8 @@ class EasebuzzPaymentsRepositoryImpl implements PaymentsRepository {
   EasebuzzPaymentsRepositoryImpl({
     required EasebuzzRemoteDataSource remoteDataSource,
     Duration pollInterval = const Duration(seconds: 2),
-  })  : _remoteDataSource = remoteDataSource,
-        _pollInterval = pollInterval;
+  }) : _remoteDataSource = remoteDataSource,
+       _pollInterval = pollInterval;
 
   static const int _maxPollAttempts = 15;
 
@@ -52,10 +52,7 @@ class EasebuzzPaymentsRepositoryImpl implements PaymentsRepository {
       }
     }
     return last ??
-        const PaymentStatus(
-          status: 'PENDING',
-          respMessage: 'Still processing',
-        );
+        const PaymentStatus(status: 'PENDING', respMessage: 'Still processing');
   }
 
   @override

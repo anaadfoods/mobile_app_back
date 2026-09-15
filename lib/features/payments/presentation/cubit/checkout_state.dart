@@ -65,16 +65,16 @@ class CheckoutLoaded extends CheckoutState {
 
   @override
   List<Object?> get props => [
-        shippingDetails,
-        planDescriptions,
-        subscription,
-        pendingRewardsCount,
-        selectedPaymentMethod,
-        selectedPaymentType,
-        useExistingAddress,
-        error,
-        isSubmitting,
-      ];
+    shippingDetails,
+    planDescriptions,
+    subscription,
+    pendingRewardsCount,
+    selectedPaymentMethod,
+    selectedPaymentType,
+    useExistingAddress,
+    error,
+    isSubmitting,
+  ];
 }
 
 class CheckoutSuccess extends CheckoutState {

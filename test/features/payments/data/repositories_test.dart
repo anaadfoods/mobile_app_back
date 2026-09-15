@@ -6,8 +6,11 @@ import 'package:grocery_app/features/payments/data/models/payment_status_model.d
 import 'package:grocery_app/features/payments/data/repositories/easebuzz_payments_repository_impl.dart';
 import 'package:grocery_app/features/payments/data/repositories/juspay_payments_repository_impl.dart';
 
-class MockJuspayRemoteDataSource extends Mock implements JuspayRemoteDataSource {}
-class MockEasebuzzRemoteDataSource extends Mock implements EasebuzzRemoteDataSource {}
+class MockJuspayRemoteDataSource extends Mock
+    implements JuspayRemoteDataSource {}
+
+class MockEasebuzzRemoteDataSource extends Mock
+    implements EasebuzzRemoteDataSource {}
 
 void main() {
   late MockJuspayRemoteDataSource mockJuspayDS;
@@ -30,12 +33,19 @@ void main() {
   });
 
   group('JuspayPaymentsRepositoryImpl', () {
-    const successModel = PaymentStatusModel(status: 'SUCCESS', respMessage: 'Paid');
-    const pendingModel = PaymentStatusModel(status: 'PENDING', respMessage: 'Pending');
+    const successModel = PaymentStatusModel(
+      status: 'SUCCESS',
+      respMessage: 'Paid',
+    );
+    const pendingModel = PaymentStatusModel(
+      status: 'PENDING',
+      respMessage: 'Pending',
+    );
 
     test('fetchStatus calls remote datasource', () async {
-      when(() => mockJuspayDS.fetchStatus(any()))
-          .thenAnswer((_) async => successModel);
+      when(
+        () => mockJuspayDS.fetchStatus(any()),
+      ).thenAnswer((_) async => successModel);
 
       final result = await juspayRepo.fetchStatus('ref_123');
 
@@ -43,18 +53,23 @@ void main() {
       verify(() => mockJuspayDS.fetchStatus('ref_123')).called(1);
     });
 
-    test('verifyPaymentResponse calls verifyJuspayResponse on remote datasource', () async {
-      when(() => mockJuspayDS.verifyJuspayResponse(any()))
-          .thenAnswer((_) async {});
+    test(
+      'verifyPaymentResponse calls verifyJuspayResponse on remote datasource',
+      () async {
+        when(
+          () => mockJuspayDS.verifyJuspayResponse(any()),
+        ).thenAnswer((_) async {});
 
-      await juspayRepo.verifyPaymentResponse('order_123');
+        await juspayRepo.verifyPaymentResponse('order_123');
 
-      verify(() => mockJuspayDS.verifyJuspayResponse('order_123')).called(1);
-    });
+        verify(() => mockJuspayDS.verifyJuspayResponse('order_123')).called(1);
+      },
+    );
 
     test('pollStatus exits early on SUCCESS', () async {
-      when(() => mockJuspayDS.fetchStatus(any()))
-          .thenAnswer((_) async => successModel);
+      when(
+        () => mockJuspayDS.fetchStatus(any()),
+      ).thenAnswer((_) async => successModel);
 
       final result = await juspayRepo.pollStatus('ref_123');
 
@@ -78,11 +93,15 @@ void main() {
   });
 
   group('EasebuzzPaymentsRepositoryImpl', () {
-    const successModel = PaymentStatusModel(status: 'SUCCESS', respMessage: 'Paid');
+    const successModel = PaymentStatusModel(
+      status: 'SUCCESS',
+      respMessage: 'Paid',
+    );
 
     test('fetchStatus calls remote datasource', () async {
-      when(() => mockEasebuzzDS.fetchStatus(any()))
-          .thenAnswer((_) async => successModel);
+      when(
+        () => mockEasebuzzDS.fetchStatus(any()),
+      ).thenAnswer((_) async => successModel);
 
       final result = await easebuzzRepo.fetchStatus('ref_123');
 

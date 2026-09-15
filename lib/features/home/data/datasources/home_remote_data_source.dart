@@ -15,7 +15,7 @@ class HomeRemoteDataSourceImpl implements HomeRemoteDataSource {
   static const String communitiesEndpoint = '/api/core/communities/';
 
   HomeRemoteDataSourceImpl({ApiClient? apiClient})
-      : _apiClient = apiClient ?? ApiClient.instance;
+    : _apiClient = apiClient ?? ApiClient.instance;
 
   @override
   Future<List<BannerEntity>> fetchBanners() async {

@@ -17,7 +17,7 @@ class AccountRemoteDataSourceImpl implements AccountRemoteDataSource {
   final TokenService _tokenService;
 
   AccountRemoteDataSourceImpl({required TokenService tokenService})
-      : _tokenService = tokenService;
+    : _tokenService = tokenService;
 
   @override
   Future<UserSummaryModel?> getUserSummary() async {

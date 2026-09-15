@@ -9,15 +9,20 @@ class CartRepositoryImpl implements CartRepository {
   CartRepositoryImpl(this._remoteDataSource);
 
   @override
-  Future<CartModel> getCart() => _wrapException(() => _remoteDataSource.getCart());
+  Future<CartModel> getCart() =>
+      _wrapException(() => _remoteDataSource.getCart());
 
   @override
   Future<CartModel> addToCart(int productVariantId, int quantity) =>
-      _wrapException(() => _remoteDataSource.addToCart(productVariantId, quantity));
+      _wrapException(
+        () => _remoteDataSource.addToCart(productVariantId, quantity),
+      );
 
   @override
   Future<CartModel> updateCartItem(int productVariantId, int quantity) =>
-      _wrapException(() => _remoteDataSource.updateCartItem(productVariantId, quantity));
+      _wrapException(
+        () => _remoteDataSource.updateCartItem(productVariantId, quantity),
+      );
 
   @override
   Future<CartModel> removeFromCart(int productVariantId) =>
@@ -39,7 +44,9 @@ class CartRepositoryImpl implements CartRepository {
     final text = e.toString().toLowerCase();
 
     // Check auth errors
-    if (text.contains('401') || text.contains('unauthorized') || text.contains('session')) {
+    if (text.contains('401') ||
+        text.contains('unauthorized') ||
+        text.contains('session')) {
       return const CartFailure(
         type: CartFailureType.unauthorized,
         message: 'Please log in again to continue.',
@@ -61,7 +68,8 @@ class CartRepositoryImpl implements CartRepository {
         text.contains('dioexception')) {
       return const CartFailure(
         type: CartFailureType.network,
-        message: 'Sorry, we are not available right now. Please try again later.',
+        message:
+            'Sorry, we are not available right now. Please try again later.',
       );
     }
 
@@ -78,9 +86,10 @@ class CartRepositoryImpl implements CartRepository {
     final exceptionMsg = e.toString().replaceFirst('Exception: ', '');
     return CartFailure(
       type: CartFailureType.unknown,
-      message: exceptionMsg.isNotEmpty
-          ? exceptionMsg
-          : 'Sorry, we are not available right now. Please try again later.',
+      message:
+          exceptionMsg.isNotEmpty
+              ? exceptionMsg
+              : 'Sorry, we are not available right now. Please try again later.',
     );
   }
 }

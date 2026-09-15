@@ -23,13 +23,13 @@ class CommunityEntity extends Equatable {
 
   @override
   List<Object?> get props => [
-        id,
-        name,
-        description,
-        image,
-        benefits,
-        comingSoon,
-        launchDate,
-        fullImageUrl,
-      ];
+    id,
+    name,
+    description,
+    image,
+    benefits,
+    comingSoon,
+    launchDate,
+    fullImageUrl,
+  ];
 }

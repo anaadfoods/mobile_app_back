@@ -28,25 +28,33 @@ void main() {
       totalProducts: 10,
     );
 
-    test('FetchUserSummaryUseCase returns UserSummaryEntity from repository', () async {
-      when(() => mockRepository.getUserSummary())
-          .thenAnswer((_) async => tUserSummary);
+    test(
+      'FetchUserSummaryUseCase returns UserSummaryEntity from repository',
+      () async {
+        when(
+          () => mockRepository.getUserSummary(),
+        ).thenAnswer((_) async => tUserSummary);
 
-      final result = await fetchUserSummaryUseCase();
+        final result = await fetchUserSummaryUseCase();
 
-      expect(result, equals(tUserSummary));
-      verify(() => mockRepository.getUserSummary()).called(1);
-    });
+        expect(result, equals(tUserSummary));
+        verify(() => mockRepository.getUserSummary()).called(1);
+      },
+    );
 
-    test('SyncUserProfileUseCase returns profile map from repository', () async {
-      final tProfile = {'first_name': 'Test', 'email': 'test@example.com'};
-      when(() => mockRepository.syncUserProfile())
-          .thenAnswer((_) async => tProfile);
+    test(
+      'SyncUserProfileUseCase returns profile map from repository',
+      () async {
+        final tProfile = {'first_name': 'Test', 'email': 'test@example.com'};
+        when(
+          () => mockRepository.syncUserProfile(),
+        ).thenAnswer((_) async => tProfile);
 
-      final result = await syncUserProfileUseCase();
+        final result = await syncUserProfileUseCase();
 
-      expect(result, equals(tProfile));
-      verify(() => mockRepository.syncUserProfile()).called(1);
-    });
+        expect(result, equals(tProfile));
+        verify(() => mockRepository.syncUserProfile()).called(1);
+      },
+    );
   });
 }

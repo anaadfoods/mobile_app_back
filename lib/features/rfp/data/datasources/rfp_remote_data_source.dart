@@ -6,7 +6,6 @@ abstract class RfpRemoteDataSource {
   // TODO: Add remote data source methods
 }
 
-class RfpRemoteDataSourceImpl
-    implements RfpRemoteDataSource {
+class RfpRemoteDataSourceImpl implements RfpRemoteDataSource {
   // TODO: Implement remote data source methods
 }

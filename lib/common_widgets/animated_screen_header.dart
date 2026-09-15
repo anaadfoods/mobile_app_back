@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'dart:math' as math;
 import 'package:grocery_app/common_widgets/glassmorphic_icon_button.dart';
-import 'package:grocery_app/common_widgets/anaad_logo_mark.dart';
 import 'package:grocery_app/core/theme/app_colors.dart';
 
 class AnimatedScreenHeader extends StatefulWidget {
@@ -69,8 +68,6 @@ class _AnimatedScreenHeaderState extends State<AnimatedScreenHeader>
       ),
     );
 
-
-
     _pulseController = AnimationController(
       duration: const Duration(seconds: 4),
       vsync: this,
@@ -102,9 +99,9 @@ class _AnimatedScreenHeaderState extends State<AnimatedScreenHeader>
     // Dynamic header height calculation if not provided
     final calculatedHeight =
         widget.height ??
-        (statusBarHeight + 140).clamp(
-          180.0,
-          math.max(180.0, screenHeight * 0.28).toDouble(),
+        (statusBarHeight + (widget.subtitle != null ? 150 : 135)).clamp(
+          195.0,
+          math.max(195.0, screenHeight * 0.28).toDouble(),
         );
 
     return AnimatedBuilder(
@@ -146,7 +143,7 @@ class _AnimatedScreenHeaderState extends State<AnimatedScreenHeader>
             // Header Content
             SafeArea(
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(20, 8, 20, 20),
+                padding: const EdgeInsets.fromLTRB(20, 4, 20, 14),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -175,6 +172,8 @@ class _AnimatedScreenHeaderState extends State<AnimatedScreenHeader>
                             child: Text(
                               widget.title,
                               textAlign: TextAlign.center,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                               style: theme.textTheme.titleLarge?.copyWith(
                                 color: AppColors.parchment,
                                 fontWeight: FontWeight.bold,
@@ -221,6 +220,8 @@ class _AnimatedScreenHeaderState extends State<AnimatedScreenHeader>
                               children: [
                                 Text(
                                   widget.title,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
                                   style: theme.textTheme.headlineMedium
                                       ?.copyWith(
                                         color: AppColors.parchment,
@@ -228,9 +229,11 @@ class _AnimatedScreenHeaderState extends State<AnimatedScreenHeader>
                                       ),
                                 ),
                                 if (widget.subtitle != null) ...[
-                                  const SizedBox(height: 4),
+                                  const SizedBox(height: 3),
                                   Text(
                                     widget.subtitle!,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
                                     style: theme.textTheme.bodyMedium?.copyWith(
                                       color: AppColors.parchment.withValues(
                                         alpha: 0.9,

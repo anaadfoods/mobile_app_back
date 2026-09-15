@@ -168,14 +168,16 @@ class _HomeBannerSectionState extends State<HomeBannerSection>
           return const HomeBannerSkeleton();
         }
 
-        final banners = (state is HomeSuccess) ? state.banners : <BannerEntity>[];
+        final banners =
+            (state is HomeSuccess) ? state.banners : <BannerEntity>[];
         final items = _buildItemsFromBanners(banners);
 
         final theme = Theme.of(context);
         final colorScheme = theme.colorScheme;
-        final currentColor = items.isNotEmpty && _currentPage < items.length
-            ? (items[_currentPage].color ?? AppColors.amberWarn)
-            : AppColors.amberWarn;
+        final currentColor =
+            items.isNotEmpty && _currentPage < items.length
+                ? (items[_currentPage].color ?? AppColors.amberWarn)
+                : AppColors.amberWarn;
 
         return Column(
           children: [
@@ -184,7 +186,8 @@ class _HomeBannerSectionState extends State<HomeBannerSection>
                 animation: _pulseController,
                 builder: (context, child) {
                   final glowIntensity =
-                      0.15 + (math.sin(_pulseController.value * math.pi * 2) * 0.10);
+                      0.15 +
+                      (math.sin(_pulseController.value * math.pi * 2) * 0.10);
 
                   return Container(
                     margin: const EdgeInsets.symmetric(horizontal: 8),
@@ -219,15 +222,16 @@ class _HomeBannerSectionState extends State<HomeBannerSection>
                         child: Container(
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(12),
-                            boxShadow: isActive
-                                ? [
-                                    BoxShadow(
-                                      color: itemColor.withValues(alpha: 0.3),
-                                      blurRadius: 12,
-                                      spreadRadius: 1,
-                                    ),
-                                  ]
-                                : [],
+                            boxShadow:
+                                isActive
+                                    ? [
+                                      BoxShadow(
+                                        color: itemColor.withValues(alpha: 0.3),
+                                        blurRadius: 12,
+                                        spreadRadius: 1,
+                                      ),
+                                    ]
+                                    : [],
                           ),
                           child: ClipRRect(
                             borderRadius: BorderRadius.circular(12),
@@ -239,10 +243,15 @@ class _HomeBannerSectionState extends State<HomeBannerSection>
                                     imageUrl: item.imagePath,
                                     fit: BoxFit.cover,
                                     width: double.infinity,
-                                    placeholder: (context, url) =>
-                                        Container(color: itemColor.withValues(alpha: 0.2)),
-                                    errorWidget: (context, url, error) =>
-                                        Container(color: itemColor),
+                                    placeholder:
+                                        (context, url) => Container(
+                                          color: itemColor.withValues(
+                                            alpha: 0.2,
+                                          ),
+                                        ),
+                                    errorWidget:
+                                        (context, url, error) =>
+                                            Container(color: itemColor),
                                   )
                                 else
                                   Container(color: itemColor),
@@ -261,24 +270,29 @@ class _HomeBannerSectionState extends State<HomeBannerSection>
                                 Padding(
                                   padding: const EdgeInsets.all(16),
                                   child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     mainAxisAlignment: MainAxisAlignment.end,
                                     children: [
                                       Text(
                                         item.title,
-                                        style: theme.textTheme.titleMedium?.copyWith(
-                                          color: Colors.white,
-                                          fontWeight: FontWeight.bold,
-                                        ),
+                                        style: theme.textTheme.titleMedium
+                                            ?.copyWith(
+                                              color: Colors.white,
+                                              fontWeight: FontWeight.bold,
+                                            ),
                                       ),
                                       const SizedBox(height: 4),
                                       Text(
                                         item.subtitle,
                                         maxLines: 2,
                                         overflow: TextOverflow.ellipsis,
-                                        style: theme.textTheme.bodySmall?.copyWith(
-                                          color: Colors.white.withValues(alpha: 0.9),
-                                        ),
+                                        style: theme.textTheme.bodySmall
+                                            ?.copyWith(
+                                              color: Colors.white.withValues(
+                                                alpha: 0.9,
+                                              ),
+                                            ),
                                       ),
                                     ],
                                   ),
@@ -300,8 +314,11 @@ class _HomeBannerSectionState extends State<HomeBannerSection>
                       setState(() {
                         _currentPage = index;
                       });
-                      if (widget.onColorChanged != null && index < items.length) {
-                        widget.onColorChanged!(items[index].color ?? colorScheme.primary);
+                      if (widget.onColorChanged != null &&
+                          index < items.length) {
+                        widget.onColorChanged!(
+                          items[index].color ?? colorScheme.primary,
+                        );
                       }
                     },
                   ),

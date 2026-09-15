@@ -5,6 +5,8 @@ import 'package:grocery_app/services/api_client.dart';
 import "package:grocery_app/common_widgets/global_import.dart";
 import "package:grocery_app/features/payments/presentation/screens/checkout_screen.dart";
 import "package:grocery_app/common_widgets/select_state.dart";
+import "package:grocery_app/common_widgets/location_search_widget.dart";
+import "package:grocery_app/models/location_models.dart";
 
 enum OrderType { self, other }
 
@@ -69,10 +71,10 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen>
     _pincodeController.addListener(_onPincodeChanged);
     _loadSavedAddress();
     final authState = context.read<AuthCubit>().state;
-    final user = widget.user ?? (authState is Authenticated ? authState.user : null);
+    final user =
+        widget.user ?? (authState is Authenticated ? authState.user : null);
     if (user != null) {
-      _nameController.text =
-          "${user.firstName} ${user.lastName}".trim();
+      _nameController.text = "${user.firstName} ${user.lastName}".trim();
     }
   }
 
@@ -1190,6 +1192,30 @@ class _AddressSelectionScreenState extends State<AddressSelectionScreen>
                               ? 'Name is required'
                               : "Recipient's name is required")
                           : null,
+            ),
+            const SizedBox(height: 16),
+            LocationSearchWidget(
+              labelText: 'Search Location / Address',
+              hintText: 'Search apartment, street, landmark, city...',
+              prefixIcon: Icons.search_rounded,
+              accentColor: AppColors.harvestAmber,
+              fillColor: isDark
+                  ? AppColors.parchment.withValues(alpha: 0.05)
+                  : AppColors.parchment,
+              onLocationSelected: (LocationSuggestion loc) {
+                setState(() {
+                  _addressController.text = loc.displayName;
+                  if (loc.city.isNotEmpty) {
+                    _cityController.text = loc.city;
+                  }
+                  if (loc.state.isNotEmpty) {
+                    _stateController.text = loc.state;
+                  }
+                  if (loc.pincode.isNotEmpty) {
+                    _pincodeController.text = loc.pincode;
+                  }
+                });
+              },
             ),
             const SizedBox(height: 16),
             _buildModernInput(

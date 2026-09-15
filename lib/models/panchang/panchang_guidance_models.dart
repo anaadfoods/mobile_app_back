@@ -59,8 +59,12 @@ class GuidanceTodayResponse {
       now: _tryParseDateTime(json['now']),
       source: GuidanceSource.fromJson(json['source'] ?? {}),
       userPreferences: UserPreferences.fromJson(json['user_preferences'] ?? {}),
-      recommendations: (json['recommendations'] as List<dynamic>?)
-              ?.map((e) => GuidanceRecommendation.fromJson(e as Map<String, dynamic>))
+      recommendations:
+          (json['recommendations'] as List<dynamic>?)
+              ?.map(
+                (e) =>
+                    GuidanceRecommendation.fromJson(e as Map<String, dynamic>),
+              )
               .toList() ??
           [],
     );
@@ -115,9 +119,12 @@ class UserPreferences {
       dietStyle: (json['diet_style'] ?? 'normal').toString(),
       fastingPreference: (json['fasting_preference'] ?? 'none').toString(),
       devata: (json['devata'] ?? 'other').toString(),
-      workSchedule: json['work_schedule'] != null
-          ? WorkSchedule.fromJson(json['work_schedule'] as Map<String, dynamic>)
-          : null,
+      workSchedule:
+          json['work_schedule'] != null
+              ? WorkSchedule.fromJson(
+                json['work_schedule'] as Map<String, dynamic>,
+              )
+              : null,
     );
   }
 }
@@ -172,23 +179,33 @@ class GuidanceRecommendation {
       type: (json['type'] ?? '').toString(),
       title: (json['title'] ?? '').toString(),
       verdict: (json['verdict'] ?? 'none').toString(),
-      recommendedWindows: (json['recommended_windows'] as List<dynamic>?)
-              ?.map((e) => GuidanceTimeWindow.fromJson(e as Map<String, dynamic>))
+      recommendedWindows:
+          (json['recommended_windows'] as List<dynamic>?)
+              ?.map(
+                (e) => GuidanceTimeWindow.fromJson(e as Map<String, dynamic>),
+              )
               .toList() ??
           [],
-      avoidWindows: (json['avoid_windows'] as List<dynamic>?)
-              ?.map((e) => GuidanceTimeWindow.fromJson(e as Map<String, dynamic>))
+      avoidWindows:
+          (json['avoid_windows'] as List<dynamic>?)
+              ?.map(
+                (e) => GuidanceTimeWindow.fromJson(e as Map<String, dynamic>),
+              )
               .toList() ??
           [],
       notes: json['notes'],
-      vrat: json['vrat'] != null
-          ? GuidanceVratInfo.fromJson(json['vrat'] as Map<String, dynamic>)
-          : null,
+      vrat:
+          json['vrat'] != null
+              ? GuidanceVratInfo.fromJson(json['vrat'] as Map<String, dynamic>)
+              : null,
       dietStyle: json['diet_style']?.toString(),
       devata: json['devata']?.toString(),
-      workSchedule: json['work_schedule'] != null
-          ? WorkSchedule.fromJson(json['work_schedule'] as Map<String, dynamic>)
-          : null,
+      workSchedule:
+          json['work_schedule'] != null
+              ? WorkSchedule.fromJson(
+                json['work_schedule'] as Map<String, dynamic>,
+              )
+              : null,
       signals: json['signals'] as Map<String, dynamic>?,
     );
   }
@@ -317,9 +334,12 @@ class GuidanceProfileResponse {
       devata: (json['devata'] ?? 'other').toString(),
       profile: (json['profile'] ?? 'default').toString(),
       locale: (json['locale'] ?? 'en').toString(),
-      workSchedule: json['work_schedule'] != null
-          ? WorkSchedule.fromJson(json['work_schedule'] as Map<String, dynamic>)
-          : null,
+      workSchedule:
+          json['work_schedule'] != null
+              ? WorkSchedule.fromJson(
+                json['work_schedule'] as Map<String, dynamic>,
+              )
+              : null,
     );
   }
 }
@@ -345,7 +365,8 @@ class GuidanceProfileRequest {
   Map<String, dynamic> toJson() {
     final map = <String, dynamic>{};
     if (dietStyle != null) map['diet_style'] = dietStyle;
-    if (fastingPreference != null) map['fasting_preference'] = fastingPreference;
+    if (fastingPreference != null)
+      map['fasting_preference'] = fastingPreference;
     if (devata != null) map['devata'] = devata;
     if (profile != null) map['profile'] = profile;
     if (locale != null) map['locale'] = locale;
@@ -353,5 +374,3 @@ class GuidanceProfileRequest {
     return map;
   }
 }
-
-

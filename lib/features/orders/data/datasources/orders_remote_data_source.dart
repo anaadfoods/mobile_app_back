@@ -23,7 +23,7 @@ class OrdersRemoteDataSourceImpl implements OrdersRemoteDataSource {
   final ApiClient _apiClient;
 
   OrdersRemoteDataSourceImpl({ApiClient? apiClient})
-      : _apiClient = apiClient ?? ApiClient.instance;
+    : _apiClient = apiClient ?? ApiClient.instance;
 
   @override
   Future<ShippingDetails?> getUserShippingDetails() async {
@@ -42,7 +42,10 @@ class OrdersRemoteDataSourceImpl implements OrdersRemoteDataSource {
       } else if (response.statusCode == 404) {
         return null;
       } else {
-        throw ApiException('Failed to load shipping details', response.statusCode ?? 500);
+        throw ApiException(
+          'Failed to load shipping details',
+          response.statusCode ?? 500,
+        );
       }
     } catch (e) {
       AppLogger.instance.log('Error loading shipping details: $e');
@@ -71,13 +74,16 @@ class OrdersRemoteDataSourceImpl implements OrdersRemoteDataSource {
         final data = response.data;
         if (data is Map &&
             (data.containsKey('checkout_url') ||
-             data.containsKey('access_key') ||
-             data.containsKey('payment_required'))) {
+                data.containsKey('access_key') ||
+                data.containsKey('payment_required'))) {
           return OrderCreateResponse.fromJson(Map<String, dynamic>.from(data));
         }
         return Order.fromJson(data);
       } else {
-        throw ApiException(response.data?.toString() ?? 'Server error', response.statusCode ?? 500);
+        throw ApiException(
+          response.data?.toString() ?? 'Server error',
+          response.statusCode ?? 500,
+        );
       }
     } catch (e) {
       AppLogger.instance.log('Order creation error: $e');
@@ -125,7 +131,9 @@ class OrdersRemoteDataSourceImpl implements OrdersRemoteDataSource {
             data is Map && data.containsKey('data') ? data['data'] : data;
         return Order.fromJson(orderData);
       } else {
-        throw Exception('Failed to fetch order (Status: ${response.statusCode})');
+        throw Exception(
+          'Failed to fetch order (Status: ${response.statusCode})',
+        );
       }
     } catch (e) {
       if (e is dio.DioException) {
@@ -162,7 +170,10 @@ class OrdersRemoteDataSourceImpl implements OrdersRemoteDataSource {
   }
 
   @override
-  Future<Map<String, dynamic>> cancelOrder(int orderId, {String? reason}) async {
+  Future<Map<String, dynamic>> cancelOrder(
+    int orderId, {
+    String? reason,
+  }) async {
     try {
       final response = await _apiClient.post(
         '${ApiConfig.ordersEndpoint}$orderId/cancel-request/',
@@ -171,13 +182,15 @@ class OrdersRemoteDataSourceImpl implements OrdersRemoteDataSource {
 
       if (response.statusCode == 200) {
         final responseData = response.data;
-        final isSuccess = responseData['status'] == 'success' ||
+        final isSuccess =
+            responseData['status'] == 'success' ||
             responseData['refund_initiated'] == true ||
             responseData['message'] != null;
         if (isSuccess) {
           return {
             'success': true,
-            'message': responseData['message'] ?? 'Order cancelled successfully',
+            'message':
+                responseData['message'] ?? 'Order cancelled successfully',
             'refund_initiated': responseData['refund_initiated'] ?? false,
             'order_number': responseData['order_number'],
             'current_status': responseData['current_status'],
@@ -268,7 +281,9 @@ class OrdersRemoteDataSourceImpl implements OrdersRemoteDataSource {
             await OpenFilex.open(savedPath);
             return savedPath;
           } else {
-            throw Exception('Failed to download PDF from S3: ${pdfResponse.statusCode}');
+            throw Exception(
+              'Failed to download PDF from S3: ${pdfResponse.statusCode}',
+            );
           }
         } else {
           throw Exception('Invoice not available for this order');

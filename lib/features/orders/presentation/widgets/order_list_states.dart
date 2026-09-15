@@ -52,9 +52,7 @@ class OrderListErrorState extends StatelessWidget {
           Text(
             error,
             textAlign: TextAlign.center,
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: theme.hintColor,
-            ),
+            style: theme.textTheme.bodyMedium?.copyWith(color: theme.hintColor),
           ),
           const SizedBox(height: 24),
           ElevatedButton.icon(
@@ -110,9 +108,7 @@ class OrderListEmptyState extends StatelessWidget {
           Text(
             'Browse our fresh items and place your first order!',
             textAlign: TextAlign.center,
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: theme.hintColor,
-            ),
+            style: theme.textTheme.bodyMedium?.copyWith(color: theme.hintColor),
           ),
         ],
       ),
@@ -134,15 +130,16 @@ class OrderListHelpCard extends StatelessWidget {
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: isDark
-              ? [
-                  AppColors.deepSoilGreen.withValues(alpha: 0.2),
-                  AppColors.deepSoilGreen.withValues(alpha: 0.1),
-                ]
-              : [
-                  AppColors.deepSoilGreen.withValues(alpha: 0.08),
-                  AppColors.deepSoilGreen.withValues(alpha: 0.04),
-                ],
+          colors:
+              isDark
+                  ? [
+                    AppColors.deepSoilGreen.withValues(alpha: 0.2),
+                    AppColors.deepSoilGreen.withValues(alpha: 0.1),
+                  ]
+                  : [
+                    AppColors.deepSoilGreen.withValues(alpha: 0.08),
+                    AppColors.deepSoilGreen.withValues(alpha: 0.04),
+                  ],
         ),
         borderRadius: BorderRadius.circular(20),
         border: Border.all(

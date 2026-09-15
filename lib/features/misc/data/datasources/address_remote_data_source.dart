@@ -9,7 +9,7 @@ class AddressRemoteDataSourceImpl implements AddressRemoteDataSource {
   final ProfileService _profileService;
 
   AddressRemoteDataSourceImpl({required ProfileService profileService})
-      : _profileService = profileService;
+    : _profileService = profileService;
 
   @override
   Future<bool> updateAddress(AddressEntity address) {

@@ -10,10 +10,7 @@ import 'order_detail_card.dart';
 class OrderDeliveryCard extends StatelessWidget {
   final OrderEntity order;
 
-  const OrderDeliveryCard({
-    super.key,
-    required this.order,
-  });
+  const OrderDeliveryCard({super.key, required this.order});
 
   String _getRecipientName(BuildContext context) {
     if (order.recipientName.isNotEmpty) {
@@ -52,9 +49,10 @@ class OrderDeliveryCard extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: isDark
-                  ? AppColors.parchment.withValues(alpha: 0.05)
-                  : AppColors.rawEarth54.withValues(alpha: 0.05),
+              color:
+                  isDark
+                      ? AppColors.parchment.withValues(alpha: 0.05)
+                      : AppColors.rawEarth54.withValues(alpha: 0.05),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Column(

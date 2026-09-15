@@ -1,18 +1,19 @@
 import 'dart:async';
-import 'dart:convert';
 import 'package:grocery_app/features/auth/data/datasources/auth_local_data_source.dart';
 import 'package:grocery_app/features/auth/data/datasources/auth_remote_data_source.dart';
 import 'package:grocery_app/features/auth/data/models/user_model.dart' as local;
-import 'package:grocery_app/features/auth/domain/repositories/auth_repository.dart' as domain;
+import 'package:grocery_app/features/auth/domain/repositories/auth_repository.dart'
+    as domain;
 import 'package:grocery_app/models/user_model.dart';
+import 'package:grocery_app/core/analytics/analytics_service.dart';
 import 'package:grocery_app/service_locator.dart';
 
 class TokenService {
   static final TokenService _instance = TokenService._internal();
   factory TokenService() => getIt<TokenService>();
-  
+
   TokenService._internal({AuthLocalDataSource? localDataSource})
-      : _localDataSource = localDataSource ?? getIt<AuthLocalDataSource>();
+    : _localDataSource = localDataSource ?? getIt<AuthLocalDataSource>();
 
   static TokenService create({AuthLocalDataSource? localDataSource}) =>
       TokenService._internal(localDataSource: localDataSource);
@@ -37,13 +38,26 @@ class TokenService {
     String refreshToken,
     Map<String, dynamic> userData,
   ) async {
-    await _localDataSource.saveTokens(accessToken: accessToken, refreshToken: refreshToken);
-    
+    await _localDataSource.saveTokens(
+      accessToken: accessToken,
+      refreshToken: refreshToken,
+    );
+
     final localUserModel = local.UserModel.fromJson(userData);
     await _localDataSource.saveUserData(localUserModel);
 
     _currentUser = UserModel.fromJson(userData);
     _authStateController.add(true);
+
+    if (userData['id'] != null) {
+      try {
+        final rawId = userData['id'];
+        final userId = rawId is int ? rawId : int.tryParse(rawId.toString());
+        if (userId != null) {
+          AnalyticsService().identify(userId);
+        }
+      } catch (_) {}
+    }
   }
 
   Future<String?> getAccessToken() async {
@@ -66,6 +80,9 @@ class TokenService {
     await _localDataSource.clearAll();
     _currentUser = null;
     _authStateController.add(false);
+    try {
+      AnalyticsService().clearIdentity();
+    } catch (_) {}
   }
 
   Future<bool> isLoggedIn() async {
@@ -99,10 +116,12 @@ class TokenService {
     if (refreshToken == null) return false;
 
     try {
-      final tokens = await getIt<AuthRemoteDataSource>().refreshAccessToken(refreshToken);
+      final tokens = await getIt<AuthRemoteDataSource>().refreshAccessToken(
+        refreshToken,
+      );
       if (tokens != null) {
         await _localDataSource.saveTokens(
-          accessToken: tokens['access']!, 
+          accessToken: tokens['access']!,
           refreshToken: tokens['refresh']!,
         );
         return true;
@@ -120,7 +139,10 @@ class TokenService {
   Future<Map<String, dynamic>> loginUser(String email, String password) async {
     try {
       final user = await getIt<domain.AuthRepository>().login(email, password);
-      return {'success': true, 'data': UserModel.fromDomain(user).toProfileJson()};
+      return {
+        'success': true,
+        'data': UserModel.fromDomain(user).toProfileJson(),
+      };
     } catch (e) {
       return {'success': false, 'message': e.toString()};
     }

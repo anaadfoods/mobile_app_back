@@ -47,7 +47,8 @@ class LegalContentScreen extends StatelessWidget {
                   size: 20,
                 ),
               ),
-              onPressed: () => context.safePop(fallbackLocation: AppRoute.home.path),
+              onPressed:
+                  () => context.safePop(fallbackLocation: AppRoute.home.path),
             ),
             flexibleSpace: FlexibleSpaceBar(
               centerTitle: true,
@@ -150,7 +151,12 @@ class LegalContentScreen extends StatelessWidget {
           // HTML Content
           SliverToBoxAdapter(
             child: Container(
-              margin: EdgeInsets.fromLTRB(16, 0, 16, 32 + MediaQuery.paddingOf(context).bottom),
+              margin: EdgeInsets.fromLTRB(
+                16,
+                0,
+                16,
+                32 + MediaQuery.paddingOf(context).bottom,
+              ),
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
                 color: theme.cardColor,

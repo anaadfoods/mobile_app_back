@@ -12,8 +12,8 @@ class NotificationsRepositoryImpl implements NotificationsRepository {
   NotificationsRepositoryImpl({
     required NotificationsRemoteDataSource remoteDataSource,
     required NotificationsLocalDataSource localDataSource,
-  })  : _remoteDataSource = remoteDataSource,
-        _localDataSource = localDataSource;
+  }) : _remoteDataSource = remoteDataSource,
+       _localDataSource = localDataSource;
 
   @override
   Future<List<NotificationEntity>> getLocalNotifications() async {
@@ -34,8 +34,11 @@ class NotificationsRepositoryImpl implements NotificationsRepository {
   Future<List<NotificationEntity>> syncWithBackend(int sinceVersion) async {
     try {
       final currentVersion = await _localDataSource.getSyncVersion();
-      final syncResult = await _remoteDataSource.syncNotifications(currentVersion);
-      final List<NotificationModel> serverNotifs = syncResult['notifications'] ?? [];
+      final syncResult = await _remoteDataSource.syncNotifications(
+        currentVersion,
+      );
+      final List<NotificationModel> serverNotifs =
+          syncResult['notifications'] ?? [];
       final int latestVersion = syncResult['latest_version'] ?? currentVersion;
 
       final localNotifs = await _localDataSource.getLocalNotifications();
@@ -45,8 +48,9 @@ class NotificationsRepositoryImpl implements NotificationsRepository {
         localMap[serverNotif.id] = serverNotif;
       }
 
-      final updatedList = localMap.values.toList()
-        ..sort((a, b) => b.timestamp.compareTo(a.timestamp));
+      final updatedList =
+          localMap.values.toList()
+            ..sort((a, b) => b.timestamp.compareTo(a.timestamp));
 
       await _localDataSource.saveLocalNotifications(updatedList);
       await _localDataSource.saveSyncVersion(latestVersion);
@@ -65,12 +69,13 @@ class NotificationsRepositoryImpl implements NotificationsRepository {
   @override
   Future<void> markAsRead(List<String> ids) async {
     final local = await _localDataSource.getLocalNotifications();
-    final updated = local.map((n) {
-      if (ids.contains(n.id)) {
-        return n.copyWith(isRead: true);
-      }
-      return n;
-    }).toList();
+    final updated =
+        local.map((n) {
+          if (ids.contains(n.id)) {
+            return n.copyWith(isRead: true);
+          }
+          return n;
+        }).toList();
 
     await _localDataSource.saveLocalNotifications(updated);
     await _remoteDataSource.markNotificationsAsRead(ids);
@@ -79,12 +84,13 @@ class NotificationsRepositoryImpl implements NotificationsRepository {
   @override
   Future<void> dismiss(List<String> ids) async {
     final local = await _localDataSource.getLocalNotifications();
-    final updated = local.map((n) {
-      if (ids.contains(n.id)) {
-        return n.copyWith(isDismissed: true, isRead: true);
-      }
-      return n;
-    }).toList();
+    final updated =
+        local.map((n) {
+          if (ids.contains(n.id)) {
+            return n.copyWith(isDismissed: true, isRead: true);
+          }
+          return n;
+        }).toList();
 
     await _localDataSource.saveLocalNotifications(updated);
     await _remoteDataSource.markNotificationsAsDismissed(ids);

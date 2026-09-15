@@ -41,18 +41,18 @@ class AuthCubit extends Cubit<AuthState> {
     required UpdateAddressUseCase updateAddressUseCase,
     required DeactivateAccountUseCase deactivateAccountUseCase,
     required ConfirmDeactivationUseCase confirmDeactivationUseCase,
-  })  : _checkAuthStatusUseCase = checkAuthStatusUseCase,
-        _loginUseCase = loginUseCase,
-        _registerUseCase = registerUseCase,
-        _googleLoginUseCase = googleLoginUseCase,
-        _appleLoginUseCase = appleLoginUseCase,
-        _logoutUseCase = logoutUseCase,
-        _verifyTokenUseCase = verifyTokenUseCase,
-        _updateProfileUseCase = updateProfileUseCase,
-        _updateAddressUseCase = updateAddressUseCase,
-        _deactivateAccountUseCase = deactivateAccountUseCase,
-        _confirmDeactivationUseCase = confirmDeactivationUseCase,
-        super(AuthInitial());
+  }) : _checkAuthStatusUseCase = checkAuthStatusUseCase,
+       _loginUseCase = loginUseCase,
+       _registerUseCase = registerUseCase,
+       _googleLoginUseCase = googleLoginUseCase,
+       _appleLoginUseCase = appleLoginUseCase,
+       _logoutUseCase = logoutUseCase,
+       _verifyTokenUseCase = verifyTokenUseCase,
+       _updateProfileUseCase = updateProfileUseCase,
+       _updateAddressUseCase = updateAddressUseCase,
+       _deactivateAccountUseCase = deactivateAccountUseCase,
+       _confirmDeactivationUseCase = confirmDeactivationUseCase,
+       super(AuthInitial());
 
   Future<void> checkAuthStatus() async {
     emit(AuthLoading());
@@ -138,10 +138,14 @@ class AuthCubit extends Cubit<AuthState> {
     } catch (e) {
       AppLogger.instance.log('DEBUG: googleLogin error: $e');
       final errorString = e.toString().toLowerCase();
-      if (errorString.contains('canceled') || errorString.contains('cancelled') || errorString.contains('sign in canceled')) {
+      if (errorString.contains('canceled') ||
+          errorString.contains('cancelled') ||
+          errorString.contains('sign in canceled')) {
         emit(Unauthenticated());
       } else {
-        emit(const AuthError('An unexpected error occurred. Please try again.'));
+        emit(
+          const AuthError('An unexpected error occurred. Please try again.'),
+        );
       }
     }
   }
@@ -159,10 +163,14 @@ class AuthCubit extends Cubit<AuthState> {
       }
     } catch (e) {
       final errorString = e.toString().toLowerCase();
-      if (errorString.contains('canceled') || errorString.contains('cancelled') || errorString.contains('sign in canceled')) {
+      if (errorString.contains('canceled') ||
+          errorString.contains('cancelled') ||
+          errorString.contains('sign in canceled')) {
         emit(Unauthenticated());
       } else {
-        emit(const AuthError('An unexpected error occurred. Please try again.'));
+        emit(
+          const AuthError('An unexpected error occurred. Please try again.'),
+        );
       }
     }
   }

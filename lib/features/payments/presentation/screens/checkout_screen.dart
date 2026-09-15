@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:grocery_app/common_widgets/error_dialog.dart';
-import 'package:grocery_app/core/theme/app_colors.dart';
+import 'package:grocery_app/common_widgets/loading_state_widget.dart';
+import 'package:grocery_app/core/analytics/analytics_service.dart';
 import 'package:grocery_app/helpers/animated_transitions.dart';
 import 'package:grocery_app/helpers/snackbar_helper.dart';
 import 'package:grocery_app/models/cart_model.dart';
@@ -65,12 +65,13 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   @override
   Widget build(BuildContext context) {
     return BlocProvider<CheckoutCubit>(
-      create: (context) => CheckoutCubit()
-        ..initialize(
-          customShipping: widget.shippingDetails,
-          isSubscription: widget.isSubscription,
-          selectedPlan: widget.selectedPlan,
-        ),
+      create:
+          (context) =>
+              CheckoutCubit()..initialize(
+                customShipping: widget.shippingDetails,
+                isSubscription: widget.isSubscription,
+                selectedPlan: widget.selectedPlan,
+              ),
       child: BlocConsumer<CheckoutCubit, CheckoutState>(
         listener: (context, state) {
           if (state is CheckoutFailure) {
@@ -85,8 +86,10 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           final theme = Theme.of(context);
           final isDark = theme.brightness == Brightness.dark;
 
-          final bool isLoading = state is CheckoutInitial || state is CheckoutLoading;
-          final bool isSubmitting = state is CheckoutLoaded && state.isSubmitting;
+          final bool isLoading =
+              state is CheckoutInitial || state is CheckoutLoading;
+          final bool isSubmitting =
+              state is CheckoutLoaded && state.isSubmitting;
 
           String selectedPaymentMethod = 'COD';
           String selectedPaymentType = 'FULL';
@@ -112,15 +115,16 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 widget.quantity,
               );
             } else {
-              basePrice = widget.cart != null
-                  ? CheckoutCalculator.cartBasePrice(widget.cart)
-                  : CheckoutCalculator.singleProductBasePrice(
-                      widget.singleProduct!.finalPrice,
-                      widget.quantity,
-                    );
+              basePrice =
+                  widget.cart != null
+                      ? CheckoutCalculator.cartBasePrice(widget.cart)
+                      : CheckoutCalculator.singleProductBasePrice(
+                        widget.singleProduct!.finalPrice,
+                        widget.quantity,
+                      );
             }
-            calculatedTotal = CheckoutCalculator.total(basePrice, deliveryCharge)
-                .toString();
+            calculatedTotal =
+                CheckoutCalculator.total(basePrice, deliveryCharge).toString();
           }
 
           final scaffold = Scaffold(
@@ -136,7 +140,10 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                     ),
                     if (isLoading)
                       const SliverFillRemaining(
-                        child: Center(child: CircularProgressIndicator()),
+                        child: SafeArea(
+                          top: false,
+                          child: LoadingStateWidget(itemCount: 4, itemHeight: 96),
+                        ),
                       )
                     else if (state is CheckoutLoaded)
                       SliverToBoxAdapter(
@@ -146,7 +153,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                             crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
                               DeliveryTimeCard(
-                                expectedDeliveryDate: widget.expectedDeliveryDate,
+                                expectedDeliveryDate:
+                                    widget.expectedDeliveryDate,
                                 currentDeliveryCharge: deliveryCharge,
                               ),
                               const SizedBox(height: 16),
@@ -171,18 +179,21 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                               const SizedBox(height: 16),
                               if (state.pendingRewardsCount > 0)
                                 RewardNotificationCard(
-                                  pendingRewardsCount: state.pendingRewardsCount,
+                                  pendingRewardsCount:
+                                      state.pendingRewardsCount,
                                 ),
                               const SizedBox(height: 16),
                               PaymentMethodCard(
                                 isSubscription: widget.isSubscription,
                                 selectedPaymentMethod: selectedPaymentMethod,
-                                onSelected: (method) => context
-                                    .read<CheckoutCubit>()
-                                    .selectPaymentMethod(method),
+                                onSelected:
+                                    (method) => context
+                                        .read<CheckoutCubit>()
+                                        .selectPaymentMethod(method),
                               ),
                               SizedBox(
-                                height: (widget.isSubscription && activeSub != null
+                                height:
+                                    (widget.isSubscription && activeSub != null
                                         ? 172.0
                                         : 88.0) +
                                     MediaQuery.paddingOf(context).bottom +
@@ -201,33 +212,38 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                     selectedPaymentType: selectedPaymentType,
                     totalPrice: calculatedTotal,
                     isSubmitting: isSubmitting,
-                    onSubmit: () => context.read<CheckoutCubit>().submitCheckout(
-                          isSubscription: widget.isSubscription,
-                          cart: widget.cart,
-                          singleProduct: widget.singleProduct,
-                          quantity: widget.quantity,
-                          deliveryFee: deliveryCharge,
-                          expectedDeliveryDate: widget.expectedDeliveryDate,
-                          selectedPlan: widget.selectedPlan,
-                        ),
+                    onSubmit: () {
+                      AnalyticsService().trackClick(
+                        elementText: widget.isSubscription
+                            ? 'Submit Subscription (₹$calculatedTotal)'
+                            : 'Place Order (₹$calculatedTotal)',
+                        componentName: 'checkout_submit_btn',
+                        properties: {
+                          'is_subscription': widget.isSubscription,
+                          'total_amount': calculatedTotal,
+                        },
+                      );
+                      context.read<CheckoutCubit>().submitCheckout(
+                        isSubscription: widget.isSubscription,
+                        cart: widget.cart,
+                        singleProduct: widget.singleProduct,
+                        quantity: widget.quantity,
+                        deliveryFee: deliveryCharge,
+                        expectedDeliveryDate: widget.expectedDeliveryDate,
+                        selectedPlan: widget.selectedPlan,
+                      );
+                    },
                   ),
                 if (isSubmitting) const CheckoutLoadingOverlay(),
               ],
             ),
           );
 
-          return PopScope(
-            canPop: !isSubmitting,
-            child: scaffold,
-          );
+          return PopScope(canPop: !isSubmitting, child: scaffold);
         },
       ),
     );
   }
-
-
-
-
 
   void _showOrderFailedDialog(BuildContext context, String error) {
     showDialog(
@@ -250,7 +266,10 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       } else {
         // COD order placed — navigate to order details
         final order = success.result['order'] as OrderEntity?;
-        final orderId = order?.id.toString() ?? success.result['order_id']?.toString() ?? '0';
+        final orderId =
+            order?.id.toString() ??
+            success.result['order_id']?.toString() ??
+            '0';
         context.goNamed(AppRoute.orderList.name);
         context.pushNamed(
           AppRoute.orderDetails.name,
@@ -267,32 +286,35 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   ) {
     showDialog(
       context: context,
-      builder: (diagContext) => AlertDialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
-        ),
-        title: const Text('Subscription Created'),
-        content: const Text(
-          'Your subscription has been created successfully!',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.of(diagContext).pop();
-              if (result['subscription_id'] != null) {
-                context.goNamed(AppRoute.subscriptionList.name);
-                context.pushNamed(
-                  AppRoute.subscriptionDetails.name,
-                  pathParameters: {'id': result['subscription_id'].toString()},
-                );
-              } else {
-                context.go(AppRoute.home.path);
-              }
-            },
-            child: const Text('OK'),
+      builder:
+          (diagContext) => AlertDialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
+            ),
+            title: const Text('Subscription Created'),
+            content: const Text(
+              'Your subscription has been created successfully!',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.of(diagContext).pop();
+                  if (result['subscription_id'] != null) {
+                    context.goNamed(AppRoute.subscriptionList.name);
+                    context.pushNamed(
+                      AppRoute.subscriptionDetails.name,
+                      pathParameters: {
+                        'id': result['subscription_id'].toString(),
+                      },
+                    );
+                  } else {
+                    context.go(AppRoute.home.path);
+                  }
+                },
+                child: const Text('OK'),
+              ),
+            ],
           ),
-        ],
-      ),
     );
   }
 
@@ -306,14 +328,17 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       AnimatedTransitions.slideFromBottom(
         WebViewPage(
           url: result['checkout_url'],
-          orderId: int.tryParse(result['subscription_id']?.toString() ?? '0') ?? 0,
+          orderId:
+              int.tryParse(result['subscription_id']?.toString() ?? '0') ?? 0,
           title: 'Secure Payment',
-          subID: int.tryParse(result['subscription_id']?.toString() ?? '0') ?? 0,
+          subID:
+              int.tryParse(result['subscription_id']?.toString() ?? '0') ?? 0,
           isSubscription: true,
           merchantTransactionId: result['merchant_transaction_id'],
           reference: result['subscription_number'],
           onPaymentSuccess: (url) async {
-            final ref = result['subscription_number']?.toString() ??
+            final ref =
+                result['subscription_number']?.toString() ??
                 result['merchant_transaction_id']?.toString() ??
                 result['subscription_id']?.toString() ??
                 '';
@@ -322,7 +347,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             Navigator.pop(context); // Close webview
 
             if (success) {
-              final subId = int.tryParse(result['subscription_id']?.toString() ?? '0') ?? 0;
+              final subId =
+                  int.tryParse(result['subscription_id']?.toString() ?? '0') ??
+                  0;
               context.goNamed(AppRoute.subscriptionList.name);
               if (subId > 0) {
                 context.pushNamed(
@@ -357,7 +384,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           merchantTransactionId: result['merchant_transaction_id'],
           reference: result['order_number'],
           onPaymentSuccess: (url) async {
-            final ref = result['order_number']?.toString() ??
+            final ref =
+                result['order_number']?.toString() ??
                 result['merchant_transaction_id']?.toString() ??
                 '';
             final success = await cubit.verifyPaymentStatus(ref);
@@ -365,18 +393,29 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             Navigator.pop(context); // Close webview
 
             if (success) {
-              final orderId = int.tryParse(result['order_id']?.toString() ?? '0') ?? 0;
+              final orderId =
+                  int.tryParse(result['order_id']?.toString() ?? '0') ?? 0;
               final orderNumber = result['order_number']?.toString();
               context.goNamed(AppRoute.orderList.name);
-              
-              final targetId = orderId > 0 ? orderId.toString() : (orderNumber ?? '');
+
+              final targetId =
+                  orderId > 0 ? orderId.toString() : (orderNumber ?? '');
               if (targetId.isNotEmpty) {
-                context.pushNamed(AppRoute.orderDetails.name, pathParameters: {'id': targetId});
+                context.pushNamed(
+                  AppRoute.orderDetails.name,
+                  pathParameters: {'id': targetId},
+                );
               } else {
-                SnackBarHelper.showInfo(context, 'Payment complete! Order is placed.');
+                SnackBarHelper.showInfo(
+                  context,
+                  'Payment complete! Order is placed.',
+                );
               }
             } else {
-              SnackBarHelper.showInfo(context, 'Payment complete! Order is placed.');
+              SnackBarHelper.showInfo(
+                context,
+                'Payment complete! Order is placed.',
+              );
               context.goNamed(AppRoute.orderList.name);
             }
           },

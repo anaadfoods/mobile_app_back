@@ -5,10 +5,7 @@ import 'package:grocery_app/styles/colors.dart';
 class OtpResendSection extends StatefulWidget {
   final Future<void> Function() onResend;
 
-  const OtpResendSection({
-    super.key,
-    required this.onResend,
-  });
+  const OtpResendSection({super.key, required this.onResend});
 
   @override
   State<OtpResendSection> createState() => _OtpResendSectionState();
@@ -87,39 +84,36 @@ class _OtpResendSectionState extends State<OtpResendSection> {
         if (_secondsRemaining > 0)
           Text(
             "Resend OTP in $_secondsRemaining seconds",
-            style: textStyle?.copyWith(
-              fontWeight: FontWeight.w500,
-            ),
+            style: textStyle?.copyWith(fontWeight: FontWeight.w500),
           )
         else
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Text(
-                "Didn't receive the code? ",
-                style: textStyle,
-              ),
+              Text("Didn't receive the code? ", style: textStyle),
               _isLoading
                   ? const SizedBox(
-                      width: 16,
-                      height: 16,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        valueColor: AlwaysStoppedAnimation<Color>(AppColors.parchment),
-                      ),
-                    )
-                  : GestureDetector(
-                      onTap: _handleResend,
-                      child: Text(
-                        "Resend OTP",
-                        style: textStyle?.copyWith(
-                          color: AppColors.parchment,
-                          fontWeight: FontWeight.bold,
-                          decoration: TextDecoration.underline,
-                          decorationColor: AppColors.parchment,
-                        ),
+                    width: 16,
+                    height: 16,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      valueColor: AlwaysStoppedAnimation<Color>(
+                        AppColors.parchment,
                       ),
                     ),
+                  )
+                  : GestureDetector(
+                    onTap: _handleResend,
+                    child: Text(
+                      "Resend OTP",
+                      style: textStyle?.copyWith(
+                        color: AppColors.parchment,
+                        fontWeight: FontWeight.bold,
+                        decoration: TextDecoration.underline,
+                        decorationColor: AppColors.parchment,
+                      ),
+                    ),
+                  ),
             ],
           ),
       ],

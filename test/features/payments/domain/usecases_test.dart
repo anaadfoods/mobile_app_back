@@ -25,8 +25,9 @@ void main() {
     const testStatus = PaymentStatus(status: 'SUCCESS', respMessage: 'Paid');
 
     test('GetPaymentStatusUseCase calls fetchStatus on repository', () async {
-      when(() => mockRepository.fetchStatus(any()))
-          .thenAnswer((_) async => testStatus);
+      when(
+        () => mockRepository.fetchStatus(any()),
+      ).thenAnswer((_) async => testStatus);
 
       final result = await getPaymentStatusUseCase('ref_123');
 
@@ -35,8 +36,9 @@ void main() {
     });
 
     test('PollPaymentStatusUseCase calls pollStatus on repository', () async {
-      when(() => mockRepository.pollStatus(any()))
-          .thenAnswer((_) async => testStatus);
+      when(
+        () => mockRepository.pollStatus(any()),
+      ).thenAnswer((_) async => testStatus);
 
       final result = await pollPaymentStatusUseCase('ref_123');
 
@@ -44,13 +46,19 @@ void main() {
       verify(() => mockRepository.pollStatus('ref_123')).called(1);
     });
 
-    test('VerifyPaymentResponseUseCase calls verifyPaymentResponse on repository', () async {
-      when(() => mockRepository.verifyPaymentResponse(any()))
-          .thenAnswer((_) async {});
+    test(
+      'VerifyPaymentResponseUseCase calls verifyPaymentResponse on repository',
+      () async {
+        when(
+          () => mockRepository.verifyPaymentResponse(any()),
+        ).thenAnswer((_) async {});
 
-      await verifyPaymentResponseUseCase('order_123');
+        await verifyPaymentResponseUseCase('order_123');
 
-      verify(() => mockRepository.verifyPaymentResponse('order_123')).called(1);
-    });
+        verify(
+          () => mockRepository.verifyPaymentResponse('order_123'),
+        ).called(1);
+      },
+    );
   });
 }

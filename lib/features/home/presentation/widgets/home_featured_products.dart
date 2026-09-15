@@ -19,8 +19,16 @@ class FeaturedProductsSkeleton extends StatelessWidget {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Container(width: 160, height: 22, color: Colors.grey.withValues(alpha: 0.2)),
-              Container(width: 70, height: 22, color: Colors.grey.withValues(alpha: 0.2)),
+              Container(
+                width: 160,
+                height: 22,
+                color: Colors.grey.withValues(alpha: 0.2),
+              ),
+              Container(
+                width: 70,
+                height: 22,
+                color: Colors.grey.withValues(alpha: 0.2),
+              ),
             ],
           ),
         ),
@@ -94,23 +102,26 @@ class FeaturedProductCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: BoxDecoration(
-        color: isDark
-            ? AppColors.parchment.withValues(alpha: 0.1)
-            : AppColors.harvestAmber.withValues(alpha: 0.08),
+        color:
+            isDark
+                ? AppColors.parchment.withValues(alpha: 0.1)
+                : AppColors.harvestAmber.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: isDark
-              ? AppColors.parchment.withValues(alpha: 0.15)
-              : AppColors.harvestAmber.withValues(alpha: 0.15),
+          color:
+              isDark
+                  ? AppColors.parchment.withValues(alpha: 0.15)
+                  : AppColors.harvestAmber.withValues(alpha: 0.15),
           width: 0.8,
         ),
       ),
       child: Text(
         category.toUpperCase(),
         style: theme.textTheme.bodySmall?.copyWith(
-          color: isDark
-              ? AppColors.pureWhite.withValues(alpha: 0.9)
-              : AppColors.harvestAmber,
+          color:
+              isDark
+                  ? AppColors.pureWhite.withValues(alpha: 0.9)
+                  : AppColors.harvestAmber,
           fontWeight: FontWeight.bold,
           fontSize: 8,
           letterSpacing: 0.5,
@@ -120,19 +131,25 @@ class FeaturedProductCard extends StatelessWidget {
   }
 
   Widget _buildQuantityTag(
-      String weight, String unit, ThemeData theme, bool isDark) {
+    String weight,
+    String unit,
+    ThemeData theme,
+    bool isDark,
+  ) {
     if (weight.isEmpty) return const SizedBox.shrink();
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
       decoration: BoxDecoration(
-        color: isDark
-            ? AppColors.charcoal.withValues(alpha: 0.3)
-            : AppColors.parchment,
+        color:
+            isDark
+                ? AppColors.charcoal.withValues(alpha: 0.3)
+                : AppColors.parchment,
         borderRadius: BorderRadius.circular(6),
         border: Border.all(
-          color: isDark
-              ? AppColors.parchment.withValues(alpha: 0.1)
-              : theme.dividerColor.withValues(alpha: 0.2),
+          color:
+              isDark
+                  ? AppColors.parchment.withValues(alpha: 0.1)
+                  : theme.dividerColor.withValues(alpha: 0.2),
           width: 0.8,
         ),
       ),
@@ -165,9 +182,10 @@ class FeaturedProductCard extends StatelessWidget {
                 borderRadius: BorderRadius.circular(20),
                 boxShadow: [
                   BoxShadow(
-                    color: isDark
-                        ? AppColors.charcoal.withValues(alpha: 0.26)
-                        : AppColors.charcoal.withValues(alpha: 0.08),
+                    color:
+                        isDark
+                            ? AppColors.charcoal.withValues(alpha: 0.26)
+                            : AppColors.charcoal.withValues(alpha: 0.08),
                     blurRadius: 16,
                     offset: const Offset(0, 6),
                   ),
@@ -189,22 +207,45 @@ class FeaturedProductCard extends StatelessWidget {
                             gradient: LinearGradient(
                               begin: Alignment.topLeft,
                               end: Alignment.bottomRight,
-                              colors: isDark
-                                  ? [AppColors.charcoal, AppColors.charcoal]
-                                  : _gradients[index % _gradients.length],
+                              colors:
+                                  isDark
+                                      ? [AppColors.charcoal, AppColors.charcoal]
+                                      : _gradients[index % _gradients.length],
                             ),
                           ),
                           child: ClipRRect(
                             borderRadius: const BorderRadius.vertical(
                               top: Radius.circular(20),
                             ),
-                            child: product.productImages.isNotEmpty
-                                ? CachedNetworkImage(
-                                    imageUrl: product.productImages[0].image,
-                                    fit: BoxFit.cover,
-                                    memCacheWidth: 300,
-                                    memCacheHeight: 300,
-                                    placeholder: (_, __) => Center(
+                            child:
+                                product.productImages.isNotEmpty
+                                    ? CachedNetworkImage(
+                                      imageUrl: product.productImages[0].image,
+                                      fit: BoxFit.cover,
+                                      memCacheWidth: 300,
+                                      memCacheHeight: 300,
+                                      placeholder:
+                                          (_, __) => Center(
+                                            child: Icon(
+                                              _icons[index % _icons.length],
+                                              size: 48,
+                                              color: _iconColors[index %
+                                                      _iconColors.length]
+                                                  .withValues(alpha: 0.6),
+                                            ),
+                                          ),
+                                      errorWidget:
+                                          (_, __, ___) => Center(
+                                            child: Icon(
+                                              _icons[index % _icons.length],
+                                              size: 48,
+                                              color: _iconColors[index %
+                                                      _iconColors.length]
+                                                  .withValues(alpha: 0.6),
+                                            ),
+                                          ),
+                                    )
+                                    : Center(
                                       child: Icon(
                                         _icons[index % _icons.length],
                                         size: 48,
@@ -213,25 +254,6 @@ class FeaturedProductCard extends StatelessWidget {
                                             .withValues(alpha: 0.6),
                                       ),
                                     ),
-                                    errorWidget: (_, __, ___) => Center(
-                                      child: Icon(
-                                        _icons[index % _icons.length],
-                                        size: 48,
-                                        color: _iconColors[index %
-                                                _iconColors.length]
-                                            .withValues(alpha: 0.6),
-                                      ),
-                                    ),
-                                  )
-                                : Center(
-                                    child: Icon(
-                                      _icons[index % _icons.length],
-                                      size: 48,
-                                      color: _iconColors[
-                                              index % _iconColors.length]
-                                          .withValues(alpha: 0.6),
-                                    ),
-                                  ),
                           ),
                         ),
                         if (hasDiscount)
@@ -248,8 +270,9 @@ class FeaturedProductCard extends StatelessWidget {
                                 borderRadius: BorderRadius.circular(8),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: AppColors.harvestAmber
-                                        .withValues(alpha: 0.3),
+                                    color: AppColors.harvestAmber.withValues(
+                                      alpha: 0.3,
+                                    ),
                                     blurRadius: 6,
                                     offset: const Offset(0, 2),
                                   ),
@@ -275,7 +298,10 @@ class FeaturedProductCard extends StatelessWidget {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         _buildCategoryCapsule(
-                            product.productCategory, theme, isDark),
+                          product.productCategory,
+                          theme,
+                          isDark,
+                        ),
                         const SizedBox(height: 4),
                         Text(
                           product.productName,
@@ -287,7 +313,11 @@ class FeaturedProductCard extends StatelessWidget {
                         ),
                         const SizedBox(height: 4),
                         _buildQuantityTag(
-                            product.weight, product.weightUnit, theme, isDark),
+                          product.weight,
+                          product.weightUnit,
+                          theme,
+                          isDark,
+                        ),
                         const SizedBox(height: 6),
                         Row(
                           children: [
@@ -328,9 +358,10 @@ class FeaturedProductCard extends StatelessWidget {
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(20),
                   child: ColoredBox(
-                    color: isDark
-                        ? Colors.black.withValues(alpha: 0.72)
-                        : Colors.white.withValues(alpha: 0.72),
+                    color:
+                        isDark
+                            ? Colors.black.withValues(alpha: 0.72)
+                            : Colors.white.withValues(alpha: 0.72),
                     child: const ComingSoonOverlay(),
                   ),
                 ),
@@ -340,9 +371,10 @@ class FeaturedProductCard extends StatelessWidget {
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(20),
                   child: ColoredBox(
-                    color: isDark
-                        ? Colors.black.withValues(alpha: 0.72)
-                        : Colors.white.withValues(alpha: 0.72),
+                    color:
+                        isDark
+                            ? Colors.black.withValues(alpha: 0.72)
+                            : Colors.white.withValues(alpha: 0.72),
                     child: const OutOfStockOverlay(),
                   ),
                 ),

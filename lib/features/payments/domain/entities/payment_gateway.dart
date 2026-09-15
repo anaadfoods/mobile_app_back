@@ -1,4 +1,1 @@
-enum PaymentGateway {
-  easebuzz,
-  juspay,
-}
+enum PaymentGateway { easebuzz, juspay }

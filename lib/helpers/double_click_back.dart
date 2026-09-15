@@ -3,10 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:grocery_app/helpers/snackbar_helper.dart';
 
 class DoubleBackToExitApp extends StatefulWidget {
-  const DoubleBackToExitApp({
-    super.key,
-    required this.child,
-  });
+  const DoubleBackToExitApp({super.key, required this.child});
 
   final Widget child;
 
@@ -24,8 +21,10 @@ class _DoubleBackToExitAppState extends State<DoubleBackToExitApp> {
       onPopInvokedWithResult: (didPop, result) {
         if (didPop) return;
         final now = DateTime.now();
-        final hasRecentPress = _lastTimeBackButtonWasTapped != null &&
-            now.difference(_lastTimeBackButtonWasTapped!) < const Duration(seconds: 2);
+        final hasRecentPress =
+            _lastTimeBackButtonWasTapped != null &&
+            now.difference(_lastTimeBackButtonWasTapped!) <
+                const Duration(seconds: 2);
 
         if (hasRecentPress) {
           SystemNavigator.pop(); // Graceful programmatic exit

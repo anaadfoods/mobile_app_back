@@ -7,8 +7,8 @@ class AddressCubit extends Cubit<AddressState> {
   final SaveAddressUseCase _saveAddressUseCase;
 
   AddressCubit({required SaveAddressUseCase saveAddressUseCase})
-      : _saveAddressUseCase = saveAddressUseCase,
-        super(const AddressInitial());
+    : _saveAddressUseCase = saveAddressUseCase,
+      super(const AddressInitial());
 
   Future<bool> saveAddress(AddressEntity address) async {
     emit(const AddressLoading());

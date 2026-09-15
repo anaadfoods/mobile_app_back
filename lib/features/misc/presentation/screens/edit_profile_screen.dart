@@ -74,7 +74,9 @@ class _EditProfileScreenState extends State<EditProfileScreen>
 
   void _initTextControllers() {
     final authState = context.read<AuthCubit>().state;
-    final user = (authState is Authenticated ? authState.user : null) ?? widget.userProfile;
+    final user =
+        (authState is Authenticated ? authState.user : null) ??
+        widget.userProfile;
 
     _firstNameController = TextEditingController(text: user.firstName);
     _lastNameController = TextEditingController(text: user.lastName);
@@ -148,7 +150,10 @@ class _EditProfileScreenState extends State<EditProfileScreen>
     if (_cityController.text.isNotEmpty) filledFields++;
     if (_stateController.text.isNotEmpty) filledFields++;
     if (_pincodeController.text.isNotEmpty) filledFields++;
-    if (_selectedImage != null || (widget.userProfile.profilePicture != null && widget.userProfile.profilePicture!.isNotEmpty)) filledFields++;
+    if (_selectedImage != null ||
+        (widget.userProfile.profilePicture != null &&
+            widget.userProfile.profilePicture!.isNotEmpty))
+      filledFields++;
 
     return filledFields / totalFields;
   }
@@ -327,7 +332,9 @@ class _EditProfileScreenState extends State<EditProfileScreen>
   Future<void> _handlePhoneChange(String value) async {
     if (value.length == 10) {
       final authState = context.read<AuthCubit>().state;
-      final currentUser = (authState is Authenticated ? authState.user : null) ?? widget.userProfile;
+      final currentUser =
+          (authState is Authenticated ? authState.user : null) ??
+          widget.userProfile;
       if (value == currentUser.phoneNumber) {
         setState(() {
           _phoneError = null;
@@ -904,7 +911,9 @@ class _EditProfileScreenState extends State<EditProfileScreen>
 
   Widget _buildAnimatedAvatar(ThemeData theme, ColorScheme colorScheme) {
     final authState = context.read<AuthCubit>().state;
-    final user = (authState is Authenticated ? authState.user : null) ?? widget.userProfile;
+    final user =
+        (authState is Authenticated ? authState.user : null) ??
+        widget.userProfile;
     return Stack(
       clipBehavior: Clip.none,
       children: [
@@ -932,28 +941,33 @@ class _EditProfileScreenState extends State<EditProfileScreen>
                                   user.profilePicture!.isNotEmpty &&
                                   user.profilePicture != "null"
                               ? Image.network(
-                                  user.profilePicture!,
-                                  fit: BoxFit.cover,
-                                  loadingBuilder: (context, child, loadingProgress) {
-                                    if (loadingProgress == null) return child;
-                                    return Center(
-                                      child: CircularProgressIndicator(
-                                        strokeWidth: 2,
-                                        color: colorScheme.primary,
-                                      ),
-                                    );
-                                  },
-                                  errorBuilder: (context, error, stackTrace) => const Icon(
-                                    Icons.person_rounded,
-                                    size: 48,
-                                    color: AppColors.parchment,
-                                  ),
-                                )
+                                user.profilePicture!,
+                                fit: BoxFit.cover,
+                                loadingBuilder: (
+                                  context,
+                                  child,
+                                  loadingProgress,
+                                ) {
+                                  if (loadingProgress == null) return child;
+                                  return Center(
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      color: colorScheme.primary,
+                                    ),
+                                  );
+                                },
+                                errorBuilder:
+                                    (context, error, stackTrace) => const Icon(
+                                      Icons.person_rounded,
+                                      size: 48,
+                                      color: AppColors.parchment,
+                                    ),
+                              )
                               : const Icon(
-                                  Icons.person_rounded,
-                                  size: 48,
-                                  color: AppColors.parchment,
-                                )),
+                                Icons.person_rounded,
+                                size: 48,
+                                color: AppColors.parchment,
+                              )),
                 ),
               ),
             ),
@@ -1559,7 +1573,9 @@ class _EditProfileScreenState extends State<EditProfileScreen>
                               Text(
                                 'To continue, please enter your password. This will send an OTP to your email and phone.',
                                 style: TextStyle(
-                                  color: Theme.of(innerContext).textTheme.bodyMedium?.color?.withAlpha(153),
+                                  color: Theme.of(
+                                    innerContext,
+                                  ).textTheme.bodyMedium?.color?.withAlpha(153),
                                   fontSize: 14,
                                 ),
                               ),
@@ -1614,8 +1630,14 @@ class _EditProfileScreenState extends State<EditProfileScreen>
                                       style: TextStyle(
                                         color:
                                             isLoading
-                                                ? Theme.of(innerContext).disabledColor
-                                                : Theme.of(innerContext).textTheme.bodyMedium?.color?.withAlpha(153),
+                                                ? Theme.of(
+                                                  innerContext,
+                                                ).disabledColor
+                                                : Theme.of(innerContext)
+                                                    .textTheme
+                                                    .bodyMedium
+                                                    ?.color
+                                                    ?.withAlpha(153),
                                       ),
                                     ),
                                   ),
@@ -1637,11 +1659,13 @@ class _EditProfileScreenState extends State<EditProfileScreen>
                                                       .deactivateAccount(
                                                         passwordController.text,
                                                       );
-                                                  if (!innerContext.mounted) return;
+                                                  if (!innerContext.mounted)
+                                                    return;
                                                   setDialogState(
                                                     () => isLoading = false,
                                                   );
-                                                  if (result['success'] == true) {
+                                                  if (result['success'] ==
+                                                      true) {
                                                     pageController.nextPage(
                                                       duration: const Duration(
                                                         milliseconds: 300,
@@ -1651,7 +1675,8 @@ class _EditProfileScreenState extends State<EditProfileScreen>
                                                   } else {
                                                     SnackBarHelper.showError(
                                                       innerContext,
-                                                      result['message'] ?? 'Failed to deactivate. Please try again.',
+                                                      result['message'] ??
+                                                          'Failed to deactivate. Please try again.',
                                                     );
                                                   }
                                                 } catch (e) {
@@ -1735,7 +1760,9 @@ class _EditProfileScreenState extends State<EditProfileScreen>
                               Text(
                                 'An OTP has been sent to your email and phone. Please enter it below to complete deactivation.',
                                 style: TextStyle(
-                                  color: Theme.of(innerContext).textTheme.bodyMedium?.color?.withAlpha(153),
+                                  color: Theme.of(
+                                    innerContext,
+                                  ).textTheme.bodyMedium?.color?.withAlpha(153),
                                   fontSize: 14,
                                 ),
                               ),
@@ -1781,8 +1808,14 @@ class _EditProfileScreenState extends State<EditProfileScreen>
                                       style: TextStyle(
                                         color:
                                             isLoading
-                                                ? Theme.of(innerContext).disabledColor
-                                                : Theme.of(innerContext).textTheme.bodyMedium?.color?.withAlpha(153),
+                                                ? Theme.of(
+                                                  innerContext,
+                                                ).disabledColor
+                                                : Theme.of(innerContext)
+                                                    .textTheme
+                                                    .bodyMedium
+                                                    ?.color
+                                                    ?.withAlpha(153),
                                       ),
                                     ),
                                   ),
@@ -1804,19 +1837,24 @@ class _EditProfileScreenState extends State<EditProfileScreen>
                                                       .confirmDeactivation(
                                                         otpController.text,
                                                       );
-                                                  if (!innerContext.mounted) return;
+                                                  if (!innerContext.mounted)
+                                                    return;
                                                   setDialogState(
                                                     () => isLoading = false,
                                                   );
-                                                  if (result['success'] == true) {
+                                                  if (result['success'] ==
+                                                      true) {
                                                     Navigator.pop(innerContext);
                                                     if (mounted) {
-                                                      context.go(AppRoute.login.path);
+                                                      context.go(
+                                                        AppRoute.login.path,
+                                                      );
                                                     }
                                                   } else {
                                                     SnackBarHelper.showError(
                                                       innerContext,
-                                                      result['message'] ?? 'Failed to confirm deactivation. Please try again.',
+                                                      result['message'] ??
+                                                          'Failed to confirm deactivation. Please try again.',
                                                     );
                                                   }
                                                 } catch (e) {

@@ -9,6 +9,5 @@ class CreateSubscriptionUseCase {
 
   Future<SubscriptionCreateResponseEntity> call(
     Map<String, dynamic> requestData,
-  ) =>
-      _repository.createSubscription(requestData);
+  ) => _repository.createSubscription(requestData);
 }

@@ -11,19 +11,22 @@ abstract class NotificationsRemoteDataSource {
   Future<String> getDeviceId();
   Future<void> registerDeviceToken(String fcmToken);
   Future<void> unregisterDeviceToken(String fcmToken);
-  Future<NotificationModel> registerLocalNotification(NotificationModel notification);
+  Future<NotificationModel> registerLocalNotification(
+    NotificationModel notification,
+  );
   Future<Map<String, dynamic>> syncNotifications(int sinceVersion);
   Future<void> markNotificationsAsRead(List<String> ids);
   Future<void> markNotificationsAsDismissed(List<String> ids);
   Future<int> getUnreadCount();
 }
 
-class NotificationsRemoteDataSourceImpl implements NotificationsRemoteDataSource {
+class NotificationsRemoteDataSourceImpl
+    implements NotificationsRemoteDataSource {
   final TokenService _tokenService;
   final DeviceInfoPlugin _deviceInfo = DeviceInfoPlugin();
 
   NotificationsRemoteDataSourceImpl({TokenService? tokenService})
-      : _tokenService = tokenService ?? getIt<TokenService>();
+    : _tokenService = tokenService ?? getIt<TokenService>();
 
   @override
   Future<String> getDeviceId() async {
@@ -61,7 +64,9 @@ class NotificationsRemoteDataSourceImpl implements NotificationsRemoteDataSource
       }
     } catch (e) {
       if (e is NotificationFailure) rethrow;
-      throw NotificationFailure.network('Network error during token registration');
+      throw NotificationFailure.network(
+        'Network error during token registration',
+      );
     }
   }
 
@@ -80,7 +85,9 @@ class NotificationsRemoteDataSourceImpl implements NotificationsRemoteDataSource
   }
 
   @override
-  Future<NotificationModel> registerLocalNotification(NotificationModel notification) async {
+  Future<NotificationModel> registerLocalNotification(
+    NotificationModel notification,
+  ) async {
     try {
       final response = await ApiClient.instance.post(
         '/api/notifications/register-local/',
@@ -92,7 +99,9 @@ class NotificationsRemoteDataSourceImpl implements NotificationsRemoteDataSource
       throw NotificationFailure.server('Failed to register local notification');
     } catch (e) {
       if (e is NotificationFailure) rethrow;
-      throw NotificationFailure.network('Network error registering local notification');
+      throw NotificationFailure.network(
+        'Network error registering local notification',
+      );
     }
   }
 
@@ -106,9 +115,8 @@ class NotificationsRemoteDataSourceImpl implements NotificationsRemoteDataSource
       if (response.statusCode == 200) {
         final data = response.data;
         final List<dynamic> notifList = data['notifications'] ?? [];
-        final notifications = notifList
-            .map((n) => NotificationModel.fromJson(n))
-            .toList();
+        final notifications =
+            notifList.map((n) => NotificationModel.fromJson(n)).toList();
         return {
           'latest_version': data['latest_version'] ?? sinceVersion,
           'notifications': notifications,
@@ -127,10 +135,7 @@ class NotificationsRemoteDataSourceImpl implements NotificationsRemoteDataSource
       final deviceId = await getDeviceId();
       await ApiClient.instance.post(
         '/api/notifications/read/',
-        data: {
-          'notification_ids': ids,
-          'origin_device_id': deviceId,
-        },
+        data: {'notification_ids': ids, 'origin_device_id': deviceId},
       );
     } catch (_) {}
   }
@@ -141,10 +146,7 @@ class NotificationsRemoteDataSourceImpl implements NotificationsRemoteDataSource
       final deviceId = await getDeviceId();
       await ApiClient.instance.post(
         '/api/notifications/dismiss/',
-        data: {
-          'notification_ids': ids,
-          'origin_device_id': deviceId,
-        },
+        data: {'notification_ids': ids, 'origin_device_id': deviceId},
       );
     } catch (_) {}
   }
@@ -152,7 +154,9 @@ class NotificationsRemoteDataSourceImpl implements NotificationsRemoteDataSource
   @override
   Future<int> getUnreadCount() async {
     try {
-      final response = await ApiClient.instance.get('/api/notifications/unread-count/');
+      final response = await ApiClient.instance.get(
+        '/api/notifications/unread-count/',
+      );
       if (response.statusCode == 200) {
         return response.data['unread_count'] ?? 0;
       }

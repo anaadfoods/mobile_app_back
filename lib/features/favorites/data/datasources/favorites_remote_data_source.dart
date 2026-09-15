@@ -14,9 +14,7 @@ class FavoritesRemoteDataSourceImpl implements FavoritesRemoteDataSource {
 
   @override
   Future<List<FavoriteModel>> fetchFavorites() async {
-    final response = await _apiClient.get(
-      ApiConfig.favoritesEndpoint,
-    );
+    final response = await _apiClient.get(ApiConfig.favoritesEndpoint);
 
     if (response.statusCode == 200) {
       final List<dynamic> data = response.data;

@@ -144,7 +144,10 @@ class _DeliveryScreenState extends State<DeliveryScreen>
                               Icon(
                                 Icons.error_outline,
                                 size: 48,
-                                color: isDark ? AppColors.darkSoftRed : AppColors.softRed,
+                                color:
+                                    isDark
+                                        ? AppColors.darkSoftRed
+                                        : AppColors.softRed,
                               ),
                               const SizedBox(height: 12),
                               Text(
@@ -212,7 +215,6 @@ class _DeliveryScreenState extends State<DeliveryScreen>
       ),
     );
   }
-
 
   Widget _buildPlansContent(ThemeData theme, List<RfpPlan> plans) {
     final activePlan = plans.firstWhere(
@@ -293,9 +295,13 @@ class _DeliveryScreenState extends State<DeliveryScreen>
         width: double.infinity,
         decoration: BoxDecoration(
           gradient: LinearGradient(
-            colors: isDark
-                ? [AppColors.darkSurfaceElevated, AppColors.darkSurface]
-                : [AppColors.deepSoilGreen, AppColors.deepSoilGreen.withValues(alpha: 0.9)],
+            colors:
+                isDark
+                    ? [AppColors.darkSurfaceElevated, AppColors.darkSurface]
+                    : [
+                      AppColors.deepSoilGreen,
+                      AppColors.deepSoilGreen.withValues(alpha: 0.9),
+                    ],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
@@ -331,9 +337,10 @@ class _DeliveryScreenState extends State<DeliveryScreen>
                     vertical: 4,
                   ),
                   decoration: BoxDecoration(
-                    color: plan.isActive
-                        ? AppColors.pureWhite.withValues(alpha: 0.15)
-                        : AppColors.rawEarth.withValues(alpha: 0.4),
+                    color:
+                        plan.isActive
+                            ? AppColors.pureWhite.withValues(alpha: 0.15)
+                            : AppColors.rawEarth.withValues(alpha: 0.4),
                     borderRadius: BorderRadius.circular(AppColors.radiusRound),
                     border: Border.all(
                       color: AppColors.parchment.withValues(alpha: 0.25),
@@ -415,7 +422,10 @@ class _DeliveryScreenState extends State<DeliveryScreen>
               child: Row(
                 children: [
                   Expanded(
-                    child: _buildDateInfo("START DATE", _formatDate(plan.startDate)),
+                    child: _buildDateInfo(
+                      "START DATE",
+                      _formatDate(plan.startDate),
+                    ),
                   ),
                   Container(
                     width: 1,
@@ -423,7 +433,10 @@ class _DeliveryScreenState extends State<DeliveryScreen>
                     color: AppColors.parchment.withValues(alpha: 0.15),
                   ),
                   Expanded(
-                    child: _buildDateInfo("END DATE", _formatDate(plan.endDate)),
+                    child: _buildDateInfo(
+                      "END DATE",
+                      _formatDate(plan.endDate),
+                    ),
                   ),
                   Container(
                     width: 1,
@@ -496,12 +509,18 @@ class _DeliveryScreenState extends State<DeliveryScreen>
 
   Widget _buildPlanTile(ThemeData theme, RfpPlan plan) {
     final isDark = theme.brightness == Brightness.dark;
-    final badgeBg = plan.isActive
-        ? (isDark ? AppColors.darkSuccessGreen.withValues(alpha: 0.15) : AppColors.successGreen.withValues(alpha: 0.1))
-        : (isDark ? AppColors.rawEarth.withValues(alpha: 0.25) : AppColors.rawEarth.withValues(alpha: 0.1));
-    final badgeText = plan.isActive
-        ? (isDark ? AppColors.darkSuccessGreen : AppColors.successGreen)
-        : (isDark ? AppColors.parchment70 : AppColors.rawEarth);
+    final badgeBg =
+        plan.isActive
+            ? (isDark
+                ? AppColors.darkSuccessGreen.withValues(alpha: 0.15)
+                : AppColors.successGreen.withValues(alpha: 0.1))
+            : (isDark
+                ? AppColors.rawEarth.withValues(alpha: 0.25)
+                : AppColors.rawEarth.withValues(alpha: 0.1));
+    final badgeText =
+        plan.isActive
+            ? (isDark ? AppColors.darkSuccessGreen : AppColors.successGreen)
+            : (isDark ? AppColors.parchment70 : AppColors.rawEarth);
 
     return GestureDetector(
       onTap: () => _onPlanTapped(plan),
@@ -511,9 +530,10 @@ class _DeliveryScreenState extends State<DeliveryScreen>
           color: isDark ? AppColors.darkSurfaceElevated : AppColors.pureWhite,
           borderRadius: BorderRadius.circular(AppColors.radiusM),
           border: Border.all(
-            color: isDark
-                ? AppColors.parchment.withValues(alpha: 0.08)
-                : AppColors.deepSoilGreen.withValues(alpha: 0.1),
+            color:
+                isDark
+                    ? AppColors.parchment.withValues(alpha: 0.08)
+                    : AppColors.deepSoilGreen.withValues(alpha: 0.1),
             width: 1,
           ),
           boxShadow: [
@@ -592,7 +612,8 @@ class _DeliveryScreenState extends State<DeliveryScreen>
                   "${_formatDate(plan.startDate)} – ${_formatDate(plan.endDate)}",
                   style: theme.textTheme.bodySmall?.copyWith(
                     fontWeight: FontWeight.w500,
-                    color: isDark ? AppColors.parchment70 : AppColors.charcoal70,
+                    color:
+                        isDark ? AppColors.parchment70 : AppColors.charcoal70,
                   ),
                 ),
                 const Spacer(),
@@ -610,11 +631,14 @@ class _DeliveryScreenState extends State<DeliveryScreen>
                 child: LinearProgressIndicator(
                   value: plan.progress,
                   minHeight: 6,
-                  backgroundColor: isDark
-                      ? AppColors.parchment.withValues(alpha: 0.08)
-                      : AppColors.deepSoilGreen.withValues(alpha: 0.08),
+                  backgroundColor:
+                      isDark
+                          ? AppColors.parchment.withValues(alpha: 0.08)
+                          : AppColors.deepSoilGreen.withValues(alpha: 0.08),
                   valueColor: AlwaysStoppedAnimation<Color>(
-                    isDark ? AppColors.darkSuccessGreen : AppColors.deepSoilGreen,
+                    isDark
+                        ? AppColors.darkSuccessGreen
+                        : AppColors.deepSoilGreen,
                   ),
                 ),
               ),

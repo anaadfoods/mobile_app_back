@@ -4,7 +4,10 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../models/user_model.dart';
 
 abstract class AuthLocalDataSource {
-  Future<void> saveTokens({required String accessToken, required String refreshToken});
+  Future<void> saveTokens({
+    required String accessToken,
+    required String refreshToken,
+  });
   Future<void> saveUserData(UserModel user);
   Future<String?> getAccessToken();
   Future<String?> getRefreshToken();
@@ -16,10 +19,13 @@ class AuthLocalDataSourceImpl implements AuthLocalDataSource {
   final FlutterSecureStorage _secureStorage;
 
   AuthLocalDataSourceImpl({FlutterSecureStorage? secureStorage})
-      : _secureStorage = secureStorage ?? const FlutterSecureStorage();
+    : _secureStorage = secureStorage ?? const FlutterSecureStorage();
 
   @override
-  Future<void> saveTokens({required String accessToken, required String refreshToken}) async {
+  Future<void> saveTokens({
+    required String accessToken,
+    required String refreshToken,
+  }) async {
     await _secureStorage.write(key: 'access_token', value: accessToken);
     await _secureStorage.write(key: 'refresh_token', value: refreshToken);
   }

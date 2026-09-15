@@ -37,11 +37,11 @@ class CartItemSyncStatus extends Equatable {
 
   @override
   List<Object?> get props => [
-        displayedQuantity,
-        confirmedQuantity,
-        pendingQuantity,
-        isSyncing,
-        requestInFlight,
-        error,
-      ];
+    displayedQuantity,
+    confirmedQuantity,
+    pendingQuantity,
+    isSyncing,
+    requestInFlight,
+    error,
+  ];
 }

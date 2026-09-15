@@ -579,7 +579,9 @@ class OrderModel {
   }
 }
 
-@Deprecated('The new API contract returns checkout_url directly — no more payment_links.')
+@Deprecated(
+  'The new API contract returns checkout_url directly — no more payment_links.',
+)
 class PaymentLinks {
   final String web;
   final String? expiry;

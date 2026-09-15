@@ -42,33 +42,48 @@ class PanchangMuhuratsResponse {
       locale: (json['locale'] ?? '').toString(),
       calendarSystem: (json['calendar_system'] ?? '').toString(),
       profile: (json['profile'] ?? '').toString(),
-      location: json['location'] != null
-          ? PanchangLocation.fromJson(json['location'] as Map<String, dynamic>)
-          : null,
+      location:
+          json['location'] != null
+              ? PanchangLocation.fromJson(
+                json['location'] as Map<String, dynamic>,
+              )
+              : null,
       calcVersion: (json['calc_version'] ?? '').toString(),
       now: _tryParseDateTime(json['now']),
-      sunMoonTimings: json['sun_moon_timings'] != null
-          ? PanchangSunMoonTimings.fromJson(
-              json['sun_moon_timings'] as Map<String, dynamic>)
-          : null,
-      brahma: json['brahma'] != null
-          ? PanchangTimeWindow.fromJson(json['brahma'] as Map<String, dynamic>)
-          : null,
-      abhijit: json['abhijit'] != null
-          ? PanchangTimeWindow.fromJson(
-              json['abhijit'] as Map<String, dynamic>)
-          : null,
-      hora: json['hora'] != null
-          ? PanchangHora.fromJson(json['hora'] as Map<String, dynamic>)
-          : null,
-      choghadiya: json['choghadiya'] != null
-          ? PanchangChoghadiya.fromJson(
-              json['choghadiya'] as Map<String, dynamic>)
-          : null,
-      inauspicious: json['inauspicious'] != null
-          ? PanchangInauspiciousTimings.fromJson(
-              json['inauspicious'] as Map<String, dynamic>)
-          : null,
+      sunMoonTimings:
+          json['sun_moon_timings'] != null
+              ? PanchangSunMoonTimings.fromJson(
+                json['sun_moon_timings'] as Map<String, dynamic>,
+              )
+              : null,
+      brahma:
+          json['brahma'] != null
+              ? PanchangTimeWindow.fromJson(
+                json['brahma'] as Map<String, dynamic>,
+              )
+              : null,
+      abhijit:
+          json['abhijit'] != null
+              ? PanchangTimeWindow.fromJson(
+                json['abhijit'] as Map<String, dynamic>,
+              )
+              : null,
+      hora:
+          json['hora'] != null
+              ? PanchangHora.fromJson(json['hora'] as Map<String, dynamic>)
+              : null,
+      choghadiya:
+          json['choghadiya'] != null
+              ? PanchangChoghadiya.fromJson(
+                json['choghadiya'] as Map<String, dynamic>,
+              )
+              : null,
+      inauspicious:
+          json['inauspicious'] != null
+              ? PanchangInauspiciousTimings.fromJson(
+                json['inauspicious'] as Map<String, dynamic>,
+              )
+              : null,
     );
   }
 }
@@ -86,17 +101,24 @@ class PanchangInauspiciousTimings {
 
   factory PanchangInauspiciousTimings.fromJson(Map<String, dynamic> json) {
     return PanchangInauspiciousTimings(
-      rahuKaal: json['rahu_kaal'] != null
-          ? PanchangTimeWindow.fromJson(
-              json['rahu_kaal'] as Map<String, dynamic>)
-          : null,
-      yamaganda: json['yamaganda'] != null
-          ? PanchangTimeWindow.fromJson(
-              json['yamaganda'] as Map<String, dynamic>)
-          : null,
-      gulika: json['gulika'] != null
-          ? PanchangTimeWindow.fromJson(json['gulika'] as Map<String, dynamic>)
-          : null,
+      rahuKaal:
+          json['rahu_kaal'] != null
+              ? PanchangTimeWindow.fromJson(
+                json['rahu_kaal'] as Map<String, dynamic>,
+              )
+              : null,
+      yamaganda:
+          json['yamaganda'] != null
+              ? PanchangTimeWindow.fromJson(
+                json['yamaganda'] as Map<String, dynamic>,
+              )
+              : null,
+      gulika:
+          json['gulika'] != null
+              ? PanchangTimeWindow.fromJson(
+                json['gulika'] as Map<String, dynamic>,
+              )
+              : null,
     );
   }
 }

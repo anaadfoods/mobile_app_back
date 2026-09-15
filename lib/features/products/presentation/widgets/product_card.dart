@@ -1,10 +1,10 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:grocery_app/common_widgets/coming_soon_overlay.dart';
 import 'package:grocery_app/common_widgets/out_of_stock_overlay.dart';
 import 'package:grocery_app/common_widgets/guest_login_prompt.dart';
+import 'package:grocery_app/common_widgets/anaad_network_image.dart';
 import 'package:grocery_app/core/theme/app_colors.dart';
 import 'package:grocery_app/features/auth/presentation/cubit/auth_cubit.dart';
 import 'package:grocery_app/features/auth/presentation/cubit/auth_state.dart';
@@ -16,6 +16,7 @@ import 'package:grocery_app/features/products/domain/entities/product_entity.dar
 import 'package:grocery_app/models/product_model.dart';
 import 'package:grocery_app/models/cart_model.dart';
 import 'package:grocery_app/features/products/presentation/widgets/add_to_cart_button.dart';
+import 'package:grocery_app/core/analytics/analytics_service.dart';
 
 class ProductCard extends StatelessWidget {
   final ProductEntity product;
@@ -34,21 +35,26 @@ class ProductCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: BoxDecoration(
-        color: isDark
-            ? AppColors.parchment.withValues(alpha: 0.1)
-            : AppColors.harvestAmber.withValues(alpha: 0.08),
+        color:
+            isDark
+                ? AppColors.parchment.withValues(alpha: 0.1)
+                : AppColors.harvestAmber.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: isDark
-              ? AppColors.parchment.withValues(alpha: 0.15)
-              : AppColors.harvestAmber.withValues(alpha: 0.15),
+          color:
+              isDark
+                  ? AppColors.parchment.withValues(alpha: 0.15)
+                  : AppColors.harvestAmber.withValues(alpha: 0.15),
           width: 0.8,
         ),
       ),
       child: Text(
         category.toUpperCase(),
         style: theme.textTheme.bodySmall?.copyWith(
-          color: isDark ? AppColors.pureWhite.withValues(alpha: 0.9) : AppColors.harvestAmber,
+          color:
+              isDark
+                  ? AppColors.pureWhite.withValues(alpha: 0.9)
+                  : AppColors.harvestAmber,
           fontWeight: FontWeight.bold,
           fontSize: 8,
           letterSpacing: 0.5,
@@ -57,19 +63,26 @@ class ProductCard extends StatelessWidget {
     );
   }
 
-  Widget _buildQuantityTag(String weight, String unit, ThemeData theme, bool isDark) {
+  Widget _buildQuantityTag(
+    String weight,
+    String unit,
+    ThemeData theme,
+    bool isDark,
+  ) {
     if (weight.isEmpty) return const SizedBox.shrink();
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
       decoration: BoxDecoration(
-        color: isDark
-            ? AppColors.charcoal.withValues(alpha: 0.3)
-            : AppColors.parchment,
+        color:
+            isDark
+                ? AppColors.charcoal.withValues(alpha: 0.3)
+                : AppColors.parchment,
         borderRadius: BorderRadius.circular(6),
         border: Border.all(
-          color: isDark
-              ? AppColors.parchment.withValues(alpha: 0.1)
-              : theme.dividerColor.withValues(alpha: 0.2),
+          color:
+              isDark
+                  ? AppColors.parchment.withValues(alpha: 0.1)
+                  : theme.dividerColor.withValues(alpha: 0.2),
           width: 0.8,
         ),
       ),
@@ -90,20 +103,37 @@ class ProductCard extends StatelessWidget {
     final hasDiscount = product.discountPercentage > 0;
 
     return GestureDetector(
-      onTap: (product.isInStock && product.isActive) ? onTap : null,
+      onTap: (product.isInStock && product.isActive)
+          ? () {
+              AnalyticsService().trackClick(
+                elementText: 'Product: ${product.name}',
+                componentName: 'product_card',
+                properties: {
+                  'product_id': product.id,
+                  'product_name': product.name,
+                  'price': product.price,
+                },
+              );
+              onTap();
+            }
+          : null,
       child: Opacity(
         opacity: (product.isInStock && product.isActive) ? 1.0 : 0.5,
         child: Stack(
           children: [
             Container(
               decoration: BoxDecoration(
-                color: isDark ? AppColors.darkSurfaceElevated : AppColors.parchment,
+                color:
+                    isDark
+                        ? AppColors.darkSurfaceElevated
+                        : AppColors.parchment,
                 borderRadius: BorderRadius.circular(20),
                 boxShadow: [
                   BoxShadow(
-                    color: isDark
-                        ? AppColors.charcoal26
-                        : AppColors.charcoal.withValues(alpha: 0.06),
+                    color:
+                        isDark
+                            ? AppColors.charcoal26
+                            : AppColors.charcoal.withValues(alpha: 0.06),
                     blurRadius: 12,
                     offset: const Offset(0, 4),
                   ),
@@ -123,14 +153,15 @@ class ProductCard extends StatelessWidget {
                             borderRadius: const BorderRadius.vertical(
                               top: Radius.circular(20),
                             ),
-                            gradient: isDark
-                                ? const LinearGradient(
-                                    colors: [
-                                      AppColors.darkCanvas,
-                                      AppColors.darkCanvas,
-                                    ],
-                                  )
-                                : _getDummyGradient(index),
+                            gradient:
+                                isDark
+                                    ? const LinearGradient(
+                                      colors: [
+                                        AppColors.darkCanvas,
+                                        AppColors.darkCanvas,
+                                      ],
+                                    )
+                                    : _getDummyGradient(index),
                           ),
                           child: ClipRRect(
                             borderRadius: const BorderRadius.vertical(
@@ -154,7 +185,9 @@ class ProductCard extends StatelessWidget {
                                 borderRadius: BorderRadius.circular(8),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: AppColors.harvestAmber.withValues(alpha: 0.3),
+                                    color: AppColors.harvestAmber.withValues(
+                                      alpha: 0.3,
+                                    ),
                                     blurRadius: 6,
                                     offset: const Offset(0, 2),
                                   ),
@@ -176,43 +209,59 @@ class ProductCard extends StatelessWidget {
                           right: 10,
                           child: BlocBuilder<FavoritesCubit, FavoritesState>(
                             builder: (context, state) {
-                              final isFavorite = state is FavoritesSuccess &&
-                                  state.favorites.any((fav) => fav.productId == product.id);
+                              final isFavorite =
+                                  state is FavoritesSuccess &&
+                                  state.favorites.any(
+                                    (fav) => fav.productId == product.id,
+                                  );
 
                               return GestureDetector(
                                 onTap: () {
-                                  final authState = context.read<AuthCubit>().state;
+                                  final authState =
+                                      context.read<AuthCubit>().state;
                                   if (authState is Unauthenticated) {
                                     GuestAuthHelper.showGuestLoginBottomSheet(
                                       context,
                                       title: 'Login Required',
-                                      subtitle: 'Please log in to add items to your favorites.',
+                                      subtitle:
+                                          'Please log in to add items to your favorites.',
                                       icon: Icons.favorite_border_rounded,
                                     );
                                     return;
                                   }
                                   HapticFeedback.lightImpact();
-                                  context.read<FavoritesCubit>().toggleFavorite(product.id);
+                                  context.read<FavoritesCubit>().toggleFavorite(
+                                    product.id,
+                                  );
                                 },
                                 child: Container(
                                   padding: const EdgeInsets.all(6),
                                   decoration: BoxDecoration(
-                                    color: AppColors.parchment.withValues(alpha: 0.9),
+                                    color: AppColors.parchment.withValues(
+                                      alpha: 0.9,
+                                    ),
                                     shape: BoxShape.circle,
                                     boxShadow: [
                                       BoxShadow(
-                                        color: Colors.black.withValues(alpha: 0.05),
+                                        color: Colors.black.withValues(
+                                          alpha: 0.05,
+                                        ),
                                         blurRadius: 4,
                                         offset: const Offset(0, 2),
                                       ),
                                     ],
                                   ),
                                   child: Icon(
-                                    isFavorite ? Icons.favorite : Icons.favorite_border,
+                                    isFavorite
+                                        ? Icons.favorite
+                                        : Icons.favorite_border,
                                     size: 18,
-                                    color: isFavorite
-                                        ? AppColors.rawEarth
-                                        : (isDark ? AppColors.charcoal54 : AppColors.charcoal45),
+                                    color:
+                                        isFavorite
+                                            ? AppColors.rawEarth
+                                            : (isDark
+                                                ? AppColors.charcoal54
+                                                : AppColors.charcoal45),
                                   ),
                                 ),
                               );
@@ -230,7 +279,11 @@ class ProductCard extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        _buildCategoryCapsule(product.productCategory, theme, isDark),
+                        _buildCategoryCapsule(
+                          product.productCategory,
+                          theme,
+                          isDark,
+                        ),
                         const SizedBox(height: 4),
                         Text(
                           product.productName,
@@ -241,7 +294,12 @@ class ProductCard extends StatelessWidget {
                           overflow: TextOverflow.ellipsis,
                         ),
                         const SizedBox(height: 4),
-                        _buildQuantityTag(product.weight, product.weightUnit, theme, isDark),
+                        _buildQuantityTag(
+                          product.weight,
+                          product.weightUnit,
+                          theme,
+                          isDark,
+                        ),
                         const SizedBox(height: 8),
                         Row(
                           children: [
@@ -283,7 +341,10 @@ class ProductCard extends StatelessWidget {
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(20),
                   child: ColoredBox(
-                    color: isDark ? Colors.black.withValues(alpha: 0.72) : Colors.white.withValues(alpha: 0.72),
+                    color:
+                        isDark
+                            ? Colors.black.withValues(alpha: 0.72)
+                            : Colors.white.withValues(alpha: 0.72),
                     child: const ComingSoonOverlay(),
                   ),
                 ),
@@ -293,7 +354,10 @@ class ProductCard extends StatelessWidget {
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(20),
                   child: ColoredBox(
-                    color: isDark ? Colors.black.withValues(alpha: 0.72) : Colors.white.withValues(alpha: 0.72),
+                    color:
+                        isDark
+                            ? Colors.black.withValues(alpha: 0.72)
+                            : Colors.white.withValues(alpha: 0.72),
                     child: const OutOfStockOverlay(),
                   ),
                 ),
@@ -323,35 +387,30 @@ class ProductCard extends StatelessWidget {
 
   Widget _buildProductImage(ProductEntity product, int index) {
     if (product.productImages.isNotEmpty) {
-      return CachedNetworkImage(
+      return AnaadNetworkImage(
         imageUrl: product.productImages[0].image,
-        fit: BoxFit.cover,
-        errorWidget: (context, url, error) => _buildDummyFoodImage(index),
-        placeholder: (context, url) => Container(
-          color: Colors.grey.withValues(alpha: 0.1),
-        ),
+        semanticLabel: product.productName,
+        fallback: _buildDummyFoodImage(index),
       );
     }
     return _buildDummyFoodImage(index);
   }
 
   Widget _buildDummyFoodImage(int index) {
-    final images = [
-      'assets/images/placeholder_veg.png',
-    ];
+    final images = ['assets/images/placeholder_veg.png'];
     final img = images[index % images.length];
     return Image.asset(
       img,
       fit: BoxFit.cover,
-      errorBuilder: (context, error, stackTrace) => Container(
-        color: AppColors.harvestAmber.withValues(alpha: 0.1),
-        child: const Icon(
-          Icons.restaurant_menu_rounded,
-          color: AppColors.harvestAmber,
-          size: 40,
-        ),
-      ),
+      errorBuilder:
+          (context, error, stackTrace) => Container(
+            color: AppColors.harvestAmber.withValues(alpha: 0.1),
+            child: const Icon(
+              Icons.restaurant_menu_rounded,
+              color: AppColors.harvestAmber,
+              size: 40,
+            ),
+          ),
     );
   }
 }
-

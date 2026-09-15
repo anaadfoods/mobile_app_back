@@ -6,7 +6,6 @@ abstract class InnovationsRemoteDataSource {
   // TODO: Add remote data source methods
 }
 
-class InnovationsRemoteDataSourceImpl
-    implements InnovationsRemoteDataSource {
+class InnovationsRemoteDataSourceImpl implements InnovationsRemoteDataSource {
   // TODO: Implement remote data source methods
 }

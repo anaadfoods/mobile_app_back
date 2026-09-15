@@ -4,5 +4,6 @@ class RegisterDeviceTokenUseCase {
   final NotificationsRepository _repository;
   RegisterDeviceTokenUseCase(this._repository);
 
-  Future<void> call(String fcmToken) => _repository.registerDeviceToken(fcmToken);
+  Future<void> call(String fcmToken) =>
+      _repository.registerDeviceToken(fcmToken);
 }

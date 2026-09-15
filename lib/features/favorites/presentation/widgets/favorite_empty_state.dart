@@ -4,10 +4,7 @@ import 'package:grocery_app/styles/colors.dart';
 class FavoriteEmptyState extends StatelessWidget {
   final Animation<double> pulseAnimation;
 
-  const FavoriteEmptyState({
-    super.key,
-    required this.pulseAnimation,
-  });
+  const FavoriteEmptyState({super.key, required this.pulseAnimation});
 
   @override
   Widget build(BuildContext context) {
@@ -50,7 +47,9 @@ class FavoriteEmptyState extends StatelessWidget {
             const SizedBox(height: 24),
             Text(
               'No Favorites Yet',
-              style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+              style: theme.textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
             ),
             const SizedBox(height: 12),
             Text(

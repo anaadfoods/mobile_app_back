@@ -73,9 +73,10 @@ class FavoriteItemCard extends StatelessWidget {
                       width: 80,
                       height: 80,
                       decoration: BoxDecoration(
-                        color: isDark
-                            ? AppColors.darkSurfaceElevated
-                            : AppColors.parchment,
+                        color:
+                            isDark
+                                ? AppColors.darkSurfaceElevated
+                                : AppColors.parchment,
                         borderRadius: BorderRadius.circular(16),
                       ),
                       child: ClipRRect(
@@ -83,17 +84,19 @@ class FavoriteItemCard extends StatelessWidget {
                         child: CachedNetworkImage(
                           imageUrl: favorite.image,
                           fit: BoxFit.cover,
-                          placeholder: (context, url) => Center(
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              color: theme.colorScheme.primary,
-                            ),
-                          ),
-                          errorWidget: (context, url, error) => Icon(
-                            Icons.image_not_supported_rounded,
-                            color: theme.disabledColor,
-                            size: 32,
-                          ),
+                          placeholder:
+                              (context, url) => Center(
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: theme.colorScheme.primary,
+                                ),
+                              ),
+                          errorWidget:
+                              (context, url, error) => Icon(
+                                Icons.image_not_supported_rounded,
+                                color: theme.disabledColor,
+                                size: 32,
+                              ),
                         ),
                       ),
                     ),
@@ -117,20 +120,21 @@ class FavoriteItemCard extends StatelessWidget {
                             ),
                           ],
                         ),
-                        child: isBeingRemoved
-                            ? const SizedBox(
-                                width: 12,
-                                height: 12,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
+                        child:
+                            isBeingRemoved
+                                ? const SizedBox(
+                                  width: 12,
+                                  height: 12,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    color: AppColors.parchment,
+                                  ),
+                                )
+                                : const Icon(
+                                  Icons.favorite_rounded,
                                   color: AppColors.parchment,
+                                  size: 12,
                                 ),
-                              )
-                            : const Icon(
-                                Icons.favorite_rounded,
-                                color: AppColors.parchment,
-                                size: 12,
-                              ),
                       ),
                     ),
                   ),
@@ -143,7 +147,11 @@ class FavoriteItemCard extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _buildCategoryCapsule(favorite.productCategory, theme, isDark),
+                    _buildCategoryCapsule(
+                      favorite.productCategory,
+                      theme,
+                      isDark,
+                    ),
                     const SizedBox(height: 4),
                     Text(
                       favorite.name,
@@ -173,21 +181,22 @@ class FavoriteItemCard extends StatelessWidget {
                 children: [
                   AnimatedSwitcher(
                     duration: const Duration(milliseconds: 200),
-                    child: isProcessing && !isBeingRemoved
-                        ? Container(
-                            width: 100,
-                            height: 44,
-                            alignment: Alignment.center,
-                            child: SizedBox(
-                              width: 24,
-                              height: 24,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                color: theme.colorScheme.primary,
+                    child:
+                        isProcessing && !isBeingRemoved
+                            ? Container(
+                              width: 100,
+                              height: 44,
+                              alignment: Alignment.center,
+                              child: SizedBox(
+                                width: 24,
+                                height: 24,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: theme.colorScheme.primary,
+                                ),
                               ),
-                            ),
-                          )
-                        : quantity == 0
+                            )
+                            : quantity == 0
                             ? _buildAddToCartButton(theme)
                             : _buildQuantitySelector(theme, isDark),
                   ),
@@ -205,9 +214,10 @@ class FavoriteItemCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
-        color: isDark
-            ? theme.colorScheme.primary.withValues(alpha: 0.15)
-            : theme.colorScheme.primary.withValues(alpha: 0.08),
+        color:
+            isDark
+                ? theme.colorScheme.primary.withValues(alpha: 0.15)
+                : theme.colorScheme.primary.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(100),
       ),
       child: Text(
@@ -227,14 +237,16 @@ class FavoriteItemCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: BoxDecoration(
-        color: isDark
-            ? AppColors.darkSurfaceElevated
-            : theme.colorScheme.secondary.withValues(alpha: 0.05),
+        color:
+            isDark
+                ? AppColors.darkSurfaceElevated
+                : theme.colorScheme.secondary.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(8),
         border: Border.all(
-          color: isDark
-              ? AppColors.darkSurface
-              : theme.colorScheme.secondary.withValues(alpha: 0.1),
+          color:
+              isDark
+                  ? AppColors.darkSurface
+                  : theme.colorScheme.secondary.withValues(alpha: 0.1),
           width: 1,
         ),
       ),

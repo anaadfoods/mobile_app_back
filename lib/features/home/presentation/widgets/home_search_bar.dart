@@ -32,15 +32,16 @@ class HomeSearchBar extends StatelessWidget {
         decoration: BoxDecoration(
           color: isDark ? AppColors.charcoal : AppColors.parchment,
           borderRadius: BorderRadius.circular(27),
-          boxShadow: focusNode.hasFocus
-              ? [
-                  BoxShadow(
-                    color: colorScheme.primary.withValues(alpha: 0.15),
-                    blurRadius: 20,
-                    offset: const Offset(0, 4),
-                  ),
-                ]
-              : [],
+          boxShadow:
+              focusNode.hasFocus
+                  ? [
+                    BoxShadow(
+                      color: colorScheme.primary.withValues(alpha: 0.15),
+                      blurRadius: 20,
+                      offset: const Offset(0, 4),
+                    ),
+                  ]
+                  : [],
         ),
         child: ClipRRect(
           borderRadius: BorderRadius.circular(27),
@@ -49,11 +50,12 @@ class HomeSearchBar extends StatelessWidget {
               const SizedBox(width: 16),
               Icon(
                 Icons.search_rounded,
-                color: focusNode.hasFocus
-                    ? colorScheme.primary
-                    : (isDark
-                        ? AppColors.parchment.withValues(alpha: 0.7)
-                        : AppColors.rawEarth),
+                color:
+                    focusNode.hasFocus
+                        ? colorScheme.primary
+                        : (isDark
+                            ? AppColors.parchment.withValues(alpha: 0.7)
+                            : AppColors.rawEarth),
                 size: 22,
               ),
               const SizedBox(width: 12),
@@ -61,14 +63,19 @@ class HomeSearchBar extends StatelessWidget {
                 child: TextField(
                   controller: controller,
                   focusNode: focusNode,
+                  textInputAction: TextInputAction.search,
+                  autocorrect: false,
+                  enableSuggestions: true,
                   style: theme.textTheme.bodyLarge,
                   decoration: InputDecoration(
+                    semanticCounterText: 'Search Anaad products',
                     hintText: "Search by grain, flour, or variety...",
                     filled: false,
                     hintStyle: TextStyle(
-                      color: isDark
-                          ? AppColors.parchment.withValues(alpha: 0.5)
-                          : AppColors.rawEarth.withValues(alpha: 0.54),
+                      color:
+                          isDark
+                              ? AppColors.parchment.withValues(alpha: 0.5)
+                              : AppColors.rawEarth.withValues(alpha: 0.54),
                       fontWeight: FontWeight.w400,
                     ),
                     border: InputBorder.none,
@@ -98,22 +105,28 @@ class HomeSearchBar extends StatelessWidget {
               else if (controller.text.isNotEmpty)
                 Padding(
                   padding: const EdgeInsets.only(right: 8),
-                  child: GestureDetector(
-                    onTap: onClear,
-                    child: Container(
+                  child: Semantics(
+                    button: true,
+                    label: 'Clear search',
+                    child: GestureDetector(
+                      onTap: onClear,
+                      child: Container(
                       padding: const EdgeInsets.all(6),
                       decoration: BoxDecoration(
-                        color: isDark
-                            ? AppColors.charcoal.withValues(alpha: 0.87)
-                            : AppColors.rawEarth.withValues(alpha: 0.12),
+                        color:
+                            isDark
+                                ? AppColors.charcoal.withValues(alpha: 0.87)
+                                : AppColors.rawEarth.withValues(alpha: 0.12),
                         shape: BoxShape.circle,
                       ),
                       child: Icon(
                         Icons.close_rounded,
-                        color: isDark
-                            ? AppColors.rawEarth.withValues(alpha: 0.26)
-                            : AppColors.rawEarth,
+                        color:
+                            isDark
+                                ? AppColors.rawEarth.withValues(alpha: 0.26)
+                                : AppColors.rawEarth,
                         size: 16,
+                      ),
                       ),
                     ),
                   ),

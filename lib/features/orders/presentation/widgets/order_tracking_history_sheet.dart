@@ -145,7 +145,9 @@ class TrackingHistorySheet extends StatelessWidget {
                                   Container(
                                     width: 2,
                                     height: 48,
-                                    color: AppColors.deepSoilGreen.withValues(alpha: 0.2),
+                                    color: AppColors.deepSoilGreen.withValues(
+                                      alpha: 0.2,
+                                    ),
                                   ),
                                 ],
                               ),
@@ -156,16 +158,16 @@ class TrackingHistorySheet extends StatelessWidget {
                                   children: [
                                     Text(
                                       event.status,
-                                      style: theme.textTheme.titleSmall?.copyWith(
-                                        fontWeight: FontWeight.w600,
-                                      ),
+                                      style: theme.textTheme.titleSmall
+                                          ?.copyWith(
+                                            fontWeight: FontWeight.w600,
+                                          ),
                                     ),
                                     const SizedBox(height: 2),
                                     Text(
                                       event.activity,
-                                      style: theme.textTheme.bodyMedium?.copyWith(
-                                        color: theme.hintColor,
-                                      ),
+                                      style: theme.textTheme.bodyMedium
+                                          ?.copyWith(color: theme.hintColor),
                                     ),
                                     if (event.location.isNotEmpty) ...[
                                       const SizedBox(height: 2),
@@ -179,19 +181,25 @@ class TrackingHistorySheet extends StatelessWidget {
                                           const SizedBox(width: 4),
                                           Text(
                                             event.location,
-                                            style: theme.textTheme.bodySmall?.copyWith(
-                                              color: theme.hintColor,
-                                            ),
+                                            style: theme.textTheme.bodySmall
+                                                ?.copyWith(
+                                                  color: theme.hintColor,
+                                                ),
                                           ),
                                         ],
                                       ),
                                     ],
                                     const SizedBox(height: 2),
                                     Text(
-                                      DateFormat('h:mm a').format(event.timestamp),
-                                      style: theme.textTheme.bodySmall?.copyWith(
-                                        color: theme.hintColor.withValues(alpha: 0.7),
-                                      ),
+                                      DateFormat(
+                                        'h:mm a',
+                                      ).format(event.timestamp),
+                                      style: theme.textTheme.bodySmall
+                                          ?.copyWith(
+                                            color: theme.hintColor.withValues(
+                                              alpha: 0.7,
+                                            ),
+                                          ),
                                     ),
                                   ],
                                 ),

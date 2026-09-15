@@ -6,7 +6,11 @@ import 'solar_popup_content.dart';
 class PanchangChakraButton extends StatefulWidget {
   final ThemeData theme;
   final VoidCallback onTap;
-  const PanchangChakraButton({super.key, required this.theme, required this.onTap});
+  const PanchangChakraButton({
+    super.key,
+    required this.theme,
+    required this.onTap,
+  });
 
   @override
   State<PanchangChakraButton> createState() => _PanchangChakraButtonState();

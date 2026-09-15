@@ -2,10 +2,7 @@ class ProductImageEntity {
   final String image;
   final String altText;
 
-  const ProductImageEntity({
-    required this.image,
-    required this.altText,
-  });
+  const ProductImageEntity({required this.image, required this.altText});
 }
 
 class ProductEntity {
@@ -23,6 +20,8 @@ class ProductEntity {
   final String productCategory;
   final List<ProductImageEntity> productImages;
   final String? cropCycleId;
+
+  String get name => productName;
 
   const ProductEntity({
     required this.id,

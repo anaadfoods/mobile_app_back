@@ -14,12 +14,14 @@ import 'package:grocery_app/features/orders/presentation/cubit/order_cubit.dart'
 import 'package:grocery_app/features/subscriptions/presentation/cubit/subscription_cubit.dart';
 import 'package:grocery_app/features/notifications/presentation/cubit/notification_cubit.dart';
 import 'package:grocery_app/features/home/presentation/cubit/home_cubit.dart';
+import 'package:grocery_app/features/chat/presentation/cubit/chat_cubit.dart';
 import 'package:grocery_app/core/theme/cubit/theme_cubit.dart';
 
 // Services & Helpers
 import 'package:grocery_app/services/notification_service.dart';
 import 'package:grocery_app/helpers/double_click_back.dart';
 import 'package:grocery_app/core/theme/app_theme.dart';
+import 'package:grocery_app/core/theme/app_scroll_behavior.dart';
 import 'package:grocery_app/common_widgets/connectivity_wrapper.dart';
 import 'package:grocery_app/routes/app_router.dart';
 import 'package:grocery_app/service_locator.dart';
@@ -36,34 +38,22 @@ class MyApp extends StatelessWidget {
         BlocProvider(
           create: (context) => getIt<AuthCubit>()..checkAuthStatus(),
         ),
-        BlocProvider(
-          create: (context) => getIt<ProductCubit>()..loadHomePageData(),
-        ),
-        BlocProvider<CartCubit>(
-          create: (context) => getIt<CartCubit>(),
-        ),
-        BlocProvider(
-          create: (context) => getIt<OrderCubit>(),
-        ),
-        BlocProvider(
-          create: (context) => getIt<SubscriptionCubit>(),
-        ),
-        BlocProvider(
-          create: (context) => getIt<FavoritesCubit>(),
-        ),
-        BlocProvider(
-          create: (context) => getIt<NotificationCubit>(),
-        ),
-        BlocProvider(
-          create: (context) => getIt<HomeCubit>(),
-        ),
+        // Product data is loaded by the discovery surfaces that need it.
+        // Avoiding an eager network request keeps launch responsive, especially
+        // on slower connections and for users still on authentication screens.
+        BlocProvider(create: (context) => getIt<ProductCubit>()),
+        BlocProvider<CartCubit>(create: (context) => getIt<CartCubit>()),
+        BlocProvider(create: (context) => getIt<OrderCubit>()),
+        BlocProvider(create: (context) => getIt<SubscriptionCubit>()),
+        BlocProvider(create: (context) => getIt<FavoritesCubit>()),
+        BlocProvider(create: (context) => getIt<NotificationCubit>()),
+        BlocProvider(create: (context) => getIt<HomeCubit>()),
+        BlocProvider(create: (context) => getIt<ChatCubit>()),
       ],
       child: BlocBuilder<ThemeCubit, ThemeMode>(
         builder: (context, themeMode) {
           return MaterialApp.router(
-            scrollBehavior: const ScrollBehavior().copyWith(
-              physics: const ClampingScrollPhysics(),
-            ),
+            scrollBehavior: const AppScrollBehavior(),
             debugShowCheckedModeBanner: false,
             useInheritedMediaQuery: true,
             locale: kDebugMode ? DevicePreview.locale(context) : null,
@@ -77,17 +67,19 @@ class MyApp extends StatelessWidget {
                   textScaler: TextScaler.linear(
                     MediaQuery.textScalerOf(
                       context,
-                    ).scale(1.0).clamp(0.85, 1.3),
+                    ).scale(1.0).clamp(0.85, 2.0),
                   ),
                 ),
                 child: ConnectivityWrapper(
-                  child: DoubleBackToExitApp(child: child!),
+                  child: DoubleBackToExitApp(
+                    child: child ?? const SizedBox.shrink(),
+                  ),
                 ),
               );
 
               final wrappedWidget = AppGlobalListeners(child: widget);
 
-              return kDebugMode
+              return (kDebugMode && DevicePreview.isEnabled(context))
                   ? DevicePreview.appBuilder(context, wrappedWidget)
                   : wrappedWidget;
             },
@@ -134,13 +126,17 @@ class _AppGlobalListenersState extends State<AppGlobalListeners>
         BlocListener<AuthCubit, AuthState>(
           listener: (context, state) {
             if (state is Authenticated) {
-              context.read<NotificationCubit>().registerDevice();
+              final notifCubit = context.read<NotificationCubit>();
+              getIt<NotificationService>().updateCubit(notifCubit);
+              getIt<NotificationService>().reconnectWebSocket();
+              notifCubit.registerDevice();
               context.read<CartCubit>().loadCart();
               context.read<OrderCubit>().fetchOrders();
               context.read<SubscriptionCubit>().fetchUserSubscriptions();
               context.read<FavoritesCubit>().loadFavorites();
-              context.read<NotificationCubit>().syncNotifications();
+              notifCubit.syncNotifications();
             } else if (state is Unauthenticated) {
+              getIt<NotificationService>().reconnectWebSocket();
               context.read<NotificationCubit>().unregisterDevice();
               context.read<CartCubit>().clearCartState();
               context.read<FavoritesCubit>().clearFavoritesState();

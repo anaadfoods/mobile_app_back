@@ -34,38 +34,46 @@ class SubscriptionOneTimeCard extends StatelessWidget {
         curve: Curves.easeOutCubic,
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          gradient: isSelected
-              ? LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [accentColor, accentColor.withValues(alpha: 0.85)],
-                )
-              : null,
-          color: isSelected
-              ? null
-              : (isDark ? AppColors.darkSurfaceElevated : AppColors.pureWhite),
+          gradient:
+              isSelected
+                  ? LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [accentColor, accentColor.withValues(alpha: 0.85)],
+                  )
+                  : null,
+          color:
+              isSelected
+                  ? null
+                  : (isDark
+                      ? AppColors.darkSurfaceElevated
+                      : AppColors.pureWhite),
           borderRadius: BorderRadius.circular(18),
           border: Border.all(
-            color: isSelected
-                ? accentColor.withValues(alpha: 0.5)
-                : (isDark ? AppColors.parchment.withValues(alpha: 0.1) : AppColors.charcoal12),
+            color:
+                isSelected
+                    ? accentColor.withValues(alpha: 0.5)
+                    : (isDark
+                        ? AppColors.parchment.withValues(alpha: 0.1)
+                        : AppColors.charcoal12),
             width: isSelected ? 2 : 1.5,
           ),
-          boxShadow: isSelected
-              ? [
-                  BoxShadow(
-                    color: accentColor.withValues(alpha: 0.3),
-                    blurRadius: 16,
-                    offset: const Offset(0, 6),
-                  ),
-                ]
-              : [
-                  BoxShadow(
-                    color: AppColors.charcoal.withValues(alpha: 0.06),
-                    blurRadius: 8,
-                    offset: const Offset(0, 3),
-                  ),
-                ],
+          boxShadow:
+              isSelected
+                  ? [
+                    BoxShadow(
+                      color: accentColor.withValues(alpha: 0.3),
+                      blurRadius: 16,
+                      offset: const Offset(0, 6),
+                    ),
+                  ]
+                  : [
+                    BoxShadow(
+                      color: AppColors.charcoal.withValues(alpha: 0.06),
+                      blurRadius: 8,
+                      offset: const Offset(0, 3),
+                    ),
+                  ],
         ),
         child: Column(
           children: [
@@ -77,23 +85,28 @@ class SubscriptionOneTimeCard extends StatelessWidget {
                   height: 26,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: isSelected
-                      ? AppColors.pureWhite.withValues(alpha: 0.2)
-                      : AppColors.transparent,
+                    color:
+                        isSelected
+                            ? AppColors.pureWhite.withValues(alpha: 0.2)
+                            : AppColors.transparent,
                     border: Border.all(
-                      color: isSelected
-                          ? AppColors.pureWhite
-                          : (isDark ? AppColors.parchment54 : AppColors.charcoal38),
+                      color:
+                          isSelected
+                              ? AppColors.pureWhite
+                              : (isDark
+                                  ? AppColors.parchment54
+                                  : AppColors.charcoal38),
                       width: 2,
                     ),
                   ),
-                  child: isSelected
-                      ? const Icon(
-                          Icons.check,
-                          size: 16,
-                          color: AppColors.pureWhite,
-                        )
-                      : null,
+                  child:
+                      isSelected
+                          ? const Icon(
+                            Icons.check,
+                            size: 16,
+                            color: AppColors.pureWhite,
+                          )
+                          : null,
                 ),
                 const SizedBox(width: 14),
                 Expanded(
@@ -111,9 +124,10 @@ class SubscriptionOneTimeCard extends StatelessWidget {
                       Text(
                         'Single order, no commitment',
                         style: theme.textTheme.bodySmall?.copyWith(
-                          color: isSelected
-                              ? AppColors.pureWhite.withValues(alpha: 0.7)
-                              : theme.hintColor,
+                          color:
+                              isSelected
+                                  ? AppColors.pureWhite.withValues(alpha: 0.7)
+                                  : theme.hintColor,
                         ),
                       ),
                     ],
@@ -123,7 +137,10 @@ class SubscriptionOneTimeCard extends StatelessWidget {
                   '₹${product.finalPrice.toStringAsFixed(0)}',
                   style: theme.textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.bold,
-                    color: isSelected ? AppColors.pureWhite : AppColors.harvestAmber,
+                    color:
+                        isSelected
+                            ? AppColors.pureWhite
+                            : AppColors.harvestAmber,
                   ),
                 ),
               ],

@@ -55,4 +55,21 @@ class AppLogger {
       _logger.d(message);
     }
   }
+
+  // ─── Static Convenience Helpers ───────────────────────────────────────────
+  static void error(dynamic message, [dynamic error, StackTrace? stackTrace]) {
+    instance.e(message, error, stackTrace);
+  }
+
+  static void warn(dynamic message, [dynamic error, StackTrace? stackTrace]) {
+    instance.w(message, error, stackTrace);
+  }
+
+  static void info(dynamic message, [dynamic error, StackTrace? stackTrace]) {
+    instance.i(message, error, stackTrace);
+  }
+
+  static void debug(dynamic message, [dynamic error, StackTrace? stackTrace]) {
+    instance.d(message, error, stackTrace);
+  }
 }

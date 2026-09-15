@@ -23,7 +23,8 @@ class OrderActionsCard extends StatelessWidget {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
-    final canCancel = order.status != 'DELIVERED' &&
+    final canCancel =
+        order.status != 'DELIVERED' &&
         order.status != 'CANCELLED' &&
         order.status != 'SHIPPED';
 
@@ -62,9 +63,10 @@ class OrderActionsCard extends StatelessWidget {
               isDark,
               icon: Icons.download_rounded,
               title: 'Download Invoice',
-              subtitle: isDelivered
-                  ? 'Get PDF copy of your order'
-                  : 'Wait until you get your product',
+              subtitle:
+                  isDelivered
+                      ? 'Get PDF copy of your order'
+                      : 'Wait until you get your product',
               color: AppColors.harvestAmber,
               onTap: isDelivered ? onDownloadInvoice : () {},
             ),
@@ -116,16 +118,17 @@ class OrderActionsCard extends StatelessWidget {
                 color: color.withValues(alpha: 0.15),
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: isLoading
-                  ? SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: color,
-                      ),
-                    )
-                  : Icon(icon, color: color, size: 20),
+              child:
+                  isLoading
+                      ? SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: color,
+                        ),
+                      )
+                      : Icon(icon, color: color, size: 20),
             ),
             const SizedBox(width: 14),
             Expanded(

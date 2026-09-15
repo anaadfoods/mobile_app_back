@@ -84,7 +84,10 @@ class OrderDetailHeader extends StatelessWidget {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         IconButton(
-                          icon: const Icon(Icons.arrow_back_rounded, color: AppColors.parchment),
+                          icon: const Icon(
+                            Icons.arrow_back_rounded,
+                            color: AppColors.parchment,
+                          ),
                           onPressed: onBack,
                         ),
                         GestureDetector(
@@ -146,17 +149,20 @@ class OrderDetailHeader extends StatelessWidget {
                                 alignment: Alignment.centerLeft,
                                 child: Text(
                                   'Order #${order.orderNumber}',
-                                  style: theme.textTheme.headlineSmall?.copyWith(
-                                    color: AppColors.parchment,
-                                    fontWeight: FontWeight.bold,
-                                  ),
+                                  style: theme.textTheme.headlineSmall
+                                      ?.copyWith(
+                                        color: AppColors.parchment,
+                                        fontWeight: FontWeight.bold,
+                                      ),
                                 ),
                               ),
                               const SizedBox(height: 4),
                               Text(
                                 'Placed on ${_formatShortDate(order.createdAt)}',
                                 style: theme.textTheme.bodyMedium?.copyWith(
-                                  color: AppColors.parchment.withValues(alpha: 0.8),
+                                  color: AppColors.parchment.withValues(
+                                    alpha: 0.8,
+                                  ),
                                 ),
                               ),
                             ],
@@ -164,14 +170,21 @@ class OrderDetailHeader extends StatelessWidget {
                         ),
                         GestureDetector(
                           onTap: () {
-                            Clipboard.setData(ClipboardData(text: order.orderNumber));
+                            Clipboard.setData(
+                              ClipboardData(text: order.orderNumber),
+                            );
                             HapticFeedback.mediumImpact();
-                            SnackBarHelper.showSuccess(context, 'Order ID copied!');
+                            SnackBarHelper.showSuccess(
+                              context,
+                              'Order ID copied!',
+                            );
                           },
                           child: Container(
                             padding: const EdgeInsets.all(10),
                             decoration: BoxDecoration(
-                              color: AppColors.parchment.withValues(alpha: 0.15),
+                              color: AppColors.parchment.withValues(
+                                alpha: 0.15,
+                              ),
                               borderRadius: BorderRadius.circular(12),
                             ),
                             child: const Icon(

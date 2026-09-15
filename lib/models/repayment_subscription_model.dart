@@ -22,9 +22,10 @@ class RepaymentSubscriptionResponse {
   factory RepaymentSubscriptionResponse.fromJson(Map<String, dynamic> json) {
     return RepaymentSubscriptionResponse(
       success: json['success'] ?? false,
-      paymentLinks: json['payment_links'] != null
-          ? PaymentLinks.fromJson(json['payment_links'])
-          : null,
+      paymentLinks:
+          json['payment_links'] != null
+              ? PaymentLinks.fromJson(json['payment_links'])
+              : null,
       subscriptionId: json['subscription_id'],
       merchantTransactionId: json['merchant_transaction_id'],
       installmentNumber: json['installment_number'],
@@ -55,16 +56,10 @@ class PaymentLinks {
   PaymentLinks({this.web, this.expiry});
 
   factory PaymentLinks.fromJson(Map<String, dynamic> json) {
-    return PaymentLinks(
-      web: json['web'],
-      expiry: json['expiry'],
-    );
+    return PaymentLinks(web: json['web'], expiry: json['expiry']);
   }
 
   Map<String, dynamic> toJson() {
-    return {
-      'web': web,
-      'expiry': expiry,
-    };
+    return {'web': web, 'expiry': expiry};
   }
 }

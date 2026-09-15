@@ -70,6 +70,19 @@ enum AppRoute {
     name: 'panchang_advanced_timings',
   ),
 
+  // Kundli Routes
+  kundli(path: '/kundli', name: 'kundli'),
+  kundliInput(path: '/kundli-input', name: 'kundli_input'),
+  kundliDetails(path: '/kundli-details', name: 'kundli_details'),
+
+  // Prakriti Assessment Routes
+  prakritiQuiz(path: '/prakriti-quiz', name: 'prakriti_quiz'),
+  prakritiAnswers(path: '/prakriti-answers', name: 'prakriti_answers'),
+
+  // AI Chat & Health Profile
+  aiChat(path: '/ai-chat', name: 'ai_chat'),
+  healthProfile(path: '/health-profile', name: 'health_profile'),
+
   // Misc
   webview(path: '/webview', name: 'webview'),
   filter(path: '/filter', name: 'filter'),

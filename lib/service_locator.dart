@@ -20,6 +20,27 @@ import 'package:grocery_app/services/legal_service.dart';
 import 'package:grocery_app/services/referral_reward_service.dart';
 import 'package:grocery_app/services/rfp_services.dart';
 import 'package:grocery_app/services/user_summary_service.dart';
+import 'package:grocery_app/services/content_config_service.dart';
+
+import 'package:grocery_app/features/panchang/data/datasources/panchang_remote_data_source.dart';
+import 'package:grocery_app/features/panchang/data/datasources/kundli_remote_data_source.dart';
+import 'package:grocery_app/features/panchang/data/repositories/panchang_repository_impl.dart' as panchang_impl;
+import 'package:grocery_app/features/panchang/data/repositories/kundli_repository_impl.dart';
+import 'package:grocery_app/features/panchang/domain/repositories/panchang_repository.dart' as panchang_domain;
+import 'package:grocery_app/features/panchang/domain/repositories/kundli_repository.dart';
+import 'package:grocery_app/features/panchang/domain/usecases/get_panchang_day_use_case.dart';
+import 'package:grocery_app/features/panchang/domain/usecases/get_panchang_month_use_case.dart';
+import 'package:grocery_app/features/panchang/domain/usecases/get_festivals_use_case.dart';
+import 'package:grocery_app/features/panchang/domain/usecases/get_vrat_calendar_use_case.dart';
+import 'package:grocery_app/features/panchang/domain/usecases/get_today_guidance_use_case.dart';
+import 'package:grocery_app/features/panchang/domain/usecases/get_guidance_profile_use_case.dart';
+import 'package:grocery_app/features/panchang/domain/usecases/save_guidance_profile_use_case.dart';
+import 'package:grocery_app/features/panchang/domain/usecases/get_user_panchang_use_case.dart';
+import 'package:grocery_app/features/panchang/domain/usecases/get_user_kundli_use_case.dart';
+import 'package:grocery_app/features/panchang/domain/usecases/generate_kundli_use_case.dart';
+import 'package:grocery_app/features/panchang/domain/usecases/get_birth_details_use_case.dart';
+import 'package:grocery_app/features/panchang/domain/usecases/save_birth_details_use_case.dart';
+import 'package:grocery_app/features/panchang/presentation/cubit/kundli_cubit.dart';
 
 import 'package:grocery_app/services/connectivity_service.dart';
 import 'package:grocery_app/services/navigation_service.dart';
@@ -55,17 +76,18 @@ import 'package:grocery_app/features/misc/presentation/cubit/profile_cubit.dart'
 
 import 'package:grocery_app/features/home/data/datasources/home_remote_data_source.dart';
 import 'package:grocery_app/features/home/data/repositories/home_repository_impl.dart';
-import 'package:grocery_app/features/home/domain/repositories/home_repository.dart' as home_domain;
+import 'package:grocery_app/features/home/domain/repositories/home_repository.dart'
+    as home_domain;
 import 'package:grocery_app/features/home/domain/usecases/get_banners_use_case.dart';
 import 'package:grocery_app/features/home/domain/usecases/get_communities_use_case.dart';
 import 'package:grocery_app/features/home/presentation/cubit/home_cubit.dart';
-
 
 import 'package:grocery_app/features/payments/data/datasources/easebuzz_remote_data_source.dart';
 import 'package:grocery_app/features/payments/data/datasources/juspay_remote_data_source.dart';
 import 'package:grocery_app/features/payments/data/repositories/easebuzz_payments_repository_impl.dart';
 import 'package:grocery_app/features/payments/data/repositories/juspay_payments_repository_impl.dart';
-import 'package:grocery_app/features/payments/domain/repositories/payments_repository.dart' as payments_domain;
+import 'package:grocery_app/features/payments/domain/repositories/payments_repository.dart'
+    as payments_domain;
 import 'package:grocery_app/features/payments/domain/usecases/get_payment_status_use_case.dart';
 import 'package:grocery_app/features/payments/domain/usecases/poll_payment_status_use_case.dart';
 import 'package:grocery_app/features/payments/domain/usecases/verify_payment_response_use_case.dart';
@@ -73,7 +95,8 @@ import 'package:grocery_app/features/payments/domain/usecases/verify_payment_res
 import 'package:grocery_app/features/auth/data/datasources/auth_local_data_source.dart';
 import 'package:grocery_app/features/auth/data/datasources/auth_remote_data_source.dart';
 import 'package:grocery_app/features/auth/data/repositories/auth_repository_impl.dart';
-import 'package:grocery_app/features/auth/domain/repositories/auth_repository.dart' as domain;
+import 'package:grocery_app/features/auth/domain/repositories/auth_repository.dart'
+    as domain;
 import 'package:grocery_app/features/auth/domain/usecases/check_auth_status_use_case.dart';
 import 'package:grocery_app/features/auth/domain/usecases/login_use_case.dart';
 import 'package:grocery_app/features/auth/domain/usecases/register_use_case.dart';
@@ -95,7 +118,8 @@ import 'package:grocery_app/features/notifications/presentation/cubit/notificati
 
 import 'package:grocery_app/features/products/data/datasources/products_remote_data_source.dart';
 import 'package:grocery_app/features/products/data/repositories/products_repository_impl.dart';
-import 'package:grocery_app/features/products/domain/repositories/products_repository.dart' as prod_domain;
+import 'package:grocery_app/features/products/domain/repositories/products_repository.dart'
+    as prod_domain;
 import 'package:grocery_app/features/products/domain/usecases/get_categories_use_case.dart';
 import 'package:grocery_app/features/products/domain/usecases/get_featured_products_use_case.dart';
 import 'package:grocery_app/features/products/domain/usecases/get_bestseller_products_use_case.dart';
@@ -105,15 +129,31 @@ import 'package:grocery_app/features/products/domain/usecases/search_products_us
 
 import 'package:grocery_app/features/favorites/data/datasources/favorites_remote_data_source.dart';
 import 'package:grocery_app/features/favorites/data/repositories/favorites_repository_impl.dart';
-import 'package:grocery_app/features/favorites/domain/repositories/favorites_repository.dart' as fav_domain;
+import 'package:grocery_app/features/favorites/domain/repositories/favorites_repository.dart'
+    as fav_domain;
 import 'package:grocery_app/features/favorites/domain/usecases/get_favorites_use_case.dart';
 import 'package:grocery_app/features/favorites/domain/usecases/toggle_favorite_use_case.dart';
 
-import 'package:grocery_app/repositories/chat_repository.dart';
+import 'package:grocery_app/features/chat/data/datasources/chat_remote_data_source.dart';
+import 'package:grocery_app/features/chat/data/repositories/chat_repository_impl.dart';
+import 'package:grocery_app/features/chat/domain/repositories/chat_repository.dart'
+    as chat_domain;
+import 'package:grocery_app/features/chat/domain/usecases/send_message_use_case.dart';
+import 'package:grocery_app/features/chat/domain/usecases/stream_message_use_case.dart';
+import 'package:grocery_app/features/chat/domain/usecases/create_session_use_case.dart';
+import 'package:grocery_app/features/chat/domain/usecases/list_sessions_use_case.dart';
+import 'package:grocery_app/features/chat/domain/usecases/get_session_detail_use_case.dart';
+import 'package:grocery_app/features/chat/domain/usecases/rename_session_use_case.dart';
+import 'package:grocery_app/features/chat/domain/usecases/delete_session_use_case.dart';
+import 'package:grocery_app/features/chat/domain/usecases/confirm_action_use_case.dart';
+import 'package:grocery_app/features/chat/domain/usecases/save_health_observation_use_case.dart';
+import 'package:grocery_app/features/chat/domain/usecases/delete_memory_use_case.dart';
+import 'package:grocery_app/features/chat/presentation/cubit/chat_cubit.dart';
 
 import 'package:grocery_app/features/orders/data/datasources/orders_remote_data_source.dart';
 import 'package:grocery_app/features/orders/data/repositories/orders_repository_impl.dart';
-import 'package:grocery_app/features/orders/domain/repositories/orders_repository.dart' as orders_domain;
+import 'package:grocery_app/features/orders/domain/repositories/orders_repository.dart'
+    as orders_domain;
 import 'package:grocery_app/features/orders/domain/usecases/get_orders_use_case.dart';
 import 'package:grocery_app/features/orders/domain/usecases/get_order_by_id_use_case.dart';
 import 'package:grocery_app/features/orders/domain/usecases/create_order_use_case.dart';
@@ -126,7 +166,8 @@ import 'package:grocery_app/repositories/product_repository.dart';
 
 import 'package:grocery_app/features/subscriptions/data/datasources/subscriptions_remote_data_source.dart';
 import 'package:grocery_app/features/subscriptions/data/repositories/subscriptions_repository_impl.dart';
-import 'package:grocery_app/features/subscriptions/domain/repositories/subscriptions_repository.dart' as subs_domain;
+import 'package:grocery_app/features/subscriptions/domain/repositories/subscriptions_repository.dart'
+    as subs_domain;
 import 'package:grocery_app/features/subscriptions/domain/usecases/get_user_subscriptions_use_case.dart';
 import 'package:grocery_app/features/subscriptions/domain/usecases/get_subscription_details_use_case.dart';
 import 'package:grocery_app/features/subscriptions/domain/usecases/get_subscription_plans_use_case.dart';
@@ -141,7 +182,8 @@ import 'package:grocery_app/features/subscriptions/domain/usecases/search_plans_
 import 'package:grocery_app/features/notifications/data/datasources/notifications_remote_data_source.dart';
 import 'package:grocery_app/features/notifications/data/datasources/notifications_local_data_source.dart';
 import 'package:grocery_app/features/notifications/data/repositories/notifications_repository_impl.dart';
-import 'package:grocery_app/features/notifications/domain/repositories/notifications_repository.dart' as notif_domain;
+import 'package:grocery_app/features/notifications/domain/repositories/notifications_repository.dart'
+    as notif_domain;
 import 'package:grocery_app/features/notifications/domain/usecases/get_local_notifications_use_case.dart';
 import 'package:grocery_app/features/notifications/domain/usecases/get_unread_count_use_case.dart';
 import 'package:grocery_app/features/notifications/domain/usecases/sync_notifications_use_case.dart';
@@ -178,6 +220,9 @@ void setupLocator() {
   getIt.registerLazySingleton<UserSummaryService>(
     () => UserSummaryService.create(),
   );
+  getIt.registerLazySingleton<ContentConfigService>(
+    () => ContentConfigService.create(),
+  );
 
   getIt.registerLazySingleton<ConnectivityService>(
     () => ConnectivityService.create(),
@@ -213,34 +258,52 @@ void setupLocator() {
     () => SubscriptionsRepositoryImpl(getIt<SubscriptionsRemoteDataSource>()),
   );
   getIt.registerLazySingleton<GetUserSubscriptionsUseCase>(
-    () => GetUserSubscriptionsUseCase(getIt<subs_domain.SubscriptionsRepository>()),
+    () => GetUserSubscriptionsUseCase(
+      getIt<subs_domain.SubscriptionsRepository>(),
+    ),
   );
   getIt.registerLazySingleton<GetSubscriptionDetailsUseCase>(
-    () => GetSubscriptionDetailsUseCase(getIt<subs_domain.SubscriptionsRepository>()),
+    () => GetSubscriptionDetailsUseCase(
+      getIt<subs_domain.SubscriptionsRepository>(),
+    ),
   );
   getIt.registerLazySingleton<GetSubscriptionPlansUseCase>(
-    () => GetSubscriptionPlansUseCase(getIt<subs_domain.SubscriptionsRepository>()),
+    () => GetSubscriptionPlansUseCase(
+      getIt<subs_domain.SubscriptionsRepository>(),
+    ),
   );
   getIt.registerLazySingleton<CreateSubscriptionUseCase>(
-    () => CreateSubscriptionUseCase(getIt<subs_domain.SubscriptionsRepository>()),
+    () =>
+        CreateSubscriptionUseCase(getIt<subs_domain.SubscriptionsRepository>()),
   );
   getIt.registerLazySingleton<CancelSubscriptionUseCase>(
-    () => CancelSubscriptionUseCase(getIt<subs_domain.SubscriptionsRepository>()),
+    () =>
+        CancelSubscriptionUseCase(getIt<subs_domain.SubscriptionsRepository>()),
   );
   getIt.registerLazySingleton<TogglePauseSubscriptionUseCase>(
-    () => TogglePauseSubscriptionUseCase(getIt<subs_domain.SubscriptionsRepository>()),
+    () => TogglePauseSubscriptionUseCase(
+      getIt<subs_domain.SubscriptionsRepository>(),
+    ),
   );
   getIt.registerLazySingleton<RepaymentSubscriptionUseCase>(
-    () => RepaymentSubscriptionUseCase(getIt<subs_domain.SubscriptionsRepository>()),
+    () => RepaymentSubscriptionUseCase(
+      getIt<subs_domain.SubscriptionsRepository>(),
+    ),
   );
   getIt.registerLazySingleton<GetSubscriptionInvoicesUseCase>(
-    () => GetSubscriptionInvoicesUseCase(getIt<subs_domain.SubscriptionsRepository>()),
+    () => GetSubscriptionInvoicesUseCase(
+      getIt<subs_domain.SubscriptionsRepository>(),
+    ),
   );
   getIt.registerLazySingleton<GetSubscriptionPlanProductsUseCase>(
-    () => GetSubscriptionPlanProductsUseCase(getIt<subs_domain.SubscriptionsRepository>()),
+    () => GetSubscriptionPlanProductsUseCase(
+      getIt<subs_domain.SubscriptionsRepository>(),
+    ),
   );
   getIt.registerLazySingleton<SearchPlansForVariantUseCase>(
-    () => SearchPlansForVariantUseCase(getIt<subs_domain.SubscriptionsRepository>()),
+    () => SearchPlansForVariantUseCase(
+      getIt<subs_domain.SubscriptionsRepository>(),
+    ),
   );
 
   // Notifications Feature
@@ -257,28 +320,41 @@ void setupLocator() {
     ),
   );
   getIt.registerLazySingleton<GetLocalNotificationsUseCase>(
-    () => GetLocalNotificationsUseCase(getIt<notif_domain.NotificationsRepository>()),
+    () => GetLocalNotificationsUseCase(
+      getIt<notif_domain.NotificationsRepository>(),
+    ),
   );
   getIt.registerLazySingleton<GetUnreadCountUseCase>(
     () => GetUnreadCountUseCase(getIt<notif_domain.NotificationsRepository>()),
   );
   getIt.registerLazySingleton<SyncNotificationsUseCase>(
-    () => SyncNotificationsUseCase(getIt<notif_domain.NotificationsRepository>()),
+    () =>
+        SyncNotificationsUseCase(getIt<notif_domain.NotificationsRepository>()),
   );
   getIt.registerLazySingleton<MarkNotificationsAsReadUseCase>(
-    () => MarkNotificationsAsReadUseCase(getIt<notif_domain.NotificationsRepository>()),
+    () => MarkNotificationsAsReadUseCase(
+      getIt<notif_domain.NotificationsRepository>(),
+    ),
   );
   getIt.registerLazySingleton<DismissNotificationsUseCase>(
-    () => DismissNotificationsUseCase(getIt<notif_domain.NotificationsRepository>()),
+    () => DismissNotificationsUseCase(
+      getIt<notif_domain.NotificationsRepository>(),
+    ),
   );
   getIt.registerLazySingleton<RegisterDeviceTokenUseCase>(
-    () => RegisterDeviceTokenUseCase(getIt<notif_domain.NotificationsRepository>()),
+    () => RegisterDeviceTokenUseCase(
+      getIt<notif_domain.NotificationsRepository>(),
+    ),
   );
   getIt.registerLazySingleton<UnregisterDeviceTokenUseCase>(
-    () => UnregisterDeviceTokenUseCase(getIt<notif_domain.NotificationsRepository>()),
+    () => UnregisterDeviceTokenUseCase(
+      getIt<notif_domain.NotificationsRepository>(),
+    ),
   );
   getIt.registerLazySingleton<ResetNotificationBadgeUseCase>(
-    () => ResetNotificationBadgeUseCase(getIt<notif_domain.NotificationsRepository>()),
+    () => ResetNotificationBadgeUseCase(
+      getIt<notif_domain.NotificationsRepository>(),
+    ),
   );
 
   // Home Feature
@@ -301,13 +377,67 @@ void setupLocator() {
     ),
   );
 
+  // AI Chat Clean Architecture dependencies
+  getIt.registerLazySingleton<ChatRemoteDataSource>(
+    () => ChatRemoteDataSourceImpl(),
+  );
+  getIt.registerLazySingleton<chat_domain.ChatRepository>(
+    () => ChatRepositoryImpl(getIt<ChatRemoteDataSource>()),
+  );
+  getIt.registerLazySingleton<SendMessageUseCase>(
+    () => SendMessageUseCase(getIt<chat_domain.ChatRepository>()),
+  );
+  getIt.registerLazySingleton<StreamMessageUseCase>(
+    () => StreamMessageUseCase(getIt<chat_domain.ChatRepository>()),
+  );
+  getIt.registerLazySingleton<CreateSessionUseCase>(
+    () => CreateSessionUseCase(getIt<chat_domain.ChatRepository>()),
+  );
+  getIt.registerLazySingleton<ListSessionsUseCase>(
+    () => ListSessionsUseCase(getIt<chat_domain.ChatRepository>()),
+  );
+  getIt.registerLazySingleton<GetSessionDetailUseCase>(
+    () => GetSessionDetailUseCase(getIt<chat_domain.ChatRepository>()),
+  );
+  getIt.registerLazySingleton<RenameSessionUseCase>(
+    () => RenameSessionUseCase(getIt<chat_domain.ChatRepository>()),
+  );
+  getIt.registerLazySingleton<DeleteSessionUseCase>(
+    () => DeleteSessionUseCase(getIt<chat_domain.ChatRepository>()),
+  );
+  getIt.registerLazySingleton<ConfirmActionUseCase>(
+    () => ConfirmActionUseCase(getIt<chat_domain.ChatRepository>()),
+  );
+  getIt.registerLazySingleton<SaveHealthObservationUseCase>(
+    () => SaveHealthObservationUseCase(getIt<chat_domain.ChatRepository>()),
+  );
+  getIt.registerLazySingleton<DeleteMemoryUseCase>(
+    () => DeleteMemoryUseCase(getIt<chat_domain.ChatRepository>()),
+  );
+  getIt.registerLazySingleton<ChatCubit>(
+    () => ChatCubit(
+      sendMessageUseCase: getIt<SendMessageUseCase>(),
+      streamMessageUseCase: getIt<StreamMessageUseCase>(),
+      createSessionUseCase: getIt<CreateSessionUseCase>(),
+      listSessionsUseCase: getIt<ListSessionsUseCase>(),
+      getSessionDetailUseCase: getIt<GetSessionDetailUseCase>(),
+      renameSessionUseCase: getIt<RenameSessionUseCase>(),
+      deleteSessionUseCase: getIt<DeleteSessionUseCase>(),
+      confirmActionUseCase: getIt<ConfirmActionUseCase>(),
+      saveHealthObservationUseCase: getIt<SaveHealthObservationUseCase>(),
+      deleteMemoryUseCase: getIt<DeleteMemoryUseCase>(),
+    ),
+  );
 
-  getIt.registerLazySingleton<ChatRepository>(() => ChatRepository());
   getIt.registerLazySingleton<PanchangRepository>(() => PanchangRepository());
 
   // New clean architecture Auth dependencies
-  getIt.registerLazySingleton<AuthLocalDataSource>(() => AuthLocalDataSourceImpl());
-  getIt.registerLazySingleton<AuthRemoteDataSource>(() => AuthRemoteDataSourceImpl());
+  getIt.registerLazySingleton<AuthLocalDataSource>(
+    () => AuthLocalDataSourceImpl(),
+  );
+  getIt.registerLazySingleton<AuthRemoteDataSource>(
+    () => AuthRemoteDataSourceImpl(),
+  );
   getIt.registerLazySingleton<domain.AuthRepository>(
     () => AuthRepositoryImpl(
       remoteDataSource: getIt<AuthRemoteDataSource>(),
@@ -367,12 +497,19 @@ void setupLocator() {
   );
 
   // Payments Data Sources
-  getIt.registerLazySingleton<JuspayRemoteDataSource>(() => JuspayRemoteDataSource());
-  getIt.registerLazySingleton<EasebuzzRemoteDataSource>(() => EasebuzzRemoteDataSource());
+  getIt.registerLazySingleton<JuspayRemoteDataSource>(
+    () => JuspayRemoteDataSource(),
+  );
+  getIt.registerLazySingleton<EasebuzzRemoteDataSource>(
+    () => EasebuzzRemoteDataSource(),
+  );
 
   // Payments Repository (DI Factory)
   getIt.registerLazySingleton<payments_domain.PaymentsRepository>(() {
-    const gatewayEnv = String.fromEnvironment('PAYMENT_GATEWAY', defaultValue: 'easebuzz');
+    const gatewayEnv = String.fromEnvironment(
+      'PAYMENT_GATEWAY',
+      defaultValue: 'easebuzz',
+    );
     return createPaymentsRepository(gatewayEnv);
   });
 
@@ -384,7 +521,9 @@ void setupLocator() {
     () => PollPaymentStatusUseCase(getIt<payments_domain.PaymentsRepository>()),
   );
   getIt.registerLazySingleton<VerifyPaymentResponseUseCase>(
-    () => VerifyPaymentResponseUseCase(getIt<payments_domain.PaymentsRepository>()),
+    () => VerifyPaymentResponseUseCase(
+      getIt<payments_domain.PaymentsRepository>(),
+    ),
   );
 
   // Products Clean Architecture dependencies
@@ -435,9 +574,8 @@ void setupLocator() {
     () => OrdersRemoteDataSourceImpl(apiClient: getIt<ApiClient>()),
   );
   getIt.registerLazySingleton<orders_domain.OrdersRepository>(
-    () => OrdersRepositoryImpl(
-      remoteDataSource: getIt<OrdersRemoteDataSource>(),
-    ),
+    () =>
+        OrdersRepositoryImpl(remoteDataSource: getIt<OrdersRemoteDataSource>()),
   );
   getIt.registerLazySingleton<GetOrdersUseCase>(
     () => GetOrdersUseCase(getIt<orders_domain.OrdersRepository>()),
@@ -461,7 +599,8 @@ void setupLocator() {
     () => GetOrderTrackingUseCase(getIt<orders_domain.OrdersRepository>()),
   );
   getIt.registerLazySingleton<GetUserShippingDetailsUseCase>(
-    () => GetUserShippingDetailsUseCase(getIt<orders_domain.OrdersRepository>()),
+    () =>
+        GetUserShippingDetailsUseCase(getIt<orders_domain.OrdersRepository>()),
   );
 
   // Cubit Factories
@@ -536,7 +675,9 @@ void setupLocator() {
     () => AccountRemoteDataSourceImpl(tokenService: getIt<TokenService>()),
   );
   getIt.registerLazySingleton<AccountRepository>(
-    () => AccountRepositoryImpl(remoteDataSource: getIt<AccountRemoteDataSource>()),
+    () => AccountRepositoryImpl(
+      remoteDataSource: getIt<AccountRemoteDataSource>(),
+    ),
   );
   getIt.registerLazySingleton<FetchUserSummaryUseCase>(
     () => FetchUserSummaryUseCase(getIt<AccountRepository>()),
@@ -582,7 +723,9 @@ void setupLocator() {
     () => AddressRemoteDataSourceImpl(profileService: getIt<ProfileService>()),
   );
   getIt.registerLazySingleton<AddressRepository>(
-    () => AddressRepositoryImpl(remoteDataSource: getIt<AddressRemoteDataSource>()),
+    () => AddressRepositoryImpl(
+      remoteDataSource: getIt<AddressRemoteDataSource>(),
+    ),
   );
   getIt.registerLazySingleton<SaveAddressUseCase>(
     () => SaveAddressUseCase(getIt<AddressRepository>()),
@@ -595,7 +738,9 @@ void setupLocator() {
     () => ProfileRemoteDataSourceImpl(profileService: getIt<ProfileService>()),
   );
   getIt.registerLazySingleton<ProfileRepository>(
-    () => ProfileRepositoryImpl(remoteDataSource: getIt<ProfileRemoteDataSource>()),
+    () => ProfileRepositoryImpl(
+      remoteDataSource: getIt<ProfileRemoteDataSource>(),
+    ),
   );
   getIt.registerLazySingleton<UpdateUserProfileUseCase>(
     () => UpdateUserProfileUseCase(getIt<ProfileRepository>()),
@@ -607,6 +752,72 @@ void setupLocator() {
     () => ProfileCubit(
       updateUserProfileUseCase: getIt<UpdateUserProfileUseCase>(),
       uploadProfileImageUseCase: getIt<UploadProfileImageUseCase>(),
+    ),
+  );
+
+  // Panchang & Kundli Clean Architecture
+  getIt.registerLazySingleton<PanchangRemoteDataSource>(
+    () => PanchangRemoteDataSourceImpl(apiClient: getIt<ApiClient>()),
+  );
+  getIt.registerLazySingleton<KundliRemoteDataSource>(
+    () => KundliRemoteDataSourceImpl(apiClient: getIt<ApiClient>()),
+  );
+  getIt.registerLazySingleton<panchang_domain.PanchangRepository>(
+    () => panchang_impl.PanchangRepositoryImpl(
+      remoteDataSource: getIt<PanchangRemoteDataSource>(),
+    ),
+  );
+  getIt.registerLazySingleton<KundliRepository>(
+    () => KundliRepositoryImpl(
+      remoteDataSource: getIt<KundliRemoteDataSource>(),
+    ),
+  );
+
+  // Panchang & Kundli Use Cases
+  getIt.registerLazySingleton<GetPanchangDayUseCase>(
+    () => GetPanchangDayUseCase(getIt<panchang_domain.PanchangRepository>()),
+  );
+  getIt.registerLazySingleton<GetPanchangMonthUseCase>(
+    () => GetPanchangMonthUseCase(getIt<panchang_domain.PanchangRepository>()),
+  );
+  getIt.registerLazySingleton<GetFestivalsUseCase>(
+    () => GetFestivalsUseCase(getIt<panchang_domain.PanchangRepository>()),
+  );
+  getIt.registerLazySingleton<GetVratCalendarUseCase>(
+    () => GetVratCalendarUseCase(getIt<panchang_domain.PanchangRepository>()),
+  );
+  getIt.registerLazySingleton<GetTodayGuidanceUseCase>(
+    () => GetTodayGuidanceUseCase(getIt<panchang_domain.PanchangRepository>()),
+  );
+  getIt.registerLazySingleton<GetGuidanceProfileUseCase>(
+    () => GetGuidanceProfileUseCase(getIt<panchang_domain.PanchangRepository>()),
+  );
+  getIt.registerLazySingleton<SaveGuidanceProfileUseCase>(
+    () => SaveGuidanceProfileUseCase(getIt<panchang_domain.PanchangRepository>()),
+  );
+  getIt.registerLazySingleton<GetUserPanchangUseCase>(
+    () => GetUserPanchangUseCase(getIt<panchang_domain.PanchangRepository>()),
+  );
+  getIt.registerLazySingleton<GetUserKundliUseCase>(
+    () => GetUserKundliUseCase(getIt<KundliRepository>()),
+  );
+  getIt.registerLazySingleton<GenerateKundliUseCase>(
+    () => GenerateKundliUseCase(getIt<KundliRepository>()),
+  );
+  getIt.registerLazySingleton<GetBirthDetailsUseCase>(
+    () => GetBirthDetailsUseCase(getIt<KundliRepository>()),
+  );
+  getIt.registerLazySingleton<SaveBirthDetailsUseCase>(
+    () => SaveBirthDetailsUseCase(getIt<KundliRepository>()),
+  );
+
+  // Panchang & Kundli Cubits
+  getIt.registerFactory<KundliCubit>(
+    () => KundliCubit(
+      getUserKundliUseCase: getIt<GetUserKundliUseCase>(),
+      generateKundliUseCase: getIt<GenerateKundliUseCase>(),
+      getBirthDetailsUseCase: getIt<GetBirthDetailsUseCase>(),
+      saveBirthDetailsUseCase: getIt<SaveBirthDetailsUseCase>(),
     ),
   );
 }
@@ -622,4 +833,3 @@ payments_domain.PaymentsRepository createPaymentsRepository(String gateway) {
     );
   }
 }
-

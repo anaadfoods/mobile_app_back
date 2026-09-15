@@ -428,8 +428,10 @@ class _LoginScreenState extends State<LoginScreen>
                                                         _passwordController,
                                                     focusNode: _passwordFocus,
                                                     onPrimary: true,
-                                                    textInputAction: TextInputAction.done,
-                                                    onFieldSubmitted: (_) => _handleLogin(),
+                                                    textInputAction:
+                                                        TextInputAction.done,
+                                                    onFieldSubmitted:
+                                                        (_) => _handleLogin(),
                                                     validator: (value) {
                                                       if (value == null ||
                                                           value.isEmpty) {
@@ -517,7 +519,10 @@ class _LoginScreenState extends State<LoginScreen>
                                                       onPressed:
                                                           isLoading
                                                               ? null
-                                                      : () => context.push('/signup'),
+                                                              : () =>
+                                                                  context.push(
+                                                                    '/signup',
+                                                                  ),
                                                       child: Text(
                                                         "Register",
                                                         style: textTheme

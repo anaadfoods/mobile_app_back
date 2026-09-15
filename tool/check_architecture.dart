@@ -41,7 +41,10 @@ String? layerOf(String path) {
 }
 
 List<String> extractImports(String content) {
-  final importRegex = RegExp(r'''^\s*import\s+['"]([^'"]+)['"]''', multiLine: true);
+  final importRegex = RegExp(
+    r'''^\s*import\s+['"]([^'"]+)['"]''',
+    multiLine: true,
+  );
   return importRegex.allMatches(content).map((m) => m.group(1)!).toList();
 }
 
@@ -62,19 +65,24 @@ void main() {
       .where((f) => f.path.endsWith('.dart'));
 
   for (final file in dartFiles) {
-    final relPath = file.path.replaceFirst('${Directory.current.path}${Platform.pathSeparator}', '');
+    final relPath = file.path.replaceFirst(
+      '${Directory.current.path}${Platform.pathSeparator}',
+      '',
+    );
     final content = file.readAsStringSync();
     final layer = layerOf(relPath);
     final lineCount = '\n'.allMatches(content).length + 1;
 
     // --- File size budget ---
     if (lineCount > maxLinesPerFile) {
-      violations.add(Violation(
-        relPath,
-        'FILE_SIZE',
-        '$lineCount lines exceeds the $maxLinesPerFile line budget. '
-            'Split into smaller widgets/use cases.',
-      ));
+      violations.add(
+        Violation(
+          relPath,
+          'FILE_SIZE',
+          '$lineCount lines exceeds the $maxLinesPerFile line budget. '
+              'Split into smaller widgets/use cases.',
+        ),
+      );
     }
 
     if (layer == null) continue;
@@ -84,18 +92,22 @@ void main() {
     if (layer == 'domain') {
       for (final imp in imports) {
         if (imp.startsWith('package:flutter/')) {
-          violations.add(Violation(
-            relPath,
-            'DOMAIN_FLUTTER_IMPORT',
-            'domain/ imports "$imp" — domain must be pure Dart.',
-          ));
+          violations.add(
+            Violation(
+              relPath,
+              'DOMAIN_FLUTTER_IMPORT',
+              'domain/ imports "$imp" — domain must be pure Dart.',
+            ),
+          );
         }
         if (imp.contains('/data/') || imp.contains('/presentation/')) {
-          violations.add(Violation(
-            relPath,
-            'DOMAIN_LAYER_LEAK',
-            'domain/ imports "$imp" — domain must not depend on data/ or presentation/.',
-          ));
+          violations.add(
+            Violation(
+              relPath,
+              'DOMAIN_LAYER_LEAK',
+              'domain/ imports "$imp" — domain must not depend on data/ or presentation/.',
+            ),
+          );
         }
       }
     }
@@ -103,22 +115,28 @@ void main() {
     if (layer == 'presentation') {
       for (final imp in imports) {
         if (imp.contains('/data/')) {
-          violations.add(Violation(
-            relPath,
-            'PRESENTATION_SKIPS_DOMAIN',
-            'presentation/ imports "$imp" directly — must go through domain/ (use cases), not data/.',
-          ));
+          violations.add(
+            Violation(
+              relPath,
+              'PRESENTATION_SKIPS_DOMAIN',
+              'presentation/ imports "$imp" directly — must go through domain/ (use cases), not data/.',
+            ),
+          );
         }
       }
     }
   }
 
   if (violations.isEmpty) {
-    stdout.writeln('✅ Architecture check passed — no boundary or size violations.');
+    stdout.writeln(
+      '✅ Architecture check passed — no boundary or size violations.',
+    );
     exit(0);
   }
 
-  stderr.writeln('❌ Architecture check failed with ${violations.length} violation(s):\n');
+  stderr.writeln(
+    '❌ Architecture check failed with ${violations.length} violation(s):\n',
+  );
   for (final v in violations) {
     stderr.writeln(v);
   }

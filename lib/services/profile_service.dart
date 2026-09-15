@@ -3,7 +3,6 @@ import 'package:dio/dio.dart' as dio;
 
 import 'package:grocery_app/service_locator.dart';
 
-
 class ProfileService {
   static final ProfileService _instance = ProfileService._internal();
   factory ProfileService() => getIt<ProfileService>();
@@ -14,8 +13,6 @@ class ProfileService {
       StreamController<UserModel?>.broadcast();
   static Stream<UserModel?> get addressChanges =>
       _addressChangeController.stream;
-
-
 
   void _notifyAddressChange() {
     final user = TokenService().currentUser;

@@ -14,16 +14,21 @@ class ProfileCubit extends Cubit<ProfileState> {
   ProfileCubit({
     required UpdateUserProfileUseCase updateUserProfileUseCase,
     required UploadProfileImageUseCase uploadProfileImageUseCase,
-  })  : _updateUserProfileUseCase = updateUserProfileUseCase,
-        _uploadProfileImageUseCase = uploadProfileImageUseCase,
-        super(const ProfileInitial());
+  }) : _updateUserProfileUseCase = updateUserProfileUseCase,
+       _uploadProfileImageUseCase = uploadProfileImageUseCase,
+       super(const ProfileInitial());
 
   Future<Map<String, dynamic>> updateProfile(UserModel user) async {
     emit(const ProfileLoading());
     try {
       final result = await _updateUserProfileUseCase(user);
       if (result['success'] == true) {
-        emit(ProfileSuccess(result['message'] ?? 'Profile updated', data: result['data']));
+        emit(
+          ProfileSuccess(
+            result['message'] ?? 'Profile updated',
+            data: result['data'],
+          ),
+        );
       } else {
         emit(ProfileError(result['message'] ?? 'Failed to update profile'));
       }

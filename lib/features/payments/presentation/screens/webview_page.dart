@@ -53,7 +53,8 @@ class _WebViewPageState extends State<WebViewPage> {
   bool _isPolling = false;
 
   void _startPolling() {
-    final ref = widget.reference ??
+    final ref =
+        widget.reference ??
         widget.merchantTransactionId ??
         (widget.isSubscription
             ? widget.subID.toString()
@@ -95,73 +96,79 @@ class _WebViewPageState extends State<WebViewPage> {
     super.initState();
     _startPolling();
 
-    _controller = WebViewController()
-      ..setJavaScriptMode(JavaScriptMode.unrestricted)
-      ..setNavigationDelegate(
-        NavigationDelegate(
-          onProgress: (int progress) {},
-          onPageStarted: (String url) {
-            setState(() {
-              _isLoading = true;
-            });
-            widget.onUrlChanged?.call(url);
+    _controller =
+        WebViewController()
+          ..setJavaScriptMode(JavaScriptMode.unrestricted)
+          ..setNavigationDelegate(
+            NavigationDelegate(
+              onProgress: (int progress) {},
+              onPageStarted: (String url) {
+                setState(() {
+                  _isLoading = true;
+                });
+                widget.onUrlChanged?.call(url);
 
-            if (url.contains(ApiConfig.easebuzzSuccessCallback) ||
-                url.contains("${ApiConfig.baseUrl}/api/payments/success") ||
-                url.contains("${ApiConfig.baseUrl}/api/payment/success")) {
-              _handlePaymentSuccess();
-            } else if (url.contains(ApiConfig.easebuzzFailureCallback) ||
-                url.contains("${ApiConfig.baseUrl}/api/payments/failure") ||
-                url.contains("${ApiConfig.baseUrl}/api/payment/failure")) {
-              _handlePaymentFailure();
-            }
-          },
-          onPageFinished: (String url) async {
-            setState(() {
-              _isLoading = false;
-            });
-            widget.onUrlChanged?.call(url);
-            AppLogger.instance.log(url);
+                if (url.contains(ApiConfig.easebuzzSuccessCallback) ||
+                    url.contains("${ApiConfig.baseUrl}/api/payments/success") ||
+                    url.contains("${ApiConfig.baseUrl}/api/payment/success")) {
+                  _handlePaymentSuccess();
+                } else if (url.contains(ApiConfig.easebuzzFailureCallback) ||
+                    url.contains("${ApiConfig.baseUrl}/api/payments/failure") ||
+                    url.contains("${ApiConfig.baseUrl}/api/payment/failure")) {
+                  _handlePaymentFailure();
+                }
+              },
+              onPageFinished: (String url) async {
+                setState(() {
+                  _isLoading = false;
+                });
+                widget.onUrlChanged?.call(url);
+                AppLogger.instance.log(url);
 
-            if (url.contains(ApiConfig.easebuzzSuccessCallback) ||
-                url.contains("${ApiConfig.baseUrl}/api/payments/success") ||
-                url.contains("${ApiConfig.baseUrl}/api/payment/success")) {
-              await _handlePaymentSuccess();
-            } else if (url.contains(ApiConfig.easebuzzFailureCallback) ||
-                url.contains("${ApiConfig.baseUrl}/api/payments/failure") ||
-                url.contains("${ApiConfig.baseUrl}/api/payment/failure")) {
-              await _handlePaymentFailure();
-            }
-          },
-          onNavigationRequest: (NavigationRequest request) {
-            final url = request.url;
+                if (url.contains(ApiConfig.easebuzzSuccessCallback) ||
+                    url.contains("${ApiConfig.baseUrl}/api/payments/success") ||
+                    url.contains("${ApiConfig.baseUrl}/api/payment/success")) {
+                  await _handlePaymentSuccess();
+                } else if (url.contains(ApiConfig.easebuzzFailureCallback) ||
+                    url.contains("${ApiConfig.baseUrl}/api/payments/failure") ||
+                    url.contains("${ApiConfig.baseUrl}/api/payment/failure")) {
+                  await _handlePaymentFailure();
+                }
+              },
+              onNavigationRequest: (NavigationRequest request) {
+                final url = request.url;
 
-            if (url.contains(ApiConfig.easebuzzSuccessCallback) ||
-                url.contains("${ApiConfig.baseUrl}/api/payments/success") ||
-                url.contains("${ApiConfig.baseUrl}/api/payment/success")) {
-              _handlePaymentSuccess();
-              return NavigationDecision.prevent;
-            } else if (url.contains(ApiConfig.easebuzzFailureCallback) ||
-                url.contains("${ApiConfig.baseUrl}/api/payments/failure") ||
-                url.contains("${ApiConfig.baseUrl}/api/payment/failure")) {
-              _handlePaymentFailure();
-              return NavigationDecision.prevent;
-            }
+                if (url.contains(ApiConfig.easebuzzSuccessCallback) ||
+                    url.contains("${ApiConfig.baseUrl}/api/payments/success") ||
+                    url.contains("${ApiConfig.baseUrl}/api/payment/success")) {
+                  _handlePaymentSuccess();
+                  return NavigationDecision.prevent;
+                } else if (url.contains(ApiConfig.easebuzzFailureCallback) ||
+                    url.contains("${ApiConfig.baseUrl}/api/payments/failure") ||
+                    url.contains("${ApiConfig.baseUrl}/api/payment/failure")) {
+                  _handlePaymentFailure();
+                  return NavigationDecision.prevent;
+                }
 
-            if (!url.startsWith('http://') && !url.startsWith('https://')) {
-              final uri = Uri.parse(url);
-              launchUrl(uri, mode: LaunchMode.externalApplication).catchError((e) {
-                AppLogger.instance.e("Error launching external url: $e");
-                return false;
-              });
-              return NavigationDecision.prevent;
-            }
-            return NavigationDecision.navigate;
-          },
-        ),
-      )
-      ..loadRequest(Uri.parse(widget.url),
-          headers: widget.headers ?? const <String, String>{});
+                if (!url.startsWith('http://') && !url.startsWith('https://')) {
+                  final uri = Uri.parse(url);
+                  launchUrl(
+                    uri,
+                    mode: LaunchMode.externalApplication,
+                  ).catchError((e) {
+                    AppLogger.instance.e("Error launching external url: $e");
+                    return false;
+                  });
+                  return NavigationDecision.prevent;
+                }
+                return NavigationDecision.navigate;
+              },
+            ),
+          )
+          ..loadRequest(
+            Uri.parse(widget.url),
+            headers: widget.headers ?? const <String, String>{},
+          );
   }
 
   Future<void> _handlePaymentSuccess() async {
@@ -169,7 +176,8 @@ class _WebViewPageState extends State<WebViewPage> {
     _isHandlingPayment = true;
 
     try {
-      final ref = widget.reference ??
+      final ref =
+          widget.reference ??
           widget.merchantTransactionId ??
           (widget.isSubscription
               ? widget.subID.toString()
@@ -179,7 +187,9 @@ class _WebViewPageState extends State<WebViewPage> {
 
       final pollPaymentStatusUseCase = getIt<PollPaymentStatusUseCase>();
       final statusResponse = await pollPaymentStatusUseCase(ref);
-      AppLogger.instance.log("Verified payment status: ${statusResponse.status}");
+      AppLogger.instance.log(
+        "Verified payment status: ${statusResponse.status}",
+      );
 
       widget.onPaymentSuccess?.call(ApiConfig.baseUrl);
     } catch (e) {
@@ -203,47 +213,48 @@ class _WebViewPageState extends State<WebViewPage> {
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (_) => isSuccess
-          ? SuccessDialog(
-              message: message,
-              onDismiss: () {
-                Navigator.of(context).pop();
-                Navigator.of(context).pop();
-              },
-            )
-          : ErrorDialog(
-              title: 'Payment Failed',
-              message: message,
-              icon: Icons.payment_rounded,
-              iconColor: Theme.of(context).colorScheme.error,
-              showCloseButton: false,
-              onRetry: null,
-              onDismiss: () {
-                Navigator.of(context).pop();
-              },
-            ),
+      builder:
+          (_) =>
+              isSuccess
+                  ? SuccessDialog(
+                    message: message,
+                    onDismiss: () {
+                      Navigator.of(context).pop();
+                      Navigator.of(context).pop();
+                    },
+                  )
+                  : ErrorDialog(
+                    title: 'Payment Failed',
+                    message: message,
+                    icon: Icons.payment_rounded,
+                    iconColor: Theme.of(context).colorScheme.error,
+                    showCloseButton: false,
+                    onRetry: null,
+                    onDismiss: () {
+                      Navigator.of(context).pop();
+                    },
+                  ),
     );
   }
 
   Future<void> _confirmCancelAndVerifyStatus() async {
     final shouldPop = await showDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Cancel Payment?'),
-        content: const Text(
-          'Are you sure you want to cancel the payment?',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Continue Payment'),
+      builder:
+          (context) => AlertDialog(
+            title: const Text('Cancel Payment?'),
+            content: const Text('Are you sure you want to cancel the payment?'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(false),
+                child: const Text('Continue Payment'),
+              ),
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(true),
+                child: const Text('Cancel Payment'),
+              ),
+            ],
           ),
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('Cancel Payment'),
-          ),
-        ],
-      ),
     );
 
     if (shouldPop == true) {
@@ -252,14 +263,16 @@ class _WebViewPageState extends State<WebViewPage> {
       showDialog(
         context: context,
         barrierDismissible: false,
-        builder: (context) => const Center(
-          child: CircularProgressIndicator(color: AppColors.parchment),
-        ),
+        builder:
+            (context) => const Center(
+              child: CircularProgressIndicator(color: AppColors.parchment),
+            ),
       );
 
       try {
         final pollPaymentStatusUseCase = getIt<PollPaymentStatusUseCase>();
-        final ref = widget.reference ??
+        final ref =
+            widget.reference ??
             widget.merchantTransactionId ??
             (widget.isSubscription
                 ? widget.subID.toString()
@@ -300,19 +313,20 @@ class _WebViewPageState extends State<WebViewPage> {
               await _confirmCancelAndVerifyStatus();
             },
           ),
-          actions: _isLoading
-              ? [
-                  const Padding(
-                    padding: EdgeInsets.all(16.0),
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      valueColor: AlwaysStoppedAnimation<Color>(
-                        AppColors.parchment,
+          actions:
+              _isLoading
+                  ? [
+                    const Padding(
+                      padding: EdgeInsets.all(16.0),
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        valueColor: AlwaysStoppedAnimation<Color>(
+                          AppColors.parchment,
+                        ),
                       ),
                     ),
-                  ),
-                ]
-              : [],
+                  ]
+                  : [],
         ),
         body: Column(
           children: [

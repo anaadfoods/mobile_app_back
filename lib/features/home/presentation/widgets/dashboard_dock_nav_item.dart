@@ -66,15 +66,19 @@ class _DockNavItemState extends State<DockNavItem>
   Widget build(BuildContext context) {
     final dockScale = _calculateDockScale();
 
-    return GestureDetector(
-      onTapDown: (_) => _pressController.forward(),
-      onTapUp: (_) {
-        _pressController.reverse();
-        widget.onTap();
-      },
-      onTapCancel: () => _pressController.reverse(),
-      behavior: HitTestBehavior.opaque,
-      child: AnimatedBuilder(
+    return Semantics(
+      button: true,
+      selected: widget.isActive,
+      label: widget.item.label,
+      child: GestureDetector(
+        onTapDown: (_) => _pressController.forward(),
+        onTapUp: (_) {
+          _pressController.reverse();
+          widget.onTap();
+        },
+        onTapCancel: () => _pressController.reverse(),
+        behavior: HitTestBehavior.opaque,
+        child: AnimatedBuilder(
         animation: _pressAnimation,
         builder: (context, child) {
           return Transform.scale(scale: _pressAnimation.value, child: child);
@@ -96,22 +100,24 @@ class _DockNavItemState extends State<DockNavItem>
                       duration: const Duration(milliseconds: 200),
                       padding: const EdgeInsets.all(6),
                       decoration: BoxDecoration(
-                        color: widget.isActive
-                            ? AppColors.parchment.withValues(alpha: 0.12)
-                            : AppColors.transparent,
+                        color:
+                            widget.isActive
+                                ? AppColors.parchment.withValues(alpha: 0.12)
+                                : AppColors.transparent,
                         borderRadius: BorderRadius.circular(10),
                       ),
                       child: Icon(
                         widget.isActive
                             ? widget.item.activeIcon
                             : widget.item.icon,
-                        color: widget.isActive
-                            ? (widget.isDark
-                                ? AppColors.harvestAmber
-                                : AppColors.deepSoilGreen)
-                            : (widget.isDark
-                                ? AppColors.parchment.withValues(alpha: 0.4)
-                                : AppColors.rawEarth70),
+                        color:
+                            widget.isActive
+                                ? (widget.isDark
+                                    ? AppColors.harvestAmber
+                                    : AppColors.deepSoilGreen)
+                                : (widget.isDark
+                                    ? AppColors.parchment.withValues(alpha: 0.4)
+                                    : AppColors.rawEarth70),
                         size: 22,
                       ),
                     ),
@@ -127,13 +133,14 @@ class _DockNavItemState extends State<DockNavItem>
                     fontSize: widget.isActive ? 10 : 9,
                     fontWeight:
                         widget.isActive ? FontWeight.w600 : FontWeight.w500,
-                    color: widget.isActive
-                        ? (widget.isDark
-                            ? AppColors.harvestAmber
-                            : AppColors.deepSoilGreen)
-                        : (widget.isDark
-                            ? AppColors.parchment.withValues(alpha: 0.4)
-                            : AppColors.rawEarth70),
+                    color:
+                        widget.isActive
+                            ? (widget.isDark
+                                ? AppColors.harvestAmber
+                                : AppColors.deepSoilGreen)
+                            : (widget.isDark
+                                ? AppColors.parchment.withValues(alpha: 0.4)
+                                : AppColors.rawEarth70),
                     letterSpacing: widget.isActive ? 0.3 : 0,
                   ),
                   child: Text(widget.item.label),
@@ -141,6 +148,7 @@ class _DockNavItemState extends State<DockNavItem>
               ),
             ],
           ),
+        ),
         ),
       ),
     );
@@ -171,9 +179,7 @@ class DockCartNavItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Expanded(
-      child: SizedBox(width: 48),
-    );
+    return const Expanded(child: SizedBox(width: 48));
   }
 }
 
@@ -195,7 +201,11 @@ class BuildCenterFab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ScaleTransition(
+    return Semantics(
+      button: true,
+      selected: isCartActive,
+      label: cartCount > 0 ? 'Cart, $cartCount items' : 'Cart',
+      child: ScaleTransition(
       scale: Tween<double>(begin: 1.0, end: 1.12).animate(
         CurvedAnimation(parent: bounceController, curve: Curves.elasticOut),
       ),
@@ -209,15 +219,13 @@ class BuildCenterFab extends StatelessWidget {
             gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
-              colors: isCartActive
-                  ? [
-                      AppColors.harvestAmber,
-                      AppColors.harvestAmber.withValues(alpha: 0.85),
-                    ]
-                  : [
-                      AppColors.deepSoilGreen,
-                      AppColors.rawEarth,
-                    ],
+              colors:
+                  isCartActive
+                      ? [
+                        AppColors.harvestAmber,
+                        AppColors.harvestAmber.withValues(alpha: 0.85),
+                      ]
+                      : [AppColors.deepSoilGreen, AppColors.rawEarth],
             ),
             boxShadow: [
               BoxShadow(
@@ -240,9 +248,10 @@ class BuildCenterFab extends StatelessWidget {
                 isCartActive
                     ? Icons.shopping_cart_rounded
                     : Icons.shopping_cart_outlined,
-                color: isCartActive
-                    ? AppColors.deepSoilGreen
-                    : AppColors.parchment,
+                color:
+                    isCartActive
+                        ? AppColors.deepSoilGreen
+                        : AppColors.parchment,
                 size: 24,
               ),
               if (cartCount > 0)
@@ -254,6 +263,7 @@ class BuildCenterFab extends StatelessWidget {
             ],
           ),
         ),
+      ),
       ),
     );
   }

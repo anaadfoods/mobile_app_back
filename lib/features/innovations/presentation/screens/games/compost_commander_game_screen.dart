@@ -3756,15 +3756,14 @@ class _OrganicBackgroundPainter extends CustomPainter {
 
     // Maturity glow at bottom
     if (maturity > 0) {
-      paint
-        .shader = RadialGradient(
-          center: const Alignment(0, 1),
-          radius: 0.8,
-          colors: [
-            AppColors.deepSoilGreen.withValues(alpha: maturity / 300),
-            AppColors.transparent,
-          ],
-        ).createShader(Rect.fromLTWH(0, 0, size.width, size.height));
+      paint.shader = RadialGradient(
+        center: const Alignment(0, 1),
+        radius: 0.8,
+        colors: [
+          AppColors.deepSoilGreen.withValues(alpha: maturity / 300),
+          AppColors.transparent,
+        ],
+      ).createShader(Rect.fromLTWH(0, 0, size.width, size.height));
       canvas.drawRect(Rect.fromLTWH(0, 0, size.width, size.height), paint);
     }
   }

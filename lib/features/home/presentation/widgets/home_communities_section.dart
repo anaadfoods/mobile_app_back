@@ -35,9 +35,7 @@ class HomeCommunitiesSection extends StatelessWidget {
                       gradient: LinearGradient(
                         colors: [
                           AppColors.transparent,
-                          theme.colorScheme.onSurface.withValues(
-                            alpha: 0.2,
-                          ),
+                          theme.colorScheme.onSurface.withValues(alpha: 0.2),
                         ],
                       ),
                       borderRadius: BorderRadius.circular(2),
@@ -56,9 +54,7 @@ class HomeCommunitiesSection extends StatelessWidget {
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
                         colors: [
-                          theme.colorScheme.onSurface.withValues(
-                            alpha: 0.2,
-                          ),
+                          theme.colorScheme.onSurface.withValues(alpha: 0.2),
                           AppColors.transparent,
                         ],
                       ),
@@ -96,9 +92,7 @@ class HomeCommunitiesSection extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.w500,
-                      color: theme.colorScheme.onSurface.withValues(
-                        alpha: 0.7,
-                      ),
+                      color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
                       letterSpacing: 0.3,
                       fontStyle: FontStyle.italic,
                     ),

@@ -16,11 +16,11 @@ class HelpCubit extends Cubit<HelpState> {
     required VerifyOtpUseCase verifyOtpUseCase,
     required HelpDeactivateAccountUseCase deactivateAccountUseCase,
     required HelpConfirmDeactivationUseCase confirmDeactivationUseCase,
-  })  : _sendOtpUseCase = sendOtpUseCase,
-        _verifyOtpUseCase = verifyOtpUseCase,
-        _deactivateAccountUseCase = deactivateAccountUseCase,
-        _confirmDeactivationUseCase = confirmDeactivationUseCase,
-        super(const HelpInitial());
+  }) : _sendOtpUseCase = sendOtpUseCase,
+       _verifyOtpUseCase = verifyOtpUseCase,
+       _deactivateAccountUseCase = deactivateAccountUseCase,
+       _confirmDeactivationUseCase = confirmDeactivationUseCase,
+       super(const HelpInitial());
 
   Future<bool> sendOtp({
     required String identifier,

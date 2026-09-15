@@ -48,12 +48,12 @@ class ProductSuccess extends ProductState {
 
   @override
   List<Object?> get props => [
-        categories,
-        featuredProducts,
-        bestsellerProducts,
-        productsForCategory,
-        selectedProduct,
-      ];
+    categories,
+    featuredProducts,
+    bestsellerProducts,
+    productsForCategory,
+    selectedProduct,
+  ];
 }
 
 class ProductError extends ProductState {

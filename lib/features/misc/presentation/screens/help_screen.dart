@@ -1,4 +1,5 @@
-import 'package:grocery_app/features/auth/domain/repositories/auth_repository.dart' as domain;
+import 'package:grocery_app/features/auth/domain/repositories/auth_repository.dart'
+    as domain;
 import 'dart:ui';
 import 'dart:math' as math;
 import 'package:grocery_app/common_widgets/global_import.dart';
@@ -31,7 +32,7 @@ class _HelpScreenState extends State<HelpScreen> with TickerProviderStateMixin {
   void _initAnimations() {
     _headerController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 800),
+      duration: const Duration(milliseconds: 420),
     );
     _headerFade = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(parent: _headerController, curve: Curves.easeOut),
@@ -39,7 +40,7 @@ class _HelpScreenState extends State<HelpScreen> with TickerProviderStateMixin {
 
     _contentController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 600),
+      duration: const Duration(milliseconds: 320),
     );
     _contentFade = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(parent: _contentController, curve: Curves.easeOut),
@@ -256,7 +257,8 @@ class _HelpScreenState extends State<HelpScreen> with TickerProviderStateMixin {
                 Positioned(
                   left: 24,
                   right: 24,
-                  bottom: 40, // Keeps it nicely above the curved bottom (height 30)
+                  bottom:
+                      40, // Keeps it nicely above the curved bottom (height 30)
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
@@ -300,7 +302,9 @@ class _HelpScreenState extends State<HelpScreen> with TickerProviderStateMixin {
                         builder: (context, child) {
                           final scale =
                               1.0 +
-                              math.sin(_particleController.value * math.pi * 2) *
+                              math.sin(
+                                    _particleController.value * math.pi * 2,
+                                  ) *
                                   0.08;
                           return Transform.scale(
                             scale: scale,
@@ -604,7 +608,8 @@ class _HelpScreenState extends State<HelpScreen> with TickerProviderStateMixin {
       },
       {
         'icon': Icons.currency_rupee_rounded,
-        'title': 'Why is ANAAD priced differently from regular store-bought food?',
+        'title':
+            'Why is ANAAD priced differently from regular store-bought food?',
         'content':
             'ANAAD is priced based on real farming practices, fresher handling, traceability, and the responsibility of growing food with care. It reflects the cost of doing things properly, not the cost of doing them cheaply.',
       },
@@ -982,41 +987,55 @@ class _QueryFormSheetState extends State<_QueryFormSheet>
       SnackBarHelper.showError(context, 'Please enter $type first.');
       return;
     }
-    
+
     if (type == 'phone' && !RegExp(r'^\d{10}$').hasMatch(value.trim())) {
       SnackBarHelper.showError(context, 'Enter a valid 10-digit phone number.');
       return;
     }
-    if (type == 'email' && !RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value.trim())) {
+    if (type == 'email' &&
+        !RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value.trim())) {
       SnackBarHelper.showError(context, 'Enter a valid email.');
       return;
     }
 
     setState(() {
-      if (type == 'email') _isSendingEmailOtp = true;
-      else _isSendingPhoneOtp = true;
+      if (type == 'email')
+        _isSendingEmailOtp = true;
+      else
+        _isSendingPhoneOtp = true;
     });
 
     try {
-      await context.read<domain.AuthRepository>().sendOtp(value.trim(), type.toUpperCase());
+      await context.read<domain.AuthRepository>().sendOtp(
+        value.trim(),
+        type.toUpperCase(),
+      );
       if (!mounted) return;
       _showOtpDialog(
         type: type,
         value: value.trim(),
         onVerified: () {
           setState(() {
-            if (type == 'email') _isEmailVerified = true;
-            else _isPhoneVerified = true;
+            if (type == 'email')
+              _isEmailVerified = true;
+            else
+              _isPhoneVerified = true;
           });
         },
       );
     } catch (e) {
-      if (mounted) SnackBarHelper.showError(context, e.toString().replaceAll('Exception:', '').trim());
+      if (mounted)
+        SnackBarHelper.showError(
+          context,
+          e.toString().replaceAll('Exception:', '').trim(),
+        );
     } finally {
       if (mounted) {
         setState(() {
-          if (type == 'email') _isSendingEmailOtp = false;
-          else _isSendingPhoneOtp = false;
+          if (type == 'email')
+            _isSendingEmailOtp = false;
+          else
+            _isSendingPhoneOtp = false;
         });
       }
     }
@@ -1208,7 +1227,10 @@ class _QueryFormSheetState extends State<_QueryFormSheet>
                             } catch (e) {
                               SnackBarHelper.showError(
                                 context,
-                                e.toString().replaceAll('Exception:', '').trim(),
+                                e
+                                    .toString()
+                                    .replaceAll('Exception:', '')
+                                    .trim(),
                               );
                               rethrow;
                             }
@@ -1306,7 +1328,15 @@ class _QueryFormSheetState extends State<_QueryFormSheet>
                                               );
                                             } catch (e) {
                                               setDialogState(
-                                                () => dialogError = e.toString().replaceAll('Exception:', '').trim(),
+                                                () =>
+                                                    dialogError =
+                                                        e
+                                                            .toString()
+                                                            .replaceAll(
+                                                              'Exception:',
+                                                              '',
+                                                            )
+                                                            .trim(),
                                               );
                                             } finally {
                                               if (mounted) {
@@ -1422,7 +1452,10 @@ class _QueryFormSheetState extends State<_QueryFormSheet>
                 ),
                 const SizedBox(height: 28),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
+                  ),
                   decoration: BoxDecoration(
                     color: colorScheme.primary.withValues(alpha: 0.08),
                     borderRadius: BorderRadius.circular(12),
@@ -1483,20 +1516,31 @@ class _QueryFormSheetState extends State<_QueryFormSheet>
                       return 'Phone number must be exactly 10 digits';
                     return null;
                   },
-                  suffix: _isPhoneVerified
-                      ? const Icon(Icons.check_circle, color: AppColors.deepSoilGreen)
-                      : TextButton(
-                          onPressed: _isSendingPhoneOtp
-                              ? null
-                              : () => _sendOtp('phone', _phoneController.text),
-                          child: _isSendingPhoneOtp
-                              ? const SizedBox(
-                                  width: 16,
-                                  height: 16,
-                                  child: CircularProgressIndicator(strokeWidth: 2),
-                                )
-                              : const Text('Verify'),
-                        ),
+                  suffix:
+                      _isPhoneVerified
+                          ? const Icon(
+                            Icons.check_circle,
+                            color: AppColors.deepSoilGreen,
+                          )
+                          : TextButton(
+                            onPressed:
+                                _isSendingPhoneOtp
+                                    ? null
+                                    : () => _sendOtp(
+                                      'phone',
+                                      _phoneController.text,
+                                    ),
+                            child:
+                                _isSendingPhoneOtp
+                                    ? const SizedBox(
+                                      width: 16,
+                                      height: 16,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                      ),
+                                    )
+                                    : const Text('Verify'),
+                          ),
                 ),
                 const SizedBox(height: 16),
                 _buildTextField(
@@ -1518,20 +1562,31 @@ class _QueryFormSheetState extends State<_QueryFormSheet>
                       return 'Please enter a valid email';
                     return null;
                   },
-                  suffix: _isEmailVerified
-                      ? const Icon(Icons.check_circle, color: AppColors.deepSoilGreen)
-                      : TextButton(
-                          onPressed: _isSendingEmailOtp
-                              ? null
-                              : () => _sendOtp('email', _emailController.text),
-                          child: _isSendingEmailOtp
-                              ? const SizedBox(
-                                  width: 16,
-                                  height: 16,
-                                  child: CircularProgressIndicator(strokeWidth: 2),
-                                )
-                              : const Text('Verify'),
-                        ),
+                  suffix:
+                      _isEmailVerified
+                          ? const Icon(
+                            Icons.check_circle,
+                            color: AppColors.deepSoilGreen,
+                          )
+                          : TextButton(
+                            onPressed:
+                                _isSendingEmailOtp
+                                    ? null
+                                    : () => _sendOtp(
+                                      'email',
+                                      _emailController.text,
+                                    ),
+                            child:
+                                _isSendingEmailOtp
+                                    ? const SizedBox(
+                                      width: 16,
+                                      height: 16,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                      ),
+                                    )
+                                    : const Text('Verify'),
+                          ),
                 ),
                 const SizedBox(height: 16),
                 _buildTextField(

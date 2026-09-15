@@ -37,12 +37,13 @@ class PanchangDaySummary {
 
   factory PanchangDaySummary.fromJson(Map<String, dynamic> json) {
     final festivalsRaw = json['festivals'];
-    final festivals = festivalsRaw is List
-        ? festivalsRaw
-            .whereType<Map<String, dynamic>>()
-            .map(PanchangFestivalItem.fromJson)
-            .toList()
-        : <PanchangFestivalItem>[];
+    final festivals =
+        festivalsRaw is List
+            ? festivalsRaw
+                .whereType<Map<String, dynamic>>()
+                .map(PanchangFestivalItem.fromJson)
+                .toList()
+            : <PanchangFestivalItem>[];
 
     return PanchangDaySummary(
       date: (json['date'] ?? '').toString(),
@@ -55,7 +56,8 @@ class PanchangDaySummary {
       moonset: _tryParseDateTime(json['moonset']),
       tithi: (json['tithi'] ?? '').toString(),
       festivals: festivals,
-      majorFestivalsCount: (json['major_festivals_count'] as num?)?.toInt() ?? 0,
+      majorFestivalsCount:
+          (json['major_festivals_count'] as num?)?.toInt() ?? 0,
       vratsCount: (json['vrats_count'] as num?)?.toInt() ?? 0,
       primaryLabel: (json['primary_label'] ?? '').toString(),
       masa: (json['masa'] ?? '').toString(),
@@ -95,12 +97,13 @@ class PanchangMonthResponse {
 
   factory PanchangMonthResponse.fromJson(Map<String, dynamic> json) {
     final daysRaw = json['days'];
-    final days = daysRaw is List
-        ? daysRaw
-            .whereType<Map<String, dynamic>>()
-            .map(PanchangDaySummary.fromJson)
-            .toList()
-        : <PanchangDaySummary>[];
+    final days =
+        daysRaw is List
+            ? daysRaw
+                .whereType<Map<String, dynamic>>()
+                .map(PanchangDaySummary.fromJson)
+                .toList()
+            : <PanchangDaySummary>[];
 
     final gridRaw = json['grid'];
     final grid = <List<PanchangDaySummary?>>[];

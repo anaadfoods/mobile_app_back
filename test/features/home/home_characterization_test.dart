@@ -8,6 +8,7 @@ import 'package:grocery_app/features/home/presentation/cubit/home_cubit.dart';
 import 'package:grocery_app/features/home/presentation/cubit/home_state.dart';
 
 class MockGetBannersUseCase extends Mock implements GetBannersUseCase {}
+
 class MockGetCommunitiesUseCase extends Mock implements GetCommunitiesUseCase {}
 
 void main() {
@@ -52,24 +53,30 @@ void main() {
     );
   }
 
-  test('loadHomeData emits HomeLoading then HomeSuccess with banners and communities', () async {
-    final cubit = buildCubit();
-    await cubit.loadHomeData();
+  test(
+    'loadHomeData emits HomeLoading then HomeSuccess with banners and communities',
+    () async {
+      final cubit = buildCubit();
+      await cubit.loadHomeData();
 
-    expect(cubit.state, isA<HomeSuccess>());
-    final success = cubit.state as HomeSuccess;
-    expect(success.banners.length, 1);
-    expect(success.communities.length, 1);
-  });
+      expect(cubit.state, isA<HomeSuccess>());
+      final success = cubit.state as HomeSuccess;
+      expect(success.banners.length, 1);
+      expect(success.communities.length, 1);
+    },
+  );
 
-  test('loadHomeData handles banner failure gracefully and loads communities', () async {
-    when(() => mockGetBanners()).thenThrow(Exception('Banner error'));
-    final cubit = buildCubit();
-    await cubit.loadHomeData();
+  test(
+    'loadHomeData handles banner failure gracefully and loads communities',
+    () async {
+      when(() => mockGetBanners()).thenThrow(Exception('Banner error'));
+      final cubit = buildCubit();
+      await cubit.loadHomeData();
 
-    expect(cubit.state, isA<HomeSuccess>());
-    final success = cubit.state as HomeSuccess;
-    expect(success.banners.isEmpty, true);
-    expect(success.communities.length, 1);
-  });
+      expect(cubit.state, isA<HomeSuccess>());
+      final success = cubit.state as HomeSuccess;
+      expect(success.banners.isEmpty, true);
+      expect(success.communities.length, 1);
+    },
+  );
 }

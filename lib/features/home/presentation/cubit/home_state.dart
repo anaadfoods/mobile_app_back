@@ -17,10 +17,7 @@ class HomeSuccess extends HomeState {
   final List<BannerEntity> banners;
   final List<CommunityEntity> communities;
 
-  const HomeSuccess({
-    this.banners = const [],
-    this.communities = const [],
-  });
+  const HomeSuccess({this.banners = const [], this.communities = const []});
 
   HomeSuccess copyWith({
     List<BannerEntity>? banners,

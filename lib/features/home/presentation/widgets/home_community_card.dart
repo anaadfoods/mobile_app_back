@@ -54,8 +54,7 @@ class _AnimatedCommunityCardState extends State<AnimatedCommunityCard>
     final index = widget.index;
 
     final isEvenCard = index % 2 == 0;
-    final baseColor =
-        isEvenCard ? AppColors.deepSoilGreen : AppColors.rawEarth;
+    final baseColor = isEvenCard ? AppColors.deepSoilGreen : AppColors.rawEarth;
 
     return GestureDetector(
       onTapDown: (_) => setState(() => _isPressed = true),
@@ -76,10 +75,7 @@ class _AnimatedCommunityCardState extends State<AnimatedCommunityCard>
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 150),
           height: 180,
-          margin: const EdgeInsets.symmetric(
-            vertical: 8,
-            horizontal: 16,
-          ),
+          margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(24),
             boxShadow: [
@@ -103,21 +99,25 @@ class _AnimatedCommunityCardState extends State<AnimatedCommunityCard>
                   fit: BoxFit.cover,
                   width: double.infinity,
                   height: double.infinity,
-                  placeholder: (context, url) => Container(
-                    color: isEvenCard
-                        ? AppColors.deepSoilGreen
-                        : AppColors.rawEarth,
-                  ),
-                  errorWidget: (context, url, error) => Container(
-                    color: isEvenCard
-                        ? AppColors.deepSoilGreen
-                        : AppColors.rawEarth,
-                    child: const Icon(
-                      Icons.eco,
-                      size: 60,
-                      color: Colors.white24,
-                    ),
-                  ),
+                  placeholder:
+                      (context, url) => Container(
+                        color:
+                            isEvenCard
+                                ? AppColors.deepSoilGreen
+                                : AppColors.rawEarth,
+                      ),
+                  errorWidget:
+                      (context, url, error) => Container(
+                        color:
+                            isEvenCard
+                                ? AppColors.deepSoilGreen
+                                : AppColors.rawEarth,
+                        child: const Icon(
+                          Icons.eco,
+                          size: 60,
+                          color: Colors.white24,
+                        ),
+                      ),
                 ),
                 Container(
                   decoration: BoxDecoration(
@@ -185,8 +185,9 @@ class _AnimatedCommunityCardState extends State<AnimatedCommunityCard>
                                 ),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: AppColors.parchment
-                                        .withValues(alpha: 0.3),
+                                    color: AppColors.parchment.withValues(
+                                      alpha: 0.3,
+                                    ),
                                     blurRadius: 12,
                                     offset: const Offset(0, 4),
                                   ),
@@ -198,8 +199,9 @@ class _AnimatedCommunityCardState extends State<AnimatedCommunityCard>
                                   Container(
                                     padding: const EdgeInsets.all(1),
                                     decoration: BoxDecoration(
-                                      color: AppColors.parchment
-                                          .withValues(alpha: 0.4),
+                                      color: AppColors.parchment.withValues(
+                                        alpha: 0.4,
+                                      ),
                                       shape: BoxShape.circle,
                                     ),
                                     child: const Icon(
@@ -211,8 +213,7 @@ class _AnimatedCommunityCardState extends State<AnimatedCommunityCard>
                                   const SizedBox(width: 8),
                                   Text(
                                     "Coming Soon",
-                                    style:
-                                        theme.textTheme.labelSmall?.copyWith(
+                                    style: theme.textTheme.labelSmall?.copyWith(
                                       color: AppColors.parchment,
                                       fontWeight: FontWeight.w800,
                                       letterSpacing: 0.8,
@@ -252,8 +253,7 @@ class _AnimatedCommunityCardState extends State<AnimatedCommunityCard>
                                 children: [
                                   Text(
                                     "Explore",
-                                    style:
-                                        theme.textTheme.labelLarge?.copyWith(
+                                    style: theme.textTheme.labelLarge?.copyWith(
                                       color: AppColors.parchment,
                                       fontWeight: FontWeight.w800,
                                       letterSpacing: 0.5,

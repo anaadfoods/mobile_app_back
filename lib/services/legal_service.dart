@@ -8,6 +8,7 @@ import 'package:grocery_app/service_locator.dart';
 class LegalService {
   factory LegalService() => getIt<LegalService>();
   LegalService.create();
+
   /// Fetches latest legal documents from the API
   /// This endpoint does not require authentication
   Future<List<LegalDocument>> fetchLegalDocuments() async {

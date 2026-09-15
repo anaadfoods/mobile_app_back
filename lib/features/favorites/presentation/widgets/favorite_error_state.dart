@@ -13,7 +13,8 @@ class FavoriteErrorState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isLoginError = errorMessage.toLowerCase().contains('login') ||
+    final isLoginError =
+        errorMessage.toLowerCase().contains('login') ||
         errorMessage.toLowerCase().contains('unauthorized');
 
     if (isLoginError) {

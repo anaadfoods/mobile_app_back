@@ -36,16 +36,17 @@ class HomeCategorySkeleton extends StatelessWidget {
           scrollDirection: Axis.horizontal,
           itemCount: 5,
           padding: const EdgeInsets.symmetric(horizontal: 16),
-          itemBuilder: (context, index) => Padding(
-            padding: const EdgeInsets.only(right: 12),
-            child: Column(
-              children: const [
-                Skeleton(width: 60, height: 60, isCircle: true),
-                SizedBox(height: 6),
-                Skeleton(width: 50, height: 12),
-              ],
-            ),
-          ),
+          itemBuilder:
+              (context, index) => Padding(
+                padding: const EdgeInsets.only(right: 12),
+                child: Column(
+                  children: const [
+                    Skeleton(width: 60, height: 60, isCircle: true),
+                    SizedBox(height: 6),
+                    Skeleton(width: 50, height: 12),
+                  ],
+                ),
+              ),
         ),
       ),
     );
@@ -66,25 +67,26 @@ class HomeProductSkeleton extends StatelessWidget {
           scrollDirection: Axis.horizontal,
           itemCount: 4,
           padding: const EdgeInsets.symmetric(horizontal: 16),
-          itemBuilder: (context, index) => Container(
-            width: 150,
-            margin: const EdgeInsets.only(right: 12),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            padding: const EdgeInsets.all(8),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: const [
-                Skeleton(width: 134, height: 110),
-                SizedBox(height: 8),
-                Skeleton(width: 100, height: 14),
-                SizedBox(height: 6),
-                Skeleton(width: 60, height: 14),
-              ],
-            ),
-          ),
+          itemBuilder:
+              (context, index) => Container(
+                width: 150,
+                margin: const EdgeInsets.only(right: 12),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                padding: const EdgeInsets.all(8),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: const [
+                    Skeleton(width: 134, height: 110),
+                    SizedBox(height: 8),
+                    Skeleton(width: 100, height: 14),
+                    SizedBox(height: 6),
+                    Skeleton(width: 60, height: 14),
+                  ],
+                ),
+              ),
         ),
       ),
     );

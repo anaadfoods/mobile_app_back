@@ -15,9 +15,9 @@ class FavoritesCubit extends Cubit<FavoritesState> {
   FavoritesCubit({
     required GetFavoritesUseCase getFavoritesUseCase,
     required ToggleFavoriteUseCase toggleFavoriteUseCase,
-  })  : _getFavoritesUseCase = getFavoritesUseCase,
-        _toggleFavoriteUseCase = toggleFavoriteUseCase,
-        super(FavoritesInitial());
+  }) : _getFavoritesUseCase = getFavoritesUseCase,
+       _toggleFavoriteUseCase = toggleFavoriteUseCase,
+       super(FavoritesInitial());
 
   Future<void> loadFavorites() async {
     try {
@@ -58,7 +58,8 @@ class FavoritesCubit extends Cubit<FavoritesState> {
     emit(FavoritesSuccess(existingFavorites));
 
     // Debounce the backend sync call by 500ms
-    _favoriteToggleCounts[productId] = (_favoriteToggleCounts[productId] ?? 0) + 1;
+    _favoriteToggleCounts[productId] =
+        (_favoriteToggleCounts[productId] ?? 0) + 1;
     _favoriteDebouncers[productId]?.cancel();
 
     _favoriteDebouncers[productId] = Timer(
@@ -66,7 +67,7 @@ class FavoritesCubit extends Cubit<FavoritesState> {
       () async {
         final tapCount = _favoriteToggleCounts[productId] ?? 0;
         _favoriteToggleCounts[productId] = 0; // Reset toggle count
-        
+
         // If even number of taps, the net state returns to unchanged. Skip sync.
         if (tapCount % 2 == 0) return;
 

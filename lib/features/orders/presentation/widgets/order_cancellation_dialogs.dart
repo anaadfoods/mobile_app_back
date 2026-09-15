@@ -19,7 +19,8 @@ class CancelWarningDialog extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: (isDark ? AppColors.darkSoftRed : AppColors.softRed).withValues(alpha: 0.1),
+              color: (isDark ? AppColors.darkSoftRed : AppColors.softRed)
+                  .withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(10),
             ),
             child: Icon(
@@ -37,7 +38,10 @@ class CancelWarningDialog extends StatelessWidget {
             ? 'Cancelling this order is permanent. Once cancelled, it cannot be processed or shipped.'
             : 'Cancelling this subscription will stop all future scheduled deliveries permanently.',
         style: theme.textTheme.bodyMedium?.copyWith(
-          color: isDark ? AppColors.parchment.withValues(alpha: 0.7) : AppColors.charcoal54,
+          color:
+              isDark
+                  ? AppColors.parchment.withValues(alpha: 0.7)
+                  : AppColors.charcoal54,
         ),
       ),
       actions: [
@@ -46,7 +50,10 @@ class CancelWarningDialog extends StatelessWidget {
           child: Text(
             'Go Back',
             style: TextStyle(
-              color: isDark ? AppColors.parchment.withValues(alpha: 0.6) : AppColors.charcoal40,
+              color:
+                  isDark
+                      ? AppColors.parchment.withValues(alpha: 0.6)
+                      : AppColors.charcoal40,
             ),
           ),
         ),
@@ -55,7 +62,9 @@ class CancelWarningDialog extends StatelessWidget {
           style: ElevatedButton.styleFrom(
             backgroundColor: isDark ? AppColors.darkSoftRed : AppColors.softRed,
             foregroundColor: AppColors.pureWhite,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
           ),
           child: const Text('Proceed to Cancel'),
         ),
@@ -82,7 +91,8 @@ class CancelConfirmDialog extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: (isDark ? AppColors.darkSoftRed : AppColors.softRed).withValues(alpha: 0.1),
+              color: (isDark ? AppColors.darkSoftRed : AppColors.softRed)
+                  .withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(10),
             ),
             child: Icon(
@@ -100,7 +110,10 @@ class CancelConfirmDialog extends StatelessWidget {
             ? 'Are you absolutely sure you want to cancel this order? This action cannot be undone.'
             : 'Are you absolutely sure you want to cancel this subscription? All scheduled deliveries will be lost.',
         style: theme.textTheme.bodyMedium?.copyWith(
-          color: isDark ? AppColors.parchment.withValues(alpha: 0.7) : AppColors.charcoal54,
+          color:
+              isDark
+                  ? AppColors.parchment.withValues(alpha: 0.7)
+                  : AppColors.charcoal54,
         ),
       ),
       actions: [
@@ -109,7 +122,10 @@ class CancelConfirmDialog extends StatelessWidget {
           child: Text(
             'No, Keep It',
             style: TextStyle(
-              color: isDark ? AppColors.parchment.withValues(alpha: 0.6) : AppColors.charcoal40,
+              color:
+                  isDark
+                      ? AppColors.parchment.withValues(alpha: 0.6)
+                      : AppColors.charcoal40,
             ),
           ),
         ),
@@ -118,7 +134,9 @@ class CancelConfirmDialog extends StatelessWidget {
           style: ElevatedButton.styleFrom(
             backgroundColor: isDark ? AppColors.darkSoftRed : AppColors.softRed,
             foregroundColor: AppColors.pureWhite,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
           ),
           child: const Text('Yes, Cancel'),
         ),
@@ -167,7 +185,8 @@ class _CancelReasonDialogState extends State<CancelReasonDialog> {
           Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: (isDark ? AppColors.darkSoftRed : AppColors.softRed).withValues(alpha: 0.1),
+              color: (isDark ? AppColors.darkSoftRed : AppColors.softRed)
+                  .withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(10),
             ),
             child: Icon(
@@ -177,7 +196,9 @@ class _CancelReasonDialogState extends State<CancelReasonDialog> {
             ),
           ),
           const SizedBox(width: 12),
-          Text(widget.type == 'order' ? 'Cancel Order?' : 'Cancel Subscription?'),
+          Text(
+            widget.type == 'order' ? 'Cancel Order?' : 'Cancel Subscription?',
+          ),
         ],
       ),
       content: SingleChildScrollView(
@@ -196,22 +217,25 @@ class _CancelReasonDialogState extends State<CancelReasonDialog> {
             ..._reasons.map((reason) {
               return Theme(
                 data: theme.copyWith(
-                  unselectedWidgetColor: isDark
-                      ? AppColors.parchment.withValues(alpha: 0.5)
-                      : AppColors.charcoal40,
+                  unselectedWidgetColor:
+                      isDark
+                          ? AppColors.parchment.withValues(alpha: 0.5)
+                          : AppColors.charcoal40,
                 ),
                 child: RadioListTile<String>(
                   title: Text(
                     reason,
                     style: theme.textTheme.bodyMedium?.copyWith(
-                      color: isDark
-                          ? AppColors.parchment.withValues(alpha: 0.9)
-                          : AppColors.charcoal87,
+                      color:
+                          isDark
+                              ? AppColors.parchment.withValues(alpha: 0.9)
+                              : AppColors.charcoal87,
                     ),
                   ),
                   value: reason,
                   groupValue: _selectedReason,
-                  activeColor: isDark ? AppColors.darkSoftRed : AppColors.softRed,
+                  activeColor:
+                      isDark ? AppColors.darkSoftRed : AppColors.softRed,
                   contentPadding: EdgeInsets.zero,
                   onChanged: (val) {
                     setState(() {
@@ -232,9 +256,10 @@ class _CancelReasonDialogState extends State<CancelReasonDialog> {
                 decoration: InputDecoration(
                   hintText: 'Please write your reason here...',
                   hintStyle: theme.textTheme.bodyMedium?.copyWith(
-                    color: isDark
-                        ? AppColors.parchment.withValues(alpha: 0.5)
-                        : AppColors.charcoal40,
+                    color:
+                        isDark
+                            ? AppColors.parchment.withValues(alpha: 0.5)
+                            : AppColors.charcoal40,
                   ),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(10),
@@ -257,7 +282,10 @@ class _CancelReasonDialogState extends State<CancelReasonDialog> {
           child: Text(
             'No, Keep It',
             style: TextStyle(
-              color: isDark ? AppColors.parchment.withValues(alpha: 0.6) : AppColors.charcoal40,
+              color:
+                  isDark
+                      ? AppColors.parchment.withValues(alpha: 0.6)
+                      : AppColors.charcoal40,
             ),
           ),
         ),
@@ -280,7 +308,9 @@ class _CancelReasonDialogState extends State<CancelReasonDialog> {
           style: ElevatedButton.styleFrom(
             backgroundColor: isDark ? AppColors.darkSoftRed : AppColors.softRed,
             foregroundColor: AppColors.pureWhite,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
           ),
           child: const Text('Yes, Cancel'),
         ),

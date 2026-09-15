@@ -33,9 +33,10 @@ class ProductTopNavBar extends StatelessWidget {
             child: Container(
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                color: isDark
-                    ? AppColors.darkSurfaceElevated
-                    : AppColors.parchment,
+                color:
+                    isDark
+                        ? AppColors.darkSurfaceElevated
+                        : AppColors.parchment,
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Icon(
@@ -59,20 +60,24 @@ class ProductTopNavBar extends StatelessWidget {
                       Share.share(
                         'Check out this product: https://anaadfoods.com/product/${product.id}',
                         sharePositionOrigin:
-                            box != null ? box.localToGlobal(Offset.zero) & box.size : null,
+                            box != null
+                                ? box.localToGlobal(Offset.zero) & box.size
+                                : null,
                       );
                     },
                     child: Container(
                       padding: const EdgeInsets.all(10),
                       decoration: BoxDecoration(
-                        color: isDark
-                            ? AppColors.darkSurfaceElevated
-                            : AppColors.parchment,
+                        color:
+                            isDark
+                                ? AppColors.darkSurfaceElevated
+                                : AppColors.parchment,
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Icon(
                         Icons.share_outlined,
-                        color: isDark ? AppColors.parchment : AppColors.pureBlack,
+                        color:
+                            isDark ? AppColors.parchment : AppColors.pureBlack,
                         size: 20,
                       ),
                     ),
@@ -83,51 +88,54 @@ class ProductTopNavBar extends StatelessWidget {
               // Favorite
               isLoadingFavorite
                   ? const SizedBox(
-                      width: 40,
-                      height: 40,
-                      child: Center(
-                        child: SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        ),
-                      ),
-                    )
-                  : GestureDetector(
-                      onTap: () {
-                        onTriggerHaptic();
-                        onFavoriteToggle();
-                      },
-                      child: Container(
-                        padding: const EdgeInsets.all(10),
-                        decoration: BoxDecoration(
-                          color: isFavorite
-                              ? AppColors.softRed.withValues(alpha: 0.1)
-                              : (isDark
-                                  ? AppColors.darkSurfaceElevated
-                                  : AppColors.pureWhite),
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(
-                            color: isFavorite
-                                ? AppColors.softRed.withValues(alpha: 0.3)
-                                : AppColors.darkSurface.withValues(
-                                    alpha: 0.08,
-                                  ),
-                          ),
-                        ),
-                        child: Icon(
-                          isFavorite
-                              ? Icons.favorite_rounded
-                              : Icons.favorite_border_rounded,
-                          color: isFavorite
-                              ? AppColors.softRed
-                              : (isDark
-                                  ? AppColors.parchment
-                                  : AppColors.pureBlack),
-                          size: 20,
-                        ),
+                    width: 40,
+                    height: 40,
+                    child: Center(
+                      child: SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2),
                       ),
                     ),
+                  )
+                  : GestureDetector(
+                    onTap: () {
+                      onTriggerHaptic();
+                      onFavoriteToggle();
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color:
+                            isFavorite
+                                ? AppColors.softRed.withValues(alpha: 0.1)
+                                : (isDark
+                                    ? AppColors.darkSurfaceElevated
+                                    : AppColors.pureWhite),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color:
+                              isFavorite
+                                  ? AppColors.softRed.withValues(alpha: 0.3)
+                                  : AppColors.darkSurface.withValues(
+                                    alpha: 0.08,
+                                  ),
+                        ),
+                      ),
+                      child: Icon(
+                        isFavorite
+                            ? Icons.favorite_rounded
+                            : Icons.favorite_border_rounded,
+                        color:
+                            isFavorite
+                                ? AppColors.softRed
+                                : (isDark
+                                    ? AppColors.parchment
+                                    : AppColors.pureBlack),
+                        size: 20,
+                      ),
+                    ),
+                  ),
             ],
           ),
         ],

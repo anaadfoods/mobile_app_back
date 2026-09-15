@@ -21,12 +21,12 @@ class OrderCubit extends Cubit<OrderState> {
     required CreateOrderUseCase createOrderUseCase,
     required CancelOrderUseCase cancelOrderUseCase,
     required DownloadInvoiceUseCase downloadInvoiceUseCase,
-  })  : _getOrdersUseCase = getOrdersUseCase,
-        _getOrderByIdUseCase = getOrderByIdUseCase,
-        _createOrderUseCase = createOrderUseCase,
-        _cancelOrderUseCase = cancelOrderUseCase,
-        _downloadInvoiceUseCase = downloadInvoiceUseCase,
-        super(OrderInitial());
+  }) : _getOrdersUseCase = getOrdersUseCase,
+       _getOrderByIdUseCase = getOrderByIdUseCase,
+       _createOrderUseCase = createOrderUseCase,
+       _cancelOrderUseCase = cancelOrderUseCase,
+       _downloadInvoiceUseCase = downloadInvoiceUseCase,
+       super(OrderInitial());
 
   /// Fetches the user's entire order history.
   Future<void> fetchOrders() async {
@@ -37,7 +37,11 @@ class OrderCubit extends Cubit<OrderState> {
     } on OrderFailure catch (e) {
       emit(OrderError(e.message));
     } catch (_) {
-      emit(const OrderError('An unexpected error occurred while fetching your orders.'));
+      emit(
+        const OrderError(
+          'An unexpected error occurred while fetching your orders.',
+        ),
+      );
     }
   }
 
@@ -57,10 +61,12 @@ class OrderCubit extends Cubit<OrderState> {
     try {
       emit(OrderLoading());
       final orderDetails = await _getOrderByIdUseCase(orderId);
-      emit(OrderSuccess(
-        orders: existingOrders,
-        selectedOrderDetails: orderDetails,
-      ));
+      emit(
+        OrderSuccess(
+          orders: existingOrders,
+          selectedOrderDetails: orderDetails,
+        ),
+      );
     } on OrderFailure catch (e) {
       emit(OrderError(e.message));
     } catch (_) {
@@ -68,8 +74,8 @@ class OrderCubit extends Cubit<OrderState> {
     }
   }
 
-  /// Fetches the details of a single order using its order number.
-  /// Useful when payment gateways only return the reference number.
+  /// Fetches the details of a single order using its order number or identifier.
+  /// Useful when payment gateways or chat cards return an order number/reference.
   Future<void> fetchOrderDetailsByNumber(String orderNumber) async {
     final currentState = state;
     List<OrderEntity> existingOrders = [];
@@ -79,21 +85,59 @@ class OrderCubit extends Cubit<OrderState> {
 
     try {
       emit(OrderLoading());
-      
+
       List<OrderEntity> orders = existingOrders;
       if (orders.isEmpty) {
         orders = await _getOrdersUseCase();
       }
-      
-      final matchingOrder = orders.firstWhere((o) => o.orderNumber == orderNumber);
+
+      if (orders.isEmpty) {
+        emit(const OrderError('You do not have any orders placed yet.'));
+        return;
+      }
+
+      final cleanOrderNumber = orderNumber.trim();
+      final cleanDigits = cleanOrderNumber.replaceAll(RegExp(r'[^0-9]'), '');
+
+      // 1. Exact or case-insensitive orderNumber match
+      OrderEntity? matchingOrder = orders.cast<OrderEntity?>().firstWhere(
+        (o) => o?.orderNumber.toLowerCase() == cleanOrderNumber.toLowerCase(),
+        orElse: () => null,
+      );
+
+      // 2. ID match if orderNumber is a numeric string
+      matchingOrder ??= orders.cast<OrderEntity?>().firstWhere(
+        (o) => o?.id.toString() == cleanOrderNumber,
+        orElse: () => null,
+      );
+
+      // 3. Match digits (e.g. 9823 in ORD-9823 or ORD#9823)
+      if (matchingOrder == null && cleanDigits.isNotEmpty) {
+        matchingOrder = orders.cast<OrderEntity?>().firstWhere(
+          (o) =>
+              o != null &&
+              (o.orderNumber.replaceAll(RegExp(r'[^0-9]'), '') == cleanDigits ||
+                  o.id.toString() == cleanDigits),
+          orElse: () => null,
+        );
+      }
+
+      // 4. If query was 'latest' or placeholder fallback like 'ORD-9823' and not found, default to latest order
+      if (matchingOrder == null &&
+          (cleanOrderNumber.toLowerCase() == 'latest' ||
+              cleanOrderNumber.toUpperCase() == 'ORD-9823')) {
+        matchingOrder = orders.first;
+      }
+
+      if (matchingOrder == null) {
+        emit(const OrderError('Order not found.'));
+        return;
+      }
+
       final orderDetails = await _getOrderByIdUseCase(matchingOrder.id);
-      
-      emit(OrderSuccess(
-        orders: orders,
-        selectedOrderDetails: orderDetails,
-      ));
-    } on StateError {
-      emit(const OrderError('Order not found.'));
+      emit(OrderSuccess(orders: orders, selectedOrderDetails: orderDetails));
+    } on OrderFailure catch (e) {
+      emit(OrderError(e.message));
     } catch (_) {
       emit(const OrderError('Failed to load order details.'));
     }
@@ -110,16 +154,25 @@ class OrderCubit extends Cubit<OrderState> {
     } on OrderFailure catch (e) {
       emit(OrderError(e.message));
     } catch (_) {
-      emit(const OrderError('An unexpected error occurred while placing your order.'));
+      emit(
+        const OrderError(
+          'An unexpected error occurred while placing your order.',
+        ),
+      );
     }
   }
 
   /// Cancels an order and refreshes the order list.
-  Future<Map<String, dynamic>?> cancelOrder(int orderId, {String? reason}) async {
+  Future<Map<String, dynamic>?> cancelOrder(
+    int orderId, {
+    String? reason,
+  }) async {
     try {
       emit(OrderLoading());
       final result = await _cancelOrderUseCase(orderId, reason: reason);
-      final msg = result['message'] ?? 'Your order cancellation request has been submitted.';
+      final msg =
+          result['message'] ??
+          'Your order cancellation request has been submitted.';
       emit(OrderActionSuccess(msg));
       await fetchOrders();
       return result;

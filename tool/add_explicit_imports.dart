@@ -2,7 +2,10 @@ import 'dart:io';
 
 void main() {
   final directory = Directory('lib');
-  final files = directory.listSync(recursive: true).whereType<File>().where((f) => f.path.endsWith('.dart'));
+  final files = directory
+      .listSync(recursive: true)
+      .whereType<File>()
+      .where((f) => f.path.endsWith('.dart'));
 
   final states = [
     'AuthInitial',
@@ -13,11 +16,12 @@ void main() {
     'AuthAddressUpdated',
     'AuthRegistrationSuccess',
     'AuthError',
-    'AuthDeactivationOtpSent'
+    'AuthDeactivationOtpSent',
   ];
 
   for (final file in files) {
-    if (file.path.contains('features/auth/')) continue; // Skip new auth feature files
+    if (file.path.contains('features/auth/'))
+      continue; // Skip new auth feature files
     if (file.path.endsWith('global_import.dart')) continue;
 
     var content = file.readAsStringSync();
@@ -26,19 +30,29 @@ void main() {
     final importsToAdd = <String>[];
 
     if (content.contains('AuthCubit') && !content.contains('auth_cubit.dart')) {
-      importsToAdd.add("import 'package:grocery_app/cubits/auth/auth_cubit.dart';");
-    }
-    
-    final usesState = states.any((state) => content.contains(state));
-    if (usesState && !content.contains('auth_state.dart')) {
-      importsToAdd.add("import 'package:grocery_app/cubits/auth/auth_state.dart';");
+      importsToAdd.add(
+        "import 'package:grocery_app/cubits/auth/auth_cubit.dart';",
+      );
     }
 
-    if (content.contains('TokenService') && !content.contains('token_service.dart')) {
-      importsToAdd.add("import 'package:grocery_app/services/token_service.dart';");
+    final usesState = states.any((state) => content.contains(state));
+    if (usesState && !content.contains('auth_state.dart')) {
+      importsToAdd.add(
+        "import 'package:grocery_app/cubits/auth/auth_state.dart';",
+      );
     }
-    if (content.contains('OAuthService') && !content.contains('oauth_service.dart')) {
-      importsToAdd.add("import 'package:grocery_app/services/oauth_service.dart';");
+
+    if (content.contains('TokenService') &&
+        !content.contains('token_service.dart')) {
+      importsToAdd.add(
+        "import 'package:grocery_app/services/token_service.dart';",
+      );
+    }
+    if (content.contains('OAuthService') &&
+        !content.contains('oauth_service.dart')) {
+      importsToAdd.add(
+        "import 'package:grocery_app/services/oauth_service.dart';",
+      );
     }
 
     if (importsToAdd.isNotEmpty) {
@@ -58,7 +72,9 @@ void main() {
         if (uniqueImports.isNotEmpty) {
           lines.insert(insertIdx, uniqueImports.join('\n'));
           file.writeAsStringSync(lines.join('\n'));
-          print('Added imports to ${file.path}: ${uniqueImports.map((s) => s.split('/').last).join(', ')}');
+          print(
+            'Added imports to ${file.path}: ${uniqueImports.map((s) => s.split('/').last).join(', ')}',
+          );
         }
       }
     }

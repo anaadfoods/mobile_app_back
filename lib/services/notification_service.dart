@@ -1,4 +1,3 @@
-import 'package:grocery_app/services/token_service.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:grocery_app/common_widgets/global_import.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -6,11 +5,11 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:dio/dio.dart' as dio;
 import '../models/notification_model.dart';
 import 'package:grocery_app/features/notifications/data/datasources/notifications_local_data_source.dart';
-import 'package:grocery_app/features/notifications/presentation/cubit/notification_cubit.dart';
-import 'package:grocery_app/service_locator.dart';
+import 'package:grocery_app/core/analytics/analytics_service.dart';
+import 'package:grocery_app/routes/app_router.dart';
+import 'package:grocery_app/routes/app_routes.dart';
 
 class NotificationService {
-  static final NotificationService _instance = NotificationService._internal();
   factory NotificationService() => getIt<NotificationService>();
   NotificationService._internal();
   static NotificationService create() => NotificationService._internal();
@@ -28,6 +27,16 @@ class NotificationService {
       StreamController<String>.broadcast();
 
   final DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
+
+  // WebSocket Live Channel State
+  WebSocket? _webSocket;
+  Timer? _wsReconnectTimer;
+  bool _isWsConnecting = false;
+  NotificationCubit? _cubit;
+
+  void updateCubit(NotificationCubit cubit) {
+    _cubit = cubit;
+  }
 
   // Getters for streams
   Stream<RemoteMessage> get onMessageOpenedApp =>
@@ -52,7 +61,7 @@ class NotificationService {
 
     if (Platform.isAndroid) {
       AndroidDeviceInfo androidInfo = await deviceInfo.androidInfo;
-      return androidInfo.id ?? "unknown_android_id"; // Best option for Android
+      return androidInfo.id; // Best option for Android
     } else if (Platform.isIOS) {
       IosDeviceInfo iosInfo = await deviceInfo.iosInfo;
       return iosInfo.identifierForVendor ??
@@ -70,10 +79,14 @@ class NotificationService {
   bool _isInitialized = false;
 
   Future<void> initialize(NotificationCubit read) async {
+    _cubit = read;
     if (_isInitialized) return;
     _isInitialized = true;
 
     try {
+      // Connect WebSocket for real-time notifications
+      connectWebSocket();
+
       // Initialize Firebase Messaging
       await _initializeFirebaseMessaging();
 
@@ -94,6 +107,127 @@ class NotificationService {
     } catch (e) {
       debugPrint('Error initializing NotificationService: $e');
     }
+  }
+
+  // ── Real-Time WebSocket Channel ───────────
+
+  Future<void> connectWebSocket() async {
+    if (_webSocket != null || _isWsConnecting) return;
+
+    try {
+      _isWsConnecting = true;
+      final token = await TokenService().getAccessToken();
+      final devId = await getDeviceId();
+      final String? anonId = AnalyticsService().anonymousId;
+
+      String wsBase = ApiConfig.baseUrl.trim();
+      if (wsBase.startsWith('https://')) {
+        wsBase = 'wss://${wsBase.substring(8)}';
+      } else if (wsBase.startsWith('http://')) {
+        wsBase = 'ws://${wsBase.substring(7)}';
+      } else {
+        wsBase = 'ws://$wsBase';
+      }
+
+      String wsUrl =
+          '$wsBase/ws/notifications/?device_id=$devId&platform=${Platform.isAndroid ? 'android' : 'ios'}';
+      if (token != null && token.isNotEmpty) {
+        wsUrl += '&token=$token';
+      } else if (anonId != null && anonId.isNotEmpty) {
+        wsUrl += '&anonymous_id=$anonId';
+      }
+
+      debugPrint('[NotificationService] Connecting to WebSocket: $wsUrl');
+      _webSocket = await WebSocket.connect(
+        wsUrl,
+      ).timeout(const Duration(seconds: 10));
+      _isWsConnecting = false;
+      debugPrint('[NotificationService] WebSocket connected successfully!');
+
+      _webSocket!.listen(
+        (data) {
+          debugPrint('[NotificationService] WS message received: $data');
+          try {
+            final parsed = jsonDecode(data as String);
+            final event = parsed['event'] as String?;
+            final payload = parsed['data'] as Map<String, dynamic>? ?? {};
+
+            if (event == 'NOTIFICATION_CREATED') {
+              _cubit?.syncNotifications();
+
+              final title =
+                  payload['title']?.toString() ?? 'New Notification';
+              final message = payload['message']?.toString() ?? '';
+              final metadata =
+                  payload['metadata'] is Map<String, dynamic>
+                      ? payload['metadata'] as Map<String, dynamic>
+                      : <String, dynamic>{};
+
+              final dataMap = <String, dynamic>{
+                'title': title,
+                'body': message,
+                'id': payload['id']?.toString() ?? '',
+                'deep_link': payload['deep_link'] ?? metadata['deep_link'] ?? metadata['screen'],
+                'screen': payload['screen'] ?? metadata['screen'],
+                'action': payload['action'] ?? metadata['action'],
+                ...metadata,
+              };
+
+              final remoteMessage = RemoteMessage(
+                data: dataMap,
+                notification: RemoteNotification(
+                  title: title,
+                  body: message,
+                ),
+              );
+
+              _handleForegroundMessage(remoteMessage);
+            } else if (event == 'NOTIFICATION_READ' ||
+                event == 'NOTIFICATION_DISMISSED') {
+              _cubit?.syncNotifications();
+            }
+          } catch (e) {
+            debugPrint('[NotificationService] Error handling WS message: $e');
+          }
+        },
+        onError: (err) {
+          debugPrint('[NotificationService] WS error: $err');
+          _scheduleWsReconnect();
+        },
+        onDone: () {
+          debugPrint('[NotificationService] WS connection closed');
+          _scheduleWsReconnect();
+        },
+        cancelOnError: true,
+      );
+    } catch (e) {
+      _isWsConnecting = false;
+      debugPrint('[NotificationService] WS connect failed: $e');
+      _scheduleWsReconnect();
+    }
+  }
+
+  void _scheduleWsReconnect() {
+    _webSocket = null;
+    _isWsConnecting = false;
+    _wsReconnectTimer?.cancel();
+    _wsReconnectTimer = Timer(const Duration(seconds: 5), () {
+      debugPrint('[NotificationService] Reconnecting WS...');
+      connectWebSocket();
+    });
+  }
+
+  void reconnectWebSocket() {
+    disconnectWebSocket();
+    connectWebSocket();
+  }
+
+  void disconnectWebSocket() {
+    _wsReconnectTimer?.cancel();
+    _wsReconnectTimer = null;
+    _webSocket?.close();
+    _webSocket = null;
+    _isWsConnecting = false;
   }
 
   Future<void> _initializeFirebaseMessaging() async {
@@ -253,20 +387,8 @@ class NotificationService {
     if (settings.authorizationStatus == AuthorizationStatus.authorized ||
         settings.authorizationStatus == AuthorizationStatus.provisional) {
       await _getFCMToken();
-      final token = await getFCMToken();
-      if (token != null) {
-        final isLoggedIn = await getIt<TokenService>().isLoggedIn();
-        if (isLoggedIn) {
-          final bearerToken = await getIt<TokenService>().getAccessToken();
-          if (bearerToken != null) {
-            await registerFcmTokenWithBackend(token, bearerToken);
-          }
-        }
-      }
     }
   }
-
-
 
   Future<void> _getFCMToken() async {
     String? token = await _firebaseMessaging.getToken();
@@ -278,8 +400,10 @@ class NotificationService {
       if (isLoggedIn) {
         final bearerToken = await getIt<TokenService>().getAccessToken();
         if (bearerToken != null) {
-          await registerFcmTokenWithBackend(token, bearerToken);
+          unawaited(registerFcmTokenWithBackend(token, bearerToken));
         }
+      } else {
+        unawaited(registerGuestFcmTokenWithBackend(token));
       }
     }
 
@@ -292,8 +416,10 @@ class NotificationService {
       if (isLoggedIn) {
         final bearerToken = await getIt<TokenService>().getAccessToken();
         if (bearerToken != null) {
-          await registerFcmTokenWithBackend(newToken, bearerToken);
+          unawaited(registerFcmTokenWithBackend(newToken, bearerToken));
         }
+      } else {
+        unawaited(registerGuestFcmTokenWithBackend(newToken));
       }
     });
   }
@@ -337,7 +463,11 @@ class NotificationService {
     // duplicate processing of every notification.
   }
 
-  bool _shouldSuppressForegroundBanner(String title, String body, Map<String, dynamic> data) {
+  bool _shouldSuppressForegroundBanner(
+    String title,
+    String body,
+    Map<String, dynamic> data,
+  ) {
     final titleLower = title.toLowerCase();
     final bodyLower = body.toLowerCase();
     final type = (data['type'] ?? '').toString().toLowerCase();
@@ -345,7 +475,9 @@ class NotificationService {
     final screen = (data['screen'] ?? '').toString().toLowerCase();
 
     // 1. Order Creation
-    if (type == 'order' || action == 'view_order' || screen == 'order_tracking') {
+    if (type == 'order' ||
+        action == 'view_order' ||
+        screen == 'order_tracking') {
       if (titleLower.contains('placed') ||
           titleLower.contains('created') ||
           titleLower.contains('success') ||
@@ -357,7 +489,9 @@ class NotificationService {
     }
 
     // 2. Subscription Creation
-    if (type == 'subscription' || action == 'view_subscription' || screen == 'subscription_detail') {
+    if (type == 'subscription' ||
+        action == 'view_subscription' ||
+        screen == 'subscription_detail') {
       if (titleLower.contains('created') ||
           titleLower.contains('success') ||
           titleLower.contains('active') ||
@@ -422,7 +556,9 @@ class NotificationService {
 
     // Save notification to local storage via data source
     try {
-      getIt<NotificationsLocalDataSource>().saveServerPushNotification(message.data);
+      getIt<NotificationsLocalDataSource>().saveServerPushNotification(
+        message.data,
+      );
     } catch (e) {
       debugPrint('Error saving foreground notification: $e');
     }
@@ -660,7 +796,7 @@ class NotificationService {
       }
     }
 
-    // Extract type and ID from metadata
+    // Extract type, screen, or deep_link
     final String? metadataType =
         metadata['type']?.toString() ?? metadata['screen']?.toString();
     final String? metadataId = toStringId(
@@ -670,20 +806,40 @@ class NotificationService {
           metadata['subscription_id'],
     );
 
-    final String? type =
-        (metadataType != null && metadataType.isNotEmpty)
-            ? metadataType
-            : data['type'] as String?;
+    final String? deepLinkTarget = (data['deep_link'] ??
+            data['screen'] ??
+            data['target'] ??
+            metadata['deep_link'] ??
+            metadata['screen'] ??
+            metadata['target'] ??
+            (metadata['data'] is Map ? metadata['data']['screen'] ?? metadata['data']['deep_link'] : null) ??
+            (data['data'] is Map ? data['data']['screen'] ?? data['data']['deep_link'] : null))
+        ?.toString();
+
+    final String? action = (data['action'] ??
+            metadata['action'] ??
+            (metadata['data'] is Map ? metadata['data']['action'] : null) ??
+            (data['data'] is Map ? data['data']['action'] : null))
+        ?.toString();
+
+    final String? type = (deepLinkTarget != null && deepLinkTarget.isNotEmpty)
+        ? deepLinkTarget
+        : (action != null && action.isNotEmpty)
+            ? action.replaceFirst('open_', '')
+            : (metadataType != null && metadataType.isNotEmpty)
+                ? metadataType
+                : data['type'] as String?;
 
     final String? genericId =
         (metadataId != null && metadataId.isNotEmpty)
             ? metadataId
             : toStringId(data['id']);
 
-    // Handle type-based routing (using 'type' field from backend)
+    // Handle type-based routing (using 'type', 'deep_link', or 'screen' field)
     if (type != null && type.isNotEmpty) {
-      debugPrint('Handling type-based redirection: $type');
-      switch (type) {
+      final normalizedType = type.toLowerCase().replaceAll('-', '_');
+      debugPrint('Handling redirection for target: $normalizedType');
+      switch (normalizedType) {
         case 'product':
         case 'product_detail':
           final productId =
@@ -694,12 +850,27 @@ class NotificationService {
             debugPrint('Navigating to product_detail with id: $productId');
             NavigationService.navigateToProductDetails(productId);
           } else {
-            debugPrint('product_id missing for product screen');
-            _navigateToNotifications();
+            NavigationService.navigateToAllProducts();
           }
+          return;
+        case 'store':
+        case 'products':
+        case 'all_products':
+        case 'shop':
+        case 'pantry':
+          debugPrint('Navigating to all products/store');
+          NavigationService.navigateToAllProducts();
+          return;
+        case 'orders':
+        case 'order_list':
+        case 'my_orders':
+          debugPrint('Navigating to orders list');
+          NavigationService.navigateToOrderList();
           return;
         case 'order':
         case 'order_tracking':
+        case 'order_detail':
+        case 'order_details':
           final orderId =
               toStringId(data['id']) ??
               toStringId(data['order_id']) ??
@@ -708,9 +879,13 @@ class NotificationService {
             debugPrint('Navigating to order_tracking with id: $orderId');
             NavigationService.navigateToOrderDetails(orderId);
           } else {
-            debugPrint('order_id missing for order screen');
-            _navigateToNotifications();
+            NavigationService.navigateToOrderList();
           }
+          return;
+        case 'subscriptions':
+        case 'subscription_list':
+          debugPrint('Navigating to subscription list');
+          NavigationService.navigateToSubscriptionList();
           return;
         case 'subscription':
         case 'subscription_detail':
@@ -726,15 +901,28 @@ class NotificationService {
             );
             NavigationService.navigateToSubscriptionDetails(subscriptionId);
           } else {
-            debugPrint('subscription_id missing for subscription screen');
-            _navigateToNotifications();
+            NavigationService.navigateToSubscriptionList();
           }
           return;
         case 'cart':
           debugPrint('Navigating to cart');
           NavigationService.navigateToCart();
           return;
+        case 'checkout':
+          debugPrint('Navigating to checkout');
+          NavigationService.navigateToCheckout();
+          return;
+        case 'panchang':
+          debugPrint('Navigating to panchang');
+          NavigationService.navigateToPanchang();
+          return;
+        case 'wishlist':
+        case 'favorites':
+          debugPrint('Navigating to wishlist');
+          NavigationService.navigateToWishlist();
+          return;
         case 'profile':
+        case 'account':
           debugPrint('Navigating to profile');
           NavigationService.navigateToAccount();
           return;
@@ -758,6 +946,13 @@ class NotificationService {
   }
 
   void _navigateToNotifications() {
+    try {
+      final currentUri = AppRouter().router.routerDelegate.currentConfiguration.uri.path;
+      if (currentUri == AppRoute.notifications.path) {
+        debugPrint('Already on notifications screen, skipping navigation');
+        return;
+      }
+    } catch (_) {}
     debugPrint('Navigate to notifications');
     NavigationService.navigateToNotifications();
   }
@@ -806,7 +1001,9 @@ class NotificationService {
     );
 
     // Save and register local notification optimistically
-    await getIt<NotificationsLocalDataSource>().saveServerPushNotification(model.toLocalMap());
+    await getIt<NotificationsLocalDataSource>().saveServerPushNotification(
+      model.toLocalMap(),
+    );
 
     String channelId = _getChannelId({'type': type ?? model.type});
 
@@ -883,10 +1080,13 @@ class NotificationService {
     String bearerToken,
   ) async {
     String deviceID = await getDeviceId();
+    String? anonId;
+    try {
+      if (getIt.isRegistered<AnalyticsService>()) {
+        anonId = getIt<AnalyticsService>().anonymousId;
+      }
+    } catch (_) {}
 
-    final url = Uri.parse(
-      '${ApiConfig.baseUrl}/api/notifications/register-token/',
-    );
     try {
       final response = await ApiClient.instance.post(
         '/api/notifications/register-token/',
@@ -895,15 +1095,48 @@ class NotificationService {
           'token': fcmToken.toString(),
           'device_id': deviceID.toString(),
           'platform': platform.toString(),
+          if (anonId != null) 'anonymous_id': anonId,
         },
       );
       if (response.statusCode == 200) {
-        debugPrint('FCM token registered successfully with backend');
+        debugPrint('FCM token registered successfully with backend (authenticated)');
       } else {
         debugPrint('Failed to register FCM token: ${response.statusCode}');
       }
     } catch (e) {
       debugPrint('Error registering FCM token: ${e.toString()}');
+    }
+  }
+
+  // Register guest FCM token with backend without authentication
+  Future<void> registerGuestFcmTokenWithBackend(
+    String fcmToken,
+  ) async {
+    String deviceID = await getDeviceId();
+    String? anonId;
+    try {
+      if (getIt.isRegistered<AnalyticsService>()) {
+        anonId = getIt<AnalyticsService>().anonymousId;
+      }
+    } catch (_) {}
+
+    try {
+      final response = await ApiClient.instance.post(
+        '/api/notifications/register-token/',
+        data: {
+          'token': fcmToken.toString(),
+          'device_id': deviceID.toString(),
+          'platform': platform.toString(),
+          if (anonId != null) 'anonymous_id': anonId,
+        },
+      );
+      if (response.statusCode == 200) {
+        debugPrint('Guest FCM token registered successfully with backend');
+      } else {
+        debugPrint('Failed to register guest FCM token: ${response.statusCode}');
+      }
+    } catch (e) {
+      debugPrint('Error registering guest FCM token: ${e.toString()}');
     }
   }
 

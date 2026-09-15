@@ -22,7 +22,6 @@ class _SubscriptionListScreenState extends State<SubscriptionListScreen> {
   String currentFilter = "ACTIVE";
   bool _isLoading = true;
   String? _errorMessage;
-  
 
   final List<_FilterTab> _tabs = [
     _FilterTab(
@@ -94,43 +93,51 @@ class _SubscriptionListScreenState extends State<SubscriptionListScreen> {
     final isDark = theme.brightness == Brightness.dark;
 
     final scaffold = BlocListener<SubscriptionCubit, SubscriptionState>(
-        listener: (context, state) {
-          if (state is SubscriptionActionSuccess) {
-            SnackBarHelper.showSuccess(context, state.message);
-            _fetchSubscriptions();
-          } else if (state is SubscriptionError) {
-            setState(() { _isLoading = false; _errorMessage = state.message; });
-            SnackBarHelper.showError(context, state.message);
-          } else if (state is SubscriptionLoading) {
-            if (allSubscriptions.isEmpty) { setState(() { _isLoading = true; _errorMessage = null; }); }
-          } else if (state is SubscriptionSuccess) {
+      listener: (context, state) {
+        if (state is SubscriptionActionSuccess) {
+          SnackBarHelper.showSuccess(context, state.message);
+          _fetchSubscriptions();
+        } else if (state is SubscriptionError) {
+          setState(() {
+            _isLoading = false;
+            _errorMessage = state.message;
+          });
+          SnackBarHelper.showError(context, state.message);
+        } else if (state is SubscriptionLoading) {
+          if (allSubscriptions.isEmpty) {
             setState(() {
-              allSubscriptions = state.userSubscriptions;
-              _filterSubscriptions(currentFilter);
-              _isLoading = false;
+              _isLoading = true;
+              _errorMessage = null;
             });
           }
-        },
-        child: Scaffold(
-          backgroundColor: isDark ? AppColors.darkCanvas : AppColors.parchment,
-          floatingActionButton: _buildWhatsAppFAB(),
-          body: RefreshIndicator(
-            onRefresh: _fetchSubscriptions,
-            color: theme.colorScheme.primary,
-            child: CustomScrollView(
-              physics: const AlwaysScrollableScrollPhysics(),
-              slivers: [
-                // Modern U-Shape Header
-                _buildAnimatedHeader(theme, isDark),
-                // Filter chips
-                SliverToBoxAdapter(child: _buildFilterTabs(theme, isDark)),
-                // Summary card
-                SliverToBoxAdapter(child: _buildSummaryCard(theme, isDark)),
-                // Content
-                _buildContent(theme, isDark),
-              ],
-            ),
+        } else if (state is SubscriptionSuccess) {
+          setState(() {
+            allSubscriptions = state.userSubscriptions;
+            _filterSubscriptions(currentFilter);
+            _isLoading = false;
+          });
+        }
+      },
+      child: Scaffold(
+        backgroundColor: isDark ? AppColors.darkCanvas : AppColors.parchment,
+        floatingActionButton: _buildWhatsAppFAB(),
+        body: RefreshIndicator(
+          onRefresh: _fetchSubscriptions,
+          color: theme.colorScheme.primary,
+          child: CustomScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            slivers: [
+              // Modern U-Shape Header
+              _buildAnimatedHeader(theme, isDark),
+              // Filter chips
+              SliverToBoxAdapter(child: _buildFilterTabs(theme, isDark)),
+              // Summary card
+              SliverToBoxAdapter(child: _buildSummaryCard(theme, isDark)),
+              // Content
+              _buildContent(theme, isDark),
+            ],
           ),
+        ),
       ),
     );
 
@@ -1590,7 +1597,9 @@ class _SubscriptionCardState extends State<_SubscriptionCard> {
                                 context.pushNamed(
                                   AppRoute.subscriptionDetails.name,
                                   pathParameters: {
-                                    'id': subscription.subscriptionNumber ?? subscription.id.toString(),
+                                    'id':
+                                        subscription.subscriptionNumber ??
+                                        subscription.id.toString(),
                                   },
                                 );
                               },

@@ -54,6 +54,9 @@ dependencies:
   device_preview: any
   image_cropper: ^12.2.1
   flutter_native_splash: ^2.4.4
+  flutter_markdown: ^0.7.7+1
+  file_picker: ^11.0.3
+  flutter_typeahead: ^5.2.0
 
 dev_dependencies:
   flutter_test:

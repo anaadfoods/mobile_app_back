@@ -1,8 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:grocery_app/common_widgets/empty_state_widget.dart';
+import 'package:grocery_app/common_widgets/loading_state_widget.dart';
 import 'package:grocery_app/helpers/snackbar_helper.dart';
 import 'package:grocery_app/styles/colors.dart';
 import 'package:grocery_app/features/notifications/domain/entities/notification_entity.dart';
+import 'package:go_router/go_router.dart';
+import 'package:grocery_app/routes/app_routes.dart';
+import 'package:grocery_app/services/notification_service.dart';
 import '../cubit/notification_cubit.dart';
 import '../cubit/notification_state.dart';
 
@@ -33,14 +38,28 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
 
     return Scaffold(
       appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            if (context.canPop()) {
+              context.pop();
+            } else {
+              context.go(AppRoute.home.path);
+            }
+          },
+        ),
         title: const Text('Notifications'),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.delete_sweep_rounded),
-            tooltip: 'Clear all',
-            onPressed: () {
-              context.read<NotificationCubit>().clearAllNotifications();
-            },
+          BlocBuilder<NotificationCubit, NotificationState>(
+            buildWhen: (previous, current) =>
+                previous.notifications.length != current.notifications.length,
+            builder: (context, state) => IconButton(
+              icon: const Icon(Icons.delete_sweep_rounded),
+              tooltip: 'Clear all notifications',
+              onPressed: state.notifications.isEmpty
+                  ? null
+                  : () => _confirmClearAll(context),
+            ),
           ),
         ],
       ),
@@ -52,28 +71,14 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         },
         builder: (context, state) {
           if (state is NotificationLoading && state.notifications.isEmpty) {
-            return const Center(child: CircularProgressIndicator());
+            return const LoadingStateWidget(itemCount: 5, itemHeight: 88);
           }
 
           if (state.notifications.isEmpty) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.notifications_off_outlined,
-                    size: 64,
-                    color: isDark ? Colors.white38 : Colors.black38,
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    'No notifications yet',
-                    style: theme.textTheme.titleMedium?.copyWith(
-                      color: isDark ? Colors.white70 : Colors.black87,
-                    ),
-                  ),
-                ],
-              ),
+            return EmptyStatePresets.notifications(
+              onRefresh: () => context
+                  .read<NotificationCubit>()
+                  .syncNotifications(),
             );
           }
 
@@ -84,7 +89,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
             child: ListView.separated(
               itemCount: state.notifications.length,
               padding: const EdgeInsets.all(16),
-              separatorBuilder: (_, __) => const SizedBox(height: 12),
+              separatorBuilder: (context, index) => const SizedBox(height: 12),
               itemBuilder: (context, index) {
                 final item = state.notifications[index];
                 return _NotificationTile(
@@ -92,6 +97,39 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                   isDark: isDark,
                   onDismiss: () {
                     context.read<NotificationCubit>().dismiss([item.id]);
+                  },
+                  onTap: () {
+                    if (!item.isRead) {
+                      context.read<NotificationCubit>().markAsRead([item.id]);
+                    }
+                    final target = item.metadata['deep_link'] ??
+                        item.metadata['screen'] ??
+                        item.metadata['target'] ??
+                        item.action;
+                    final targetStr = target?.toString().toLowerCase().trim();
+                    final typeStr = item.type.toLowerCase().trim();
+                    // If notification doesn't target another screen, avoid redundant navigation
+                    final isSelfNotification = (targetStr == null ||
+                            targetStr.isEmpty ||
+                            targetStr == 'notifications' ||
+                            targetStr == 'notification') &&
+                        (typeStr == 'notifications' ||
+                            typeStr == 'notification' ||
+                            typeStr == 'general' ||
+                            typeStr == 'system' ||
+                            typeStr == 'promotional');
+                    if (isSelfNotification) {
+                      return;
+                    }
+                    final payload = <String, dynamic>{
+                      'id': item.id,
+                      'type': item.type,
+                      'action': item.action,
+                      'deep_link': target,
+                      'screen': item.metadata['screen'],
+                      ...item.metadata,
+                    };
+                    NotificationService().handleRedirection(payload);
                   },
                 );
               },
@@ -101,17 +139,45 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       ),
     );
   }
+
+  Future<void> _confirmClearAll(BuildContext context) async {
+    final shouldClear = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Clear all notifications?'),
+        content: const Text(
+          'This removes all notifications from this device. New updates will still arrive.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: const Text('Keep'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(dialogContext, true),
+            child: const Text('Clear all'),
+          ),
+        ],
+      ),
+    );
+
+    if (shouldClear == true && context.mounted) {
+      context.read<NotificationCubit>().clearAllNotifications();
+    }
+  }
 }
 
 class _NotificationTile extends StatelessWidget {
   final NotificationEntity notification;
   final bool isDark;
   final VoidCallback onDismiss;
+  final VoidCallback onTap;
 
   const _NotificationTile({
     required this.notification,
     required this.isDark,
     required this.onDismiss,
+    required this.onTap,
   });
 
   @override
@@ -129,60 +195,75 @@ class _NotificationTile extends StatelessWidget {
         ),
         child: const Icon(Icons.delete_rounded, color: Colors.white),
       ),
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
+      child: Semantics(
+        button: !notification.isRead,
+        label: notification.isRead
+            ? notification.title
+            : '${notification.title}, unread. Double tap to mark as read.',
+        child: Material(
           color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: notification.isRead
-                ? Colors.transparent
-                : AppColors.deepSoilGreen.withValues(alpha: 0.3),
-            width: 1.5,
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.05),
-              blurRadius: 6,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    notification.title,
-                    style: TextStyle(
-                      fontWeight: notification.isRead ? FontWeight.normal : FontWeight.bold,
-                      fontSize: 16,
-                      color: isDark ? Colors.white : Colors.black87,
-                    ),
-                  ),
+          child: InkWell(
+            onTap: onTap,
+            borderRadius: BorderRadius.circular(12),
+            child: Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: notification.isRead
+                      ? Colors.transparent
+                      : AppColors.deepSoilGreen.withValues(alpha: 0.3),
+                  width: 1.5,
                 ),
-                if (!notification.isRead)
-                  Container(
-                    width: 8,
-                    height: 8,
-                    decoration: const BoxDecoration(
-                      color: AppColors.deepSoilGreen,
-                      shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.05),
+                    blurRadius: 6,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          notification.title,
+                          style: TextStyle(
+                            fontWeight: notification.isRead
+                                ? FontWeight.normal
+                                : FontWeight.bold,
+                            fontSize: 16,
+                            color: isDark ? Colors.white : Colors.black87,
+                          ),
+                        ),
+                      ),
+                      if (!notification.isRead)
+                        Container(
+                          width: 8,
+                          height: 8,
+                          decoration: const BoxDecoration(
+                            color: AppColors.deepSoilGreen,
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                    ],
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    notification.body,
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: isDark ? Colors.white70 : Colors.black54,
                     ),
                   ),
-              ],
-            ),
-            const SizedBox(height: 6),
-            Text(
-              notification.body,
-              style: TextStyle(
-                fontSize: 14,
-                color: isDark ? Colors.white70 : Colors.black54,
+                ],
               ),
             ),
-          ],
+          ),
         ),
       ),
     );

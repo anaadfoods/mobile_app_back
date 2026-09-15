@@ -58,14 +58,19 @@ class ProductsRepositoryImpl implements ProductsRepository {
   @override
   Future<List<ProductEntity>> getProductsByCategory(String categoryName) async {
     try {
-      final DTOs = await _remoteDataSource.fetchProductsByCategory(categoryName);
+      final DTOs = await _remoteDataSource.fetchProductsByCategory(
+        categoryName,
+      );
       final entities = DTOs.map((dto) => dto.toDomain()).toList();
       _sortProductsByActive(entities);
       return entities;
     } catch (e) {
       throw ProductFailure(
         type: ProductFailureType.network,
-        message: _getErrorMessage(e, 'Could not fetch products for "$categoryName".'),
+        message: _getErrorMessage(
+          e,
+          'Could not fetch products for "$categoryName".',
+        ),
       );
     }
   }
@@ -108,31 +113,31 @@ class ProductsRepositoryImpl implements ProductsRepository {
 
   String _getErrorMessage(dynamic e, String defaultMsg) {
     final s = e.toString().toLowerCase();
-    
+
     if (s.contains('socketexception') ||
         s.contains('connection refused') ||
         s.contains('network is unreachable') ||
         s.contains('timed out') ||
         s.contains('timeout') ||
         s.contains('clientexception') ||
-        s.contains('500') || 
-        s.contains('502') || 
-        s.contains('503') || 
-        s.contains('server error') || 
+        s.contains('500') ||
+        s.contains('502') ||
+        s.contains('503') ||
+        s.contains('server error') ||
         s.contains('internal') ||
         s.contains('dioexception')) {
       return "Sorry, we are not available right now. Please try again later.";
     }
-    
+
     if (s.contains('404') || s.contains('not found')) {
       return "Couldn't find what you're looking for.";
     }
-    
+
     final match = RegExp(r'"message"\s*:\s*"([^"]+)"').firstMatch(e.toString());
     if (match != null) {
       return match.group(1)!;
     }
-    
+
     return "Sorry, we are not available right now. Please try again later.";
   }
 }
@@ -152,10 +157,7 @@ extension CategoryMapper on Category {
 
 extension ProductImageMapper on ProductImage {
   ProductImageEntity toDomain() {
-    return ProductImageEntity(
-      image: image,
-      altText: altText,
-    );
+    return ProductImageEntity(image: image, altText: altText);
   }
 }
 

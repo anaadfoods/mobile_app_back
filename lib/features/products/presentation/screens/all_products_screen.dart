@@ -88,9 +88,10 @@ class _AllProductsScreenState extends State<AllProductsScreen> {
     final isDark = theme.brightness == Brightness.dark;
 
     return BlocListener<ProductCubit, ProductState>(
-      listenWhen: (previous, current) =>
-          (widget.products == null || widget.products!.isEmpty) &&
-          (current is ProductSuccess || current is ProductError),
+      listenWhen:
+          (previous, current) =>
+              (widget.products == null || widget.products!.isEmpty) &&
+              (current is ProductSuccess || current is ProductError),
       listener: (context, state) {
         if (state is ProductSuccess) {
           _loadProducts(List.from(state.featuredProducts));
@@ -188,7 +189,8 @@ class _AllProductsScreenState extends State<AllProductsScreen> {
             centerTitle: false,
             titleSpacing: 0,
             toolbarHeight: 72.0,
-            backgroundColor: isDark ? AppColors.charcoal : AppColors.deepSoilGreen,
+            backgroundColor:
+                isDark ? AppColors.charcoal : AppColors.deepSoilGreen,
             title: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
@@ -210,7 +212,10 @@ class _AllProductsScreenState extends State<AllProductsScreen> {
               ],
             ),
             leading: IconButton(
-              icon: const Icon(Icons.arrow_back_rounded, color: AppColors.parchment),
+              icon: const Icon(
+                Icons.arrow_back_rounded,
+                color: AppColors.parchment,
+              ),
               onPressed: () => Navigator.maybePop(context),
             ),
             actions: [
@@ -222,7 +227,9 @@ class _AllProductsScreenState extends State<AllProductsScreen> {
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Icon(
-                    _isGridView ? Icons.view_list_rounded : Icons.grid_view_rounded,
+                    _isGridView
+                        ? Icons.view_list_rounded
+                        : Icons.grid_view_rounded,
                     size: 20,
                   ),
                 ),
@@ -241,10 +248,30 @@ class _AllProductsScreenState extends State<AllProductsScreen> {
                 scrollDirection: Axis.horizontal,
                 child: Row(
                   children: [
-                    _buildSortChip('Featured', 'featured', Icons.star_rounded, isDark),
-                    _buildSortChip('Price: Low', 'price_low', Icons.arrow_downward, isDark),
-                    _buildSortChip('Price: High', 'price_high', Icons.arrow_upward, isDark),
-                    _buildSortChip('Best Deals', 'discount', Icons.local_offer_rounded, isDark),
+                    _buildSortChip(
+                      'Featured',
+                      'featured',
+                      Icons.star_rounded,
+                      isDark,
+                    ),
+                    _buildSortChip(
+                      'Price: Low',
+                      'price_low',
+                      Icons.arrow_downward,
+                      isDark,
+                    ),
+                    _buildSortChip(
+                      'Price: High',
+                      'price_high',
+                      Icons.arrow_upward,
+                      isDark,
+                    ),
+                    _buildSortChip(
+                      'Best Deals',
+                      'discount',
+                      Icons.local_offer_rounded,
+                      isDark,
+                    ),
                   ],
                 ),
               ),
@@ -262,7 +289,12 @@ class _AllProductsScreenState extends State<AllProductsScreen> {
     );
   }
 
-  Widget _buildSortChip(String label, String value, IconData icon, bool isDark) {
+  Widget _buildSortChip(
+    String label,
+    String value,
+    IconData icon,
+    bool isDark,
+  ) {
     final isSelected = _sortBy == value;
     return Padding(
       padding: const EdgeInsets.only(right: 8),
@@ -272,22 +304,25 @@ class _AllProductsScreenState extends State<AllProductsScreen> {
           duration: const Duration(milliseconds: 200),
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
           decoration: BoxDecoration(
-            color: isSelected
-                ? AppColors.deepSoilGreen
-                : (isDark ? AppColors.charcoal87 : AppColors.parchment),
+            color:
+                isSelected
+                    ? AppColors.deepSoilGreen
+                    : (isDark ? AppColors.charcoal87 : AppColors.parchment),
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
-              color: isSelected ? AppColors.deepSoilGreen : AppColors.transparent,
+              color:
+                  isSelected ? AppColors.deepSoilGreen : AppColors.transparent,
             ),
-            boxShadow: isSelected
-                ? null
-                : [
-                    BoxShadow(
-                      color: AppColors.charcoal.withValues(alpha: 0.05),
-                      blurRadius: 4,
-                      offset: const Offset(0, 2),
-                    ),
-                  ],
+            boxShadow:
+                isSelected
+                    ? null
+                    : [
+                      BoxShadow(
+                        color: AppColors.charcoal.withValues(alpha: 0.05),
+                        blurRadius: 4,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
@@ -295,9 +330,12 @@ class _AllProductsScreenState extends State<AllProductsScreen> {
               Icon(
                 icon,
                 size: 16,
-                color: isSelected
-                    ? AppColors.parchment
-                    : (isDark ? AppColors.parchment70 : AppColors.charcoal54),
+                color:
+                    isSelected
+                        ? AppColors.parchment
+                        : (isDark
+                            ? AppColors.parchment70
+                            : AppColors.charcoal54),
               ),
               const SizedBox(width: 6),
               Text(
@@ -305,9 +343,12 @@ class _AllProductsScreenState extends State<AllProductsScreen> {
                 style: TextStyle(
                   fontSize: 13,
                   fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-                  color: isSelected
-                      ? AppColors.parchment
-                      : (isDark ? AppColors.parchment70 : AppColors.charcoal87),
+                  color:
+                      isSelected
+                          ? AppColors.parchment
+                          : (isDark
+                              ? AppColors.parchment70
+                              : AppColors.charcoal87),
                 ),
               ),
             ],
@@ -343,25 +384,23 @@ class _AllProductsScreenState extends State<AllProductsScreen> {
     return SliverPadding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       sliver: SliverList(
-        delegate: SliverChildBuilderDelegate(
-          (context, index) {
-            final product = _products[index];
-            return Padding(
-              padding: const EdgeInsets.only(bottom: 12),
-              child: Opacity(
-                opacity: product.isActive ? (product.isInStock ? 1.0 : 0.5) : 1.0,
-                child: GroceryItemCardWidget(
-                  item: Product.fromEntity(product),
-                  heroSuffix: 'all_products_list_$index',
-                  onTap: (product.isInStock && product.isActive)
-                      ? () => _onProductTap(product)
-                      : null,
-                ),
+        delegate: SliverChildBuilderDelegate((context, index) {
+          final product = _products[index];
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 12),
+            child: Opacity(
+              opacity: product.isActive ? (product.isInStock ? 1.0 : 0.5) : 1.0,
+              child: GroceryItemCardWidget(
+                item: Product.fromEntity(product),
+                heroSuffix: 'all_products_list_$index',
+                onTap:
+                    (product.isInStock && product.isActive)
+                        ? () => _onProductTap(product)
+                        : null,
               ),
-            );
-          },
-          childCount: _products.length,
-        ),
+            ),
+          );
+        }, childCount: _products.length),
       ),
     );
   }

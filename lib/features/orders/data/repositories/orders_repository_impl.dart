@@ -16,7 +16,7 @@ class OrdersRepositoryImpl implements OrdersRepository {
   final OrdersRemoteDataSource _remoteDataSource;
 
   OrdersRepositoryImpl({required OrdersRemoteDataSource remoteDataSource})
-      : _remoteDataSource = remoteDataSource;
+    : _remoteDataSource = remoteDataSource;
 
   @override
   Future<List<OrderEntity>> getOrders() async {
@@ -39,13 +39,20 @@ class OrdersRepositoryImpl implements OrdersRepository {
   }
 
   @override
-  Future<OrderCreateResponseEntity> createOrder(CreateOrderParams params) async {
+  Future<OrderCreateResponseEntity> createOrder(
+    CreateOrderParams params,
+  ) async {
     try {
       // Map CreateOrderParams to OrderModel DTO
-      final dtoItems = params.items.map((i) => OrderItem(
-        productVariantId: i.productVariantId,
-        quantity: i.quantity,
-      )).toList();
+      final dtoItems =
+          params.items
+              .map(
+                (i) => OrderItem(
+                  productVariantId: i.productVariantId,
+                  quantity: i.quantity,
+                ),
+              )
+              .toList();
 
       final orderModel = OrderModel(
         paymentMethod: params.paymentMethod,
@@ -90,7 +97,10 @@ class OrdersRepositoryImpl implements OrdersRepository {
   }
 
   @override
-  Future<Map<String, dynamic>> cancelOrder(int orderId, {String? reason}) async {
+  Future<Map<String, dynamic>> cancelOrder(
+    int orderId, {
+    String? reason,
+  }) async {
     try {
       return await _remoteDataSource.cancelOrder(orderId, reason: reason);
     } catch (e) {
@@ -153,10 +163,7 @@ class OrdersRepositoryImpl implements OrdersRepository {
         message: errString,
       );
     }
-    return OrderFailure(
-      type: OrderFailureType.unknown,
-      message: errString,
-    );
+    return OrderFailure(type: OrderFailureType.unknown, message: errString);
   }
 }
 

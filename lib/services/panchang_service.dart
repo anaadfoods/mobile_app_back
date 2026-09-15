@@ -11,12 +11,12 @@ import '../models/panchang/panchang_muhurats_models.dart';
 import '../models/panchang/panchang_vrat_models.dart';
 import '../models/panchang/panchang_guidance_models.dart';
 
-
-
 import 'package:grocery_app/service_locator.dart';
+
 void logApi(String message) {
   // Logging removed
 }
+
 class PanchangService {
   static final PanchangService _instance = PanchangService._internal();
   factory PanchangService() => getIt<PanchangService>();
@@ -53,15 +53,23 @@ class PanchangService {
       ),
     );
 
-    if (response.statusCode != null && response.statusCode! >= 200 && response.statusCode! < 300) {
+    if (response.statusCode != null &&
+        response.statusCode! >= 200 &&
+        response.statusCode! < 300) {
       final body = response.data;
       if (body is Map<String, dynamic>) {
         return PanchangDayResponse.fromJson(body);
       }
-      throw ApiException('Unexpected response format', response.statusCode ?? 500);
+      throw ApiException(
+        'Unexpected response format',
+        response.statusCode ?? 500,
+      );
     }
 
-    throw ApiException.fromStatusCode(response.statusCode ?? 500, response.data?.toString() ?? '');
+    throw ApiException.fromStatusCode(
+      response.statusCode ?? 500,
+      response.data?.toString() ?? '',
+    );
   }
 
   Future<PanchangMonthResponse> getMonth({
@@ -96,15 +104,23 @@ class PanchangService {
       ),
     );
 
-    if (response.statusCode != null && response.statusCode! >= 200 && response.statusCode! < 300) {
+    if (response.statusCode != null &&
+        response.statusCode! >= 200 &&
+        response.statusCode! < 300) {
       final body = response.data;
       if (body is Map<String, dynamic>) {
         return PanchangMonthResponse.fromJson(body);
       }
-      throw ApiException('Unexpected response format', response.statusCode ?? 500);
+      throw ApiException(
+        'Unexpected response format',
+        response.statusCode ?? 500,
+      );
     }
 
-    throw ApiException.fromStatusCode(response.statusCode ?? 500, response.data?.toString() ?? '');
+    throw ApiException.fromStatusCode(
+      response.statusCode ?? 500,
+      response.data?.toString() ?? '',
+    );
   }
 
   /// Fetch festivals in a date range
@@ -142,15 +158,23 @@ class PanchangService {
       ),
     );
 
-    if (response.statusCode != null && response.statusCode! >= 200 && response.statusCode! < 300) {
+    if (response.statusCode != null &&
+        response.statusCode! >= 200 &&
+        response.statusCode! < 300) {
       final body = response.data;
       if (body is Map<String, dynamic>) {
         return PanchangFestivalsResponse.fromJson(body);
       }
-      throw ApiException('Unexpected response format', response.statusCode ?? 500);
+      throw ApiException(
+        'Unexpected response format',
+        response.statusCode ?? 500,
+      );
     }
 
-    throw ApiException.fromStatusCode(response.statusCode ?? 500, response.data?.toString() ?? '');
+    throw ApiException.fromStatusCode(
+      response.statusCode ?? 500,
+      response.data?.toString() ?? '',
+    );
   }
 
   /// Search festivals by query
@@ -188,15 +212,23 @@ class PanchangService {
       ),
     );
 
-    if (response.statusCode != null && response.statusCode! >= 200 && response.statusCode! < 300) {
+    if (response.statusCode != null &&
+        response.statusCode! >= 200 &&
+        response.statusCode! < 300) {
       final body = response.data;
       if (body is Map<String, dynamic>) {
         return FestivalSearchResponse.fromJson(body);
       }
-      throw ApiException('Unexpected response format', response.statusCode ?? 500);
+      throw ApiException(
+        'Unexpected response format',
+        response.statusCode ?? 500,
+      );
     }
 
-    throw ApiException.fromStatusCode(response.statusCode ?? 500, response.data?.toString() ?? '');
+    throw ApiException.fromStatusCode(
+      response.statusCode ?? 500,
+      response.data?.toString() ?? '',
+    );
   }
 
   /// Fetch highlights (main festival per day) for a month
@@ -232,15 +264,23 @@ class PanchangService {
       ),
     );
 
-    if (response.statusCode != null && response.statusCode! >= 200 && response.statusCode! < 300) {
+    if (response.statusCode != null &&
+        response.statusCode! >= 200 &&
+        response.statusCode! < 300) {
       final body = response.data;
       if (body is Map<String, dynamic>) {
         return PanchangHighlightsResponse.fromJson(body);
       }
-      throw ApiException('Unexpected response format', response.statusCode ?? 500);
+      throw ApiException(
+        'Unexpected response format',
+        response.statusCode ?? 500,
+      );
     }
 
-    throw ApiException.fromStatusCode(response.statusCode ?? 500, response.data?.toString() ?? '');
+    throw ApiException.fromStatusCode(
+      response.statusCode ?? 500,
+      response.data?.toString() ?? '',
+    );
   }
 
   /// Get muhurats and timings for a specific date
@@ -277,15 +317,23 @@ class PanchangService {
       ),
     );
 
-    if (response.statusCode != null && response.statusCode! >= 200 && response.statusCode! < 300) {
+    if (response.statusCode != null &&
+        response.statusCode! >= 200 &&
+        response.statusCode! < 300) {
       final body = response.data;
       if (body is Map<String, dynamic>) {
         return PanchangMuhuratsResponse.fromJson(body);
       }
-      throw ApiException('Unexpected response format', response.statusCode ?? 500);
+      throw ApiException(
+        'Unexpected response format',
+        response.statusCode ?? 500,
+      );
     }
 
-    throw ApiException.fromStatusCode(response.statusCode ?? 500, response.data?.toString() ?? '');
+    throw ApiException.fromStatusCode(
+      response.statusCode ?? 500,
+      response.data?.toString() ?? '',
+    );
   }
 
   /// Get Vrat Calendar (fasting days)
@@ -323,15 +371,23 @@ class PanchangService {
       ),
     );
 
-    if (response.statusCode != null && response.statusCode! >= 200 && response.statusCode! < 300) {
+    if (response.statusCode != null &&
+        response.statusCode! >= 200 &&
+        response.statusCode! < 300) {
       final body = response.data;
       if (body is Map<String, dynamic>) {
         return VratCalendarResponse.fromJson(body);
       }
-      throw ApiException('Unexpected response format', response.statusCode ?? 500);
+      throw ApiException(
+        'Unexpected response format',
+        response.statusCode ?? 500,
+      );
     }
 
-    throw ApiException.fromStatusCode(response.statusCode ?? 500, response.data?.toString() ?? '');
+    throw ApiException.fromStatusCode(
+      response.statusCode ?? 500,
+      response.data?.toString() ?? '',
+    );
   }
 
   /// Get today's guidance recommendations
@@ -365,15 +421,23 @@ class PanchangService {
       ),
     );
 
-    if (response.statusCode != null && response.statusCode! >= 200 && response.statusCode! < 300) {
+    if (response.statusCode != null &&
+        response.statusCode! >= 200 &&
+        response.statusCode! < 300) {
       final body = response.data;
       if (body is Map<String, dynamic>) {
         return GuidanceTodayResponse.fromJson(body);
       }
-      throw ApiException('Unexpected response format', response.statusCode ?? 500);
+      throw ApiException(
+        'Unexpected response format',
+        response.statusCode ?? 500,
+      );
     }
 
-    throw ApiException.fromStatusCode(response.statusCode ?? 500, response.data?.toString() ?? '');
+    throw ApiException.fromStatusCode(
+      response.statusCode ?? 500,
+      response.data?.toString() ?? '',
+    );
   }
 
   /// Get user's guidance profile/preferences
@@ -389,15 +453,23 @@ class PanchangService {
       ),
     );
 
-    if (response.statusCode != null && response.statusCode! >= 200 && response.statusCode! < 300) {
+    if (response.statusCode != null &&
+        response.statusCode! >= 200 &&
+        response.statusCode! < 300) {
       final body = response.data;
       if (body is Map<String, dynamic>) {
         return GuidanceProfileResponse.fromJson(body);
       }
-      throw ApiException('Unexpected response format', response.statusCode ?? 500);
+      throw ApiException(
+        'Unexpected response format',
+        response.statusCode ?? 500,
+      );
     }
 
-    throw ApiException.fromStatusCode(response.statusCode ?? 500, response.data?.toString() ?? '');
+    throw ApiException.fromStatusCode(
+      response.statusCode ?? 500,
+      response.data?.toString() ?? '',
+    );
   }
 
   /// Save user's guidance profile/preferences
@@ -415,12 +487,17 @@ class PanchangService {
       ),
     );
 
-    if (response.statusCode != null && response.statusCode! >= 200 && response.statusCode! < 300) {
+    if (response.statusCode != null &&
+        response.statusCode! >= 200 &&
+        response.statusCode! < 300) {
       final body = response.data;
       if (body is Map<String, dynamic>) {
         return GuidanceProfileResponse.fromJson(body);
       }
-      throw ApiException('Unexpected response format', response.statusCode ?? 500);
+      throw ApiException(
+        'Unexpected response format',
+        response.statusCode ?? 500,
+      );
     }
 
     // Try to extract error message

@@ -12,8 +12,12 @@ import 'package:grocery_app/features/home/presentation/cubit/home_cubit.dart';
 import 'package:grocery_app/features/products/presentation/cubit/product_cubit.dart';
 import 'package:grocery_app/helpers/snackbar_helper.dart';
 import 'package:grocery_app/service_locator.dart';
+import 'package:grocery_app/core/theme/app_colors.dart';
+import 'package:grocery_app/routes/app_routes.dart';
 import 'package:grocery_app/services/notification_service.dart';
 import '../widgets/dashboard_navigation_bar.dart';
+import '../widgets/expandable_anaad_fab.dart';
+import 'package:grocery_app/core/analytics/analytics_service.dart';
 
 class DashboardScreen extends StatefulWidget {
   final StatefulNavigationShell navigationShell;
@@ -53,12 +57,13 @@ class DashboardScreenState extends State<DashboardScreen>
       vsync: this,
     )..repeat(reverse: true);
 
-    _slideController = AnimationController(
-      duration: const Duration(milliseconds: 250),
-      vsync: this,
-    )
-      ..addListener(_onSlideAnimation)
-      ..addStatusListener(_onSlideAnimationStatus);
+    _slideController =
+        AnimationController(
+            duration: const Duration(milliseconds: 250),
+            vsync: this,
+          )
+          ..addListener(_onSlideAnimation)
+          ..addStatusListener(_onSlideAnimationStatus);
 
     WidgetsBinding.instance.addObserver(this);
 
@@ -111,20 +116,22 @@ class DashboardScreenState extends State<DashboardScreen>
     _isAnimating = true;
     _pendingTabIndex = index;
     _animStartOffset = 0.0;
-    _animEndOffset = index > currentIndex ? -screenWidth * 0.4 : screenWidth * 0.4;
+    _animEndOffset =
+        index > currentIndex ? -screenWidth * 0.4 : screenWidth * 0.4;
     _activeCurve = Curves.decelerate;
-    
+
     _slideController.duration = const Duration(milliseconds: 160);
     _slideController.forward(from: 0);
   }
 
   void _onSlideAnimation() {
     setState(() {
-      _dragOffset = lerpDouble(
-        _animStartOffset,
-        _animEndOffset,
-        _activeCurve.transform(_slideController.value),
-      )!;
+      _dragOffset =
+          lerpDouble(
+            _animStartOffset,
+            _animEndOffset,
+            _activeCurve.transform(_slideController.value),
+          )!;
     });
   }
 
@@ -139,6 +146,27 @@ class DashboardScreenState extends State<DashboardScreen>
         widget.navigationShell.goBranch(
           targetTab,
           initialLocation: targetTab == widget.navigationShell.currentIndex,
+        );
+
+        const tabNames = ['Home', 'Categories', 'Cart', 'Wishlist', 'Profile'];
+        final tabName = targetTab < tabNames.length ? tabNames[targetTab] : 'Tab_$targetTab';
+        AnalyticsService().currentScreen = tabName;
+        AnalyticsService().trackClick(
+          elementText: 'Bottom Tab: $tabName',
+          componentName: 'dashboard_navigation_bar',
+          screen: tabName,
+          properties: {'tab_index': targetTab, 'tab_name': tabName},
+        );
+        AnalyticsService().trackEvent(
+          eventName: 'screen_viewed',
+          feature: 'navigation',
+          screen: tabName,
+          properties: {
+            'current_screen': tabName,
+            'element_text': 'Screen: $tabName',
+            'target_element': 'Screen: $tabName',
+            'navigation_type': 'bottom_navigation',
+          },
         );
 
         final screenWidth = MediaQuery.sizeOf(context).width;
@@ -207,18 +235,16 @@ class DashboardScreenState extends State<DashboardScreen>
     if (targetIndex != currentIndex) {
       _pendingTabIndex = targetIndex;
       _animStartOffset = _dragOffset;
-      _animEndOffset = targetIndex > currentIndex
-          ? -screenWidth * 0.4
-          : screenWidth * 0.4;
+      _animEndOffset =
+          targetIndex > currentIndex ? -screenWidth * 0.4 : screenWidth * 0.4;
 
       final remainingDistance = (_animEndOffset - _animStartOffset).abs();
-      final baseDuration = absVelocity > 500
-          ? 120
-          : absVelocity > 250
+      final baseDuration =
+          absVelocity > 500
+              ? 120
+              : absVelocity > 250
               ? 160
-              : (remainingDistance / screenWidth * 280)
-                  .clamp(100, 220)
-                  .toInt();
+              : (remainingDistance / screenWidth * 280).clamp(100, 220).toInt();
 
       _activeCurve = Curves.decelerate;
       _slideController.duration = Duration(milliseconds: baseDuration);
@@ -254,9 +280,9 @@ class DashboardScreenState extends State<DashboardScreen>
 
         if (widget.navigationShell.currentIndex == 0 && !context.canPop()) {
           final now = DateTime.now();
-          final isWarning = lastTimeBackPressed == null ||
-              now.difference(lastTimeBackPressed!) >
-                  const Duration(seconds: 2);
+          final isWarning =
+              lastTimeBackPressed == null ||
+              now.difference(lastTimeBackPressed!) > const Duration(seconds: 2);
 
           if (isWarning) {
             lastTimeBackPressed = now;
@@ -279,7 +305,7 @@ class DashboardScreenState extends State<DashboardScreen>
             context.read<FavoritesCubit>().clearFavoritesState();
             context.read<HomeCubit>().loadHomeData();
             context.read<ProductCubit>().loadHomePageData();
-            
+
             // Switch to home tab on logout silently
             if (widget.navigationShell.currentIndex != 0) {
               widget.navigationShell.goBranch(0);
@@ -289,13 +315,13 @@ class DashboardScreenState extends State<DashboardScreen>
         builder: (context, authState) {
           final isAuth = authState is Authenticated;
           final dynamicItems = List<NavigatorItem>.from(navigatorItems);
-          
+
           if (!isAuth && dynamicItems.length > 4) {
-             dynamicItems[4] = NavigatorItem(
-               label: 'Login',
-               icon: dynamicItems[4].icon,
-               activeIcon: dynamicItems[4].activeIcon,
-             );
+            dynamicItems[4] = NavigatorItem(
+              label: 'Login',
+              icon: dynamicItems[4].icon,
+              activeIcon: dynamicItems[4].activeIcon,
+            );
           }
 
           return Scaffold(
@@ -311,10 +337,20 @@ class DashboardScreenState extends State<DashboardScreen>
                 ),
               ),
             ),
+            floatingActionButton: ExpandableAnaadFab(
+              onAiChatPressed: () {
+                context.push(AppRoute.aiChat.path);
+              },
+              onMemoryPressed: () {
+                context.push(AppRoute.healthProfile.path);
+              },
+            ),
             bottomNavigationBar: BlocBuilder<CartCubit, CartState>(
               builder: (context, cartState) {
                 final cartCount =
-                    (cartState is CartSuccess) ? cartState.cart.items.length : 0;
+                    (cartState is CartSuccess)
+                        ? cartState.cart.items.length
+                        : 0;
 
                 return PremiumBottomNavBar(
                   currentIndex: currentIndex,

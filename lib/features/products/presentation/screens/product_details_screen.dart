@@ -24,6 +24,7 @@ import 'package:grocery_app/service_locator.dart';
 import 'package:grocery_app/services/plan_search_service.dart';
 import 'package:grocery_app/features/subscriptions/domain/usecases/get_subscription_plans_use_case.dart';
 import 'package:grocery_app/features/subscriptions/domain/entities/subscription_plan_entity.dart';
+import 'package:grocery_app/core/analytics/analytics_service.dart';
 
 class ProductDetailsScreen extends StatefulWidget {
   final Product product;
@@ -68,6 +69,20 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
     _loadFavoriteStatus();
     _loadSubscriptionPlans();
     _loadCategoryProducts();
+
+    AnalyticsService().trackEvent(
+      eventName: 'product_viewed',
+      feature: 'catalog',
+      screen: 'ProductDetails',
+      properties: {
+        'product_id': widget.product.id,
+        'product_name': widget.product.name,
+        'category': widget.product.productCategory,
+        'price': widget.product.price,
+        'target_element': 'Viewed Product: ${widget.product.name}',
+        'element_text': 'Viewed Product: ${widget.product.name}',
+      },
+    );
 
     _pageController.addListener(() {
       if (mounted && _pageController.page?.round() != _currentPage) {
@@ -137,23 +152,26 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
 
       setState(() {
         availablePlansForProduct = productPlans;
-        allPlans = planEntities
-            .map((e) => SubscriptionPlan(
-                  id: e.id,
-                  name: e.name,
-                  durationMonths: e.durationMonths,
-                  discountPercentage: e.discountPercentage,
-                  totalDiscountPercentage: e.totalDiscountPercentage,
-                  tagline: e.tagline,
-                  description: e.description,
-                  isActive: e.isActive,
-                  activationDate: e.activationDate,
-                  isOneTimeOnly: e.isOneTimeOnly,
-                  allowsInstallments: e.allowsInstallments,
-                  installmentFrequencyMonths: e.installmentFrequencyMonths,
-                  isAvailable: e.isAvailable,
-                ))
-            .toList();
+        allPlans =
+            planEntities
+                .map(
+                  (e) => SubscriptionPlan(
+                    id: e.id,
+                    name: e.name,
+                    durationMonths: e.durationMonths,
+                    discountPercentage: e.discountPercentage,
+                    totalDiscountPercentage: e.totalDiscountPercentage,
+                    tagline: e.tagline,
+                    description: e.description,
+                    isActive: e.isActive,
+                    activationDate: e.activationDate,
+                    isOneTimeOnly: e.isOneTimeOnly,
+                    allowsInstallments: e.allowsInstallments,
+                    installmentFrequencyMonths: e.installmentFrequencyMonths,
+                    isAvailable: e.isAvailable,
+                  ),
+                )
+                .toList();
       });
     } catch (e) {
       log('Error fetching subscription plans: $e');
@@ -207,6 +225,18 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
       context.push(AppRoute.login.path);
       return;
     }
+    final nextFav = !isFavorite;
+    AnalyticsService().trackClick(
+      elementText: nextFav
+          ? 'Add Favorite: ${widget.product.name}'
+          : 'Remove Favorite: ${widget.product.name}',
+      componentName: 'favorite_toggle_btn',
+      properties: {
+        'product_id': widget.product.id,
+        'product_name': widget.product.name,
+        'is_favorite': nextFav,
+      },
+    );
     context.read<FavoritesCubit>().toggleFavorite(widget.product.id);
     setState(() => isFavorite = !isFavorite);
     SnackBarHelper.showSuccess(
@@ -284,6 +314,21 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
       price = selectedAvailablePlan.discountedPrice;
       selectedPlanId = selectedAvailablePlan.planId;
     }
+
+    AnalyticsService().trackClick(
+      elementText: isSubscription
+          ? 'Subscribe Now: ${widget.product.name}'
+          : 'Buy Now: ${widget.product.name} (Qty: $quantity)',
+      componentName: isSubscription ? 'subscribe_now_btn' : 'buy_now_btn',
+      properties: {
+        'product_id': widget.product.id,
+        'product_name': widget.product.name,
+        'is_subscription': isSubscription,
+        'quantity': quantity,
+        if (price != null) 'price': price,
+        if (selectedPlanId != null) 'selected_plan_id': selectedPlanId,
+      },
+    );
 
     AppLogger.instance.log(
       'Navigating to Address Screen with: isSubscription=$isSubscription, selectedPlanId=$selectedPlanId, quantity=$quantity, price=$price, paymentType=$paymentType',

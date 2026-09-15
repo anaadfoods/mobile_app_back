@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
+import 'package:grocery_app/core/analytics/analytics_service.dart';
 import 'package:grocery_app/core/theme/app_colors.dart';
 import 'package:grocery_app/models/cart_model.dart';
 import 'package:grocery_app/routes/app_routes.dart';
@@ -20,7 +21,8 @@ class CartCheckoutBar extends StatelessWidget {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
-    final double totalAmount = double.tryParse(cart.totalPrice) ??
+    final double totalAmount =
+        double.tryParse(cart.totalPrice) ??
         cart.items.fold<double>(
           0.0,
           (sum, item) => sum + (item.productVariant.finalPrice * item.quantity),
@@ -63,7 +65,8 @@ class CartCheckoutBar extends StatelessWidget {
                     height: 4,
                     margin: const EdgeInsets.only(bottom: 16),
                     decoration: BoxDecoration(
-                      color: isDark ? AppColors.charcoal60 : AppColors.rawEarth12,
+                      color:
+                          isDark ? AppColors.charcoal60 : AppColors.rawEarth12,
                       borderRadius: BorderRadius.circular(2),
                     ),
                   ),
@@ -128,17 +131,29 @@ class CartCheckoutBar extends StatelessWidget {
                   const SizedBox(height: 16),
 
                   // Checkout Button
-                  SizedBox(
-                    width: double.infinity,
-                    height: 56,
-                    child: ElevatedButton(
-                      onPressed: () {
-                        HapticFeedback.mediumImpact();
-                        context.pushNamed(
-                          AppRoute.address.name,
-                          extra: {'cart': cart},
-                        );
-                      },
+                  Semantics(
+                    button: true,
+                    label:
+                        'Proceed to checkout, ${cart.totalItems} items, total ${totalAmount.toStringAsFixed(2)} rupees',
+                    child: SizedBox(
+                      width: double.infinity,
+                      height: 56,
+                      child: ElevatedButton(
+                        onPressed: () {
+                          HapticFeedback.mediumImpact();
+                          AnalyticsService().trackClick(
+                            elementText: 'Proceed to Checkout (${cart.totalItems} items, ₹${totalAmount.toStringAsFixed(2)})',
+                            componentName: 'proceed_to_checkout_btn',
+                            properties: {
+                              'total_items': cart.totalItems,
+                              'total_amount': totalAmount,
+                            },
+                          );
+                          context.pushNamed(
+                            AppRoute.address.name,
+                            extra: {'cart': cart},
+                          );
+                        },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: theme.colorScheme.primary,
                         foregroundColor: AppColors.parchment,
@@ -147,29 +162,30 @@ class CartCheckoutBar extends StatelessWidget {
                         ),
                         elevation: 0,
                       ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const Text(
-                            'Proceed to Checkout',
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Text(
+                              'Proceed to Checkout',
                             style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
-                          const SizedBox(width: 8),
-                          Container(
-                            padding: const EdgeInsets.all(4),
-                            decoration: BoxDecoration(
-                              color: AppColors.parchment.withValues(alpha: 0.2),
-                              borderRadius: BorderRadius.circular(8),
+                            const SizedBox(width: 8),
+                            Container(
+                              padding: const EdgeInsets.all(4),
+                              decoration: BoxDecoration(
+                                color: AppColors.parchment.withValues(alpha: 0.2),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: const Icon(
+                                Icons.arrow_forward_rounded,
+                                size: 18,
+                              ),
                             ),
-                            child: const Icon(
-                              Icons.arrow_forward_rounded,
-                              size: 18,
-                            ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                     ),
                   ),

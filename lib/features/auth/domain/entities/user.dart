@@ -1,4 +1,5 @@
 class User {
+  final int? id;
   final String email;
   final String username;
   final String firstName;
@@ -15,6 +16,7 @@ class User {
   final bool isRfp;
 
   const User({
+    this.id,
     required this.email,
     required this.username,
     required this.firstName,
@@ -32,6 +34,7 @@ class User {
   });
 
   User copyWith({
+    int? id,
     String? email,
     String? username,
     String? firstName,
@@ -48,6 +51,7 @@ class User {
     bool? isRfp,
   }) {
     return User(
+      id: id ?? this.id,
       email: email ?? this.email,
       username: username ?? this.username,
       firstName: firstName ?? this.firstName,

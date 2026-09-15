@@ -24,10 +24,7 @@ class PaymentService {
   static const Duration _pollInterval = Duration(seconds: 2);
 
   /// Statuses that mean "still in flight — keep polling".
-  static const Set<String> _pendingStatuses = {
-    'INITIATED',
-    'PENDING',
-  };
+  static const Set<String> _pendingStatuses = {'INITIATED', 'PENDING'};
 
   /// Single-shot fetch for `GET /api/payments/status/<reference>/`
   Future<PaymentStatusResponse> fetchStatus(String reference) async {
@@ -79,8 +76,7 @@ class PaymentService {
   // ─── helpers ──────────────────────────────────────────────────────
 
   /// Whether [status] is a terminal success.
-  static bool isSuccess(String status) =>
-      status.toUpperCase() == 'SUCCESS';
+  static bool isSuccess(String status) => status.toUpperCase() == 'SUCCESS';
 
   /// Whether [status] is still in-flight.
   static bool isPending(String status) =>

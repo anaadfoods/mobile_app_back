@@ -4,10 +4,7 @@ import 'package:grocery_app/core/theme/app_colors.dart';
 class MerchantInfoBanner extends StatelessWidget {
   final String url;
 
-  const MerchantInfoBanner({
-    super.key,
-    required this.url,
-  });
+  const MerchantInfoBanner({super.key, required this.url});
 
   @override
   Widget build(BuildContext context) {
@@ -41,15 +38,15 @@ class MerchantInfoBanner extends StatelessWidget {
                 'Anaad Foods Pvt. Ltd.',
                 style: theme.textTheme.titleSmall?.copyWith(
                   fontWeight: FontWeight.bold,
-                  color: isDark ? AppColors.deepSoilGreen : AppColors.deepSoilGreen,
+                  color:
+                      isDark
+                          ? AppColors.deepSoilGreen
+                          : AppColors.deepSoilGreen,
                 ),
               ),
               const Spacer(),
               Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 8,
-                  vertical: 3,
-                ),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(
                   color: AppColors.deepSoilGreen,
                   borderRadius: BorderRadius.circular(6),

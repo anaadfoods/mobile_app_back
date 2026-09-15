@@ -79,10 +79,16 @@ class CheckoutBottomBar extends StatelessWidget {
               ),
               const SizedBox(width: 16),
               Expanded(
-                child: SizedBox(
-                  height: 56,
-                  child: ElevatedButton(
-                    onPressed: isSubmitting ? null : onSubmit,
+                child: Semantics(
+                  button: true,
+                  enabled: !isSubmitting,
+                  label: isSubmitting
+                      ? 'Securing your order'
+                      : 'Place order, total ${total.toStringAsFixed(2)} rupees',
+                  child: SizedBox(
+                    height: 56,
+                    child: ElevatedButton(
+                      onPressed: isSubmitting ? null : onSubmit,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: theme.colorScheme.primary,
                       foregroundColor: AppColors.parchment,
@@ -91,21 +97,33 @@ class CheckoutBottomBar extends StatelessWidget {
                       ),
                       elevation: 0,
                     ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          isSubmitting ? 'Processing...' : 'Place Order',
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          if (isSubmitting) ...[
+                            const SizedBox(
+                              width: 18,
+                              height: 18,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: AppColors.parchment,
+                              ),
+                            ),
+                            const SizedBox(width: 10),
+                          ],
+                          Text(
+                            isSubmitting ? 'Securing order...' : 'Place Order',
                           style: const TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
-                        if (!isSubmitting) ...[
-                          const SizedBox(width: 3),
-                          const Icon(Icons.arrow_forward_rounded, size: 20),
+                          if (!isSubmitting) ...[
+                            const SizedBox(width: 3),
+                            const Icon(Icons.arrow_forward_rounded, size: 20),
+                          ],
                         ],
-                      ],
+                      ),
                     ),
                   ),
                 ),
@@ -124,9 +142,10 @@ class CheckoutBottomBar extends StatelessWidget {
   ) {
     final totalMonthlyPrice = double.tryParse(totalPrice) ?? 0.0;
     final isInstallment = selectedPaymentType == 'INSTALLMENT';
-    final displayPrice = isInstallment
-        ? totalMonthlyPrice * plan.installmentFrequencyMonths
-        : totalMonthlyPrice * plan.durationMonths;
+    final displayPrice =
+        isInstallment
+            ? totalMonthlyPrice * plan.installmentFrequencyMonths
+            : totalMonthlyPrice * plan.durationMonths;
 
     return Positioned(
       left: 0,
@@ -216,11 +235,17 @@ class CheckoutBottomBar extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 16),
-              SizedBox(
-                width: double.infinity,
-                height: 56,
-                child: ElevatedButton(
-                  onPressed: isSubmitting ? null : onSubmit,
+              Semantics(
+                button: true,
+                enabled: !isSubmitting,
+                label: isSubmitting
+                    ? 'Setting up your subscription'
+                    : 'Subscribe now, total ${displayPrice.toStringAsFixed(2)} rupees',
+                child: SizedBox(
+                  width: double.infinity,
+                  height: 56,
+                  child: ElevatedButton(
+                    onPressed: isSubmitting ? null : onSubmit,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: theme.colorScheme.primary,
                     foregroundColor: AppColors.parchment,
@@ -229,21 +254,35 @@ class CheckoutBottomBar extends StatelessWidget {
                     ),
                     elevation: 0,
                   ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        isSubmitting ? 'Processing...' : 'Subscribe Now',
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        if (isSubmitting) ...[
+                          const SizedBox(
+                            width: 18,
+                            height: 18,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: AppColors.parchment,
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                        ],
+                        Text(
+                          isSubmitting
+                              ? 'Setting up subscription...'
+                              : 'Subscribe Now',
                         style: const TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                      if (!isSubmitting) ...[
-                        const SizedBox(width: 8),
-                        const Icon(Icons.arrow_forward_rounded, size: 20),
+                        if (!isSubmitting) ...[
+                          const SizedBox(width: 8),
+                          const Icon(Icons.arrow_forward_rounded, size: 20),
+                        ],
                       ],
-                    ],
+                    ),
                   ),
                 ),
               ),

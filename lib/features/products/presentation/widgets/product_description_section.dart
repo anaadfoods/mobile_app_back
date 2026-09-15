@@ -32,9 +32,7 @@ class ProductDescriptionSection extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 12),
-          ExpandableDescription(
-            text: product.productDescription,
-          ),
+          ExpandableDescription(text: product.productDescription),
           if (product.cropCycleId != null) ...[
             const SizedBox(height: 24),
             SizedBox(
@@ -42,40 +40,28 @@ class ProductDescriptionSection extends StatelessWidget {
               child: ElevatedButton(
                 onPressed: () async {
                   final webBaseUrl =
-                      dotenv.env['WEB_BASE_URL'] ?? 'https://web.anaadfoods.com';
+                      dotenv.env['WEB_BASE_URL'] ??
+                      'https://web.anaadfoods.com';
                   final baseUri = Uri.parse(webBaseUrl);
                   final url = baseUri.replace(
                     path: '/traceability-journey/',
-                    queryParameters: {
-                      'crop_id': product.cropCycleId!,
-                    },
+                    queryParameters: {'crop_id': product.cropCycleId!},
                   );
                   if (await canLaunchUrl(url)) {
-                    await launchUrl(
-                      url,
-                      mode: LaunchMode.externalApplication,
-                    );
+                    await launchUrl(url, mode: LaunchMode.externalApplication);
                   } else {
-                    SnackBarHelper.showError(
-                      context,
-                      'Could not launch URL',
-                    );
+                    SnackBarHelper.showError(context, 'Could not launch URL');
                   }
                 },
                 style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(
-                    vertical: 16,
-                  ),
+                  padding: const EdgeInsets.symmetric(vertical: 16),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
                 ),
                 child: const Text(
                   'Traceability Journey',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                 ),
               ),
             ),

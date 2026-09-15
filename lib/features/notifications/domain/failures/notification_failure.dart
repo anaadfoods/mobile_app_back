@@ -5,15 +5,21 @@ class NotificationFailure implements Exception {
 
   const NotificationFailure(this.message, {this.code});
 
-  factory NotificationFailure.server([String message = 'Server error occurred.']) {
+  factory NotificationFailure.server([
+    String message = 'Server error occurred.',
+  ]) {
     return NotificationFailure(message, code: 'SERVER_ERROR');
   }
 
-  factory NotificationFailure.network([String message = 'Network connection failed.']) {
+  factory NotificationFailure.network([
+    String message = 'Network connection failed.',
+  ]) {
     return NotificationFailure(message, code: 'NETWORK_ERROR');
   }
 
-  factory NotificationFailure.device([String message = 'Device registration failed.']) {
+  factory NotificationFailure.device([
+    String message = 'Device registration failed.',
+  ]) {
     return NotificationFailure(message, code: 'DEVICE_ERROR');
   }
 

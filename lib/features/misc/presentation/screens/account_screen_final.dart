@@ -1,7 +1,10 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:grocery_app/features/auth/presentation/cubit/auth_cubit.dart';
 import 'package:grocery_app/features/auth/presentation/cubit/auth_state.dart';
-import "package:grocery_app/common_widgets/global_import.dart";
-import "package:grocery_app/features/auth/presentation/screens/login_screen.dart";
+import 'package:grocery_app/common_widgets/loading_state_widget.dart';
+import 'package:grocery_app/features/misc/presentation/screens/account_screen.dart';
+import 'package:grocery_app/features/auth/presentation/screens/login_screen.dart';
 
 class AccountScreenFinal extends StatelessWidget {
   const AccountScreenFinal({super.key});
@@ -15,14 +18,17 @@ class AccountScreenFinal extends StatelessWidget {
         if (state is Authenticated) {
           // If the user is logged in, show the main account screen.
           return const AccountScreen();
-        } else if (state is Unauthenticated || state is AuthError) {
-          // If the user is logged out or there's an error, show the login/signup prompt.
-          return const LoginScreen();
-        } else {
-          // During initial loading or any other transient state, show a loading indicator.
+        } else if (state is AuthInitial) {
+          // Preserve the screen layout while initial session check is running on app launch.
           return const Scaffold(
-            body: Center(child: CircularProgressIndicator()),
+            body: SafeArea(
+              child: LoadingStateWidget(itemCount: 3, itemHeight: 84),
+            ),
           );
+        } else {
+          // For Unauthenticated, AuthLoading (submitting credentials), and AuthError,
+          // keep LoginScreen mounted so inputs, animations, and snackbar listeners are preserved.
+          return const LoginScreen();
         }
       },
     );

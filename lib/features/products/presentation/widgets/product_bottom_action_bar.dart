@@ -1,15 +1,16 @@
 import 'package:collection/collection.dart';
 import 'package:grocery_app/common_widgets/global_import.dart';
+import 'package:grocery_app/core/analytics/analytics_service.dart';
 import 'package:grocery_app/features/cart/presentation/cubit/cart_cubit.dart';
 import 'package:grocery_app/features/cart/presentation/cubit/cart_state.dart';
-
 
 class ProductBottomActionBar extends StatelessWidget {
   final Product product;
   final List<SubscriptionPlan> allPlans;
   final List<PlanSearchResult> availablePlansForProduct;
   final Function(int qty) onQuantityChanged;
-  final Function(int initialPlanIndex, int initialPlanId) onShowSubscriptionSelectionSheet;
+  final Function(int initialPlanIndex, int initialPlanId)
+  onShowSubscriptionSelectionSheet;
 
   const ProductBottomActionBar({
     super.key,
@@ -43,48 +44,53 @@ class ProductBottomActionBar extends StatelessWidget {
       ),
       child: SizedBox(
         height: 55,
-        child: !product.isActive || !product.isInStock
-            ? _buildDisabledActionBar(isDark)
-            : BlocBuilder<CartCubit, CartState>(
-                builder: (context, state) {
-                  int cartQuantity = 0;
-                  if (state is CartSuccess) {
-                    final cartItem = state.cart.items.firstWhereOrNull(
-                      (item) => item.productVariant.id == product.id,
-                    );
-                    cartQuantity = cartItem?.quantity ?? 0;
-                  }
+        child:
+            !product.isActive || !product.isInStock
+                ? _buildDisabledActionBar(isDark)
+                : BlocBuilder<CartCubit, CartState>(
+                  builder: (context, state) {
+                    int cartQuantity = 0;
+                    if (state is CartSuccess) {
+                      final cartItem = state.cart.items.firstWhereOrNull(
+                        (item) => item.productVariant.id == product.id,
+                      );
+                      cartQuantity = cartItem?.quantity ?? 0;
+                    }
 
-                  return AnimatedSwitcher(
-                    duration: const Duration(milliseconds: 350),
-                    transitionBuilder: (child, animation) {
-                      final slideAnimation = Tween<Offset>(
-                        begin: const Offset(0.0, 0.5),
-                        end: Offset.zero,
-                      ).animate(
-                        CurvedAnimation(
-                          parent: animation,
-                          curve: Curves.easeInOutCubic,
-                        ),
-                      );
-                      return FadeTransition(
-                        opacity: animation,
-                        child: SlideTransition(
-                          position: slideAnimation,
-                          child: child,
-                        ),
-                      );
-                    },
-                    child: cartQuantity == 0
-                        ? _buildAddToCartBar(context, key: const ValueKey('addToCartBar'))
-                        : _buildQuantitySelectorBar(
-                            context,
-                            key: const ValueKey('quantitySelectorBar'),
-                            quantity: cartQuantity,
+                    return AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 350),
+                      transitionBuilder: (child, animation) {
+                        final slideAnimation = Tween<Offset>(
+                          begin: const Offset(0.0, 0.5),
+                          end: Offset.zero,
+                        ).animate(
+                          CurvedAnimation(
+                            parent: animation,
+                            curve: Curves.easeInOutCubic,
                           ),
-                  );
-                },
-              ),
+                        );
+                        return FadeTransition(
+                          opacity: animation,
+                          child: SlideTransition(
+                            position: slideAnimation,
+                            child: child,
+                          ),
+                        );
+                      },
+                      child:
+                          cartQuantity == 0
+                              ? _buildAddToCartBar(
+                                context,
+                                key: const ValueKey('addToCartBar'),
+                              )
+                              : _buildQuantitySelectorBar(
+                                context,
+                                key: const ValueKey('quantitySelectorBar'),
+                                quantity: cartQuantity,
+                              ),
+                    );
+                  },
+                ),
       ),
     );
   }
@@ -97,12 +103,14 @@ class ProductBottomActionBar extends StatelessWidget {
         onPressed: null,
         style: ElevatedButton.styleFrom(
           padding: const EdgeInsets.symmetric(vertical: 16),
-          disabledBackgroundColor: isDark
-              ? AppColors.pureWhite.withValues(alpha: 0.08)
-              : AppColors.charcoal.withValues(alpha: 0.08),
-          disabledForegroundColor: isDark
-              ? AppColors.parchment.withValues(alpha: 0.3)
-              : AppColors.charcoal.withValues(alpha: 0.4),
+          disabledBackgroundColor:
+              isDark
+                  ? AppColors.pureWhite.withValues(alpha: 0.08)
+                  : AppColors.charcoal.withValues(alpha: 0.08),
+          disabledForegroundColor:
+              isDark
+                  ? AppColors.parchment.withValues(alpha: 0.3)
+                  : AppColors.charcoal.withValues(alpha: 0.4),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),
@@ -110,10 +118,7 @@ class ProductBottomActionBar extends StatelessWidget {
         ),
         child: Text(
           label,
-          style: const TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
-          ),
+          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
         ),
       ),
     );
@@ -135,6 +140,14 @@ class ProductBottomActionBar extends StatelessWidget {
                 );
                 return;
               }
+              AnalyticsService().trackClick(
+                elementText: 'Add to Cart: ${product.name}',
+                componentName: 'bottom_bar_add_to_cart_btn',
+                properties: {
+                  'product_id': product.id,
+                  'product_name': product.name,
+                },
+              );
               onQuantityChanged(1);
             },
             icon: const Icon(Icons.shopping_cart_outlined, size: 20),
@@ -165,6 +178,14 @@ class ProductBottomActionBar extends StatelessWidget {
                 );
                 return;
               }
+              AnalyticsService().trackClick(
+                elementText: 'Commit & Buy: ${product.name}',
+                componentName: 'commit_and_buy_btn',
+                properties: {
+                  'product_id': product.id,
+                  'product_name': product.name,
+                },
+              );
               bool hasSubscriptions = availablePlansForProduct.isNotEmpty;
               if (hasSubscriptions && allPlans.isNotEmpty) {
                 int selectedPlanIndex = -1;
@@ -180,7 +201,10 @@ class ProductBottomActionBar extends StatelessWidget {
                 }
 
                 if (selectedPlanIndex != -1) {
-                  onShowSubscriptionSelectionSheet(selectedPlanIndex, allPlans[selectedPlanIndex].id);
+                  onShowSubscriptionSelectionSheet(
+                    selectedPlanIndex,
+                    allPlans[selectedPlanIndex].id,
+                  );
                 } else {
                   onShowSubscriptionSelectionSheet(-1, -1);
                 }
@@ -217,7 +241,11 @@ class ProductBottomActionBar extends StatelessWidget {
     );
   }
 
-  Widget _buildQuantitySelectorBar(BuildContext context, {required Key key, required int quantity}) {
+  Widget _buildQuantitySelectorBar(
+    BuildContext context, {
+    required Key key,
+    required int quantity,
+  }) {
     final theme = Theme.of(context);
     return Row(
       key: key,
@@ -227,6 +255,10 @@ class ProductBottomActionBar extends StatelessWidget {
           flex: 2,
           child: OutlinedButton.icon(
             onPressed: () {
+              AnalyticsService().trackClick(
+                elementText: 'View Cart',
+                componentName: 'product_details_view_cart_btn',
+              );
               context.go('/cart');
             },
             icon: const Icon(Icons.shopping_cart_checkout, size: 20),
@@ -252,7 +284,17 @@ class ProductBottomActionBar extends StatelessWidget {
           color: theme.colorScheme.error.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(12),
           child: InkWell(
-            onTap: () => onQuantityChanged(0),
+            onTap: () {
+              AnalyticsService().trackClick(
+                elementText: 'Remove ${product.name} from Cart',
+                componentName: 'product_details_remove_cart_btn',
+                properties: {
+                  'product_id': product.id,
+                  'product_name': product.name,
+                },
+              );
+              onQuantityChanged(0);
+            },
             borderRadius: BorderRadius.circular(12),
             child: Padding(
               padding: const EdgeInsets.all(12),

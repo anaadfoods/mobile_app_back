@@ -6,10 +6,7 @@ import 'order_detail_card.dart';
 class OrderPriceSummary extends StatelessWidget {
   final OrderEntity order;
 
-  const OrderPriceSummary({
-    super.key,
-    required this.order,
-  });
+  const OrderPriceSummary({super.key, required this.order});
 
   Color _getPaymentStatusColor(String status) {
     switch (status.toUpperCase()) {
@@ -82,10 +79,14 @@ class OrderPriceSummary extends StatelessWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             decoration: BoxDecoration(
-              color: _getPaymentStatusColor(order.paymentStatus).withValues(alpha: 0.1),
+              color: _getPaymentStatusColor(
+                order.paymentStatus,
+              ).withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
-                color: _getPaymentStatusColor(order.paymentStatus).withValues(alpha: 0.3),
+                color: _getPaymentStatusColor(
+                  order.paymentStatus,
+                ).withValues(alpha: 0.3),
               ),
             ),
             child: Row(
@@ -132,9 +133,10 @@ class OrderPriceSummary extends StatelessWidget {
     double value, {
     bool isDiscount = false,
   }) {
-    final valueText = value >= 0
-        ? '₹${value.toStringAsFixed(2)}'
-        : '-₹${value.abs().toStringAsFixed(2)}';
+    final valueText =
+        value >= 0
+            ? '₹${value.toStringAsFixed(2)}'
+            : '-₹${value.abs().toStringAsFixed(2)}';
 
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,

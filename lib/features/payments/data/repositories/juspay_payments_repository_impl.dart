@@ -11,8 +11,8 @@ class JuspayPaymentsRepositoryImpl implements PaymentsRepository {
   JuspayPaymentsRepositoryImpl({
     required JuspayRemoteDataSource remoteDataSource,
     Duration pollInterval = const Duration(seconds: 2),
-  })  : _remoteDataSource = remoteDataSource,
-        _pollInterval = pollInterval;
+  }) : _remoteDataSource = remoteDataSource,
+       _pollInterval = pollInterval;
 
   static const int _maxPollAttempts = 15;
 
@@ -54,10 +54,7 @@ class JuspayPaymentsRepositoryImpl implements PaymentsRepository {
       }
     }
     return last ??
-        const PaymentStatus(
-          status: 'PENDING',
-          respMessage: 'Still processing',
-        );
+        const PaymentStatus(status: 'PENDING', respMessage: 'Still processing');
   }
 
   @override
@@ -77,15 +74,16 @@ class JuspayPaymentsRepositoryImpl implements PaymentsRepository {
   PaymentFailure _mapDioException(dio.DioException e) {
     final msg = e.message ?? '';
     final errorString = e.error?.toString() ?? '';
-    
+
     if (msg.contains('Certificate pinning') ||
         errorString.contains('Certificate pinning')) {
       return PaymentFailure(
         type: PaymentFailureType.sslPinningError,
-        message: 'Secure connection verification failed. Potential security risk.',
+        message:
+            'Secure connection verification failed. Potential security risk.',
       );
     }
-    
+
     if (e.type == dio.DioExceptionType.cancel) {
       return const PaymentFailure(
         type: PaymentFailureType.paymentCancelled,

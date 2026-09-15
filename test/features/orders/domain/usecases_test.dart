@@ -12,7 +12,9 @@ import 'package:grocery_app/features/orders/domain/usecases/get_order_tracking_u
 import 'package:grocery_app/features/orders/domain/usecases/get_user_shipping_details_use_case.dart';
 
 class MockOrdersRepository extends Mock implements OrdersRepository {}
+
 class MockPaymentsRepository extends Mock implements PaymentsRepository {}
+
 class MockCreateOrderParams extends Mock implements CreateOrderParams {}
 
 void main() {
@@ -104,7 +106,9 @@ void main() {
         items: [],
       );
 
-      when(() => mockOrdersRepository.getOrders()).thenAnswer((_) async => [o1, o2, o3]);
+      when(
+        () => mockOrdersRepository.getOrders(),
+      ).thenAnswer((_) async => [o1, o2, o3]);
 
       final useCase = GetOrdersUseCase(mockOrdersRepository);
       final result = await useCase();
@@ -142,7 +146,9 @@ void main() {
         items: [],
       );
 
-      when(() => mockOrdersRepository.getOrderById(1)).thenAnswer((_) async => o1);
+      when(
+        () => mockOrdersRepository.getOrderById(1),
+      ).thenAnswer((_) async => o1);
 
       final useCase = GetOrderByIdUseCase(mockOrdersRepository);
       final result = await useCase(1);
@@ -162,10 +168,18 @@ void main() {
         shippingName: "Name",
         items: [],
       );
-      final response = OrderCreateResponseEntity(success: true, orderNumber: "ORD999");
-      when(() => mockOrdersRepository.createOrder(params)).thenAnswer((_) async => response);
+      final response = OrderCreateResponseEntity(
+        success: true,
+        orderNumber: "ORD999",
+      );
+      when(
+        () => mockOrdersRepository.createOrder(params),
+      ).thenAnswer((_) async => response);
 
-      final useCase = CreateOrderUseCase(mockOrdersRepository, mockPaymentsRepository);
+      final useCase = CreateOrderUseCase(
+        mockOrdersRepository,
+        mockPaymentsRepository,
+      );
       final result = await useCase(params);
 
       expect(result, response);
@@ -174,17 +188,23 @@ void main() {
 
     test('CancelOrderUseCase calls repository', () async {
       final response = {'status': 'success'};
-      when(() => mockOrdersRepository.cancelOrder(1, reason: 'cancel')).thenAnswer((_) async => response);
+      when(
+        () => mockOrdersRepository.cancelOrder(1, reason: 'cancel'),
+      ).thenAnswer((_) async => response);
 
       final useCase = CancelOrderUseCase(mockOrdersRepository);
       final result = await useCase(1, reason: 'cancel');
 
       expect(result, response);
-      verify(() => mockOrdersRepository.cancelOrder(1, reason: 'cancel')).called(1);
+      verify(
+        () => mockOrdersRepository.cancelOrder(1, reason: 'cancel'),
+      ).called(1);
     });
 
     test('DownloadInvoiceUseCase calls repository', () async {
-      when(() => mockOrdersRepository.downloadInvoice("ORD123")).thenAnswer((_) async => "/path/to/file.pdf");
+      when(
+        () => mockOrdersRepository.downloadInvoice("ORD123"),
+      ).thenAnswer((_) async => "/path/to/file.pdf");
 
       final useCase = DownloadInvoiceUseCase(mockOrdersRepository);
       final result = await useCase("ORD123");
@@ -202,7 +222,9 @@ void main() {
         status: "IN TRANSIT",
         trackingEvents: [],
       );
-      when(() => mockOrdersRepository.getOrderTracking("ORD123")).thenAnswer((_) async => tracking);
+      when(
+        () => mockOrdersRepository.getOrderTracking("ORD123"),
+      ).thenAnswer((_) async => tracking);
 
       final useCase = GetOrderTrackingUseCase(mockOrdersRepository);
       final result = await useCase("ORD123");
@@ -220,7 +242,9 @@ void main() {
         pincode: "123",
         phone: "456",
       );
-      when(() => mockOrdersRepository.getUserShippingDetails()).thenAnswer((_) async => details);
+      when(
+        () => mockOrdersRepository.getUserShippingDetails(),
+      ).thenAnswer((_) async => details);
 
       final useCase = GetUserShippingDetailsUseCase(mockOrdersRepository);
       final result = await useCase();

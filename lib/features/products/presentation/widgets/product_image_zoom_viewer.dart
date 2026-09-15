@@ -3,10 +3,7 @@ import 'package:grocery_app/common_widgets/global_import.dart';
 class ProductImageZoomViewer extends StatefulWidget {
   final String imageUrl;
 
-  const ProductImageZoomViewer({
-    super.key,
-    required this.imageUrl,
-  });
+  const ProductImageZoomViewer({super.key, required this.imageUrl});
 
   @override
   State<ProductImageZoomViewer> createState() => _ProductImageZoomViewerState();
@@ -34,8 +31,14 @@ class _ProductImageZoomViewerState extends State<ProductImageZoomViewer> {
 
     final visibleWidth = viewportSize.width / scale;
     final visibleHeight = viewportSize.height / scale;
-    final left = (-translation.x / scale).clamp(0.0, viewportSize.width - visibleWidth);
-    final top = (-translation.y / scale).clamp(0.0, viewportSize.height - visibleHeight);
+    final left = (-translation.x / scale).clamp(
+      0.0,
+      viewportSize.width - visibleWidth,
+    );
+    final top = (-translation.y / scale).clamp(
+      0.0,
+      viewportSize.height - visibleHeight,
+    );
 
     return Rect.fromLTWH(left, top, visibleWidth, visibleHeight);
   }
@@ -53,7 +56,10 @@ class _ProductImageZoomViewerState extends State<ProductImageZoomViewer> {
             return Column(
               children: [
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 8,
+                  ),
                   child: Row(
                     children: [
                       IconButton(
@@ -100,16 +106,20 @@ class _ProductImageZoomViewerState extends State<ProductImageZoomViewer> {
                           fit: BoxFit.contain,
                           width: double.infinity,
                           height: double.infinity,
-                          placeholder: (context, url) => const Center(
-                            child: CircularProgressIndicator(color: Colors.white),
-                          ),
-                          errorWidget: (context, url, error) => const Center(
-                            child: Icon(
-                              Icons.broken_image_outlined,
-                              color: Colors.white70,
-                              size: 56,
-                            ),
-                          ),
+                          placeholder:
+                              (context, url) => const Center(
+                                child: CircularProgressIndicator(
+                                  color: Colors.white,
+                                ),
+                              ),
+                          errorWidget:
+                              (context, url, error) => const Center(
+                                child: Icon(
+                                  Icons.broken_image_outlined,
+                                  color: Colors.white70,
+                                  size: 56,
+                                ),
+                              ),
                         ),
                       ),
                     ),
@@ -155,15 +165,19 @@ class _ProductImageZoomViewerState extends State<ProductImageZoomViewer> {
                                     child: CachedNetworkImage(
                                       imageUrl: widget.imageUrl,
                                       fit: BoxFit.contain,
-                                      placeholder: (context, url) => Container(
-                                        color: Colors.white.withValues(alpha: 0.04),
-                                      ),
-                                      errorWidget: (context, url, error) => const Center(
-                                        child: Icon(
-                                          Icons.broken_image_outlined,
-                                          color: Colors.white54,
-                                        ),
-                                      ),
+                                      placeholder:
+                                          (context, url) => Container(
+                                            color: Colors.white.withValues(
+                                              alpha: 0.04,
+                                            ),
+                                          ),
+                                      errorWidget:
+                                          (context, url, error) => const Center(
+                                            child: Icon(
+                                              Icons.broken_image_outlined,
+                                              color: Colors.white54,
+                                            ),
+                                          ),
                                     ),
                                   ),
                                   Positioned(
@@ -178,7 +192,9 @@ class _ProductImageZoomViewerState extends State<ProductImageZoomViewer> {
                                             color: Colors.amberAccent,
                                             width: 2,
                                           ),
-                                          color: Colors.amberAccent.withValues(alpha: 0.12),
+                                          color: Colors.amberAccent.withValues(
+                                            alpha: 0.12,
+                                          ),
                                         ),
                                       ),
                                     ),

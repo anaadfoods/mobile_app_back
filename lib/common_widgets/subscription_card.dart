@@ -141,7 +141,9 @@ class _SubscriptionCarouselState extends State<SubscriptionCarousel>
                       onTogglePause:
                           () => _showToggleConfirmation(subscription),
                       onRepayment: () {
-                        context.read<SubscriptionCubit>().handleRepayment(subscription.id);
+                        context.read<SubscriptionCubit>().handleRepayment(
+                          subscription.id,
+                        );
                       },
                     ),
                   );
@@ -414,7 +416,10 @@ class SubscriptionCard extends StatefulWidget {
 class _SubscriptionCardState extends State<SubscriptionCard> {
   bool _isPressed = false;
 
-  void _navigateToDetails(BuildContext context, SubscriptionEntity subscription) {
+  void _navigateToDetails(
+    BuildContext context,
+    SubscriptionEntity subscription,
+  ) {
     context.pushNamed(
       AppRoute.subscriptionDetails.name,
       pathParameters: {'id': subscription.id.toString()},
@@ -631,13 +636,16 @@ class _SubscriptionCardState extends State<SubscriptionCard> {
                                   Flexible(
                                     child: Text(
                                       ApiConfig.showExpectedDeliveryDate
-                                          ? _formatDate(subscription.nextDeliveryDate)
+                                          ? _formatDate(
+                                            subscription.nextDeliveryDate,
+                                          )
                                           : ApiConfig.alternativeDeliveryText,
-                                      style: theme.textTheme.labelSmall?.copyWith(
-                                        color: AppColors.harvestAmber,
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 10, // Reduced size
-                                      ),
+                                      style: theme.textTheme.labelSmall
+                                          ?.copyWith(
+                                            color: AppColors.harvestAmber,
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 10, // Reduced size
+                                          ),
                                       maxLines: 2,
                                       overflow: TextOverflow.visible,
                                     ),
@@ -756,10 +764,11 @@ class _SubscriptionCardState extends State<SubscriptionCard> {
                                 children: [
                                   Text(
                                     item.productName,
-                                    style: theme.textTheme.titleMedium?.copyWith(
-                                      fontWeight: FontWeight.bold,
-                                      height: 1.2,
-                                    ),
+                                    style: theme.textTheme.titleMedium
+                                        ?.copyWith(
+                                          fontWeight: FontWeight.bold,
+                                          height: 1.2,
+                                        ),
                                     maxLines: 2,
                                     overflow: TextOverflow.ellipsis,
                                   ),
@@ -814,7 +823,10 @@ class _SubscriptionCardState extends State<SubscriptionCard> {
                                 tablet: 100,
                               ),
                               decoration: BoxDecoration(
-                                color: isDark ? AppColors.darkCanvas : AppColors.parchment,
+                                color:
+                                    isDark
+                                        ? AppColors.darkCanvas
+                                        : AppColors.parchment,
                                 borderRadius: BorderRadius.circular(18),
                               ),
                               child: Icon(
@@ -830,10 +842,11 @@ class _SubscriptionCardState extends State<SubscriptionCard> {
                                 children: [
                                   Text(
                                     '${subscription.planName} Plan',
-                                    style: theme.textTheme.titleMedium?.copyWith(
-                                      fontWeight: FontWeight.bold,
-                                      height: 1.2,
-                                    ),
+                                    style: theme.textTheme.titleMedium
+                                        ?.copyWith(
+                                          fontWeight: FontWeight.bold,
+                                          height: 1.2,
+                                        ),
                                     maxLines: 2,
                                     overflow: TextOverflow.ellipsis,
                                   ),

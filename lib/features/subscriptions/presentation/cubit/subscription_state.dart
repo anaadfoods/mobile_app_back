@@ -52,8 +52,7 @@ class SubscriptionSuccess extends SubscriptionState {
     return SubscriptionSuccess(
       plans: plans ?? this.plans,
       userSubscriptions: userSubscriptions ?? this.userSubscriptions,
-      selectedSubscription:
-          selectedSubscription ?? this.selectedSubscription,
+      selectedSubscription: selectedSubscription ?? this.selectedSubscription,
       invoices: invoices ?? this.invoices,
       planSearchResults: planSearchResults ?? this.planSearchResults,
       planProducts: planProducts ?? this.planProducts,
@@ -64,14 +63,14 @@ class SubscriptionSuccess extends SubscriptionState {
 
   @override
   List<Object?> get props => [
-        plans,
-        userSubscriptions,
-        selectedSubscription,
-        invoices,
-        planSearchResults,
-        planProducts,
-        loadingProductPlanIds,
-      ];
+    plans,
+    userSubscriptions,
+    selectedSubscription,
+    invoices,
+    planSearchResults,
+    planProducts,
+    loadingProductPlanIds,
+  ];
 }
 
 class SubscriptionCreated extends SubscriptionState {

@@ -9,10 +9,7 @@ import 'order_detail_card.dart';
 class OrderProductsCard extends StatelessWidget {
   final List<OrderItemEntity> items;
 
-  const OrderProductsCard({
-    super.key,
-    required this.items,
-  });
+  const OrderProductsCard({super.key, required this.items});
 
   @override
   Widget build(BuildContext context) {
@@ -44,9 +41,10 @@ class OrderProductsCard extends StatelessWidget {
     bool isLast,
   ) {
     final product = item.productDetails;
-    final imageUrl = product.productImages.isNotEmpty
-        ? product.productImages[0].image
-        : null;
+    final imageUrl =
+        product.productImages.isNotEmpty
+            ? product.productImages[0].image
+            : null;
 
     return Column(
       children: [
@@ -56,16 +54,20 @@ class OrderProductsCard extends StatelessWidget {
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (_) => ProductDetailsScreen(product: Product.fromEntity(product)),
+                builder:
+                    (_) => ProductDetailsScreen(
+                      product: Product.fromEntity(product),
+                    ),
               ),
             );
           },
           child: Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: isDark
-                  ? AppColors.parchment.withValues(alpha: 0.05)
-                  : AppColors.rawEarth54.withValues(alpha: 0.05),
+              color:
+                  isDark
+                      ? AppColors.parchment.withValues(alpha: 0.05)
+                      : AppColors.rawEarth54.withValues(alpha: 0.05),
               borderRadius: BorderRadius.circular(16),
             ),
             child: Row(
@@ -77,33 +79,40 @@ class OrderProductsCard extends StatelessWidget {
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
-                      color: isDark
-                          ? AppColors.darkSurfaceElevated
-                          : AppColors.parchment,
+                      color:
+                          isDark
+                              ? AppColors.darkSurfaceElevated
+                              : AppColors.parchment,
                     ),
                   ),
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(11),
-                    child: imageUrl != null
-                        ? CachedNetworkImage(
-                            imageUrl: imageUrl,
-                            fit: BoxFit.cover,
-                            placeholder: (context, url) => Container(
-                              color: isDark
-                                  ? AppColors.darkSurfaceElevated
-                                  : AppColors.parchment,
-                              child: const Center(
-                                child: SizedBox(
-                                  width: 20,
-                                  height: 20,
-                                  child: CircularProgressIndicator(strokeWidth: 2),
-                                ),
-                              ),
-                            ),
-                            errorWidget: (context, url, error) =>
-                                _buildImagePlaceholder(isDark),
-                          )
-                        : _buildImagePlaceholder(isDark),
+                    child:
+                        imageUrl != null
+                            ? CachedNetworkImage(
+                              imageUrl: imageUrl,
+                              fit: BoxFit.cover,
+                              placeholder:
+                                  (context, url) => Container(
+                                    color:
+                                        isDark
+                                            ? AppColors.darkSurfaceElevated
+                                            : AppColors.parchment,
+                                    child: const Center(
+                                      child: SizedBox(
+                                        width: 20,
+                                        height: 20,
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                              errorWidget:
+                                  (context, url, error) =>
+                                      _buildImagePlaceholder(isDark),
+                            )
+                            : _buildImagePlaceholder(isDark),
                   ),
                 ),
                 const SizedBox(width: 14),
@@ -136,7 +145,9 @@ class OrderProductsCard extends StatelessWidget {
                               vertical: 4,
                             ),
                             decoration: BoxDecoration(
-                              color: AppColors.harvestAmber.withValues(alpha: 0.1),
+                              color: AppColors.harvestAmber.withValues(
+                                alpha: 0.1,
+                              ),
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: Text(

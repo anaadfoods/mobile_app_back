@@ -79,8 +79,12 @@ class NotificationHelper {
         return;
       }
 
-      await getIt<NotificationsLocalDataSource>().saveServerPushNotification(notification);
-      debugPrint('Notification saved successfully via NotificationsLocalDataSource');
+      await getIt<NotificationsLocalDataSource>().saveServerPushNotification(
+        notification,
+      );
+      debugPrint(
+        'Notification saved successfully via NotificationsLocalDataSource',
+      );
     } catch (e) {
       debugPrint('Error saving notification: $e');
     }

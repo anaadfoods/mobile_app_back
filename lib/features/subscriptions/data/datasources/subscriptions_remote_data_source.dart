@@ -39,7 +39,7 @@ class SubscriptionsRemoteDataSourceImpl
   final ApiClient _apiClient;
 
   SubscriptionsRemoteDataSourceImpl({ApiClient? apiClient})
-      : _apiClient = apiClient ?? ApiClient.instance;
+    : _apiClient = apiClient ?? ApiClient.instance;
 
   static const String _endpoint = '/api/subscriptions';
 
@@ -50,17 +50,17 @@ class SubscriptionsRemoteDataSourceImpl
       final data = response.data;
       if (data is List) {
         return data
-            .map((item) => Subscription.fromJson(
-                  Map<String, dynamic>.from(item),
-                ))
+            .map(
+              (item) => Subscription.fromJson(Map<String, dynamic>.from(item)),
+            )
             .toList();
       }
       if (data is Map && data.containsKey('results')) {
         final list = data['results'] as List;
         return list
-            .map((item) => Subscription.fromJson(
-                  Map<String, dynamic>.from(item),
-                ))
+            .map(
+              (item) => Subscription.fromJson(Map<String, dynamic>.from(item)),
+            )
             .toList();
       }
       if (data is Map && data.containsKey('subscriptions')) {
@@ -68,9 +68,12 @@ class SubscriptionsRemoteDataSourceImpl
         final List<Subscription> allSubs = [];
         for (final entry in subsObj.values) {
           if (entry is List) {
-            allSubs.addAll(entry.map((item) => Subscription.fromJson(
-                  Map<String, dynamic>.from(item),
-                )));
+            allSubs.addAll(
+              entry.map(
+                (item) =>
+                    Subscription.fromJson(Map<String, dynamic>.from(item)),
+              ),
+            );
           }
         }
         return allSubs;
@@ -101,7 +104,8 @@ class SubscriptionsRemoteDataSourceImpl
       AppLogger.instance.log('Error fetching subscription details: $e');
       if (e is dio.DioException) {
         throw ApiException(
-          e.response?.data?['message'] ?? 'Failed to fetch subscription details',
+          e.response?.data?['message'] ??
+              'Failed to fetch subscription details',
           e.response?.statusCode ?? 500,
         );
       }
@@ -135,10 +139,7 @@ class SubscriptionsRemoteDataSourceImpl
     Map<String, dynamic> data,
   ) async {
     try {
-      final response = await _apiClient.post(
-        '$_endpoint/create/',
-        data: data,
-      );
+      final response = await _apiClient.post('$_endpoint/create/', data: data);
       final responseData = response.data;
 
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -153,22 +154,22 @@ class SubscriptionsRemoteDataSourceImpl
             'type': 'online_payment',
             'subscription_id': responseData['subscription_id'],
             'subscription_number': responseData['subscription_number'],
-            'merchant_transaction_id':
-                responseData['merchant_transaction_id'],
+            'merchant_transaction_id': responseData['merchant_transaction_id'],
             'checkout_url': responseData['checkout_url'],
             'access_key': responseData['access_key'],
-            'message': responseData['message'] ??
+            'message':
+                responseData['message'] ??
                 'Payment session created successfully',
           };
         } else {
           return {
             'success': true,
             'type': 'cod',
-            'subscription_id':
-                responseData is Map ? responseData['id'] : null,
-            'subscription_number': responseData is Map
-                ? responseData['subscription_number']
-                : null,
+            'subscription_id': responseData is Map ? responseData['id'] : null,
+            'subscription_number':
+                responseData is Map
+                    ? responseData['subscription_number']
+                    : null,
             'data': Subscription.fromJson(
               Map<String, dynamic>.from(responseData),
             ),
@@ -184,12 +185,13 @@ class SubscriptionsRemoteDataSourceImpl
     } catch (e) {
       if (e is dio.DioException) {
         final responseData = e.response?.data;
-        final msg = responseData is Map
-            ? (responseData['message'] ??
-                responseData['detail'] ??
-                responseData['plan'] ??
-                'Failed to create subscription')
-            : (e.message ?? 'Network error');
+        final msg =
+            responseData is Map
+                ? (responseData['message'] ??
+                    responseData['detail'] ??
+                    responseData['plan'] ??
+                    'Failed to create subscription')
+                : (e.message ?? 'Network error');
         throw ApiException(msg.toString(), e.response?.statusCode ?? 500);
       }
       if (e is ApiException) rethrow;
@@ -211,8 +213,8 @@ class SubscriptionsRemoteDataSourceImpl
       if (response.statusCode == 200) {
         return {
           'success': true,
-          'message': responseData['message'] ??
-              'Subscription cancelled successfully',
+          'message':
+              responseData['message'] ?? 'Subscription cancelled successfully',
         };
       } else {
         throw ApiException(
@@ -241,13 +243,13 @@ class SubscriptionsRemoteDataSourceImpl
     try {
       final response = await _apiClient.post(
         '$_endpoint/$id/pause/',
-        data: startDate != null && endDate != null
-            ? {
-                'pause_start_date':
-                    startDate.toIso8601String().split('T')[0],
-                'pause_end_date': endDate.toIso8601String().split('T')[0],
-              }
-            : null,
+        data:
+            startDate != null && endDate != null
+                ? {
+                  'pause_start_date': startDate.toIso8601String().split('T')[0],
+                  'pause_end_date': endDate.toIso8601String().split('T')[0],
+                }
+                : null,
       );
       final responseData = response.data;
       if (response.statusCode == 200) {
@@ -274,9 +276,7 @@ class SubscriptionsRemoteDataSourceImpl
   }
 
   @override
-  Future<Map<String, dynamic>> repaymentSubscription(
-    int subscriptionId,
-  ) async {
+  Future<Map<String, dynamic>> repaymentSubscription(int subscriptionId) async {
     try {
       final response = await _apiClient.post(
         '$_endpoint/$subscriptionId/next-installment-payment/',
@@ -295,18 +295,16 @@ class SubscriptionsRemoteDataSourceImpl
             'type': 'online_payment',
             'subscription_id': responseData['subscription_id'],
             'subscription_number': responseData['subscription_number'],
-            'merchant_transaction_id':
-                responseData['merchant_transaction_id'],
+            'merchant_transaction_id': responseData['merchant_transaction_id'],
             'checkout_url': responseData['checkout_url'],
-            'message': responseData['message'] ??
-                'Payment session created',
+            'message': responseData['message'] ?? 'Payment session created',
           };
         } else {
           return {
             'success': true,
             'type': 'instant',
-            'message': responseData['message'] ??
-                'Repayment processed successfully',
+            'message':
+                responseData['message'] ?? 'Repayment processed successfully',
           };
         }
       } else {

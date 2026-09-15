@@ -13,7 +13,7 @@ class PanchangFestivalsResponse {
   factory PanchangFestivalsResponse.fromJson(Map<String, dynamic> json) {
     // API returns flat list of items, we need to group by date
     final itemsJson = json['items'] as List<dynamic>? ?? [];
-    
+
     // Group festivals by date
     final Map<String, List<FestivalEntry>> groupedByDate = {};
     for (var item in itemsJson) {
@@ -21,27 +21,28 @@ class PanchangFestivalsResponse {
         final date = (item['date'] ?? '').toString();
         // Preserve optional fields like name_hi/name_en/description/etc.
         final entry = FestivalEntry.fromJson(item);
-        
+
         if (!groupedByDate.containsKey(date)) {
           groupedByDate[date] = [];
         }
         groupedByDate[date]!.add(entry);
       }
     }
-    
+
     // Convert grouped map to list of FestivalDateGroup
-    final festivals = groupedByDate.entries.map((entry) {
-      return FestivalDateGroup(
-        date: entry.key,
-        dayOfWeek: '', // Not provided by API
-        tithi: '', // Not provided by API
-        festivals: entry.value,
-      );
-    }).toList();
-    
+    final festivals =
+        groupedByDate.entries.map((entry) {
+          return FestivalDateGroup(
+            date: entry.key,
+            dayOfWeek: '', // Not provided by API
+            tithi: '', // Not provided by API
+            festivals: entry.value,
+          );
+        }).toList();
+
     // Sort by date
     festivals.sort((a, b) => a.date.compareTo(b.date));
-    
+
     return PanchangFestivalsResponse(
       festivals: festivals,
       metadata: FestivalsMetadata(
@@ -80,9 +81,10 @@ class FestivalDateGroup {
       tithi: (json['tithi'] ?? '').toString(),
       masa: json['masa']?.toString(),
       paksha: json['paksha']?.toString(),
-      festivals: festivalsJson
-          .map((e) => FestivalEntry.fromJson(e as Map<String, dynamic>))
-          .toList(),
+      festivals:
+          festivalsJson
+              .map((e) => FestivalEntry.fromJson(e as Map<String, dynamic>))
+              .toList(),
     );
   }
 
@@ -137,9 +139,8 @@ class FestivalEntry {
   factory FestivalEntry.fromJson(Map<String, dynamic> json) {
     List<String>? rituals;
     if (json['rituals'] != null) {
-      rituals = (json['rituals'] as List<dynamic>)
-          .map((e) => e.toString())
-          .toList();
+      rituals =
+          (json['rituals'] as List<dynamic>).map((e) => e.toString()).toList();
     }
 
     return FestivalEntry(
@@ -207,19 +208,19 @@ class FestivalSearchResponse {
   final List<FestivalSearchResult> results;
   final SearchMetadata metadata;
 
-  const FestivalSearchResponse({
-    required this.results,
-    required this.metadata,
-  });
+  const FestivalSearchResponse({required this.results, required this.metadata});
 
   factory FestivalSearchResponse.fromJson(Map<String, dynamic> json) {
     // API returns 'items' not 'results'
     final itemsJson = json['items'] as List<dynamic>? ?? [];
-    
+
     return FestivalSearchResponse(
-      results: itemsJson
-          .map((e) => FestivalSearchResult.fromJson(e as Map<String, dynamic>))
-          .toList(),
+      results:
+          itemsJson
+              .map(
+                (e) => FestivalSearchResult.fromJson(e as Map<String, dynamic>),
+              )
+              .toList(),
       metadata: SearchMetadata(
         query: json['q']?.toString() ?? '',
         year: json['year'] as int?,
@@ -283,11 +284,7 @@ class FestivalOccurrence {
   final String? dayOfWeek;
   final String? tithi;
 
-  const FestivalOccurrence({
-    required this.date,
-    this.dayOfWeek,
-    this.tithi,
-  });
+  const FestivalOccurrence({required this.date, this.dayOfWeek, this.tithi});
 
   factory FestivalOccurrence.fromJson(Map<String, dynamic> json) {
     return FestivalOccurrence(
@@ -331,8 +328,10 @@ class SearchMetadata {
       query: json['q']?.toString() ?? json['query']?.toString(),
       year: json['year'] as int?,
       month: json['month'] as int?,
-      totalResults: (json['count'] as num?)?.toInt() ?? 
-                   (json['total_results'] as num?)?.toInt() ?? 0,
+      totalResults:
+          (json['count'] as num?)?.toInt() ??
+          (json['total_results'] as num?)?.toInt() ??
+          0,
     );
   }
 }

@@ -71,7 +71,12 @@ class _AnaadRobotsScreenState extends State<AnaadRobotsScreen>
               ),
               SliverToBoxAdapter(
                 child: Padding(
-                  padding: EdgeInsets.fromLTRB(24, 24, 24, 24 + MediaQuery.paddingOf(context).bottom),
+                  padding: EdgeInsets.fromLTRB(
+                    24,
+                    24,
+                    24,
+                    24 + MediaQuery.paddingOf(context).bottom,
+                  ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [

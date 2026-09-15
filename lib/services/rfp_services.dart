@@ -32,7 +32,9 @@ class DeliveryService {
 
   Future<List<Delivery>> fetchPlanDeliveries(int planId) async {
     try {
-      final response = await ApiClient.instance.get('/api/rfp/plans/$planId/deliveries/');
+      final response = await ApiClient.instance.get(
+        '/api/rfp/plans/$planId/deliveries/',
+      );
 
       if (response.statusCode == 200) {
         List<dynamic> jsonResponse = response.data;
@@ -64,7 +66,9 @@ class DeliveryService {
 
   Future<DeliveryDetail> fetchDeliveryDetails(int deliveryId) async {
     try {
-      final response = await ApiClient.instance.get('/api/rfp/deliveries/$deliveryId/');
+      final response = await ApiClient.instance.get(
+        '/api/rfp/deliveries/$deliveryId/',
+      );
 
       if (response.statusCode == 200) {
         return DeliveryDetail.fromJson(response.data);

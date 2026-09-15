@@ -16,8 +16,8 @@ class PanchangRepository {
   final TokenService _tokenService;
 
   PanchangRepository({PanchangService? service, TokenService? tokenService})
-      : _service = service ?? getIt<PanchangService>(),
-        _tokenService = tokenService ?? getIt<TokenService>();
+    : _service = service ?? getIt<PanchangService>(),
+      _tokenService = tokenService ?? getIt<TokenService>();
 
   /// MVP defaults: IST + English + default profile + amanta + Delhi lat/lon.
   /// Later we will move these to a Panchang settings screen + persisted prefs.
@@ -46,7 +46,8 @@ class PanchangRepository {
     final token = await _getToken();
     String? dateStr;
     if (date != null) {
-      dateStr = '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
+      dateStr =
+          '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
     }
     return _service.getDay(
       token: token,
@@ -60,7 +61,10 @@ class PanchangRepository {
     );
   }
 
-  Future<PanchangMonthResponse> getMonth({required int year, required int month}) async {
+  Future<PanchangMonthResponse> getMonth({
+    required int year,
+    required int month,
+  }) async {
     await _checkAuth();
     final token = await _getToken();
     return _service.getMonth(
@@ -172,12 +176,16 @@ class PanchangRepository {
 
   /// Fetch muhurats and timings for a specific date
   /// Use types parameter to fetch only specific muhurats: ['hora', 'choghadiya', 'inauspicious', 'abhijit', 'brahma']
-  Future<PanchangMuhuratsResponse> getMuhurats(DateTime? date, {List<String>? types}) async {
+  Future<PanchangMuhuratsResponse> getMuhurats(
+    DateTime? date, {
+    List<String>? types,
+  }) async {
     await _checkAuth();
     final token = await _getToken();
     String? dateStr;
     if (date != null) {
-      dateStr = '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
+      dateStr =
+          '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
     }
     return _service.getMuhurats(
       token: token,
@@ -224,7 +232,9 @@ class PanchangRepository {
   }
 
   /// Save user's guidance profile/preferences
-  Future<GuidanceProfileResponse> saveGuidanceProfile(GuidanceProfileRequest request) async {
+  Future<GuidanceProfileResponse> saveGuidanceProfile(
+    GuidanceProfileRequest request,
+  ) async {
     await _checkAuth();
     final token = await _getToken();
     return _service.saveGuidanceProfile(token: token, request: request);

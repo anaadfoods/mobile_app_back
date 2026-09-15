@@ -22,19 +22,37 @@ SubscriptionEntity _makeSub({
   String status = 'ACTIVE',
   String paymentStatus = 'PAID_FULL',
   String paymentMethod = 'COD',
-}) =>
-    SubscriptionEntity(
-      id: id, plan: 1, planName: 'SIDDH', startDate: '2026-06-09',
-      endDate: '2027-06-04', status: status, paymentStatus: paymentStatus,
-      paymentMethod: paymentMethod, deliveryAddress: 'Addr',
-      deliveryCity: 'City', deliveryState: 'State', deliveryPincode: '123456',
-      deliveryPhone: '9876543210', recipientName: 'Test', notes: '',
-      subtotal: 100, deliveryCharges: 50, total: 150, amountPaid: 150,
-      remainingAmount: 0, nextDeliveryDate: '2026-07-01',
-      totalDeliveries: 12, completedDeliveries: 1, remainingPauseDays: 30,
-      remainingPauseTimes: 3, createdAt: '2026-06-09',
-      totalDeliveryCharges: 600, canPayNextInstallment: false, items: [],
-    );
+}) => SubscriptionEntity(
+  id: id,
+  plan: 1,
+  planName: 'SIDDH',
+  startDate: '2026-06-09',
+  endDate: '2027-06-04',
+  status: status,
+  paymentStatus: paymentStatus,
+  paymentMethod: paymentMethod,
+  deliveryAddress: 'Addr',
+  deliveryCity: 'City',
+  deliveryState: 'State',
+  deliveryPincode: '123456',
+  deliveryPhone: '9876543210',
+  recipientName: 'Test',
+  notes: '',
+  subtotal: 100,
+  deliveryCharges: 50,
+  total: 150,
+  amountPaid: 150,
+  remainingAmount: 0,
+  nextDeliveryDate: '2026-07-01',
+  totalDeliveries: 12,
+  completedDeliveries: 1,
+  remainingPauseDays: 30,
+  remainingPauseTimes: 3,
+  createdAt: '2026-06-09',
+  totalDeliveryCharges: 600,
+  canPayNextInstallment: false,
+  items: [],
+);
 
 void main() {
   late MockSubscriptionsRepository mockRepo;
@@ -44,27 +62,35 @@ void main() {
   });
 
   group('Subscriptions Feature Use Cases', () {
-    test('GetUserSubscriptionsUseCase filters out unpaid UPI subscriptions',
-        () async {
-      when(() => mockRepo.getUserSubscriptions()).thenAnswer((_) async => [
+    test(
+      'GetUserSubscriptionsUseCase filters out unpaid UPI subscriptions',
+      () async {
+        when(() => mockRepo.getUserSubscriptions()).thenAnswer(
+          (_) async => [
             _makeSub(id: 1, paymentMethod: 'COD', paymentStatus: 'PAID_FULL'),
             _makeSub(
-                id: 2, paymentMethod: 'UPI', paymentStatus: 'PAYMENT_PENDING'),
+              id: 2,
+              paymentMethod: 'UPI',
+              paymentStatus: 'PAYMENT_PENDING',
+            ),
             _makeSub(id: 3, paymentMethod: 'UPI', paymentStatus: 'PAID_FULL'),
             _makeSub(id: 4, paymentMethod: 'UPI', paymentStatus: 'FAILED'),
             _makeSub(id: 5, paymentMethod: 'UPI', paymentStatus: 'PENDING'),
-          ]);
+          ],
+        );
 
-      final useCase = GetUserSubscriptionsUseCase(mockRepo);
-      final result = await useCase();
+        final useCase = GetUserSubscriptionsUseCase(mockRepo);
+        final result = await useCase();
 
-      expect(result.length, 2);
-      expect(result.map((e) => e.id).toList(), [1, 3]);
-    });
+        expect(result.length, 2);
+        expect(result.map((e) => e.id).toList(), [1, 3]);
+      },
+    );
 
     test('GetSubscriptionDetailsUseCase calls repository', () async {
-      when(() => mockRepo.getSubscriptionDetails(1))
-          .thenAnswer((_) async => _makeSub(id: 1));
+      when(
+        () => mockRepo.getSubscriptionDetails(1),
+      ).thenAnswer((_) async => _makeSub(id: 1));
 
       final useCase = GetSubscriptionDetailsUseCase(mockRepo);
       final result = await useCase(1);
@@ -73,16 +99,25 @@ void main() {
     });
 
     test('GetSubscriptionPlansUseCase calls repository', () async {
-      when(() => mockRepo.getSubscriptionPlans()).thenAnswer((_) async => [
-            const SubscriptionPlanEntity(
-              id: 1, name: 'SIDDH', durationMonths: 12,
-              discountPercentage: '10', totalDiscountPercentage: 10.0,
-              tagline: 'Test', description: 'Plan', isActive: true,
-              activationDate: '2026-01-01', isOneTimeOnly: false,
-              allowsInstallments: true, installmentFrequencyMonths: 3,
-              isAvailable: true,
-            ),
-          ]);
+      when(() => mockRepo.getSubscriptionPlans()).thenAnswer(
+        (_) async => [
+          const SubscriptionPlanEntity(
+            id: 1,
+            name: 'SIDDH',
+            durationMonths: 12,
+            discountPercentage: '10',
+            totalDiscountPercentage: 10.0,
+            tagline: 'Test',
+            description: 'Plan',
+            isActive: true,
+            activationDate: '2026-01-01',
+            isOneTimeOnly: false,
+            allowsInstallments: true,
+            installmentFrequencyMonths: 3,
+            isAvailable: true,
+          ),
+        ],
+      );
 
       final useCase = GetSubscriptionPlansUseCase(mockRepo);
       final result = await useCase();
@@ -105,11 +140,9 @@ void main() {
     });
 
     test('CancelSubscriptionUseCase calls repository', () async {
-      when(() => mockRepo.cancelSubscription(1, reason: 'Too expensive'))
-          .thenAnswer((_) async => {
-                'success': true,
-                'message': 'Cancelled',
-              });
+      when(
+        () => mockRepo.cancelSubscription(1, reason: 'Too expensive'),
+      ).thenAnswer((_) async => {'success': true, 'message': 'Cancelled'});
 
       final useCase = CancelSubscriptionUseCase(mockRepo);
       final result = await useCase(1, reason: 'Too expensive');
@@ -117,10 +150,9 @@ void main() {
     });
 
     test('TogglePauseSubscriptionUseCase calls repository', () async {
-      when(() => mockRepo.togglePauseSubscription(1, any(), any()))
-          .thenAnswer(
-        (_) async => const PauseResponseEntity(message: 'Paused'),
-      );
+      when(
+        () => mockRepo.togglePauseSubscription(1, any(), any()),
+      ).thenAnswer((_) async => const PauseResponseEntity(message: 'Paused'));
 
       final useCase = TogglePauseSubscriptionUseCase(mockRepo);
       final result = await useCase(1, DateTime(2026), DateTime(2026, 2));
@@ -158,8 +190,9 @@ void main() {
     });
 
     test('GetSubscriptionPlanProductsUseCase calls repository', () async {
-      when(() => mockRepo.getSubscriptionPlanProducts(1))
-          .thenAnswer((_) async => []);
+      when(
+        () => mockRepo.getSubscriptionPlanProducts(1),
+      ).thenAnswer((_) async => []);
 
       final useCase = GetSubscriptionPlanProductsUseCase(mockRepo);
       final result = await useCase(1);
@@ -167,8 +200,9 @@ void main() {
     });
 
     test('SearchPlansForVariantUseCase calls repository', () async {
-      when(() => mockRepo.searchPlansForVariant(42))
-          .thenAnswer((_) async => []);
+      when(
+        () => mockRepo.searchPlansForVariant(42),
+      ).thenAnswer((_) async => []);
 
       final useCase = SearchPlansForVariantUseCase(mockRepo);
       final result = await useCase(42);

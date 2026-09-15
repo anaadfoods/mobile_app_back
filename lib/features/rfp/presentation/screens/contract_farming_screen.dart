@@ -1,4 +1,5 @@
-import 'package:grocery_app/features/auth/domain/repositories/auth_repository.dart' as domain;
+import 'package:grocery_app/features/auth/domain/repositories/auth_repository.dart'
+    as domain;
 import 'dart:ui';
 import 'package:grocery_app/common_widgets/global_import.dart';
 import 'package:grocery_app/common_widgets/otp_resend_section.dart';
@@ -102,22 +103,23 @@ class _CombinedScreenState extends State<CombinedScreen>
             Transform.translate(
               offset: Offset(0, _scrollOffset * 0.3),
               child: CachedNetworkImage(
-                imageUrl: 'https://images.unsplash.com/photo-1542838132-92c53300491e?q=80&w=1974&auto=format&fit=crop',
+                imageUrl:
+                    'https://images.unsplash.com/photo-1542838132-92c53300491e?q=80&w=1974&auto=format&fit=crop',
                 fit: BoxFit.cover,
-                placeholder: (context, url) => Container(
-                  color: isDark ? AppColors.charcoal : AppColors.parchment,
-                  child: const Center(
-                    child: CircularProgressIndicator(),
-                  ),
-                ),
-                errorWidget: (context, url, error) => Container(
-                  color: isDark ? AppColors.charcoal : AppColors.parchment,
-                  child: Icon(
-                    Icons.image_not_supported,
-                    color: theme.disabledColor,
-                    size: 40,
-                  ),
-                ),
+                placeholder:
+                    (context, url) => Container(
+                      color: isDark ? AppColors.charcoal : AppColors.parchment,
+                      child: const Center(child: CircularProgressIndicator()),
+                    ),
+                errorWidget:
+                    (context, url, error) => Container(
+                      color: isDark ? AppColors.charcoal : AppColors.parchment,
+                      child: Icon(
+                        Icons.image_not_supported,
+                        color: theme.disabledColor,
+                        size: 40,
+                      ),
+                    ),
               ),
             ),
             // Gradient overlay
@@ -309,7 +311,8 @@ class _CombinedScreenState extends State<CombinedScreen>
                 Text(
                   "We strictly adhere to natural(ICBN) farming protocols. This means no synthetic chemicals, toxins or pesticides and zero shortcuts. We grow crops that not only meet the highest Safety Standards but also redefine the Nutritional Standards. Here, you don't just buy produce; rather commit to the harvest",
                   style: theme.textTheme.bodyMedium?.copyWith(
-                    color: isDark ? AppColors.parchment70 : AppColors.charcoal60,
+                    color:
+                        isDark ? AppColors.parchment70 : AppColors.charcoal60,
                     height: 1.6,
                   ),
                 ),
@@ -498,9 +501,10 @@ class _CombinedScreenState extends State<CombinedScreen>
                   color: isDark ? AppColors.darkSurface : AppColors.parchment,
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(
-                    color: isDark
-                        ? AppColors.parchment.withValues(alpha: 0.08)
-                        : AppColors.parchment.withValues(alpha: 0.2),
+                    color:
+                        isDark
+                            ? AppColors.parchment.withValues(alpha: 0.08)
+                            : AppColors.parchment.withValues(alpha: 0.2),
                     width: 1,
                   ),
                   boxShadow: [
@@ -523,12 +527,18 @@ class _CombinedScreenState extends State<CombinedScreen>
                         Container(
                           padding: const EdgeInsets.all(8),
                           decoration: BoxDecoration(
-                            color: (isDark ? AppColors.parchment : AppColors.deepSoilGreen).withValues(alpha: 0.15),
+                            color: (isDark
+                                    ? AppColors.parchment
+                                    : AppColors.deepSoilGreen)
+                                .withValues(alpha: 0.15),
                             borderRadius: BorderRadius.circular(10),
                           ),
                           child: Icon(
                             benefit['icon'] as IconData,
-                            color: isDark ? AppColors.parchment : AppColors.deepSoilGreen,
+                            color:
+                                isDark
+                                    ? AppColors.parchment
+                                    : AppColors.deepSoilGreen,
                             size: 20,
                           ),
                         ),
@@ -578,10 +588,7 @@ class _CombinedScreenState extends State<CombinedScreen>
             end: Alignment.bottomRight,
             colors:
                 isDark
-                    ? [
-                      AppColors.darkSurfaceElevated,
-                      AppColors.darkSurface,
-                    ]
+                    ? [AppColors.darkSurfaceElevated, AppColors.darkSurface]
                     : [AppColors.pureWhite, AppColors.pureWhite],
           ),
           borderRadius: BorderRadius.circular(24),
@@ -665,7 +672,12 @@ class _CombinedScreenState extends State<CombinedScreen>
     );
   }
 
-  Widget _buildAdvantageItem(ThemeData theme, bool isDark, String title, String desc) {
+  Widget _buildAdvantageItem(
+    ThemeData theme,
+    bool isDark,
+    String title,
+    String desc,
+  ) {
     final iconColor = isDark ? AppColors.parchment : AppColors.deepSoilGreen;
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
@@ -678,11 +690,7 @@ class _CombinedScreenState extends State<CombinedScreen>
               color: iconColor.withValues(alpha: 0.2),
               shape: BoxShape.circle,
             ),
-            child: Icon(
-              Icons.check,
-              color: iconColor,
-              size: 14,
-            ),
+            child: Icon(Icons.check, color: iconColor, size: 14),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -698,7 +706,8 @@ class _CombinedScreenState extends State<CombinedScreen>
                 Text(
                   desc,
                   style: theme.textTheme.bodySmall?.copyWith(
-                    color: isDark ? AppColors.parchment70 : AppColors.rawEarth70,
+                    color:
+                        isDark ? AppColors.parchment70 : AppColors.rawEarth70,
                   ),
                 ),
               ],
@@ -745,15 +754,16 @@ class _CombinedScreenState extends State<CombinedScreen>
                           padding: const EdgeInsets.all(14),
                           decoration: BoxDecoration(
                             gradient: LinearGradient(
-                              colors: isDark
-                                  ? [
-                                      AppColors.darkSurfaceElevated,
-                                      AppColors.darkSurfaceElevated,
-                                    ]
-                                  : [
-                                      AppColors.deepSoilGreen,
-                                      AppColors.deepSoilGreen,
-                                    ],
+                              colors:
+                                  isDark
+                                      ? [
+                                        AppColors.darkSurfaceElevated,
+                                        AppColors.darkSurfaceElevated,
+                                      ]
+                                      : [
+                                        AppColors.deepSoilGreen,
+                                        AppColors.deepSoilGreen,
+                                      ],
                             ),
                             borderRadius: BorderRadius.circular(14),
                             boxShadow: [
@@ -761,9 +771,7 @@ class _CombinedScreenState extends State<CombinedScreen>
                                 color: (isDark
                                         ? AppColors.pureBlack
                                         : AppColors.deepSoilGreen)
-                                    .withValues(
-                                  alpha: isDark ? 0.2 : 0.3,
-                                ),
+                                    .withValues(alpha: isDark ? 0.2 : 0.3),
                                 blurRadius: 10,
                                 offset: const Offset(0, 4),
                               ),
@@ -807,9 +815,10 @@ class _CombinedScreenState extends State<CombinedScreen>
           padding: const EdgeInsets.symmetric(vertical: 18),
           decoration: BoxDecoration(
             gradient: LinearGradient(
-              colors: isDark
-                  ? [AppColors.parchment, AppColors.parchment]
-                  : [AppColors.deepSoilGreen, AppColors.deepSoilGreen],
+              colors:
+                  isDark
+                      ? [AppColors.parchment, AppColors.parchment]
+                      : [AppColors.deepSoilGreen, AppColors.deepSoilGreen],
             ),
             borderRadius: BorderRadius.circular(16),
             boxShadow: [
@@ -955,41 +964,55 @@ class _RfpFormSheetState extends State<_RfpFormSheet>
       SnackBarHelper.showError(context, 'Please enter $type first.');
       return;
     }
-    
+
     if (type == 'phone' && !RegExp(r'^\d{10}$').hasMatch(value.trim())) {
       SnackBarHelper.showError(context, 'Enter a valid 10-digit phone number.');
       return;
     }
-    if (type == 'email' && !RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value.trim())) {
+    if (type == 'email' &&
+        !RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value.trim())) {
       SnackBarHelper.showError(context, 'Enter a valid email.');
       return;
     }
 
     setState(() {
-      if (type == 'email') _isSendingEmailOtp = true;
-      else _isSendingPhoneOtp = true;
+      if (type == 'email')
+        _isSendingEmailOtp = true;
+      else
+        _isSendingPhoneOtp = true;
     });
 
     try {
-      await context.read<domain.AuthRepository>().sendOtp(value.trim(), type.toUpperCase());
+      await context.read<domain.AuthRepository>().sendOtp(
+        value.trim(),
+        type.toUpperCase(),
+      );
       if (!mounted) return;
       _showOtpDialog(
         type: type,
         value: value.trim(),
         onVerified: () {
           setState(() {
-            if (type == 'email') _isEmailVerified = true;
-            else _isPhoneVerified = true;
+            if (type == 'email')
+              _isEmailVerified = true;
+            else
+              _isPhoneVerified = true;
           });
         },
       );
     } catch (e) {
-      if (mounted) SnackBarHelper.showError(context, e.toString().replaceAll('Exception:', '').trim());
+      if (mounted)
+        SnackBarHelper.showError(
+          context,
+          e.toString().replaceAll('Exception:', '').trim(),
+        );
     } finally {
       if (mounted) {
         setState(() {
-          if (type == 'email') _isSendingEmailOtp = false;
-          else _isSendingPhoneOtp = false;
+          if (type == 'email')
+            _isSendingEmailOtp = false;
+          else
+            _isSendingPhoneOtp = false;
         });
       }
     }
@@ -1181,7 +1204,10 @@ class _RfpFormSheetState extends State<_RfpFormSheet>
                             } catch (e) {
                               SnackBarHelper.showError(
                                 context,
-                                e.toString().replaceAll('Exception:', '').trim(),
+                                e
+                                    .toString()
+                                    .replaceAll('Exception:', '')
+                                    .trim(),
                               );
                               rethrow;
                             }
@@ -1279,7 +1305,15 @@ class _RfpFormSheetState extends State<_RfpFormSheet>
                                               );
                                             } catch (e) {
                                               setDialogState(
-                                                () => dialogError = e.toString().replaceAll('Exception:', '').trim(),
+                                                () =>
+                                                    dialogError =
+                                                        e
+                                                            .toString()
+                                                            .replaceAll(
+                                                              'Exception:',
+                                                              '',
+                                                            )
+                                                            .trim(),
                                               );
                                             } finally {
                                               if (mounted) {
@@ -1395,7 +1429,10 @@ class _RfpFormSheetState extends State<_RfpFormSheet>
                 ),
                 const SizedBox(height: 28),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
+                  ),
                   decoration: BoxDecoration(
                     color: colorScheme.primary.withValues(alpha: 0.08),
                     borderRadius: BorderRadius.circular(12),
@@ -1431,8 +1468,10 @@ class _RfpFormSheetState extends State<_RfpFormSheet>
                   label: 'Full Name*',
                   icon: Icons.person_outline_rounded,
                   validator: (v) {
-                    if (v == null || v.trim().isEmpty) return 'Please enter your name';
-                    if (v.trim().length < 3) return 'Name must be at least 3 characters';
+                    if (v == null || v.trim().isEmpty)
+                      return 'Please enter your name';
+                    if (v.trim().length < 3)
+                      return 'Name must be at least 3 characters';
                     return null;
                   },
                 ),
@@ -1448,24 +1487,37 @@ class _RfpFormSheetState extends State<_RfpFormSheet>
                     }
                   },
                   validator: (v) {
-                    if (v == null || v.trim().isEmpty) return 'Please enter your phone number';
-                    if (!RegExp(r'^\d{10}$').hasMatch(v.trim())) return 'Phone number must be exactly 10 digits';
+                    if (v == null || v.trim().isEmpty)
+                      return 'Please enter your phone number';
+                    if (!RegExp(r'^\d{10}$').hasMatch(v.trim()))
+                      return 'Phone number must be exactly 10 digits';
                     return null;
                   },
-                  suffix: _isPhoneVerified
-                      ? const Icon(Icons.check_circle, color: AppColors.deepSoilGreen)
-                      : TextButton(
-                          onPressed: _isSendingPhoneOtp
-                              ? null
-                              : () => _sendOtp('phone', _phoneController.text),
-                          child: _isSendingPhoneOtp
-                              ? const SizedBox(
-                                  width: 16,
-                                  height: 16,
-                                  child: CircularProgressIndicator(strokeWidth: 2),
-                                )
-                              : const Text('Verify'),
-                        ),
+                  suffix:
+                      _isPhoneVerified
+                          ? const Icon(
+                            Icons.check_circle,
+                            color: AppColors.deepSoilGreen,
+                          )
+                          : TextButton(
+                            onPressed:
+                                _isSendingPhoneOtp
+                                    ? null
+                                    : () => _sendOtp(
+                                      'phone',
+                                      _phoneController.text,
+                                    ),
+                            child:
+                                _isSendingPhoneOtp
+                                    ? const SizedBox(
+                                      width: 16,
+                                      height: 16,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                      ),
+                                    )
+                                    : const Text('Verify'),
+                          ),
                 ),
                 const SizedBox(height: 16),
                 _buildTextField(
@@ -1479,24 +1531,39 @@ class _RfpFormSheetState extends State<_RfpFormSheet>
                     }
                   },
                   validator: (v) {
-                    if (v == null || v.trim().isEmpty) return 'Please enter your email';
-                    if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(v.trim())) return 'Please enter a valid email';
+                    if (v == null || v.trim().isEmpty)
+                      return 'Please enter your email';
+                    if (!RegExp(
+                      r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
+                    ).hasMatch(v.trim()))
+                      return 'Please enter a valid email';
                     return null;
                   },
-                  suffix: _isEmailVerified
-                      ? const Icon(Icons.check_circle, color: AppColors.deepSoilGreen)
-                      : TextButton(
-                          onPressed: _isSendingEmailOtp
-                              ? null
-                              : () => _sendOtp('email', _emailController.text),
-                          child: _isSendingEmailOtp
-                              ? const SizedBox(
-                                  width: 16,
-                                  height: 16,
-                                  child: CircularProgressIndicator(strokeWidth: 2),
-                                )
-                              : const Text('Verify'),
-                        ),
+                  suffix:
+                      _isEmailVerified
+                          ? const Icon(
+                            Icons.check_circle,
+                            color: AppColors.deepSoilGreen,
+                          )
+                          : TextButton(
+                            onPressed:
+                                _isSendingEmailOtp
+                                    ? null
+                                    : () => _sendOtp(
+                                      'email',
+                                      _emailController.text,
+                                    ),
+                            child:
+                                _isSendingEmailOtp
+                                    ? const SizedBox(
+                                      width: 16,
+                                      height: 16,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                      ),
+                                    )
+                                    : const Text('Verify'),
+                          ),
                 ),
                 const SizedBox(height: 16),
                 _buildTextField(
@@ -1505,8 +1572,10 @@ class _RfpFormSheetState extends State<_RfpFormSheet>
                   icon: Icons.message_outlined,
                   maxLines: 3,
                   validator: (v) {
-                    if (v == null || v.trim().isEmpty) return 'Please enter your message';
-                    if (v.trim().length < 10) return 'Message must be at least 10 characters';
+                    if (v == null || v.trim().isEmpty)
+                      return 'Please enter your message';
+                    if (v.trim().length < 10)
+                      return 'Message must be at least 10 characters';
                     return null;
                   },
                 ),

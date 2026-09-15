@@ -5,10 +5,7 @@ import 'package:grocery_app/models/subscription_plan_model.dart';
 class CongratulationCard extends StatelessWidget {
   final SubscriptionPlan subscription;
 
-  const CongratulationCard({
-    super.key,
-    required this.subscription,
-  });
+  const CongratulationCard({super.key, required this.subscription});
 
   @override
   Widget build(BuildContext context) {

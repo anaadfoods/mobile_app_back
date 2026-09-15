@@ -85,19 +85,21 @@ class ProductImageCarousel extends StatelessWidget {
                     child: CachedNetworkImage(
                       imageUrl: productImages[index].image,
                       fit: BoxFit.cover,
-                      placeholder: (context, url) => Shimmer.fromColors(
-                        baseColor: AppColors.rawEarth12,
-                        highlightColor: AppColors.parchment,
-                        child: Container(color: AppColors.rawEarth12),
-                      ),
-                      errorWidget: (context, url, error) => Container(
-                        color: AppColors.parchment,
-                        child: const Icon(
-                          Icons.broken_image_outlined,
-                          color: AppColors.rawEarth54,
-                          size: 40,
-                        ),
-                      ),
+                      placeholder:
+                          (context, url) => Shimmer.fromColors(
+                            baseColor: AppColors.rawEarth12,
+                            highlightColor: AppColors.parchment,
+                            child: Container(color: AppColors.rawEarth12),
+                          ),
+                      errorWidget:
+                          (context, url, error) => Container(
+                            color: AppColors.parchment,
+                            child: const Icon(
+                              Icons.broken_image_outlined,
+                              color: AppColors.rawEarth54,
+                              size: 40,
+                            ),
+                          ),
                     ),
                   ),
                 ),
@@ -127,14 +129,15 @@ class ProductImageCarousel extends StatelessWidget {
                   height: 8.0,
                   width: isActive ? 28.0 : 8.0,
                   decoration: BoxDecoration(
-                    gradient: isActive
-                        ? const LinearGradient(
-                            colors: [
-                              AppColors.deepSoilGreen,
-                              AppColors.deepSoilGreen,
-                            ],
-                          )
-                        : null,
+                    gradient:
+                        isActive
+                            ? const LinearGradient(
+                              colors: [
+                                AppColors.deepSoilGreen,
+                                AppColors.deepSoilGreen,
+                              ],
+                            )
+                            : null,
                     color: isActive ? null : AppColors.rawEarth70,
                     borderRadius: BorderRadius.circular(12),
                   ),

@@ -6,7 +6,9 @@ import 'package:grocery_app/features/favorites/domain/failures/favorites_failure
 import 'package:grocery_app/models/favorite_model.dart';
 import 'package:grocery_app/services/token_service.dart';
 
-class MockFavoritesRemoteDataSource extends Mock implements FavoritesRemoteDataSource {}
+class MockFavoritesRemoteDataSource extends Mock
+    implements FavoritesRemoteDataSource {}
+
 class MockTokenService extends Mock implements TokenService {}
 
 void main() {
@@ -40,14 +42,22 @@ void main() {
 
     await expectLater(
       () => repository.getFavorites(),
-      throwsA(isA<FavoritesFailure>().having((f) => f.type, 'type', FavoritesFailureType.unauthorized)),
+      throwsA(
+        isA<FavoritesFailure>().having(
+          (f) => f.type,
+          'type',
+          FavoritesFailureType.unauthorized,
+        ),
+      ),
     );
     verifyNever(() => mockRemoteDataSource.fetchFavorites());
   });
 
   test('getFavorites maps DTOs to entities on success', () async {
     when(() => mockTokenService.isLoggedIn()).thenAnswer((_) async => true);
-    when(() => mockRemoteDataSource.fetchFavorites()).thenAnswer((_) async => [testFavoriteDto]);
+    when(
+      () => mockRemoteDataSource.fetchFavorites(),
+    ).thenAnswer((_) async => [testFavoriteDto]);
 
     final result = await repository.getFavorites();
     expect(result.length, 1);
@@ -60,19 +70,36 @@ void main() {
 
     await expectLater(
       () => repository.toggleFavorite(101),
-      throwsA(isA<FavoritesFailure>().having((f) => f.type, 'type', FavoritesFailureType.unauthorized)),
+      throwsA(
+        isA<FavoritesFailure>().having(
+          (f) => f.type,
+          'type',
+          FavoritesFailureType.unauthorized,
+        ),
+      ),
     );
     verifyNever(() => mockRemoteDataSource.toggleFavorite(any()));
   });
 
-  test('toggleFavorite calls remote datasource and maps network error on exception', () async {
-    when(() => mockTokenService.isLoggedIn()).thenAnswer((_) async => true);
-    when(() => mockRemoteDataSource.toggleFavorite(101)).thenThrow(Exception('DioException: Timeout'));
+  test(
+    'toggleFavorite calls remote datasource and maps network error on exception',
+    () async {
+      when(() => mockTokenService.isLoggedIn()).thenAnswer((_) async => true);
+      when(
+        () => mockRemoteDataSource.toggleFavorite(101),
+      ).thenThrow(Exception('DioException: Timeout'));
 
-    await expectLater(
-      () => repository.toggleFavorite(101),
-      throwsA(isA<FavoritesFailure>().having((f) => f.type, 'type', FavoritesFailureType.network)),
-    );
-    verify(() => mockRemoteDataSource.toggleFavorite(101)).called(1);
-  });
+      await expectLater(
+        () => repository.toggleFavorite(101),
+        throwsA(
+          isA<FavoritesFailure>().having(
+            (f) => f.type,
+            'type',
+            FavoritesFailureType.network,
+          ),
+        ),
+      );
+      verify(() => mockRemoteDataSource.toggleFavorite(101)).called(1);
+    },
+  );
 }

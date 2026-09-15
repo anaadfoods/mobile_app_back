@@ -1,8 +1,15 @@
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class ApiConfig {
-  static const String baseUrl = 'https://bck-dev.anaadfoods.com';
-  //  static const String baseUrl = 'https://educated-carpentry-reverence.ngrok-free.dev';
+  static String get baseUrl {
+    try {
+      final envUrl = dotenv.env['API_BASE_URL'];
+      if (envUrl != null && envUrl.trim().isNotEmpty) {
+        return envUrl.trim();
+      }
+    } catch (_) {}
+    return 'https://bck-dev.anaadfoods.com';
+  }
 
   /// Toggle flag for expected delivery date
   static bool get showExpectedDeliveryDate {
@@ -15,7 +22,8 @@ class ApiConfig {
     }
   }
 
-  static const String alternativeDeliveryText = "delivery will be start from Aug 2026 first week";
+  static const String alternativeDeliveryText =
+      "delivery will be start from Aug 2026 first week";
 
   /// Juspay payment bridge - HTTPS endpoint with certificate pinning
   static const String paymentUrl = 'https://payment.anaadfoods.com';
@@ -29,11 +37,18 @@ class ApiConfig {
           .where((pin) => pin.isNotEmpty)
           .toList(growable: false);
 
-  /// Panchang may be hosted on a different backend than the main app APIs.
-  /// Set this to the correct Panchang host when available.
-  ///
-  /// Example: 'https://panchang.anaadfoods.com' (no trailing slash)
+  /// Panchang base URL (falls back to API_BASE_URL or baseUrl)
   static String get panchangBaseUrl {
+    try {
+      final envUrl =
+          dotenv.env['PANCHANG_BASE_URL'] ?? dotenv.env['API_BASE_URL'];
+      if (envUrl != null && envUrl.trim().isNotEmpty) {
+        final trimmed = envUrl.trim();
+        return trimmed.endsWith('/')
+            ? trimmed.substring(0, trimmed.length - 1)
+            : trimmed;
+      }
+    } catch (_) {}
     final trimmed = baseUrl.trim();
     if (trimmed.isEmpty) return baseUrl;
     return trimmed.endsWith('/')
@@ -64,7 +79,60 @@ class ApiConfig {
       '${panchangCalenderBase}guidance/profile/';
   static String panchangFestivalDetailEndpoint(String code) =>
       '${panchangCalenderBase}festivals/$code/';
-  // Auth endpoints
+
+  // Panchang Encyclopedia endpoints (admin-configurable Vedic reference data)
+  static const String encyclopediaLunarMonths =
+      '${panchangCalenderBase}encyclopedia/lunar-months/';
+  static const String encyclopediaPakshas =
+      '${panchangCalenderBase}encyclopedia/pakshas/';
+  static const String encyclopediaPanchangLimbs =
+      '${panchangCalenderBase}encyclopedia/panchang-limbs/';
+  static const String encyclopediaMoonSigns =
+      '${panchangCalenderBase}encyclopedia/moon-signs/';
+  static const String encyclopediaAuspiciousTimings =
+      '${panchangCalenderBase}encyclopedia/auspicious-timings/';
+  static const String encyclopediaInauspiciousTimings =
+      '${panchangCalenderBase}encyclopedia/inauspicious-timings/';
+  static const String encyclopediaPlanets =
+      '${panchangCalenderBase}encyclopedia/planets/';
+  static const String encyclopediaChoghadiyaTypes =
+      '${panchangCalenderBase}encyclopedia/choghadiya-types/';
+  static const String panchangPresetLocations =
+      '${panchangCalenderBase}preset-locations/';
+  static const String panchangGuidanceOptions =
+      '${panchangCalenderBase}guidance/options/';
+
+  // Agent content endpoints (admin-configurable AI tools, prompts, content)
+  static const String agentToolsEndpoint = '/api/ai/agent-tools/';
+  static const String suggestedPromptsEndpoint =
+      '/api/ai/suggested-prompts/';
+  static const String contentBlocksEndpoint = '/api/ai/content-blocks/';
+  static const String biomarkerDefinitionsEndpoint =
+      '/api/ai/biomarker-definitions/';
+
+  // AI & Health Profile endpoints (Django ai_service app)
+  static const String healthProfileEndpoint = '/api/ai/health-profile/';
+  static const String healthProfileBodyTypeEndpoint =
+      '/api/ai/health-profile/body-type/';
+  static const String healthProfileSummaryEndpoint =
+      '/api/ai/health-profile/summary/';
+  static const String healthProfileBirthDetailsEndpoint =
+      '/api/ai/health-profile/birth-details/';
+  static const String healthProfileGenerateSummaryDocEndpoint =
+      '/api/ai/health-profile/generate-summary-doc/';
+  static const String foodThaliEndpoint = '/api/ai/food-thali/';
+  static const String medicalReportsEndpoint = '/api/ai/medical-reports/';
+  static const String medicalMarkersEndpoint = '/api/ai/medical-markers/';
+  static const String userTierQuotaEndpoint = '/api/ai/user-tier-quota/';
+  static const String chatSessionsEndpoint = '/api/ai/chat-sessions/';
+
+  // Ayurveda clinical assessment endpoints
+  static const String ayurvedaQuestionsEndpoint = '/api/ayurveda/questions/';
+  static const String ayurvedaSubmitQuizEndpoint = '/api/ayurveda/submit/';
+  static const String ayurvedaReportEndpoint = '/api/ayurveda/report/';
+  static const String ayurvedaAnswersEndpoint = '/api/ayurveda/answers/';
+
+
   static const String registerEndpoint = '/api/auth/register/';
   static const String loginEndpoint = '/api/auth/token/';
   static const String refreshEndpoint = '/api/auth/token/refresh/';
@@ -121,6 +189,16 @@ class ApiConfig {
 
   // User summary endpoint
   static const String userSummaryEndpoint = '/api/core/user-summary/';
+
+  // AI Service (FastAPI) base URL — separate from the main Django backend
+  static String get aiServiceBaseUrl =>
+      dotenv.env['AI_SERVICE_BASE_URL'] ?? 'http://127.0.0.1:8001';
+
+  // AI Agent Chat endpoints (relative to aiServiceBaseUrl)
+  static const String aiChatEndpoint = '/api/v1/agent/chat';
+  static const String aiChatStreamEndpoint = '/api/v1/agent/chat/stream';
+  static const String aiSessionsEndpoint = '/api/v1/agent/sessions';
+  static const String aiMemoryEndpoint = '/api/v1/agent/memory';
 
   // Headers
   static Map<String, String> getBaseHeaders() {

@@ -12,14 +12,28 @@ import 'package:grocery_app/features/notifications/domain/usecases/reset_notific
 import 'package:grocery_app/features/notifications/presentation/cubit/notification_cubit.dart';
 import 'package:grocery_app/features/notifications/presentation/cubit/notification_state.dart';
 
-class MockGetLocalNotificationsUseCase extends Mock implements GetLocalNotificationsUseCase {}
+class MockGetLocalNotificationsUseCase extends Mock
+    implements GetLocalNotificationsUseCase {}
+
 class MockGetUnreadCountUseCase extends Mock implements GetUnreadCountUseCase {}
-class MockSyncNotificationsUseCase extends Mock implements SyncNotificationsUseCase {}
-class MockMarkNotificationsAsReadUseCase extends Mock implements MarkNotificationsAsReadUseCase {}
-class MockDismissNotificationsUseCase extends Mock implements DismissNotificationsUseCase {}
-class MockRegisterDeviceTokenUseCase extends Mock implements RegisterDeviceTokenUseCase {}
-class MockUnregisterDeviceTokenUseCase extends Mock implements UnregisterDeviceTokenUseCase {}
-class MockResetNotificationBadgeUseCase extends Mock implements ResetNotificationBadgeUseCase {}
+
+class MockSyncNotificationsUseCase extends Mock
+    implements SyncNotificationsUseCase {}
+
+class MockMarkNotificationsAsReadUseCase extends Mock
+    implements MarkNotificationsAsReadUseCase {}
+
+class MockDismissNotificationsUseCase extends Mock
+    implements DismissNotificationsUseCase {}
+
+class MockRegisterDeviceTokenUseCase extends Mock
+    implements RegisterDeviceTokenUseCase {}
+
+class MockUnregisterDeviceTokenUseCase extends Mock
+    implements UnregisterDeviceTokenUseCase {}
+
+class MockResetNotificationBadgeUseCase extends Mock
+    implements ResetNotificationBadgeUseCase {}
 
 void main() {
   late MockGetLocalNotificationsUseCase mockGetLocalNotifications;
@@ -55,7 +69,9 @@ void main() {
     mockUnregisterToken = MockUnregisterDeviceTokenUseCase();
     mockResetBadge = MockResetNotificationBadgeUseCase();
 
-    when(() => mockGetLocalNotifications()).thenAnswer((_) async => [testNotif]);
+    when(
+      () => mockGetLocalNotifications(),
+    ).thenAnswer((_) async => [testNotif]);
     when(() => mockGetUnreadCount()).thenAnswer((_) async => 1);
   });
 
@@ -72,14 +88,17 @@ void main() {
     );
   }
 
-  test('loadNotifications emits NotificationLoading then NotificationSuccess', () async {
-    final cubit = buildCubit();
-    await cubit.loadNotifications();
+  test(
+    'loadNotifications emits NotificationLoading then NotificationSuccess',
+    () async {
+      final cubit = buildCubit();
+      await cubit.loadNotifications();
 
-    expect(cubit.state, isA<NotificationSuccess>());
-    expect(cubit.state.notifications.length, 1);
-    expect(cubit.state.unreadCount, 1);
-  });
+      expect(cubit.state, isA<NotificationSuccess>());
+      expect(cubit.state.notifications.length, 1);
+      expect(cubit.state.unreadCount, 1);
+    },
+  );
 
   test('markAsRead calls use case and reloads notifications', () async {
     when(() => mockMarkAsRead(['1'])).thenAnswer((_) async {});

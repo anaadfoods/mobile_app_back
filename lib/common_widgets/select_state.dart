@@ -59,17 +59,22 @@ class _SelectStateState extends State<SelectState> {
   @override
   void didUpdateWidget(covariant SelectState oldWidget) {
     super.didUpdateWidget(oldWidget);
-    
-    final currentSelectedState = _selectedStateModel?.name;
-    final currentSelectedCity = _isManualCity 
-        ? _manualCityController.text 
-        : _selectedCityModel?.name;
 
-    final hasStateChanged = (widget.initialState?.trim() ?? '') != (oldWidget.initialState?.trim() ?? '') &&
-        (widget.initialState?.trim() ?? '') != (currentSelectedState?.trim() ?? '');
-        
-    final hasCityChanged = (widget.initialCity?.trim() ?? '') != (oldWidget.initialCity?.trim() ?? '') &&
-        (widget.initialCity?.trim() ?? '') != (currentSelectedCity?.trim() ?? '');
+    final currentSelectedState = _selectedStateModel?.name;
+    final currentSelectedCity =
+        _isManualCity ? _manualCityController.text : _selectedCityModel?.name;
+
+    final hasStateChanged =
+        (widget.initialState?.trim() ?? '') !=
+            (oldWidget.initialState?.trim() ?? '') &&
+        (widget.initialState?.trim() ?? '') !=
+            (currentSelectedState?.trim() ?? '');
+
+    final hasCityChanged =
+        (widget.initialCity?.trim() ?? '') !=
+            (oldWidget.initialCity?.trim() ?? '') &&
+        (widget.initialCity?.trim() ?? '') !=
+            (currentSelectedCity?.trim() ?? '');
 
     if (hasStateChanged || hasCityChanged) {
       _selectedStateModel = null;
@@ -272,7 +277,9 @@ class _SelectStateState extends State<SelectState> {
                     ),
                     const SizedBox(width: 4),
                     Text(
-                      _isManualCity ? 'Select from list' : 'Enter city manually',
+                      _isManualCity
+                          ? 'Select from list'
+                          : 'Enter city manually',
                       style: TextStyle(
                         fontSize: 12,
                         color: theme.colorScheme.primary,
@@ -288,45 +295,45 @@ class _SelectStateState extends State<SelectState> {
 
         _isManualCity
             ? TextFormField(
-                controller: _manualCityController,
-                onChanged: (v) {
-                  widget.onCityChanged?.call(v.trim());
-                },
-                style: widget.style,
-                decoration: InputDecoration(
-                  hintText: 'Enter city name',
-                  prefixIcon: Icon(
-                    Icons.apartment_rounded,
-                    color: theme.colorScheme.primary.withValues(alpha: 0.7),
-                    size: 22,
-                  ),
-                  filled: true,
-                  fillColor: isDark ? AppColors.charcoal : AppColors.parchment,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(14),
-                    borderSide: BorderSide(
-                      color: isDark ? AppColors.charcoal87 : AppColors.parchment,
-                    ),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(14),
-                    borderSide: BorderSide(
-                      color: isDark ? AppColors.charcoal87 : AppColors.parchment,
-                    ),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(14),
-                    borderSide: BorderSide(
-                      color: theme.colorScheme.primary,
-                      width: 1.5,
-                    ),
-                  ),
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 14,
+              controller: _manualCityController,
+              onChanged: (v) {
+                widget.onCityChanged?.call(v.trim());
+              },
+              style: widget.style,
+              decoration: InputDecoration(
+                hintText: 'Enter city name',
+                prefixIcon: Icon(
+                  Icons.apartment_rounded,
+                  color: theme.colorScheme.primary.withValues(alpha: 0.7),
+                  size: 22,
+                ),
+                filled: true,
+                fillColor: isDark ? AppColors.charcoal : AppColors.parchment,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(14),
+                  borderSide: BorderSide(
+                    color: isDark ? AppColors.charcoal87 : AppColors.parchment,
                   ),
                 ),
-              )
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(14),
+                  borderSide: BorderSide(
+                    color: isDark ? AppColors.charcoal87 : AppColors.parchment,
+                  ),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(14),
+                  borderSide: BorderSide(
+                    color: theme.colorScheme.primary,
+                    width: 1.5,
+                  ),
+                ),
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 14,
+                ),
+              ),
+            )
             : (_loadingCities
                 ? _buildLoadingIndicator('Loading cities...')
                 : _buildSearchableField(

@@ -64,8 +64,10 @@ class DefaultFirebaseOptions {
     messagingSenderId: '356514741847',
     projectId: 'anaadapp',
     storageBucket: 'anaadapp.firebasestorage.app',
-    androidClientId: '356514741847-o3f1vdqolk6oi06fshtm8ooos9od01n3.apps.googleusercontent.com',
-    iosClientId: '356514741847-jcknjeta1r4eg56bea8jmjb0ucg3v6n2.apps.googleusercontent.com',
+    androidClientId:
+        '356514741847-o3f1vdqolk6oi06fshtm8ooos9od01n3.apps.googleusercontent.com',
+    iosClientId:
+        '356514741847-jcknjeta1r4eg56bea8jmjb0ucg3v6n2.apps.googleusercontent.com',
     iosBundleId: 'com.anaad.foods.ios',
   );
 
@@ -75,8 +77,10 @@ class DefaultFirebaseOptions {
     messagingSenderId: '356514741847',
     projectId: 'anaadapp',
     storageBucket: 'anaadapp.firebasestorage.app',
-    androidClientId: '356514741847-o3f1vdqolk6oi06fshtm8ooos9od01n3.apps.googleusercontent.com',
-    iosClientId: '356514741847-gnfce2mnodiephtfpq58431jh1b0dlkr.apps.googleusercontent.com',
+    androidClientId:
+        '356514741847-o3f1vdqolk6oi06fshtm8ooos9od01n3.apps.googleusercontent.com',
+    iosClientId:
+        '356514741847-gnfce2mnodiephtfpq58431jh1b0dlkr.apps.googleusercontent.com',
     iosBundleId: 'com.example.anaadfoodsui',
   );
 
@@ -89,5 +93,4 @@ class DefaultFirebaseOptions {
     storageBucket: 'anaadapp.firebasestorage.app',
     measurementId: 'G-8WQ8XQEZ66',
   );
-
 }

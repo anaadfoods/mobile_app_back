@@ -202,7 +202,8 @@ class SubscriptionPlansSection extends StatelessWidget {
                           ),
                           (() {
                             String? planLabel;
-                            final planNameUpper = plan.name.toUpperCase().trim();
+                            final planNameUpper =
+                                plan.name.toUpperCase().trim();
                             if (planNameUpper == 'TAPASVI') {
                               planLabel = 'Best for Families';
                             } else if (planNameUpper == 'PATHIK') {
@@ -216,11 +217,17 @@ class SubscriptionPlansSection extends StatelessWidget {
                                   planLabel,
                                   style: TextStyle(
                                     fontSize: 11,
-                                    color: isSelected
-                                        ? AppColors.pureWhite.withValues(alpha: 0.9)
-                                        : (isDark
-                                            ? AppColors.parchment.withValues(alpha: 0.7)
-                                            : AppColors.charcoal.withValues(alpha: 0.7)),
+                                    color:
+                                        isSelected
+                                            ? AppColors.pureWhite.withValues(
+                                              alpha: 0.9,
+                                            )
+                                            : (isDark
+                                                ? AppColors.parchment
+                                                    .withValues(alpha: 0.7)
+                                                : AppColors.charcoal.withValues(
+                                                  alpha: 0.7,
+                                                )),
                                     fontWeight: FontWeight.bold,
                                   ),
                                 ),

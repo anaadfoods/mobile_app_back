@@ -34,72 +34,88 @@ class NotificationCubit extends Cubit<NotificationState> {
     RegisterDeviceTokenUseCase? registerDeviceTokenUseCase,
     UnregisterDeviceTokenUseCase? unregisterDeviceTokenUseCase,
     ResetNotificationBadgeUseCase? resetNotificationBadgeUseCase,
-  })  : _getLocalNotificationsUseCase =
-            getLocalNotificationsUseCase ?? getIt<GetLocalNotificationsUseCase>(),
-        _getUnreadCountUseCase =
-            getUnreadCountUseCase ?? getIt<GetUnreadCountUseCase>(),
-        _syncNotificationsUseCase =
-            syncNotificationsUseCase ?? getIt<SyncNotificationsUseCase>(),
-        _markNotificationsAsReadUseCase =
-            markNotificationsAsReadUseCase ?? getIt<MarkNotificationsAsReadUseCase>(),
-        _dismissNotificationsUseCase =
-            dismissNotificationsUseCase ?? getIt<DismissNotificationsUseCase>(),
-        _registerDeviceTokenUseCase =
-            registerDeviceTokenUseCase ?? getIt<RegisterDeviceTokenUseCase>(),
-        _unregisterDeviceTokenUseCase =
-            unregisterDeviceTokenUseCase ?? getIt<UnregisterDeviceTokenUseCase>(),
-        _resetNotificationBadgeUseCase =
-            resetNotificationBadgeUseCase ?? getIt<ResetNotificationBadgeUseCase>(),
-        super(const NotificationInitial()) {
+  }) : _getLocalNotificationsUseCase =
+           getLocalNotificationsUseCase ??
+           getIt<GetLocalNotificationsUseCase>(),
+       _getUnreadCountUseCase =
+           getUnreadCountUseCase ?? getIt<GetUnreadCountUseCase>(),
+       _syncNotificationsUseCase =
+           syncNotificationsUseCase ?? getIt<SyncNotificationsUseCase>(),
+       _markNotificationsAsReadUseCase =
+           markNotificationsAsReadUseCase ??
+           getIt<MarkNotificationsAsReadUseCase>(),
+       _dismissNotificationsUseCase =
+           dismissNotificationsUseCase ?? getIt<DismissNotificationsUseCase>(),
+       _registerDeviceTokenUseCase =
+           registerDeviceTokenUseCase ?? getIt<RegisterDeviceTokenUseCase>(),
+       _unregisterDeviceTokenUseCase =
+           unregisterDeviceTokenUseCase ??
+           getIt<UnregisterDeviceTokenUseCase>(),
+       _resetNotificationBadgeUseCase =
+           resetNotificationBadgeUseCase ??
+           getIt<ResetNotificationBadgeUseCase>(),
+       super(const NotificationInitial()) {
     loadNotifications();
   }
 
   Future<void> loadNotifications() async {
-    emit(NotificationLoading(
-      notifications: state.notifications,
-      unreadCount: state.unreadCount,
-      fcmToken: state.fcmToken,
-    ));
+    emit(
+      NotificationLoading(
+        notifications: state.notifications,
+        unreadCount: state.unreadCount,
+        fcmToken: state.fcmToken,
+      ),
+    );
 
     try {
       final notifications = await _getLocalNotificationsUseCase();
       final unreadCount = await _getUnreadCountUseCase();
-      emit(NotificationSuccess(
-        notifications: notifications,
-        unreadCount: unreadCount,
-        fcmToken: state.fcmToken,
-      ));
+      emit(
+        NotificationSuccess(
+          notifications: notifications,
+          unreadCount: unreadCount,
+          fcmToken: state.fcmToken,
+        ),
+      );
     } catch (e) {
-      emit(NotificationError(
-        e.toString(),
-        notifications: state.notifications,
-        unreadCount: state.unreadCount,
-        fcmToken: state.fcmToken,
-      ));
+      emit(
+        NotificationError(
+          e.toString(),
+          notifications: state.notifications,
+          unreadCount: state.unreadCount,
+          fcmToken: state.fcmToken,
+        ),
+      );
     }
   }
 
   Future<void> syncNotifications() async {
-    emit(NotificationLoading(
-      notifications: state.notifications,
-      unreadCount: state.unreadCount,
-      fcmToken: state.fcmToken,
-    ));
-    try {
-      final notifications = await _syncNotificationsUseCase(0);
-      final unreadCount = await _getUnreadCountUseCase();
-      emit(NotificationSuccess(
-        notifications: notifications,
-        unreadCount: unreadCount,
-        fcmToken: state.fcmToken,
-      ));
-    } catch (e) {
-      emit(NotificationError(
-        e.toString(),
+    emit(
+      NotificationLoading(
         notifications: state.notifications,
         unreadCount: state.unreadCount,
         fcmToken: state.fcmToken,
-      ));
+      ),
+    );
+    try {
+      final notifications = await _syncNotificationsUseCase(0);
+      final unreadCount = await _getUnreadCountUseCase();
+      emit(
+        NotificationSuccess(
+          notifications: notifications,
+          unreadCount: unreadCount,
+          fcmToken: state.fcmToken,
+        ),
+      );
+    } catch (e) {
+      emit(
+        NotificationError(
+          e.toString(),
+          notifications: state.notifications,
+          unreadCount: state.unreadCount,
+          fcmToken: state.fcmToken,
+        ),
+      );
     }
   }
 
@@ -108,12 +124,14 @@ class NotificationCubit extends Cubit<NotificationState> {
       await _markNotificationsAsReadUseCase(ids);
       await loadNotifications();
     } catch (e) {
-      emit(NotificationError(
-        e.toString(),
-        notifications: state.notifications,
-        unreadCount: state.unreadCount,
-        fcmToken: state.fcmToken,
-      ));
+      emit(
+        NotificationError(
+          e.toString(),
+          notifications: state.notifications,
+          unreadCount: state.unreadCount,
+          fcmToken: state.fcmToken,
+        ),
+      );
     }
   }
 
@@ -122,12 +140,14 @@ class NotificationCubit extends Cubit<NotificationState> {
       await _dismissNotificationsUseCase(ids);
       await loadNotifications();
     } catch (e) {
-      emit(NotificationError(
-        e.toString(),
-        notifications: state.notifications,
-        unreadCount: state.unreadCount,
-        fcmToken: state.fcmToken,
-      ));
+      emit(
+        NotificationError(
+          e.toString(),
+          notifications: state.notifications,
+          unreadCount: state.unreadCount,
+          fcmToken: state.fcmToken,
+        ),
+      );
     }
   }
 
@@ -139,41 +159,49 @@ class NotificationCubit extends Cubit<NotificationState> {
         await loadNotifications();
       }
     } catch (e) {
-      emit(NotificationError(
-        e.toString(),
-        notifications: state.notifications,
-        unreadCount: state.unreadCount,
-        fcmToken: state.fcmToken,
-      ));
+      emit(
+        NotificationError(
+          e.toString(),
+          notifications: state.notifications,
+          unreadCount: state.unreadCount,
+          fcmToken: state.fcmToken,
+        ),
+      );
     }
   }
 
   Future<void> resetNotificationBadgeCount() async {
     try {
       await _resetNotificationBadgeUseCase();
-      emit(NotificationSuccess(
-        notifications: state.notifications,
-        unreadCount: 0,
-        fcmToken: state.fcmToken,
-      ));
+      emit(
+        NotificationSuccess(
+          notifications: state.notifications,
+          unreadCount: 0,
+          fcmToken: state.fcmToken,
+        ),
+      );
     } catch (e) {
-      emit(NotificationError(
-        e.toString(),
-        notifications: state.notifications,
-        unreadCount: state.unreadCount,
-        fcmToken: state.fcmToken,
-      ));
+      emit(
+        NotificationError(
+          e.toString(),
+          notifications: state.notifications,
+          unreadCount: state.unreadCount,
+          fcmToken: state.fcmToken,
+        ),
+      );
     }
   }
 
   Future<void> registerDeviceToken(String fcmToken) async {
     try {
       await _registerDeviceTokenUseCase(fcmToken);
-      emit(NotificationSuccess(
-        notifications: state.notifications,
-        unreadCount: state.unreadCount,
-        fcmToken: fcmToken,
-      ));
+      emit(
+        NotificationSuccess(
+          notifications: state.notifications,
+          unreadCount: state.unreadCount,
+          fcmToken: fcmToken,
+        ),
+      );
     } catch (_) {}
   }
 
@@ -187,11 +215,13 @@ class NotificationCubit extends Cubit<NotificationState> {
   Future<void> unregisterDevice() async {
     try {
       await _unregisterDeviceTokenUseCase();
-      emit(const NotificationSuccess(
-        notifications: [],
-        unreadCount: 0,
-        fcmToken: null,
-      ));
+      emit(
+        const NotificationSuccess(
+          notifications: [],
+          unreadCount: 0,
+          fcmToken: null,
+        ),
+      );
     } catch (_) {}
   }
 
@@ -202,16 +232,20 @@ class NotificationCubit extends Cubit<NotificationState> {
   }
 
   void handleForegroundNotification(RemoteMessage message) {
-    emit(NotificationReceived(
-      message,
-      notifications: state.notifications,
-      unreadCount: state.unreadCount,
-      fcmToken: state.fcmToken,
-    ));
-    emit(NotificationSuccess(
-      notifications: state.notifications,
-      unreadCount: state.unreadCount,
-      fcmToken: state.fcmToken,
-    ));
+    emit(
+      NotificationReceived(
+        message,
+        notifications: state.notifications,
+        unreadCount: state.unreadCount,
+        fcmToken: state.fcmToken,
+      ),
+    );
+    emit(
+      NotificationSuccess(
+        notifications: state.notifications,
+        unreadCount: state.unreadCount,
+        fcmToken: state.fcmToken,
+      ),
+    );
   }
 }

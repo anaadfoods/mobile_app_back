@@ -8,9 +8,13 @@ class UpdateProfileUseCase {
 
   Future<User> call({required User user, String? imagePath}) async {
     if (imagePath != null) {
-      final userWithUploadedImage = await _repository.uploadProfileImage(imagePath);
+      final userWithUploadedImage = await _repository.uploadProfileImage(
+        imagePath,
+      );
       // Combine updated fields with uploaded image URL
-      final mergedUser = user.copyWith(profilePicture: userWithUploadedImage.profilePicture);
+      final mergedUser = user.copyWith(
+        profilePicture: userWithUploadedImage.profilePicture,
+      );
       return _repository.updateProfile(mergedUser);
     }
     return _repository.updateProfile(user);

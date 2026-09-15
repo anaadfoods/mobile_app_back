@@ -22,13 +22,13 @@ class ProductCubit extends Cubit<ProductState> {
     required GetProductsByCategoryUseCase getProductsByCategoryUseCase,
     required GetProductByIdUseCase getProductByIdUseCase,
     required SearchProductsUseCase searchProductsUseCase,
-  })  : _getCategoriesUseCase = getCategoriesUseCase,
-        _getFeaturedProductsUseCase = getFeaturedProductsUseCase,
-        _getBestsellerProductsUseCase = getBestsellerProductsUseCase,
-        _getProductsByCategoryUseCase = getProductsByCategoryUseCase,
-        _getProductByIdUseCase = getProductByIdUseCase,
-        _searchProductsUseCase = searchProductsUseCase,
-        super(ProductInitial());
+  }) : _getCategoriesUseCase = getCategoriesUseCase,
+       _getFeaturedProductsUseCase = getFeaturedProductsUseCase,
+       _getBestsellerProductsUseCase = getBestsellerProductsUseCase,
+       _getProductsByCategoryUseCase = getProductsByCategoryUseCase,
+       _getProductByIdUseCase = getProductByIdUseCase,
+       _searchProductsUseCase = searchProductsUseCase,
+       super(ProductInitial());
 
   Future<void> loadHomePageData() async {
     try {

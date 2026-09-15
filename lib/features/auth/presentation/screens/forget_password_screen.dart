@@ -315,7 +315,8 @@ class _ForgetPasswordScreenState extends State<ForgetPasswordScreen>
                 if (e is DioException && e.response?.data != null) {
                   final data = e.response!.data;
                   if (data is Map) {
-                    errorMessage = data['error'] ?? data['message'] ?? errorMessage;
+                    errorMessage =
+                        data['error'] ?? data['message'] ?? errorMessage;
                   }
                 }
                 setDialogState(() => dialogError = errorMessage);
@@ -424,8 +425,11 @@ class _ForgetPasswordScreenState extends State<ForgetPasswordScreen>
                         const SizedBox(height: 24),
                         OtpResendSection(
                           onResend: () async {
-                            final identifier = _identifierController.text.trim();
-                            final type = _identifierType ?? (_isEmail(identifier) ? 'EMAIL' : 'PHONE');
+                            final identifier =
+                                _identifierController.text.trim();
+                            final type =
+                                _identifierType ??
+                                (_isEmail(identifier) ? 'EMAIL' : 'PHONE');
                             try {
                               await ApiClient.instance.post(
                                 '/api/auth/forgot-password/send-otp/',
@@ -437,10 +441,14 @@ class _ForgetPasswordScreenState extends State<ForgetPasswordScreen>
                               );
                             } catch (e) {
                               String errorMessage = 'Failed to resend OTP';
-                              if (e is DioException && e.response?.data != null) {
+                              if (e is DioException &&
+                                  e.response?.data != null) {
                                 final data = e.response!.data;
                                 if (data is Map) {
-                                  errorMessage = data['message'] ?? data['error'] ?? errorMessage;
+                                  errorMessage =
+                                      data['message'] ??
+                                      data['error'] ??
+                                      errorMessage;
                                 }
                               }
                               SnackBarHelper.showError(context, errorMessage);
@@ -477,7 +485,9 @@ class _ForgetPasswordScreenState extends State<ForgetPasswordScreen>
                                   gradient: LinearGradient(
                                     colors: [
                                       AppColors.harvestAmber,
-                                      AppColors.harvestAmber.withValues(alpha: 0.8),
+                                      AppColors.harvestAmber.withValues(
+                                        alpha: 0.8,
+                                      ),
                                     ],
                                   ),
                                   borderRadius: BorderRadius.circular(12),

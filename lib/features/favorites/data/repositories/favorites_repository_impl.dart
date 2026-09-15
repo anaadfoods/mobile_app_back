@@ -12,8 +12,8 @@ class FavoritesRepositoryImpl implements FavoritesRepository {
   const FavoritesRepositoryImpl({
     required FavoritesRemoteDataSource remoteDataSource,
     required TokenService tokenService,
-  })  : _remoteDataSource = remoteDataSource,
-        _tokenService = tokenService;
+  }) : _remoteDataSource = remoteDataSource,
+       _tokenService = tokenService;
 
   @override
   Future<List<FavoriteEntity>> getFavorites() async {
@@ -58,7 +58,7 @@ class FavoritesRepositoryImpl implements FavoritesRepository {
 
   String _getErrorMessage(dynamic e, String defaultMsg) {
     final s = e.toString().toLowerCase();
-    
+
     if (s.contains('socketexception') ||
         s.contains('connection refused') ||
         s.contains('network is unreachable') ||

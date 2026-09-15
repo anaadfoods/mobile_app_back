@@ -12,9 +12,9 @@ class AccountCubit extends Cubit<AccountState> {
   AccountCubit({
     required FetchUserSummaryUseCase fetchUserSummaryUseCase,
     required SyncUserProfileUseCase syncUserProfileUseCase,
-  })  : _fetchUserSummaryUseCase = fetchUserSummaryUseCase,
-        _syncUserProfileUseCase = syncUserProfileUseCase,
-        super(const AccountInitial());
+  }) : _fetchUserSummaryUseCase = fetchUserSummaryUseCase,
+       _syncUserProfileUseCase = syncUserProfileUseCase,
+       super(const AccountInitial());
 
   Future<void> loadAccountData() async {
     emit(const AccountLoading());
@@ -29,7 +29,8 @@ class AccountCubit extends Cubit<AccountState> {
 
   Future<void> refreshSummary() async {
     final currentState = state;
-    final currentProfile = currentState is AccountLoaded ? currentState.userProfile : null;
+    final currentProfile =
+        currentState is AccountLoaded ? currentState.userProfile : null;
     try {
       final summary = await _fetchUserSummaryUseCase();
       emit(AccountLoaded(userSummary: summary, userProfile: currentProfile));

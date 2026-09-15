@@ -1,4 +1,6 @@
-@Deprecated('Use PaymentStatusResponse instead — the old status endpoint is removed.')
+@Deprecated(
+  'Use PaymentStatusResponse instead — the old status endpoint is removed.',
+)
 class PaymentStatus {
   final int orderId;
   final String orderNumber;
@@ -46,7 +48,9 @@ class PaymentStatus {
   }
 }
 
-@Deprecated('Use PaymentStatusResponse instead — the old status endpoint is removed.')
+@Deprecated(
+  'Use PaymentStatusResponse instead — the old status endpoint is removed.',
+)
 class SubscriptionPaymentStatus {
   final int subscriptionId;
   final String paymentStatus;
@@ -100,22 +104,22 @@ class PaymentStatusResponse {
   final String status;
   final String respMessage;
 
-  PaymentStatusResponse({
-    required this.status,
-    required this.respMessage,
-  });
+  PaymentStatusResponse({required this.status, required this.respMessage});
 
   factory PaymentStatusResponse.fromJson(Map<String, dynamic> json) {
     return PaymentStatusResponse(
-      status: json['transaction_status']?.toString() ?? json['status']?.toString() ?? '',
-      respMessage: json['resp_message']?.toString() ?? json['message']?.toString() ?? '',
+      status:
+          json['transaction_status']?.toString() ??
+          json['status']?.toString() ??
+          '',
+      respMessage:
+          json['resp_message']?.toString() ?? json['message']?.toString() ?? '',
     );
   }
 
   bool get isSuccess => status.toUpperCase() == 'SUCCESS';
   bool get isPending =>
-      status.toUpperCase() == 'INITIATED' ||
-      status.toUpperCase() == 'PENDING';
+      status.toUpperCase() == 'INITIATED' || status.toUpperCase() == 'PENDING';
   bool get isFailed {
     const failed = {'FAILED', 'CANCELLED', 'ABANDONED'};
     return failed.contains(status.toUpperCase());

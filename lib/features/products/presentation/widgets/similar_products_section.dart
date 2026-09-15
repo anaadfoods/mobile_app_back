@@ -84,7 +84,10 @@ class SimilarProductsSection extends StatelessWidget {
           itemBuilder: (context, index) {
             final productItem = filtered[index];
             return Opacity(
-              opacity: productItem.isActive ? (productItem.isInStock ? 1.0 : 0.5) : 1.0,
+              opacity:
+                  productItem.isActive
+                      ? (productItem.isInStock ? 1.0 : 0.5)
+                      : 1.0,
               child: GroceryItemCardWidget(
                 item: productItem,
                 heroSuffix: "similar_products",

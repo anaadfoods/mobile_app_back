@@ -78,7 +78,10 @@ class _PlanDeliveriesScreenState extends State<PlanDeliveriesScreen> {
                           Icon(
                             Icons.error_outline,
                             size: 48,
-                            color: isDark ? AppColors.darkSoftRed : AppColors.softRed,
+                            color:
+                                isDark
+                                    ? AppColors.darkSoftRed
+                                    : AppColors.softRed,
                           ),
                           const SizedBox(height: 12),
                           Text(
@@ -158,15 +161,13 @@ class _PlanDeliveriesScreenState extends State<PlanDeliveriesScreen> {
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: isDark
-                ? [
-                    AppColors.darkSurfaceElevated,
-                    AppColors.darkSurface,
-                  ]
-                : [
-                    AppColors.deepSoilGreen,
-                    AppColors.deepSoilGreen.withValues(alpha: 0.85),
-                  ],
+            colors:
+                isDark
+                    ? [AppColors.darkSurfaceElevated, AppColors.darkSurface]
+                    : [
+                      AppColors.deepSoilGreen,
+                      AppColors.deepSoilGreen.withValues(alpha: 0.85),
+                    ],
           ),
           borderRadius: const BorderRadius.only(
             bottomLeft: Radius.circular(32),
@@ -192,7 +193,10 @@ class _PlanDeliveriesScreenState extends State<PlanDeliveriesScreen> {
                 Row(
                   children: [
                     IconButton(
-                      icon: const Icon(Icons.arrow_back_rounded, color: AppColors.parchment),
+                      icon: const Icon(
+                        Icons.arrow_back_rounded,
+                        color: AppColors.parchment,
+                      ),
                       onPressed: () => Navigator.maybePop(context),
                     ),
                     const Spacer(),
@@ -233,9 +237,10 @@ class _PlanDeliveriesScreenState extends State<PlanDeliveriesScreen> {
                         vertical: 4,
                       ),
                       decoration: BoxDecoration(
-                        color: plan.isActive
-                            ? AppColors.pureWhite.withValues(alpha: 0.15)
-                            : AppColors.pureWhite.withValues(alpha: 0.08),
+                        color:
+                            plan.isActive
+                                ? AppColors.pureWhite.withValues(alpha: 0.15)
+                                : AppColors.pureWhite.withValues(alpha: 0.08),
                         borderRadius: BorderRadius.circular(20),
                         border: Border.all(
                           color: AppColors.parchment.withValues(alpha: 0.25),
@@ -466,14 +471,19 @@ class _PlanDeliveriesScreenState extends State<PlanDeliveriesScreen> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(
-                  color: (isDark ? AppColors.darkSuccessGreen : theme.colorScheme.primary)
+                  color: (isDark
+                          ? AppColors.darkSuccessGreen
+                          : theme.colorScheme.primary)
                       .withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Text(
                   '${deliveries.length} ${deliveries.length == 1 ? 'delivery' : 'deliveries'}',
                   style: theme.textTheme.labelSmall?.copyWith(
-                    color: isDark ? AppColors.darkSuccessGreen : theme.colorScheme.primary,
+                    color:
+                        isDark
+                            ? AppColors.darkSuccessGreen
+                            : theme.colorScheme.primary,
                     fontWeight: FontWeight.w600,
                   ),
                 ),

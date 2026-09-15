@@ -26,7 +26,9 @@ void main() {
   });
 
   test('GetFavoritesUseCase calls getFavorites on repository', () async {
-    when(() => mockRepository.getFavorites()).thenAnswer((_) async => [testFavorite]);
+    when(
+      () => mockRepository.getFavorites(),
+    ).thenAnswer((_) async => [testFavorite]);
     final useCase = GetFavoritesUseCase(mockRepository);
 
     final result = await useCase();

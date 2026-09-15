@@ -20,9 +20,10 @@ class ReferredBy {
 
   factory ReferredBy.fromJson(Map<String, dynamic> json) {
     return ReferredBy(
-      id: json['id'] is int
-          ? json['id']
-          : (int.tryParse(json['id']?.toString() ?? '') ?? 0),
+      id:
+          json['id'] is int
+              ? json['id']
+              : (int.tryParse(json['id']?.toString() ?? '') ?? 0),
       email: json['email']?.toString() ?? '',
       username: json['username']?.toString() ?? '',
       firstName: json['first_name']?.toString() ?? '',
@@ -60,9 +61,10 @@ class ReferredUser {
 
   factory ReferredUser.fromJson(Map<String, dynamic> json) {
     return ReferredUser(
-      id: json['id'] is int
-          ? json['id']
-          : (int.tryParse(json['id']?.toString() ?? '') ?? 0),
+      id:
+          json['id'] is int
+              ? json['id']
+              : (int.tryParse(json['id']?.toString() ?? '') ?? 0),
       email: json['email']?.toString() ?? '',
       username: json['username']?.toString() ?? '',
       firstName: json['first_name']?.toString() ?? '',
@@ -82,10 +84,7 @@ class RewardsInfo {
   final String youGet;
   final String theyGet;
 
-  RewardsInfo({
-    required this.youGet,
-    required this.theyGet,
-  });
+  RewardsInfo({required this.youGet, required this.theyGet});
 
   factory RewardsInfo.fromJson(Map<String, dynamic> json) {
     return RewardsInfo(
@@ -138,23 +137,30 @@ class ReferralData {
 
     return ReferralData(
       referralCode: data['referral_code']?.toString() ?? '',
-      referralsCount: data['referrals_count'] is int
-          ? data['referrals_count']
-          : (int.tryParse(data['referrals_count']?.toString() ?? '') ?? 0),
-      orderedCount: data['ordered_count'] is int
-          ? data['ordered_count']
-          : (int.tryParse(data['ordered_count']?.toString() ?? '') ?? 0),
-      pendingCount: data['pending_count'] is int
-          ? data['pending_count']
-          : (int.tryParse(data['pending_count']?.toString() ?? '') ?? 0),
-      pendingRewardCount: data['pending_reward_count'] is int
-          ? data['pending_reward_count']
-          : (int.tryParse(data['pending_reward_count']?.toString() ?? '') ?? 0),
+      referralsCount:
+          data['referrals_count'] is int
+              ? data['referrals_count']
+              : (int.tryParse(data['referrals_count']?.toString() ?? '') ?? 0),
+      orderedCount:
+          data['ordered_count'] is int
+              ? data['ordered_count']
+              : (int.tryParse(data['ordered_count']?.toString() ?? '') ?? 0),
+      pendingCount:
+          data['pending_count'] is int
+              ? data['pending_count']
+              : (int.tryParse(data['pending_count']?.toString() ?? '') ?? 0),
+      pendingRewardCount:
+          data['pending_reward_count'] is int
+              ? data['pending_reward_count']
+              : (int.tryParse(data['pending_reward_count']?.toString() ?? '') ??
+                  0),
       referredBy: parsedReferredBy,
       rewardsInfo:
           data['rewards_info'] != null &&
                   data['rewards_info'] is Map<String, dynamic>
-              ? RewardsInfo.fromJson(data['rewards_info'] as Map<String, dynamic>)
+              ? RewardsInfo.fromJson(
+                data['rewards_info'] as Map<String, dynamic>,
+              )
               : null,
       referredUsers:
           (data['referred_users'] as List<dynamic>?)
@@ -166,4 +172,3 @@ class ReferralData {
     );
   }
 }
-

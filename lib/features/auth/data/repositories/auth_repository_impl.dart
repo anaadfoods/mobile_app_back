@@ -8,18 +8,21 @@ import '../../domain/failures/auth_failure.dart';
 import '../datasources/auth_remote_data_source.dart';
 import '../datasources/auth_local_data_source.dart';
 import '../models/user_model.dart';
+import 'package:grocery_app/services/token_service.dart';
+import 'package:grocery_app/models/user_model.dart' as shared;
 
 class AuthRepositoryImpl implements AuthRepository {
   final AuthRemoteDataSource _remoteDataSource;
   final AuthLocalDataSource _localDataSource;
 
-  final StreamController<bool> _authStateController = StreamController<bool>.broadcast();
+  final StreamController<bool> _authStateController =
+      StreamController<bool>.broadcast();
 
   AuthRepositoryImpl({
     required AuthRemoteDataSource remoteDataSource,
     required AuthLocalDataSource localDataSource,
-  })  : _remoteDataSource = remoteDataSource,
-        _localDataSource = localDataSource;
+  }) : _remoteDataSource = remoteDataSource,
+       _localDataSource = localDataSource;
 
   @override
   Stream<bool> get authStateChanges => _authStateController.stream;
@@ -34,6 +37,11 @@ class AuthRepositoryImpl implements AuthRepository {
       );
       await _localDataSource.saveUserData(response.user);
       _authStateController.add(true);
+      try {
+        TokenService().setCurrentUser(
+          shared.UserModel.fromDomain(response.user.toDomain()),
+        );
+      } catch (_) {}
       return response.user.toDomain();
     } catch (e) {
       throw _mapException(e);
@@ -60,6 +68,11 @@ class AuthRepositoryImpl implements AuthRepository {
       );
       await _localDataSource.saveUserData(response.user);
       _authStateController.add(true);
+      try {
+        TokenService().setCurrentUser(
+          shared.UserModel.fromDomain(response.user.toDomain()),
+        );
+      } catch (_) {}
       return response.user.toDomain();
     } catch (e) {
       throw _mapException(e);
@@ -76,6 +89,11 @@ class AuthRepositoryImpl implements AuthRepository {
       );
       await _localDataSource.saveUserData(response.user);
       _authStateController.add(true);
+      try {
+        TokenService().setCurrentUser(
+          shared.UserModel.fromDomain(response.user.toDomain()),
+        );
+      } catch (_) {}
       return response.user.toDomain();
     } catch (e) {
       throw _mapException(e);
@@ -87,6 +105,9 @@ class AuthRepositoryImpl implements AuthRepository {
     try {
       await _localDataSource.clearAll();
       _authStateController.add(false);
+      try {
+        await TokenService().clearToken();
+      } catch (_) {}
     } catch (e) {
       throw _mapException(e);
     }
@@ -144,7 +165,10 @@ class AuthRepositoryImpl implements AuthRepository {
     try {
       final currentUser = await _localDataSource.getUserData();
       if (currentUser == null) return false;
-      final success = await _remoteDataSource.updateAddress(currentUser, addressDetails);
+      final success = await _remoteDataSource.updateAddress(
+        currentUser,
+        addressDetails,
+      );
       return success;
     } catch (e) {
       throw _mapException(e);
@@ -209,16 +233,29 @@ class AuthRepositoryImpl implements AuthRepository {
       return AuthFailure(type: type, message: message);
     } else if (error is PlatformException) {
       final code = error.code.toLowerCase();
-      if (code.contains('cancel') || code.contains('canceled') || code.contains('cancelled')) {
-        return const AuthFailure(type: AuthFailureType.cancelled, message: 'Cancelled by user');
+      if (code.contains('cancel') ||
+          code.contains('canceled') ||
+          code.contains('cancelled')) {
+        return const AuthFailure(
+          type: AuthFailureType.cancelled,
+          message: 'Cancelled by user',
+        );
       }
-      return AuthFailure(type: AuthFailureType.unknown, message: error.message ?? 'Platform error');
+      return AuthFailure(
+        type: AuthFailureType.unknown,
+        message: error.message ?? 'Platform error',
+      );
     } else if (error is AuthFailure) {
       return error;
     }
     final errorMsg = error.toString();
-    if (errorMsg.contains('cancel') || errorMsg.contains('canceled') || errorMsg.contains('cancelled')) {
-      return const AuthFailure(type: AuthFailureType.cancelled, message: 'Cancelled by user');
+    if (errorMsg.contains('cancel') ||
+        errorMsg.contains('canceled') ||
+        errorMsg.contains('cancelled')) {
+      return const AuthFailure(
+        type: AuthFailureType.cancelled,
+        message: 'Cancelled by user',
+      );
     }
     return AuthFailure(type: AuthFailureType.unknown, message: errorMsg);
   }
@@ -253,7 +290,7 @@ class AuthRepositoryImpl implements AuthRepository {
         if (data['detail'] != null) return data['detail'].toString();
         if (data['message'] != null) return data['message'].toString();
         if (data['error'] != null) return data['error'].toString();
-        
+
         final errors = <String>[];
         data.forEach((key, value) {
           if (value is List) {

@@ -20,7 +20,8 @@ class HomeAllProductsSection extends StatelessWidget {
           return const HomeProductSkeleton();
         }
 
-        final List<ProductEntity> productEntities = (state is ProductSuccess) ? state.featuredProducts : [];
+        final List<ProductEntity> productEntities =
+            (state is ProductSuccess) ? state.featuredProducts : [];
 
         if (productEntities.isEmpty) {
           return const SizedBox.shrink();

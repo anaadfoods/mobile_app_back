@@ -3,25 +3,28 @@ import 'package:grocery_app/utils/checkout_calculator.dart';
 
 void main() {
   group('CheckoutCalculator', () {
-    test('deliveryCharge returns codCharge for COD and prepaidCharge for others', () {
-      expect(
-        CheckoutCalculator.deliveryCharge(
-          paymentMethod: 'COD',
-          codCharge: 50.0,
-          prepaidCharge: 20.0,
-        ),
-        50.0,
-      );
+    test(
+      'deliveryCharge returns codCharge for COD and prepaidCharge for others',
+      () {
+        expect(
+          CheckoutCalculator.deliveryCharge(
+            paymentMethod: 'COD',
+            codCharge: 50.0,
+            prepaidCharge: 20.0,
+          ),
+          50.0,
+        );
 
-      expect(
-        CheckoutCalculator.deliveryCharge(
-          paymentMethod: 'UPI',
-          codCharge: 50.0,
-          prepaidCharge: 20.0,
-        ),
-        20.0,
-      );
-    });
+        expect(
+          CheckoutCalculator.deliveryCharge(
+            paymentMethod: 'UPI',
+            codCharge: 50.0,
+            prepaidCharge: 20.0,
+          ),
+          20.0,
+        );
+      },
+    );
 
     test('subscriptionBasePrice multiplies unitPrice by quantity', () {
       expect(CheckoutCalculator.subscriptionBasePrice(10.0, 3), 30.0);

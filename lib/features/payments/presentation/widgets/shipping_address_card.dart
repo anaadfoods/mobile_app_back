@@ -5,10 +5,7 @@ import 'package:grocery_app/models/shipping_details.dart';
 class ShippingAddressCard extends StatelessWidget {
   final ShippingDetails? shippingDetails;
 
-  const ShippingAddressCard({
-    super.key,
-    required this.shippingDetails,
-  });
+  const ShippingAddressCard({super.key, required this.shippingDetails});
 
   @override
   Widget build(BuildContext context) {

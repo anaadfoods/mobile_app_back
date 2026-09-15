@@ -4,7 +4,8 @@ import 'package:grocery_app/features/innovations/presentation/screens/anaad_rede
 import 'package:grocery_app/features/innovations/presentation/screens/anaad_robots_screen.dart';
 import 'package:grocery_app/features/innovations/presentation/screens/anaad_games_screen.dart';
 import 'package:grocery_app/features/innovations/presentation/screens/refer_earn_screen.dart';
-import 'package:grocery_app/features/innovations/presentation/screens/panchang/panchang_home_screen.dart';
+import 'package:grocery_app/features/panchang/presentation/screens/panchang_home_screen.dart';
+import 'package:grocery_app/features/panchang/presentation/screens/kundli_input_screen.dart';
 
 class AnaadInnovationsScreen extends StatefulWidget {
   const AnaadInnovationsScreen({super.key});
@@ -294,6 +295,20 @@ class _AnaadInnovationsScreenState extends State<AnaadInnovationsScreen>
                 isComingSoon: false,
                 delay: 4,
                 onTap: () => _navigateTo(context, const PanchangHomeScreen()),
+              ),
+              const SizedBox(height: 16),
+
+              _buildFeatureCard(
+                context: context,
+                theme: theme,
+                isDark: isDark,
+                icon: Icons.psychology_outlined,
+                title: 'Vedic Janam Kundli',
+                subtitle: 'Birth chart, planetary positions & Ayurvedic body sync',
+                gradient: [AppColors.parchment, AppColors.parchment],
+                isComingSoon: false,
+                delay: 5,
+                onTap: () => context.push('/kundli-input'),
               ),
               const SizedBox(height: 40),
             ],

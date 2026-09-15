@@ -26,7 +26,7 @@ class _OrderScreenState extends State<OrderScreen>
     super.initState();
     _staggerController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 1200),
+      duration: const Duration(milliseconds: 420),
     );
     _fetchOrders();
   }
@@ -82,11 +82,17 @@ class _OrderScreenState extends State<OrderScreen>
 
             if (state is OrderSuccess) {
               totalCount = state.orders.length;
-              activeOrders = state.orders
-                  .where((o) => o.status != 'DELIVERED' && o.status != 'CANCELLED')
-                  .length;
-              completedOrders = state.orders.where((o) => o.status == 'DELIVERED').length;
-              cancelledOrders = state.orders.where((o) => o.status == 'CANCELLED').length;
+              activeOrders =
+                  state.orders
+                      .where(
+                        (o) =>
+                            o.status != 'DELIVERED' && o.status != 'CANCELLED',
+                      )
+                      .length;
+              completedOrders =
+                  state.orders.where((o) => o.status == 'DELIVERED').length;
+              cancelledOrders =
+                  state.orders.where((o) => o.status == 'CANCELLED').length;
             }
 
             return CustomScrollView(
@@ -116,25 +122,22 @@ class _OrderScreenState extends State<OrderScreen>
                   SliverPadding(
                     padding: const EdgeInsets.fromLTRB(16, 8, 16, 100),
                     sliver: SliverList(
-                      delegate: SliverChildBuilderDelegate(
-                        (context, index) {
-                          if (index == state.orders.length) {
-                            return const Padding(
-                              padding: EdgeInsets.only(top: 8),
-                              child: OrderListHelpCard(),
-                            );
-                          }
-                          final order = state.orders[index];
-                          return AnimatedOrderCard(
-                            order: order,
-                            index: index,
-                            staggerController: _staggerController,
-                            totalItems: state.orders.length,
-                            onTap: () => _navigateToDetails(order.id),
+                      delegate: SliverChildBuilderDelegate((context, index) {
+                        if (index == state.orders.length) {
+                          return const Padding(
+                            padding: EdgeInsets.only(top: 8),
+                            child: OrderListHelpCard(),
                           );
-                        },
-                        childCount: state.orders.length + 1,
-                      ),
+                        }
+                        final order = state.orders[index];
+                        return AnimatedOrderCard(
+                          order: order,
+                          index: index,
+                          staggerController: _staggerController,
+                          totalItems: state.orders.length,
+                          onTap: () => _navigateToDetails(order.id),
+                        );
+                      }, childCount: state.orders.length + 1),
                     ),
                   ),
               ],
@@ -274,8 +277,8 @@ class _OrderScreenState extends State<OrderScreen>
                       isLoading
                           ? "Loading orders..."
                           : totalCount == 0
-                              ? "Your orders will appear here"
-                              : "$totalCount order${totalCount != 1 ? 's' : ''} total",
+                          ? "Your orders will appear here"
+                          : "$totalCount order${totalCount != 1 ? 's' : ''} total",
                       style: theme.textTheme.bodyMedium?.copyWith(
                         color: AppColors.parchment.withValues(alpha: 0.9),
                       ),

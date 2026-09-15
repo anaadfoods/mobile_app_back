@@ -20,9 +20,7 @@ class _NotificationSettingsScreenState
     final isDark = theme.brightness == Brightness.dark;
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Notification Settings'),
-      ),
+      appBar: AppBar(title: const Text('Notification Settings')),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
@@ -37,18 +35,20 @@ class _NotificationSettingsScreenState
             title: const Text('Order Updates'),
             subtitle: const Text('Get real-time updates on your order status'),
             value: _orderUpdates,
-            onChanged: _pushEnabled
-                ? (val) => setState(() => _orderUpdates = val)
-                : null,
+            onChanged:
+                _pushEnabled
+                    ? (val) => setState(() => _orderUpdates = val)
+                    : null,
           ),
           const Divider(),
           SwitchListTile(
             title: const Text('Promotions & Deals'),
             subtitle: const Text('Receive discounts and special offer alerts'),
             value: _promotions,
-            onChanged: _pushEnabled
-                ? (val) => setState(() => _promotions = val)
-                : null,
+            onChanged:
+                _pushEnabled
+                    ? (val) => setState(() => _promotions = val)
+                    : null,
           ),
         ],
       ),

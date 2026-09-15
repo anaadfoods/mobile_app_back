@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'package:dio/dio.dart';
 import 'package:grocery_app/services/api_config.dart';
 import 'package:grocery_app/services/token_service.dart';
@@ -8,14 +9,17 @@ import 'package:grocery_app/helpers/cache_helper.dart';
 
 class ApiClient {
   ApiClient._privateConstructor() {
-    _dio = Dio(BaseOptions(
-      baseUrl: ApiConfig.baseUrl,
-      connectTimeout: const Duration(seconds: 30),
-      receiveTimeout: const Duration(seconds: 30),
-      headers: ApiConfig.getBaseHeaders(),
-    ));
+    _dio = Dio(
+      BaseOptions(
+        baseUrl: ApiConfig.baseUrl,
+        connectTimeout: const Duration(seconds: 30),
+        receiveTimeout: const Duration(seconds: 30),
+        headers: ApiConfig.getBaseHeaders(),
+      ),
+    );
 
     _dio.interceptors.addAll([
+      RequestIdInterceptor(),
       AuthInterceptor(),
       CacheInterceptor(),
       RetryInterceptor(dio: _dio),
@@ -124,6 +128,22 @@ class ApiClient {
   }
 }
 
+class RequestIdInterceptor extends Interceptor {
+  @override
+  void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
+    if (!options.headers.containsKey('X-Request-ID')) {
+      final rnd = Random.secure();
+      final bytes = List<int>.generate(16, (_) => rnd.nextInt(256));
+      bytes[6] = (bytes[6] & 0x0f) | 0x40;
+      bytes[8] = (bytes[8] & 0x3f) | 0x80;
+      final hex = bytes.map((b) => b.toRadixString(16).padLeft(2, '0')).join();
+      final reqId = '${hex.substring(0, 8)}-${hex.substring(8, 12)}-${hex.substring(12, 16)}-${hex.substring(16, 20)}-${hex.substring(20, 32)}';
+      options.headers['X-Request-ID'] = reqId;
+    }
+    super.onRequest(options, handler);
+  }
+}
+
 class AuthInterceptor extends Interceptor {
   bool _isRefreshing = false;
   final List<Map<String, dynamic>> _requestQueue = [];
@@ -134,7 +154,8 @@ class AuthInterceptor extends Interceptor {
     RequestInterceptorHandler handler,
   ) async {
     final path = options.path;
-    final isPublic = path.contains(ApiConfig.loginEndpoint) ||
+    final isPublic =
+        path.contains(ApiConfig.loginEndpoint) ||
         path.contains(ApiConfig.registerEndpoint) ||
         path.contains(ApiConfig.refreshEndpoint) ||
         path.contains(ApiConfig.sendOtpEndpoint) ||
@@ -157,24 +178,26 @@ class AuthInterceptor extends Interceptor {
   ) async {
     if (err.response?.statusCode == 401) {
       final options = err.requestOptions;
+      final path = options.path;
 
-      // If it is the refresh endpoint itself failing, do not retry
-      if (options.path.contains(ApiConfig.refreshEndpoint)) {
-        return handler.next(err);
-      }
+      // Do not attempt token refresh for public or auth endpoints on 401.
+      // 401 on login, register, otp, etc. represents invalid credentials/bad input, NOT an expired session.
+      final isPublicOrAuth =
+          path.contains(ApiConfig.loginEndpoint) ||
+          path.contains(ApiConfig.registerEndpoint) ||
+          path.contains(ApiConfig.refreshEndpoint) ||
+          path.contains(ApiConfig.sendOtpEndpoint) ||
+          path.contains(ApiConfig.deactivateEndpoint) ||
+          path.contains(ApiConfig.deactivateConfirmEndpoint) ||
+          path.contains('/api/auth/verify-otp/') ||
+          path.contains('/forgot-password/');
 
-      // If it is a deactivation endpoint, do not attempt to refresh token on 401.
-      // 401 here represents invalid credentials/password or invalid OTP, not an expired token.
-      if (options.path.contains(ApiConfig.deactivateEndpoint) ||
-          options.path.contains(ApiConfig.deactivateConfirmEndpoint)) {
+      if (isPublicOrAuth) {
         return handler.next(err);
       }
 
       if (_isRefreshing) {
-        _requestQueue.add({
-          'options': options,
-          'handler': handler,
-        });
+        _requestQueue.add({'options': options, 'handler': handler});
         return;
       }
 
@@ -183,7 +206,7 @@ class AuthInterceptor extends Interceptor {
         final success = await TokenService().refreshAccessToken();
         if (success) {
           final token = await TokenService().getAccessToken();
-          
+
           // Re-issue current request
           options.headers['Authorization'] = 'Bearer $token';
           final response = await ApiClient.instance.dio.fetch(options);
@@ -201,7 +224,9 @@ class AuthInterceptor extends Interceptor {
               if (e is DioException) {
                 reqHandler.next(e);
               } else {
-                reqHandler.reject(DioException(requestOptions: reqOptions, error: e));
+                reqHandler.reject(
+                  DioException(requestOptions: reqOptions, error: e),
+                );
               }
             }
           }
@@ -211,7 +236,9 @@ class AuthInterceptor extends Interceptor {
           await TokenService().logout();
         }
       } catch (e) {
-        AppLogger.instance.log('AuthInterceptor error during token refresh: $e');
+        AppLogger.instance.log(
+          'AuthInterceptor error during token refresh: $e',
+        );
         await TokenService().logout();
       } finally {
         _isRefreshing = false;
@@ -240,7 +267,7 @@ class CacheInterceptor extends Interceptor {
         final cachedData = await CacheHelper.get(cacheKey);
         if (cachedData != null) {
           AppLogger.instance.log(
-            'Offline Mode: Serving cached response for: ${options.path}'
+            'Offline Mode: Serving cached response for: ${options.path}',
           );
           return handler.resolve(
             Response(
@@ -263,7 +290,9 @@ class CacheInterceptor extends Interceptor {
     Response response,
     ResponseInterceptorHandler handler,
   ) async {
-    if (response.requestOptions.method == 'GET' && response.statusCode == 200 && response.data != null) {
+    if (response.requestOptions.method == 'GET' &&
+        response.statusCode == 200 &&
+        response.data != null) {
       try {
         final cacheKey = _getCacheKey(response.requestOptions);
         // Save data asynchronously to not block response delivery
@@ -286,7 +315,7 @@ class CacheInterceptor extends Interceptor {
         final cachedData = await CacheHelper.get(cacheKey);
         if (cachedData != null) {
           AppLogger.instance.log(
-            'Server Error/Unreachable: Falling back to local cache for: ${err.requestOptions.path}'
+            'Server Error/Unreachable: Falling back to local cache for: ${err.requestOptions.path}',
           );
           return handler.resolve(
             Response(
@@ -340,7 +369,7 @@ class RetryInterceptor extends Interceptor {
       AppLogger.instance.log(
         'Transient connection error: ${err.type} (${err.message}). '
         'Retrying request ($retryCount/$maxRetries) in ${delay.inMilliseconds}ms: '
-        '${err.requestOptions.method} ${err.requestOptions.path}'
+        '${err.requestOptions.method} ${err.requestOptions.path}',
       );
 
       await Future.delayed(delay);
@@ -370,10 +399,7 @@ class RetryInterceptor extends Interceptor {
           err = e;
         } else {
           return handler.reject(
-            DioException(
-              requestOptions: err.requestOptions,
-              error: e,
-            ),
+            DioException(requestOptions: err.requestOptions, error: e),
           );
         }
       }
@@ -391,7 +417,8 @@ class RetryInterceptor extends Interceptor {
     if (err.type == DioExceptionType.connectionError) {
       return true;
     }
-    if (err.error != null && err.error.toString().toLowerCase().contains('socketexception')) {
+    if (err.error != null &&
+        err.error.toString().toLowerCase().contains('socketexception')) {
       return true;
     }
     if (err.type == DioExceptionType.badResponse) {

@@ -6,7 +6,6 @@ abstract class MiscRemoteDataSource {
   // TODO: Add remote data source methods
 }
 
-class MiscRemoteDataSourceImpl
-    implements MiscRemoteDataSource {
+class MiscRemoteDataSourceImpl implements MiscRemoteDataSource {
   // TODO: Implement remote data source methods
 }

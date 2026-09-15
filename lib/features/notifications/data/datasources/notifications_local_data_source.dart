@@ -28,14 +28,18 @@ class NotificationsLocalDataSourceImpl implements NotificationsLocalDataSource {
 
     try {
       final List<dynamic> raw = jsonDecode(jsonStr);
-      return raw.map((e) => NotificationModel.fromJson(Map<String, dynamic>.from(e))).toList();
+      return raw
+          .map((e) => NotificationModel.fromJson(Map<String, dynamic>.from(e)))
+          .toList();
     } catch (_) {
       return [];
     }
   }
 
   @override
-  Future<void> saveLocalNotifications(List<NotificationModel> notifications) async {
+  Future<void> saveLocalNotifications(
+    List<NotificationModel> notifications,
+  ) async {
     final prefs = await SharedPreferences.getInstance();
     final jsonStr = jsonEncode(notifications.map((n) => n.toJson()).toList());
     await prefs.setString(_keyLocalNotifications, jsonStr);
@@ -45,7 +49,7 @@ class NotificationsLocalDataSourceImpl implements NotificationsLocalDataSource {
   Future<void> saveServerPushNotification(Map<String, dynamic> payload) async {
     final current = await getLocalNotifications();
     final notif = NotificationModel.fromJson(payload);
-    
+
     // Check duplicate ID
     final existingIndex = current.indexWhere((n) => n.id == notif.id);
     if (existingIndex >= 0) {

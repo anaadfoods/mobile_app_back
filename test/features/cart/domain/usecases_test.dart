@@ -37,7 +37,9 @@ void main() {
   });
 
   test('AddToCartUseCase calls addToCart on repository', () async {
-    when(() => mockRepository.addToCart(101, 3)).thenAnswer((_) async => dummyCart);
+    when(
+      () => mockRepository.addToCart(101, 3),
+    ).thenAnswer((_) async => dummyCart);
     final useCase = AddToCartUseCase(mockRepository);
 
     final result = await useCase(101, 3);
@@ -47,7 +49,9 @@ void main() {
   });
 
   test('UpdateCartItemUseCase calls updateCartItem on repository', () async {
-    when(() => mockRepository.updateCartItem(101, 5)).thenAnswer((_) async => dummyCart);
+    when(
+      () => mockRepository.updateCartItem(101, 5),
+    ).thenAnswer((_) async => dummyCart);
     final useCase = UpdateCartItemUseCase(mockRepository);
 
     final result = await useCase(101, 5);
@@ -57,7 +61,9 @@ void main() {
   });
 
   test('RemoveFromCartUseCase calls removeFromCart on repository', () async {
-    when(() => mockRepository.removeFromCart(101)).thenAnswer((_) async => dummyCart);
+    when(
+      () => mockRepository.removeFromCart(101),
+    ).thenAnswer((_) async => dummyCart);
     final useCase = RemoveFromCartUseCase(mockRepository);
 
     final result = await useCase(101);

@@ -10,7 +10,9 @@ import 'package:grocery_app/models/product_model.dart';
 import 'package:grocery_app/services/api_client.dart';
 import 'package:grocery_app/services/api_exception.dart';
 
-class MockOrdersRemoteDataSource extends Mock implements OrdersRemoteDataSource {}
+class MockOrdersRemoteDataSource extends Mock
+    implements OrdersRemoteDataSource {}
+
 class MockOrderModel extends Mock implements OrderModel {}
 
 void main() {
@@ -66,7 +68,7 @@ void main() {
           price: 100.0,
           discount: 0.0,
           total: 200.0,
-        )
+        ),
       ],
     );
 
@@ -75,7 +77,9 @@ void main() {
 
   group('OrdersRepositoryImpl Tests', () {
     test('getOrders maps successfully', () async {
-      when(() => mockDataSource.getOrders()).thenAnswer((_) async => [testOrderDto]);
+      when(
+        () => mockDataSource.getOrders(),
+      ).thenAnswer((_) async => [testOrderDto]);
 
       final result = await repository.getOrders();
 
@@ -88,7 +92,9 @@ void main() {
     });
 
     test('getOrderById maps successfully', () async {
-      when(() => mockDataSource.getOrderById(10)).thenAnswer((_) async => testOrderDto);
+      when(
+        () => mockDataSource.getOrderById(10),
+      ).thenAnswer((_) async => testOrderDto);
 
       final result = await repository.getOrderById(10);
 
@@ -103,7 +109,9 @@ void main() {
         orderNumber: "ORD999",
         checkoutUrl: "https://pay.com",
       );
-      when(() => mockDataSource.createOrder(any())).thenAnswer((_) async => createResponse);
+      when(
+        () => mockDataSource.createOrder(any()),
+      ).thenAnswer((_) async => createResponse);
 
       final params = CreateOrderParams(
         paymentMethod: "UPI",
@@ -125,7 +133,9 @@ void main() {
 
     test('cancelOrder maps successfully', () async {
       final cancelResult = {'success': true, 'message': 'Cancelled'};
-      when(() => mockDataSource.cancelOrder(10, reason: 'cancel')).thenAnswer((_) async => cancelResult);
+      when(
+        () => mockDataSource.cancelOrder(10, reason: 'cancel'),
+      ).thenAnswer((_) async => cancelResult);
 
       final result = await repository.cancelOrder(10, reason: 'cancel');
 
@@ -134,7 +144,9 @@ void main() {
     });
 
     test('downloadInvoice maps successfully', () async {
-      when(() => mockDataSource.downloadInvoice("ORD1234")).thenAnswer((_) async => "/path/invoice.pdf");
+      when(
+        () => mockDataSource.downloadInvoice("ORD1234"),
+      ).thenAnswer((_) async => "/path/invoice.pdf");
 
       final result = await repository.downloadInvoice("ORD1234");
 
@@ -158,10 +170,12 @@ void main() {
             courierStatus: "Success",
             courierStatusCode: "1",
             createdAt: DateTime(2026, 1, 25, 12, 0),
-          )
+          ),
         ],
       );
-      when(() => mockDataSource.getOrderTracking("ORD1234")).thenAnswer((_) async => trackingDto);
+      when(
+        () => mockDataSource.getOrderTracking("ORD1234"),
+      ).thenAnswer((_) async => trackingDto);
 
       final result = await repository.getOrderTracking("ORD1234");
 
@@ -181,7 +195,9 @@ void main() {
         pincode: "123456",
         phone: "987",
       );
-      when(() => mockDataSource.getUserShippingDetails()).thenAnswer((_) async => shippingDto);
+      when(
+        () => mockDataSource.getUserShippingDetails(),
+      ).thenAnswer((_) async => shippingDto);
 
       final result = await repository.getUserShippingDetails();
 
@@ -191,11 +207,20 @@ void main() {
     });
 
     test('translates ApiException to OrderFailure', () async {
-      when(() => mockDataSource.getOrders()).thenThrow(ApiException("Unauthorized", 401));
+      when(
+        () => mockDataSource.getOrders(),
+      ).thenThrow(ApiException("Unauthorized", 401));
 
-      expect(() => repository.getOrders(), throwsA(isA<OrderFailure>().having(
-        (f) => f.type, 'type', OrderFailureType.unauthorized
-      )));
+      expect(
+        () => repository.getOrders(),
+        throwsA(
+          isA<OrderFailure>().having(
+            (f) => f.type,
+            'type',
+            OrderFailureType.unauthorized,
+          ),
+        ),
+      );
     });
   });
 }

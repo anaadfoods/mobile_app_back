@@ -2,6 +2,7 @@ import 'package:grocery_app/services/api_config.dart';
 import '../../domain/entities/user.dart';
 
 class UserModel {
+  final int? id;
   final String email;
   final String username;
   final String password;
@@ -20,6 +21,7 @@ class UserModel {
   final bool isRfp;
 
   UserModel({
+    this.id,
     required this.email,
     required this.username,
     required this.password,
@@ -54,6 +56,7 @@ class UserModel {
 
   Map<String, dynamic> toProfileJson() {
     return {
+      if (id != null) 'id': id,
       'email': email,
       'username': username,
       'first_name': firstName,
@@ -75,12 +78,17 @@ class UserModel {
     String? finalImageUrl;
 
     if (rawImageUrl != null && rawImageUrl.isNotEmpty) {
-      finalImageUrl = rawImageUrl.startsWith('http')
-          ? rawImageUrl
-          : '${ApiConfig.baseUrl}$rawImageUrl';
+      finalImageUrl =
+          rawImageUrl.startsWith('http')
+              ? rawImageUrl
+              : '${ApiConfig.baseUrl}$rawImageUrl';
     }
 
+    final rawId = json['id'];
+    final parsedId = rawId is int ? rawId : (rawId != null ? int.tryParse(rawId.toString()) : null);
+
     return UserModel(
+      id: parsedId,
       email: json['email'] ?? '',
       username: json['username'] ?? '',
       password: json['password'] ?? '',
@@ -102,6 +110,7 @@ class UserModel {
 
   User toDomain() {
     return User(
+      id: id,
       email: email,
       username: username,
       firstName: firstName,
@@ -121,6 +130,7 @@ class UserModel {
 
   factory UserModel.fromDomain(User user) {
     return UserModel(
+      id: user.id,
       email: user.email,
       username: user.username,
       password: '',

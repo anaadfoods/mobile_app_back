@@ -28,10 +28,7 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen>
       vsync: this,
     );
     _heroFade = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(
-        parent: _entranceController,
-        curve: Curves.easeOut,
-      ),
+      CurvedAnimation(parent: _entranceController, curve: Curves.easeOut),
     );
     _entranceController.forward();
   }
@@ -56,10 +53,11 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen>
       context: outerContext,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => _CommunityInterestBottomSheet(
-        communityName: widget.community.name,
-        accentColor: _accentColor,
-      ),
+      builder:
+          (context) => _CommunityInterestBottomSheet(
+            communityName: widget.community.name,
+            accentColor: _accentColor,
+          ),
     );
   }
 
@@ -78,13 +76,19 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen>
             pinned: true,
             backgroundColor: _accentColor,
             leading: IconButton(
-              icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white),
+              icon: const Icon(
+                Icons.arrow_back_ios_new_rounded,
+                color: Colors.white,
+              ),
               onPressed: () => Navigator.pop(context),
             ),
             flexibleSpace: FlexibleSpaceBar(
               title: Text(
                 community.name,
-                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
               background: Stack(
                 fit: StackFit.expand,
@@ -92,7 +96,9 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen>
                   Image.network(
                     community.fullImageUrl,
                     fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) => Container(color: _accentColor),
+                    errorBuilder:
+                        (context, error, stackTrace) =>
+                            Container(color: _accentColor),
                   ),
                   Container(
                     decoration: BoxDecoration(
@@ -120,14 +126,21 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen>
                   children: [
                     if (community.comingSoon)
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 6,
+                        ),
                         decoration: BoxDecoration(
                           color: AppColors.harvestAmber,
                           borderRadius: BorderRadius.circular(20),
                         ),
                         child: Text(
                           'Coming Soon ${community.launchDate ?? ''}',
-                          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12),
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 12,
+                          ),
                         ),
                       ),
                     const SizedBox(height: 16),
@@ -142,7 +155,9 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen>
                     Text(
                       community.description,
                       style: theme.textTheme.bodyMedium?.copyWith(
-                        color: theme.colorScheme.onSurface.withValues(alpha: 0.8),
+                        color: theme.colorScheme.onSurface.withValues(
+                          alpha: 0.8,
+                        ),
                         height: 1.5,
                       ),
                     ),
@@ -160,10 +175,14 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen>
                       decoration: BoxDecoration(
                         color: _accentColor.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: _accentColor.withValues(alpha: 0.2)),
+                        border: Border.all(
+                          color: _accentColor.withValues(alpha: 0.2),
+                        ),
                       ),
                       child: Text(
-                        community.benefits.isNotEmpty ? community.benefits : 'Exclusive farming insights & organic community updates.',
+                        community.benefits.isNotEmpty
+                            ? community.benefits
+                            : 'Exclusive farming insights & organic community updates.',
                         style: theme.textTheme.bodyMedium?.copyWith(
                           color: theme.colorScheme.onSurface,
                         ),
@@ -183,7 +202,11 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen>
                         onPressed: () => _showInterestBottomSheet(context),
                         child: const Text(
                           'Express Interest',
-                          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                          ),
                         ),
                       ),
                     ),
@@ -397,7 +420,9 @@ class __CommunityInterestBottomSheetState
                     if (value == null || value.trim().isEmpty) {
                       return 'Please enter your email';
                     }
-                    if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value.trim())) {
+                    if (!RegExp(
+                      r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
+                    ).hasMatch(value.trim())) {
                       return 'Please enter a valid email address';
                     }
                     return null;
@@ -451,7 +476,9 @@ class __CommunityInterestBottomSheetState
                         child: Text(
                           'Cancel',
                           style: TextStyle(
-                            color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
+                            color: theme.colorScheme.onSurface.withValues(
+                              alpha: 0.6,
+                            ),
                             fontWeight: FontWeight.bold,
                           ),
                         ),
@@ -471,22 +498,23 @@ class __CommunityInterestBottomSheetState
                           elevation: 2,
                         ),
                         onPressed: _isLoading ? null : _submitForm,
-                        child: _isLoading
-                            ? const SizedBox(
-                                width: 20,
-                                height: 20,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  color: Colors.white,
+                        child:
+                            _isLoading
+                                ? const SizedBox(
+                                  width: 20,
+                                  height: 20,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    color: Colors.white,
+                                  ),
+                                )
+                                : const Text(
+                                  'Submit',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 16,
+                                  ),
                                 ),
-                              )
-                            : const Text(
-                                'Submit',
-                                style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 16,
-                                ),
-                              ),
                       ),
                     ),
                   ],

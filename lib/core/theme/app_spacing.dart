@@ -39,28 +39,38 @@ class AppSpacing {
 
   // ─── Pre-built EdgeInsets ──────────────────────────────────────────────────
   // Horizontal
-  static const EdgeInsets paddingHorizontalXs =
-      EdgeInsets.symmetric(horizontal: xs);
-  static const EdgeInsets paddingHorizontalSm =
-      EdgeInsets.symmetric(horizontal: sm);
-  static const EdgeInsets paddingHorizontalMd =
-      EdgeInsets.symmetric(horizontal: md);
-  static const EdgeInsets paddingHorizontalLg =
-      EdgeInsets.symmetric(horizontal: lg);
-  static const EdgeInsets paddingHorizontalXl =
-      EdgeInsets.symmetric(horizontal: xl);
+  static const EdgeInsets paddingHorizontalXs = EdgeInsets.symmetric(
+    horizontal: xs,
+  );
+  static const EdgeInsets paddingHorizontalSm = EdgeInsets.symmetric(
+    horizontal: sm,
+  );
+  static const EdgeInsets paddingHorizontalMd = EdgeInsets.symmetric(
+    horizontal: md,
+  );
+  static const EdgeInsets paddingHorizontalLg = EdgeInsets.symmetric(
+    horizontal: lg,
+  );
+  static const EdgeInsets paddingHorizontalXl = EdgeInsets.symmetric(
+    horizontal: xl,
+  );
 
   // Vertical
-  static const EdgeInsets paddingVerticalXs =
-      EdgeInsets.symmetric(vertical: xs);
-  static const EdgeInsets paddingVerticalSm =
-      EdgeInsets.symmetric(vertical: sm);
-  static const EdgeInsets paddingVerticalMd =
-      EdgeInsets.symmetric(vertical: md);
-  static const EdgeInsets paddingVerticalLg =
-      EdgeInsets.symmetric(vertical: lg);
-  static const EdgeInsets paddingVerticalXl =
-      EdgeInsets.symmetric(vertical: xl);
+  static const EdgeInsets paddingVerticalXs = EdgeInsets.symmetric(
+    vertical: xs,
+  );
+  static const EdgeInsets paddingVerticalSm = EdgeInsets.symmetric(
+    vertical: sm,
+  );
+  static const EdgeInsets paddingVerticalMd = EdgeInsets.symmetric(
+    vertical: md,
+  );
+  static const EdgeInsets paddingVerticalLg = EdgeInsets.symmetric(
+    vertical: lg,
+  );
+  static const EdgeInsets paddingVerticalXl = EdgeInsets.symmetric(
+    vertical: xl,
+  );
 
   // All-sides
   static const EdgeInsets paddingXs = EdgeInsets.all(xs);

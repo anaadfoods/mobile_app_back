@@ -136,11 +136,7 @@ class OrderSummaryCard extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 8),
-            _buildPriceRow(
-              theme,
-              'Quantity (per month)',
-              '× $quantity',
-            ),
+            _buildPriceRow(theme, 'Quantity (per month)', '× $quantity'),
             const SizedBox(height: 8),
             _buildPriceRow(
               theme,
@@ -248,7 +244,9 @@ class OrderSummaryCard extends StatelessWidget {
     double price,
   ) {
     String? imageUrl =
-        product.productImages.isNotEmpty ? product.productImages[0].image : null;
+        product.productImages.isNotEmpty
+            ? product.productImages[0].image
+            : null;
 
     return Row(
       children: [
@@ -261,19 +259,21 @@ class OrderSummaryCard extends StatelessWidget {
           ),
           child: ClipRRect(
             borderRadius: BorderRadius.circular(12),
-            child: imageUrl != null
-                ? CachedNetworkImage(
-                    imageUrl: imageUrl,
-                    fit: BoxFit.cover,
-                    errorWidget: (context, url, error) => Icon(
+            child:
+                imageUrl != null
+                    ? CachedNetworkImage(
+                      imageUrl: imageUrl,
+                      fit: BoxFit.cover,
+                      errorWidget:
+                          (context, url, error) => Icon(
+                            Icons.shopping_bag_outlined,
+                            color: theme.disabledColor,
+                          ),
+                    )
+                    : Icon(
                       Icons.shopping_bag_outlined,
                       color: theme.disabledColor,
                     ),
-                  )
-                : Icon(
-                    Icons.shopping_bag_outlined,
-                    color: theme.disabledColor,
-                  ),
           ),
         ),
         const SizedBox(width: 14),
@@ -331,9 +331,10 @@ class OrderSummaryCard extends StatelessWidget {
         Text(
           value,
           style: theme.textTheme.bodyMedium?.copyWith(
-            color: isDiscount
-                ? AppColors.deepSoilGreen
-                : isDelivery && value == 'FREE'
+            color:
+                isDiscount
+                    ? AppColors.deepSoilGreen
+                    : isDelivery && value == 'FREE'
                     ? AppColors.deepSoilGreen
                     : null,
             fontWeight: FontWeight.w600,

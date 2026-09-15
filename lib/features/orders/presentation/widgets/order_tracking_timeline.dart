@@ -38,17 +38,22 @@ class OrderTrackingTimeline extends StatelessWidget {
     return DateFormat('MMM d, yyyy').format(date);
   }
 
-  void _showTrackingHistorySheet(BuildContext context, ThemeData theme, bool isDark) {
+  void _showTrackingHistorySheet(
+    BuildContext context,
+    ThemeData theme,
+    bool isDark,
+  ) {
     if (tracking == null) return;
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: AppColors.transparent,
-      builder: (context) => TrackingHistorySheet(
-        tracking: tracking!,
-        theme: theme,
-        isDark: isDark,
-      ),
+      builder:
+          (context) => TrackingHistorySheet(
+            tracking: tracking!,
+            theme: theme,
+            isDark: isDark,
+          ),
     );
   }
 
@@ -71,7 +76,10 @@ class OrderTrackingTimeline extends StatelessWidget {
             GestureDetector(
               onTap: () => _showTrackingHistorySheet(context, theme, isDark),
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 10,
+                ),
                 decoration: BoxDecoration(
                   color: AppColors.deepSoilGreen.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(12),
@@ -108,7 +116,11 @@ class OrderTrackingTimeline extends StatelessWidget {
     );
   }
 
-  Widget _buildTrackingTimeline(ThemeData theme, bool isDark, BuildContext context) {
+  Widget _buildTrackingTimeline(
+    ThemeData theme,
+    bool isDark,
+    BuildContext context,
+  ) {
     final steps = _getTrackingTimelineSteps();
 
     return Column(
@@ -135,25 +147,32 @@ class OrderTrackingTimeline extends StatelessWidget {
                     width: 32,
                     height: 32,
                     decoration: BoxDecoration(
-                      color: isCompleted || isCurrent
-                          ? step.color
-                          : (isDark ? AppColors.charcoal87 : AppColors.parchment),
+                      color:
+                          isCompleted || isCurrent
+                              ? step.color
+                              : (isDark
+                                  ? AppColors.charcoal87
+                                  : AppColors.parchment),
                       shape: BoxShape.circle,
-                      boxShadow: isCurrent
-                          ? [
-                              BoxShadow(
-                                color: step.color.withValues(alpha: 0.4),
-                                blurRadius: 12,
-                                spreadRadius: 2,
-                              ),
-                            ]
-                          : null,
+                      boxShadow:
+                          isCurrent
+                              ? [
+                                BoxShadow(
+                                  color: step.color.withValues(alpha: 0.4),
+                                  blurRadius: 12,
+                                  spreadRadius: 2,
+                                ),
+                              ]
+                              : null,
                     ),
                     child: Icon(
                       isCompleted ? Icons.check_rounded : step.icon,
-                      color: isCompleted || isCurrent
-                          ? AppColors.parchment
-                          : (isDark ? AppColors.rawEarth70 : AppColors.rawEarth26),
+                      color:
+                          isCompleted || isCurrent
+                              ? AppColors.parchment
+                              : (isDark
+                                  ? AppColors.rawEarth70
+                                  : AppColors.rawEarth26),
                       size: 16,
                     ),
                   ),
@@ -162,9 +181,12 @@ class OrderTrackingTimeline extends StatelessWidget {
                       duration: const Duration(milliseconds: 300),
                       width: 2,
                       height: 40,
-                      color: isCompleted
-                          ? step.color.withValues(alpha: 0.5)
-                          : (isDark ? AppColors.charcoal87 : AppColors.parchment),
+                      color:
+                          isCompleted
+                              ? step.color.withValues(alpha: 0.5)
+                              : (isDark
+                                  ? AppColors.charcoal87
+                                  : AppColors.parchment),
                     ),
                 ],
               ),
@@ -182,11 +204,15 @@ class OrderTrackingTimeline extends StatelessWidget {
                               step.title,
                               style: theme.textTheme.titleSmall?.copyWith(
                                 fontWeight: FontWeight.w600,
-                                color: isCompleted || isCurrent ? null : theme.hintColor,
+                                color:
+                                    isCompleted || isCurrent
+                                        ? null
+                                        : theme.hintColor,
                               ),
                             ),
                           ),
-                          if (tracking != null && tracking!.trackingEvents.isNotEmpty)
+                          if (tracking != null &&
+                              tracking!.trackingEvents.isNotEmpty)
                             Icon(
                               Icons.chevron_right_rounded,
                               size: 18,
@@ -213,9 +239,8 @@ class OrderTrackingTimeline extends StatelessWidget {
   }
 
   List<TimelineStep> _getTrackingTimelineSteps() {
-    final rawStatus = tracking?.status.isNotEmpty == true
-        ? tracking!.status
-        : order.status;
+    final rawStatus =
+        tracking?.status.isNotEmpty == true ? tracking!.status : order.status;
     final status = rawStatus.toUpperCase().replaceAll(' ', '_');
     final steps = <TimelineStep>[];
 
@@ -251,10 +276,12 @@ class OrderTrackingTimeline extends StatelessWidget {
 
     String shippedSubtitle = 'Waiting for shipment';
     if (isShipped && tracking != null && tracking!.trackingEvents.isNotEmpty) {
-      final shippedEvent = tracking!.trackingEvents.cast<TrackingEventEntity?>().firstWhere((e) {
-        final s = e!.status.toUpperCase().replaceAll(' ', '_');
-        return s == 'SHIPPED' || s == 'PICKED_UP' || s == 'IN_TRANSIT';
-      }, orElse: () => tracking!.trackingEvents.first);
+      final shippedEvent = tracking!.trackingEvents
+          .cast<TrackingEventEntity?>()
+          .firstWhere((e) {
+            final s = e!.status.toUpperCase().replaceAll(' ', '_');
+            return s == 'SHIPPED' || s == 'PICKED_UP' || s == 'IN_TRANSIT';
+          }, orElse: () => tracking!.trackingEvents.first);
 
       if (shippedEvent != null && shippedEvent.timestamp.year != 1970) {
         shippedSubtitle = _formatShortDate(shippedEvent.timestamp);
@@ -279,11 +306,15 @@ class OrderTrackingTimeline extends StatelessWidget {
     final isOutForDelivery = ['OUT_FOR_DELIVERY', 'DELIVERED'].contains(status);
 
     String outForDeliverySubtitle = 'Pending';
-    if (isOutForDelivery && tracking != null && tracking!.trackingEvents.isNotEmpty) {
-      final ofdEvent = tracking!.trackingEvents.cast<TrackingEventEntity?>().firstWhere((e) {
-        final s = e!.status.toUpperCase().replaceAll(' ', '_');
-        return s == 'OUT_FOR_DELIVERY' || s.contains('OFD');
-      }, orElse: () => null);
+    if (isOutForDelivery &&
+        tracking != null &&
+        tracking!.trackingEvents.isNotEmpty) {
+      final ofdEvent = tracking!.trackingEvents
+          .cast<TrackingEventEntity?>()
+          .firstWhere((e) {
+            final s = e!.status.toUpperCase().replaceAll(' ', '_');
+            return s == 'OUT_FOR_DELIVERY' || s.contains('OFD');
+          }, orElse: () => null);
 
       if (ofdEvent != null && ofdEvent.timestamp.year != 1970) {
         outForDeliverySubtitle = _formatShortDate(ofdEvent.timestamp);
@@ -325,10 +356,13 @@ class OrderTrackingTimeline extends StatelessWidget {
     } else {
       if (!ApiConfig.showExpectedDeliveryDate) {
         deliveredSubtitle = ApiConfig.alternativeDeliveryText;
-      } else if (tracking?.estimatedDelivery != null && tracking!.estimatedDelivery!.year != 1970) {
-        deliveredSubtitle = 'Expected: ${DateFormat('MMM d').format(tracking!.estimatedDelivery!)}';
+      } else if (tracking?.estimatedDelivery != null &&
+          tracking!.estimatedDelivery!.year != 1970) {
+        deliveredSubtitle =
+            'Expected: ${DateFormat('MMM d').format(tracking!.estimatedDelivery!)}';
       } else if (order.expectedDeliveryDate.year != 1970) {
-        deliveredSubtitle = 'Expected: ${DateFormat('MMM d').format(order.expectedDeliveryDate)}';
+        deliveredSubtitle =
+            'Expected: ${DateFormat('MMM d').format(order.expectedDeliveryDate)}';
       } else {
         deliveredSubtitle = 'TBD';
       }
@@ -348,5 +382,3 @@ class OrderTrackingTimeline extends StatelessWidget {
     return steps;
   }
 }
-
-

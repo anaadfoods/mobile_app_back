@@ -6,8 +6,10 @@ class SubscriptionFailure implements Exception {
 
   const SubscriptionFailure(this.message, {this.validationErrors});
 
-  factory SubscriptionFailure.server(String message, {Map<String, dynamic>? errors}) =>
-      SubscriptionFailure(message, validationErrors: errors);
+  factory SubscriptionFailure.server(
+    String message, {
+    Map<String, dynamic>? errors,
+  }) => SubscriptionFailure(message, validationErrors: errors);
 
   factory SubscriptionFailure.network() =>
       const SubscriptionFailure('Network error. Please check your connection.');
@@ -15,8 +17,9 @@ class SubscriptionFailure implements Exception {
   factory SubscriptionFailure.notFound() =>
       const SubscriptionFailure('Subscription not found.');
 
-  factory SubscriptionFailure.unauthorized() =>
-      const SubscriptionFailure('You must be logged in to manage subscriptions.');
+  factory SubscriptionFailure.unauthorized() => const SubscriptionFailure(
+    'You must be logged in to manage subscriptions.',
+  );
 
   factory SubscriptionFailure.cancellationRejected(String reason) =>
       SubscriptionFailure('Cancellation rejected: $reason');

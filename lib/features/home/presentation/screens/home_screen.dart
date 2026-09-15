@@ -2,7 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:grocery_app/core/theme/app_colors.dart';
+import 'package:grocery_app/common_widgets/anaad_section_header.dart';
 import 'package:grocery_app/common_widgets/subscription_table.dart';
 import 'package:grocery_app/common_widgets/subscription_card.dart';
 import 'package:grocery_app/features/auth/presentation/cubit/auth_cubit.dart';
@@ -31,8 +31,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   final ValueNotifier<List<Product>> _searchResultsNotifier =
       ValueNotifier<List<Product>>([]);
   final ValueNotifier<bool> _isSearchingNotifier = ValueNotifier<bool>(false);
-  final ValueNotifier<bool> _isSearchActiveNotifier =
-      ValueNotifier<bool>(false);
+  final ValueNotifier<bool> _isSearchActiveNotifier = ValueNotifier<bool>(
+    false,
+  );
 
   final TextEditingController _searchController = TextEditingController();
   final FocusNode _focusNode = FocusNode();
@@ -93,7 +94,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   }
 
   void _updateSearchActive() {
-    _isSearchActiveNotifier.value = _isSearchingNotifier.value ||
+    _isSearchActiveNotifier.value =
+        _isSearchingNotifier.value ||
         (_searchResultsNotifier.value.isNotEmpty && _focusNode.hasFocus);
   }
 
@@ -127,12 +129,15 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       final productState = context.read<ProductCubit>().state;
       if (productState is ProductSuccess) {
         final queryLower = query.toLowerCase();
-        final results = productState.featuredProducts
-            .map((e) => Product.fromEntity(e))
-            .where((p) =>
-                p.productName.toLowerCase().contains(queryLower) ||
-                p.productCategory.toLowerCase().contains(queryLower))
-            .toList();
+        final results =
+            productState.featuredProducts
+                .map((e) => Product.fromEntity(e))
+                .where(
+                  (p) =>
+                      p.productName.toLowerCase().contains(queryLower) ||
+                      p.productCategory.toLowerCase().contains(queryLower),
+                )
+                .toList();
         _searchResultsNotifier.value = results;
       } else {
         _searchResultsNotifier.value = [];
@@ -147,44 +152,11 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     String? all,
     VoidCallback? onPressed,
   ) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            title,
-            style: theme.textTheme.titleLarge?.copyWith(
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          if (all != null && onPressed != null)
-            GestureDetector(
-              onTap: onPressed,
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 14,
-                  vertical: 6,
-                ),
-                decoration: BoxDecoration(
-                  color: isDark
-                      ? AppColors.harvestAmber
-                      : theme.colorScheme.primary.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Text(
-                  all,
-                  style: theme.textTheme.labelMedium?.copyWith(
-                    color: isDark ? Colors.green : theme.colorScheme.primary,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-            ),
-        ],
-      ),
+    return AnaadSectionHeader(
+      title: title,
+      actionLabel: all?.isEmpty ?? true ? null : all,
+      onAction: onPressed,
+      padding: const EdgeInsets.fromLTRB(20, 20, 20, 8),
     );
   }
 
@@ -196,9 +168,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   }
 
   Widget padded(Widget widget) => Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16),
-        child: widget,
-      );
+    padding: const EdgeInsets.symmetric(horizontal: 16),
+    child: widget,
+  );
 
   @override
   Widget build(BuildContext context) {
@@ -258,7 +230,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                               return const Padding(
                                 padding: EdgeInsets.symmetric(vertical: 40.0),
                                 child: Center(
-                                    child: CircularProgressIndicator()),
+                                  child: CircularProgressIndicator(),
+                                ),
                               );
                             }
                             return ValueListenableBuilder<List<Product>>(
@@ -297,33 +270,28 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                               return Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  padded(
-                                    const SubscriptionCarousel(),
-                                  ),
+                                  padded(const SubscriptionCarousel()),
                                 ],
                               );
                             },
                           ),
-                          _heading(
-                            context,
-                            "Subscription Plans",
-                            "",
-                            () {},
-                          ),
+                          _heading(context, "Subscription Plans", "", () {}),
                           _subscriptionSection(context),
                           const SizedBox(height: 4),
                           BlocBuilder<HomeCubit, HomeState>(
                             builder: (context, homeState) {
-                              final communities = (homeState is HomeSuccess)
-                                  ? homeState.communities
-                                  : <CommunityEntity>[];
+                              final communities =
+                                  (homeState is HomeSuccess)
+                                      ? homeState.communities
+                                      : <CommunityEntity>[];
                               return HomeCommunitiesSection(
                                 communities: communities,
-                                buildCard: (context, community, index) =>
-                                    AnimatedCommunityCard(
-                                  community: community,
-                                  index: index,
-                                ),
+                                buildCard:
+                                    (context, community, index) =>
+                                        AnimatedCommunityCard(
+                                          community: community,
+                                          index: index,
+                                        ),
                               );
                             },
                           ),

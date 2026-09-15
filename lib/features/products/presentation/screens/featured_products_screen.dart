@@ -100,7 +100,10 @@ class _FeaturedProductsScreenState extends State<FeaturedProductsScreen> {
               ],
             ),
             leading: IconButton(
-              icon: const Icon(Icons.arrow_back_rounded, color: AppColors.parchment),
+              icon: const Icon(
+                Icons.arrow_back_rounded,
+                color: AppColors.parchment,
+              ),
               onPressed: () => Navigator.maybePop(context),
             ),
             actions: [
@@ -112,7 +115,9 @@ class _FeaturedProductsScreenState extends State<FeaturedProductsScreen> {
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Icon(
-                    _isGridView ? Icons.view_list_rounded : Icons.grid_view_rounded,
+                    _isGridView
+                        ? Icons.view_list_rounded
+                        : Icons.grid_view_rounded,
                     size: 20,
                   ),
                 ),
@@ -131,10 +136,30 @@ class _FeaturedProductsScreenState extends State<FeaturedProductsScreen> {
                 scrollDirection: Axis.horizontal,
                 child: Row(
                   children: [
-                    _buildSortChip('Featured', 'featured', Icons.star_rounded, isDark),
-                    _buildSortChip('Price: Low', 'price_low', Icons.arrow_downward, isDark),
-                    _buildSortChip('Price: High', 'price_high', Icons.arrow_upward, isDark),
-                    _buildSortChip('Best Deals', 'discount', Icons.local_offer_rounded, isDark),
+                    _buildSortChip(
+                      'Featured',
+                      'featured',
+                      Icons.star_rounded,
+                      isDark,
+                    ),
+                    _buildSortChip(
+                      'Price: Low',
+                      'price_low',
+                      Icons.arrow_downward,
+                      isDark,
+                    ),
+                    _buildSortChip(
+                      'Price: High',
+                      'price_high',
+                      Icons.arrow_upward,
+                      isDark,
+                    ),
+                    _buildSortChip(
+                      'Best Deals',
+                      'discount',
+                      Icons.local_offer_rounded,
+                      isDark,
+                    ),
                   ],
                 ),
               ),
@@ -145,8 +170,8 @@ class _FeaturedProductsScreenState extends State<FeaturedProductsScreen> {
           _showShimmer
               ? _buildShimmerSliver(isDark)
               : _isGridView
-                  ? _buildGridView(theme, isDark)
-                  : _buildListView(theme, isDark),
+              ? _buildGridView(theme, isDark)
+              : _buildListView(theme, isDark),
 
           const SliverToBoxAdapter(child: SizedBox(height: 100)),
         ],
@@ -166,7 +191,10 @@ class _FeaturedProductsScreenState extends State<FeaturedProductsScreen> {
               child: Container(
                 height: 100,
                 decoration: BoxDecoration(
-                  color: isDark ? AppColors.darkSurfaceElevated : AppColors.parchment,
+                  color:
+                      isDark
+                          ? AppColors.darkSurfaceElevated
+                          : AppColors.parchment,
                   borderRadius: BorderRadius.circular(16),
                   boxShadow: [
                     BoxShadow(
@@ -181,7 +209,8 @@ class _FeaturedProductsScreenState extends State<FeaturedProductsScreen> {
                     Container(
                       width: 100,
                       decoration: BoxDecoration(
-                        color: isDark ? AppColors.charcoal87 : AppColors.parchment,
+                        color:
+                            isDark ? AppColors.charcoal87 : AppColors.parchment,
                         borderRadius: const BorderRadius.horizontal(
                           left: Radius.circular(16),
                         ),
@@ -208,7 +237,10 @@ class _FeaturedProductsScreenState extends State<FeaturedProductsScreen> {
                         width: 36,
                         height: 36,
                         decoration: BoxDecoration(
-                          color: isDark ? AppColors.charcoal60 : AppColors.parchment,
+                          color:
+                              isDark
+                                  ? AppColors.charcoal60
+                                  : AppColors.parchment,
                           borderRadius: BorderRadius.circular(10),
                         ),
                       ),
@@ -224,7 +256,12 @@ class _FeaturedProductsScreenState extends State<FeaturedProductsScreen> {
     );
   }
 
-  Widget _buildSortChip(String label, String value, IconData icon, bool isDark) {
+  Widget _buildSortChip(
+    String label,
+    String value,
+    IconData icon,
+    bool isDark,
+  ) {
     final isSelected = _sortBy == value;
     return Padding(
       padding: const EdgeInsets.only(right: 8),
@@ -234,22 +271,25 @@ class _FeaturedProductsScreenState extends State<FeaturedProductsScreen> {
           duration: const Duration(milliseconds: 200),
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
           decoration: BoxDecoration(
-            color: isSelected
-                ? AppColors.deepSoilGreen
-                : (isDark ? AppColors.charcoal87 : AppColors.parchment),
+            color:
+                isSelected
+                    ? AppColors.deepSoilGreen
+                    : (isDark ? AppColors.charcoal87 : AppColors.parchment),
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
-              color: isSelected ? AppColors.deepSoilGreen : AppColors.transparent,
+              color:
+                  isSelected ? AppColors.deepSoilGreen : AppColors.transparent,
             ),
-            boxShadow: isSelected
-                ? null
-                : [
-                    BoxShadow(
-                      color: AppColors.charcoal.withValues(alpha: 0.05),
-                      blurRadius: 4,
-                      offset: const Offset(0, 2),
-                    ),
-                  ],
+            boxShadow:
+                isSelected
+                    ? null
+                    : [
+                      BoxShadow(
+                        color: AppColors.charcoal.withValues(alpha: 0.05),
+                        blurRadius: 4,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
@@ -257,9 +297,12 @@ class _FeaturedProductsScreenState extends State<FeaturedProductsScreen> {
               Icon(
                 icon,
                 size: 16,
-                color: isSelected
-                    ? AppColors.parchment
-                    : (isDark ? AppColors.parchment70 : AppColors.charcoal54),
+                color:
+                    isSelected
+                        ? AppColors.parchment
+                        : (isDark
+                            ? AppColors.parchment70
+                            : AppColors.charcoal54),
               ),
               const SizedBox(width: 6),
               Text(
@@ -267,9 +310,12 @@ class _FeaturedProductsScreenState extends State<FeaturedProductsScreen> {
                 style: TextStyle(
                   fontSize: 13,
                   fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-                  color: isSelected
-                      ? AppColors.parchment
-                      : (isDark ? AppColors.parchment70 : AppColors.charcoal87),
+                  color:
+                      isSelected
+                          ? AppColors.parchment
+                          : (isDark
+                              ? AppColors.parchment70
+                              : AppColors.charcoal87),
                 ),
               ),
             ],
@@ -305,25 +351,23 @@ class _FeaturedProductsScreenState extends State<FeaturedProductsScreen> {
     return SliverPadding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       sliver: SliverList(
-        delegate: SliverChildBuilderDelegate(
-          (context, index) {
-            final product = _products[index];
-            return Padding(
-              padding: const EdgeInsets.only(bottom: 12),
-              child: Opacity(
-                opacity: product.isActive ? (product.isInStock ? 1.0 : 0.5) : 1.0,
-                child: GroceryItemCardWidget(
-                  item: Product.fromEntity(product),
-                  heroSuffix: 'featured_list_$index',
-                  onTap: (product.isInStock && product.isActive)
-                      ? () => _onProductTap(product)
-                      : null,
-                ),
+        delegate: SliverChildBuilderDelegate((context, index) {
+          final product = _products[index];
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 12),
+            child: Opacity(
+              opacity: product.isActive ? (product.isInStock ? 1.0 : 0.5) : 1.0,
+              child: GroceryItemCardWidget(
+                item: Product.fromEntity(product),
+                heroSuffix: 'featured_list_$index',
+                onTap:
+                    (product.isInStock && product.isActive)
+                        ? () => _onProductTap(product)
+                        : null,
               ),
-            );
-          },
-          childCount: _products.length,
-        ),
+            ),
+          );
+        }, childCount: _products.length),
       ),
     );
   }

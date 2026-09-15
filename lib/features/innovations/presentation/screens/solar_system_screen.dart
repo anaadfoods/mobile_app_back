@@ -198,7 +198,10 @@ class _SolarSystemScreenState extends State<SolarSystemScreen>
         elevation: 0,
         systemOverlayStyle: SystemUiOverlayStyle.light,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_rounded, color: AppColors.parchment60),
+          icon: const Icon(
+            Icons.arrow_back_rounded,
+            color: AppColors.parchment60,
+          ),
           onPressed: () => Navigator.maybePop(context),
         ),
         title: const Text(

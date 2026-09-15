@@ -725,9 +725,11 @@ class _ReferEarnScreenState extends State<ReferEarnScreen>
                 ),
                 child: Center(
                   child: Text(
-                    user.fullName.isNotEmpty
-                        ? user.fullName[0].toUpperCase()
-                        : user.username[0].toUpperCase(),
+                    user.fullName.trim().isNotEmpty
+                        ? user.fullName.trim()[0].toUpperCase()
+                        : (user.username.trim().isNotEmpty
+                            ? user.username.trim()[0].toUpperCase()
+                            : 'U'),
                     style: const TextStyle(
                       color: AppColors.parchment,
                       fontSize: 16,

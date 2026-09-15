@@ -6,6 +6,7 @@ import 'package:grocery_app/features/products/domain/entities/product_entity.dar
 import 'package:grocery_app/features/products/presentation/cubit/product_cubit.dart';
 import 'package:grocery_app/features/products/presentation/cubit/product_state.dart';
 import 'package:grocery_app/common_widgets/grocery_item_card_widget.dart';
+import 'package:grocery_app/common_widgets/anaad_section_header.dart';
 import 'home_skeletons.dart';
 
 class HomeFeaturedSection extends StatelessWidget {
@@ -28,9 +29,12 @@ class HomeFeaturedSection extends StatelessWidget {
           return const HomeProductSkeleton();
         }
 
-        final List<ProductEntity> productEntities = (state is ProductSuccess)
-            ? (isBestseller ? state.bestsellerProducts : state.featuredProducts)
-            : [];
+        final List<ProductEntity> productEntities =
+            (state is ProductSuccess)
+                ? (isBestseller
+                    ? state.bestsellerProducts
+                    : state.featuredProducts)
+                : [];
 
         if (productEntities.isEmpty) {
           return const SizedBox.shrink();
@@ -39,26 +43,11 @@ class HomeFeaturedSection extends StatelessWidget {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    title,
-                    style: theme.textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: theme.colorScheme.onSurface,
-                    ),
-                  ),
-                  TextButton(
-                    onPressed: () {
-                      context.push('/products');
-                    },
-                    child: const Text('See All'),
-                  ),
-                ],
-              ),
+            AnaadSectionHeader(
+              title: title,
+              actionLabel: 'See all',
+              onAction: () => context.push('/products'),
+              padding: const EdgeInsets.fromLTRB(16, 20, 16, 8),
             ),
             SizedBox(
               height: 230,

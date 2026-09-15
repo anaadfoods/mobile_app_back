@@ -10,6 +10,7 @@ import 'package:grocery_app/features/cart/presentation/cubit/cart_state.dart';
 import 'package:grocery_app/features/products/domain/entities/product_entity.dart';
 import 'package:grocery_app/models/product_model.dart';
 import 'package:grocery_app/models/cart_model.dart';
+import 'package:grocery_app/core/analytics/analytics_service.dart';
 
 class AddToCartButton extends StatelessWidget {
   final ProductEntity product;
@@ -51,6 +52,15 @@ class AddToCartButton extends StatelessWidget {
                       );
                       return;
                     }
+                    AnalyticsService().trackClick(
+                      elementText: 'Decrease Cart: ${product.name}',
+                      componentName: 'cart_decrease_btn',
+                      properties: {
+                        'product_id': product.id,
+                        'product_name': product.name,
+                        'previous_quantity': quantity,
+                      },
+                    );
                     cartCubit.removeItem(product.id);
                   },
                   child: Container(
@@ -83,6 +93,15 @@ class AddToCartButton extends StatelessWidget {
                       );
                       return;
                     }
+                    AnalyticsService().trackClick(
+                      elementText: 'Increase Cart: ${product.name}',
+                      componentName: 'cart_increase_btn',
+                      properties: {
+                        'product_id': product.id,
+                        'product_name': product.name,
+                        'previous_quantity': quantity,
+                      },
+                    );
                     cartCubit.addItem(Product.fromEntity(product), 1);
                   },
                   child: Container(
@@ -111,6 +130,14 @@ class AddToCartButton extends StatelessWidget {
               return;
             }
             HapticFeedback.lightImpact();
+            AnalyticsService().trackClick(
+              elementText: 'Add to Cart: ${product.name}',
+              componentName: 'add_to_cart_btn',
+              properties: {
+                'product_id': product.id,
+                'product_name': product.name,
+              },
+            );
             cartCubit.addItem(Product.fromEntity(product), 1);
           },
           child: Container(

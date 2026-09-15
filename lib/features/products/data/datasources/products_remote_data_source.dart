@@ -30,7 +30,8 @@ class ProductsRemoteDataSourceImpl implements ProductsRemoteDataSource {
 
     if (response.statusCode == 200) {
       final List<dynamic> data = response.data;
-      List<Category> categories = data.map((item) => Category.fromJson(item)).toList();
+      List<Category> categories =
+          data.map((item) => Category.fromJson(item)).toList();
 
       // Fallback: Calculate true active products locally to ensure UI counts exactly match catalog items
       try {
@@ -42,14 +43,19 @@ class ProductsRemoteDataSourceImpl implements ProductsRemoteDataSource {
             categoryCounts[catName] = (categoryCounts[catName] ?? 0) + 1;
           }
         }
-        categories = categories.map((c) => Category(
-          id: c.id,
-          name: c.name,
-          description: c.description,
-          image: c.image,
-          isActive: c.isActive,
-          productsCount: categoryCounts[c.name.toLowerCase()] ?? 0,
-        )).toList();
+        categories =
+            categories
+                .map(
+                  (c) => Category(
+                    id: c.id,
+                    name: c.name,
+                    description: c.description,
+                    image: c.image,
+                    isActive: c.isActive,
+                    productsCount: categoryCounts[c.name.toLowerCase()] ?? 0,
+                  ),
+                )
+                .toList();
       } catch (_) {
         // If fetching all products fails, degrade gracefully to backend counts
       }
@@ -96,7 +102,8 @@ class ProductsRemoteDataSourceImpl implements ProductsRemoteDataSource {
       // Client-side filtering fallback: Ensure we only return products for the requested category
       return products
           .where(
-            (p) => p.productCategory.toLowerCase() == categoryName.toLowerCase(),
+            (p) =>
+                p.productCategory.toLowerCase() == categoryName.toLowerCase(),
           )
           .toList();
     } else {

@@ -32,7 +32,8 @@ class FavouriteScreen extends StatefulWidget {
 
 class _FavouriteScreenState extends State<FavouriteScreen>
     with TickerProviderStateMixin {
-  final GetProductByIdUseCase _getProductByIdUseCase = getIt<GetProductByIdUseCase>();
+  final GetProductByIdUseCase _getProductByIdUseCase =
+      getIt<GetProductByIdUseCase>();
 
   late AnimationController _headerController;
   late AnimationController _contentController;
@@ -50,12 +51,12 @@ class _FavouriteScreenState extends State<FavouriteScreen>
 
   void _initAnimations() {
     _headerController = AnimationController(
-      duration: const Duration(milliseconds: 800),
+      duration: const Duration(milliseconds: 420),
       vsync: this,
     );
 
     _contentController = AnimationController(
-      duration: const Duration(milliseconds: 600),
+      duration: const Duration(milliseconds: 320),
       vsync: this,
     );
 
@@ -176,9 +177,10 @@ class _FavouriteScreenState extends State<FavouriteScreen>
                     SliverToBoxAdapter(
                       child: AnimatedScreenHeader(
                         title: "My Favorites",
-                        subtitle: favState is FavoritesSuccess
-                            ? "${favState.favorites.length} saved items"
-                            : "Your favorite picks",
+                        subtitle:
+                            favState is FavoritesSuccess
+                                ? "${favState.favorites.length} saved items"
+                                : "Your favorite picks",
                         showBack: false,
                         hasParticles: true,
                         animationController: _headerController,
@@ -226,9 +228,16 @@ class _FavouriteScreenState extends State<FavouriteScreen>
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                _buildStatsRow(theme, isDark, cart, favState.favorites.length),
+                                _buildStatsRow(
+                                  theme,
+                                  isDark,
+                                  cart,
+                                  favState.favorites.length,
+                                ),
                                 const SizedBox(height: 20),
-                                ...List.generate(favState.favorites.length, (index) {
+                                ...List.generate(favState.favorites.length, (
+                                  index,
+                                ) {
                                   final favItem = favState.favorites[index];
                                   final qty = _getQuantity(favItem.productId);
 
@@ -241,11 +250,16 @@ class _FavouriteScreenState extends State<FavouriteScreen>
                                     builder: (context, value, child) {
                                       return Transform.translate(
                                         offset: Offset(0, 30 * (1 - value)),
-                                        child: Opacity(opacity: value, child: child),
+                                        child: Opacity(
+                                          opacity: value,
+                                          child: child,
+                                        ),
                                       );
                                     },
                                     child: Padding(
-                                      padding: const EdgeInsets.only(bottom: 16),
+                                      padding: const EdgeInsets.only(
+                                        bottom: 16,
+                                      ),
                                       child: FavoriteItemCard(
                                         favorite: favItem,
                                         quantity: qty,
@@ -254,25 +268,41 @@ class _FavouriteScreenState extends State<FavouriteScreen>
                                         isBeingRemoved: false,
                                         onRemove: () {
                                           HapticFeedback.mediumImpact();
-                                          context.read<FavoritesCubit>().toggleFavorite(favItem.productId);
+                                          context
+                                              .read<FavoritesCubit>()
+                                              .toggleFavorite(
+                                                favItem.productId,
+                                              );
                                         },
                                         onTap: () async {
                                           HapticFeedback.lightImpact();
                                           try {
-                                            final productEntity = await _getProductByIdUseCase(favItem.productId);
+                                            final productEntity =
+                                                await _getProductByIdUseCase(
+                                                  favItem.productId,
+                                                );
                                             if (!mounted) return;
                                             context.pushNamed(
                                               AppRoute.productDetails.name,
-                                              pathParameters: {'id': productEntity.id.toString()},
+                                              pathParameters: {
+                                                'id':
+                                                    productEntity.id.toString(),
+                                              },
                                               extra: productEntity,
                                             );
                                           } catch (e) {
                                             if (!mounted) return;
-                                            SnackBarHelper.showError(context, 'Could not view product details');
+                                            SnackBarHelper.showError(
+                                              context,
+                                              'Could not view product details',
+                                            );
                                           }
                                         },
                                         onQuantityChanged: (newQty) {
-                                          _handleQuantityChanged(favItem, newQty);
+                                          _handleQuantityChanged(
+                                            favItem,
+                                            newQty,
+                                          );
                                         },
                                       ),
                                     ),
@@ -294,9 +324,12 @@ class _FavouriteScreenState extends State<FavouriteScreen>
     );
   }
 
-
-
-  Widget _buildStatsRow(ThemeData theme, bool isDark, CartModel? cart, int favoritesCount) {
+  Widget _buildStatsRow(
+    ThemeData theme,
+    bool isDark,
+    CartModel? cart,
+    int favoritesCount,
+  ) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
@@ -308,18 +341,28 @@ class _FavouriteScreenState extends State<FavouriteScreen>
         children: [
           Row(
             children: [
-              Icon(Icons.bookmark_rounded, size: 18, color: theme.colorScheme.primary),
+              Icon(
+                Icons.bookmark_rounded,
+                size: 18,
+                color: theme.colorScheme.primary,
+              ),
               const SizedBox(width: 8),
               Text(
                 '$favoritesCount Items Saved',
-                style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold),
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ],
           ),
           if (cart != null && cart.totalItems > 0)
             Row(
               children: [
-                Icon(Icons.shopping_bag_rounded, size: 18, color: theme.colorScheme.secondary),
+                Icon(
+                  Icons.shopping_bag_rounded,
+                  size: 18,
+                  color: theme.colorScheme.secondary,
+                ),
                 const SizedBox(width: 8),
                 Text(
                   '${cart.totalItems} Items in Cart',

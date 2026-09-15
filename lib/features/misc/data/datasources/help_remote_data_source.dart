@@ -21,7 +21,7 @@ class HelpRemoteDataSourceImpl implements HelpRemoteDataSource {
   final ProfileService _profileService;
 
   HelpRemoteDataSourceImpl({required ProfileService profileService})
-      : _profileService = profileService;
+    : _profileService = profileService;
 
   @override
   Future<Map<String, dynamic>> sendOtp({

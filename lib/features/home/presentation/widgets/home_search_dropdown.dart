@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:grocery_app/core/analytics/analytics_service.dart';
 import 'package:grocery_app/core/theme/app_colors.dart';
 import 'package:grocery_app/models/product_model.dart';
 
@@ -28,9 +29,10 @@ class HomeSearchDropdown extends StatelessWidget {
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: isDark
-                  ? AppColors.charcoal.withValues(alpha: 0.3)
-                  : AppColors.charcoal.withValues(alpha: 0.08),
+              color:
+                  isDark
+                      ? AppColors.charcoal.withValues(alpha: 0.3)
+                      : AppColors.charcoal.withValues(alpha: 0.08),
               blurRadius: 20,
               offset: const Offset(0, 8),
             ),
@@ -42,12 +44,13 @@ class HomeSearchDropdown extends StatelessWidget {
             itemCount: searchResults.length,
             shrinkWrap: true,
             padding: const EdgeInsets.symmetric(vertical: 8),
-            separatorBuilder: (_, __) => Divider(
-              height: 1,
-              indent: 16,
-              endIndent: 16,
-              color: theme.dividerColor.withValues(alpha: 0.3),
-            ),
+            separatorBuilder:
+                (_, __) => Divider(
+                  height: 1,
+                  indent: 16,
+                  endIndent: 16,
+                  color: theme.dividerColor.withValues(alpha: 0.3),
+                ),
             itemBuilder: (context, index) {
               final product = searchResults[index];
               return ListTile(
@@ -88,7 +91,17 @@ class HomeSearchDropdown extends StatelessWidget {
                   size: 16,
                   color: AppColors.rawEarth.withValues(alpha: 0.26),
                 ),
-                onTap: () => onProductTap(product),
+                onTap: () {
+                  AnalyticsService().trackClick(
+                    elementText: 'Search Result: ${product.productName}',
+                    componentName: 'search_dropdown_item',
+                    properties: {
+                      'product_id': product.id,
+                      'product_name': product.productName,
+                    },
+                  );
+                  onProductTap(product);
+                },
               );
             },
           ),
