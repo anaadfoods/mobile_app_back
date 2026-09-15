@@ -147,6 +147,7 @@ class ProductVariant {
   final String productDescription;
   final String productCategory;
   final List<ProductImage> productImages;
+  final String? cropCycleId;
 
   ProductVariant({
     required this.id,
@@ -163,6 +164,7 @@ class ProductVariant {
     required this.productDescription,
     required this.productCategory,
     required this.productImages,
+    this.cropCycleId,
   });
 
   factory ProductVariant.fromJson(Map<String, dynamic> json) {
@@ -184,6 +186,7 @@ class ProductVariant {
           (json['product_images'] as List)
               .map((image) => ProductImage.fromJson(image))
               .toList(),
+      cropCycleId: json['crop_cycle_id'],
     );
   }
 
@@ -203,6 +206,7 @@ class ProductVariant {
       'product_description': productDescription,
       'product_category': productCategory,
       'product_images': productImages.map((image) => image.toJson()).toList(),
+      if (cropCycleId != null) 'crop_cycle_id': cropCycleId,
     };
   }
 }

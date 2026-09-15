@@ -1,7 +1,9 @@
-import 'dart:async';
-import 'dart:ui';
-import 'package:flutter/services.dart';
 import 'package:grocery_app/common_widgets/global_import.dart';
+import 'package:grocery_app/features/products/data/repositories/products_repository_impl.dart';
+import 'package:grocery_app/features/products/presentation/screens/product_details_screen.dart';
+import 'package:grocery_app/routes/app_routes.dart';
+import 'package:grocery_app/features/subscriptions/domain/usecases/get_subscription_plans_use_case.dart';
+import 'package:grocery_app/features/subscriptions/domain/usecases/get_subscription_plan_products_use_case.dart';
 
 class SubscriptionTable extends StatefulWidget {
   final Function(SubscriptionPlan)? onPlanSelected;
@@ -13,7 +15,10 @@ class SubscriptionTable extends StatefulWidget {
 
 class _SubscriptionTableState extends State<SubscriptionTable>
     with TickerProviderStateMixin {
-  final SubscriptionService _subscriptionService = SubscriptionService();
+  final GetSubscriptionPlansUseCase _getSubscriptionPlansUseCase =
+      getIt<GetSubscriptionPlansUseCase>();
+  final GetSubscriptionPlanProductsUseCase _getSubscriptionPlanProductsUseCase =
+      getIt<GetSubscriptionPlanProductsUseCase>();
   List<SubscriptionPlan> _plans = [];
   bool _isLoading = true;
   String? _error;
@@ -74,7 +79,8 @@ class _SubscriptionTableState extends State<SubscriptionTable>
     if (_cachedPlans != null && _cachedPlans!.isNotEmpty) {
       if (mounted) {
         setState(() {
-          _plans = _cachedPlans!;
+          _plans = List<SubscriptionPlan>.from(_cachedPlans!)
+            ..sort((a, b) => a.id.compareTo(b.id));
           _isLoading = false;
         });
       }
@@ -94,22 +100,35 @@ class _SubscriptionTableState extends State<SubscriptionTable>
       });
     }
     try {
-      final result = await _subscriptionService.getSubscriptionPlans();
+      final plans = await _getSubscriptionPlansUseCase();
       if (mounted) {
-        if (result['success']) {
-          setState(() {
-            _plans = result['data'] as List<SubscriptionPlan>;
-            _cachedPlans = _plans;
-            _isLoading = false;
-          });
-          for (var plan in _plans) {
-            _loadPlanProducts(plan.id);
-          }
-        } else {
-          setState(() {
-            _error = result['message'];
-            _isLoading = false;
-          });
+        setState(() {
+          _plans =
+              plans
+                  .map(
+                    (e) => SubscriptionPlan(
+                      id: e.id,
+                      name: e.name,
+                      durationMonths: e.durationMonths,
+                      discountPercentage: '0',
+                      totalDiscountPercentage: 0,
+                      tagline: e.tagline,
+                      description: e.description,
+                      isActive: e.isActive,
+                      activationDate: '',
+                      isOneTimeOnly: false,
+                      allowsInstallments: false,
+                      installmentFrequencyMonths: 0,
+                      isAvailable: true,
+                    ),
+                  )
+                  .toList()
+                ..sort((a, b) => a.id.compareTo(b.id));
+          _cachedPlans = _plans;
+          _isLoading = false;
+        });
+        for (var plan in _plans) {
+          _loadPlanProducts(plan.id);
         }
       }
     } catch (e) {
@@ -140,24 +159,21 @@ class _SubscriptionTableState extends State<SubscriptionTable>
     }
 
     try {
-      final result = await _subscriptionService.getSubscriptionPlanProducts(
-        planId,
-      );
+      final products = await _getSubscriptionPlanProductsUseCase(planId);
       if (mounted) {
-        if (result['success']) {
-          final response = result['data'] as SubscriptionPlanProductsResponse;
-          setState(() {
-            _planProducts[planId] = response.products;
-            _cachedPlanProducts[planId] = response.products;
-          });
-        } else {
-          if (result['requiresLogin'] == true) {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => const LoginScreen()),
-            );
-          }
-        }
+        setState(() {
+          _planProducts[planId] =
+              products
+                  .map(
+                    (e) => SubscriptionPlanProduct(
+                      productId: e.id,
+                      productName: e.name,
+                      maxWeightLimit: e.unitWeight,
+                    ),
+                  )
+                  .toList();
+          _cachedPlanProducts[planId] = _planProducts[planId]!;
+        });
       }
     } catch (e) {
       debugPrint('Error loading products: $e');
@@ -198,7 +214,58 @@ class _SubscriptionTableState extends State<SubscriptionTable>
       return _buildErrorState(theme);
     }
     if (_plans.isEmpty) {
-      return const SizedBox.shrink();
+      return Container(
+        padding: const EdgeInsets.all(24),
+        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+        decoration: BoxDecoration(
+          color: theme.cardColor,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: AppColors.deepSoilGreen.withOpacity(0.3)),
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(
+              Icons.calendar_today_outlined,
+              size: 48,
+              color: AppColors.deepSoilGreen,
+            ),
+            const SizedBox(height: 16),
+            Text(
+              "No Plans Available",
+              style: theme.textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.bold,
+                color: theme.colorScheme.onSurface,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              "There are no subscription plans available right now. Please check back later or log in to view personalized plans.",
+              textAlign: TextAlign.center,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.colorScheme.onSurface.withOpacity(0.7),
+                height: 1.5,
+              ),
+            ),
+            const SizedBox(height: 24),
+            ElevatedButton(
+              onPressed: () => context.pushNamed(AppRoute.login.name),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.deepSoilGreen,
+                foregroundColor: AppColors.parchment,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 32,
+                  vertical: 12,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              child: const Text('Log In'),
+            ),
+          ],
+        ),
+      );
     }
 
     // Taller cards for more rectangular look
@@ -288,38 +355,32 @@ class _SubscriptionTableState extends State<SubscriptionTable>
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Icon(
-            Icons.calendar_today_outlined,
+            Icons.error_outline_rounded,
             size: 40,
             color: const Color(0xFF8B7355), // Warm mocha - friendly
           ),
           const SizedBox(height: 12),
           Text(
-            "Couldn't load subscription plans",
+            _error ?? "Couldn't load subscription plans",
             style: TextStyle(
               color: const Color(0xFF8B7355),
               fontWeight: FontWeight.w600,
             ),
             textAlign: TextAlign.center,
           ),
-          const SizedBox(height: 4),
-          Text(
-            "Check your connection and try again 📶",
-            style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
-            textAlign: TextAlign.center,
-          ),
           const SizedBox(height: 8),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24),
-            child: Text(
-              "🌾 Beejamrutham (cow-based seed treatment) improves germination by 20%!",
-              style: TextStyle(
-                color: Colors.green.shade700,
-                fontSize: 11,
-                fontStyle: FontStyle.italic,
-              ),
-              textAlign: TextAlign.center,
-            ),
-          ),
+          // Padding(
+          //   padding: const EdgeInsets.symmetric(horizontal: 24),
+          //   child: Text(
+          //     "🌾 Beejamrutham (cow-based seed treatment) improves germination by 20%!",
+          //     style: TextStyle(
+          //       color: Colors.green.shade700,
+          //       fontSize: 11,
+          //       fontStyle: FontStyle.italic,
+          //     ),
+          //     textAlign: TextAlign.center,
+          //   ),
+          // ),
           const SizedBox(height: 12),
           TextButton.icon(
             onPressed: _loadSubscriptionPlans,
@@ -333,7 +394,7 @@ class _SubscriptionTableState extends State<SubscriptionTable>
 
   Widget _buildPageIndicators(bool isDark) {
     final bestValIdx =
-        _plans.isEmpty ? -1 : _plans.indexWhere((p) => p.durationMonths == 12);
+        _plans.isEmpty ? -1 : _plans.indexWhere((p) => p.id == 1);
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: List.generate(_plans.length, (index) {
@@ -387,7 +448,7 @@ class _SubscriptionTableState extends State<SubscriptionTable>
     bool isDark,
   ) {
     final cardColors = _getCardColors(plan, isDark, isActive);
-    final isBestValue = plan.durationMonths == 12;
+    final isBestValue = plan.id == 1;
 
     return GestureDetector(
       onTap: () {
@@ -755,21 +816,21 @@ class _SubscriptionTableState extends State<SubscriptionTable>
     bool isDark,
     bool isActive,
   ) {
-    final isOneYear = plan.durationMonths == 12;
+    final isBestValuePlan = plan.id == 1;
 
     if (isActive) {
       return _CardColors(
         gradient: [AppColors.deepSoilGreen, AppColors.deepSoilGreen],
         shadow: AppColors.deepSoilGreen,
         icon: Icons.eco_rounded,
-        goldAccent: isOneYear,
+        goldAccent: isBestValuePlan,
       );
     } else {
       return _CardColors(
         gradient: [AppColors.rawEarth, AppColors.rawEarth],
         shadow: AppColors.rawEarth,
         icon: Icons.spa_rounded,
-        goldAccent: isOneYear,
+        goldAccent: isBestValuePlan,
       );
     }
   }
@@ -788,7 +849,6 @@ class _CardColors {
     this.goldAccent = false,
   });
 }
-
 
 // ================= POPUP DIALOG (Kept intact) =================
 
@@ -893,14 +953,18 @@ class _SubscriptionPopupContentState extends State<_SubscriptionPopupContent> {
   late PageController _pageController;
   final ScrollController _scrollController = ScrollController();
   bool _isDropdownOpen = false;
+  late List<SubscriptionPlan> _sortedPlans;
 
   @override
   void initState() {
     super.initState();
+    _sortedPlans = List<SubscriptionPlan>.from(widget.allPlans)
+      ..sort((a, b) => a.id.compareTo(b.id));
     _selectedPlan = widget.initialPlan;
-    final initialIndex = widget.allPlans.indexOf(widget.initialPlan);
+    final initialIndex = _sortedPlans.indexOf(widget.initialPlan);
+    final baseOffset = _sortedPlans.length * 1000;
     _pageController = PageController(
-      initialPage: initialIndex != -1 ? initialIndex : 0,
+      initialPage: initialIndex != -1 ? baseOffset + initialIndex : baseOffset,
     );
     _loadProductsForPlan(_selectedPlan.id);
   }
@@ -950,10 +1014,11 @@ class _SubscriptionPopupContentState extends State<_SubscriptionPopupContent> {
           height: MediaQuery.of(context).size.height * 0.55,
           child: PageView.builder(
             controller: _pageController,
-            itemCount: widget.allPlans.length,
+            itemCount: null, // Infinite scroll
             onPageChanged: (index) {
+              final actualIndex = index % _sortedPlans.length;
               setState(() {
-                _selectedPlan = widget.allPlans[index];
+                _selectedPlan = _sortedPlans[actualIndex];
                 _selectedProduct = null;
                 _isDropdownOpen = false;
               });
@@ -963,7 +1028,8 @@ class _SubscriptionPopupContentState extends State<_SubscriptionPopupContent> {
               }
             },
             itemBuilder: (context, index) {
-              final plan = widget.allPlans[index];
+              final actualIndex = index % _sortedPlans.length;
+              final plan = _sortedPlans[actualIndex];
               final currentProducts = widget.allProducts[plan.id] ?? [];
               final areProductsLoading =
                   widget.loadingProductsState[plan.id] == true;
@@ -1106,8 +1172,9 @@ class _SubscriptionPopupContentState extends State<_SubscriptionPopupContent> {
                         // Tap-to-expand selector bar
                         GestureDetector(
                           onTap: () {
-                            if (areProductsLoading || currentProducts.isEmpty)
+                            if (areProductsLoading || currentProducts.isEmpty) {
                               return;
+                            }
                             setState(() => _isDropdownOpen = !_isDropdownOpen);
                           },
                           child: AnimatedContainer(
@@ -1173,6 +1240,9 @@ class _SubscriptionPopupContentState extends State<_SubscriptionPopupContent> {
                                                       (currentProducts.isEmpty
                                                           ? 'No products available'
                                                           : 'Tap to choose a product'),
+                                                  maxLines: 1,
+                                                  overflow:
+                                                      TextOverflow.ellipsis,
                                                   style: TextStyle(
                                                     color:
                                                         _selectedProduct != null
@@ -1284,8 +1354,10 @@ class _SubscriptionPopupContentState extends State<_SubscriptionPopupContent> {
                                                               await CategoryService.fetchProductById(
                                                                 p.productId,
                                                               );
-                                                          if (!context.mounted)
+                                                          if (!context
+                                                              .mounted) {
                                                             return;
+                                                          }
                                                           Navigator.push(
                                                             context,
                                                             AnimatedTransitions.fadeScale(
@@ -1301,8 +1373,10 @@ class _SubscriptionPopupContentState extends State<_SubscriptionPopupContent> {
                                                             ),
                                                           );
                                                         } catch (e) {
-                                                          if (!context.mounted)
+                                                          if (!context
+                                                              .mounted) {
                                                             return;
+                                                          }
                                                           ScaffoldMessenger.of(
                                                             context,
                                                           ).showSnackBar(
@@ -1370,6 +1444,11 @@ class _SubscriptionPopupContentState extends State<_SubscriptionPopupContent> {
                                                                   Expanded(
                                                                     child: Text(
                                                                       p.productName,
+                                                                      maxLines:
+                                                                          1,
+                                                                      overflow:
+                                                                          TextOverflow
+                                                                              .ellipsis,
                                                                       style: TextStyle(
                                                                         color: textColor.withOpacity(
                                                                           isChosen
@@ -1416,7 +1495,7 @@ class _SubscriptionPopupContentState extends State<_SubscriptionPopupContent> {
                                                       ),
                                                     ),
                                                   );
-                                                }).toList(),
+                                                }),
                                               ],
                                             ),
                                           )

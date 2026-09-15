@@ -1,4 +1,3 @@
-import 'package:grocery_app/core/theme/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:grocery_app/core/theme/theme.dart';
 
@@ -145,12 +144,14 @@ class ErrorStateWidget extends StatelessWidget {
     if (animated) {
       return TweenAnimationBuilder<double>(
         tween: Tween(begin: 0.0, end: 1.0),
-        duration: const Duration(milliseconds: 600),
+        duration: MediaQuery.disableAnimationsOf(context)
+            ? Duration.zero
+            : const Duration(milliseconds: 220),
         curve: Curves.easeOutCubic,
         builder: (context, value, child) {
           return Opacity(
             opacity: value.clamp(0.0, 1.0),
-            child: Transform.scale(scale: 0.8 + (0.2 * value), child: child),
+            child: Transform.scale(scale: 0.96 + (0.04 * value), child: child),
           );
         },
         child: content,

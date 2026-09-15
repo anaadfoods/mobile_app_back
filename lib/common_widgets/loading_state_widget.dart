@@ -69,7 +69,7 @@ class LoadingStateWidget extends StatelessWidget {
             crossAxisCount: gridCrossAxisCount,
             mainAxisSpacing: spacing,
             crossAxisSpacing: spacing,
-            childAspectRatio: 1.0,
+            mainAxisExtent: itemHeight,
           ),
           itemCount: itemCount,
           itemBuilder:

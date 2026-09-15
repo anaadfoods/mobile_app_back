@@ -1,66 +1,82 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:grocery_app/core/theme/app_colors.dart';
-import 'package:grocery_app/services/auth_service.dart';
+import 'package:grocery_app/services/token_service.dart';
+import 'package:grocery_app/service_locator.dart';
 import 'package:grocery_app/services/product_service.dart';
 import 'package:grocery_app/models/product_model.dart';
 import 'package:grocery_app/models/user_model.dart';
 import 'package:grocery_app/models/cart_model.dart';
-import 'package:grocery_app/models/order_model.dart';
-import 'package:grocery_app/models/subscription_model.dart';
 import 'package:grocery_app/routes/app_routes.dart';
+import 'package:grocery_app/routes/analytics_route_observer.dart';
 
 // Screens
-import 'package:grocery_app/screens/welcome_screen.dart';
-import 'package:grocery_app/screens/auth/login_screen.dart';
-import 'package:grocery_app/screens/auth/signup_screen.dart';
-import 'package:grocery_app/screens/auth/forget_password_screen.dart';
+import 'package:grocery_app/features/misc/presentation/screens/welcome_screen.dart';
+import 'package:grocery_app/features/auth/presentation/screens/login_screen.dart';
+import 'package:grocery_app/features/auth/presentation/screens/signup_screen.dart';
+import 'package:grocery_app/features/auth/presentation/screens/forget_password_screen.dart';
+import 'package:grocery_app/features/misc/presentation/screens/splash_screen.dart';
 
-import 'package:grocery_app/screens/dashboard/dashboard_screen.dart';
-import 'package:grocery_app/screens/home/home_screen.dart';
-import 'package:grocery_app/screens/innovations/anaad_innovations_screen.dart';
-import 'package:grocery_app/screens/innovations/anaad_games_screen.dart';
-import 'package:grocery_app/screens/innovations/anaad_robots_screen.dart';
-import 'package:grocery_app/screens/innovations/anaad_redemptions_screen.dart';
-import 'package:grocery_app/screens/innovations/refer_earn_screen.dart';
-import 'package:grocery_app/screens/innovations/games/seed_savior_game_screen.dart';
-import 'package:grocery_app/screens/innovations/games/ritu_chakra_game_screen.dart';
-import 'package:grocery_app/screens/innovations/games/microbe_mania_game_screen.dart';
-import 'package:grocery_app/screens/innovations/games/cow_to_soil_cycle_game_screen.dart';
-import 'package:grocery_app/screens/innovations/games/compost_commander_game_screen.dart';
-import 'package:grocery_app/screens/innovations/panchang/panchang_home_screen.dart';
-import 'package:grocery_app/screens/innovations/panchang/panchang_month_screen.dart';
-import 'package:grocery_app/screens/innovations/panchang/panchang_guidance_screen.dart';
-import 'package:grocery_app/screens/innovations/panchang/panchang_guidance_profile_screen.dart';
-import 'package:grocery_app/screens/innovations/panchang/panchang_festivals_screen.dart';
-import 'package:grocery_app/screens/innovations/panchang/panchang_advanced_timings_screen.dart';
-import 'package:grocery_app/screens/product_details/product_details_screen.dart';
+import 'package:grocery_app/features/chat/presentation/screens/health_profile_screen.dart';
+import 'package:grocery_app/features/home/presentation/screens/dashboard_screen.dart';
+import 'package:grocery_app/features/home/presentation/screens/home_screen.dart';
+import 'package:grocery_app/features/innovations/presentation/screens/anaad_innovations_screen.dart';
+import 'package:grocery_app/features/innovations/presentation/screens/anaad_games_screen.dart';
+import 'package:grocery_app/features/innovations/presentation/screens/anaad_robots_screen.dart';
+import 'package:grocery_app/features/innovations/presentation/screens/anaad_redemptions_screen.dart';
+import 'package:grocery_app/features/innovations/presentation/screens/refer_earn_screen.dart';
+import 'package:grocery_app/features/innovations/presentation/screens/games/seed_savior_game_screen.dart';
+import 'package:grocery_app/features/innovations/presentation/screens/games/ritu_chakra_game_screen.dart';
+import 'package:grocery_app/features/innovations/presentation/screens/games/microbe_mania_game_screen.dart';
+import 'package:grocery_app/features/innovations/presentation/screens/games/cow_to_soil_cycle_game_screen.dart';
+import 'package:grocery_app/features/innovations/presentation/screens/games/compost_commander_game_screen.dart';
+import 'package:grocery_app/features/panchang/presentation/screens/panchang_home_screen.dart';
+import 'package:grocery_app/features/panchang/presentation/screens/panchang_month_screen.dart';
+import 'package:grocery_app/features/panchang/presentation/screens/panchang_guidance_screen.dart';
+import 'package:grocery_app/features/panchang/presentation/screens/panchang_guidance_profile_screen.dart';
+import 'package:grocery_app/features/panchang/presentation/screens/panchang_festivals_screen.dart';
+import 'package:grocery_app/features/panchang/presentation/screens/panchang_advanced_timings_screen.dart';
+import 'package:grocery_app/features/products/presentation/screens/product_details_screen.dart';
+import 'package:grocery_app/features/products/domain/entities/product_entity.dart';
+import 'package:grocery_app/features/products/data/repositories/products_repository_impl.dart';
 
-import 'package:grocery_app/screens/explore_screen.dart';
-import 'package:grocery_app/screens/category_items_screen.dart';
-import 'package:grocery_app/screens/products/all_products_screen.dart';
-import 'package:grocery_app/screens/featured_products_screen.dart';
+import 'package:grocery_app/features/misc/presentation/screens/explore_screen.dart';
+import 'package:grocery_app/features/misc/presentation/screens/category_items_screen.dart';
+import 'package:grocery_app/features/products/presentation/screens/all_products_screen.dart';
+import 'package:grocery_app/features/products/presentation/screens/featured_products_screen.dart';
 
-import 'package:grocery_app/screens/cart/cart_screen.dart';
-import 'package:grocery_app/screens/checkout/checkout_screen.dart';
-import 'package:grocery_app/screens/address/address_selection_screen.dart';
+import 'package:grocery_app/features/cart/presentation/screens/cart_screen.dart';
+import 'package:grocery_app/features/payments/presentation/screens/checkout_screen.dart';
+import 'package:grocery_app/features/misc/presentation/screens/address_selection_screen.dart';
 
-import 'package:grocery_app/screens/favourite_screen.dart';
+import 'package:grocery_app/features/favorites/presentation/screens/favourite_screen.dart';
 
-import 'package:grocery_app/screens/account/account_screen_final.dart';
-import 'package:grocery_app/screens/profile/edit_profile_screen.dart';
-import 'package:grocery_app/screens/order/order_screen.dart';
-import 'package:grocery_app/screens/order/order_detail_screen.dart';
-import 'package:grocery_app/screens/MySubscriptionPlan/subscription_plan_detail.dart';
-import 'package:grocery_app/screens/MySubscriptionPlan/subscription_plan_detail_single.dart';
-import 'package:grocery_app/screens/notifications/notifications_screen.dart';
-import 'package:grocery_app/screens/about/about_screen.dart';
-import 'package:grocery_app/screens/help/help_screen.dart';
-import 'package:grocery_app/screens/legal/legal_content_screen.dart';
-import 'package:grocery_app/screens/RFP/delivery_screen.dart';
-import 'package:grocery_app/screens/RFP/contract_farming_screen.dart';
+import 'package:grocery_app/features/misc/presentation/screens/account_screen_final.dart';
+import 'package:grocery_app/features/misc/presentation/screens/edit_profile_screen.dart';
+import 'package:grocery_app/features/orders/presentation/screens/order_screen.dart';
+import 'package:grocery_app/features/orders/presentation/screens/order_detail_screen.dart';
+import 'package:grocery_app/features/orders/domain/entities/order_entity.dart';
+import 'package:grocery_app/features/subscriptions/presentation/screens/subscription_list_screen.dart';
+import 'package:grocery_app/features/subscriptions/presentation/screens/subscription_detail_screen.dart';
+import 'package:grocery_app/features/notifications/presentation/screens/notifications_screen.dart';
+import 'package:grocery_app/features/misc/presentation/screens/about_screen.dart';
+import 'package:grocery_app/features/misc/presentation/screens/help_screen.dart';
+import 'package:grocery_app/features/misc/presentation/screens/legal_content_screen.dart';
+import 'package:grocery_app/features/rfp/presentation/screens/delivery_screen.dart';
+import 'package:grocery_app/features/rfp/presentation/screens/contract_farming_screen.dart';
 import 'package:grocery_app/models/legal_document_model.dart';
+
+import 'package:grocery_app/features/misc/presentation/screens/unknown_route_screen.dart';
+import 'package:flutter_bloc/flutter_bloc.dart' as bloc;
+import 'package:grocery_app/features/chat/presentation/screens/chat_screen.dart';
+import 'package:grocery_app/features/chat/presentation/cubit/chat_cubit.dart';
+import 'package:grocery_app/features/panchang/presentation/screens/kundli_input_screen.dart';
+import 'package:grocery_app/features/panchang/presentation/screens/kundli_details_screen.dart';
+import 'package:grocery_app/features/panchang/presentation/cubit/kundli_cubit.dart';
+import 'package:grocery_app/features/panchang/domain/entities/kundli_entities.dart';
+import 'package:grocery_app/features/panchang/presentation/screens/prakriti_quiz_screen.dart';
+import 'package:grocery_app/features/panchang/presentation/screens/prakriti_answers_screen.dart';
+import 'package:grocery_app/features/panchang/presentation/cubit/prakriti_quiz_cubit.dart';
 
 final GlobalKey<NavigatorState> _rootNavigatorKey = GlobalKey<NavigatorState>(
   debugLabel: 'root',
@@ -85,12 +101,16 @@ class AppRouter {
   // GoRouter configuration
   late final GoRouter router = GoRouter(
     navigatorKey: _rootNavigatorKey,
-    initialLocation: AppRoute.home.path,
+    initialLocation: AppRoute.splash.path,
     debugLogDiagnostics: true,
+    observers: [
+      AnalyticsRouteObserver(),
+    ],
+    errorBuilder: (context, state) => UnknownRouteScreen(uri: state.uri),
 
     // Auth Guard Implementation
     redirect: (BuildContext context, GoRouterState state) async {
-      final bool isLoggedIn = await AuthService().isLoggedIn();
+      final bool isLoggedIn = await getIt<TokenService>().isLoggedIn();
 
       final String path = state.uri.path;
 
@@ -104,7 +124,7 @@ class AppRouter {
 
       // Routes that require authentication
       final bool isProtectedRoute =
-          path.startsWith('/profile') ||
+          path.startsWith('/edit-profile') ||
           path.startsWith('/order') ||
           path.startsWith('/subscription') ||
           path.startsWith('/notifications') ||
@@ -124,12 +144,37 @@ class AppRouter {
         return AppRoute.home.path;
       }
 
+      // Redirect bare /product to /products (product list)
+      if (path == '/product' || path == '/product/') {
+        return AppRoute.allProducts.path;
+      }
+
       return null;
     },
 
-    refreshListenable: _GoRouterRefreshStream(AuthService.authStateChanges),
+    refreshListenable: _GoRouterRefreshStream(TokenService.authStateChanges),
 
     routes: <RouteBase>[
+      // --- Splash Route ---
+      GoRoute(
+        path: AppRoute.splash.path,
+        name: AppRoute.splash.name,
+        pageBuilder:
+            (context, state) => CustomTransitionPage(
+              key: state.pageKey,
+              child: const SplashScreen(),
+              transitionsBuilder: (
+                context,
+                animation,
+                secondaryAnimation,
+                child,
+              ) {
+                return FadeTransition(opacity: animation, child: child);
+              },
+              transitionDuration: const Duration(milliseconds: 400),
+            ),
+      ),
+
       // --- Auth Routes (Full Screen) ---
       GoRoute(
         path: AppRoute.welcome.path,
@@ -159,102 +204,251 @@ class AppRouter {
         path: AppRoute.innovations.path,
         name: AppRoute.innovations.name,
         parentNavigatorKey: _rootNavigatorKey,
-        builder: (context, state) => const AnaadInnovationsScreen(),
+        builder:
+            (context, state) => DeepLinkFallbackWrapper(
+              fallbackRoute: AppRoute.home.path,
+              child: const AnaadInnovationsScreen(),
+            ),
       ),
       GoRoute(
         path: AppRoute.panchang.path,
         name: AppRoute.panchang.name,
         parentNavigatorKey: _rootNavigatorKey,
-        builder: (context, state) => const PanchangHomeScreen(),
+        builder:
+            (context, state) => DeepLinkFallbackWrapper(
+              fallbackRoute: AppRoute.home.path,
+              child: const PanchangHomeScreen(),
+            ),
       ),
       GoRoute(
         path: AppRoute.games.path,
         name: AppRoute.games.name,
         parentNavigatorKey: _rootNavigatorKey,
-        builder: (context, state) => const AnaadGamesScreen(),
+        builder:
+            (context, state) => DeepLinkFallbackWrapper(
+              fallbackRoute: AppRoute.home.path,
+              child: const AnaadGamesScreen(),
+            ),
       ),
       GoRoute(
         path: AppRoute.robots.path,
         name: AppRoute.robots.name,
         parentNavigatorKey: _rootNavigatorKey,
-        builder: (context, state) => const AnaadRobotsScreen(),
+        builder:
+            (context, state) => DeepLinkFallbackWrapper(
+              fallbackRoute: AppRoute.home.path,
+              child: const AnaadRobotsScreen(),
+            ),
       ),
       GoRoute(
         path: AppRoute.redemptions.path,
         name: AppRoute.redemptions.name,
         parentNavigatorKey: _rootNavigatorKey,
-        builder: (context, state) => const AnaadRedemptionsScreen(),
+        builder:
+            (context, state) => DeepLinkFallbackWrapper(
+              fallbackRoute: AppRoute.home.path,
+              child: const AnaadRedemptionsScreen(),
+            ),
       ),
       GoRoute(
         path:
             '${AppRoute.referEarn.path}', // Adding slash explicitly to signify root level
         name: AppRoute.referEarn.name,
         parentNavigatorKey: _rootNavigatorKey,
-        builder: (context, state) => const ReferEarnScreen(),
+        builder:
+            (context, state) => DeepLinkFallbackWrapper(
+              fallbackRoute: AppRoute.home.path,
+              child: const ReferEarnScreen(),
+            ),
       ),
       // Game routes
       GoRoute(
         path: AppRoute.seedSavior.path,
         name: AppRoute.seedSavior.name,
         parentNavigatorKey: _rootNavigatorKey,
-        builder: (context, state) => const SeedSaviorGameScreen(),
+        builder:
+            (context, state) => DeepLinkFallbackWrapper(
+              fallbackRoute: AppRoute.games.path,
+              child: const SeedSaviorGameScreen(),
+            ),
       ),
       GoRoute(
         path: AppRoute.rituChakra.path,
         name: AppRoute.rituChakra.name,
         parentNavigatorKey: _rootNavigatorKey,
-        builder: (context, state) => const RituChakraGameScreen(),
+        builder:
+            (context, state) => DeepLinkFallbackWrapper(
+              fallbackRoute: AppRoute.games.path,
+              child: const RituChakraGameScreen(),
+            ),
       ),
       GoRoute(
         path: AppRoute.microbeMania.path,
         name: AppRoute.microbeMania.name,
         parentNavigatorKey: _rootNavigatorKey,
-        builder: (context, state) => const MicrobeManiaGameScreen(),
+        builder:
+            (context, state) => DeepLinkFallbackWrapper(
+              fallbackRoute: AppRoute.games.path,
+              child: const MicrobeManiaGameScreen(),
+            ),
       ),
       GoRoute(
         path: AppRoute.cowToSoil.path,
         name: AppRoute.cowToSoil.name,
         parentNavigatorKey: _rootNavigatorKey,
-        builder: (context, state) => const CowToSoilCycleGameScreen(),
+        builder:
+            (context, state) => DeepLinkFallbackWrapper(
+              fallbackRoute: AppRoute.games.path,
+              child: const CowToSoilCycleGameScreen(),
+            ),
       ),
       GoRoute(
         path: AppRoute.compostCommander.path,
         name: AppRoute.compostCommander.name,
         parentNavigatorKey: _rootNavigatorKey,
-        builder: (context, state) => const CompostCommanderGameScreen(),
+        builder:
+            (context, state) => DeepLinkFallbackWrapper(
+              fallbackRoute: AppRoute.games.path,
+              child: const CompostCommanderGameScreen(),
+            ),
       ),
       // Panchang sub-routes
       GoRoute(
         path: AppRoute.panchangMonth.path,
         name: AppRoute.panchangMonth.name,
         parentNavigatorKey: _rootNavigatorKey,
-        builder: (context, state) => const PanchangMonthScreen(),
+        builder:
+            (context, state) => DeepLinkFallbackWrapper(
+              fallbackRoute: AppRoute.panchang.path,
+              child: const PanchangMonthScreen(),
+            ),
       ),
       GoRoute(
         path: AppRoute.panchangGuidance.path,
         name: AppRoute.panchangGuidance.name,
         parentNavigatorKey: _rootNavigatorKey,
-        builder: (context, state) => const PanchangGuidanceScreen(),
+        builder:
+            (context, state) => DeepLinkFallbackWrapper(
+              fallbackRoute: AppRoute.panchang.path,
+              child: const PanchangGuidanceScreen(),
+            ),
       ),
       GoRoute(
         path: AppRoute.panchangGuidanceProfile.path,
         name: AppRoute.panchangGuidanceProfile.name,
         parentNavigatorKey: _rootNavigatorKey,
-        builder: (context, state) => const PanchangGuidanceProfileScreen(),
+        builder:
+            (context, state) => DeepLinkFallbackWrapper(
+              fallbackRoute: AppRoute.panchang.path,
+              child: const PanchangGuidanceProfileScreen(),
+            ),
       ),
       GoRoute(
         path: AppRoute.panchangFestivals.path,
         name: AppRoute.panchangFestivals.name,
         parentNavigatorKey: _rootNavigatorKey,
-        builder: (context, state) => const PanchangFestivalsScreen(),
+        builder:
+            (context, state) => DeepLinkFallbackWrapper(
+              fallbackRoute: AppRoute.panchang.path,
+              child: const PanchangFestivalsScreen(),
+            ),
       ),
       GoRoute(
         path: '${AppRoute.panchangAdvancedTimings.path}',
         name: AppRoute.panchangAdvancedTimings.name,
         parentNavigatorKey: _rootNavigatorKey,
         builder:
-            (context, state) => PanchangAdvancedTimingsScreen(
-              selectedDate: state.extra as DateTime? ?? DateTime.now(),
+            (context, state) => DeepLinkFallbackWrapper(
+              fallbackRoute: AppRoute.panchang.path,
+              child: PanchangAdvancedTimingsScreen(
+                selectedDate: state.extra as DateTime? ?? DateTime.now(),
+              ),
+            ),
+      ),
+      GoRoute(
+        path: AppRoute.kundli.path,
+        name: AppRoute.kundli.name,
+        parentNavigatorKey: _rootNavigatorKey,
+        builder:
+            (context, state) => DeepLinkFallbackWrapper(
+              fallbackRoute: AppRoute.home.path,
+              child: bloc.BlocProvider(
+                create: (_) => getIt<KundliCubit>()..loadUserKundli(),
+                child: const KundliDetailsScreen(),
+              ),
+            ),
+      ),
+      GoRoute(
+        path: AppRoute.kundliInput.path,
+        name: AppRoute.kundliInput.name,
+        parentNavigatorKey: _rootNavigatorKey,
+        builder:
+            (context, state) => DeepLinkFallbackWrapper(
+              fallbackRoute: AppRoute.home.path,
+              child: bloc.BlocProvider(
+                create: (_) => getIt<KundliCubit>(),
+                child: const KundliInputScreen(),
+              ),
+            ),
+      ),
+      GoRoute(
+        path: AppRoute.kundliDetails.path,
+        name: AppRoute.kundliDetails.name,
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) {
+          final extra = state.extra;
+          KundliEntity? initialKundli;
+          bool isTemporary = false;
+          if (extra is Map<String, dynamic>) {
+            if (extra['kundli'] is KundliEntity) {
+              initialKundli = extra['kundli'] as KundliEntity;
+            }
+            isTemporary = extra['isTemporary'] == true;
+          } else if (extra is KundliEntity) {
+            initialKundli = extra;
+          }
+
+          return DeepLinkFallbackWrapper(
+            fallbackRoute: AppRoute.home.path,
+            child: bloc.BlocProvider(
+              create: (_) {
+                final cubit = getIt<KundliCubit>();
+                if (initialKundli != null) {
+                  cubit.showKundli(initialKundli, isTemporary: isTemporary);
+                } else {
+                  cubit.loadUserKundli();
+                }
+                return cubit;
+              },
+              child: const KundliDetailsScreen(),
+            ),
+          );
+        },
+      ),
+      GoRoute(
+        path: AppRoute.prakritiQuiz.path,
+        name: AppRoute.prakritiQuiz.name,
+        parentNavigatorKey: _rootNavigatorKey,
+        builder:
+            (context, state) => DeepLinkFallbackWrapper(
+              fallbackRoute: AppRoute.panchang.path,
+              child: bloc.BlocProvider(
+                create: (_) => PrakritiQuizCubit()..loadQuestions(),
+                child: const PrakritiQuizScreen(),
+              ),
+            ),
+      ),
+      GoRoute(
+        path: AppRoute.prakritiAnswers.path,
+        name: AppRoute.prakritiAnswers.name,
+        parentNavigatorKey: _rootNavigatorKey,
+        builder:
+            (context, state) => DeepLinkFallbackWrapper(
+              fallbackRoute: AppRoute.panchang.path,
+              child: bloc.BlocProvider(
+                create: (_) => PrakritiQuizCubit()..loadPreviousAnswers(),
+                child: const PrakritiAnswersScreen(),
+              ),
             ),
       ),
       GoRoute(
@@ -263,15 +457,75 @@ class AppRouter {
         parentNavigatorKey: _rootNavigatorKey,
         builder: (context, state) {
           final extra = state.extra as Map<String, dynamic>? ?? {};
+
+          CartModel? cart;
+          final cartVal = extra['cart'];
+          if (cartVal is CartModel) {
+            cart = cartVal;
+          } else if (cartVal is Map<String, dynamic>) {
+            cart = CartModel.fromJson(cartVal);
+          }
+
+          Product? singleProduct;
+          final productVal = extra['singleProduct'];
+          if (productVal is Product) {
+            singleProduct = productVal;
+          } else if (productVal is Map<String, dynamic>) {
+            singleProduct = Product.fromJson(productVal);
+          }
+
+          int? quantity;
+          final quantityVal = extra['quantity'];
+          if (quantityVal is int) {
+            quantity = quantityVal;
+          } else if (quantityVal != null) {
+            quantity = int.tryParse(quantityVal.toString());
+          }
+
+          bool isSubscription = false;
+          final subVal = extra['isSubscription'];
+          if (subVal is bool) {
+            isSubscription = subVal;
+          } else if (subVal != null) {
+            isSubscription = subVal.toString().toLowerCase() == 'true';
+          }
+
+          int? selectedPlan;
+          final planVal = extra['selectedPlan'];
+          if (planVal is int) {
+            selectedPlan = planVal;
+          } else if (planVal != null) {
+            selectedPlan = int.tryParse(planVal.toString());
+          }
+
+          double? price;
+          final priceVal = extra['price'];
+          if (priceVal is num) {
+            price = priceVal.toDouble();
+          } else if (priceVal != null) {
+            price = double.tryParse(priceVal.toString());
+          }
+
           return CheckoutScreen(
-            cart: extra['cart'],
-            singleProduct: extra['singleProduct'],
-            quantity: extra['quantity'],
-            isSubscription: extra['isSubscription'] ?? false,
-            selectedPlan: extra['selectedPlan'],
-            codDeliveryCharge: 0,
-            prepaidDeliveryCharge: 0,
-            expectedDeliveryDate: '',
+            cart: cart,
+            singleProduct: singleProduct,
+            price: price,
+            quantity: quantity,
+            isSubscription: isSubscription,
+            selectedPlan: selectedPlan,
+            codDeliveryCharge:
+                double.tryParse(
+                  extra['codDeliveryCharge']?.toString() ?? '0.0',
+                ) ??
+                0.0,
+            prepaidDeliveryCharge:
+                double.tryParse(
+                  extra['prepaidDeliveryCharge']?.toString() ?? '0.0',
+                ) ??
+                0.0,
+            expectedDeliveryDate:
+                extra['expectedDeliveryDate']?.toString() ?? '',
+            paymentType: extra['paymentType'] as String?,
           );
         },
       ),
@@ -283,19 +537,34 @@ class AppRouter {
         name: AppRoute.editProfile.name,
         parentNavigatorKey: _rootNavigatorKey,
         builder: (context, state) {
-          return EditProfileScreen(
-            userProfile:
-                (state.extra as UserModel?) ??
-                UserModel(
-                  email: '',
-                  username: '',
-                  password: '',
-                  confirmPassword: '',
-                  firstName: '',
-                  lastName: '',
-                  phoneNumber: '',
-                  gender: '',
-                ),
+          UserModel? userProfile;
+          final extra = state.extra;
+          if (extra is UserModel) {
+            userProfile = extra;
+          } else if (extra is Map<String, dynamic>) {
+            try {
+              userProfile = UserModel.fromJson(extra);
+            } catch (_) {
+              userProfile = null;
+            }
+          }
+          userProfile ??= getIt<TokenService>().currentUser;
+          return DeepLinkFallbackWrapper(
+            fallbackRoute: AppRoute.profile.path,
+            child: EditProfileScreen(
+              userProfile:
+                  userProfile ??
+                  UserModel(
+                    email: '',
+                    username: '',
+                    password: '',
+                    confirmPassword: '',
+                    firstName: '',
+                    lastName: '',
+                    phoneNumber: '',
+                    gender: '',
+                  ),
+            ),
           );
         },
       ),
@@ -303,13 +572,21 @@ class AppRouter {
         path: AppRoute.orderList.path,
         name: AppRoute.orderList.name,
         parentNavigatorKey: _rootNavigatorKey,
-        builder: (context, state) => const OrderScreen(),
+        builder:
+            (context, state) => DeepLinkFallbackWrapper(
+              fallbackRoute: AppRoute.profile.path,
+              child: const OrderScreen(),
+            ),
       ),
       GoRoute(
         path: AppRoute.subscriptionList.path,
         name: AppRoute.subscriptionList.name,
         parentNavigatorKey: _rootNavigatorKey,
-        builder: (context, state) => const SubscriptionScreen(),
+        builder:
+            (context, state) => DeepLinkFallbackWrapper(
+              fallbackRoute: AppRoute.profile.path,
+              child: const SubscriptionListScreen(),
+            ),
       ),
       // These routes are directly under the root navigator.
       // They will NEVER show the BottomNavigationBar.
@@ -320,10 +597,19 @@ class AppRouter {
         name: AppRoute.productDetails.name,
         parentNavigatorKey: _rootNavigatorKey,
         builder: (context, state) {
-          final product = state.extra as Product?;
-          return ProductDetailsRouteWrapper(
-            productId: state.pathParameters['id'],
-            initialProduct: product,
+          Product? product;
+          final extra = state.extra;
+          if (extra is Product) {
+            product = extra;
+          } else if (extra is Map<String, dynamic>) {
+            product = Product.fromJson(extra);
+          }
+          return DeepLinkFallbackWrapper(
+            fallbackRoute: AppRoute.allProducts.path,
+            child: ProductDetailsRouteWrapper(
+              productId: state.pathParameters['id'],
+              initialProduct: product,
+            ),
           );
         },
       ),
@@ -333,16 +619,30 @@ class AppRouter {
         parentNavigatorKey: _rootNavigatorKey,
         builder: (context, state) {
           final extra = state.extra;
-          Order? order;
-          if (extra is Order) {
+          OrderEntity? order;
+          if (extra is OrderEntity) {
             order = extra;
           }
           final idParam = state.pathParameters['id'];
-          // Ensure we don't crash if the ID is not an integer
-          if (idParam != null && int.tryParse(idParam) == null) {
-            return const Scaffold(body: Center(child: Text('Invalid Link')));
+          String? orderId;
+          String? orderNumber;
+
+          if (idParam != null) {
+            if (int.tryParse(idParam) != null) {
+              orderId = idParam;
+            } else {
+              orderNumber = idParam;
+            }
           }
-          return OrderDetailScreen(orderId: idParam, order: order);
+
+          return DeepLinkFallbackWrapper(
+            fallbackRoute: AppRoute.orderList.path,
+            child: OrderDetailScreen(
+              orderId: orderId,
+              orderNumber: orderNumber,
+              order: order,
+            ),
+          );
         },
       ),
       GoRoute(
@@ -350,43 +650,52 @@ class AppRouter {
         name: AppRoute.subscriptionDetails.name,
         parentNavigatorKey: _rootNavigatorKey,
         builder: (context, state) {
-          final extra = state.extra;
-          Subscription? sub;
-          if (extra is Subscription) {
-            sub = extra;
-          } else if (extra is Map<String, dynamic>) {
-            try {
-              sub = Subscription.fromJson(extra);
-            } catch (e) {
-              sub = null;
-            }
-          }
           final idParam = state.pathParameters['id'];
-          // Ensure we don't crash if the ID is not an integer
-          if (idParam != null && int.tryParse(idParam) == null) {
-            return const Scaffold(body: Center(child: Text('Invalid Link')));
-          }
-          return SubscriptionPlanDetailScreen(
-            subscriptionId: idParam,
-            subscription: sub,
+          return DeepLinkFallbackWrapper(
+            fallbackRoute: AppRoute.subscriptionList.path,
+            child: SubscriptionDetailScreen(subscriptionId: idParam ?? ''),
           );
         },
       ),
-
-      // --- Product Browsing Routes (no bottom nav) ---
       GoRoute(
         path: AppRoute.allProducts.path,
         name: AppRoute.allProducts.name,
         parentNavigatorKey: _rootNavigatorKey,
-        builder: (context, state) => const AllProductsScreen(),
+        builder: (context, state) {
+          final extraList = state.extra as List?;
+          final products =
+              extraList?.map((e) {
+                if (e is Product) return e.toDomain();
+                if (e is ProductEntity) return e;
+                if (e is Map<String, dynamic>)
+                  return Product.fromJson(e).toDomain();
+                return e as ProductEntity;
+              }).toList();
+          return DeepLinkFallbackWrapper(
+            fallbackRoute: AppRoute.home.path,
+            child: AllProductsScreen(products: products),
+          );
+        },
       ),
       GoRoute(
         path: AppRoute.featuredProducts.path,
         name: AppRoute.featuredProducts.name,
         parentNavigatorKey: _rootNavigatorKey,
         builder: (context, state) {
-          final products = state.extra as List<Product>? ?? [];
-          return FeaturedProductsScreen(products: products);
+          final extraList = state.extra as List?;
+          final products =
+              extraList?.map((e) {
+                if (e is Product) return e.toDomain();
+                if (e is ProductEntity) return e;
+                if (e is Map<String, dynamic>)
+                  return Product.fromJson(e).toDomain();
+                return e as ProductEntity;
+              }).toList() ??
+              [];
+          return DeepLinkFallbackWrapper(
+            fallbackRoute: AppRoute.home.path,
+            child: FeaturedProductsScreen(products: products),
+          );
         },
       ),
       GoRoute(
@@ -395,9 +704,19 @@ class AppRouter {
         parentNavigatorKey: _rootNavigatorKey,
         builder: (context, state) {
           final extra = state.extra as Map<String, dynamic>? ?? {};
-          return CategoryItemsScreen(
-            name: extra['name'] as String? ?? '',
-            allProducts: extra['products'] as List<Product>? ?? [],
+          final productsList = extra['products'] as List?;
+          return DeepLinkFallbackWrapper(
+            fallbackRoute: AppRoute.categories.path,
+            child: CategoryItemsScreen(
+              name: extra['name'] as String? ?? '',
+              allProducts:
+                  productsList?.map((e) {
+                    if (e is Product) return e;
+                    if (e is Map<String, dynamic>) return Product.fromJson(e);
+                    return e as Product;
+                  }).toList() ??
+                  [],
+            ),
           );
         },
       ),
@@ -409,14 +728,68 @@ class AppRouter {
         parentNavigatorKey: _rootNavigatorKey,
         builder: (context, state) {
           final extra = state.extra as Map<String, dynamic>? ?? {};
-          return AddressSelectionScreen(
-            cart: extra['cart'] as CartModel?,
-            singleProduct: extra['singleProduct'] as Product?,
-            price: extra['price'] as double?,
-            quantity: extra['quantity'] as int?,
-            isSubscription: extra['isSubscription'] as bool? ?? false,
-            selectedPlan: extra['selectedPlan'] as int?,
-            paymentType: extra['paymentType'] as String?,
+
+          CartModel? cart;
+          final cartVal = extra['cart'];
+          if (cartVal is CartModel) {
+            cart = cartVal;
+          } else if (cartVal is Map<String, dynamic>) {
+            cart = CartModel.fromJson(cartVal);
+          }
+
+          Product? singleProduct;
+          final productVal = extra['singleProduct'];
+          if (productVal is Product) {
+            singleProduct = productVal;
+          } else if (productVal is Map<String, dynamic>) {
+            singleProduct = Product.fromJson(productVal);
+          }
+
+          double? price;
+          final priceVal = extra['price'];
+          if (priceVal is num) {
+            price = priceVal.toDouble();
+          } else if (priceVal != null) {
+            price = double.tryParse(priceVal.toString());
+          }
+
+          int? quantity;
+          final quantityVal = extra['quantity'];
+          if (quantityVal is int) {
+            quantity = quantityVal;
+          } else if (quantityVal != null) {
+            quantity = int.tryParse(quantityVal.toString());
+          }
+
+          bool isSubscription = false;
+          final subVal = extra['isSubscription'];
+          if (subVal is bool) {
+            isSubscription = subVal;
+          } else if (subVal != null) {
+            isSubscription = subVal.toString().toLowerCase() == 'true';
+          }
+
+          int? selectedPlan;
+          final planVal = extra['selectedPlan'];
+          if (planVal is int) {
+            selectedPlan = planVal;
+          } else if (planVal != null) {
+            selectedPlan = int.tryParse(planVal.toString());
+          }
+
+          final paymentType = extra['paymentType'] as String?;
+
+          return DeepLinkFallbackWrapper(
+            fallbackRoute: AppRoute.home.path,
+            child: AddressSelectionScreen(
+              cart: cart,
+              singleProduct: singleProduct,
+              price: price,
+              quantity: quantity,
+              isSubscription: isSubscription,
+              selectedPlan: selectedPlan,
+              paymentType: paymentType,
+            ),
           );
         },
       ),
@@ -425,28 +798,43 @@ class AppRouter {
         name: AppRoute.orderAccepted.name,
         parentNavigatorKey: _rootNavigatorKey,
         builder: (context, state) {
-          return Scaffold(body: Center(child: Text('Order Accepted')));
+          return DeepLinkFallbackWrapper(
+            fallbackRoute: AppRoute.home.path,
+            child: const Scaffold(body: Center(child: Text('Order Accepted'))),
+          );
         },
       ),
 
       // --- Profile Sub-Routes at root level (no bottom nav) ---
       GoRoute(
         path: AppRoute.notifications.path,
-        name: 'root_notifications',
+        name: AppRoute.notifications.name,
         parentNavigatorKey: _rootNavigatorKey,
-        builder: (context, state) => const NotificationsScreen(),
+        builder:
+            (context, state) => DeepLinkFallbackWrapper(
+              fallbackRoute: AppRoute.home.path,
+              child: const NotificationsScreen(),
+            ),
       ),
       GoRoute(
         path: AppRoute.aboutUs.path,
         name: AppRoute.aboutUs.name,
         parentNavigatorKey: _rootNavigatorKey,
-        builder: (context, state) => const AboutScreen(),
+        builder:
+            (context, state) => DeepLinkFallbackWrapper(
+              fallbackRoute: AppRoute.profile.path,
+              child: const AboutScreen(),
+            ),
       ),
       GoRoute(
         path: AppRoute.help.path,
         name: AppRoute.help.name,
         parentNavigatorKey: _rootNavigatorKey,
-        builder: (context, state) => const HelpScreen(),
+        builder:
+            (context, state) => DeepLinkFallbackWrapper(
+              fallbackRoute: AppRoute.profile.path,
+              child: const HelpScreen(),
+            ),
       ),
       GoRoute(
         path: AppRoute.legal.path,
@@ -460,7 +848,10 @@ class AppRouter {
               body: const Center(child: Text('No document provided')),
             );
           }
-          return LegalContentScreen(document: document);
+          return DeepLinkFallbackWrapper(
+            fallbackRoute: AppRoute.profile.path,
+            child: LegalContentScreen(document: document),
+          );
         },
       ),
 
@@ -469,13 +860,46 @@ class AppRouter {
         path: AppRoute.delivery.path,
         name: AppRoute.delivery.name,
         parentNavigatorKey: _rootNavigatorKey,
-        builder: (context, state) => const DeliveryScreen(),
+        builder:
+            (context, state) => DeepLinkFallbackWrapper(
+              fallbackRoute: AppRoute.home.path,
+              child: const DeliveryScreen(),
+            ),
       ),
       GoRoute(
         path: AppRoute.contractFarming.path,
         name: AppRoute.contractFarming.name,
         parentNavigatorKey: _rootNavigatorKey,
-        builder: (context, state) => const CombinedScreen(),
+        builder:
+            (context, state) => DeepLinkFallbackWrapper(
+              fallbackRoute: AppRoute.home.path,
+              child: const CombinedScreen(),
+            ),
+      ),
+
+      // --- AI Chat Route (Full Screen, Auth Required) ---
+      GoRoute(
+        path: AppRoute.aiChat.path,
+        name: AppRoute.aiChat.name,
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) {
+          final sessionId = state.uri.queryParameters['session_id'];
+          if (sessionId != null && sessionId.isNotEmpty) {
+            final cubit = getIt<ChatCubit>();
+            if (cubit.state.activeSessionId != sessionId) {
+              cubit.selectSession(sessionId);
+            }
+          }
+          return const ChatScreen();
+        },
+      ),
+
+      // --- Health Profile Route (Full Screen) ---
+      GoRoute(
+        path: AppRoute.healthProfile.path,
+        name: AppRoute.healthProfile.name,
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const HealthProfileScreen(),
       ),
 
       // --- Main Shell Route for Bottom Navigation ---
@@ -487,6 +911,7 @@ class AppRouter {
           // 0: HOME BRANCH
           StatefulShellBranch(
             navigatorKey: _shellNavigatorHomeKey,
+            observers: [AnalyticsRouteObserver()],
             routes: [
               GoRoute(
                 path: AppRoute.home.path,
@@ -502,6 +927,7 @@ class AppRouter {
           // 1: CATEGORIES BRANCH
           StatefulShellBranch(
             navigatorKey: _shellNavigatorCategoriesKey,
+            observers: [AnalyticsRouteObserver()],
             routes: [
               GoRoute(
                 path: AppRoute.categories.path,
@@ -514,6 +940,7 @@ class AppRouter {
           // 2: CART BRANCH
           StatefulShellBranch(
             navigatorKey: _shellNavigatorCartKey,
+            observers: [AnalyticsRouteObserver()],
             routes: [
               GoRoute(
                 path: AppRoute.cart.path,
@@ -529,6 +956,7 @@ class AppRouter {
           // 3: WISHLIST BRANCH
           StatefulShellBranch(
             navigatorKey: _shellNavigatorWishlistKey,
+            observers: [AnalyticsRouteObserver()],
             routes: [
               GoRoute(
                 path: AppRoute.wishlist.path,
@@ -541,6 +969,7 @@ class AppRouter {
           // 4: PROFILE BRANCH
           StatefulShellBranch(
             navigatorKey: _shellNavigatorProfileKey,
+            observers: [AnalyticsRouteObserver()],
             routes: [
               GoRoute(
                 path: AppRoute.profile.path,
@@ -555,70 +984,6 @@ class AppRouter {
         ],
       ),
     ],
-    errorBuilder: (context, state) {
-      final theme = Theme.of(context);
-      return Scaffold(
-        body: Center(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 32),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(24),
-                  decoration: BoxDecoration(
-                    color: theme.colorScheme.primary.withValues(alpha: 0.1),
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(
-                    Icons.explore_off_rounded,
-                    size: 64,
-                    color: theme.colorScheme.primary,
-                  ),
-                ),
-                const SizedBox(height: 32),
-                Text(
-                  'Page Not Found',
-                  style: theme.textTheme.headlineSmall?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 12),
-                Text(
-                  'Sorry for the inconvenience.\nThe page you\'re looking for doesn\'t exist or has been moved.',
-                  textAlign: TextAlign.center,
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color: theme.textTheme.bodySmall?.color,
-                    height: 1.5,
-                  ),
-                ),
-                const SizedBox(height: 32),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton.icon(
-                    onPressed: () => context.go(AppRoute.home.path),
-                    icon: const Icon(Icons.home_rounded),
-                    label: const Text('Go Home'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: theme.colorScheme.primary,
-                      foregroundColor: AppColors.parchment,
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(14),
-                      ),
-                      textStyle: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      );
-    },
   );
 }
 
@@ -735,5 +1100,31 @@ class _ProductDetailsRouteWrapperState
     }
 
     return ProductDetailsScreen(product: _product!);
+  }
+}
+
+/// Wraps a route to provide a fallback when the user presses the hardware back button
+/// but the navigator has no history (e.g., when opened via deep link).
+class DeepLinkFallbackWrapper extends StatelessWidget {
+  final Widget child;
+  final String fallbackRoute;
+
+  const DeepLinkFallbackWrapper({
+    super.key,
+    required this.child,
+    required this.fallbackRoute,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return PopScope(
+      canPop: context.canPop(),
+      onPopInvokedWithResult: (didPop, result) {
+        if (!didPop) {
+          context.go(fallbackRoute);
+        }
+      },
+      child: child,
+    );
   }
 }

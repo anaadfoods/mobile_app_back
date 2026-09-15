@@ -1,9 +1,11 @@
-import 'dart:ui';
 import 'package:collection/collection.dart';
 import 'package:grocery_app/common_widgets/global_import.dart';
+import 'package:grocery_app/features/cart/presentation/cubit/cart_cubit.dart';
+import 'package:grocery_app/features/cart/presentation/cubit/cart_state.dart';
 import 'package:grocery_app/utils/subscription_navigation_helper.dart';
 import 'package:grocery_app/common_widgets/coming_soon_overlay.dart';
 import 'package:grocery_app/common_widgets/out_of_stock_overlay.dart';
+import 'package:grocery_app/common_widgets/anaad_network_image.dart';
 
 class GroceryItemCardWidget extends StatefulWidget {
   final Product item;
@@ -94,29 +96,81 @@ class _GroceryItemCardWidgetState extends State<GroceryItemCardWidget> {
                 Row(
                   children: [
                     // Product Image Container
-                    Container(
-                      margin: const EdgeInsets.all(AppColors.spacingS),
-                      width: 100,
-                      height: 100,
-                      decoration: BoxDecoration(
-                        color:
-                            isDark ? AppColors.darkCanvas : AppColors.parchment,
-                        borderRadius: BorderRadius.circular(AppColors.radiusM),
-                        border: Border.all(
-                          color:
-                              isDark
-                                  ? AppColors.parchment.withValues(alpha: 0.05)
-                                  : AppColors.parchment,
-                          width: 1,
-                        ),
-                      ),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(AppColors.radiusM),
-                        child: Hero(
-                          tag: '${widget.item.id}-${widget.heroSuffix ?? ''}',
-                          child: _buildImageWidget(theme),
-                        ),
-                      ),
+                    Builder(
+                      builder: (context) {
+                        final screenWidth = MediaQuery.sizeOf(context).width;
+                        final size = (screenWidth * 0.28).clamp(80.0, 120.0);
+                        final hasDiscount = widget.item.discountPercentage > 0;
+
+                        return Stack(
+                          children: [
+                            Container(
+                              margin: const EdgeInsets.all(AppColors.spacingS),
+                              width: size,
+                              height: size,
+                              decoration: BoxDecoration(
+                                color:
+                                    isDark
+                                        ? AppColors.darkCanvas
+                                        : AppColors.parchment,
+                                borderRadius: BorderRadius.circular(
+                                  AppColors.radiusM,
+                                ),
+                                border: Border.all(
+                                  color:
+                                      isDark
+                                          ? AppColors.parchment.withValues(
+                                            alpha: 0.05,
+                                          )
+                                          : AppColors.parchment,
+                                  width: 1,
+                                ),
+                              ),
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(
+                                  AppColors.radiusM,
+                                ),
+                                child: Hero(
+                                  tag:
+                                      '${widget.item.id}-${widget.heroSuffix ?? ''}',
+                                  child: _buildImageWidget(theme),
+                                ),
+                              ),
+                            ),
+                            if (hasDiscount)
+                              Positioned(
+                                top: AppColors.spacingS + 4,
+                                left: AppColors.spacingS + 4,
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 6,
+                                    vertical: 3,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: AppColors.harvestAmber,
+                                    borderRadius: BorderRadius.circular(6),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: AppColors.harvestAmber
+                                            .withValues(alpha: 0.3),
+                                        blurRadius: 4,
+                                        offset: const Offset(0, 1),
+                                      ),
+                                    ],
+                                  ),
+                                  child: Text(
+                                    '${widget.item.discountPercentage.toInt()}% off',
+                                    style: const TextStyle(
+                                      color: AppColors.pureWhite,
+                                      fontSize: 8,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                          ],
+                        );
+                      },
                     ),
                     // Product Details
                     Expanded(
@@ -128,6 +182,12 @@ class _GroceryItemCardWidgetState extends State<GroceryItemCardWidget> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
+                            _buildCategoryCapsule(
+                              widget.item.productCategory,
+                              theme,
+                              isDark,
+                            ),
+                            const SizedBox(height: 6),
                             AppText(
                               text: widget.item.productName,
                               style: textTheme.bodyLarge?.copyWith(
@@ -137,26 +197,27 @@ class _GroceryItemCardWidgetState extends State<GroceryItemCardWidget> {
                               maxLines: 2,
                               overflow: TextOverflow.ellipsis,
                             ),
-                            const SizedBox(height: 2),
-                            AppText(
-                              text: widget.item.productCategory,
-                              style: textTheme.bodySmall?.copyWith(
-                                color: isDark ? AppColors.pureWhite.withValues(alpha: 0.7) : theme.hintColor,
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
                             const SizedBox(height: 6),
-                            // Rating stars
                             Row(
-                              children: List.generate(
-                                5,
-                                (index) => Icon(
-                                  Icons.star,
-                                  size: 14,
-                                  color: AppColors.harvestAmber,
+                              children: [
+                                _buildQuantityTag(
+                                  widget.item.weight,
+                                  widget.item.weightUnit,
+                                  theme,
+                                  isDark,
                                 ),
-                              ),
+                                const Spacer(),
+                                Row(
+                                  children: List.generate(
+                                    5,
+                                    (index) => Icon(
+                                      Icons.star,
+                                      size: 12,
+                                      color: AppColors.harvestAmber,
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
                             const SizedBox(height: 10),
                             Row(
@@ -193,8 +254,11 @@ class _GroceryItemCardWidgetState extends State<GroceryItemCardWidget> {
                   Positioned.fill(
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(AppColors.radiusL),
-                      child: BackdropFilter(
-                        filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+                      child: ColoredBox(
+                        color:
+                            isDark
+                                ? Colors.black.withValues(alpha: 0.72)
+                                : Colors.white.withValues(alpha: 0.72),
                         child: const ComingSoonOverlay(),
                       ),
                     ),
@@ -203,8 +267,11 @@ class _GroceryItemCardWidgetState extends State<GroceryItemCardWidget> {
                   Positioned.fill(
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(AppColors.radiusL),
-                      child: BackdropFilter(
-                        filter: ImageFilter.blur(sigmaX: 4, sigmaY: 4),
+                      child: ColoredBox(
+                        color:
+                            isDark
+                                ? Colors.black.withValues(alpha: 0.72)
+                                : Colors.white.withValues(alpha: 0.72),
                         child: const OutOfStockOverlay(),
                       ),
                     ),
@@ -217,17 +284,82 @@ class _GroceryItemCardWidgetState extends State<GroceryItemCardWidget> {
     );
   }
 
+  Widget _buildCategoryCapsule(String category, ThemeData theme, bool isDark) {
+    if (category.isEmpty) return const SizedBox.shrink();
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      decoration: BoxDecoration(
+        color:
+            isDark
+                ? AppColors.parchment.withValues(alpha: 0.1)
+                : AppColors.harvestAmber.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color:
+              isDark
+                  ? AppColors.parchment.withValues(alpha: 0.15)
+                  : AppColors.harvestAmber.withValues(alpha: 0.15),
+          width: 0.8,
+        ),
+      ),
+      child: Text(
+        category.toUpperCase(),
+        style: theme.textTheme.bodySmall?.copyWith(
+          color:
+              isDark
+                  ? AppColors.pureWhite.withValues(alpha: 0.9)
+                  : AppColors.harvestAmber,
+          fontWeight: FontWeight.bold,
+          fontSize: 9,
+          letterSpacing: 0.5,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildQuantityTag(
+    String weight,
+    String unit,
+    ThemeData theme,
+    bool isDark,
+  ) {
+    if (weight.isEmpty) return const SizedBox.shrink();
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      decoration: BoxDecoration(
+        color:
+            isDark
+                ? AppColors.charcoal.withValues(alpha: 0.3)
+                : AppColors.parchment,
+        borderRadius: BorderRadius.circular(6),
+        border: Border.all(
+          color:
+              isDark
+                  ? AppColors.parchment.withValues(alpha: 0.1)
+                  : theme.dividerColor.withValues(alpha: 0.2),
+          width: 0.8,
+        ),
+      ),
+      child: Text(
+        '$weight $unit',
+        style: theme.textTheme.bodySmall?.copyWith(
+          color: theme.hintColor,
+          fontSize: 10,
+        ),
+      ),
+    );
+  }
+
   Widget _buildImageWidget(ThemeData theme) {
     if (widget.item.productImages.isNotEmpty) {
-      return CachedNetworkImage(
+      return AnaadNetworkImage(
         imageUrl: widget.item.productImages[0].image,
-        fit: BoxFit.cover,
-        placeholder:
-            (context, url) =>
-                const Center(child: CircularProgressIndicator(strokeWidth: 2)),
-        errorWidget:
-            (context, url, error) =>
-                Icon(Icons.broken_image, size: 40, color: theme.disabledColor),
+        semanticLabel: widget.item.productName,
+        fallback: Icon(
+          Icons.eco_outlined,
+          size: 40,
+          color: theme.disabledColor,
+        ),
       );
     } else {
       return Icon(

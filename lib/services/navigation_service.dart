@@ -2,17 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:grocery_app/routes/app_router.dart';
 import 'package:grocery_app/routes/app_routes.dart';
 
+import 'package:grocery_app/service_locator.dart';
+
 /// Centralized navigation service using AppRouter.
 class NavigationService {
-  static final NavigationService _instance = NavigationService._internal();
-  factory NavigationService() => _instance;
+  factory NavigationService() => getIt<NavigationService>();
   NavigationService._internal();
+  static NavigationService create() => NavigationService._internal();
 
-  /// Global navigator key - Wired to AppRouter
-  final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
-
-  /// Get the navigator state safely
-  NavigatorState? get _navigator => navigatorKey.currentState;
+  /// Get the navigator state safely from AppRouter
+  NavigatorState? get _navigator =>
+      AppRouter().router.routerDelegate.navigatorKey.currentState;
 
   /// Check if navigator is ready for navigation
   bool get isReady => _navigator != null;
@@ -33,12 +33,12 @@ class NavigationService {
   // ============================================================================
 
   static Future<void> navigateToNotifications() async {
-    AppRouter().router.pushNamed(AppRoute.notifications.name);
+    AppRouter().router.goNamed(AppRoute.notifications.name);
   }
 
   static Future<void> navigateToProductDetails(String? productId) async {
     if (productId != null && productId.isNotEmpty) {
-      AppRouter().router.pushNamed(
+      AppRouter().router.goNamed(
         AppRoute.productDetails.name,
         pathParameters: {'id': productId},
       );
@@ -47,7 +47,7 @@ class NavigationService {
 
   static Future<void> navigateToOrderDetails(String? orderId) async {
     if (orderId != null && orderId.isNotEmpty) {
-      AppRouter().router.pushNamed(
+      AppRouter().router.goNamed(
         AppRoute.orderDetails.name,
         pathParameters: {'id': orderId},
       );
@@ -58,7 +58,7 @@ class NavigationService {
     String? subscriptionId,
   ) async {
     if (subscriptionId != null && subscriptionId.isNotEmpty) {
-      AppRouter().router.pushNamed(
+      AppRouter().router.goNamed(
         AppRoute.subscriptionDetails.name,
         pathParameters: {'id': subscriptionId},
       );
@@ -66,11 +66,35 @@ class NavigationService {
   }
 
   static Future<void> navigateToCart() async {
-    AppRouter().router.pushNamed(AppRoute.cart.name);
+    AppRouter().router.goNamed(AppRoute.cart.name);
+  }
+
+  static Future<void> navigateToAllProducts() async {
+    AppRouter().router.goNamed(AppRoute.allProducts.name);
+  }
+
+  static Future<void> navigateToOrderList() async {
+    AppRouter().router.goNamed(AppRoute.orderList.name);
+  }
+
+  static Future<void> navigateToSubscriptionList() async {
+    AppRouter().router.goNamed(AppRoute.subscriptionList.name);
+  }
+
+  static Future<void> navigateToPanchang() async {
+    AppRouter().router.goNamed(AppRoute.panchang.name);
+  }
+
+  static Future<void> navigateToWishlist() async {
+    AppRouter().router.goNamed(AppRoute.wishlist.name);
+  }
+
+  static Future<void> navigateToCheckout() async {
+    AppRouter().router.goNamed(AppRoute.checkout.name);
   }
 
   static Future<void> navigateToAccount() async {
-    AppRouter().router.pushNamed(AppRoute.profile.name);
+    AppRouter().router.goNamed(AppRoute.profile.name);
   }
 
   static Future<void> navigateToHome() async {

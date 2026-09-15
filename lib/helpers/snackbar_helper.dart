@@ -74,7 +74,8 @@ class SnackBarHelper {
                     }
                   },
                   onPanEnd: (details) {
-                    if (isDismissible && details.velocity.pixelsPerSecond.dy > 300) {
+                    if (isDismissible &&
+                        details.velocity.pixelsPerSecond.dy > 300) {
                       if (overlayEntry.mounted) overlayEntry.remove();
                     }
                   },
@@ -106,7 +107,9 @@ class SnackBarHelper {
                           Container(
                             padding: const EdgeInsets.all(7),
                             decoration: BoxDecoration(
-                              color: AppColors.pureWhite.withValues(alpha: 0.18),
+                              color: AppColors.pureWhite.withValues(
+                                alpha: 0.18,
+                              ),
                               borderRadius: BorderRadius.circular(10),
                             ),
                             child: Icon(icon, color: iconColor, size: 18),
@@ -146,7 +149,9 @@ class SnackBarHelper {
                               action.onPressed();
                             },
                             style: TextButton.styleFrom(
-                              backgroundColor: AppColors.pureWhite.withValues(alpha: 0.2),
+                              backgroundColor: AppColors.pureWhite.withValues(
+                                alpha: 0.2,
+                              ),
                               padding: const EdgeInsets.symmetric(
                                 horizontal: 12,
                                 vertical: 8,
@@ -175,7 +180,9 @@ class SnackBarHelper {
                             child: Container(
                               padding: const EdgeInsets.all(4),
                               decoration: BoxDecoration(
-                                color: AppColors.pureWhite.withValues(alpha: 0.18),
+                                color: AppColors.pureWhite.withValues(
+                                  alpha: 0.18,
+                                ),
                                 borderRadius: BorderRadius.circular(6),
                               ),
                               child: Icon(
@@ -196,7 +203,7 @@ class SnackBarHelper {
     );
 
     overlay.insert(overlayEntry);
-    
+
     // Auto-dismiss with proper cleanup
     Future.delayed(duration, () {
       if (overlayEntry.mounted) {
@@ -232,122 +239,125 @@ class SnackBarHelper {
     late final OverlayEntry overlayEntry;
 
     overlayEntry = OverlayEntry(
-      builder: (context) => Positioned(
-        top: MediaQuery.of(context).padding.top + 16,
-        left: 16,
-        right: 16,
-        child: Material(
-          color: AppColors.transparent,
-          child: TweenAnimationBuilder<double>(
-            tween: Tween(begin: 0.0, end: 1.0),
-            duration: const Duration(milliseconds: 350),
-            curve: Curves.easeOutBack,
-            builder: (context, value, child) {
-              return Transform.translate(
-                offset: Offset(0, -24 * (1 - value)),
-                child: Opacity(
-                  opacity: value.clamp(0.0, 1.0),
-                  child: child,
-                ),
-              );
-            },
-            child: GestureDetector(
-              onTap: () {
-                if (overlayEntry.mounted) overlayEntry.remove();
-              },
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 14,
-                ),
-                decoration: BoxDecoration(
-                  color: _successBg,
-                  borderRadius: BorderRadius.circular(16),
-                  boxShadow: [
-                    BoxShadow(
-                      color: _successBg.withValues(alpha: 0.35),
-                      blurRadius: 20,
-                      spreadRadius: 0,
-                      offset: const Offset(0, 8),
+      builder:
+          (context) => Positioned(
+            top: MediaQuery.of(context).padding.top + 16,
+            left: 16,
+            right: 16,
+            child: Material(
+              color: AppColors.transparent,
+              child: TweenAnimationBuilder<double>(
+                tween: Tween(begin: 0.0, end: 1.0),
+                duration: const Duration(milliseconds: 350),
+                curve: Curves.easeOutBack,
+                builder: (context, value, child) {
+                  return Transform.translate(
+                    offset: Offset(0, -24 * (1 - value)),
+                    child: Opacity(
+                      opacity: value.clamp(0.0, 1.0),
+                      child: child,
                     ),
-                    BoxShadow(
-                      color: AppColors.charcoal.withValues(alpha: 0.1),
-                      blurRadius: 6,
-                      offset: const Offset(0, 2),
+                  );
+                },
+                child: GestureDetector(
+                  onTap: () {
+                    if (overlayEntry.mounted) overlayEntry.remove();
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 14,
                     ),
-                  ],
-                ),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    // Icon badge
-                    Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: AppColors.pureWhite.withValues(alpha: 0.18),
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: const Icon(
-                        Icons.download_done_rounded,
-                        color: _successIcon,
-                        size: 22,
-                      ),
+                    decoration: BoxDecoration(
+                      color: _successBg,
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: [
+                        BoxShadow(
+                          color: _successBg.withValues(alpha: 0.35),
+                          blurRadius: 20,
+                          spreadRadius: 0,
+                          offset: const Offset(0, 8),
+                        ),
+                        BoxShadow(
+                          color: AppColors.charcoal.withValues(alpha: 0.1),
+                          blurRadius: 6,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
                     ),
-                    const SizedBox(width: 14),
-                    // Title + subtitle
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Text(
-                            'Invoice Downloaded Successfully',
-                            style: TextStyle(
-                              color: _successText,
-                              fontWeight: FontWeight.w700,
-                              fontSize: 13,
-                              letterSpacing: 0.2,
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        // Icon badge
+                        Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: AppColors.pureWhite.withValues(alpha: 0.18),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: const Icon(
+                            Icons.download_done_rounded,
+                            color: _successIcon,
+                            size: 22,
+                          ),
+                        ),
+                        const SizedBox(width: 14),
+                        // Title + subtitle
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Text(
+                                'Invoice Downloaded Successfully',
+                                style: TextStyle(
+                                  color: _successText,
+                                  fontWeight: FontWeight.w700,
+                                  fontSize: 13,
+                                  letterSpacing: 0.2,
+                                ),
+                              ),
+                              const SizedBox(height: 3),
+                              Text(
+                                'Your invoice is ready. Please check your Downloads folder.',
+                                style: TextStyle(
+                                  color: _successText.withValues(alpha: 0.82),
+                                  fontWeight: FontWeight.w400,
+                                  fontSize: 12,
+                                  height: 1.4,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        // Dismiss
+                        GestureDetector(
+                          onTap: () {
+                            if (overlayEntry.mounted) overlayEntry.remove();
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.all(4),
+                            decoration: BoxDecoration(
+                              color: AppColors.pureWhite.withValues(
+                                alpha: 0.18,
+                              ),
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: const Icon(
+                              Icons.close_rounded,
+                              color: _successIcon,
+                              size: 15,
                             ),
                           ),
-                          const SizedBox(height: 3),
-                          Text(
-                            'Your invoice is ready. Please check your Downloads folder.',
-                            style: TextStyle(
-                              color: _successText.withValues(alpha: 0.82),
-                              fontWeight: FontWeight.w400,
-                              fontSize: 12,
-                              height: 1.4,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    // Dismiss
-                    GestureDetector(
-                      onTap: () {
-                        if (overlayEntry.mounted) overlayEntry.remove();
-                      },
-                      child: Container(
-                        padding: const EdgeInsets.all(4),
-                        decoration: BoxDecoration(
-                          color: AppColors.pureWhite.withValues(alpha: 0.18),
-                          borderRadius: BorderRadius.circular(6),
                         ),
-                        child: const Icon(
-                          Icons.close_rounded,
-                          color: _successIcon,
-                          size: 15,
-                        ),
-                      ),
+                      ],
                     ),
-                  ],
+                  ),
                 ),
               ),
             ),
           ),
-        ),
-      ),
     );
 
     overlay.insert(overlayEntry);
@@ -465,7 +475,10 @@ class SnackBarHelper {
   }
 
   /// Generic "something went wrong"
-  static void showSomethingWrong(BuildContext context, {SnackBarAction? action}) {
+  static void showSomethingWrong(
+    BuildContext context, {
+    SnackBarAction? action,
+  }) {
     showTopSnackBar(
       context,
       message: "Hmm, that didn't work. Let's try again! 🔄",
@@ -478,7 +491,10 @@ class SnackBarHelper {
   }
 
   /// Session expired
-  static void showSessionExpired(BuildContext context, {VoidCallback? onLogin}) {
+  static void showSessionExpired(
+    BuildContext context, {
+    VoidCallback? onLogin,
+  }) {
     showTopSnackBar(
       context,
       message: "Your session took a nap. Please log in again 💤",
@@ -486,9 +502,10 @@ class SnackBarHelper {
       textColor: _warningText,
       iconColor: _warningIcon,
       icon: Icons.access_time_rounded,
-      action: onLogin != null
-          ? SnackBarAction(label: 'Log In', onPressed: onLogin)
-          : null,
+      action:
+          onLogin != null
+              ? SnackBarAction(label: 'Log In', onPressed: onLogin)
+              : null,
       duration: const Duration(seconds: 5),
     );
   }

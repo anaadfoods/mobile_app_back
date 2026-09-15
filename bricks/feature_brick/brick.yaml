@@ -1,0 +1,16 @@
+name: feature_brick
+description: >
+  Scaffolds a clean-architecture feature directory with data/domain/presentation
+  layers. All features in the Anaad Foods app MUST be generated from this brick
+  to guarantee structural consistency across sessions.
+
+version: 0.1.0
+
+environment:
+  mason: ">=0.1.0"
+
+vars:
+  name:
+    type: string
+    description: Feature name in snake_case (e.g. auth, payments, panchang)
+    prompt: "What is the feature name?"

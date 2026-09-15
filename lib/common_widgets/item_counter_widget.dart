@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:grocery_app/core/theme/theme.dart';
 
 class ItemCounterWidget extends StatefulWidget {
   final Function(int) onAmountChanged;

@@ -1,13 +1,14 @@
 import 'package:grocery_app/common_widgets/global_import.dart';
-import 'package:intl/intl.dart';
 
 class PauseDatePickerSheet extends StatefulWidget {
   final int maxPausesLeft;
+  final int maxPauseDaysLeft;
   final Function(DateTime, DateTime) onConfirm;
 
   const PauseDatePickerSheet({
     super.key,
     required this.maxPausesLeft,
+    required this.maxPauseDaysLeft,
     required this.onConfirm,
   });
 
@@ -32,8 +33,11 @@ class _PauseDatePickerSheetState extends State<PauseDatePickerSheet> {
         gradient: LinearGradient(
           colors:
               isDark
-                  ? [AppColors.parchment, AppColors.parchment]
-                  : [AppColors.parchment, AppColors.parchment!],
+                  ? [
+                    AppColors.darkSurfaceElevated,
+                    AppColors.darkSurfaceElevated,
+                  ]
+                  : [AppColors.parchment, AppColors.parchment],
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
         ),
@@ -135,8 +139,9 @@ class _PauseDatePickerSheetState extends State<PauseDatePickerSheet> {
                           );
                         },
                       );
-                      if (date != null)
+                      if (date != null) {
                         setState(() => selectedStartDate = date);
+                      }
                     },
                   ),
                 ),
@@ -217,6 +222,16 @@ class _PauseDatePickerSheetState extends State<PauseDatePickerSheet> {
                       );
                       return;
                     }
+                    final durationInDays =
+                        selectedEndDate!.difference(selectedStartDate!).inDays +
+                        1;
+                    if (durationInDays > widget.maxPauseDaysLeft) {
+                      SnackBarHelper.showError(
+                        context,
+                        'Cannot pause for $durationInDays days. Only ${widget.maxPauseDaysLeft} days remaining.',
+                      );
+                      return;
+                    }
                     Navigator.pop(context);
                     widget.onConfirm(selectedStartDate!, selectedEndDate!);
                   },
@@ -269,8 +284,11 @@ class ResumeSubscriptionSheet extends StatelessWidget {
         gradient: LinearGradient(
           colors:
               isDark
-                  ? [AppColors.parchment, AppColors.parchment]
-                  : [AppColors.parchment, AppColors.parchment!],
+                  ? [
+                    AppColors.darkSurfaceElevated,
+                    AppColors.darkSurfaceElevated,
+                  ]
+                  : [AppColors.parchment, AppColors.parchment],
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
         ),
@@ -362,8 +380,11 @@ class DateButton extends StatelessWidget {
           gradient: LinearGradient(
             colors:
                 isDark
-                    ? [AppColors.parchment, AppColors.parchment]
-                    : [AppColors.parchment, AppColors.parchment!],
+                    ? [
+                      AppColors.darkSurfaceElevated,
+                      AppColors.darkSurfaceElevated,
+                    ]
+                    : [AppColors.parchment, AppColors.parchment],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
@@ -372,7 +393,7 @@ class DateButton extends StatelessWidget {
             color:
                 selectedDate != null
                     ? AppColors.deepSoilGreen
-                    : (isDark ? AppColors.charcoal60! : AppColors.rawEarth12!),
+                    : (isDark ? AppColors.charcoal60 : AppColors.rawEarth12),
             width: selectedDate != null ? 2 : 1,
           ),
           boxShadow:

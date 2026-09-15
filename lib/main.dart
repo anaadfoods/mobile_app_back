@@ -1,33 +1,21 @@
-import 'dart:io';
-
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:grocery_app/common_widgets/global_import.dart';
 
 import 'app.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
+import 'package:flutter/foundation.dart';
+// ignore: depend_on_referenced_packages
 import 'package:device_preview/device_preview.dart';
 // import 'package:grocery_app/services/deep_link_service.dart'; // Deprecated - Handled by GoRouter
 
-/// AUDIT ONLY: Bypasses SSL certificate verification for HDFC Bank security audit.
-/// TODO: REMOVE this class before production/Play Store release!
-class AuditHttpOverrides extends HttpOverrides {
-  @override
-  HttpClient createHttpClient(SecurityContext? context) {
-    return super.createHttpClient(context)
-      ..badCertificateCallback =
-          (X509Certificate cert, String host, int port) => true;
-  }
-}
+import 'package:dio/dio.dart';
+import 'package:grocery_app/core/analytics/analytics_service.dart';
 
 Future<void> main() async {
-  // AUDIT ONLY: Accept all SSL certificates for proxy interception.
-  // TODO: REMOVE this line before production/Play Store release!
-  HttpOverrides.global = AuditHttpOverrides();
-
-  await dotenv.load(fileName: ".env");
-
   WidgetsFlutterBinding.ensureInitialized();
+  setupLocator();
+  await dotenv.load(fileName: ".env");
   // await dotenv.load(fileName: ".env"); // Already loaded above
   debugPrint('Loaded PANCHANG_BASE_URL=${dotenv.env["PANCHANG_BASE_URL"]}');
   // Get an instance of SharedPreferences
@@ -36,18 +24,34 @@ Future<void> main() async {
   // Check if the 'hasSeenWelcome' flag is true. If not, it defaults to false.
   final bool hasSeenWelcome = prefs.getBool('hasSeenWelcome') ?? false;
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  await AuthService().initializeAuthState();
-  await NotificationHelper.initialize();
-  await NotificationService().initialize(
-    NotificationCubit(notificationRepository: NotificationRepository()),
-  );
+  await getIt<TokenService>().initializeAuthState();
 
-  // Get and print FCM token
-  final notificationService = NotificationService();
-  await notificationService.getFreshFCMToken();
+  // Initialize AnalyticsService for customer activity, telemetry and product analytics
+  try {
+    final analyticsDio = Dio();
+    await AnalyticsService().initialize(
+      dio: analyticsDio,
+      sutraBaseUrl: dotenv.env['SUTRA_BASE_URL'] ?? 'https://sutra-dev.anaadfoods.com',
+      anaadBaseUrl: dotenv.env['API_BASE_URL'] ?? 'https://bck-dev.anaadfoods.com',
+    );
+    final currentUser = await getIt<TokenService>().getUserData();
+    if (currentUser?.id != null) {
+      AnalyticsService().identify(currentUser!.id!);
+    }
+  } catch (e) {
+    debugPrint('AnalyticsService initialization error: $e');
+  }
+
+  await NotificationHelper.initialize();
+  unawaited(getIt<NotificationService>().initialize(NotificationCubit()));
 
   // Initialize deep link handling - MOVED TO GO_ROUTER
   // await DeepLinkService().initialize();
+
+  await SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitUp,
+    DeviceOrientation.portraitDown,
+  ]);
 
   SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
   SystemChrome.setSystemUIOverlayStyle(
@@ -59,12 +63,16 @@ Future<void> main() async {
     ),
   );
 
-  runApp(
-    DevicePreview(
-      enabled: false, // for release mode set it to false
-      builder: (context) {
-        return MyApp(hasSeenWelcome: hasSeenWelcome);
-      },
-    ),
-  );
+  if (kDebugMode) {
+    runApp(
+      DevicePreview(
+        enabled: false, // for release mode set it to false
+        builder: (context) {
+          return MyApp(hasSeenWelcome: hasSeenWelcome);
+        },
+      ),
+    );
+  } else {
+    runApp(MyApp(hasSeenWelcome: hasSeenWelcome));
+  }
 }

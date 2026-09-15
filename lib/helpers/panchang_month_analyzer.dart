@@ -4,16 +4,16 @@ import '../models/panchang/panchang_month_models.dart';
 class MasaAnalysis {
   /// Which masa each row belongs to (rowIndex -> masa name)
   final Map<int, String> rowMasaMap;
-  
+
   /// Row indices where masa transitions occur
   final List<int> transitionRows;
-  
+
   /// List of unique masas present in this month
   final List<String> presentMasas;
-  
+
   /// First masa in the month
   final String? firstMasa;
-  
+
   /// Last masa in the month
   final String? lastMasa;
 
@@ -48,7 +48,7 @@ class PanchangMonthAnalyzer {
 
     for (var rowIndex = 0; rowIndex < grid.length; rowIndex++) {
       final row = grid[rowIndex];
-      
+
       // Find the dominant (most common) masa in this row
       final masaCounts = <String, int>{};
       for (final day in row) {
@@ -60,17 +60,14 @@ class PanchangMonthAnalyzer {
       if (masaCounts.isEmpty) continue;
 
       // Get the masa with highest count in this row
-      final dominantMasa = masaCounts.entries
-          .reduce((a, b) => a.value > b.value ? a : b)
-          .key;
+      final dominantMasa =
+          masaCounts.entries.reduce((a, b) => a.value > b.value ? a : b).key;
 
       rowMasaMap[rowIndex] = dominantMasa;
       presentMasasSet.add(dominantMasa);
 
       // Track first and last masa
-      if (firstMasa == null) {
-        firstMasa = dominantMasa;
-      }
+      firstMasa ??= dominantMasa;
       lastMasa = dominantMasa;
 
       // Detect transition (when masa changes from previous row)
@@ -101,10 +98,7 @@ class PanchangMonthAnalyzer {
   }
 
   /// Get the new masa that starts at a transition row
-  static String? getNewMasaAtTransition(
-    MasaAnalysis analysis,
-    int rowIndex,
-  ) {
+  static String? getNewMasaAtTransition(MasaAnalysis analysis, int rowIndex) {
     if (!isTransitionRow(analysis, rowIndex)) return null;
     return analysis.rowMasaMap[rowIndex];
   }

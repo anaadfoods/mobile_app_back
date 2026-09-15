@@ -24,7 +24,7 @@ class PanchangHighlightsResponse {
 
   factory PanchangHighlightsResponse.fromJson(Map<String, dynamic> json) {
     final itemsJson = json['items'] as List<dynamic>? ?? [];
-    
+
     return PanchangHighlightsResponse(
       year: json['year'] as int? ?? 0,
       month: json['month'] as int? ?? 0,
@@ -34,9 +34,10 @@ class PanchangHighlightsResponse {
       locale: (json['locale'] ?? 'en').toString(),
       calendarSystem: (json['calendar_system'] ?? 'amanta').toString(),
       profile: (json['profile'] ?? 'default').toString(),
-      items: itemsJson
-          .map((e) => HighlightItem.fromJson(e as Map<String, dynamic>))
-          .toList(),
+      items:
+          itemsJson
+              .map((e) => HighlightItem.fromJson(e as Map<String, dynamic>))
+              .toList(),
     );
   }
 }
@@ -86,9 +87,22 @@ class HighlightItem {
   String get formattedDate {
     final dt = dateTime;
     if (dt == null) return date;
-    
-    const months = ['', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-                    'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+    const months = [
+      '',
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
+    ];
     return '${months[dt.month]} ${dt.day}';
   }
 

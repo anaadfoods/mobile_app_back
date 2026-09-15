@@ -1,6 +1,8 @@
-import 'package:grocery_app/services/api_config.dart'; // ++ ADD THIS IMPORT ++
+import 'package:grocery_app/services/api_config.dart';
+import 'package:grocery_app/features/auth/domain/entities/user.dart';
 
 class UserModel {
+  final int? id;
   final String email;
   final String username;
   final String password;
@@ -18,6 +20,7 @@ class UserModel {
   final bool isEmailVerified;
   final bool isRfp;
   UserModel({
+    this.id,
     required this.email,
     required this.username,
     required this.password,
@@ -54,6 +57,7 @@ class UserModel {
   // Convert UserModel to JSON for profile updates
   Map<String, dynamic> toProfileJson() {
     return {
+      if (id != null) 'id': id,
       'email': email,
       'username': username,
       'first_name': firstName,
@@ -84,7 +88,11 @@ class UserModel {
               : '${ApiConfig.baseUrl}$rawImageUrl';
     }
 
+    final rawId = json['id'];
+    final parsedId = rawId is int ? rawId : (rawId != null ? int.tryParse(rawId.toString()) : null);
+
     return UserModel(
+      id: parsedId,
       email: json['email'] ?? '',
       username: json['username'] ?? '',
       password: json['password'] ?? '',
@@ -106,6 +114,7 @@ class UserModel {
 
   // Create a copy of UserModel with updated fields
   UserModel copyWith({
+    int? id,
     String? email,
     String? username,
     String? password,
@@ -124,6 +133,7 @@ class UserModel {
     bool? isRfp,
   }) {
     return UserModel(
+      id: id ?? this.id,
       email: email ?? this.email,
       username: username ?? this.username,
       password: password ?? this.password,
@@ -140,6 +150,49 @@ class UserModel {
       referralCode: referralCode ?? this.referralCode,
       isEmailVerified: isEmailVerified ?? this.isEmailVerified,
       isRfp: isRfp ?? this.isRfp,
+    );
+  }
+
+  // Create UserModel from domain User entity
+  factory UserModel.fromDomain(dynamic domainUser) {
+    return UserModel(
+      id: domainUser.id,
+      email: domainUser.email,
+      username: domainUser.username,
+      password: '',
+      confirmPassword: '',
+      firstName: domainUser.firstName,
+      lastName: domainUser.lastName,
+      phoneNumber: domainUser.phoneNumber,
+      gender: domainUser.gender,
+      address: domainUser.address,
+      pincode: domainUser.pincode,
+      city: domainUser.city,
+      state: domainUser.state,
+      profilePicture: domainUser.profilePicture,
+      referralCode: domainUser.referralCode,
+      isEmailVerified: domainUser.isEmailVerified,
+      isRfp: domainUser.isRfp,
+    );
+  }
+
+  User toDomain() {
+    return User(
+      id: id,
+      email: email,
+      username: username,
+      firstName: firstName,
+      lastName: lastName,
+      phoneNumber: phoneNumber,
+      gender: gender,
+      address: address,
+      pincode: pincode,
+      city: city,
+      state: state,
+      profilePicture: profilePicture,
+      referralCode: referralCode,
+      isEmailVerified: isEmailVerified,
+      isRfp: isRfp,
     );
   }
 }

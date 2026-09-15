@@ -1,7 +1,8 @@
 import 'package:grocery_app/common_widgets/global_import.dart';
+import 'package:grocery_app/features/subscriptions/domain/entities/subscription_entity.dart';
 
 class SubscriptionRepaymentButton extends StatelessWidget {
-  final Subscription subscription;
+  final SubscriptionEntity subscription;
   final bool isExpanded;
   final bool showLabel;
 

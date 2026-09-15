@@ -31,6 +31,7 @@
 		<key>UISupportedInterfaceOrientations</key>
 		<array>
 			<string>UIInterfaceOrientationPortrait</string>
+			<string>UIInterfaceOrientationPortraitUpsideDown</string>
 			<string>UIInterfaceOrientationLandscapeLeft</string>
 			<string>UIInterfaceOrientationLandscapeRight</string>
 		</array>
@@ -45,7 +46,6 @@
 		<true/>
 		<key>UIApplicationSupportsIndirectInputEvents</key>
 		<true/>
-		<!-- Handle custom URL schemes for payment redirects -->
 		<key>CFBundleURLTypes</key>
 		<array>
 			<dict>
@@ -56,11 +56,35 @@
 					<string>flutterpay</string>
 				</array>
 			</dict>
+			<dict>
+				<key>CFBundleURLName</key>
+				<string>google_sign_in</string>
+				<key>CFBundleURLSchemes</key>
+				<array>
+					<string>com.googleusercontent.apps.356514741847-jcknjeta1r4eg56bea8jmjb0ucg3v6n2</string>
+				</array>
+			</dict>
 		</array>
 		<key>UIStatusBarHidden</key>
 		<false/>
+		<!-- Google Sign-In iOS configuration -->
+		<key>GIDClientID</key>
+		<string>356514741847-jcknjeta1r4eg56bea8jmjb0ucg3v6n2.apps.googleusercontent.com</string>
+		<key>GIDServerClientID</key>
+		<string>356514741847-1000gjfkvl9b1pmp9iqcc8do7vebo1ap.apps.googleusercontent.com</string>
 		<!-- Flutter Deep Linking -->
 		<key>FlutterDeepLinkingEnabled</key>
 		<true/>
+		<key>NSPhotoLibraryUsageDescription</key>
+		<string>This app requires access to the photo library to let you upload a profile picture.</string>
+		<key>NSCameraUsageDescription</key>
+		<string>This app requires access to the camera to let you take a profile picture.</string>
+		<key>NSMicrophoneUsageDescription</key>
+		<string>This app requires access to the microphone for video features.</string>
+		<key>UIBackgroundModes</key>
+		<array>
+			<string>fetch</string>
+			<string>remote-notification</string>
+		</array>
 	</dict>
 </plist>

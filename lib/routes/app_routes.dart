@@ -18,7 +18,7 @@ enum AppRoute {
 
   // Product & Order Routes
   productDetails(path: '/product/:id', name: 'product_details'),
-  allProducts(path: '/all-products', name: 'all_products'),
+  allProducts(path: '/products', name: 'products'),
   featuredProducts(path: '/featured-products', name: 'featured_products'),
   categoryItems(path: '/category-items', name: 'category_items'),
   orderList(path: '/orders', name: 'order_list'),
@@ -69,6 +69,19 @@ enum AppRoute {
     path: '/panchang-advanced-timings',
     name: 'panchang_advanced_timings',
   ),
+
+  // Kundli Routes
+  kundli(path: '/kundli', name: 'kundli'),
+  kundliInput(path: '/kundli-input', name: 'kundli_input'),
+  kundliDetails(path: '/kundli-details', name: 'kundli_details'),
+
+  // Prakriti Assessment Routes
+  prakritiQuiz(path: '/prakriti-quiz', name: 'prakriti_quiz'),
+  prakritiAnswers(path: '/prakriti-answers', name: 'prakriti_answers'),
+
+  // AI Chat & Health Profile
+  aiChat(path: '/ai-chat', name: 'ai_chat'),
+  healthProfile(path: '/health-profile', name: 'health_profile'),
 
   // Misc
   webview(path: '/webview', name: 'webview'),

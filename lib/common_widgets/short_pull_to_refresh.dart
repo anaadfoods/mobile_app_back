@@ -14,13 +14,13 @@ class ShortPullToRefresh extends StatefulWidget {
   final double loaderSize;
 
   const ShortPullToRefresh({
-    Key? key,
+    super.key,
     required this.child,
     required this.onRefresh,
     this.headerColor = AppColors.charcoal,
     this.triggerHeight = 60.0,
     this.loaderSize = 24.0,
-  }) : super(key: key);
+  });
 
   @override
   _ShortPullToRefreshState createState() => _ShortPullToRefreshState();

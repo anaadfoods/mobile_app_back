@@ -29,43 +29,67 @@ class PanchangLunarInfo {
 class PanchangCorePanchang {
   final String vara;
   final String tithi;
+  final int? tithiIndex;
   final DateTime? tithiEnd;
   final String nakshatra;
+  final int? nakshatraIndex;
+  final int? nakshatraPada;
+  final String? nakshatraLord;
   final DateTime? nakshatraEnd;
   final String yoga;
+  final int? yogaIndex;
   final DateTime? yogaEnd;
   final String karana;
+  final int? karanaIndex;
   final DateTime? karanaEnd;
   final String sunRashi;
+  final int? sunRashiIndex;
   final String moonRashi;
+  final int? moonRashiIndex;
 
   const PanchangCorePanchang({
     required this.vara,
     required this.tithi,
+    this.tithiIndex,
     required this.tithiEnd,
     required this.nakshatra,
+    this.nakshatraIndex,
+    this.nakshatraPada,
+    this.nakshatraLord,
     required this.nakshatraEnd,
     required this.yoga,
+    this.yogaIndex,
     required this.yogaEnd,
     required this.karana,
+    this.karanaIndex,
     required this.karanaEnd,
     required this.sunRashi,
+    this.sunRashiIndex,
     required this.moonRashi,
+    this.moonRashiIndex,
   });
 
   factory PanchangCorePanchang.fromJson(Map<String, dynamic> json) {
     return PanchangCorePanchang(
       vara: (json['vara'] ?? '').toString(),
       tithi: (json['tithi'] ?? '').toString(),
+      tithiIndex: (json['tithi_index'] as num?)?.toInt(),
       tithiEnd: _tryParseDateTime(json['tithi_end']),
       nakshatra: (json['nakshatra'] ?? '').toString(),
+      nakshatraIndex: (json['nakshatra_index'] as num?)?.toInt(),
+      nakshatraPada: (json['nakshatra_pada'] as num?)?.toInt() ?? 1,
+      nakshatraLord: json['nakshatra_lord']?.toString(),
       nakshatraEnd: _tryParseDateTime(json['nakshatra_end']),
       yoga: (json['yoga'] ?? '').toString(),
+      yogaIndex: (json['yoga_index'] as num?)?.toInt(),
       yogaEnd: _tryParseDateTime(json['yoga_end']),
       karana: (json['karana'] ?? '').toString(),
+      karanaIndex: (json['karana_index'] as num?)?.toInt(),
       karanaEnd: _tryParseDateTime(json['karana_end']),
       sunRashi: (json['sun_rashi'] ?? '').toString(),
+      sunRashiIndex: (json['sun_rashi_index'] as num?)?.toInt(),
       moonRashi: (json['moon_rashi'] ?? '').toString(),
+      moonRashiIndex: (json['moon_rashi_index'] as num?)?.toInt(),
     );
   }
 }
@@ -337,6 +361,103 @@ class PanchangInauspiciousTimings {
   }
 }
 
+class PanchangPlanetItem {
+  final String name;
+  final String rashi;
+  final String rashiEn;
+  final int rashiIndex;
+  final double degreeInRashi;
+  final String formatted;
+  final bool isRetrograde;
+  final String? nakshatra;
+  final int? nakshatraPada;
+  final String? nakshatraLord;
+
+  const PanchangPlanetItem({
+    required this.name,
+    required this.rashi,
+    required this.rashiEn,
+    required this.rashiIndex,
+    required this.degreeInRashi,
+    required this.formatted,
+    required this.isRetrograde,
+    this.nakshatra,
+    this.nakshatraPada,
+    this.nakshatraLord,
+  });
+
+  factory PanchangPlanetItem.fromJson(Map<String, dynamic> json) {
+    return PanchangPlanetItem(
+      name: (json['name'] ?? '').toString(),
+      rashi: (json['rashi'] ?? '').toString(),
+      rashiEn: (json['rashi_en'] ?? '').toString(),
+      rashiIndex: (json['rashi_index'] as num?)?.toInt() ?? 0,
+      degreeInRashi: (json['degree_in_rashi'] as num?)?.toDouble() ?? 0.0,
+      formatted: (json['formatted'] ?? '').toString(),
+      isRetrograde: json['is_retrograde'] == true,
+      nakshatra: json['nakshatra']?.toString(),
+      nakshatraPada: (json['nakshatra_pada'] as num?)?.toInt(),
+      nakshatraLord: json['nakshatra_lord']?.toString(),
+    );
+  }
+}
+
+class PanchangValidationReport {
+  final String status;
+  final bool isValid;
+  final int checksRun;
+  final List<String> errors;
+
+  const PanchangValidationReport({
+    required this.status,
+    required this.isValid,
+    required this.checksRun,
+    this.errors = const [],
+  });
+
+  factory PanchangValidationReport.fromJson(Map<String, dynamic> json) {
+    final errs = json['errors'];
+    return PanchangValidationReport(
+      status: (json['status'] ?? 'PASS').toString(),
+      isValid: json['is_valid'] ?? (json['status'] == 'PASS'),
+      checksRun: (json['checks_run'] as num?)?.toInt() ?? 0,
+      errors: errs is List ? errs.map((e) => e.toString()).toList() : const [],
+    );
+  }
+}
+
+class PanchangAstronomicalInfo {
+  final double sunLongitudeSidereal;
+  final double moonLongitudeSidereal;
+  final double sunLongitudeTropical;
+  final double moonLongitudeTropical;
+  final double ayanamshaDeg;
+  final double julianDay;
+  final String coordinateSystem;
+
+  const PanchangAstronomicalInfo({
+    required this.sunLongitudeSidereal,
+    required this.moonLongitudeSidereal,
+    required this.sunLongitudeTropical,
+    required this.moonLongitudeTropical,
+    required this.ayanamshaDeg,
+    required this.julianDay,
+    required this.coordinateSystem,
+  });
+
+  factory PanchangAstronomicalInfo.fromJson(Map<String, dynamic> json) {
+    return PanchangAstronomicalInfo(
+      sunLongitudeSidereal: (json['sun_longitude_sidereal'] as num?)?.toDouble() ?? 0.0,
+      moonLongitudeSidereal: (json['moon_longitude_sidereal'] as num?)?.toDouble() ?? 0.0,
+      sunLongitudeTropical: (json['sun_longitude_tropical'] as num?)?.toDouble() ?? 0.0,
+      moonLongitudeTropical: (json['moon_longitude_tropical'] as num?)?.toDouble() ?? 0.0,
+      ayanamshaDeg: (json['ayanamsha_deg'] as num?)?.toDouble() ?? 24.2281,
+      julianDay: (json['julian_day'] as num?)?.toDouble() ?? 0.0,
+      coordinateSystem: (json['coordinate_system'] ?? 'Lahiri Sidereal').toString(),
+    );
+  }
+}
+
 class PanchangDayResponse {
   final String date;
   final String timezone;
@@ -353,6 +474,9 @@ class PanchangDayResponse {
   final PanchangInauspiciousTimings? inauspiciousTimings;
   final PanchangTransitions? transitions;
   final List<PanchangFestivalItem> festivals;
+  final Map<String, PanchangPlanetItem>? planets;
+  final PanchangValidationReport? validation;
+  final PanchangAstronomicalInfo? astronomical;
 
   const PanchangDayResponse({
     required this.date,
@@ -370,6 +494,9 @@ class PanchangDayResponse {
     required this.inauspiciousTimings,
     required this.transitions,
     required this.festivals,
+    this.planets,
+    this.validation,
+    this.astronomical,
   });
 
   factory PanchangDayResponse.fromJson(Map<String, dynamic> json) {
@@ -381,6 +508,15 @@ class PanchangDayResponse {
                 .map(PanchangFestivalItem.fromJson)
                 .toList()
             : <PanchangFestivalItem>[];
+
+    final planetsMap = <String, PanchangPlanetItem>{};
+    if (json['planets'] is Map<String, dynamic>) {
+      (json['planets'] as Map<String, dynamic>).forEach((k, v) {
+        if (v is Map<String, dynamic>) {
+          planetsMap[k] = PanchangPlanetItem.fromJson(v);
+        }
+      });
+    }
 
     return PanchangDayResponse(
       date: (json['date'] ?? '').toString(),
@@ -461,6 +597,19 @@ class PanchangDayResponse {
               )
               : null,
       festivals: festivals,
+      planets: planetsMap.isNotEmpty ? planetsMap : null,
+      validation:
+          json['validation'] is Map<String, dynamic>
+              ? PanchangValidationReport.fromJson(
+                json['validation'] as Map<String, dynamic>,
+              )
+              : null,
+      astronomical:
+          json['astronomical'] is Map<String, dynamic>
+              ? PanchangAstronomicalInfo.fromJson(
+                json['astronomical'] as Map<String, dynamic>,
+              )
+              : null,
     );
   }
 }

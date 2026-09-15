@@ -1,7 +1,8 @@
 import 'dart:convert';
 
 class NotificationModel {
-  final String id; // Keep as string for compatibility with LOCAL_DEVICE_ID_TIMESTAMP format
+  final String
+  id; // Keep as string for compatibility with LOCAL_DEVICE_ID_TIMESTAMP format
   final String title;
   final String body;
   final String type;
@@ -36,10 +37,10 @@ class NotificationModel {
   factory NotificationModel.fromJson(Map<String, dynamic> json) {
     // Reconcile standard backend structure with existing app structure
     String extractedId = (json['id'] ?? '').toString();
-    
+
     // Support backend 'message' field mapping to 'body'
     String bodyVal = json['body'] ?? json['message'] ?? '';
-    
+
     // Parse metadata
     Map<String, dynamic> metadataVal = {};
     if (json['metadata'] != null) {
@@ -84,7 +85,9 @@ class NotificationModel {
 
   Map<String, dynamic> toJson() {
     return {
-      'id': int.tryParse(id) ?? id, // Attempt to parse as int for backend if numeric
+      'id':
+          int.tryParse(id) ??
+          id, // Attempt to parse as int for backend if numeric
       'title': title,
       'body': body,
       'message': body, // duplicate to match backend 'message' key

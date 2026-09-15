@@ -69,3 +69,8 @@ ios/Flutter/Generated.xcconfig
 .metadata
 macos/Flutter/GeneratedPluginRegistrant.swift
 .DS_Store
+
+# Temp / Editor files
+.custom_editor_index.db
+lib.zip
+*.py

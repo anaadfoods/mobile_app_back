@@ -19,6 +19,8 @@ class CustomInput extends StatefulWidget {
 
   final Color? fillColor;
   final bool onPrimary; // New flag to style for on-primary backgrounds
+  final TextInputAction? textInputAction;
+  final void Function(String)? onFieldSubmitted;
 
   const CustomInput({
     super.key,
@@ -38,6 +40,8 @@ class CustomInput extends StatefulWidget {
     this.height,
     this.fillColor,
     this.onPrimary = false, // Default to normal background
+    this.textInputAction,
+    this.onFieldSubmitted,
   });
 
   @override
@@ -167,6 +171,8 @@ class _CustomInputState extends State<CustomInput> {
         keyboardType: widget.keyboardType,
         validator: widget.validator,
         focusNode: widget.focusNode,
+        textInputAction: widget.textInputAction,
+        onFieldSubmitted: widget.onFieldSubmitted,
         onChanged:
             widget.onValidationChanged != null
                 ? (value) {

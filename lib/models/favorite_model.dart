@@ -1,5 +1,6 @@
 // lib/models/favorite_model.dart
 
+import 'package:grocery_app/utils/app_logger.dart';
 import 'package:grocery_app/models/order_model.dart' show parseFlexibleDate;
 
 class FavoriteModel {
@@ -15,6 +16,7 @@ class FavoriteModel {
 
   /// The product image URL. Non-nullable, defaults to an empty string if not provided.
   final String image;
+  final String productCategory;
 
   FavoriteModel({
     required this.id,
@@ -24,6 +26,7 @@ class FavoriteModel {
     required this.weight,
     required this.createdAt,
     required this.image,
+    required this.productCategory,
   });
 
   /// A robust factory constructor to parse JSON from the API.
@@ -61,13 +64,15 @@ class FavoriteModel {
         weight: product['weight'] ?? '',
         image: imageUrl, // Use the safely parsed image URL.
         createdAt: parseFlexibleDate(json['created_at']?.toString()),
+        productCategory:
+            product['product_category'] ?? product['category'] ?? '',
       );
     } catch (e, stack) {
-      print('--- Error parsing FavoriteModel ---');
-      print('JSON: $json');
-      print('Error: $e');
-      print('Stack trace: $stack');
-      print('------------------------------------');
+      AppLogger.instance.log('--- Error parsing FavoriteModel ---');
+      AppLogger.instance.log('JSON: $json');
+      AppLogger.instance.log('Error: $e');
+      AppLogger.instance.log('Stack trace: $stack');
+      AppLogger.instance.log('------------------------------------');
       // Rethrowing the error helps in debugging during development.
       rethrow;
     }
@@ -82,6 +87,7 @@ class FavoriteModel {
         'weight': weight,
         'image': image,
         'price': price,
+        'product_category': productCategory,
       },
       'created_at': createdAt.toIso8601String(),
     };

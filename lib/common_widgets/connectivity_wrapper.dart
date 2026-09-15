@@ -6,7 +6,7 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 class ConnectivityWrapper extends StatefulWidget {
   final Widget child;
 
-  const ConnectivityWrapper({Key? key, required this.child}) : super(key: key);
+  const ConnectivityWrapper({super.key, required this.child});
 
   @override
   State<ConnectivityWrapper> createState() => _ConnectivityWrapperState();

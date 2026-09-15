@@ -2,15 +2,17 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:grocery_app/common_widgets/global_import.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:http/http.dart' as http;
-import 'package:device_info_plus/device_info_plus.dart';
+import 'package:dio/dio.dart' as dio;
 import '../models/notification_model.dart';
-import 'notification_sync_manager.dart';
+import 'package:grocery_app/features/notifications/data/datasources/notifications_local_data_source.dart';
+import 'package:grocery_app/core/analytics/analytics_service.dart';
+import 'package:grocery_app/routes/app_router.dart';
+import 'package:grocery_app/routes/app_routes.dart';
 
 class NotificationService {
-  static final NotificationService _instance = NotificationService._internal();
-  factory NotificationService() => _instance;
+  factory NotificationService() => getIt<NotificationService>();
   NotificationService._internal();
+  static NotificationService create() => NotificationService._internal();
 
   final FirebaseMessaging _firebaseMessaging = FirebaseMessaging.instance;
   final FlutterLocalNotificationsPlugin _localNotifications =
@@ -25,6 +27,16 @@ class NotificationService {
       StreamController<String>.broadcast();
 
   final DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
+
+  // WebSocket Live Channel State
+  WebSocket? _webSocket;
+  Timer? _wsReconnectTimer;
+  bool _isWsConnecting = false;
+  NotificationCubit? _cubit;
+
+  void updateCubit(NotificationCubit cubit) {
+    _cubit = cubit;
+  }
 
   // Getters for streams
   Stream<RemoteMessage> get onMessageOpenedApp =>
@@ -49,7 +61,7 @@ class NotificationService {
 
     if (Platform.isAndroid) {
       AndroidDeviceInfo androidInfo = await deviceInfo.androidInfo;
-      return androidInfo.id ?? "unknown_android_id"; // Best option for Android
+      return androidInfo.id; // Best option for Android
     } else if (Platform.isIOS) {
       IosDeviceInfo iosInfo = await deviceInfo.iosInfo;
       return iosInfo.identifierForVendor ??
@@ -67,29 +79,155 @@ class NotificationService {
   bool _isInitialized = false;
 
   Future<void> initialize(NotificationCubit read) async {
+    _cubit = read;
     if (_isInitialized) return;
     _isInitialized = true;
 
     try {
+      // Connect WebSocket for real-time notifications
+      connectWebSocket();
+
       // Initialize Firebase Messaging
       await _initializeFirebaseMessaging();
 
       // Initialize Local Notifications
       await _initializeLocalNotifications();
 
-      // Request permissions
-      await _requestPermissions();
-
-      // Get FCM token
-      await _getFCMToken();
-
       // Set up message handlers
       _setupMessageHandlers();
+
+      // Check if permission is already granted to fetch the token silently
+      final settings = await _firebaseMessaging.getNotificationSettings();
+      if (settings.authorizationStatus == AuthorizationStatus.authorized ||
+          settings.authorizationStatus == AuthorizationStatus.provisional) {
+        await _getFCMToken();
+      }
 
       debugPrint('NotificationService initialized successfully');
     } catch (e) {
       debugPrint('Error initializing NotificationService: $e');
     }
+  }
+
+  // ── Real-Time WebSocket Channel ───────────
+
+  Future<void> connectWebSocket() async {
+    if (_webSocket != null || _isWsConnecting) return;
+
+    try {
+      _isWsConnecting = true;
+      final token = await TokenService().getAccessToken();
+      final devId = await getDeviceId();
+      final String? anonId = AnalyticsService().anonymousId;
+
+      String wsBase = ApiConfig.baseUrl.trim();
+      if (wsBase.startsWith('https://')) {
+        wsBase = 'wss://${wsBase.substring(8)}';
+      } else if (wsBase.startsWith('http://')) {
+        wsBase = 'ws://${wsBase.substring(7)}';
+      } else {
+        wsBase = 'ws://$wsBase';
+      }
+
+      String wsUrl =
+          '$wsBase/ws/notifications/?device_id=$devId&platform=${Platform.isAndroid ? 'android' : 'ios'}';
+      if (token != null && token.isNotEmpty) {
+        wsUrl += '&token=$token';
+      } else if (anonId != null && anonId.isNotEmpty) {
+        wsUrl += '&anonymous_id=$anonId';
+      }
+
+      debugPrint('[NotificationService] Connecting to WebSocket: $wsUrl');
+      _webSocket = await WebSocket.connect(
+        wsUrl,
+      ).timeout(const Duration(seconds: 10));
+      _isWsConnecting = false;
+      debugPrint('[NotificationService] WebSocket connected successfully!');
+
+      _webSocket!.listen(
+        (data) {
+          debugPrint('[NotificationService] WS message received: $data');
+          try {
+            final parsed = jsonDecode(data as String);
+            final event = parsed['event'] as String?;
+            final payload = parsed['data'] as Map<String, dynamic>? ?? {};
+
+            if (event == 'NOTIFICATION_CREATED') {
+              _cubit?.syncNotifications();
+
+              final title =
+                  payload['title']?.toString() ?? 'New Notification';
+              final message = payload['message']?.toString() ?? '';
+              final metadata =
+                  payload['metadata'] is Map<String, dynamic>
+                      ? payload['metadata'] as Map<String, dynamic>
+                      : <String, dynamic>{};
+
+              final dataMap = <String, dynamic>{
+                'title': title,
+                'body': message,
+                'id': payload['id']?.toString() ?? '',
+                'deep_link': payload['deep_link'] ?? metadata['deep_link'] ?? metadata['screen'],
+                'screen': payload['screen'] ?? metadata['screen'],
+                'action': payload['action'] ?? metadata['action'],
+                ...metadata,
+              };
+
+              final remoteMessage = RemoteMessage(
+                data: dataMap,
+                notification: RemoteNotification(
+                  title: title,
+                  body: message,
+                ),
+              );
+
+              _handleForegroundMessage(remoteMessage);
+            } else if (event == 'NOTIFICATION_READ' ||
+                event == 'NOTIFICATION_DISMISSED') {
+              _cubit?.syncNotifications();
+            }
+          } catch (e) {
+            debugPrint('[NotificationService] Error handling WS message: $e');
+          }
+        },
+        onError: (err) {
+          debugPrint('[NotificationService] WS error: $err');
+          _scheduleWsReconnect();
+        },
+        onDone: () {
+          debugPrint('[NotificationService] WS connection closed');
+          _scheduleWsReconnect();
+        },
+        cancelOnError: true,
+      );
+    } catch (e) {
+      _isWsConnecting = false;
+      debugPrint('[NotificationService] WS connect failed: $e');
+      _scheduleWsReconnect();
+    }
+  }
+
+  void _scheduleWsReconnect() {
+    _webSocket = null;
+    _isWsConnecting = false;
+    _wsReconnectTimer?.cancel();
+    _wsReconnectTimer = Timer(const Duration(seconds: 5), () {
+      debugPrint('[NotificationService] Reconnecting WS...');
+      connectWebSocket();
+    });
+  }
+
+  void reconnectWebSocket() {
+    disconnectWebSocket();
+    connectWebSocket();
+  }
+
+  void disconnectWebSocket() {
+    _wsReconnectTimer?.cancel();
+    _wsReconnectTimer = null;
+    _webSocket?.close();
+    _webSocket = null;
+    _isWsConnecting = false;
   }
 
   Future<void> _initializeFirebaseMessaging() async {
@@ -233,7 +371,7 @@ class NotificationService {
     }
   }
 
-  Future<void> _requestPermissions() async {
+  Future<void> requestNotificationPermission() async {
     NotificationSettings settings = await _firebaseMessaging.requestPermission(
       alert: true,
       announcement: false,
@@ -245,6 +383,11 @@ class NotificationService {
     );
 
     debugPrint('User granted permission: ${settings.authorizationStatus}');
+
+    if (settings.authorizationStatus == AuthorizationStatus.authorized ||
+        settings.authorizationStatus == AuthorizationStatus.provisional) {
+      await _getFCMToken();
+    }
   }
 
   Future<void> _getFCMToken() async {
@@ -252,12 +395,32 @@ class NotificationService {
     if (token != null) {
       await _saveFCMToken(token);
       debugPrint('FCM Token: $token');
+
+      final isLoggedIn = await getIt<TokenService>().isLoggedIn();
+      if (isLoggedIn) {
+        final bearerToken = await getIt<TokenService>().getAccessToken();
+        if (bearerToken != null) {
+          unawaited(registerFcmTokenWithBackend(token, bearerToken));
+        }
+      } else {
+        unawaited(registerGuestFcmTokenWithBackend(token));
+      }
     }
 
     // Listen for token refresh
-    _firebaseMessaging.onTokenRefresh.listen((newToken) {
-      _saveFCMToken(newToken);
+    _firebaseMessaging.onTokenRefresh.listen((newToken) async {
+      await _saveFCMToken(newToken);
       _onTokenRefreshController.add(newToken);
+
+      final isLoggedIn = await getIt<TokenService>().isLoggedIn();
+      if (isLoggedIn) {
+        final bearerToken = await getIt<TokenService>().getAccessToken();
+        if (bearerToken != null) {
+          unawaited(registerFcmTokenWithBackend(newToken, bearerToken));
+        }
+      } else {
+        unawaited(registerGuestFcmTokenWithBackend(newToken));
+      }
     });
   }
 
@@ -278,15 +441,17 @@ class NotificationService {
       if (token != null) {
         await _saveFCMToken(token);
         debugPrint('FCM Token: $token');
-        print('FCM Token: $token'); // Also print to console for easy access
+        AppLogger.instance.log(
+          'FCM Token: $token',
+        ); // Also print to console for easy access
       } else {
         debugPrint('Failed to get FCM token');
-        print('Failed to get FCM token');
+        AppLogger.instance.log('Failed to get FCM token');
       }
       return token;
     } catch (e) {
       debugPrint('Error getting FCM token: $e');
-      print('Error getting FCM token: $e');
+      AppLogger.instance.log('Error getting FCM token: $e');
       return null;
     }
   }
@@ -296,6 +461,69 @@ class NotificationService {
     // This method is kept as a placeholder for any additional setup.
     // Do NOT re-register onMessage / onMessageOpenedApp here to avoid
     // duplicate processing of every notification.
+  }
+
+  bool _shouldSuppressForegroundBanner(
+    String title,
+    String body,
+    Map<String, dynamic> data,
+  ) {
+    final titleLower = title.toLowerCase();
+    final bodyLower = body.toLowerCase();
+    final type = (data['type'] ?? '').toString().toLowerCase();
+    final action = (data['action'] ?? '').toString().toLowerCase();
+    final screen = (data['screen'] ?? '').toString().toLowerCase();
+
+    // 1. Order Creation
+    if (type == 'order' ||
+        action == 'view_order' ||
+        screen == 'order_tracking') {
+      if (titleLower.contains('placed') ||
+          titleLower.contains('created') ||
+          titleLower.contains('success') ||
+          bodyLower.contains('placed') ||
+          bodyLower.contains('created') ||
+          bodyLower.contains('success')) {
+        return true;
+      }
+    }
+
+    // 2. Subscription Creation
+    if (type == 'subscription' ||
+        action == 'view_subscription' ||
+        screen == 'subscription_detail') {
+      if (titleLower.contains('created') ||
+          titleLower.contains('success') ||
+          titleLower.contains('active') ||
+          titleLower.contains('activated') ||
+          bodyLower.contains('created') ||
+          bodyLower.contains('success') ||
+          bodyLower.contains('active') ||
+          bodyLower.contains('activated')) {
+        return true;
+      }
+    }
+
+    // 3. Profile Update
+    if (type == 'profile' || action == 'open_profile' || screen == 'profile') {
+      if (titleLower.contains('updated') ||
+          titleLower.contains('success') ||
+          titleLower.contains('change') ||
+          bodyLower.contains('updated') ||
+          bodyLower.contains('success') ||
+          bodyLower.contains('change')) {
+        return true;
+      }
+    }
+
+    // Fallback general substring check
+    if (titleLower.contains('order placed') ||
+        titleLower.contains('subscription created') ||
+        titleLower.contains('profile updated')) {
+      return true;
+    }
+
+    return false;
   }
 
   void _handleForegroundMessage(RemoteMessage message) {
@@ -310,39 +538,38 @@ class NotificationService {
 
     // Determine title and body from notification payload OR data payload.
     // This ensures data-only messages from the backend are also handled.
-    final String title = message.notification?.title ?? message.data['title'] ?? 'New Notification';
-    final String body = message.notification?.body ?? message.data['body'] ?? '';
+    final String title =
+        message.notification?.title ??
+        message.data['title'] ??
+        'New Notification';
+    final String body =
+        message.notification?.body ?? message.data['body'] ?? '';
 
     // Only skip truly empty messages (no notification AND no useful data)
-    if (message.notification == null && title == 'New Notification' && body.isEmpty && message.data.isEmpty) {
+    if (message.notification == null &&
+        title == 'New Notification' &&
+        body.isEmpty &&
+        message.data.isEmpty) {
       debugPrint('Skipping empty foreground message with no data');
       return;
     }
 
-    // Save notification to local storage via sync manager
+    // Save notification to local storage via data source
     try {
-      final notif = NotificationModel(
-        id: message.data['id']?.toString() ?? message.messageId ?? DateTime.now().millisecondsSinceEpoch.toString(),
-        title: title,
-        body: body,
-        type: message.data['type'] ?? 'general',
-        action: message.data['action'],
-        source: 'SERVER',
-        isRead: false,
-        isDismissed: false,
-        syncVersion: int.tryParse(message.data['sync_version']?.toString() ?? '0') ?? 0,
-        timestamp: DateTime.now().millisecondsSinceEpoch,
-        image: message.data['image'] ?? message.data['image_url'] ?? message.notification?.android?.imageUrl ?? message.notification?.apple?.imageUrl,
-        priority: message.data['priority'] ?? 'medium',
-        metadata: Map<String, dynamic>.from(message.data),
+      getIt<NotificationsLocalDataSource>().saveServerPushNotification(
+        message.data,
       );
-      NotificationSyncManager().saveServerPushNotification(notif);
     } catch (e) {
       debugPrint('Error saving foreground notification: $e');
     }
 
-    // Show local notification (heads-up banner)
-    _showLocalNotification(message);
+    // Check if we should suppress the local notification banner
+    if (!_shouldSuppressForegroundBanner(title, body, message.data)) {
+      // Show local notification (heads-up banner)
+      _showLocalNotification(message);
+    } else {
+      debugPrint('Suppressing foreground banner for $title');
+    }
 
     // Add to stream for UI updates (badge, in-app list refresh)
     _onMessageReceivedController.add(message);
@@ -381,7 +608,10 @@ class NotificationService {
 
   Future<void> _showLocalNotification(RemoteMessage message) async {
     String channelId = _getChannelId(message.data);
-    String title = message.notification?.title ?? message.data['title'] ?? 'New Notification';
+    String title =
+        message.notification?.title ??
+        message.data['title'] ??
+        'New Notification';
     String body = message.notification?.body ?? message.data['body'] ?? '';
 
     // Get image URL from notification or data payload
@@ -396,12 +626,17 @@ class NotificationService {
 
     if (imageUrl != null && imageUrl.isNotEmpty) {
       try {
-        // Download image for BigPictureStyle notification
-        final response = await http.get(Uri.parse(imageUrl));
-        if (response.statusCode == 200) {
+        // Download image for BigPictureStyle notification using vanilla Dio
+        final dioClient = dio.Dio();
+        final response = await dioClient.get<List<int>>(
+          imageUrl,
+          options: dio.Options(responseType: dio.ResponseType.bytes),
+        );
+        if (response.statusCode == 200 && response.data != null) {
+          final bytes = Uint8List.fromList(response.data!);
           styleInformation = BigPictureStyleInformation(
-            ByteArrayAndroidBitmap(response.bodyBytes),
-            largeIcon: ByteArrayAndroidBitmap(response.bodyBytes),
+            ByteArrayAndroidBitmap(bytes),
+            largeIcon: ByteArrayAndroidBitmap(bytes),
             contentTitle: title,
             htmlFormatContentTitle: true,
             summaryText: body,
@@ -561,25 +796,50 @@ class NotificationService {
       }
     }
 
-    // Extract type and ID from metadata
-    final String? metadataType = metadata['type']?.toString() ?? metadata['screen']?.toString();
-    final String? metadataId = toStringId(metadata['id'] ??
-        metadata['order_id'] ??
-        metadata['product_id'] ??
-        metadata['subscription_id']);
+    // Extract type, screen, or deep_link
+    final String? metadataType =
+        metadata['type']?.toString() ?? metadata['screen']?.toString();
+    final String? metadataId = toStringId(
+      metadata['id'] ??
+          metadata['order_id'] ??
+          metadata['product_id'] ??
+          metadata['subscription_id'],
+    );
 
-    final String? type = (metadataType != null && metadataType.isNotEmpty)
-        ? metadataType
-        : data['type'] as String?;
+    final String? deepLinkTarget = (data['deep_link'] ??
+            data['screen'] ??
+            data['target'] ??
+            metadata['deep_link'] ??
+            metadata['screen'] ??
+            metadata['target'] ??
+            (metadata['data'] is Map ? metadata['data']['screen'] ?? metadata['data']['deep_link'] : null) ??
+            (data['data'] is Map ? data['data']['screen'] ?? data['data']['deep_link'] : null))
+        ?.toString();
 
-    final String? genericId = (metadataId != null && metadataId.isNotEmpty)
-        ? metadataId
-        : toStringId(data['id']);
+    final String? action = (data['action'] ??
+            metadata['action'] ??
+            (metadata['data'] is Map ? metadata['data']['action'] : null) ??
+            (data['data'] is Map ? data['data']['action'] : null))
+        ?.toString();
 
-    // Handle type-based routing (using 'type' field from backend)
+    final String? type = (deepLinkTarget != null && deepLinkTarget.isNotEmpty)
+        ? deepLinkTarget
+        : (action != null && action.isNotEmpty)
+            ? action.replaceFirst('open_', '')
+            : (metadataType != null && metadataType.isNotEmpty)
+                ? metadataType
+                : data['type'] as String?;
+
+    final String? genericId =
+        (metadataId != null && metadataId.isNotEmpty)
+            ? metadataId
+            : toStringId(data['id']);
+
+    // Handle type-based routing (using 'type', 'deep_link', or 'screen' field)
     if (type != null && type.isNotEmpty) {
-      debugPrint('Handling type-based redirection: $type');
-      switch (type) {
+      final normalizedType = type.toLowerCase().replaceAll('-', '_');
+      debugPrint('Handling redirection for target: $normalizedType');
+      switch (normalizedType) {
         case 'product':
         case 'product_detail':
           final productId =
@@ -590,12 +850,27 @@ class NotificationService {
             debugPrint('Navigating to product_detail with id: $productId');
             NavigationService.navigateToProductDetails(productId);
           } else {
-            debugPrint('product_id missing for product screen');
-            _navigateToNotifications();
+            NavigationService.navigateToAllProducts();
           }
+          return;
+        case 'store':
+        case 'products':
+        case 'all_products':
+        case 'shop':
+        case 'pantry':
+          debugPrint('Navigating to all products/store');
+          NavigationService.navigateToAllProducts();
+          return;
+        case 'orders':
+        case 'order_list':
+        case 'my_orders':
+          debugPrint('Navigating to orders list');
+          NavigationService.navigateToOrderList();
           return;
         case 'order':
         case 'order_tracking':
+        case 'order_detail':
+        case 'order_details':
           final orderId =
               toStringId(data['id']) ??
               toStringId(data['order_id']) ??
@@ -604,9 +879,13 @@ class NotificationService {
             debugPrint('Navigating to order_tracking with id: $orderId');
             NavigationService.navigateToOrderDetails(orderId);
           } else {
-            debugPrint('order_id missing for order screen');
-            _navigateToNotifications();
+            NavigationService.navigateToOrderList();
           }
+          return;
+        case 'subscriptions':
+        case 'subscription_list':
+          debugPrint('Navigating to subscription list');
+          NavigationService.navigateToSubscriptionList();
           return;
         case 'subscription':
         case 'subscription_detail':
@@ -622,15 +901,28 @@ class NotificationService {
             );
             NavigationService.navigateToSubscriptionDetails(subscriptionId);
           } else {
-            debugPrint('subscription_id missing for subscription screen');
-            _navigateToNotifications();
+            NavigationService.navigateToSubscriptionList();
           }
           return;
         case 'cart':
           debugPrint('Navigating to cart');
           NavigationService.navigateToCart();
           return;
+        case 'checkout':
+          debugPrint('Navigating to checkout');
+          NavigationService.navigateToCheckout();
+          return;
+        case 'panchang':
+          debugPrint('Navigating to panchang');
+          NavigationService.navigateToPanchang();
+          return;
+        case 'wishlist':
+        case 'favorites':
+          debugPrint('Navigating to wishlist');
+          NavigationService.navigateToWishlist();
+          return;
         case 'profile':
+        case 'account':
           debugPrint('Navigating to profile');
           NavigationService.navigateToAccount();
           return;
@@ -654,6 +946,13 @@ class NotificationService {
   }
 
   void _navigateToNotifications() {
+    try {
+      final currentUri = AppRouter().router.routerDelegate.currentConfiguration.uri.path;
+      if (currentUri == AppRoute.notifications.path) {
+        debugPrint('Already on notifications screen, skipping navigation');
+        return;
+      }
+    } catch (_) {}
     debugPrint('Navigate to notifications');
     NavigationService.navigateToNotifications();
   }
@@ -669,7 +968,8 @@ class NotificationService {
     String? type,
   }) async {
     String deviceId = await getDeviceId();
-    String localId = 'LOCAL_${deviceId}_${DateTime.now().millisecondsSinceEpoch}';
+    String localId =
+        'LOCAL_${deviceId}_${DateTime.now().millisecondsSinceEpoch}';
 
     // Parse metadata from payload if any
     Map<String, dynamic> metadataVal = {};
@@ -701,7 +1001,9 @@ class NotificationService {
     );
 
     // Save and register local notification optimistically
-    await NotificationSyncManager().registerLocalNotification(model);
+    await getIt<NotificationsLocalDataSource>().saveServerPushNotification(
+      model.toLocalMap(),
+    );
 
     String channelId = _getChannelId({'type': type ?? model.type});
 
@@ -778,25 +1080,26 @@ class NotificationService {
     String bearerToken,
   ) async {
     String deviceID = await getDeviceId();
-
-    final url = Uri.parse(
-      '${ApiConfig.baseUrl}/api/notifications/register-token/',
-    );
+    String? anonId;
     try {
-      final response = await http.post(
-        url,
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $bearerToken',
-        },
-        body: jsonEncode({
+      if (getIt.isRegistered<AnalyticsService>()) {
+        anonId = getIt<AnalyticsService>().anonymousId;
+      }
+    } catch (_) {}
+
+    try {
+      final response = await ApiClient.instance.post(
+        '/api/notifications/register-token/',
+        options: dio.Options(headers: {'Authorization': 'Bearer $bearerToken'}),
+        data: {
           'token': fcmToken.toString(),
           'device_id': deviceID.toString(),
           'platform': platform.toString(),
-        }),
+          if (anonId != null) 'anonymous_id': anonId,
+        },
       );
       if (response.statusCode == 200) {
-        debugPrint('FCM token registered successfully with backend');
+        debugPrint('FCM token registered successfully with backend (authenticated)');
       } else {
         debugPrint('Failed to register FCM token: ${response.statusCode}');
       }
@@ -805,23 +1108,49 @@ class NotificationService {
     }
   }
 
+  // Register guest FCM token with backend without authentication
+  Future<void> registerGuestFcmTokenWithBackend(
+    String fcmToken,
+  ) async {
+    String deviceID = await getDeviceId();
+    String? anonId;
+    try {
+      if (getIt.isRegistered<AnalyticsService>()) {
+        anonId = getIt<AnalyticsService>().anonymousId;
+      }
+    } catch (_) {}
+
+    try {
+      final response = await ApiClient.instance.post(
+        '/api/notifications/register-token/',
+        data: {
+          'token': fcmToken.toString(),
+          'device_id': deviceID.toString(),
+          'platform': platform.toString(),
+          if (anonId != null) 'anonymous_id': anonId,
+        },
+      );
+      if (response.statusCode == 200) {
+        debugPrint('Guest FCM token registered successfully with backend');
+      } else {
+        debugPrint('Failed to register guest FCM token: ${response.statusCode}');
+      }
+    } catch (e) {
+      debugPrint('Error registering guest FCM token: ${e.toString()}');
+    }
+  }
+
   // Remove FCM token from backend on logout
   Future<void> removeFcmTokenFromBackend(
     String fcmToken,
     String bearerToken,
   ) async {
-    final url = Uri.parse(
-      '${ApiConfig.baseUrl}/api/notifications/logout-device/',
-    );
     try {
       String deviceID = await getDeviceId();
-      final response = await http.post(
-        url,
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $bearerToken',
-        },
-        body: jsonEncode({'token': fcmToken.toString(), 'device_id': deviceID}),
+      final response = await ApiClient.instance.post(
+        '/api/notifications/logout-device/',
+        options: dio.Options(headers: {'Authorization': 'Bearer $bearerToken'}),
+        data: {'token': fcmToken.toString(), 'device_id': deviceID},
       );
       if (response.statusCode == 200) {
         debugPrint('FCM token removed successfully from backend');
@@ -840,29 +1169,20 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   // Ensure Firebase is initialized
   await Firebase.initializeApp();
 
+  // Initialize service locator if not already registered
+  if (!getIt.isRegistered<NotificationsLocalDataSource>()) {
+    setupLocator();
+  }
+
   debugPrint('Handling a background message: ${message.messageId}');
   debugPrint('Message data: ${message.data}');
-  debugPrint('Message notification: ${message.notification?.title}');
 
-  // Parse and save notification via sync manager format
-  try {
-    final notif = NotificationModel(
-      id: message.data['id']?.toString() ?? message.messageId ?? DateTime.now().millisecondsSinceEpoch.toString(),
-      title: message.notification?.title ?? message.data['title'] ?? 'New Notification',
-      body: message.notification?.body ?? message.data['body'] ?? '',
-      type: message.data['type'] ?? 'general',
-      action: message.data['action'],
-      source: 'SERVER',
-      isRead: false,
-      isDismissed: false,
-      syncVersion: int.tryParse(message.data['sync_version']?.toString() ?? '0') ?? 0,
-      timestamp: DateTime.now().millisecondsSinceEpoch,
-      image: message.data['image'] ?? message.data['image_url'] ?? message.notification?.android?.imageUrl ?? message.notification?.apple?.imageUrl,
-      priority: message.data['priority'] ?? 'medium',
-      metadata: Map<String, dynamic>.from(message.data),
-    );
-    await NotificationSyncManager().saveServerPushNotification(notif);
-  } catch (e) {
-    debugPrint('Error saving background notification: $e');
+  if (message.data.isNotEmpty) {
+    try {
+      final localDataSource = getIt<NotificationsLocalDataSource>();
+      await localDataSource.saveServerPushNotification(message.data);
+    } catch (e) {
+      debugPrint('Error saving background notification: $e');
+    }
   }
 }

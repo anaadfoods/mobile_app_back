@@ -1,3 +1,4 @@
+import 'package:grocery_app/features/products/domain/entities/product_entity.dart';
 import 'package:grocery_app/models/cart_model.dart';
 import 'package:grocery_app/models/product_image_model.dart';
 
@@ -15,6 +16,9 @@ class Product {
   final String productDescription;
   final String productCategory;
   final List<ProductImage> productImages;
+  final String? cropCycleId;
+
+  String get name => productName;
 
   Product({
     required this.id,
@@ -30,7 +34,32 @@ class Product {
     required this.productDescription,
     required this.productCategory,
     required this.productImages,
+    this.cropCycleId,
   });
+
+  factory Product.fromEntity(ProductEntity entity) {
+    return Product(
+      id: entity.id,
+      sku: entity.sku,
+      weight: entity.weight,
+      weightUnit: entity.weightUnit,
+      price: entity.price,
+      discountPercentage: entity.discountPercentage,
+      finalPrice: entity.finalPrice,
+      isInStock: entity.isInStock,
+      isActive: entity.isActive,
+      productName: entity.productName,
+      productDescription: entity.productDescription,
+      productCategory: entity.productCategory,
+      productImages:
+          entity.productImages
+              .map(
+                (img) => ProductImage(image: img.image, altText: img.altText),
+              )
+              .toList(),
+      cropCycleId: entity.cropCycleId,
+    );
+  }
 
   // Convert Product to ProductVariant
   ProductVariant toProductVariant() {
@@ -49,6 +78,7 @@ class Product {
       productDescription: productDescription,
       productCategory: productCategory,
       productImages: productImages,
+      cropCycleId: cropCycleId,
     );
   }
 
@@ -72,7 +102,14 @@ class Product {
               ?.map((img) => ProductImage.fromJson(img))
               .toList() ??
           [],
+      cropCycleId: _readCropCycleId(json),
     );
+  }
+
+  static String? _readCropCycleId(Map<String, dynamic> json) {
+    final value = json['crop_cycle_id'] ?? json['cropCycleId'];
+    final cropCycleId = value?.toString().trim();
+    return cropCycleId == null || cropCycleId.isEmpty ? null : cropCycleId;
   }
 
   /// Converts the [Product] instance into a JSON map.
@@ -92,6 +129,7 @@ class Product {
       'product_category': productCategory,
       // This maps each ProductImage in the list to its JSON representation
       'product_images': productImages.map((image) => image.toJson()).toList(),
+      if (cropCycleId != null) 'crop_cycle_id': cropCycleId,
     };
   }
 }

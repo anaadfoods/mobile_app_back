@@ -29,6 +29,15 @@ class AppTheme {
     fontFamily: _fontFamily,
     brightness: Brightness.light,
     cardColor: AppColors.pureWhite,
+    splashFactory: InkSparkle.splashFactory,
+    visualDensity: VisualDensity.standard,
+    pageTransitionsTheme: const PageTransitionsTheme(
+      builders: {
+        TargetPlatform.android: FadeUpwardsPageTransitionsBuilder(),
+        TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
+        TargetPlatform.macOS: CupertinoPageTransitionsBuilder(),
+      },
+    ),
 
     // ── Color Scheme ─────────────────────────────────────────────────────────
     colorScheme: const ColorScheme.light(
@@ -44,7 +53,6 @@ class AppTheme {
     ),
 
     scaffoldBackgroundColor: AppColors.parchment, // Parchment
-
     // ── AppBar — GREEN HEADER ────────────────────────────────────────────────
     appBarTheme: AppBarTheme(
       backgroundColor: AppColors.deepSoilGreen, // Green as header
@@ -135,9 +143,7 @@ class AppTheme {
       displaySmall: AppTextStyles.title.copyWith(
         color: AppColors.deepSoilGreen,
       ),
-      bodyLarge: AppTextStyles.body.copyWith(
-        color: AppColors.charcoal,
-      ),
+      bodyLarge: AppTextStyles.body.copyWith(color: AppColors.charcoal),
       bodyMedium: AppTextStyles.bodySmall.copyWith(color: AppColors.charcoal),
       bodySmall: AppTextStyles.caption.copyWith(color: AppColors.charcoal70),
       labelLarge: AppTextStyles.button.copyWith(color: AppColors.charcoal),
@@ -157,6 +163,37 @@ class AppTheme {
         ),
         minimumSize: const Size(0, 48),
       ),
+    ),
+
+    filledButtonTheme: FilledButtonThemeData(
+      style: FilledButton.styleFrom(
+        backgroundColor: AppColors.deepSoilGreen,
+        foregroundColor: AppColors.parchment,
+        minimumSize: const Size(0, 48),
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppColors.radiusM),
+        ),
+        textStyle: AppTextStyles.button,
+      ),
+    ),
+
+    iconButtonTheme: IconButtonThemeData(
+      style: IconButton.styleFrom(
+        minimumSize: const Size(48, 48),
+        foregroundColor: AppColors.deepSoilGreen,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppColors.radiusM),
+        ),
+      ),
+    ),
+
+    tooltipTheme: TooltipThemeData(
+      decoration: BoxDecoration(
+        color: AppColors.charcoal,
+        borderRadius: BorderRadius.circular(AppColors.radiusS),
+      ),
+      textStyle: AppTextStyles.caption.copyWith(color: AppColors.pureWhite),
     ),
 
     // ── TextButton — GOLDEN ACCENT ───────────────────────────────────────────
@@ -190,11 +227,15 @@ class AppTheme {
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(AppColors.radiusM),
-        borderSide: BorderSide(color: AppColors.charcoal.withValues(alpha: 0.12)),
+        borderSide: BorderSide(
+          color: AppColors.charcoal.withValues(alpha: 0.12),
+        ),
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(AppColors.radiusM),
-        borderSide: BorderSide(color: AppColors.charcoal.withValues(alpha: 0.12)),
+        borderSide: BorderSide(
+          color: AppColors.charcoal.withValues(alpha: 0.12),
+        ),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(AppColors.radiusM),
@@ -227,9 +268,7 @@ class AppTheme {
       backgroundColor: AppColors.harvestAmber, // Golden FAB
       foregroundColor: AppColors.pureWhite,
       elevation: 6,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
     ),
 
     // ── TabBar ───────────────────────────────────────────────────────────────
@@ -261,9 +300,7 @@ class AppTheme {
       secondaryLabelStyle: AppTextStyles.caption.copyWith(
         color: AppColors.parchment,
       ),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(20),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       side: BorderSide.none,
     ),
 
@@ -300,6 +337,15 @@ class AppTheme {
     fontFamily: _fontFamily,
     brightness: Brightness.dark,
     cardColor: AppColors.darkSurface,
+    splashFactory: InkSparkle.splashFactory,
+    visualDensity: VisualDensity.standard,
+    pageTransitionsTheme: const PageTransitionsTheme(
+      builders: {
+        TargetPlatform.android: FadeUpwardsPageTransitionsBuilder(),
+        TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
+        TargetPlatform.macOS: CupertinoPageTransitionsBuilder(),
+      },
+    ),
 
     // ── Color Scheme ─────────────────────────────────────────────────────────
     colorScheme: const ColorScheme.dark(
@@ -332,10 +378,7 @@ class AppTheme {
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppColors.radiusM),
-        side: const BorderSide(
-          color: AppColors.charcoal40,
-          width: 0.5,
-        ),
+        side: const BorderSide(color: AppColors.charcoal40, width: 0.5),
       ),
       margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
     ),
@@ -396,9 +439,7 @@ class AppTheme {
       ),
       displaySmall: AppTextStyles.title.copyWith(color: AppColors.pureWhite),
       bodyLarge: AppTextStyles.body.copyWith(color: AppColors.pureWhite),
-      bodyMedium: AppTextStyles.bodySmall.copyWith(
-        color: AppColors.pureWhite,
-      ),
+      bodyMedium: AppTextStyles.bodySmall.copyWith(color: AppColors.pureWhite),
       bodySmall: AppTextStyles.caption.copyWith(color: AppColors.pureWhite),
       labelLarge: AppTextStyles.button.copyWith(color: AppColors.pureWhite),
     ),
