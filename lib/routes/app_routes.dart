@@ -39,6 +39,14 @@ enum AppRoute {
   legal(path: '/legal', name: 'legal'),
 
   // RFP Routes
+  rfpLanding(path: '/rfp', name: 'rfp_landing'),
+  rfpBatches(path: '/rfp/batches', name: 'rfp_batches'),
+  rfpSubscriptions(path: '/rfp/subscriptions', name: 'rfp_subscriptions'),
+  rfpConfigurePatch(path: '/rfp/configure/:patchId', name: 'rfp_configure_patch'),
+  rfpCheckout(path: '/rfp/checkout', name: 'rfp_checkout'),
+  rfpPaymentSuccess(path: '/rfp/payment-success', name: 'rfp_payment_success'),
+  rfpDashboard(path: '/rfp/dashboard', name: 'rfp_dashboard'),
+  rfpDeliveries(path: '/rfp/deliveries', name: 'rfp_deliveries'),
   delivery(path: '/delivery', name: 'delivery'),
   contractFarming(path: '/contract-farming', name: 'contract_farming'),
 

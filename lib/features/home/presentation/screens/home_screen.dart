@@ -19,6 +19,7 @@ import '../widgets/home_communities_section.dart';
 import '../widgets/home_community_card.dart';
 import '../widgets/all_products_list.dart';
 import '../widgets/home_header_widget.dart';
+import '../widgets/rfp_batches_carousel.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -261,6 +262,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                             ),
                           ),
                           const SizedBox(height: 12),
+                          const RfpBatchesCarousel(),
+                          const SizedBox(height: 8),
                           const AllProductsList(),
                           BlocBuilder<AuthCubit, AuthState>(
                             builder: (context, authState) {
@@ -277,7 +280,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                           ),
                           _heading(context, "Subscription Plans", "", () {}),
                           _subscriptionSection(context),
-                          const SizedBox(height: 4),
+                          const SizedBox(height: 8),
                           BlocBuilder<HomeCubit, HomeState>(
                             builder: (context, homeState) {
                               final communities =

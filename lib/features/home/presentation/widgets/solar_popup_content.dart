@@ -33,8 +33,10 @@ class _SolarPopupContentState extends State<SolarPopupContent>
     try {
       final token = await getIt<TokenService>().getAccessToken();
       if (token == null) return;
-      final blocks = await ContentConfigService()
-          .fetchContentBlocks(token: token, screen: 'solar_popup');
+      final blocks = await ContentConfigService().fetchContentBlocks(
+        token: token,
+        screen: 'solar_popup',
+      );
       if (blocks.isNotEmpty && mounted) {
         final map = <String, String>{};
         for (final b in blocks) {
@@ -184,14 +186,14 @@ class _SolarPopupContentState extends State<SolarPopupContent>
                         Text(
                           _contentMap['philosophy_text'] ??
                               ('Every seed sprouts with the Sun. Every harvest '
-                              'follows the Moon. For thousands of years, the '
-                              'Panchang \u2014 the ancient almanac of cosmic cycles \u2014 '
-                              'guided when to sow, when to reap, and when to eat.\n\n'
-                              'Anaad Foods honours this wisdom. We source and '
-                              'deliver food in alignment with nature\u2019s rhythms, '
-                              'so every grain, every vegetable, every drop of '
-                              'goodness reaches you at its peak \u2014 the way the '
-                              'universe intended.'),
+                                  'follows the Moon. For thousands of years, the '
+                                  'Panchang \u2014 the ancient almanac of cosmic cycles \u2014 '
+                                  'guided when to sow, when to reap, and when to eat.\n\n'
+                                  'Anaad Foods honours this wisdom. We source and '
+                                  'deliver food in alignment with nature\u2019s rhythms, '
+                                  'so every grain, every vegetable, every drop of '
+                                  'goodness reaches you at its peak \u2014 the way the '
+                                  'universe intended.'),
                           textAlign: TextAlign.center,
                           style: TextStyle(
                             color: Colors.white.withValues(alpha: 0.68),
@@ -225,27 +227,24 @@ class _SolarPopupContentState extends State<SolarPopupContent>
                               Icon(
                                 Icons.auto_awesome_rounded,
                                 color: const Color(
-                                0xFFFFCA28,
-                              ).withValues(alpha: 0.80),
-                              size: 13,
-                            ),
-                            const SizedBox(width: 7),
-                            Text(
-                              _contentMap['coming_soon'] ??
-                                  'COSMIC FOOD CALENDAR  \u00b7  COMING SOON',
-                              style: const TextStyle(
-                                color: Color(
                                   0xFFFFCA28,
-                                ),
-                                fontSize: 9.5,
-                                fontWeight: FontWeight.w500,
-                                letterSpacing: 1.8,
+                                ).withValues(alpha: 0.80),
+                                size: 13,
                               ),
-                            ),
-                          ],
+                              const SizedBox(width: 7),
+                              Text(
+                                _contentMap['coming_soon'] ??
+                                    'COSMIC FOOD CALENDAR  \u00b7  COMING SOON',
+                                style: const TextStyle(
+                                  color: Color(0xFFFFCA28),
+                                  fontSize: 9.5,
+                                  fontWeight: FontWeight.w500,
+                                  letterSpacing: 1.8,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
-                      ),
-
                       ],
                     ),
                   ),

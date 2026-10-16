@@ -154,9 +154,15 @@ class HomeHeaderWidget extends StatelessWidget {
                         final fn = authState.user.firstName.trim();
                         final un = authState.user.username.trim();
                         if (fn.isNotEmpty) {
-                          name = fn[0].toUpperCase() + (fn.length > 1 ? fn.substring(1) : '');
-                        } else if (un.isNotEmpty && !un.startsWith('+') && !un.contains('@')) {
-                          name = un[0].toUpperCase() + (un.length > 1 ? un.substring(1) : '');
+                          name =
+                              fn[0].toUpperCase() +
+                              (fn.length > 1 ? fn.substring(1) : '');
+                        } else if (un.isNotEmpty &&
+                            !un.startsWith('+') &&
+                            !un.contains('@')) {
+                          name =
+                              un[0].toUpperCase() +
+                              (un.length > 1 ? un.substring(1) : '');
                         }
                       }
 

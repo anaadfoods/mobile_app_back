@@ -81,9 +81,7 @@ class _ExpandableAnaadFabState extends State<ExpandableAnaadFab>
                   parent: _controller,
                   curve: Curves.easeOut,
                 ),
-                child: Container(
-                  color: Colors.black.withOpacity(0.5),
-                ),
+                child: Container(color: Colors.black.withOpacity(0.5)),
               ),
             ),
 
@@ -183,11 +181,7 @@ class _ExpandableAnaadFabState extends State<ExpandableAnaadFab>
               child: SizedBox(
                 width: 44,
                 height: 44,
-                child: Icon(
-                  icon,
-                  color: AppColors.deepSoilGreen,
-                  size: 24,
-                ),
+                child: Icon(icon, color: AppColors.deepSoilGreen, size: 24),
               ),
             ),
           ),

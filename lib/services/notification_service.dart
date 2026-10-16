@@ -714,6 +714,8 @@ class NotificationService {
     String? type = data['type'];
     switch (type) {
       case 'order':
+      case 'rfp_delivery_otp':
+      case 'rfp_delivery':
         return 'orders';
       case 'subscription':
       case 'payment':
@@ -929,6 +931,12 @@ class NotificationService {
         case 'home':
           debugPrint('Navigating to home');
           NavigationService.navigateToHome();
+          return;
+        case 'rfp_delivery_otp':
+        case 'rfp_delivery':
+        case 'rfp_deliveries':
+          debugPrint('Navigating to RFP deliveries');
+          NavigationService.navigateToRfpDeliveries();
           return;
         case 'notifications':
         case 'promotional':

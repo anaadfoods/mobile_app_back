@@ -15,6 +15,7 @@ import 'package:grocery_app/features/subscriptions/presentation/cubit/subscripti
 import 'package:grocery_app/features/notifications/presentation/cubit/notification_cubit.dart';
 import 'package:grocery_app/features/home/presentation/cubit/home_cubit.dart';
 import 'package:grocery_app/features/chat/presentation/cubit/chat_cubit.dart';
+import 'package:grocery_app/features/rfp/presentation/cubit/rfp_batch_cubit.dart';
 import 'package:grocery_app/core/theme/cubit/theme_cubit.dart';
 
 // Services & Helpers
@@ -49,6 +50,7 @@ class MyApp extends StatelessWidget {
         BlocProvider(create: (context) => getIt<NotificationCubit>()),
         BlocProvider(create: (context) => getIt<HomeCubit>()),
         BlocProvider(create: (context) => getIt<ChatCubit>()),
+        BlocProvider(create: (context) => getIt<RfpBatchCubit>()),
       ],
       child: BlocBuilder<ThemeCubit, ThemeMode>(
         builder: (context, themeMode) {

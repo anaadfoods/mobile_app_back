@@ -1,173 +1,483 @@
-# Flutter Clean Architecture Migration — Agent Instructions
+# AGENT.md — Anaad Foods Flutter Development Rules
 
-## Context
-This is the Anaad Foods Flutter app (278 Dart files, ~111,741 LOC, 0 tests).
-A pre-migration codebase analysis has been run. Read that analysis alongside
-this file before starting any work — it contains exact file names, line
-counts, and coupling details this document only summarizes.
+## 1. Purpose
 
-**Corrected facts from the analysis (supersede earlier assumptions):**
-- State management is **Cubit (flutter_bloc)**, not Provider. There is zero
-  Provider usage. 10 Cubits already exist and are reasonably well-separated
-  from widgets.
-- The three security issues from the original audit (SSL bypass, plaintext
-  JWT, HTTP payment bridge) are **already fixed**. Do not re-fix them. Do not
-  spend migration budget on them.
-- Zero test files exist despite `bloc_test` and `mocktail` being in
-  `pubspec.yaml`. Testing is a first-class part of this migration, not an
-  afterthought.
+This file defines the permanent development rules for AI coding agents working on the Anaad Foods Flutter application.
 
-## Target Architecture
-**Clean Architecture, keeping Cubit as the presentation-layer state holder.**
-Do NOT rewrite Cubits to Riverpod or Bloc. The existing Cubits are not the
-problem — fat screens with embedded business logic and god-objects are. A
-full state-management rewrite across 278 files is high-risk and fixes none
-of the actual pain points (feature isolation, testability, the TokenService
-god-object). Riverpod is not in scope for this migration.
+**The Clean Architecture migration is already complete. Do not initiate, repeat, or plan another migration unless user explicitly requests it.**
 
-Cubits move from directly calling services/`GetIt` singletons to instead
-calling **use cases** in a new domain layer. The Cubit's job becomes: receive
-UI events, call a use case, emit a state. All business logic that currently
-lives in Cubits or screens moves into the domain layer beneath them.
+Your responsibility is to maintain the established architecture, implement requested features, fix bugs, write tests, and preserve existing application behavior.
 
-## UI Preservation Rule — Read This Before Touching Any Screen
-**This migration changes architecture and state management. It does not
-change UI.** Every screen must look and behave visually identical after
-migration — same layout, same spacing, same colors, same animations, same
-copy. This applies to every feature, not just the ones with big screens.
+Treat this file as the project's authoritative development instruction. Follow it for every task.
 
-What this means in practice:
-- When decomposing a monolith screen to hit the line-count budget, this is
-  a **mechanical extraction**, not a redesign. Copy the existing widget
-  tree/styling into the new sub-widget files verbatim. Do not "clean up,"
-  restyle, re-space, or improve anything visually while you're in there,
-  even if you notice something you'd do differently.
-- "Fix the state issues" means: eliminate direct service/GetIt calls from
-  widgets, remove duplicated or racing state updates, fix any Cubit state
-  transitions that are wrong or inconsistent (e.g. a loading state that
-  never clears, an optimistic update that doesn't roll back correctly) —
-  it does NOT mean changing what the user sees or how a screen is laid out.
-- If fixing a genuine state bug requires a visible behavior change (e.g. a
-  spinner that currently never shows because of a race condition, and
-  showing it correctly means the user now sees a loading spinner they
-  didn't before), stop and flag it rather than silently shipping a visual
-  change under the banner of "fixing state."
-- Characterization tests exist specifically so you can tell the difference
-  between "this now behaves correctly" and "this now looks different" —
-  if a characterization test fails after a change, that is not automatically
-  a bug in the test. Check whether the UI actually changed before assuming
-  the test was wrong.
-- This rule overrides any instinct toward improvement. Visual/UX polish is
-  explicitly out of scope for this migration and should be logged as a
-  separate suggestion, not implemented inline.
+## 2. Mandatory Rules
 
-## Folder Structure (per feature, not per layer globally)
-```
-lib/
-  features/
-    <feature_name>/
-      data/
-        datasources/       # remote/local data sources (e.g. Juspay, Easebuzz clients)
-        models/            # DTOs
-        repositories/      # implementations of domain repository interfaces
-      domain/
-        entities/
-        repositories/      # abstract interfaces only, no Flutter imports
-        usecases/
-      presentation/
-        cubit/             # existing Cubit + State, now calling use cases
-        screens/
-        widgets/
-  core/
-    network/               # dio client, interceptors
-    error/                 # Failure/Exception types
-```
+1. Understand the existing implementation before editing code.
+2. Follow the established Clean Architecture structure.
+3. Preserve Cubit (`flutter_bloc`) as the state-management solution.
+4. Keep business logic out of widgets.
+5. Use existing domain use cases and repository interfaces instead of bypassing the architecture.
+6. Generate new feature structures using the existing Mason brick.
+7. Write and run relevant tests.
+8. Preserve existing UI and business behavior unless a change is explicitly requested.
+9. Keep changes limited to the requested task.
+10. Verify the final implementation using actual command results.
+11. Never claim a feature, test, or build succeeded without evidence.
+12. Ask User when an important requirement is ambiguous or a decision would change an established contract.
+
+These rules apply to new features, bug fixes, refactoring, and maintenance.
+
+## 3. Established Technology Stack
+
+Use the technologies already present in the repository.
+
+- **Framework:** Flutter
+- **Language:** Dart
+- **State management:** `flutter_bloc` Cubit
+- **Architecture:** Feature-based Clean Architecture
+- **Dependency injection:** Existing GetIt configuration, where applicable
+- **Testing:** Flutter test framework, `bloc_test`, and `mocktail` where appropriate
+- **Feature scaffolding:** Existing Mason brick at `bricks/feature_brick/`
+
+Before introducing a library, inspect `pubspec.yaml` and `pubspec.lock`.
+
+Do not introduce Riverpod, Provider, another state-management framework, or a replacement dependency injection framework without explicit approval.
+
+Do not upgrade dependencies or change the framework version unless the task requires it and the change is approved.
+
+## 4. Architecture Rules
+
+The application follows this dependency direction:
+
+`Presentation → Domain ← Data`
+
+Dependencies point inward. The domain layer must remain independent of infrastructure and presentation.
+
+### 4.1 Presentation layer
+
+Location:
+
+`lib/features/<feature_name>/presentation/`
+
+Contains:
+- Cubits and Cubit states.
+- Screens.
+- Reusable feature widgets.
+- Presentation-specific models where necessary.
 
 Rules:
-- `domain/` must be pure Dart — no `package:flutter` imports, no third-party
-  SDK imports (Dio, GetIt, etc. stay out of domain). This is what makes it
-  unit-testable without a widget test harness.
-- Each feature is self-contained. Don't create a global `usecases/` or
-  `repositories/` folder outside a feature.
-- Every feature's folder structure must be generated from the Mason brick
-  in `bricks/feature_brick/` (see Structural Consistency Guardrails below) —
-  never hand-created. This is non-negotiable.
 
-## Migration Strategy — Strangler Pattern (feature by feature)
-Do NOT big-bang rewrite. Migrate one feature end-to-end before starting the
-next:
+- Cubits receive UI events, invoke domain use cases, and emit states.
+- Widgets render state and dispatch user interactions.
+- Widgets must not call GetIt, service singletons, data sources, or repositories directly.
+- Widgets must not contain business rules, pricing calculations, payment orchestration, authentication logic, or direct API calls.
+- Keep Cubits focused on coordinating presentation state.
+- Reuse existing state models and conventions where practical.
+- Handle loading, success, empty, and failure states consistently with the feature's existing behavior.
 
-1. **Write characterization tests first.** Before refactoring any existing
-   screen or Cubit, write widget/golden tests that lock in current behavior.
-   There are zero tests today — this is the safety net that makes everything
-   after it safe. Do not skip this step even under time pressure.
-2. Define the domain layer: entities, repository interfaces, use cases. Pure
-   Dart. Write unit tests against this layer as you build it, not after.
-3. Build the data layer: repository implementations, data sources, models.
-   Move any logic currently embedded in screens/services into here.
-4. Wire the *existing* Cubit to call the new use cases instead of calling
-   services/GetIt directly. Leave the widget tree alone at this step.
-5. Only once domain + data are solid and tested, extract remaining inline
-   business logic out of the screen widget itself, then delete the old
-   direct-service-call code path.
-6. Remove this feature's exports from `global_import.dart` and switch its
-   consumers to explicit imports — this is part of the feature's definition
-   of done, not a separate cleanup pass.
-7. Do not move to the next feature until the current one is fully migrated,
-   tested, and old code for it is deleted (no dead code left behind).
+Do not move business logic into a Cubit simply because it is easier than creating or using a domain use case.
 
-## Migration Order (do not reorder without asking)
-1. **Auth** — `TokenService` is a god-object imported by 29 files across the
-   entire app. Do NOT rewrite it wholesale. Freeze its current public API as
-   a stable facade, then decompose its internals (login / register / token
-   refresh / auth-state broadcast) into separate domain use cases behind
-   that facade. The 29 external callers should not need to change during
-   this step.
-2. **Payments** — highest architectural risk: `checkout_screen.dart` is a
-   2,373-line monolith with order creation, subscription creation, payment
-   method selection, address handling, and coupon logic all inline. No
-   security work needed here (already fixed) — this is purely extraction.
-3. **Panchang** — 5 existing Cubits, self-contained, no payment coupling.
-   Good practice ground for the Cubit-calls-use-case pattern before tackling
-   more tangled features.
-4. Remaining features in this order, pausing for confirmation before each:
-   Cart → Products + Favorites (together, tightly coupled) → Orders →
-   Subscriptions → Notifications → Home/Dashboard → Account/Help/Legal/etc.
-   Innovations/Games: no backend logic, consider skipping migration
-   entirely — flag to Hemant rather than deciding unilaterally.
+### 4.2 Domain layer
 
-## Structural Consistency Guardrails
-These exist so that feature 11 doesn't end up architecturally different
-from feature 2 just because it was built in a different session. All of
-these are mandatory, not aspirational.
+Location:
 
-1. **Scaffold every feature from the same template.** Use the Mason brick at
-   `bricks/feature_brick/` to generate the `data/domain/presentation` skeleton
-   for any new feature before writing a single line of feature code. Never
-   hand-roll the folder structure.
-2. **Run `dart tool/check_architecture.dart` before declaring any feature
-   done.** It fails the build on:
-   - `domain/` files importing `package:flutter` or any `data/`/`presentation/` path
-   - `presentation/` files importing `data/` directly (must go through `domain/`)
-   - any file in `lib/features/` exceeding the line-count budget
-3. **Definition of done, per feature** (all must be true before moving on):
-   - [ ] Scaffolded from `feature_brick`, not hand-created
-   - [ ] `dart tool/check_architecture.dart` passes with zero violations
-   - [ ] Characterization tests exist and pass
-   - [ ] Domain layer has unit test coverage for its use cases
-   - [ ] No file in the feature exceeds the line-count budget
-   - [ ] Feature's symbols removed from `global_import.dart`; consumers use
-     explicit imports
-   - [ ] Old pre-migration code path for this feature is deleted
-   - [ ] UI is visually and behaviorally identical to pre-migration, except
-     for explicitly-flagged and approved state-bug fixes (see UI
-     Preservation Rule above)
+`lib/features/<feature_name>/domain/`
 
-## Working Agreement for the Agent
-- Surgical changes only. Don't refactor code outside the feature currently
-  being migrated, even if you notice unrelated issues — flag them instead.
-- After finishing a feature's migration, stop and summarize what changed
-  before starting the next feature.
-- If a decision isn't covered by this file (e.g. naming convention conflicts,
-  ambiguous feature boundaries, whether to migrate Innovations/Games at all),
-  ask rather than assuming.
+Contains:
+- Entities.
+- Abstract repository interfaces.
+- Use cases.
+- Domain-specific business rules and failures.
+
+Rules:
+
+- Pure Dart only.
+- No `package:flutter` imports.
+- No imports from `data/` or `presentation/`.
+- No GetIt, Dio, payment SDK, database SDK, or other infrastructure dependencies.
+- Use cases must have clear responsibilities and explicit dependencies.
+- Repository interfaces belong in the domain layer.
+- Business rules must be testable without a widget test harness.
+
+Do not create unnecessary abstractions, duplicate use cases, or empty architectural layers.
+
+### 4.3 Data layer
+
+Location:
+
+`lib/features/<feature_name>/data/`
+
+Contains:
+- Data sources.
+- DTOs and serialization models.
+- Repository implementations.
+- External API and SDK integrations.
+
+Rules:
+
+- Repository implementations must satisfy the corresponding domain interfaces.
+- Reuse existing network clients, authentication mechanisms, and infrastructure.
+- Map external response models into appropriate domain entities.
+- Keep API-specific parsing and SDK-specific logic out of the domain.
+- Handle expected failures consistently with existing application conventions.
+- Avoid duplicate network requests, redundant models, and competing implementations.
+
+### 4.4 Shared infrastructure
+
+Location:
+
+`lib/core/`
+
+Use existing shared modules for concerns such as networking, errors, logging, and other genuinely cross-feature infrastructure.
+
+Before adding a shared abstraction, check whether one already exists.
+
+Do not move feature-specific business logic into `core/` merely to make it accessible globally.
+
+## 5. Required Feature Structure
+
+Follow the existing feature structure:
+
+```text
+lib/features/<feature_name>/
+├── data/
+│   ├── datasources/
+│   ├── models/
+│   └── repositories/
+├── domain/
+│   ├── entities/
+│   ├── repositories/
+│   └── usecases/
+└── presentation/
+    ├── cubit/
+    ├── screens/
+    └── widgets/
+```
+
+Create only the directories and files that the feature actually needs.
+
+**Every new feature must be scaffolded using `bricks/feature_brick/`.**
+
+Before generating a feature:
+1. Inspect the Mason brick and its available variables.
+2. Follow the repository's existing Mason command and conventions.
+3. Generate the feature structure.
+4. Verify the output.
+5. Implement the feature inside the generated structure.
+
+Never manually invent a parallel feature structure.
+
+If the Mason brick is missing or broken, report the problem and request approval before modifying the shared template or bypassing it.
+
+For existing features, follow their established structure rather than reorganizing them unnecessarily.
+
+## 6. UI and UX Preservation
+
+The existing application UI is intentional and must not be modified as a side effect of unrelated work.
+
+Preserve:
+- Layout and widget hierarchy.
+- Padding, margins, sizing, and alignment.
+- Colors, typography, borders, and shapes.
+- Animations and transitions.
+- Images, icons, and assets.
+- Labels, copy, and error messages.
+- Navigation and back-button behavior.
+- Loading, success, empty, and error states.
+- Existing interactions and accessibility behavior.
+
+When modifying an existing screen, make the smallest necessary change.
+
+Do not redesign, restyle, re-space, rename visible text, replace components, or introduce a new visual pattern unless requested.
+
+When extracting a widget, preserve the existing widget tree and styling as closely as possible.
+
+If an architecture fix or bug fix would change visible behavior, explain the change and ask for approval before implementing it.
+
+Do not treat a passing compilation as proof that the UI is unchanged. Use appropriate widget tests, golden tests, screenshots, or manual verification when available.
+
+## 7. State Management Rules
+
+Cubit remains the presentation state holder.
+
+When implementing a feature:
+
+1. Identify the existing Cubit and state classes.
+2. Inspect how the feature currently handles events and state transitions.
+3. Reuse existing use cases where possible.
+4. Create new use cases only for new or missing domain operations.
+5. Inject dependencies through the existing dependency injection setup.
+6. Emit consistent loading, success, and failure states.
+7. Avoid duplicated or racing state updates.
+8. Handle asynchronous operations and errors explicitly.
+9. Avoid unnecessary emissions and repeated network requests.
+10. Test important state transitions.
+
+Do not replace an existing Cubit with another state-management mechanism.
+
+Do not duplicate business logic across screens, Cubits, and use cases.
+
+Do not change public Cubit state contracts unnecessarily because existing screens or other consumers may depend on them.
+
+## 8. Dependency Injection and Imports
+
+Use the existing GetIt registration conventions where applicable.
+
+- Register dependencies in the appropriate existing configuration.
+- Avoid duplicate registrations.
+- Avoid circular dependencies.
+- Respect initialization order and object lifecycles.
+- Do not instantiate infrastructure dependencies directly inside widgets.
+- Prefer constructor injection for use cases, Cubits, and repository implementations.
+
+Use explicit imports for feature dependencies.
+
+Avoid adding new dependencies to `global_import.dart`. If the project is eliminating feature exports from this file, follow that convention.
+
+Before removing or changing an export, search for its consumers and update only the necessary imports.
+
+Do not remove existing public symbols or change shared APIs without verifying their consumers.
+
+## 9. Business Logic and Data Integrity
+
+Business rules must have one authoritative implementation wherever practical.
+
+Examples include:
+- Authentication and authorization.
+- Product and inventory operations.
+- Cart calculations.
+- Order creation.
+- Coupon validation and discount calculations.
+- Payment initiation and verification.
+- Subscription lifecycle rules.
+- Delivery scheduling and status transitions.
+- Panchang calculations and related domain rules.
+
+Place these rules in the appropriate domain use cases or domain services according to the existing architecture.
+
+Never duplicate a calculation in the UI if the authoritative rule already exists elsewhere.
+
+Preserve backend contracts, request and response formats, identifiers, currency handling, rounding rules, and transaction semantics.
+
+Do not silently change a business rule to make an implementation easier.
+
+For ambiguous requirements, inspect the existing code and relevant documentation. If the intended behavior remains unclear, ask User.
+
+## 10. Authentication and Payment Security
+
+Existing security fixes must remain intact.
+
+Never:
+- Disable TLS certificate verification.
+- Store authentication tokens or secrets in plaintext storage.
+- Log passwords, access tokens, refresh tokens, payment credentials, or sensitive responses.
+- Hard-code secrets in source code.
+- Bypass authentication or authorization checks.
+- Introduce insecure HTTP payment flows.
+- Bypass payment verification.
+- Remove idempotency or duplicate-submission protections where implemented.
+- Trust client-side payment amounts or payment-success flags without the established server-side verification process.
+
+Use the existing secure storage, network configuration, authentication flow, and payment integrations.
+
+If a task appears to require weakening a security control, stop and explain why the requested approach is unsafe.
+
+## 11. Testing Requirements
+
+Testing is part of implementation, not an optional cleanup step.
+
+For each task, select tests appropriate to the change.
+
+### Domain tests
+Test:
+- Business rules.
+- Input validation.
+- Calculations.
+- Success and failure outcomes.
+- Relevant boundary conditions.
+
+### Data tests
+Test:
+- Response parsing and mapping.
+- Repository behavior.
+- Expected error conversion.
+- Relevant API and persistence interactions using mocks or fakes.
+
+### Cubit tests
+Test:
+- Initial state.
+- Loading transitions.
+- Success states.
+- Failure states.
+- Important edge cases.
+- Duplicate actions or asynchronous behavior when relevant.
+
+### Widget tests
+Test:
+- Important UI states.
+- User interactions.
+- Rendering and navigation where appropriate.
+- Existing behavior affected by the change.
+
+Use `bloc_test` and `mocktail` where they fit the existing setup.
+
+Tests must be deterministic and must not require real payment transactions, production credentials, or unintended external side effects.
+
+Never weaken tests simply to make them pass.
+
+If a test exposes a real defect, investigate and fix it within the authorized scope. If the correct behavior is ambiguous, ask rather than guessing.
+
+## 12. Architecture and Code Quality Checks
+
+Inspect and use the existing architecture guard:
+
+`dart tool/check_architecture.dart`
+
+Run it after relevant architectural changes and before declaring a task complete.
+
+It should enforce the repository's actual rules, including:
+- No Flutter imports in the domain layer.
+- No data or presentation imports in the domain layer.
+- No direct data-layer imports from presentation.
+- Compliance with the configured file-size budget.
+
+Do not change the guard or raise its line-count threshold merely to hide violations.
+
+For relevant changes, run:
+
+```bash
+dart format <changed_dart_files>
+flutter analyze
+dart tool/check_architecture.dart
+flutter test
+```
+
+Adapt commands to the actual repository and available tooling. Run targeted tests during development and the relevant broader suite before completion.
+
+If a command is unavailable or the existing project has failures, report the exact limitation. Do not claim success without running the command.
+
+Do not reformat unrelated files.
+
+## 13. File Size and Maintainability
+
+Follow the line-count budget enforced by the architecture checker.
+
+When a file becomes too large:
+- Identify coherent responsibilities.
+- Extract reusable widgets into `presentation/widgets/`.
+- Extract domain operations into appropriate use cases.
+- Move data access into data sources and repositories.
+- Preserve behavior and public contracts.
+
+Do not split files arbitrarily merely to meet a numerical limit.
+
+Do not create excessive one-line wrappers, unnecessary interfaces, or abstractions without meaningful responsibility.
+
+Keep each class and file focused, readable, and testable.
+
+## 14. Scope Control
+
+Only modify what is necessary to complete the requested task.
+
+Before editing:
+1. Inspect Git status.
+2. Identify the relevant feature and dependencies.
+3. Read the relevant implementation.
+4. Understand the intended behavior.
+5. Identify likely regressions.
+6. Determine which tests and checks are required.
+
+During implementation:
+- Avoid unrelated refactoring.
+- Avoid renaming unrelated symbols.
+- Avoid changing unrelated APIs.
+- Avoid modifying unrelated features.
+- Avoid dependency upgrades unless required and approved.
+- Preserve existing user changes.
+
+After implementation:
+- Review the complete diff.
+- Remove accidental changes and unused imports.
+- Check for duplicate implementations and dead code introduced by the task.
+- Confirm that all modifications belong to the requested scope.
+
+Never overwrite user changes or run destructive Git commands.
+
+Do not commit, push, or change branches unless explicitly instructed.
+
+## 15. Error Handling and Logging
+
+Follow existing application conventions for exceptions, domain failures, and error messages.
+
+- Do not silently swallow unexpected exceptions.
+- Avoid broad exception handling that hides failures.
+- Translate infrastructure errors at the appropriate boundary.
+- Keep internal stack traces and sensitive data out of user-facing messages.
+- Use existing logging infrastructure where available.
+- Do not introduce noisy debug logging into production paths.
+- Preserve existing error messages and recovery behavior unless a change is requested.
+
+## 16. When to Ask for Approval
+
+Ask User before proceeding if:
+- Requirements are ambiguous.
+- A public API or shared contract must change incompatibly.
+- A change affects multiple unrelated features.
+- A visual change is necessary but not requested.
+- A security control would need to change.
+- A database migration could affect existing data.
+- A dependency or framework upgrade is required.
+- The Mason brick or architecture guard must be modified.
+- A requested fix requires a product decision.
+- Existing user changes conflict with the requested implementation.
+- The available tests cannot establish the intended behavior reliably.
+
+Do not ask unnecessary questions when the existing code and requirements clearly establish the answer.
+
+When asking, state the problem, relevant files, observed evidence, proposed solution, and the decision required.
+
+## 17. Required Completion Report
+
+After every substantial task, report:
+
+### Summary
+Describe what was implemented or fixed.
+
+### Files changed
+List the important files and their responsibilities.
+
+### Architecture
+Explain how the change follows the existing feature structure and dependency direction.
+
+### Tests
+List the tests added or modified and their results.
+
+### Verification
+Report the exact status of:
+- Formatting.
+- Static analysis.
+- Architecture guard.
+- Relevant tests.
+- Build or compilation checks, where applicable.
+
+Use `PASS`, `FAIL`, `BLOCKED`, or `NOT RUN` accurately.
+
+### Remaining issues
+Identify incomplete work, known limitations, and any unverified behavior.
+
+### UI impact
+State whether visible behavior changed. If it did, explain whether the change was explicitly requested and approved.
+
+Never report a check as passing based on assumptions or code inspection alone.
+
+## 18. Final Operating Principle
+
+**Maintain the architecture. Do not migrate it again.**
+
+Implement the requested change with the smallest reliable set of modifications.
+
+Prefer existing abstractions over duplicate implementations. Prefer tested business logic over logic embedded in widgets. Prefer evidence over assumptions.
+
+Preserve working behavior, protect existing security controls, verify your changes, and ask when a decision belongs to User.
+
+These rules apply to every future development task in the Anaad Foods Flutter repository.

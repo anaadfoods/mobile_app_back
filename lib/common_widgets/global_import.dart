@@ -79,8 +79,7 @@ export 'package:grocery_app/features/home/domain/entities/banner_entity.dart';
 export 'package:grocery_app/features/home/presentation/screens/community_detail_screen.dart';
 export 'package:grocery_app/features/home/presentation/widgets/home_banner_section.dart';
 export 'package:grocery_app/models/product_model.dart';
-export 'package:grocery_app/features/rfp/presentation/screens/contract_farming_screen.dart'
-    hide CombinedScreen;
+
 export 'package:grocery_app/features/misc/presentation/screens/category_items_screen.dart';
 export 'package:grocery_app/features/misc/presentation/screens/explore_screen.dart';
 export 'package:grocery_app/features/notifications/presentation/screens/notifications_screen.dart';

@@ -143,6 +143,9 @@ class ApiConfig {
   static const String deactivateEndpoint = '/api/auth/deactivate/';
   static const String deactivateConfirmEndpoint =
       '/api/auth/deactivate_confirm/';
+  static const String userAddressesEndpoint = '/api/auth/addresses/';
+  static String userAddressDetailEndpoint(int id) =>
+      '/api/auth/addresses/$id/';
 
   // Product endpoints
   static const String productsEndpoint = '/api/products/';
@@ -168,6 +171,24 @@ class ApiConfig {
   // Subscription endpoints
   static const String subscriptionsEndpoint = '/api/subscriptions/';
   static const String subscriptionPlansEndpoint = '/api/subscriptions/plans/';
+
+  // RFP Subscription endpoints
+  static const String rfpActiveBatchesEndpoint =
+      '/api/rfp_subscription/batches/active/';
+  static String rfpBatchDetailEndpoint(dynamic id) =>
+      '/api/rfp_subscription/batches/$id/';
+  static const String rfpCalculateEndpoint =
+      '/api/rfp_subscription/subscriptions/calculate/';
+  static const String rfpBookEndpoint =
+      '/api/rfp_subscription/subscriptions/book/';
+  static const String rfpVerifyPaymentEndpoint =
+      '/api/rfp_subscription/subscriptions/verify-payment/';
+  static const String rfpMySubscriptionsEndpoint =
+      '/api/rfp_subscription/subscriptions/my/';
+  static String rfpPayRemainingEndpoint(int id) =>
+      '/api/rfp_subscription/subscriptions/$id/pay-remaining/';
+  static String rfpDeliveryOtpStatusEndpoint(dynamic deliveryId) =>
+      '/api/rfp_subscription/deliveries/$deliveryId/otp-status/';
 
   // Payment endpoints (gateway-agnostic, currently backed by Easebuzz)
   static const String paymentStatusEndpoint = '/api/payments/status/';

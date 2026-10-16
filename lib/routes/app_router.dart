@@ -62,8 +62,18 @@ import 'package:grocery_app/features/notifications/presentation/screens/notifica
 import 'package:grocery_app/features/misc/presentation/screens/about_screen.dart';
 import 'package:grocery_app/features/misc/presentation/screens/help_screen.dart';
 import 'package:grocery_app/features/misc/presentation/screens/legal_content_screen.dart';
-import 'package:grocery_app/features/rfp/presentation/screens/delivery_screen.dart';
-import 'package:grocery_app/features/rfp/presentation/screens/contract_farming_screen.dart';
+import 'package:grocery_app/features/rfp/presentation/cubit/rfp_batch_cubit.dart';
+import 'package:grocery_app/features/rfp/presentation/cubit/rfp_checkout_cubit.dart';
+import 'package:grocery_app/features/rfp/presentation/cubit/rfp_dashboard_cubit.dart';
+import 'package:grocery_app/features/rfp/presentation/cubit/rfp_patch_config_cubit.dart';
+import 'package:grocery_app/features/rfp/presentation/screens/rfp_landing_screen.dart';
+import 'package:grocery_app/features/rfp/presentation/screens/rfp_batches_screen.dart';
+import 'package:grocery_app/features/rfp/presentation/screens/rfp_configure_patch_screen.dart';
+import 'package:grocery_app/features/rfp/presentation/screens/rfp_checkout_screen.dart';
+import 'package:grocery_app/features/rfp/presentation/screens/rfp_payment_success_screen.dart';
+import 'package:grocery_app/features/rfp/presentation/screens/rfp_dashboard_screen.dart';
+import 'package:grocery_app/features/rfp/presentation/screens/rfp_deliveries_screen.dart';
+import 'package:grocery_app/features/rfp/presentation/screens/rfp_subscriptions_list_screen.dart';
 import 'package:grocery_app/models/legal_document_model.dart';
 
 import 'package:grocery_app/features/misc/presentation/screens/unknown_route_screen.dart';
@@ -855,26 +865,100 @@ class AppRouter {
         },
       ),
 
-      // --- RFP Routes (no bottom nav) ---
-      GoRoute(
-        path: AppRoute.delivery.path,
-        name: AppRoute.delivery.name,
+      // --- RFP Feature Routes ---
+      ShellRoute(
         parentNavigatorKey: _rootNavigatorKey,
-        builder:
-            (context, state) => DeepLinkFallbackWrapper(
-              fallbackRoute: AppRoute.home.path,
-              child: const DeliveryScreen(),
-            ),
+        builder: (context, state, child) {
+          // Ensure batch data is loaded when entering RFP feature
+          final batchCubit = getIt<RfpBatchCubit>();
+          if (batchCubit.state.batches.isEmpty && !batchCubit.state.isLoading) {
+            batchCubit.loadBatchData();
+          }
+          return bloc.MultiBlocProvider(
+            providers: [
+              bloc.BlocProvider<RfpBatchCubit>.value(
+                value: batchCubit,
+              ),
+              bloc.BlocProvider<RfpCheckoutCubit>(
+                create: (_) => getIt<RfpCheckoutCubit>(),
+              ),
+              bloc.BlocProvider<RfpDashboardCubit>(
+                create: (_) => getIt<RfpDashboardCubit>()..loadDashboard(),
+              ),
+            ],
+            child: child,
+          );
+        },
+        routes: [
+          GoRoute(
+            path: AppRoute.rfpLanding.path,
+            name: AppRoute.rfpLanding.name,
+            builder: (context, state) => const RfpLandingScreen(),
+          ),
+          GoRoute(
+            path: AppRoute.rfpBatches.path,
+            name: AppRoute.rfpBatches.name,
+            builder: (context, state) => const RfpBatchesScreen(),
+          ),
+          GoRoute(
+            path: AppRoute.rfpConfigurePatch.path,
+            name: AppRoute.rfpConfigurePatch.name,
+            builder: (context, state) {
+              final patchId = state.pathParameters['patchId'] ?? 'p1';
+              final batchState = context.read<RfpBatchCubit>().state;
+              final matchingPatches = batchState.patches.where((p) => p.id == patchId);
+              final patch = matchingPatches.isNotEmpty
+                  ? matchingPatches.first
+                  : (batchState.patches.isNotEmpty ? batchState.patches.first : null);
+              final existingConfig = batchState.patchConfigs[patchId];
+              return bloc.BlocProvider<RfpPatchConfigCubit>(
+                create: (_) {
+                  final cubit = getIt<RfpPatchConfigCubit>();
+                  if (patch != null) {
+                    cubit.loadPatch(patch, existingConfig: existingConfig);
+                  }
+                  return cubit;
+                },
+                child: RfpConfigurePatchScreen(patchId: patchId),
+              );
+            },
+          ),
+          GoRoute(
+            path: AppRoute.rfpCheckout.path,
+            name: AppRoute.rfpCheckout.name,
+            builder: (context, state) => const RfpCheckoutScreen(),
+          ),
+          GoRoute(
+            path: AppRoute.rfpPaymentSuccess.path,
+            name: AppRoute.rfpPaymentSuccess.name,
+            builder: (context, state) => const RfpPaymentSuccessScreen(),
+          ),
+          GoRoute(
+            path: AppRoute.rfpDashboard.path,
+            name: AppRoute.rfpDashboard.name,
+            builder: (context, state) => const RfpDashboardScreen(),
+          ),
+          GoRoute(
+            path: AppRoute.rfpDeliveries.path,
+            name: AppRoute.rfpDeliveries.name,
+            builder: (context, state) => const RfpDeliveriesScreen(),
+          ),
+          GoRoute(
+            path: AppRoute.rfpSubscriptions.path,
+            name: AppRoute.rfpSubscriptions.name,
+            builder: (context, state) => const RfpSubscriptionsListScreen(),
+          ),
+        ],
       ),
       GoRoute(
         path: AppRoute.contractFarming.path,
         name: AppRoute.contractFarming.name,
-        parentNavigatorKey: _rootNavigatorKey,
-        builder:
-            (context, state) => DeepLinkFallbackWrapper(
-              fallbackRoute: AppRoute.home.path,
-              child: const CombinedScreen(),
-            ),
+        redirect: (context, state) => AppRoute.rfpLanding.path,
+      ),
+      GoRoute(
+        path: AppRoute.delivery.path,
+        name: AppRoute.delivery.name,
+        redirect: (context, state) => AppRoute.rfpDeliveries.path,
       ),
 
       // --- AI Chat Route (Full Screen, Auth Required) ---

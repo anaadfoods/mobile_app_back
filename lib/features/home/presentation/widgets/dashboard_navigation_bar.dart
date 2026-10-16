@@ -80,74 +80,74 @@ class PremiumBottomNavBar extends StatelessWidget {
           child: ClipPath(
             clipper: WaveClipper(notchRadius: 26, notchMargin: 5),
             child: Container(
-                height: navBarHeight,
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors:
-                        isDark
-                            ? [
-                              AppColors.deepSoilGreen.withValues(alpha: 0.95),
-                              AppColors.deepSoilGreen.withValues(alpha: 0.98),
-                            ]
-                            : [
-                              AppColors.softCream.withValues(alpha: 0.96),
-                              AppColors.parchment.withValues(alpha: 0.98),
-                            ],
-                  ),
-                  border: Border.all(
+              height: navBarHeight,
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors:
+                      isDark
+                          ? [
+                            AppColors.deepSoilGreen.withValues(alpha: 0.95),
+                            AppColors.deepSoilGreen.withValues(alpha: 0.98),
+                          ]
+                          : [
+                            AppColors.softCream.withValues(alpha: 0.96),
+                            AppColors.parchment.withValues(alpha: 0.98),
+                          ],
+                ),
+                border: Border.all(
+                  color:
+                      isDark
+                          ? AppColors.parchment.withValues(alpha: 0.1)
+                          : AppColors.rawEarth.withValues(alpha: 0.12),
+                  width: 0.5,
+                ),
+                boxShadow: [
+                  BoxShadow(
                     color:
                         isDark
-                            ? AppColors.parchment.withValues(alpha: 0.1)
-                            : AppColors.rawEarth.withValues(alpha: 0.12),
-                    width: 0.5,
+                            ? AppColors.pureBlack.withValues(alpha: 0.4)
+                            : AppColors.rawEarth.withValues(alpha: 0.15),
+                    blurRadius: 20,
+                    spreadRadius: 2,
+                    offset: const Offset(0, -4),
                   ),
-                  boxShadow: [
-                    BoxShadow(
-                      color:
-                          isDark
-                              ? AppColors.pureBlack.withValues(alpha: 0.4)
-                              : AppColors.rawEarth.withValues(alpha: 0.15),
-                      blurRadius: 20,
-                      spreadRadius: 2,
-                      offset: const Offset(0, -4),
-                    ),
-                  ],
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  children: List.generate(items.length, (index) {
-                    final item = items[index];
-                    final isActive = index == currentIndex;
+                ],
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: List.generate(items.length, (index) {
+                  final item = items[index];
+                  final isActive = index == currentIndex;
 
-                    if (index == 2) {
-                      return DockCartNavItem(
-                        item: item,
-                        isActive: isActive,
-                        onTap: () => onTabChanged(index),
-                        colorScheme: colorScheme,
-                        isDark: isDark,
-                        itemIndex: index,
-                        pageOffset: pageOffset,
-                        cartCount: cartBadgeCount,
-                      );
-                    }
-
-                    return Expanded(
-                      child: DockNavItem(
-                        item: item,
-                        isActive: isActive,
-                        onTap: () => onTabChanged(index),
-                        colorScheme: colorScheme,
-                        isDark: isDark,
-                        currentIndex: currentIndex,
-                        itemIndex: index,
-                        pageOffset: pageOffset,
-                      ),
+                  if (index == 2) {
+                    return DockCartNavItem(
+                      item: item,
+                      isActive: isActive,
+                      onTap: () => onTabChanged(index),
+                      colorScheme: colorScheme,
+                      isDark: isDark,
+                      itemIndex: index,
+                      pageOffset: pageOffset,
+                      cartCount: cartBadgeCount,
                     );
-                  }),
-                ),
+                  }
+
+                  return Expanded(
+                    child: DockNavItem(
+                      item: item,
+                      isActive: isActive,
+                      onTap: () => onTabChanged(index),
+                      colorScheme: colorScheme,
+                      isDark: isDark,
+                      currentIndex: currentIndex,
+                      itemIndex: index,
+                      pageOffset: pageOffset,
+                    ),
+                  );
+                }),
+              ),
             ),
           ),
         ),

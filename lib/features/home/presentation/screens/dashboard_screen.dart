@@ -149,7 +149,10 @@ class DashboardScreenState extends State<DashboardScreen>
         );
 
         const tabNames = ['Home', 'Categories', 'Cart', 'Wishlist', 'Profile'];
-        final tabName = targetTab < tabNames.length ? tabNames[targetTab] : 'Tab_$targetTab';
+        final tabName =
+            targetTab < tabNames.length
+                ? tabNames[targetTab]
+                : 'Tab_$targetTab';
         AnalyticsService().currentScreen = tabName;
         AnalyticsService().trackClick(
           elementText: 'Bottom Tab: $tabName',

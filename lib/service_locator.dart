@@ -22,6 +22,29 @@ import 'package:grocery_app/services/rfp_services.dart';
 import 'package:grocery_app/services/user_summary_service.dart';
 import 'package:grocery_app/services/content_config_service.dart';
 
+import 'package:grocery_app/features/rfp/data/datasources/rfp_remote_data_source.dart';
+import 'package:grocery_app/features/rfp/data/datasources/rfp_mock_data_source.dart';
+import 'package:grocery_app/features/rfp/data/repositories/rfp_repository_impl.dart';
+import 'package:grocery_app/features/rfp/domain/repositories/rfp_repository.dart';
+import 'package:grocery_app/features/rfp/domain/usecases/get_locations_use_case.dart';
+import 'package:grocery_app/features/rfp/domain/usecases/get_batches_use_case.dart';
+import 'package:grocery_app/features/rfp/domain/usecases/get_plans_use_case.dart';
+import 'package:grocery_app/features/rfp/domain/usecases/get_patches_use_case.dart';
+import 'package:grocery_app/features/rfp/domain/usecases/calculate_pricing_use_case.dart';
+import 'package:grocery_app/features/rfp/domain/usecases/create_booking_use_case.dart';
+import 'package:grocery_app/features/rfp/domain/usecases/get_booking_details_use_case.dart';
+import 'package:grocery_app/features/rfp/domain/usecases/get_delivery_schedule_use_case.dart';
+import 'package:grocery_app/features/rfp/domain/usecases/get_delivery_otp_status_use_case.dart';
+import 'package:grocery_app/features/rfp/domain/usecases/verify_rfp_payment_use_case.dart';
+import 'package:grocery_app/features/rfp/domain/usecases/pay_remaining_use_case.dart';
+import 'package:grocery_app/features/rfp/domain/usecases/get_my_subscriptions_use_case.dart';
+import 'package:grocery_app/features/rfp/domain/usecases/get_user_addresses_use_case.dart';
+import 'package:grocery_app/features/rfp/domain/usecases/save_user_address_use_case.dart';
+import 'package:grocery_app/features/rfp/presentation/cubit/rfp_batch_cubit.dart';
+import 'package:grocery_app/features/rfp/presentation/cubit/rfp_patch_config_cubit.dart';
+import 'package:grocery_app/features/rfp/presentation/cubit/rfp_checkout_cubit.dart';
+import 'package:grocery_app/features/rfp/presentation/cubit/rfp_dashboard_cubit.dart';
+
 import 'package:grocery_app/features/panchang/data/datasources/panchang_remote_data_source.dart';
 import 'package:grocery_app/features/panchang/data/datasources/kundli_remote_data_source.dart';
 import 'package:grocery_app/features/panchang/data/repositories/panchang_repository_impl.dart' as panchang_impl;
@@ -818,6 +841,101 @@ void setupLocator() {
       generateKundliUseCase: getIt<GenerateKundliUseCase>(),
       getBirthDetailsUseCase: getIt<GetBirthDetailsUseCase>(),
       saveBirthDetailsUseCase: getIt<SaveBirthDetailsUseCase>(),
+    ),
+  );
+
+  // ─── RFP Feature ──────────────────────────────────────────────────────────
+  getIt.registerLazySingleton<RfpRemoteDataSource>(
+    () => RfpRemoteDataSourceImpl(apiClient: getIt<ApiClient>()),
+  );
+  getIt.registerLazySingleton<RfpMockDataSource>(() => RfpMockDataSource());
+  getIt.registerLazySingleton<RfpRepository>(
+    () => RfpRepositoryImpl(
+      getIt<RfpRemoteDataSource>(),
+      getIt<RfpMockDataSource>(),
+    ),
+  );
+
+  // RFP Use Cases
+  getIt.registerLazySingleton<GetLocationsUseCase>(
+    () => GetLocationsUseCase(getIt<RfpRepository>()),
+  );
+  getIt.registerLazySingleton<GetBatchesUseCase>(
+    () => GetBatchesUseCase(getIt<RfpRepository>()),
+  );
+  getIt.registerLazySingleton<GetPlansUseCase>(
+    () => GetPlansUseCase(getIt<RfpRepository>()),
+  );
+  getIt.registerLazySingleton<GetPatchesUseCase>(
+    () => GetPatchesUseCase(getIt<RfpRepository>()),
+  );
+  getIt.registerLazySingleton<CalculatePricingUseCase>(
+    () => CalculatePricingUseCase(getIt<RfpRepository>()),
+  );
+  getIt.registerLazySingleton<CreateBookingUseCase>(
+    () => CreateBookingUseCase(getIt<RfpRepository>()),
+  );
+  getIt.registerLazySingleton<GetBookingDetailsUseCase>(
+    () => GetBookingDetailsUseCase(getIt<RfpRepository>()),
+  );
+  getIt.registerLazySingleton<GetActiveBookingUseCase>(
+    () => GetActiveBookingUseCase(getIt<RfpRepository>()),
+  );
+  getIt.registerLazySingleton<GetDeliveryScheduleUseCase>(
+    () => GetDeliveryScheduleUseCase(getIt<RfpRepository>()),
+  );
+  getIt.registerLazySingleton<GetUpcomingDeliveriesUseCase>(
+    () => GetUpcomingDeliveriesUseCase(getIt<RfpRepository>()),
+  );
+  getIt.registerLazySingleton<VerifyRfpPaymentUseCase>(
+    () => VerifyRfpPaymentUseCase(getIt<RfpRepository>()),
+  );
+  getIt.registerLazySingleton<PayRemainingUseCase>(
+    () => PayRemainingUseCase(getIt<RfpRepository>()),
+  );
+  getIt.registerLazySingleton<GetMySubscriptionsUseCase>(
+    () => GetMySubscriptionsUseCase(getIt<RfpRepository>()),
+  );
+  getIt.registerLazySingleton<GetUserAddressesUseCase>(
+    () => GetUserAddressesUseCase(getIt<RfpRepository>()),
+  );
+  getIt.registerLazySingleton<SaveUserAddressUseCase>(
+    () => SaveUserAddressUseCase(getIt<RfpRepository>()),
+  );
+  getIt.registerLazySingleton<GetDeliveryOtpStatusUseCase>(
+    () => GetDeliveryOtpStatusUseCase(getIt<RfpRepository>()),
+  );
+
+  // RFP Cubits
+  getIt.registerLazySingleton<RfpBatchCubit>(
+    () => RfpBatchCubit(
+      getBatches: getIt<GetBatchesUseCase>(),
+      getPlans: getIt<GetPlansUseCase>(),
+      getPatches: getIt<GetPatchesUseCase>(),
+      calculatePricing: getIt<CalculatePricingUseCase>(),
+    ),
+  );
+  getIt.registerFactory<RfpPatchConfigCubit>(
+    () => RfpPatchConfigCubit(),
+  );
+  getIt.registerFactory<RfpCheckoutCubit>(
+    () => RfpCheckoutCubit(
+      createBooking: getIt<CreateBookingUseCase>(),
+      calculatePricing: getIt<CalculatePricingUseCase>(),
+      verifyPayment: getIt<VerifyRfpPaymentUseCase>(),
+      getUserAddresses: getIt<GetUserAddressesUseCase>(),
+      saveUserAddress: getIt<SaveUserAddressUseCase>(),
+    ),
+  );
+  getIt.registerFactory<RfpDashboardCubit>(
+    () => RfpDashboardCubit(
+      getActiveBooking: getIt<GetActiveBookingUseCase>(),
+      getDeliverySchedule: getIt<GetDeliveryScheduleUseCase>(),
+      getUpcomingDeliveries: getIt<GetUpcomingDeliveriesUseCase>(),
+      getBookingDetails: getIt<GetBookingDetailsUseCase>(),
+      payRemaining: getIt<PayRemainingUseCase>(),
+      verifyPayment: getIt<VerifyRfpPaymentUseCase>(),
+      getDeliveryOtpStatus: getIt<GetDeliveryOtpStatusUseCase>(),
     ),
   );
 }

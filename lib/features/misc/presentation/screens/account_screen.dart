@@ -1,5 +1,3 @@
-import 'package:grocery_app/features/auth/presentation/cubit/auth_cubit.dart';
-import 'package:grocery_app/features/auth/presentation/cubit/auth_state.dart';
 import "dart:math" as math;
 import "package:grocery_app/common_widgets/global_import.dart";
 import "package:grocery_app/models/user_summary_model.dart";
@@ -8,8 +6,7 @@ import "package:grocery_app/services/user_summary_service.dart";
 import "package:grocery_app/features/misc/presentation/widgets/account_stats_row.dart";
 import "package:grocery_app/features/misc/presentation/widgets/account_menu_section.dart";
 import "package:grocery_app/features/misc/presentation/widgets/account_preferences_section.dart";
-
-import "package:grocery_app/service_locator.dart";
+import "package:grocery_app/features/rfp/presentation/widgets/rfp_account_subscription_tile.dart";
 
 class AccountScreen extends StatefulWidget {
   const AccountScreen({super.key});
@@ -266,6 +263,10 @@ class _AccountScreenState extends State<AccountScreen>
                       ),
                     ],
                   ),
+                  const SizedBox(height: 20),
+
+                  // Remote Farming Program Subscriptions Tile
+                  const RfpAccountSubscriptionTile(),
                   const SizedBox(height: 20),
 
                   // Orders & Subscriptions with trailing values

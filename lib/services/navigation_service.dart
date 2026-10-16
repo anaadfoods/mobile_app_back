@@ -101,6 +101,10 @@ class NavigationService {
     AppRouter().router.goNamed(AppRoute.home.name);
   }
 
+  static Future<void> navigateToRfpDeliveries() async {
+    AppRouter().router.goNamed(AppRoute.rfpDeliveries.name);
+  }
+
   // Keep pop method if needed, but usually context.pop() is better in widgets.
   // This might be used by back buttons in non-context areas (rare).
   static void goBack() {
